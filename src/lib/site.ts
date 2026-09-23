@@ -12,6 +12,11 @@ export const ALL_SECTIONS = [
   'top',
   'models',
   'tools',
+  'image',
+  'video',
+  'data',
+  'databases',
+  'rust',
   'policy',
   'opinion',
 ] as const;
@@ -22,6 +27,11 @@ export const SECTION_LABELS: Record<Section, string> = {
   top: 'Top',
   models: 'Models',
   tools: 'Tools',
+  image: 'Image',
+  video: 'Video',
+  data: 'Data',
+  databases: 'Databases',
+  rust: 'Rust',
   policy: 'Policy',
   opinion: 'Opinion',
 };
