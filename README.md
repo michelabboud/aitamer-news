@@ -4,7 +4,7 @@ Production-ready **static** Astro news site for [aitamer.news](https://aitamer.n
 
 - Astro + TypeScript + MDX content collections
 - `output: 'static'` (no Cloudflare adapter required for Pages)
-- Sections: Top, Models, Tools, Policy, Opinion
+- Sections: Top, Models, Tools, Image, Video, Data, Databases, Rust, Policy, Opinion
 - Human / AI byline badges
 - RSS + sitemap + robots.txt
 
@@ -46,7 +46,8 @@ title: Your headline
 description: One-line dek / summary.
 pubDate: 2026-09-23
 updatedDate: 2026-09-24   # optional
-section: tools            # top | models | tools | policy | opinion
+section: tools            # top | models | tools | image | video | data | databases | rust | policy | opinion
+subsection: cli           # optional
 tags: [briefing, tools]
 draft: true               # keep true until ready
 heroImage: /images/foo.jpg # optional
