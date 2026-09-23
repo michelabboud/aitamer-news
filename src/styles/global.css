@@ -283,9 +283,9 @@ code {
   border-radius: 999px;
   padding: 0.15rem 0.5rem;
   font-size: 0.72rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-weight: 700;
 }
 
 .badge--human {
