@@ -77,5 +77,5 @@ export function authorHref(id: string): string {
 }
 
 export function isSection(value: string): value is Section {
-  return (ALL_SECTIONS as readonly string[]) .includes(value);
+  return (ALL_SECTIONS as readonly string[]).includes(value);
 }
