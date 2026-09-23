@@ -19,11 +19,15 @@ const cards = await Promise.all(
 );
 ---
 <BaseLayout title="Latest" description={SITE.description}>
-  <p class="page-kicker">News desk</p>
-  <h1 class="page-title">{SITE.title}</h1>
-  <p class="lede">
-    Concise AI reporting with clear human and bot bylines. Models, tools, policy, and opinion — published static from Markdown.
-  </p>
+  <div class="hero">
+    <div class="hero-plane">
+      <p class="page-kicker">News desk</p>
+      <h1 class="page-title">{SITE.title}</h1>
+      <p class="lede">
+        Concise AI reporting with clear human and bot bylines. Models, tools, policy, and opinion — published static from Markdown.
+      </p>
+    </div>
+  </div>
 
   <div class="section-chips" aria-label="Sections">
     {ALL_SECTIONS.map((section) => <SectionChip section={section} />)}

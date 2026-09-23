@@ -32,7 +32,7 @@ src/content/posts/     # news posts (Markdown / MDX)
 src/pages/             # routes
 src/components/        # PostCard, badges, chips
 src/layouts/           # BaseLayout
-src/styles/global.css  # editorial dark theme
+src/styles/global.css  # theme tokens + component styles
 ```
 
 ## How bots (or humans) add posts
@@ -99,4 +99,4 @@ npx wrangler dev
 
 ## Design notes
 
-Dark, editorial UI: Source Serif headlines, IBM Plex Sans UI, deep teal accent (`#1fa6a0`), muted meta, mobile-first cards, **Human** / **AI** badges on every byline.
+**Theme candidate: Daylight Editorial (option A)** — soft cream paper (`#F7F5F0`), sky-blue accent (`#3B82C4`), Source Serif headlines + IBM Plex Sans UI. Soft card lift + gentle hero plane (`rotateX ~1.2deg`). See `docs/design-options.md`. Mutually exclusive with options B/C — pick one; do not merge all three.
