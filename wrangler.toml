@@ -1,0 +1,8 @@
+# Optional: static-assets config for Wrangler / Workers Static Assets.
+# Cloudflare Pages does not require this file — use build command
+# `npm run build` and output directory `dist` in the Pages UI.
+name = "aitamer-news"
+compatibility_date = "2026-09-23"
+
+[assets]
+directory = "./dist"
