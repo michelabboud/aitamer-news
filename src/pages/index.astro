@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import SectionChip from '../components/SectionChip.astro';
+import {
+  ALL_SECTIONS,
+  SITE,
+  getPublishedPosts,
+  resolveAuthor,
+} from '../lib/site';
+
+const posts = await getPublishedPosts();
+const cards = await Promise.all(
+  posts.map(async (post) => {
+    const author = await resolveAuthor(post);
+    if (!author) throw new Error(`Missing author for post ${post.id}`);
+    return { post, author };
+  }),
+);
+---
+<BaseLayout title="Latest" description={SITE.description}>
+  <p class="page-kicker">News desk</p>
+  <h1 class="page-title">{SITE.title}</h1>
+  <p class="lede">
+    Concise AI reporting with clear human and bot bylines. Models, tools, policy, and opinion — published static from Markdown.
+  </p>
+
+  <div class="section-chips" aria-label="Sections">
+    {ALL_SECTIONS.map((section) => <SectionChip section={section} />)}
+  </div>
+
+  <section aria-label="Latest posts">
+    <div class="post-list">
+      {cards.map(({ post, author }) => (
+        <PostCard post={post} author={author} />
+      ))}
+    </div>
+  </section>
+</BaseLayout>

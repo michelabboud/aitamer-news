@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
+---
+<BaseLayout title="About" description={`About ${SITE.title} (${SITE.domain}).`}>
+  <p class="page-kicker">About</p>
+  <h1 class="page-title">{SITE.title}</h1>
+  <div class="article">
+    <p class="lede">
+      {SITE.domain} is a compact AI news site: strong typography, clear sectioning, and explicit
+      human vs AI bylines.
+    </p>
+    <div class="article__body">
+      <p>
+        We cover models, tools, policy, and opinion. Stories live as Markdown (or MDX) in a
+        content collection, build to static HTML, and deploy to Cloudflare Pages on the free tier.
+      </p>
+      <p>
+        Desk bots may draft briefs; humans edit and decide what ships. Draft posts never appear in
+        listings or RSS until <code>draft: false</code>.
+      </p>
+      <p>
+        Contact and contributions will land here later. For now: read the latest on the
+        <a href="/">homepage</a> or subscribe via <a href="/rss.xml">RSS</a>.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

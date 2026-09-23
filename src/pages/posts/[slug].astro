@@ -1,0 +1,86 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AuthorBadge from '../../components/AuthorBadge.astro';
+import {
+  SECTION_LABELS,
+  authorHref,
+  formatDate,
+  getPublishedPosts,
+  resolveAuthor,
+  sectionHref,
+  type Section,
+} from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const author = await resolveAuthor(post);
+if (!author) throw new Error(`Missing author for post ${post.id}`);
+const { Content } = await render(post);
+const section = post.data.section as Section;
+---
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article class="article">
+    <header class="article__header">
+      <p class="page-kicker">
+        <a href={sectionHref(section)}>{SECTION_LABELS[section]}</a>
+      </p>
+      <h1 class="article__title">{post.data.title}</h1>
+      <p class="lede">{post.data.description}</p>
+      <div class="byline">
+        <AuthorBadge kind={author.data.kind} />
+        <span>
+          By <a href={authorHref(author.id)}>{author.data.name}</a>
+        </span>
+        <time datetime={post.data.pubDate.toISOString()}>
+          {formatDate(post.data.pubDate)}
+        </time>
+        {post.data.updatedDate && (
+          <span>
+            Updated{' '}
+            <time datetime={post.data.updatedDate.toISOString()}>
+              {formatDate(post.data.updatedDate)}
+            </time>
+          </span>
+        )}
+      </div>
+      {post.data.tags.length > 0 && (
+        <p class="byline" style="margin-top: 0.75rem;">
+          {post.data.tags.map((tag) => (
+            <span class="badge badge--section">{tag}</span>
+          ))}
+        </p>
+      )}
+    </header>
+
+    {post.data.heroImage && (
+      <img src={post.data.heroImage} alt="" style="margin-bottom: 1.5rem; border-radius: 0.5rem;" />
+    )}
+
+    <div class="article__body">
+      <Content />
+    </div>
+
+    {post.data.sources && post.data.sources.length > 0 && (
+      <aside class="sources">
+        <h2>Sources</h2>
+        <ul>
+          {post.data.sources.map((source) => (
+            <li>
+              <a href={source.url} rel="noopener noreferrer">
+                {source.title ?? source.url}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    )}
+  </article>
+</BaseLayout>

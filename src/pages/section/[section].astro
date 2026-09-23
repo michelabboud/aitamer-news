@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import SectionChip from '../../components/SectionChip.astro';
+import {
+  ALL_SECTIONS,
+  SECTION_LABELS,
+  getPostsBySection,
+  isSection,
+  resolveAuthor,
+  type Section,
+} from '../../lib/site';
+
+export function getStaticPaths() {
+  return ALL_SECTIONS.map((section) => ({
+    params: { section },
+  }));
+}
+
+const raw = Astro.params.section ?? '';
+if (!isSection(raw)) {
+  return Astro.redirect('/');
+}
+const section = raw as Section;
+const posts = await getPostsBySection(section);
+const cards = await Promise.all(
+  posts.map(async (post) => {
+    const author = await resolveAuthor(post);
+    if (!author) throw new Error(`Missing author for post ${post.id}`);
+    return { post, author };
+  }),
+);
+---
+<BaseLayout
+  title={SECTION_LABELS[section]}
+  description={`AI Tamer stories in ${SECTION_LABELS[section]}.`}
+>
+  <p class="page-kicker">Section</p>
+  <h1 class="page-title">{SECTION_LABELS[section]}</h1>
+  <p class="lede">Published stories filed under {SECTION_LABELS[section]}.</p>
+
+  <div class="section-chips" aria-label="Sections">
+    {ALL_SECTIONS.map((s) => (
+      <SectionChip section={s} active={s === section} />
+    ))}
+  </div>
+
+  {cards.length === 0 ? (
+    <p class="empty">No published posts in this section yet.</p>
+  ) : (
+    <div class="post-list">
+      {cards.map(({ post, author }) => (
+        <PostCard post={post} author={author} />
+      ))}
+    </div>
+  )}
+</BaseLayout>
