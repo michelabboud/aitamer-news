@@ -35,5 +35,5 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          accountId: "48a3301b0d9817c1b50c2b81c36d799f"
           command: pages deploy dist --project-name=aitamer-news --branch=main
