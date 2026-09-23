@@ -1,0 +1,8 @@
+---
+interface Props {
+  kind: 'human' | 'bot';
+}
+const { kind } = Astro.props;
+const label = kind === 'bot' ? 'AI' : 'Human';
+---
+<span class={`badge badge--${kind === 'bot' ? 'bot' : 'human'}`}>{label}</span>

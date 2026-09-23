@@ -1,0 +1,33 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import AuthorBadge from './AuthorBadge.astro';
+import {
+  SECTION_LABELS,
+  formatDate,
+  postHref,
+  authorHref,
+  type Section,
+} from '../lib/site';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+  author: CollectionEntry<'authors'>;
+}
+const { post, author } = Astro.props;
+const section = post.data.section as Section;
+---
+<article>
+  <a class="post-card" href={postHref(post)}>
+    <div class="post-card__meta">
+      <span class="badge badge--section">{SECTION_LABELS[section]}</span>
+      <AuthorBadge kind={author.data.kind} />
+      <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+      <span>by {author.data.name}</span>
+    </div>
+    <h2 class="post-card__title">{post.data.title}</h2>
+    <p class="post-card__desc">{post.data.description}</p>
+  </a>
+  <p class="byline" style="margin: 0.45rem 0 0 0.15rem; font-size: 0.8rem;">
+    <a href={authorHref(author.id)}>{author.data.name}</a>
+  </p>
+</article>
