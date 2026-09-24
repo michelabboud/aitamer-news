@@ -1,11 +1,7 @@
 name: Decode hero PNGs
 
 on:
-  push:
-    branches: [design/post-heroes]
-    paths:
-      - 'public/heroes/*.b64'
-      - 'public/heroes/*.b64.part*'
+  workflow_dispatch:
 
 concurrency:
   group: decode-heroes
@@ -26,7 +22,6 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
 
-          # Whole-file .png.b64
           for f in public/heroes/*.png.b64; do
             out="${f%.b64}"
             base64 -d "$f" > "$out"
@@ -34,25 +29,29 @@ jobs:
             echo "decoded $out ($(wc -c < "$out") bytes)"
           done
 
-          # Multipart: foo.png.b64.part0, part1, ...
-          declare -A seen=()
+          bases=()
           for f in public/heroes/*.png.b64.part*; do
             base="${f%.b64.part*}"
-            seen["$base"]=1
+            bases+=("$base")
           done
-          for base in "${!seen[@]}"; do
+          # unique bases
+          mapfile -t bases < <(printf '%s\n' "${bases[@]}" | sort -u)
+
+          for base in "${bases[@]}"; do
             out="$base"
             rm -f /tmp/hero.b64
-            parts=("$base".b64.part*)
-            # sort numerically by part index
-            IFS=$'\n' sorted=($(printf '%s\n' "${parts[@]}" | sort -t'p' -k2 -n))
-            unset IFS
+            mapfile -t sorted < <(ls -1 "$base".b64.part* | sort -t't' -k2 -n)
             for p in "${sorted[@]}"; do
               cat "$p" >> /tmp/hero.b64
               rm -f "$p"
             done
             base64 -d /tmp/hero.b64 > "$out"
             echo "assembled $out ($(wc -c < "$out") bytes) from ${#sorted[@]} parts"
+            python3 - <<'PY' "$out"
+import sys
+p=open(sys.argv[1],'rb').read(3)
+print('magic', p.hex(), 'jpeg' if p[:2]==b'\xff\xd8' else 'other')
+PY
           done
 
           git config user.name "github-actions[bot]"
@@ -68,12 +67,12 @@ jobs:
         if: success()
         run: |
           set -euo pipefail
-          # Only remove after no remaining parts/b64
           shopt -s nullglob
           left=(public/heroes/*.b64 public/heroes/*.b64.part*)
           if [ ${#left[@]} -gt 0 ]; then
             echo "still have pending blobs; keeping workflow"
-            exit 0
+            ls -la "${left[@]}" || true
+            exit 1
           fi
           if [ -f .github/workflows/decode-heroes.yml ]; then
             git config user.name "github-actions[bot]"
