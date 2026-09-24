@@ -32,6 +32,14 @@ jobs:
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+      - name: Restore Astro incremental cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.astro
+          key: astro-incremental-github-pages-${{ github.sha }}
+          restore-keys: |
+            astro-incremental-github-pages-
+
       - name: Build
         env:
           ASTRO_SITE: https://michelabboud.github.io

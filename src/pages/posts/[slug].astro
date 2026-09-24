@@ -6,6 +6,7 @@ import {
   SECTION_LABELS,
   authorHref,
   formatDate,
+  entryStamp,
   getPublishedPosts,
   resolveAuthor,
   sectionHref,
@@ -16,10 +17,16 @@ import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+  return Promise.all(
+    posts.map(async (post) => {
+      const author = await resolveAuthor(post);
+      return {
+        params: { slug: post.id },
+        props: { post },
+        cacheKey: [entryStamp(post), author ? entryStamp(author) : 'missing-author'].join('|'),
+      };
+    }),
+  );
 }
 
 const { post } = Astro.props;

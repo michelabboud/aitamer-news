@@ -36,6 +36,11 @@ export const SECTION_LABELS: Record<Section, string> = {
   opinion: 'Opinion',
 };
 
+/** Changes when a content entry's body or frontmatter changes. Used as an incremental-build cache key. */
+export function entryStamp(entry: { id: string; digest?: string }): string {
+  return `${entry.id}@${entry.digest ?? 'no-digest'}`;
+}
+
 export function isPublished(post: CollectionEntry<'posts'>): boolean {
   return !post.data.draft;
 }

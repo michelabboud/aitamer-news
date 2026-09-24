@@ -3,14 +3,22 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
-import { getPostsByAuthor, resolveAuthor } from '../../lib/site';
+import { entryStamp, getPostsByAuthor, getPublishedPosts, resolveAuthor } from '../../lib/site';
 
 export async function getStaticPaths() {
   const authors = await getCollection('authors');
-  return authors.map((author) => ({
-    params: { id: author.id },
-    props: { author },
-  }));
+  const posts = await getPublishedPosts();
+  return authors.map((author) => {
+    const stamps = [
+      entryStamp(author),
+      ...posts.filter((post) => post.data.author.id === author.id).map(entryStamp).sort(),
+    ];
+    return {
+      params: { id: author.id },
+      props: { author },
+      cacheKey: stamps.join('|'),
+    };
+  });
 }
 
 const { author } = Astro.props;

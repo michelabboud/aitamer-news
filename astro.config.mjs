@@ -13,5 +13,10 @@ export default defineConfig({
   site,
   base,
   output: 'static',
+  // Reuse HTML for unchanged getStaticPaths pages. Build concurrency must stay
+  // at its default of 1, or Astro disables this cache.
+  experimental: {
+    incrementalBuild: true,
+  },
   integrations: [mdx(), sitemap()],
 });
