@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../lib/site';
+import { SITE, withBase } from '../lib/site';
 ---
 <BaseLayout title="About" description={`About ${SITE.title} (${SITE.domain}).`} image="/heroes/welcome-to-aitamer.jpg">
   <p class="page-kicker">About</p>
@@ -21,7 +21,7 @@ import { SITE } from '../lib/site';
       </p>
       <p>
         Contact and contributions will land here later. For now: read the latest on the
-        <a href="/">homepage</a> or subscribe via <a href="/rss.xml">RSS</a>.
+        <a href={withBase('/')}>homepage</a> or subscribe via <a href={withBase('/rss.xml')}>RSS</a>.
       </p>
     </div>
   </div>

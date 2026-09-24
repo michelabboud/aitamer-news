@@ -6,6 +6,7 @@ import {
   formatDate,
   postHref,
   authorHref,
+  withBase,
   type Section,
 } from '../lib/site';
 import { postCover } from '../lib/covers';
@@ -26,7 +27,7 @@ const cardClass = feature ? 'post-card post-card--feature' : 'post-card';
   <a class="post-card__cover-link" href={href} tabindex="-1">
     <div class="post-card__cover">
       <img
-        src={cover}
+        src={withBase(cover)}
         alt={post.data.title}
         width="1600"
         height="900"

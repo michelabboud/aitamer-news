@@ -68,6 +68,15 @@ Body copy in Markdown…
 4. Set `draft: false` to publish. Drafts are excluded from home, section pages, author pages, and `/rss.xml`.
 5. Run `npm run build` and confirm `/posts/your-slug/` exists in `dist/`.
 
+## Publishing
+
+A push to `main` publishes two copies.
+
+1. **https://aitamer.news** is the main site. `.github/workflows/deploy-pages.yml` builds with no path prefix and uploads `dist` to Cloudflare Pages.
+2. **https://michelabboud.github.io/aitamer-news/** is the GitHub Pages copy. `.github/workflows/deploy-github-pages.yml` builds the same site with `ASTRO_BASE=/aitamer-news` so links work under that project path. Canonical URLs in the HTML still point at `https://aitamer.news`.
+
+GitHub Pages has to use **GitHub Actions** as its source. “Deploy from a branch” runs Jekyll on the Astro source and the build fails. The GitHub Pages site is public even though this repository is private.
+
 ## Cloudflare Pages setup (free tier)
 
 1. Push this repo to GitHub (when you are ready — do not require paid features).

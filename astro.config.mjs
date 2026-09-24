@@ -3,10 +3,15 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 
-// Static site for Cloudflare Pages (free tier). No adapter required.
-// https://docs.astro.build/en/guides/deploy/cloudflare/
+// Two publishes of one static build:
+// - Cloudflare (aitamer.news) uses the defaults: site root, no path prefix.
+// - GitHub Pages is a project site, so that workflow sets ASTRO_SITE and ASTRO_BASE.
+const site = process.env.ASTRO_SITE ?? 'https://aitamer.news';
+const base = process.env.ASTRO_BASE ?? '/';
+
 export default defineConfig({
-  site: 'https://aitamer.news',
+  site,
+  base,
   output: 'static',
   integrations: [mdx(), sitemap()],
 });

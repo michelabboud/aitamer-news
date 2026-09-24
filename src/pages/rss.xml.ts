@@ -18,10 +18,13 @@ export async function GET(context: APIContext) {
     }),
   );
 
+  const origin = context.site ?? SITE.url;
+  const site = new URL(import.meta.env.BASE_URL, origin).toString();
+
   return rss({
     title: SITE.title,
     description: SITE.description,
-    site: context.site ?? SITE.url,
+    site,
     items,
     customData: `<language>en-us</language>`,
   });

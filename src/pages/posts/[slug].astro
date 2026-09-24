@@ -9,6 +9,7 @@ import {
   getPublishedPosts,
   resolveAuthor,
   sectionHref,
+  withBase,
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
@@ -67,7 +68,7 @@ const hasHeroImage = Boolean(post.data.heroImage?.trim());
     <figure class="article__hero-figure">
       <img
         class="article__hero"
-        src={heroSrc}
+        src={withBase(heroSrc)}
         alt={post.data.title}
         width="1600"
         height="900"

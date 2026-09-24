@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { SITE } from '../lib/site';
+import { SITE, canonicalUrlFor, withBase } from '../lib/site';
 
 interface Props {
   title?: string;
@@ -22,11 +22,10 @@ const {
   noindex = false,
 } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.domain}`;
-const siteBase = Astro.site ?? SITE.url;
-const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteBase).toString();
+const canonicalUrl = canonical ?? canonicalUrlFor(Astro.url.pathname);
 const defaultImage = '/heroes/welcome-to-aitamer.jpg';
 const imagePath = image?.trim() || defaultImage;
-const absoluteImage = new URL(imagePath, siteBase).toString();
+const absoluteImage = new URL(imagePath, SITE.url).toString();
 ---
 <!doctype html>
 <html lang="en">
@@ -39,8 +38,8 @@ const absoluteImage = new URL(imagePath, siteBase).toString();
     <meta name="color-scheme" content="light" />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonicalUrl} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href="/rss.xml" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href={withBase('/rss.xml')} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -67,15 +66,15 @@ const absoluteImage = new URL(imagePath, siteBase).toString();
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="site-shell site-header__inner">
-        <a class="brand" href="/">
+        <a class="brand" href={withBase('/')}>
           <span class="brand__title">{SITE.title}</span>
           <span class="brand__domain">{SITE.domain}</span>
         </a>
         <nav class="nav" aria-label="Primary">
-          <a href="/">Home</a>
-          <a href="/section/top/">Sections</a>
-          <a href="/about/">About</a>
-          <a href="/rss.xml">RSS</a>
+          <a href={withBase('/')}>Home</a>
+          <a href={withBase('/section/top/')}>Sections</a>
+          <a href={withBase('/about/')}>About</a>
+          <a href={withBase('/rss.xml')}>RSS</a>
         </nav>
       </div>
     </header>
