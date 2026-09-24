@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Generated cover art (top motif). Not a photo.">
-<!-- Big Top house cover — top. Legal: original geometric art, not a photo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Generated cover art (models motif). Not a photo.">
+<!-- Big Top house cover — models. Legal: original geometric art, not a photo. -->
 <rect width="1600" height="900" fill="#fff8f0"/>
 <rect x="48" y="48" width="1504" height="804" rx="48" fill="none" stroke="#241c30" stroke-width="3" opacity=".12"/>
 <rect x="430" y="250" width="520" height="360" rx="40" fill="#241c30" opacity=".16"/>
-<rect x="420" y="240" width="520" height="360" rx="40" fill="#ffe0e8" stroke="#241c30" stroke-width="8"/>
+<rect x="420" y="240" width="520" height="360" rx="40" fill="#dceeff" stroke="#241c30" stroke-width="8"/>
 <circle cx="1010" cy="310" r="100" fill="#241c30" opacity=".16"/>
-<circle cx="1000" cy="300" r="100" fill="#ff6b8a" stroke="#241c30" stroke-width="8"/>
+<circle cx="1000" cy="300" r="100" fill="#7eb6ff" stroke="#241c30" stroke-width="8"/>
 <rect x="980" y="460" width="280" height="120" rx="60" fill="#241c30" opacity=".16"/>
 <rect x="970" y="450" width="280" height="120" rx="60" fill="#fff8f0" stroke="#241c30" stroke-width="7"/>
 <rect x="280" y="520" width="140" height="140" rx="32" fill="#241c30" opacity=".16"/>
-<rect x="270" y="510" width="140" height="140" rx="32" fill="#ff6b8a" stroke="#241c30" stroke-width="7"/>
-<g stroke="#ff6b8a" stroke-width="4" stroke-linecap="round" opacity=".5">
+<rect x="270" y="510" width="140" height="140" rx="32" fill="#7eb6ff" stroke="#241c30" stroke-width="7"/>
+<g stroke="#7eb6ff" stroke-width="4" stroke-linecap="round" opacity=".5">
 <line x1="140" y1="120" x2="160" y2="120"/><line x1="150" y1="110" x2="150" y2="130"/>
 <line x1="1440" y1="780" x2="1460" y2="780"/><line x1="1450" y1="770" x2="1450" y2="790"/>
 </g>
