@@ -3,6 +3,7 @@ title: "Copilot’s agent runtime moves to Rust — agents wrote most of the por
 description: "GitHub’s Stephen Toub details rewriting the Copilot agent runtime from TypeScript/Node into 800k+ lines of production Rust, shipping incrementally with an embeddable C ABI. Latency figures are GitHub eng benchmarks without model or network time."
 pubDate: 2026-09-23
 section: tools
+heroImage: /heroes/copilot-runtime-rust-migration.png
 subsection: agents
 tags:
   - github-copilot
