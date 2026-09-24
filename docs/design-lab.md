@@ -20,7 +20,12 @@ This page is **compare only**. It does **not** change the live site default in `
 2. Run `npm install && npm run dev` (or open the preview URL).
 3. Visit **`/design-lab/`**.
 
-Themes coexist on one page via scoped CSS under `[data-theme="…"]` in `src/styles/design-lab-themes.css`. Each column sets its own tokens and component styles (mini header, hero plane, chips, cards, Human/Bot badges).
+Themes coexist on one page via scoped CSS under `[data-theme="…"]`:
+
+- `src/styles/design-lab-themes-chrome.css` — page chrome + shared mini-site components
+- `src/styles/design-lab-themes-options.css` — per-theme tokens + restrained 3D
+
+Each column sets its own tokens and component styles (mini header, hero plane, chips, cards, Human/Bot badges).
 
 ## Shipping one theme to production
 
@@ -35,4 +40,4 @@ Do **not** treat the design-lab page as a multi-theme runtime switch for product
 
 - Local SoT mocks: `/workspace/atn-design-options/` (OPTIONS.md + option-*/styles.css)
 - Page: `src/pages/design-lab.astro`
-- Scoped styles: `src/styles/design-lab-themes.css`
+- Scoped styles: `design-lab-themes-chrome.css` + `design-lab-themes-options.css`
