@@ -11,12 +11,11 @@ function stripPad(raw) {
   raw = raw.trim();
   const pad = raw.indexOf('PADPAD');
   if (pad >= 0) raw = raw.slice(0, pad);
-  raw = raw.replace(/P{10,}$/, '');
-  return raw;
+  return raw.replace(/\s+/g, '');
 }
 
-// Assemble split parts: foo.png.b64.p0, foo.png.b64.p1, ... -> foo.png.b64
-const partRe = /^(.*\.png\.b64)\.p(\d+)$/;
+// Assemble foo.png.b64.p0 + .p1 + ... -> foo.png.b64
+const partRe = /^(.+\.png\.b64)\.p(\d+)$/;
 const byBase = new Map();
 for (const name of fs.readdirSync(dir)) {
   const m = name.match(partRe);
@@ -32,7 +31,8 @@ for (const [base, parts] of byBase) {
     joined += stripPad(fs.readFileSync(path.join(dir, p.name), 'utf8'));
   }
   fs.writeFileSync(path.join(dir, base), joined);
-  console.log('assembled', base, 'from', parts.length, 'parts');
+  for (const p of parts) fs.unlinkSync(path.join(dir, p.name));
+  console.log('assembled', base, 'from', parts.length, 'parts', `(${joined.length} chars)`);
 }
 
 let n = 0;
@@ -40,10 +40,22 @@ for (const name of fs.readdirSync(dir)) {
   if (!name.endsWith('.png.b64')) continue;
   const src = path.join(dir, name);
   let raw = stripPad(fs.readFileSync(src, 'utf8'));
+  if (raw.length % 4 === 1) {
+    console.error(
+      `ERROR: ${name} has invalid base64 length ${raw.length} (1 mod 4) — truncated`,
+    );
+    process.exit(1);
+  }
   raw += '='.repeat((4 - (raw.length % 4)) % 4);
+  const buf = Buffer.from(raw, 'base64');
+  if (buf.length < 100) {
+    console.error(`ERROR: ${name} decoded to only ${buf.length} bytes`);
+    process.exit(1);
+  }
   const out = path.join(dir, name.slice(0, -4)); // foo.png.b64 -> foo.png
-  fs.writeFileSync(out, Buffer.from(raw, 'base64'));
+  fs.writeFileSync(out, buf);
+  fs.unlinkSync(src);
   n += 1;
-  console.log('materialized', out, fs.statSync(out).size, 'bytes');
+  console.log('materialized', out, buf.length, 'bytes');
 }
 console.log(`decode-heroes: ${n} file(s)`);
