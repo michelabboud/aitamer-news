@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
+          # No package-lock.json in repo — do not set cache: npm (it requires a lockfile).
 
       - name: Install
         run: |
