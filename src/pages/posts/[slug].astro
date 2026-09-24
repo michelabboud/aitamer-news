@@ -28,6 +28,7 @@ const { Content } = await render(post);
 const section = post.data.section as Section;
 const generated = usesGeneratedCover(post);
 const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
+const hasHeroImage = Boolean(post.data.heroImage?.trim());
 ---
 <BaseLayout title={post.data.title} description={post.data.description}>
   <article class="article" data-section={section}>
@@ -75,6 +76,11 @@ const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
       {generated && (
         <figcaption class="article__hero-caption">
           Generated cover art ({SECTION_LABELS[section]} motif). Not a photo.
+        </figcaption>
+      )}
+      {!generated && hasHeroImage && (
+        <figcaption class="article__hero-caption">
+          Generated cover art. Not a photo.
         </figcaption>
       )}
     </figure>
