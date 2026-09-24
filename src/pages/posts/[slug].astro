@@ -11,6 +11,7 @@ import {
   sectionHref,
   type Section,
 } from '../../lib/site';
+import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -25,9 +26,11 @@ const author = await resolveAuthor(post);
 if (!author) throw new Error(`Missing author for post ${post.id}`);
 const { Content } = await render(post);
 const section = post.data.section as Section;
+const generated = usesGeneratedCover(post);
+const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
 ---
 <BaseLayout title={post.data.title} description={post.data.description}>
-  <article class="article">
+  <article class="article" data-section={section}>
     <header class="article__header">
       <p class="page-kicker">
         <a href={sectionHref(section)}>{SECTION_LABELS[section]}</a>
@@ -60,13 +63,21 @@ const section = post.data.section as Section;
       )}
     </header>
 
-    {post.data.heroImage && (
+    <figure class="article__hero-figure">
       <img
         class="article__hero"
-        src={post.data.heroImage}
+        src={heroSrc}
         alt=""
+        width="1600"
+        height="900"
+        decoding="async"
       />
-    )}
+      {generated && (
+        <figcaption class="article__hero-caption">
+          Generated cover art ({SECTION_LABELS[section]} motif). Not a photo.
+        </figcaption>
+      )}
+    </figure>
 
     <div class="article__body">
       <Content />

@@ -8,6 +8,7 @@ import {
   authorHref,
   type Section,
 } from '../lib/site';
+import { postCover } from '../lib/covers';
 
 interface Props {
   post: CollectionEntry<'posts'>;
@@ -15,9 +16,13 @@ interface Props {
 }
 const { post, author } = Astro.props;
 const section = post.data.section as Section;
+const cover = postCover(post);
 ---
 <article>
   <a class="post-card" href={postHref(post)}>
+    <div class="post-card__cover" aria-hidden="true">
+      <img src={cover} alt="" width="1600" height="900" loading="lazy" decoding="async" />
+    </div>
     <div class="post-card__meta">
       <span class="badge badge--section">{SECTION_LABELS[section]}</span>
       <AuthorBadge kind={author.data.kind} />

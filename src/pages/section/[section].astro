@@ -35,23 +35,25 @@ const cards = await Promise.all(
   title={SECTION_LABELS[section]}
   description={`AI Tamer stories in ${SECTION_LABELS[section]}.`}
 >
-  <p class="page-kicker">Section</p>
-  <h1 class="page-title">{SECTION_LABELS[section]}</h1>
-  <p class="lede">Published stories filed under {SECTION_LABELS[section]}.</p>
+  <div data-section={section}>
+    <p class="page-kicker">Section</p>
+    <h1 class="page-title">{SECTION_LABELS[section]}</h1>
+    <p class="lede">Published stories filed under {SECTION_LABELS[section]}.</p>
 
-  <div class="section-chips" aria-label="Sections">
-    {ALL_SECTIONS.map((s) => (
-      <SectionChip section={s} active={s === section} />
-    ))}
-  </div>
-
-  {cards.length === 0 ? (
-    <p class="empty">No published posts in this section yet.</p>
-  ) : (
-    <div class="post-list">
-      {cards.map(({ post, author }) => (
-        <PostCard post={post} author={author} />
+    <div class="section-chips" aria-label="Sections">
+      {ALL_SECTIONS.map((s) => (
+        <SectionChip section={s} active={s === section} />
       ))}
     </div>
-  )}
+
+    {cards.length === 0 ? (
+      <p class="empty">No published posts in this section yet.</p>
+    ) : (
+      <div class="post-list">
+        {cards.map(({ post, author }) => (
+          <PostCard post={post} author={author} />
+        ))}
+      </div>
+    )}
+  </div>
 </BaseLayout>

@@ -7,6 +7,11 @@ interface Props {
 }
 const { section, active = false } = Astro.props;
 ---
-<a class:list={['chip', { 'is-active': active }]} href={sectionHref(section)}>
+<a
+  class:list={['chip', { 'is-active': active }]}
+  href={sectionHref(section)}
+  data-section={section}
+>
+  <span class="chip__dot" aria-hidden="true"></span>
   {SECTION_LABELS[section]}
 </a>

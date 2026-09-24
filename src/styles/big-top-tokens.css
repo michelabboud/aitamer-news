@@ -1,0 +1,95 @@
+/* Big Top Daylight — tokens from bigtop-tokens.md. Soft shadows; no glass. */
+
+:root {
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-reading: "Instrument Sans", sans-serif;
+  --font-machine: "Martian Mono", monospace;
+
+  --paper: #fff8f0;
+  --paper-raised: #ffffff;
+  --paper-sunk: #fdf0e4;
+  --paper-fixed: #fff8f0;
+  --ink: #241c30;
+  --ink-muted: #6b6078;
+  --ink-fixed: #241c30;
+  --line: #e6dde9;
+  --shadow-tint: #e7d9ea;
+  --focus: #241c30;
+  --highlight: #ffe8b0;
+  --correction: #ce2556;
+  --human-fill: #ffd6c2;
+  --bot-fill: #c7ead9;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px;
+  --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --space-7: 48px; --space-8: 72px; --space-9: 120px;
+
+  --radius-sm: 10px; --radius-md: 18px; --radius-lg: 30px;
+  --radius-xl: 46px; --radius-pill: 999px;
+
+  --shadow-sm: 0 3px 10px -2px var(--shadow-tint);
+  --shadow-md: 0 8px 22px -6px var(--shadow-tint);
+  --shadow-lg: 0 16px 38px -10px var(--shadow-tint);
+  --shadow-press: 0 1px 4px -1px var(--shadow-tint);
+
+  --border-hair: 1px;
+  --border-bold: 1.5px;
+  --border-chunk: 2px;
+
+  --measure: 66ch;
+  --container: 1240px;
+  --gutter-phone: 16px;
+  --tap-min: 44px;
+
+  --bg: var(--paper);
+  --bg-elevated: var(--paper-raised);
+  --surface: var(--paper-raised);
+  --bg-soft: var(--paper-sunk);
+  --chip-bg: var(--paper-sunk);
+  --text: var(--ink);
+  --text-muted: var(--ink-muted);
+  --muted: var(--ink-muted);
+  --border: var(--line);
+  --border-strong: color-mix(in srgb, var(--ink) 28%, var(--line));
+  --accent: #5c4a8a;
+  --accent-soft: color-mix(in srgb, #5c4a8a 12%, white);
+  --human: #8a4a2e;
+  --human-soft: var(--human-fill);
+  --bot: #2f6b52;
+  --bot-soft: var(--bot-fill);
+  --danger: var(--correction);
+  --display: var(--font-display);
+  --serif: var(--font-reading);
+  --sans: var(--font-reading);
+  --mono: var(--font-machine);
+  --max: var(--container);
+  --radius: var(--radius-lg);
+  --shadow: var(--shadow-md);
+  --shadow-lift: var(--shadow-lg);
+}
+
+[data-theme="night"] {
+  --paper: #221a30;
+  --paper-raised: #2c2240;
+  --paper-sunk: #1a1426;
+  --paper-fixed: #fff8f0;
+  --ink: #f6efe6;
+  --ink-muted: #c3b6d2;
+  --ink-fixed: #241c30;
+  --line: #4b4160;
+  --shadow-tint: #000000;
+  --focus: #ffe38a;
+  --highlight: #ffe38a;
+  --correction: #ffb3c9;
+}
+
+[data-section="top"]       { --sec: #ffb0c0; --sec-text: #da002a; --on-sec: var(--ink-fixed); }
+[data-section="models"]    { --sec: #b8cdff; --sec-text: #155fff; --on-sec: var(--ink-fixed); }
+[data-section="tools"]     { --sec: #d3f0ac; --sec-text: #4a7713; --on-sec: var(--ink-fixed); }
+[data-section="image"]     { --sec: #ffc1ec; --sec-text: #cf0094; --on-sec: var(--ink-fixed); }
+[data-section="video"]     { --sec: #ffe9a8; --sec-text: #8a6900; --on-sec: var(--ink-fixed); }
+[data-section="data"]      { --sec: #b6efce; --sec-text: #177d44; --on-sec: var(--ink-fixed); }
+[data-section="databases"] { --sec: #b0e7f0; --sec-text: #187888; --on-sec: var(--ink-fixed); }
+[data-section="rust"]      { --sec: #ffcda0; --sec-text: #b05400; --on-sec: var(--ink-fixed); }
+[data-section="policy"]    { --sec: #d2c2ff; --sec-text: #7645ff; --on-sec: var(--ink-fixed); }
+[data-section="opinion"]   { --sec: #efe6f7; --sec-text: #766588; --on-sec: #241c30; }
