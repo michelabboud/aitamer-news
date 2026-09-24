@@ -32,6 +32,13 @@ jobs:
               print("no public/heroes; nothing to do")
               sys.exit(0)
 
+          def expand_part(text: str) -> str:
+              text = text.strip()
+              m = re.match(r"^REPEAT:(.):(\d+)$", text)
+              if m:
+                  return m.group(1) * int(m.group(2))
+              return text
+
           # Assemble foo.png.b64.p0 + .p1 + ... -> foo.png.b64
           parts = {}
           for p in sorted(root.glob("*.png.b64.p*")):
@@ -43,7 +50,7 @@ jobs:
           for stem, items in parts.items():
               items.sort(key=lambda t: t[0])
               out = root / stem
-              data = "".join(fp.read_text(encoding="utf-8").strip() for _, fp in items)
+              data = "".join(expand_part(fp.read_text(encoding="utf-8")) for _, fp in items)
               out.write_text(data, encoding="utf-8")
               for _, fp in items:
                   fp.unlink()
