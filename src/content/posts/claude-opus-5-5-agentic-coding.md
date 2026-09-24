@@ -3,7 +3,7 @@ title: "Claude Opus 5.5 lands in Claude Code and Copilot the same day"
 description: "Anthropic’s Claude Opus 5.5 (2026-09-22) is the new default Opus in Claude Code and shipped same-day across GitHub Copilot surfaces. The cost story is cache-heavy agent work — not the list-price cut alone."
 pubDate: 2026-09-23
 section: tools
-heroImage: /heroes/claude-opus-5-5-agentic-coding.png
+heroImage: /heroes/claude-opus-5-5-agentic-coding.jpg
 subsection: cli
 tags:
   - claude
