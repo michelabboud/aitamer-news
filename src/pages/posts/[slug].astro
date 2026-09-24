@@ -61,7 +61,11 @@ const section = post.data.section as Section;
     </header>
 
     {post.data.heroImage && (
-      <img src={post.data.heroImage} alt="" style="margin-bottom: 1.5rem; border-radius: 0.5rem;" />
+      <img
+        class="article__hero"
+        src={post.data.heroImage}
+        alt=""
+      />
     )}
 
     <div class="article__body">
