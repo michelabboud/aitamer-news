@@ -17,26 +17,77 @@ jobs:
         with:
           ref: design/post-heroes
           fetch-depth: 0
-      - name: Decode base64 heroes to binary
+
+      - name: Assemble parts and decode base64 heroes to binary
         run: |
           set -euo pipefail
-          shopt -s nullglob
-          for f in public/heroes/*.png.b64; do
-            out="${f%.b64}"
-            python3 - "$f" "$out" <<'PY'
-          import base64, sys
-          src, dst = sys.argv[1], sys.argv[2]
-          raw = open(src, "r", encoding="utf-8").read().strip()
-          # Strip optional transport-padding suffix
-          if "PADPAD" in raw:
-              raw = raw[: raw.index("PADPAD")]
-          raw += "=" * ((4 - len(raw) % 4) % 4)
-          data = base64.b64decode(raw)
-          open(dst, "wb").write(data)
-          print(f"wrote {dst} ({len(data)} bytes) magic={data[:3].hex()}")
+          python3 <<'PY'
+          import base64
+          import pathlib
+          import re
+          import sys
+
+          root = pathlib.Path("public/heroes")
+          if not root.exists():
+              print("no public/heroes; nothing to do")
+              sys.exit(0)
+
+          parts = {}
+          for p in sorted(root.glob("*.png.b64.p*")):
+              m = re.match(r"(.+\.png\.b64)\.p(\d+)$", p.name)
+              if not m:
+                  continue
+              parts.setdefault(m.group(1), []).append((int(m.group(2)), p))
+
+          for stem, items in parts.items():
+              items.sort(key=lambda t: t[0])
+              out = root / stem
+              data = "".join(fp.read_text(encoding="utf-8").strip() for _, fp in items)
+              out.write_text(data, encoding="utf-8")
+              for _, fp in items:
+                  fp.unlink()
+              print(f"assembled {out} from {len(items)} parts ({len(data)} chars)")
+
+          b64_files = sorted(root.glob("*.png.b64"))
+          if not b64_files:
+              print("no *.png.b64 files; nothing to decode")
+              sys.exit(0)
+
+          for src in b64_files:
+              raw = src.read_text(encoding="utf-8").strip()
+              if "PADPAD" in raw:
+                  raw = raw[: raw.index("PADPAD")]
+              raw = "".join(raw.split())
+              if len(raw) % 4 == 1:
+                  raise SystemExit(
+                      f"ERROR: {src} has invalid base64 length {len(raw)} "
+                      f"(1 mod 4) — file is truncated; re-upload complete .b64"
+                  )
+              raw += "=" * ((4 - len(raw) % 4) % 4)
+              try:
+                  data = base64.b64decode(raw, validate=False)
+              except Exception as e:
+                  raise SystemExit(f"ERROR: failed to decode {src}: {e}") from e
+              if len(data) < 100:
+                  raise SystemExit(f"ERROR: {src} decoded to only {len(data)} bytes (too small)")
+              dst = src.parent / src.name[: -len(".b64")]
+              dst.write_bytes(data)
+              src.unlink()
+              magic = data[:4].hex()
+              print(f"wrote {dst} ({len(data)} bytes) magic={magic}")
+
+          left = list(root.glob("*.b64")) + list(root.glob("*.b64.part*")) + list(root.glob("*.png.b64.p*"))
+          if left:
+              print("pending blobs remain:")
+              for p in left:
+                  print(" ", p)
+              sys.exit(1)
+          print("decode complete")
           PY
-            rm -f "$f"
-          done
+
+      - name: Commit binary heroes
+        run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A public/heroes
@@ -46,14 +97,16 @@ jobs:
           fi
           git commit -m "design(heroes): materialize binary PNG heroes from base64"
           git push origin HEAD:design/post-heroes
+
       - name: Remove one-shot workflow
         if: success()
         run: |
           set -euo pipefail
           shopt -s nullglob
-          left=(public/heroes/*.b64 public/heroes/*.b64.part*)
+          left=(public/heroes/*.b64 public/heroes/*.b64.part* public/heroes/*.png.b64.p*)
           if [ ${#left[@]} -gt 0 ]; then
-            echo "pending blobs remain"; ls -la "${left[@]}"; exit 1
+            echo "pending blobs remain"; ls -la "${left[@]}"
+            exit 1
           fi
           if [ -f .github/workflows/decode-heroes.yml ]; then
             git config user.name "github-actions[bot]"
