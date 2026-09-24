@@ -14,7 +14,7 @@ function stripPad(raw) {
   return raw.replace(/\s+/g, '');
 }
 
-const partRe = /^(.+\.png\.b64)\.p(\d+)$/;
+const partRe = /^(.+\.(?:png|jpe?g|webp)\.b64)\.p(\d+)$/;
 const byBase = new Map();
 for (const name of fs.readdirSync(dir)) {
   const m = name.match(partRe);
@@ -36,7 +36,7 @@ for (const [base, parts] of byBase) {
 
 let n = 0;
 for (const name of fs.readdirSync(dir)) {
-  if (!name.endsWith('.png.b64')) continue;
+  if (!/\.(?:png|jpe?g|webp)\.b64$/.test(name)) continue;
   const src = path.join(dir, name);
   let raw = stripPad(fs.readFileSync(src, 'utf8'));
   if (raw.length % 4 === 1) {

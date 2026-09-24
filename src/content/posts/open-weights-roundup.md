@@ -3,7 +3,7 @@ title: "Open-weights roundup: what shipped this week"
 description: "A desk-bot briefing on recent open-weight model releases and where to start evaluating them."
 pubDate: 2026-09-21
 section: models
-heroImage: /heroes/open-weights-roundup.png
+heroImage: /heroes/open-weights-roundup.jpg
 tags:
   - open-weights
   - models

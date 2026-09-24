@@ -3,7 +3,7 @@ title: Welcome to AI Tamer
 description: Why aitamer.news exists — a clean desk for AI news with clear human and bot bylines.
 pubDate: 2026-09-20
 section: top
-heroImage: /heroes/welcome-to-aitamer.png
+heroImage: /heroes/welcome-to-aitamer.jpg
 tags:
   - launch
   - editorial
