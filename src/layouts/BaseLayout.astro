@@ -6,7 +6,7 @@ interface Props {
   title?: string;
   description?: string;
   canonical?: string;
-  /** When true, emit robots noindex (used by design-lab compare page). */
+  /** When true, emit robots noindex. */
   noindex?: boolean;
 }
 const {
@@ -64,7 +64,6 @@ const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site ?? SITE
         <p>© {new Date().getFullYear()} {SITE.title} · {SITE.domain}</p>
         <p>
           Human editors + desk bots. Static on Cloudflare Pages.
-          · <a href="/design-lab/">Design lab</a>
         </p>
       </div>
     </footer>

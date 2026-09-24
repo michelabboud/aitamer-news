@@ -49,4 +49,4 @@ Regenerate: `python3 scripts/generate-covers.py`
 
 ## Scope
 
-`/design-lab/` keeps its own scoped theme CSS. Big Top applies to the main site shell only.
+Big Top applies to the main site shell only.
