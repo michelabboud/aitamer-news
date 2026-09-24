@@ -4,7 +4,8 @@ on:
   push:
     branches: [design/post-heroes]
     paths:
-      - 'public/heroes/*.png.b64'
+      - 'public/heroes/*.b64'
+      - 'public/heroes/*.b64.part*'
 
 concurrency:
   group: decode-heroes
@@ -20,22 +21,40 @@ jobs:
         with:
           ref: design/post-heroes
           fetch-depth: 0
-      - name: Decode base64 heroes to PNG
+      - name: Assemble and decode heroes
         run: |
           set -euo pipefail
           shopt -s nullglob
-          files=(public/heroes/*.png.b64)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "No .b64 files to decode"
-            exit 0
-          fi
-          for f in "${files[@]}"; do
+
+          # Whole-file .png.b64
+          for f in public/heroes/*.png.b64; do
             out="${f%.b64}"
             base64 -d "$f" > "$out"
             rm -f "$f"
             echo "decoded $out ($(wc -c < "$out") bytes)"
-            file "$out" || true
           done
+
+          # Multipart: foo.png.b64.part0, part1, ...
+          declare -A seen=()
+          for f in public/heroes/*.png.b64.part*; do
+            base="${f%.b64.part*}"
+            seen["$base"]=1
+          done
+          for base in "${!seen[@]}"; do
+            out="$base"
+            rm -f /tmp/hero.b64
+            parts=("$base".b64.part*)
+            # sort numerically by part index
+            IFS=$'\n' sorted=($(printf '%s\n' "${parts[@]}" | sort -t'p' -k2 -n))
+            unset IFS
+            for p in "${sorted[@]}"; do
+              cat "$p" >> /tmp/hero.b64
+              rm -f "$p"
+            done
+            base64 -d /tmp/hero.b64 > "$out"
+            echo "assembled $out ($(wc -c < "$out") bytes) from ${#sorted[@]} parts"
+          done
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A public/heroes
@@ -49,6 +68,13 @@ jobs:
         if: success()
         run: |
           set -euo pipefail
+          # Only remove after no remaining parts/b64
+          shopt -s nullglob
+          left=(public/heroes/*.b64 public/heroes/*.b64.part*)
+          if [ ${#left[@]} -gt 0 ]; then
+            echo "still have pending blobs; keeping workflow"
+            exit 0
+          fi
           if [ -f .github/workflows/decode-heroes.yml ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
