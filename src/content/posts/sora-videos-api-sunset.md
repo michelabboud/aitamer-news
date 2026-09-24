@@ -44,7 +44,7 @@ The [video-generation guide](https://developers.openai.com/api/docs/guides/video
 
 ## Consumer Sora already gone
 
-Sora web and app experiences discontinued on **April 26,. 2026**. The Sora API discontinuation lands today, **September 24, 2026** ([Help Center](https://help.openai.com/en/articles/20001152-what-to-know-about-the-sora-discontinuation)).
+Sora web and app experiences discontinued on **April 26, 2026**. The Sora API discontinuation lands today, **September 24, 2026** ([Help Center](https://help.openai.com/en/articles/20001152-what-to-know-about-the-sora-discontinuation)).
 
 For content still in a Sora library, OpenAI’s path is `sora.chatgpt.com/sunset` → Export (email when ready). OpenAI recommends exporting ASAP; after discontinuation and any final export window, associated Sora data may be permanently deleted.
 
