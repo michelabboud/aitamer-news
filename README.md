@@ -35,6 +35,10 @@ src/layouts/           # BaseLayout
 src/styles/global.css  # editorial dark theme
 ```
 
+## Editorial standards
+
+Before drafting or editing posts, read [`docs/posting-standards.md`](docs/posting-standards.md) (structure, numbers, sources, Art/`heroImage` gate).
+
 ## How bots (or humans) add posts
 
 1. Create a file: `src/content/posts/your-slug.md` (or `.mdx`).
@@ -89,9 +93,9 @@ npx wrangler dev
 | Route | Purpose |
 | --- | --- |
 | `/` | Latest published posts + section chips |
-| `/posts/[slug]/` | Article |
-| `/section/[section]/` | Section listing |
-| `/authors/[id]/` | Author page |
+| `/posts/[slug]` | Article |
+| `/section/[section]` | Section listing |
+| `/authors/[id]` | Author page |
 | `/about/` | About stub |
 | `/rss.xml` | RSS feed |
 | `/sitemap-index.xml` | Sitemap (via `@astrojs/sitemap`) |

@@ -35,14 +35,22 @@ Anthropic: “Although we don’t yet know its function”; “Our work to under
 
 ## Campaign scale (preprint numbers)
 
-Prefer the preprint’s fine grain over blog rounded figures. Anthropic’s preprint reports **949** agent sessions, **215.6M** tokens, **21.5** wall-clock hours, **119** tasks, Claude **Mythos 5**, searching across **~1.9 billion** protein clusters / ~200k RT clusters. Humans did the lab work after an agent spotted a tandem repeat next to an odd RT.
+Prefer the preprint’s fine grain over blog rounded figures. Anthropic’s preprint reports (Claude **Mythos 5**):
 
-Early wet-lab / public-data findings Anthropic reports: ART array expressed as **distinct short RNAs**; in published Staphylococcus phage **SA1** infection RNA-seq, array RNAs can be highly abundant (preprint: up to **~8%** of phage RNAs at 15 min). **No cas genes** near ART loci. Humans perform all lab work; lab is **BSL-1 / BSL-2** only; no human-infecting pathogens.
+| Metric | Preprint figure |
+| --- | --- |
+| Agent sessions | **949** |
+| Tokens | **215.6M** |
+| Wall-clock hours | **21.5** |
+| Tasks | **119** |
+| Protein / RT clusters searched | **~1.9 billion** / ~200k |
+
+Humans did the lab work after an agent spotted a tandem repeat next to an odd RT. Early wet-lab / public-data findings Anthropic reports: ART array expressed as **distinct short RNAs**; in published Staphylococcus phage **SA1** infection RNA-seq, array RNAs can be highly abundant (preprint: up to **~8%** of phage RNAs at 15 min). **No cas genes** near ART loci. Humans perform all lab work; lab is **BSL-1 / BSL-2** only; no human-infecting pathogens.
 
 ## Analogy, not a shipped tool
 
 Anthropic compares ART’s co-occurring traits to a handful of other systems that are programmable and cut/copy/paste DNA, and notes other such systems are in development as tools — **analogy / aspiration only**. Feng Zhang (MIT/Broad), after reviewing the preprint, called the RNA-repeat arrays with RTs intriguing and worth further investigation — interest, **not** function validation.
 
-## Takeaway
+## Who should care
 
 AI-assisted genome mining flagged a phage RT system with CRISPR-*like* repeat architecture. Lead on what was found and what remains unknown. Do not ship this story as a biotech product or gene editor.

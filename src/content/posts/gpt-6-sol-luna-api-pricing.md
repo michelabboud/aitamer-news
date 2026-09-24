@@ -36,8 +36,10 @@ Model ids are `gpt-6-sol` and `gpt-6-luna`. Both advertise a 1,050,000-token con
 
 Standard API prices per 1M tokens (paraphrased from OpenAI model docs):
 
-- **Sol:** input $2.00 · cached input $0.20 · cache writes $2.50 · output $10.00
-- **Luna:** input $0.10 · cached input $0.01 · cache writes $0.125 · output $0.50
+| Model | Input | Cached input | Cache writes | Output |
+| --- | --- | --- | --- | --- |
+| **Sol** | $2.00 | $0.20 | $2.50 | $10.00 |
+| **Luna** | $0.10 | $0.01 | $0.125 | $0.50 |
 
 Treat the [pricing page](https://developers.openai.com/api/docs/pricing) and model cards as source of truth if numbers move after publish.
 
@@ -45,16 +47,20 @@ Treat the [pricing page](https://developers.openai.com/api/docs/pricing) and mod
 
 [Artificial Analysis](https://artificialanalysis.ai/articles/gpt-6-sol-and-luna-push-the-cost-efficiency-frontier) (accessed 2026-09-23) argues Sol and Luna push the **cost-efficiency** frontier more than they rewrite the quality leaderboard.
 
-At **max effort**, their Cost per Task on the Artificial Analysis Intelligence Index **v4.3** drops roughly **50% for Sol** (~$1.06 vs ~$1.99 for GPT-5.6 Sol) and about **60% for Luna** (~$0.07 vs ~$0.18 for GPT-5.6 Luna). That tracks OpenAI’s ~50% list-price cut, while both GPT-6 variants used slightly more output tokens per task than their GPT-5.6 counterparts.
+At **max effort**, Cost per Task on Artificial Analysis Intelligence Index **v4.3** (AA figures):
 
-On the **Artificial Analysis Coding Agent Index** (OpenAI Codex harness, max effort):
+| Model | GPT-6 Cost / task | GPT-5.6 Cost / task | Approx. drop |
+| --- | --- | --- | --- |
+| Sol | ~$1.06 | ~$1.99 | ~50% |
+| Luna | ~$0.07 | ~$0.18 | ~60% |
 
-- **GPT-6 Sol (max):** 57 (**+2** vs GPT-5.6 Sol)
-- **GPT-6 Luna (max):** 41 (**−2** vs GPT-5.6 Luna)
+That tracks OpenAI’s ~50% list-price cut, while both GPT-6 variants used slightly more output tokens per task than their GPT-5.6 counterparts.
+
+**Artificial Analysis Coding Agent Index** (OpenAI Codex harness, max effort): GPT-6 Sol **57** (**+2** vs GPT-5.6 Sol); GPT-6 Luna **41** (**−2** vs GPT-5.6 Luna).
 
 Hallucination on **AA-Omniscience** improved for both (Sol 92%→60%, Luna 93%→77% at max effort), partly because the models decline more questions. Elsewhere the picture is mixed: gains on AutomationBench-AA and Terminal-Bench 4.0 sit beside regressions on **GDPval-AA v2.1** (both models) and **AA-Briefcase v1.1** (Luna). Artificial Analysis attributes much of the knowledge-work drop to shorter deliverables that omit rubric elements.
 
-## Takeaway for teams
+## Who should care
 
 - If your bottleneck is **$/task on agents and coding loops**, Sol/Luna are the headline — especially Luna’s price tier.
 - If you need a **clean quality upgrade** over GPT-5.6 Sol/Luna (or Astra) across knowledge-work evals, do not treat this launch as automatic; re-run your own harnesses, especially GDPval-style and multi-file workflows.

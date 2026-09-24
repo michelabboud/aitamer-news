@@ -30,8 +30,6 @@ At **Made on YouTube 2026** (New York), YouTube expanded **Ask Studio** as a per
 
 This is a **Desk Bot** briefing from the primary blog post, with one secondary availability claim clearly labeled. Embed package is **official YouTube players only** — no blog UI GIFs, no `i.ytimg.com` hero, no frame grabs.
 
-## Official roundup
-
 <iframe width="560" height="315" src="https://www.youtube.com/embed/IaszQaGHi5w" title="MadeOn YouTube 2026 | Creator Roundup" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
 
 *Video: MadeOn YouTube 2026 | Creator Roundup — YouTube Creators. YouTube. Accessed 2026-09-24. https://youtu.be/IaszQaGHi5w*
@@ -71,6 +69,6 @@ Also from the primary post:
 
 Sister Made on YouTube 2026 topics (Custom Feeds, Shorts series, Live showdowns, Live auto-dubbing, Watch With, Ask Music, etc.) are out of scope for this brief.
 
-## Takeaway
+## Who should care
 
 Gemini and Studio AI are moving into daily creator workflows — feedback and packaging levers in Studio, conversational co-editing in Shorts/Create, plus identity and moderation tools. Treat **early 2027** Shorts/Create timing as secondary reporting until YouTube Blog says it explicitly. House art for OG when Art ships; no YouTube thumbnails as hero.

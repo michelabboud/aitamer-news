@@ -45,7 +45,7 @@ A **Session** is “a durable instance of an agent that works on tasks and respo
 
 Agent config can include tools and **MCP** servers (docs example: `programmatic_tool_calling`, an HTTP MCP tool, `web_search`). **Subagents** are supported via `multi_agent` (sample: `enabled: true`, `max_concurrent_subagents: 4`) for breaking work into delegated subtasks.
 
-## Sandboxes
+## Sandboxes and billing (no invented $)
 
 Agents can run in a sandbox to execute code, edit files, connect to MCP, and produce artifacts. Environment types include:
 
@@ -53,9 +53,7 @@ Agents can run in a sandbox to execute code, edit files, connect to MCP, and pro
 - **`self_hosted`** — app-supplied workspace / capability directories.
 - **`none`** — no sandbox when one is not needed ([hosted sandboxes](https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted), [quickstart](https://developers.openai.com/api/docs/guides/agents-api/quickstart)).
 
-## Billing (three-way; no invented $)
-
-Prefer docs language: **model usage** at the selected model’s API rates; **OpenAI tools** at their standard rates; **OpenAI-hosted sandboxes** at standard **container** rates. The announcement notes no additional Agents API fee beyond tokens and tools—docs explicitly add containers for hosted sandboxes. **Do not invent dollar figures** ([overview](https://developers.openai.com/api/docs/guides/agents-api/overview), [hosted](https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted)).
+Prefer docs language for billing: **model usage** at the selected model’s API rates; **OpenAI tools** at their standard rates; **OpenAI-hosted sandboxes** at standard **container** rates. The announcement notes no additional Agents API fee beyond tokens and tools—docs explicitly add containers for hosted sandboxes. **Do not invent dollar figures** ([overview](https://developers.openai.com/api/docs/guides/agents-api/overview), [hosted](https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted)).
 
 ## Data residency and ZDR
 

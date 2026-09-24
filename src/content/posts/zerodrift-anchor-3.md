@@ -53,12 +53,12 @@ ZeroDrift says packs for US securities (**SEC · FINRA · Reg BI**), banking/len
 
 ZeroDrift’s methodology line: “FINRA Communications Benchmark, **150** human-labeled tasks, Surge AI, September 2026. **Results are self-reported and an independent run is in progress.**” Vendor claims on that set ([product](https://zerodrift.com/model/anchor)):
 
-- **95.5%** recall (“share of real violations caught”) vs **92.9%** for the best frontier model tested
-- Up to **34×** faster and **12×** cheaper than the four closest frontier models
-- Speed ~**1.5 s**/message on API, **<100 ms** self-hosted
+| Claim | Figure | Attribution |
+| --- | --- | --- |
+| Recall (“real violations caught”) | **95.5%** vs **92.9%** best frontier tested | ZeroDrift self-reported |
+| Speed / cost vs closest frontier models | Up to **34×** faster, **12×** cheaper | ZeroDrift self-reported |
+| Latency | ~**1.5 s**/message API; **<100 ms** self-hosted | ZeroDrift self-reported |
 
 GlobeNewswire repeats 95.5% and says Anchor outperformed GPT-5.6 Sol on recall, precision, and F1. SiliconANGLE notes attorney-labeled Surge AI data **and** that ZeroDrift published the benchmark, so the figures **remain company claims** ([SiliconANGLE](https://siliconangle.com/2026/09/23/zerodrift-launches-three-models-for-real-time-ai-compliance-checks/)). Surge AI labeled the set; ZeroDrift scored and published — that is **not** third-party verification.
-
-## Takeaway
 
 Specialized enforcement SLMs between agent outbound channels and FINRA/SEC-style communications rules — classify, cite, rewrite, log — at flat per-message prices. Lead on **API availability and product shape**; treat **95.5% / 92.9% / 34× / 12×** as ZeroDrift’s own scorecard until an independent run lands.

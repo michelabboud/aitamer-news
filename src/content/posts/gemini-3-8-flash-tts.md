@@ -39,14 +39,7 @@ Capabilities Google states for the pair / Flash TTS:
 
 That consent / SynthID / C2PA stack is factual product framing — not an invented compliance certification.
 
-## Availability
-
-Rolling out starting 2026-09-23 per the blog:
-
-- **Flash TTS** — Gemini API, Google AI Studio, Gemini Enterprise, Gemini Notebook
-- **Flash-Lite TTS** — Gemini API + AI Studio for developers, Google Vids for everyone; Gemini Enterprise API **coming soon**
-
-Voice replication via AI Studio is **not available** in Illinois, Texas, the EEA, the UK, Switzerland, and India (blog footnote).
+Rolling out starting 2026-09-23 per the blog: **Flash TTS** on Gemini API, Google AI Studio, Gemini Enterprise, Gemini Notebook; **Flash-Lite TTS** on Gemini API + AI Studio for developers and Google Vids for everyone (Gemini Enterprise API **coming soon**). Voice replication via AI Studio is **not available** in Illinois, Texas, the EEA, the UK, Switzerland, and India (blog footnote).
 
 ## Pricing (developer docs)
 
@@ -63,6 +56,6 @@ Free tier is listed free of charge for both. Batch/Flex at half Standard; Priori
 
 **Google cites** Hume AI’s Voice Design Benchmark: Gemini 3.8 Flash TTS **#1 overall** (**71.4**) and leads accent modeling (**60.8**); Flash TTS and Flash-Lite TTS **#1 and #2** on Hume AI’s Overall Quality Index. Google also claims major improvements vs Gemini 3.1 Flash TTS on long-form / dual-speaker use cases, and top Voice Arena positions in JP, Brazilian Portuguese, Vietnamese, MSA Arabic, Mexican Spanish, and Hindi. These are **Google-cited / third-party** scores — not an independent ATN re-run.
 
-## Takeaway
+## Who should care
 
 Promptable voice design plus replication at promo API rates below prior 3.1 Flash TTS preview audio pricing, with Flash-Lite as the volume tier. Watch the geo block on AI Studio replication and the promo window ending **2026-12-31**.
