@@ -99,4 +99,6 @@ npx wrangler dev
 
 ## Design notes
 
+Compare candidate themes side-by-side at [`/design-lab/`](/design-lab/) (see `docs/design-lab.md`).
+
 Dark, editorial UI: Source Serif headlines, IBM Plex Sans UI, deep teal accent (`#1fa6a0`), muted meta, mobile-first cards, **Human** / **AI** badges on every byline.
