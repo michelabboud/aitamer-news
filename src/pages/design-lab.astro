@@ -1,0 +1,159 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/design-lab-themes.css';
+
+const themes = [
+  {
+    id: 'daylight',
+    name: 'Daylight Editorial',
+    vibe: 'Soft paper daylight — editorial serif headlines, quiet sky-blue accent.',
+    swatches: [
+      { label: 'bg', color: '#F7F5F0' },
+      { label: 'text', color: '#1A2332' },
+      { label: 'accent', color: '#3B82C4' },
+      { label: 'muted', color: '#5C6B7A' },
+      { label: 'surface', color: '#FFFFFF' },
+    ],
+  },
+  {
+    id: 'aurora',
+    name: 'Aurora Desk',
+    vibe: 'Cool aurora gradients + frosted glass — calm product UI that still reads as news.',
+    swatches: [
+      { label: 'bg', color: '#F0F4FA' },
+      { label: 'text', color: '#1B2433' },
+      { label: 'accent', color: '#6B7CFF' },
+      { label: 'mint', color: '#3DB8A0' },
+      { label: 'glass', color: '#FFFFFF' },
+    ],
+  },
+  {
+    id: 'citrus',
+    name: 'Citrus Signal',
+    vibe: 'Warm paper with teal authority and a citrus signal — crisp and decisive.',
+    swatches: [
+      { label: 'bg', color: '#FBF8F2' },
+      { label: 'text', color: '#14201C' },
+      { label: 'accent', color: '#0D9488' },
+      { label: 'citrus', color: '#E8A317' },
+      { label: 'muted', color: '#5A6B64' },
+    ],
+  },
+] as const;
+
+const samplePosts = [
+  {
+    section: 'Models',
+    badge: 'Human' as const,
+    title: 'Frontier models tighten agentic coding loops',
+    dek: 'Shorter tool-call latency and clearer refusal boundaries land in the weekly desk brief.',
+  },
+  {
+    section: 'Tools',
+    badge: 'Bot' as const,
+    title: 'CLI runners pick up structured memory hooks',
+    dek: 'Desk bots flag a quiet wave of local-first agent runtimes shipping this week.',
+  },
+  {
+    section: 'Rust',
+    badge: 'Human' as const,
+    title: 'Inference crates chase FP8 without the drama',
+    dek: 'A practical look at crates that keep kernels boring and benchmarks honest.',
+  },
+];
+---
+
+<BaseLayout
+  title="Design lab · theme compare"
+  description="Side-by-side compare of Daylight Editorial, Aurora Desk, and Citrus Signal — compare only; production theme unchanged."
+  noindex={true}
+>
+  <link
+    slot="head"
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700;800&family=Outfit:wght@600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <article class="lab-page">
+    <header class="lab-intro">
+      <h1>Design lab · theme compare</h1>
+      <p>
+        These three looks are <strong>mutually exclusive production candidates</strong>.
+        This page is for visual compare only — production site styling stays on whatever
+        <code>global.css</code> ships on <code>main</code> (unchanged by this lab).
+      </p>
+      <p>
+        Themes coexist here via scoped <code>data-theme</code> tokens. Shipping one live still
+        means picking a single PR (or applying one token set) to production chrome.
+      </p>
+      <p class="lab-links">
+        <a href="https://github.com/michelabboud/aitamer-news/pull/2">PR #2 Daylight</a>
+        <a href="https://github.com/michelabboud/aitamer-news/pull/3">PR #3 Aurora</a>
+        <a href="https://github.com/michelabboud/aitamer-news/pull/4">PR #4 Citrus</a>
+        <a href="https://github.com/michelabboud/aitamer-news/blob/design/lab/docs/design-lab.md">docs/design-lab.md</a>
+      </p>
+    </header>
+
+    <div class="lab-grid">
+      {
+        themes.map((theme) => (
+          <section class="lab-panel" aria-labelledby={`lab-${theme.id}-title`}>
+            <div class="lab-panel__label">
+              <h2 id={`lab-${theme.id}-title`}>{theme.name}</h2>
+              <p>{theme.vibe}</p>
+            </div>
+            <div class="lab-swatches" aria-label={`${theme.name} tokens`}>
+              {theme.swatches.map((s) => (
+                <span class="lab-swatch">
+                  <i style={`background:${s.color}`} aria-hidden="true" />
+                  {s.label}
+                </span>
+              ))}
+            </div>
+            <div class="lab-mock" data-theme={theme.id}>
+              <header class="dl-header">
+                <a class="dl-brand" href="/" tabindex="-1">
+                  AI Tamer <span>News</span>
+                </a>
+                <nav class="dl-nav" aria-label={`${theme.name} mock nav`}>
+                  <a href="/" tabindex="-1">Home</a>
+                  <a href="/section/top/" tabindex="-1">Sections</a>
+                  <a href="/about/" tabindex="-1">About</a>
+                </nav>
+              </header>
+              <div class="dl-hero">
+                <div class="dl-hero-plane">
+                  <p class="dl-kicker">Latest · desk brief</p>
+                  <h3>Signal over noise for builders shipping AI.</h3>
+                  <p>Human editors + desk bots. Compare this panel’s type, chrome, and depth.</p>
+                </div>
+              </div>
+              <div class="dl-chips" aria-label="Section chips">
+                <a class="dl-chip" href="/section/models/" tabindex="-1">Models</a>
+                <a class="dl-chip" href="/section/tools/" tabindex="-1">Tools</a>
+                <a class="dl-chip" href="/section/rust/" tabindex="-1">Rust</a>
+              </div>
+              <div class="dl-feed">
+                {samplePosts.map((post) => (
+                  <article class="dl-card" tabindex="0">
+                    <div class="dl-card-meta">
+                      <a class="dl-chip" href={`/section/${post.section.toLowerCase()}/`} tabindex="-1">
+                        {post.section}
+                      </a>
+                      <span class:list={['dl-badge', post.badge === 'Human' ? 'human' : 'bot']}>
+                        {post.badge}
+                      </span>
+                      <span>Sep 24</span>
+                    </div>
+                    <h4>{post.title}</h4>
+                    <p>{post.dek}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ))
+      }
+    </div>
+  </article>
+</BaseLayout>
