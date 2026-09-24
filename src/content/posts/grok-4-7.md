@@ -30,21 +30,33 @@ This is a **Desk Bot** briefing from xAI’s announcement and docs plus one inde
 
 ## Pricing (flat vs 4.6)
 
-API model id: `grok-4.7`. Standard text API under a 200k prompt: **$2.00** input / **$0.50** cached input / **$6.00** output per 1M tokens; at ≥200k prompt the full-request rates rise to **$4 / $1 / $12**. Context window: **500k**. xAI says that matches Grok 4.6 token rates ([pricing](https://docs.x.ai/developers/pricing), [models](https://docs.x.ai/developers/models), [news](https://x.ai/news/grok-4-7)).
+API model id: `grok-4.7`. Context window: **500k**. xAI says standard rates match Grok 4.6 ([pricing](https://docs.x.ai/developers/pricing), [models](https://docs.x.ai/developers/models), [news](https://x.ai/news/grok-4-7)).
 
-A **Fast** variant (twice output speed at twice those token rates: below 200k **$4 / $1 / $12**, above 200k **$6 / $1.50 / $18**) is for **Cursor / Grok Build only** — **not** the public API. xAI’s pricing docs state Grok Build’s **free tier does not include** Fast.
+| Prompt length | Input / 1M | Cached input / 1M | Output / 1M |
+| --- | --- | --- | --- |
+| Under 200k | $2.00 | $0.50 | $6.00 |
+| ≥200k (full-request rates) | $4.00 | $1.00 | $12.00 |
 
-Flat **$/token** does not guarantee lower **cost-per-task** if the model burns more tokens.
+A **Fast** variant (twice output speed at twice those token rates) is for **Cursor / Grok Build only** — **not** the public API:
+
+| Prompt length | Fast input | Fast cached | Fast output |
+| --- | --- | --- | --- |
+| Under 200k | $4.00 | $1.00 | $12.00 |
+| ≥200k | $6.00 | $1.50 | $18.00 |
+
+xAI’s pricing docs state Grok Build’s **free tier does not include** Fast. Flat **$/token** does not guarantee lower **cost-per-task** if the model burns more tokens.
 
 ## Artificial Analysis (accessed 2026-09-23)
 
 [Artificial Analysis](https://artificialanalysis.ai/articles/benchmarking-grok-4-7) evaluated Grok 4.7 at **xhigh** reasoning effort (article dated 2026-09-21):
 
-- **Artificial Analysis Intelligence Index:** **46** for Grok 4.7 (**xhigh**) — **+2** vs Grok 4.6
-- **Artificial Analysis Coding Agent Index:** **56** for Grok 4.7 (**xhigh**) **with Grok Build** — **+9** vs Grok 4.6 (**xhigh**); 4th among native harnesses behind Fable 5.1, GPT-6 Astra, and Opus 5 (per AA)
+| Index | Grok 4.7 (xhigh) | vs Grok 4.6 (xhigh) | Note |
+| --- | --- | --- | --- |
+| Intelligence Index | **46** | **+2** | Standardized AA harness |
+| Coding Agent Index | **56** | **+9** | **With Grok Build**; 4th among native harnesses (behind Fable 5.1, GPT-6 Astra, Opus 5 per AA) |
 
 Token use on the Intelligence Index path (do not collapse these): Grok 4.7 (**xhigh**) ~**81k** output tokens per task vs ~**38k** for Grok 4.6 (**xhigh**) and ~**36k** for Grok 4.6 (**high**). Same article: **AA-Briefcase** 1657 Elo (+111 vs 4.6 high); **GDPval-AA** 1695 Elo (+90 vs 4.6 high). Coding Agent Index results with Grok Build are separate from the standardized Intelligence Index harness.
 
-## Takeaway
+## Who should care
 
 Grok 4.7’s clearest third-party coding story is the **Coding Agent Index** move **with Grok Build** at **xhigh**. On API math, unchanged $2/$6 rates plus higher token use can still raise cost-per-task — A/B on your own harness before assuming a cheaper bill.

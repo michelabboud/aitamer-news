@@ -52,6 +52,6 @@ For content still in a Sora library, OpenAI’s path is `sora.chatgpt.com/sunset
 
 Do not read this as an OpenAI “next Sora” handoff. The official table’s **—** cells mean there is **no** listed successor model or Videos API drop-in. Pipelines still calling Videos API / `sora-2*` need a third-party stack or a different product surface — bake that off yourself; this brief does not endorse competitors.
 
-## Takeaway
+## Who should care
 
 Hard cutoff for any product, agency, or pipeline on Videos API / `sora-2*`. Consumer Sora ended in April; today’s event closes the developer generation/retrieval surface with **no** OpenAI replacement on the deprecations page. Export remaining library content, then migrate off the dead API ids.

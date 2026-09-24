@@ -50,10 +50,8 @@ Independent post (pszypowicz, **2026-09-23**) and GitHub [#95690](https://github
 
 **mpoteat on HN:** the gate was a rollout artifact / kill-switch via feature flags when telemetry is off — “fully human error” — and “already been fixed as part of **v2.1.281** releasing today.” That fix claim is an **Anthropic staff statement on HN**, **not** a named changelog bullet under ## 2.1.281 as of desk check.
 
-## Why it matters
+## Who should care
 
 `AGENTS.md` is the cross-harness project-instructions convention ([agents.md](https://agents.md/)). Claude Code historically preferred `CLAUDE.md`; native fallback (and “load both”) modes matter for multi-agent repos. Default still prefers `CLAUDE.md` when present unless Project instructions load both.
-
-## Takeaway
 
 Cross-harness `AGENTS.md` landed in **2.1.277** as a **Mods** showcase — still missing on Bedrock/Vertex/Foundry per that changelog line. If you run with telemetry-disabling env vars, confirm you are on **2.1.281+** (staff fix claim) or use the `@AGENTS.md` workaround until you verify locally.

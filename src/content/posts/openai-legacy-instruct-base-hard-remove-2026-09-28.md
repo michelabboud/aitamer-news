@@ -44,6 +44,6 @@ Same docs family, different dates:
 
 Optional one-line history: earlier Completions/instruct migrations already pointed older InstructGPT / `text-*` models at `gpt-3.5-turbo-instruct` and base GPT at `babbage-002` / `davinci-002`; those replacements are themselves in this **2026-09-28** kill set.
 
-## Takeaway
+## Who should care
 
 Any remaining Completions, legacy instruct, base (`babbage-002` / `davinci-002`), or `gpt-3.5-turbo-1106` traffic needs a migration plan before **2026-09-28**. OpenAI’s documented target for all four is **`gpt-5.6-terra`**.

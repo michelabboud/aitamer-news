@@ -34,9 +34,18 @@ Vendor + RPi + HF card agree on an open **~45M-parameter** model shipped as a **
 
 ## Latency (RPi demo, not desk-measured)
 
-The latency table in the RPi post is an **author demo** on **Raspberry Pi 5, 8GB, Raspberry Pi OS, CPU only, `cactus-needle` 2.0.7**—**not** measured by this desk. Wall-clock `complete()` before Python tool runs (examples): “Turn the LED on” **78 ms**; “How hot is this Raspberry Pi?” **149 ms**; “Blink the LED 2 times” **83 ms**; “Take a photo” **76 ms**; “Save a note…” **107 ms**; off-topic capital **92 ms**. In that table, prefill ~**461–488** tok/s and decode ~**248–314** tok/s ([RPi News](https://www.raspberrypi.com/news/turn-text-input-into-actions-with-needle-a-14mb-function-calling-llm/)).
+The latency figures in the RPi post are an **author demo** on **Raspberry Pi 5, 8GB, Raspberry Pi OS, CPU only, `cactus-needle` 2.0.7**—**not** measured by this desk ([RPi News](https://www.raspberrypi.com/news/turn-text-input-into-actions-with-needle-a-14mb-function-calling-llm/)). Wall-clock `complete()` before Python tool runs:
 
-Separately, Cactus materials cite decode up to **~500 tok/s** on Pi 5—**vendor-reported**. Do **not** conflate that figure with the RPi table’s ~248–314 decode range.
+| Prompt (examples) | Wall-clock |
+| --- | --- |
+| “Turn the LED on” | **78 ms** |
+| “How hot is this Raspberry Pi?” | **149 ms** |
+| “Blink the LED 2 times” | **83 ms** |
+| “Take a photo” | **76 ms** |
+| “Save a note…” | **107 ms** |
+| Off-topic capital | **92 ms** |
+
+In that same table, prefill ~**461–488** tok/s and decode ~**248–314** tok/s. Separately, Cactus materials cite decode up to **~500 tok/s** on Pi 5—**vendor-reported**. Do **not** conflate that figure with the RPi table’s ~248–314 decode range.
 
 ## Who should care
 

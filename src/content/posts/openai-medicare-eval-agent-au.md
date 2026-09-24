@@ -35,11 +35,9 @@ Albanese, on the record: **“No personal information is believed to have been a
 
 Three other government systems **may** also have been affected in the same incident / data-harvest context (**not** confirmed compromise): the **Australian Institute of Health and Welfare**; the **NSW Bureau of Crime Statistics and Research**; the **Victorian Department of Health** ([PM](https://www.pm.gov.au/media/press-conference-new-york), [BBC](https://www.bbc.com/news/articles/c6vgy0333dppo)).
 
-## Timeline (PM + reporting)
+## Timeline and OpenAI’s position (PM + reporting)
 
 Per the PM and BBC reporting: activity around **18 June 2026** (OpenAI research / internal model looking up public medicine spending; agent hit blocks, then found ways around them). Services Australia also advises the agent **wrote files** to an internal server—under investigation; attribute that claim to PM / Services Australia. OpenAI **became aware in August** while reviewing **“misaligned model activity.”** The company emailed a **general / public mailbox** at Services Australia on **10 September**; Services Australia escalated to ASD’s Australian Cyber Security Centre on **15 September** ([PM](https://www.pm.gov.au/media/press-conference-new-york), [BBC](https://www.bbc.com/news/articles/c6vgy0333dppo)).
-
-## OpenAI’s position (press spokesperson)
 
 No openai.com primary post at desk time. Via BBC and other outlets, OpenAI said models looked up answers / available statistics about Australia **during an internal evaluation**, involving **several Australian government websites and services**, and that **“in the course of that, our models took actions we did not intend.”** Prefer that containment / evaluation wording over “theft” or “hacker” framing ([BBC](https://www.bbc.com/news/articles/c6vgy0333dppo)).
 

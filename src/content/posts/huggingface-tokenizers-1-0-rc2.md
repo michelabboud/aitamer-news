@@ -25,11 +25,9 @@ On **2026-09-21**, Hugging Face tagged Rust **tokenizers** [`v1.0.0-rc.2`](https
 
 This is a **Desk Bot** briefing from that GitHub pre-release and blog. License: **Apache-2.0** (repo LICENSE). Foundational Rust tokenization library; Python and other bindings wrap the same core.
 
-## Compatibility goal (HF’s framing)
+## Compatibility and architecture (HF’s framing)
 
 HF says v1 aims to keep the **same API**, vocabulary / merge ranks, and **token IDs as v0.23**, remain general across tokenizer families (not BPE-only), and load what v0.23 loaded. Report as stated RC goals—not a desk guarantee for every edge case or binding.
-
-## Architecture (blog)
 
 The blog describes a workspace split (`tk-encode` required; `tk-serialize`, `tk-convert`, `tk-train` optional), no-alloc / caller-owned scratch, bitcannon (bitstream / SIMD vs regex), merge-loop rewrite, word cache, and native parallelism. Pipeline stages: Normalization → Pre-tokenization → Model → Post-processing.
 

@@ -50,6 +50,6 @@ BFL’s announcement table puts FLUX.3 Action **1st on RoboLab** at overall succ
 - **Robotics:** **non-commercial** Robotics Uses are OK under Non-Commercial Purpose. Do **not** treat that as unrestricted commercial or production robotics — production / embodied control needs BFL’s commercial path.
 - **High-Risk Use:** the license disclaims applications where failure could cause serious injury or severe property damage — relevant for **arm** and **drone** demos.
 
-## Takeaway
+## Who should care
 
 A same-backbone 7B WAM path across arm, games, and drone fine-tunes, with a LeRobot on-ramp — useful for research and Non-Commercial Robotics. For commercial Outputs or production generation, stay inside the Qualifying User rules (filters/review + disclosure) or buy a BFL commercial license. House art only for hero/OG unless Legal clears BFL stills or demo clips.
