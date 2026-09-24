@@ -6,6 +6,10 @@ interface Props {
   title?: string;
   description?: string;
   canonical?: string;
+  /** Site-relative path like `/heroes/foo.jpg`. */
+  image?: string;
+  /** Open Graph type. */
+  ogType?: 'website' | 'article';
   /** When true, emit robots noindex. */
   noindex?: boolean;
 }
@@ -13,10 +17,16 @@ const {
   title,
   description = SITE.description,
   canonical,
+  image,
+  ogType = 'website',
   noindex = false,
 } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.domain}`;
-const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site ?? SITE.url).toString();
+const siteBase = Astro.site ?? SITE.url;
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteBase).toString();
+const defaultImage = '/heroes/welcome-to-aitamer.jpg';
+const imagePath = image?.trim() || defaultImage;
+const absoluteImage = new URL(imagePath, siteBase).toString();
 ---
 <!doctype html>
 <html lang="en">
@@ -37,6 +47,19 @@ const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site ?? SITE
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Martian+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={absoluteImage} />
+    <meta property="og:site_name" content={SITE.title} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={absoluteImage} />
+
     <slot name="head" />
     <title>{pageTitle}</title>
   </head>

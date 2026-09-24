@@ -10,6 +10,7 @@ import {
   resolveAuthor,
   type Section,
 } from '../../lib/site';
+import { postCover, coverForSection } from '../../lib/covers';
 
 export function getStaticPaths() {
   return ALL_SECTIONS.map((section) => ({
@@ -30,10 +31,12 @@ const cards = await Promise.all(
     return { post, author };
   }),
 );
+const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
 ---
 <BaseLayout
   title={SECTION_LABELS[section]}
   description={`AI Tamer stories in ${SECTION_LABELS[section]}.`}
+  image={ogImage}
 >
   <div data-section={section}>
     <p class="page-kicker">Section</p>
@@ -50,8 +53,8 @@ const cards = await Promise.all(
       <p class="empty">No published posts in this section yet.</p>
     ) : (
       <div class="post-list">
-        {cards.map(({ post, author }) => (
-          <PostCard post={post} author={author} />
+        {cards.map(({ post, author }, i) => (
+          <PostCard post={post} author={author} feature={i === 0} />
         ))}
       </div>
     )}
