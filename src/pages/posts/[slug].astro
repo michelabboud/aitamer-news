@@ -30,7 +30,7 @@ const generated = usesGeneratedCover(post);
 const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
 ---
 <BaseLayout title={post.data.title} description={post.data.description}>
-  <article class="article">
+  <article class="article" data-section={section}>
     <header class="article__header">
       <p class="page-kicker">
         <a href={sectionHref(section)}>{SECTION_LABELS[section]}</a>

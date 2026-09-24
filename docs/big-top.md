@@ -1,34 +1,52 @@
 # Big Top theme
 
-**Big Top** is the production daylight theme for aitamer.news: a bright-but-soft candy-shop poster editorial — thick outlines, offset sticker shadows, pastel section accents — not SaaS glass.
+**Big Top** is the production Daylight theme for aitamer.news: bright-but-soft candy-shop poster editorial — pastel desk chips, warm blurred shadows, geometric house covers. Not SaaS glass. No gradients.
 
-## Tokens (light mode)
+Canonical token extract: `/workspace/atn-design-options/bigtop-tokens.md` (from the Claude artifact).
+
+## Daylight tokens
 
 | Token | Value |
 |-------|--------|
-| paper / `--bg` | `#fff8f0` |
-| paper-raised / `--surface` | `#ffffff` |
-| paper-sunk / `--bg-soft` | `#fbe6d3` |
-| text | `#241c30` |
-| text-muted | `#5a5068` |
-| accent (links) | `#5c6be8` |
-| human | `#3db88a` |
-| bot | soft lavender/plum chip |
+| paper | `#fff8f0` |
+| paper-raised | `#ffffff` |
+| paper-sunk | `#fdf0e4` |
+| ink | `#241c30` |
+| ink-muted | `#6b6078` |
+| line | `#e6dde9` |
+| shadow-tint | `#e7d9ea` (soft blur shadows, not hard offsets) |
 | highlight | `#ffe8b0` |
-| correction / danger | `#ce2556` |
+| correction | `#ce2556` |
+| human-fill | `#ffd6c2` |
+| bot-fill | `#c7ead9` |
 
-Display: **Bricolage Grotesque**. UI: **DM Sans**. Body: **Source Serif 4**. Meta: **IBM Plex Mono**.
+Fonts: **Bricolage Grotesque** (display), **Instrument Sans** (reading), **Martian Mono** (machine).
 
-## Section cover art
+Night show tokens live under `[data-theme="night"]` in `global.css` but are not shipped as the default.
 
-House-owned SVG covers live at `public/covers/{section}.svg` for every desk in `ALL_SECTIONS`.
+## Section covers
 
-- Style: abstract geometric (rounded squares, pills, circles), thick `#241c30` outlines, hard offset shadows, pastel fills matching section chip accents.
-- **Legal:** original house SVG art — not stock photos, not third-party brand logos. Caption spirit: “Generated cover art (X motif). Not a photo.”
-- Regenerate with `python3 scripts/generate-covers.py` from the repo root layout (script expects `public/covers/` under the project root when run from `scripts/`).
+House-owned SVGs at `public/covers/{slug}.svg` for every `ALL_SECTIONS` desk.
 
-`src/lib/covers.ts` maps sections → cover paths and resolves `postCover(post)` (custom `heroImage` wins).
+| slug | motif |
+|------|--------|
+| top | rings |
+| models | stacked layers |
+| tools | modular blocks |
+| image | overlapping lenses |
+| video | film + play |
+| data | bars |
+| databases | cylinders |
+| rust | hex nuts |
+| policy | columns |
+| opinion | speech bubbles |
 
-## Scope note
+**Legal:** original house SVG art — not stock photos, not third-party logos. Caption: “Generated cover art (X motif). Not a photo.”
 
-`/design-lab/` keeps its own scoped theme CSS. Big Top changes apply to the main site shell (`global.css` + layouts/components), not the compare page themes.
+Regenerate: `python3 scripts/generate-covers.py`
+
+`src/lib/covers.ts` maps sections → paths; `postCover(post)` prefers custom `heroImage`.
+
+## Scope
+
+`/design-lab/` keeps its own scoped theme CSS. Big Top applies to the main site shell only.
