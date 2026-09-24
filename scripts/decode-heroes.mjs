@@ -14,6 +14,8 @@ for (const name of fs.readdirSync(dir)) {
   let raw = fs.readFileSync(src, 'utf8').trim();
   const pad = raw.indexOf('PADPAD');
   if (pad >= 0) raw = raw.slice(0, pad);
+  // Strip MCP transport padding (run of P)
+  raw = raw.replace(/P{10,}$/, '');
   raw += '='.repeat((4 - (raw.length % 4)) % 4);
   const out = path.join(dir, name.slice(0, -4)); // foo.png.b64 -> foo.png
   fs.writeFileSync(out, Buffer.from(raw, 'base64'));
