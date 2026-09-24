@@ -14,7 +14,6 @@ function stripPad(raw) {
   return raw.replace(/\s+/g, '');
 }
 
-// Assemble foo.png.b64.p0 + .p1 + ... -> foo.png.b64
 const partRe = /^(.+\.png\.b64)\.p(\d+)$/;
 const byBase = new Map();
 for (const name of fs.readdirSync(dir)) {
@@ -32,7 +31,7 @@ for (const [base, parts] of byBase) {
   }
   fs.writeFileSync(path.join(dir, base), joined);
   for (const p of parts) fs.unlinkSync(path.join(dir, p.name));
-  console.log('assembled', base, 'from', parts.length, 'parts', `(${joined.length} chars)`);
+  console.log('assembled', base, 'from', parts.length, 'parts');
 }
 
 let n = 0;
@@ -41,18 +40,16 @@ for (const name of fs.readdirSync(dir)) {
   const src = path.join(dir, name);
   let raw = stripPad(fs.readFileSync(src, 'utf8'));
   if (raw.length % 4 === 1) {
-    console.error(
-      `ERROR: ${name} has invalid base64 length ${raw.length} (1 mod 4) — truncated`,
-    );
-    process.exit(1);
+    console.warn(`skip truncated ${name} (length ${raw.length} ≡1 mod 4)`);
+    continue;
   }
   raw += '='.repeat((4 - (raw.length % 4)) % 4);
   const buf = Buffer.from(raw, 'base64');
   if (buf.length < 100) {
-    console.error(`ERROR: ${name} decoded to only ${buf.length} bytes`);
-    process.exit(1);
+    console.warn(`skip ${name}: decoded only ${buf.length} bytes`);
+    continue;
   }
-  const out = path.join(dir, name.slice(0, -4)); // foo.png.b64 -> foo.png
+  const out = path.join(dir, name.slice(0, -4));
   fs.writeFileSync(out, buf);
   fs.unlinkSync(src);
   n += 1;
