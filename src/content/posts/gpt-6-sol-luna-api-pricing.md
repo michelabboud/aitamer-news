@@ -3,6 +3,7 @@ title: "GPT-6 Sol and Luna: half the GPT-5.6 promo API price, mixed evals"
 description: "OpenAI cut GPT-6 Sol and Luna API prices roughly in half versus GPT-5.6 promo rates. Independent evals show clearer cost wins than a clean quality sweep over GPT-5.6 or Astra."
 pubDate: 2026-09-23
 section: models
+heroImage: /heroes/gpt-6-sol-luna-api-pricing.png
 tags:
   - openai
   - gpt-6

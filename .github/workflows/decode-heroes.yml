@@ -1,0 +1,64 @@
+name: Decode hero PNGs
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: decode-heroes
+  cancel-in-progress: false
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/post-heroes
+          fetch-depth: 0
+      - name: Decode base64 heroes to binary
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for f in public/heroes/*.png.b64; do
+            out="${f%.b64}"
+            python3 - "$f" "$out" <<'PY'
+          import base64, sys
+          src, dst = sys.argv[1], sys.argv[2]
+          raw = open(src, "r", encoding="utf-8").read().strip()
+          # Strip optional transport-padding suffix
+          if "PADPAD" in raw:
+              raw = raw[: raw.index("PADPAD")]
+          raw += "=" * ((4 - len(raw) % 4) % 4)
+          data = base64.b64decode(raw)
+          open(dst, "wb").write(data)
+          print(f"wrote {dst} ({len(data)} bytes) magic={data[:3].hex()}")
+          PY
+            rm -f "$f"
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A public/heroes
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+            exit 0
+          fi
+          git commit -m "design(heroes): materialize binary PNG heroes from base64"
+          git push origin HEAD:design/post-heroes
+      - name: Remove one-shot workflow
+        if: success()
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          left=(public/heroes/*.b64 public/heroes/*.b64.part*)
+          if [ ${#left[@]} -gt 0 ]; then
+            echo "pending blobs remain"; ls -la "${left[@]}"; exit 1
+          fi
+          if [ -f .github/workflows/decode-heroes.yml ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git rm -f .github/workflows/decode-heroes.yml
+            git commit -m "chore: remove one-shot decode-heroes workflow" || exit 0
+            git push origin HEAD:design/post-heroes
+          fi
