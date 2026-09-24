@@ -70,9 +70,7 @@ code {
 .site-header {
   position: sticky; top: 0; z-index: 50;
   border-bottom: var(--border-bold) solid var(--line);
-  background: color-mix(in srgb, var(--paper) 94%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: var(--paper);
 }
 
 .site-header__inner {
