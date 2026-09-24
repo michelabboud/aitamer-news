@@ -30,7 +30,7 @@ const generated = usesGeneratedCover(post);
 const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
 const hasHeroImage = Boolean(post.data.heroImage?.trim());
 ---
-<BaseLayout title={post.data.title} description={post.data.description}>
+<BaseLayout title={post.data.title} description={post.data.description} image={heroSrc} ogType="article">
   <article class="article" data-section={section}>
     <header class="article__header">
       <p class="page-kicker">
@@ -68,7 +68,7 @@ const hasHeroImage = Boolean(post.data.heroImage?.trim());
       <img
         class="article__hero"
         src={heroSrc}
-        alt=""
+        alt={post.data.title}
         width="1600"
         height="900"
         decoding="async"

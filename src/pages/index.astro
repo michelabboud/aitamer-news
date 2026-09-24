@@ -8,6 +8,7 @@ import {
   getPublishedPosts,
   resolveAuthor,
 } from '../lib/site';
+import { postCover } from '../lib/covers';
 
 const posts = await getPublishedPosts();
 const cards = await Promise.all(
@@ -17,8 +18,9 @@ const cards = await Promise.all(
     return { post, author };
   }),
 );
+const ogImage = cards[0] ? postCover(cards[0].post) : '/heroes/welcome-to-aitamer.jpg';
 ---
-<BaseLayout title="Latest" description={SITE.description}>
+<BaseLayout title="Latest" description={SITE.description} image={ogImage}>
   <section class="hero" aria-label="Site introduction">
     <div class="hero-plane">
       <p class="page-kicker">Short, sourced AI briefs</p>
@@ -35,8 +37,8 @@ const cards = await Promise.all(
 
   <section aria-label="Latest posts">
     <div class="post-list">
-      {cards.map(({ post, author }) => (
-        <PostCard post={post} author={author} />
+      {cards.map(({ post, author }, i) => (
+        <PostCard post={post} author={author} feature={i === 0} />
       ))}
     </div>
   </section>

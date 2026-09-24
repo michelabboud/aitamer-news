@@ -23,7 +23,7 @@ const cards = await Promise.all(
   }),
 );
 ---
-<BaseLayout title={author.data.name} description={author.data.bio}>
+<BaseLayout title={author.data.name} description={author.data.bio} image="/heroes/welcome-to-aitamer.jpg">
   <p class="page-kicker">Author</p>
   <h1 class="page-title">{author.data.name}</h1>
   <div class="author-card">
@@ -39,8 +39,8 @@ const cards = await Promise.all(
     <p class="empty">No published posts yet.</p>
   ) : (
     <div class="post-list">
-      {cards.map(({ post, author: a }) => (
-        <PostCard post={post} author={a} />
+      {cards.map(({ post, author: a }, i) => (
+        <PostCard post={post} author={a} feature={i === 0} />
       ))}
     </div>
   )}
