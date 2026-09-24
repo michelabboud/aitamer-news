@@ -17,43 +17,26 @@ jobs:
         with:
           ref: design/post-heroes
           fetch-depth: 0
-      - name: Assemble and decode heroes
+      - name: Decode base64 heroes to binary
         run: |
           set -euo pipefail
           shopt -s nullglob
-
           for f in public/heroes/*.png.b64; do
             out="${f%.b64}"
-            base64 -d "$f" > "$out"
+            python3 - "$f" "$out" <<'PY'
+          import base64, sys
+          src, dst = sys.argv[1], sys.argv[2]
+          raw = open(src, "r", encoding="utf-8").read().strip()
+          # Strip optional transport-padding suffix
+          if "PADPAD" in raw:
+              raw = raw[: raw.index("PADPAD")]
+          raw += "=" * ((4 - len(raw) % 4) % 4)
+          data = base64.b64decode(raw)
+          open(dst, "wb").write(data)
+          print(f"wrote {dst} ({len(data)} bytes) magic={data[:3].hex()}")
+          PY
             rm -f "$f"
-            echo "decoded $out ($(wc -c < "$out") bytes)"
           done
-
-          bases=()
-          for f in public/heroes/*.png.b64.part*; do
-            base="${f%.b64.part*}"
-            bases+=("$base")
-          done
-          # unique bases
-          mapfile -t bases < <(printf '%s\n' "${bases[@]}" | sort -u)
-
-          for base in "${bases[@]}"; do
-            out="$base"
-            rm -f /tmp/hero.b64
-            mapfile -t sorted < <(ls -1 "$base".b64.part* | sort -t't' -k2 -n)
-            for p in "${sorted[@]}"; do
-              cat "$p" >> /tmp/hero.b64
-              rm -f "$p"
-            done
-            base64 -d /tmp/hero.b64 > "$out"
-            echo "assembled $out ($(wc -c < "$out") bytes) from ${#sorted[@]} parts"
-            python3 - <<'PY' "$out"
-import sys
-p=open(sys.argv[1],'rb').read(3)
-print('magic', p.hex(), 'jpeg' if p[:2]==b'\xff\xd8' else 'other')
-PY
-          done
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A public/heroes
@@ -70,9 +53,7 @@ PY
           shopt -s nullglob
           left=(public/heroes/*.b64 public/heroes/*.b64.part*)
           if [ ${#left[@]} -gt 0 ]; then
-            echo "still have pending blobs; keeping workflow"
-            ls -la "${left[@]}" || true
-            exit 1
+            echo "pending blobs remain"; ls -la "${left[@]}"; exit 1
           fi
           if [ -f .github/workflows/decode-heroes.yml ]; then
             git config user.name "github-actions[bot]"
