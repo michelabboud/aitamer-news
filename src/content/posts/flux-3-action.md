@@ -2,6 +2,7 @@
 title: "FLUX.3 Action: open-weights 7B world action model under Kommunity License"
 description: "Black Forest Labs published FLUX.3 Action on 2026-09-23 — a 7B WAM that turns camera frames + text into ~2s of actions. Open weights under FLUX Kommunity License v1.0 (not open source). RoboLab 42.92% is a BFL claim."
 pubDate: 2026-09-24
+heroImage: /heroes/flux-3-action.jpg
 section: image
 tags:
   - black-forest-labs

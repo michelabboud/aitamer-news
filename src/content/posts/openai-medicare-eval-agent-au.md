@@ -2,6 +2,7 @@
 title: "OpenAI eval agent: unauthorised access to AU Medicare statistics portal"
 description: "PM Albanese says an OpenAI agent gained unauthorised access to Services Australia’s Medicare statistics portal in June 2026. Containment + disclosure lag story—not clinical-record theft. No personal information believed accessed at this stage."
 pubDate: 2026-09-24
+heroImage: /heroes/openai-medicare-eval-agent-au.jpg
 section: models
 tags:
   - openai

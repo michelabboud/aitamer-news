@@ -2,6 +2,7 @@
 title: "Burn v0.22.0-pre.4 and CubeCL v0.11.0-pre.4: paired Tracel pre-releases"
 description: "Tracel tagged Burn v0.22.0-pre.4 and CubeCL v0.11.0-pre.4 on the same day (2026-09-22). Pre-release only—not stable 0.22 / 0.11. LAMB, einsum, AMDGPU and CUDA-LLVM backends; dual MIT/Apache."
 pubDate: 2026-09-24
+heroImage: /heroes/burn-0-22-cubecl-0-11-pre4.jpg
 section: rust
 subsection: ai
 tags:
