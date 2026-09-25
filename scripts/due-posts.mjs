@@ -18,30 +18,32 @@
  * cron run is caught by the run after it; triggering the deploy twice for the same post is
  * harmless — deploy-pages.yml is idempotent and reuses Astro's incremental build cache.
  *
- * Always exits 0: finding nothing due is a normal result, not a failure. With
+ * Always exits 0: finding nothing due is a normal result, not a failure, and a post whose
+ * frontmatter cannot be read is reported on stderr and skipped (the deploy refuses it). With
  * `$GITHUB_OUTPUT` set, writes `due=true` or `due=false` there so the workflow's next step
  * can decide whether to trigger a deploy.
  */
 import { readdirSync, readFileSync, appendFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { frontmatterOf } from './stamp-post-times.mjs';
+import { isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
 
 export const POSTS_DIR = 'src/content/posts';
 export const DEFAULT_WINDOW_MINUTES = 120;
 const POST_FILE = /\.mdx?$/;
-const DRAFT_TRUE = /^draft:[ \t]*true[ \t]*$/m;
-const FULL_ISO_PUBDATE = /^pubDate:[ \t]*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)[ \t]*$/m;
 
 /**
  * @param {string} text whole post file
- * @returns {Date | null} the full-ISO pubDate of a non-draft post, else null
+ * @returns {Date | null} the exact pubDate (a date with a time) of a non-draft post, else null.
+ *   Read with the same YAML rules as Astro (scripts/frontmatter.mjs), so `draft: True` is a draft
+ *   and a trailing comment does not hide a time. A date-only pubDate has no time: null.
+ * @throws {Error} when the frontmatter is not valid YAML
  */
 export function fullIsoPubDate(text) {
-  const fm = frontmatterOf(text);
-  if (fm === null || DRAFT_TRUE.test(fm)) return null;
-  const match = FULL_ISO_PUBDATE.exec(fm);
-  return match ? new Date(match[1]) : null;
+  const fm = readFrontmatter(text);
+  if (fm === null || isPublishedDraftField(fm.data) !== true) return null;
+  const { date, day } = pubDateOf(fm);
+  return day === null ? date : null;
 }
 
 /**
@@ -85,10 +87,19 @@ function slugOf(file) {
 function main(argv) {
   const windowMinutes = parseWindowMinutes(argv);
   const now = new Date();
-  const due = postFiles(POSTS_DIR)
-    .map((file) => ({ slug: slugOf(file), pubDate: fullIsoPubDate(readFileSync(file, 'utf8')) }))
-    .filter((post) => post.pubDate !== null && isDue(post.pubDate, now, windowMinutes))
-    .map((post) => post.slug);
+  const due = [];
+  for (const file of postFiles(POSTS_DIR)) {
+    let pubDate;
+    try {
+      pubDate = fullIsoPubDate(readFileSync(file, 'utf8'));
+    } catch (error) {
+      // One unreadable post must not stop another post from going live on time. The deploy's
+      // check:posts refuses the unreadable one loudly; here it is reported and skipped.
+      console.error(`due-posts: skipping ${file}: ${error.message}`);
+      continue;
+    }
+    if (pubDate !== null && isDue(pubDate, now, windowMinutes)) due.push(slugOf(file));
+  }
 
   if (due.length === 0) {
     console.log(`due-posts: nothing due in the last ${windowMinutes} minutes.`);

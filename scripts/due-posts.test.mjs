@@ -19,6 +19,18 @@ test('a date-only pubDate has no exact time, so it is never due here', () => {
   assert.equal(fullIsoPubDate(post('title: A\npubDate: 2026-09-26')), null);
 });
 
+test('frontmatter is read as YAML: True is a draft, a comment does not hide the time (B1)', () => {
+  assert.equal(fullIsoPubDate(post('pubDate: 2026-09-26T08:00:00Z\ndraft: True')), null);
+  assert.deepEqual(
+    fullIsoPubDate(post('pubDate: 2026-09-26T08:00:00Z   # launch\ndraft: false  # live')),
+    new Date('2026-09-26T08:00:00Z'),
+  );
+  assert.deepEqual(fullIsoPubDate(post('pubDate: "2026-09-26T08:00:00Z"')), new Date('2026-09-26T08:00:00Z'));
+  assert.equal(fullIsoPubDate(post('pubDate: "2026-09-26"   # date only')), null);
+  assert.equal(fullIsoPubDate(`\uFEFF${post('pubDate: 2026-09-26T08:00:00Z')}`).toISOString(), '2026-09-26T08:00:00.000Z');
+  assert.throws(() => fullIsoPubDate(post('title: "unclosed\npubDate: 2026-09-26T08:00:00Z')), /not valid YAML/);
+});
+
 test('a post with no frontmatter is never due', () => {
   assert.equal(fullIsoPubDate('no frontmatter\npubDate: 2026-09-26T08:00:00Z\n'), null);
 });

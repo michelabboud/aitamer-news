@@ -2,6 +2,21 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.19] — 2026-09-25
+
+### Fixed
+- The specimen and time stampers (lane F1, fixing deep-review findings B1, B2, B3, B6 and minors M1, M2, M5, M6):
+  - Post headers are read with a real YAML parser (`js-yaml` 4.3.2, the same parser and version Astro uses, so the scripts and the build never disagree; vetting: `docs/reports/2026-09-25-yaml-vetting.md`), shared in `scripts/frontmatter.mjs`. A commented `draft: true   # …` line, `True`, quoted values, flow-style or unindented `sources`, CRLF and a BOM are all read correctly.
+  - A stamp run checks everything and computes every file first, then appends the ledger, then writes the posts atomically; one bad post stops the run with nothing written. An interrupted run is repaired by the next one.
+  - Number collisions between branches have a legal append-only repair: a `void:` ledger line (`POST.md` §4). The check now reports a number or slug issued twice and a voided number reused.
+  - Text containing `$$`, `$'` or `$&` can no longer be corrupted by a stamp.
+  - `check:posts` also enforces the slug rule on file names.
+- `due-posts` skips a post it cannot read instead of stopping the hourly publish.
+
+### Added
+- `.github/workflows/check-posts.yml`: tests and `check:posts` on every pull request and every push to a branch other than `main`, with read-only permissions and no secrets.
+- 30 tests, including a real two-branch collision repaired end to end, and a check that `public/_redirects` matches the retired sections.
+
 ## [0.1.18] — 2026-09-25
 
 ### Changed

@@ -87,7 +87,31 @@ verdict: "Same price, better agent scores: worth a rerun of your evals."
 
 **Scheduling a post for later.** To have a post go live at a specific future moment instead of as soon as it merges, write a full future UTC time in `pubDate` (e.g. `2026-09-26T08:00:00Z`) with `draft: false`, then run `npm run stamp` — it leaves a full time alone, so yours is kept exactly — and merge as usual. The post stays out of every list, feed, and page until that time passes: `isPublished` requires `pubDate <= build time`, so a build that runs before the moment arrives builds the site without it. An hourly check (`.github/workflows/scheduled-publish.yml`, `scripts/due-posts.mjs`) looks for posts whose full-ISO `pubDate` fell due in roughly the last two hours and triggers the normal deploy when it finds one, so the post actually appears without anyone pushing a new commit at that moment. A **date-only** future `pubDate` is not scheduling in this sense: Astro reads it as `00:00 UTC` that day, so the post goes live at the start of that UTC day the next time anything deploys (a push, or the hourly check catching another post) — not at a precise hour. The post's **specimen number is assigned when it is stamped** (filing order among already-stamped posts), not when it goes live: a post scheduled for next week and stamped today gets a lower number than one published today and stamped tomorrow.
 
-**The deploy refuses a post that breaks the contract.** The deploy runs `npm run check:posts`, which fails and names the file when a published post has no time, no specimen number, a number the ledger does not hold or that another post also carries, or (outside Opinion) no `sources`. For the first two the fix is always the same: run `npm run stamp`, commit, push. Two bots stamping in parallel branches can pick the same number; the check catches it at merge, and re-running `npm run stamp` on the second after removing its `specimen:` line fixes it.
+**The checks refuse a post that breaks the contract.** `npm run check:posts` runs on every pull request and every push to a branch other than `main` (`.github/workflows/check-posts.yml`), and again in the deploy. It fails and names the file when:
+
+- a published post has no time, no specimen number, a number the ledger does not hold, a number another post also carries, or (outside Opinion) no `sources`;
+- a post's file name is not a slug, a post sits in a subfolder of `src/content/posts/`, or it has a `slug:` field;
+- a post's frontmatter is not valid YAML, or `draft` or `specimen` holds something other than what the contract allows;
+- the ledger itself is inconsistent.
+
+For a missing time or number the fix is always the same: run `npm run stamp`, commit the post **and the ledger**, push. `npm run stamp` refuses to run while any post or the ledger has one of these problems. When it runs, it checks everything first, appends the ledger, and only then writes the posts, so a run that fails changes nothing.
+
+**The ledger's format.** One line per event, never edited or removed:
+
+- `0026 slug-a`: number 26 was issued to `slug-a`.
+- `0026 slug-b void: collision with slug-a`: the issuance of 26 to `slug-b` is void. `slug-b` may not carry 26, and 26 is never issued again. A number whose every issuance is void belongs to no post.
+
+A void line is the only legal repair, and it is itself an append.
+
+**When two branches pick the same number.** Numbers are issued on branches, so two branches stamped in parallel can both take the next number, say 26. Both append a line at the end of the ledger, so the merge conflicts there, or the pull request check fails on the merged result.
+
+1. Resolve the conflict by keeping **both** lines (`0026 slug-a` and `0026 slug-b`). The check now reports "ledger issues 26 twice".
+2. Pick the post that is not yet on `main` (if neither is, the later one). Append a void line for it: `0026 slug-b void: collision with slug-a`.
+3. Delete that post's `specimen:` line.
+4. Run `npm run stamp`. The post gets the next unused number (27), and the ledger gets `0027 slug-b`.
+5. Run `npm run check:posts`, then commit the post and the ledger together.
+
+The same void line repairs a number issued by mistake, for example to a post that should have stayed a draft: append `NNNN slug void: <reason>`, delete the post's `specimen:` line, and stamp again when it is really published. If a stamp run is interrupted after the ledger was appended but before the posts were written, run `npm run stamp` again: a post with no `specimen:` line whose slug already holds a number in the ledger gets that number back, and the ledger gets no new line.
 
 Rules for times:
 
@@ -114,6 +138,7 @@ If a check fails, nothing is published and the live site stays as it was. Unchan
 
 - [ ] File name is the final slug; `heroImage` points to `/heroes/<slug>.jpg`, which exists and is a JPEG.
 - [ ] `author` exists; `section` is one of the seven habitats.
-- [ ] `draft: false`, and `npm run stamp` has written the time.
-- [ ] `npm test`, `npm run check:times` and `npm run build` pass locally.
+- [ ] `draft: false`, and `npm run stamp` has written the time and the specimen number.
+- [ ] The ledger (`src/content/specimen-ledger.txt`) is committed with the post.
+- [ ] `npm test`, `npm run check:posts` and `npm run build` pass locally.
 - [ ] `dist/posts/<slug>/index.html` exists after the build.

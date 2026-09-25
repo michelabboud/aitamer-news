@@ -6,57 +6,137 @@
  *   node scripts/stamp-specimens.mjs --check  exit 1 on any numbering problem (part of `npm run check:posts`)
  *
  * The number lives in the post (`specimen: 12`) and in an append-only ledger,
- * src/content/specimen-ledger.txt (`0012 <slug>` per line). The ledger is what makes
- * "never reused" provable: a withdrawn or deleted post keeps its line, so its number is
- * never handed out again. New numbers go to posts in filing order: oldest pubDate first,
- * ties by slug. Drafts get no number until they are published.
+ * src/content/specimen-ledger.txt. The ledger is what makes "never reused" provable: a withdrawn
+ * or deleted post keeps its line, so its number is never handed out again. New numbers go to
+ * posts in filing order: oldest pubDate first, ties by slug. Drafts get no number until they
+ * are published.
  *
- * aitamer-news-ops and atn-mcp must run `npm run stamp` before committing a published post.
+ * Ledger lines (POST.md §4):
+ *   0012 some-slug                   number 12 was issued to some-slug
+ *   0012 some-slug void: <reason>    that issuance is void: some-slug may not carry 12
+ * A void line is the one legal repair, and it is itself an append. It exists because numbers
+ * can be issued on two branches at once and collide at merge. A voided issuance stays in the
+ * ledger, so its number is never issued again. A number whose every issuance is void belongs
+ * to no post. Restating a line is harmless; issuing a pair after voiding it is an error.
+ *
+ * A stamp run is all or nothing, in this order: read and validate every post and the ledger;
+ * compute every new post text in memory; append the ledger; write the posts. If the posts'
+ * write is interrupted, the ledger already holds their numbers, and the next run writes the
+ * same numbers back (a post with no `specimen:` whose slug holds a live number gets that number).
+ *
+ * aitamer-news-ops and atn-mcp must run `npm run stamp` before committing a published post,
+ * and commit the ledger with it.
  */
-import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { frontmatterOf } from './stamp-post-times.mjs';
+import {
+  SLUG,
+  assertOnlyChanged,
+  isPublishedDraftField,
+  pubDateOf,
+  readFrontmatter,
+  topLevelLine,
+  withRaw,
+} from './frontmatter.mjs';
+import { writeFileAtomic } from './stamp-post-times.mjs';
 
 export const POSTS_DIR = 'src/content/posts';
 export const LEDGER_FILE = 'src/content/specimen-ledger.txt';
 const POST_FILE = /\.mdx?$/;
-const LEDGER_LINE = /^(\d+) ([a-z0-9][a-z0-9-]*)$/;
+/** `<number> <slug>` or `<number> <slug> void: <reason>`. The slug part is `SLUG`. */
+const LEDGER_LINE = new RegExp(`^(\\d+) (${SLUG.source.slice(1, -1)})(?: void: (\\S.*))?$`);
 const LEDGER_HEADER = [
   '# Specimen ledger: every number ever issued, and the post it went to. Append-only.',
   '# Written by `npm run stamp` (scripts/stamp-specimens.mjs). Never edit or remove a line;',
   '# a withdrawn or deleted post keeps its number here so it is never reused.',
+  '# The one repair is another append: `NNNN slug void: <reason>` (POST.md section 4).',
 ];
+const COLLISION_REPAIR =
+  'keep both lines; for the post that is not yet on main, append `NNNN <slug> void: collision`, delete its `specimen:` line, and run `npm run stamp` (POST.md section 4)';
 
-/** @param {string} fm @param {string} key @returns {string | null} the raw scalar value of a top-level key */
-function scalar(fm, key) {
-  const match = new RegExp(`^${key}:[ \\t]*(.*?)[ \\t]*$`, 'm').exec(fm);
-  if (!match) return null;
-  return match[1].replace(/^(["'])(.*)\1$/, '$2');
-}
+/**
+ * @typedef {object} Post
+ * @property {string} slug file name without extension
+ * @property {boolean} draft true also when `draft` is invalid, so no number is issued to it
+ * @property {number | null} pubTime pubDate in ms, or null when missing or unreadable
+ * @property {number | null} specimen a valid specimen number, else null
+ * @property {boolean} hasSpecimenField the frontmatter has a `specimen` key at all
+ * @property {string | null} section
+ * @property {boolean} hasSources a non-empty `sources` list
+ * @property {boolean} withdrawn
+ * @property {string[]} errors problems that make the post unsafe to stamp
+ */
 
 /**
  * @param {string} slug file name without extension
  * @param {string} text whole post file
- * @returns {{ slug: string, draft: boolean, pubDate: string | null, specimen: number | null, section: string | null, hasSources: boolean, withdrawn: boolean }}
+ * @returns {Post} never throws: an unreadable post comes back with `errors`
  */
 export function readPost(slug, text) {
-  const fm = frontmatterOf(text);
-  if (fm === null) throw new Error(`${slug}: post has no frontmatter`);
-  const specimenRaw = scalar(fm, 'specimen');
-  const specimen = specimenRaw === null || specimenRaw === '' ? null : Number(specimenRaw);
+  const errors = [];
+  if (!SLUG.test(slug)) {
+    errors.push(`file name "${slug}" is not a slug: lowercase letters, digits and hyphens only, starting with a letter or digit (rename the file before it is published)`);
+  }
+  let fm;
+  try {
+    fm = readFrontmatter(text);
+  } catch (error) {
+    fm = undefined;
+    errors.push(error.message);
+  }
+  if (fm === null) errors.push('post has no frontmatter');
+  if (!fm) {
+    return { slug, draft: true, pubTime: null, specimen: null, hasSpecimenField: false, section: null, hasSources: false, withdrawn: false, errors };
+  }
+  const data = fm.data;
+
+  const published = isPublishedDraftField(data);
+  if (published === null) errors.push(`draft must be true or false, found ${JSON.stringify(data.draft)}`);
+
+  const hasSpecimenField = Object.hasOwn(data, 'specimen');
+  let specimen = null;
+  if (hasSpecimenField) {
+    const value = data.specimen;
+    if (value === null) {
+      errors.push('`specimen:` is present but empty; delete the line and run `npm run stamp`');
+    } else if (typeof value !== 'number' || !Number.isInteger(value) || value < 1) {
+      errors.push(`specimen must be a positive whole number, found ${JSON.stringify(value)}; never write it by hand`);
+    } else {
+      specimen = value;
+    }
+  }
+
+  let pubTime = null;
+  try {
+    const { date } = pubDateOf(fm);
+    pubTime = date === null ? null : date.valueOf();
+  } catch (error) {
+    errors.push(error.message);
+  }
+  if (published === true && pubTime === null) errors.push('published but has no readable pubDate');
+
+  if (Object.hasOwn(data, 'slug')) {
+    errors.push('remove the `slug:` field: the file name is the slug, and Astro would use this field as the URL instead');
+  }
+
   return {
     slug,
-    draft: scalar(fm, 'draft') === 'true',
-    pubDate: scalar(fm, 'pubDate'),
-    specimen: specimen === null || Number.isNaN(specimen) ? null : specimen,
-    section: scalar(fm, 'section'),
-    hasSources: /^sources:[ \t]*\r?\n[ \t]+-/m.test(fm),
-    withdrawn: /^withdrawn:/m.test(fm),
+    draft: published !== true,
+    pubTime,
+    specimen,
+    hasSpecimenField,
+    section: typeof data.section === 'string' ? data.section : null,
+    hasSources: Array.isArray(data.sources) && data.sources.length > 0,
+    withdrawn: data.withdrawn !== undefined && data.withdrawn !== null,
+    errors,
   };
 }
 
-/** @param {string} text @returns {{ entries: { n: number, slug: string }[], errors: string[] }} */
+/**
+ * @param {string} text
+ * @returns {{ entries: { n: number, slug: string, void?: string }[], errors: string[] }}
+ */
 export function parseLedger(text) {
   const entries = [];
   const errors = [];
@@ -64,86 +144,160 @@ export function parseLedger(text) {
     if (line.trim() === '' || line.startsWith('#')) return;
     const match = LEDGER_LINE.exec(line);
     if (!match) {
-      errors.push(`ledger line ${i + 1} is not "<number> <slug>": ${line}`);
+      errors.push(`ledger line ${i + 1} is not "<number> <slug>" or "<number> <slug> void: <reason>": ${line}`);
       return;
     }
-    entries.push({ n: Number(match[1]), slug: match[2] });
+    const entry = { n: Number(match[1]), slug: match[2] };
+    if (match[3] !== undefined) entry.void = match[3];
+    entries.push(entry);
   });
   return { entries, errors };
 }
 
-/** @param {{ n: number }[]} entries @returns {number} the next unused number */
+/**
+ * What the ledger says, line by line, in order.
+ * @param {{ n: number, slug: string, void?: string }[]} entries
+ * @returns {{
+ *   ownersOf: Map<number, string[]>,
+ *   numbersOf: Map<string, number[]>,
+ *   issued: Set<number>,
+ *   max: number,
+ *   problems: string[],
+ * }} `ownersOf`/`numbersOf`: live (non-void) issuances; `issued`: every number ever issued
+ */
+export function ledgerState(entries) {
+  const live = new Map(); // "n slug" -> { n, slug }, in first-issued order
+  const voided = new Set(); // "n slug"
+  const issued = new Set();
+  const problems = [];
+  let max = 0;
+  for (const entry of entries) {
+    const key = `${entry.n} ${entry.slug}`;
+    max = Math.max(max, entry.n);
+    if (entry.void !== undefined) {
+      if (live.has(key)) {
+        live.delete(key);
+        voided.add(key);
+      } else if (!voided.has(key)) {
+        problems.push(`ledger voids ${entry.n} for ${entry.slug}, but no earlier line issues ${entry.n} to ${entry.slug}`);
+      }
+      continue;
+    }
+    if (voided.has(key)) {
+      problems.push(`ledger issues ${entry.n} to ${entry.slug} again after voiding it; a voided number is never reissued`);
+      continue;
+    }
+    issued.add(entry.n);
+    if (!live.has(key)) live.set(key, { n: entry.n, slug: entry.slug });
+  }
+  const ownersOf = new Map();
+  const numbersOf = new Map();
+  for (const { n, slug } of live.values()) {
+    ownersOf.set(n, [...(ownersOf.get(n) ?? []), slug]);
+    numbersOf.set(slug, [...(numbersOf.get(slug) ?? []), n]);
+  }
+  for (const [n, slugs] of ownersOf) {
+    if (slugs.length > 1) problems.push(`ledger issues ${n} twice (${slugs.join(' and ')}): a collision; ${COLLISION_REPAIR}`);
+  }
+  for (const [slug, numbers] of numbersOf) {
+    if (numbers.length > 1) {
+      problems.push(`ledger issues ${slug} twice (${numbers.join(' and ')}): append \`NNNN ${slug} void: <reason>\` for the number the post does not carry`);
+    }
+  }
+  return { ownersOf, numbersOf, issued, max, problems };
+}
+
+/** @param {{ n: number }[]} entries @returns {number} the next unused number, void lines included */
 export function nextNumber(entries) {
   return entries.reduce((max, entry) => Math.max(max, entry.n), 0) + 1;
 }
 
-/** @param {{ n: number, slug: string }} entry */
+/** @param {{ n: number, slug: string, void?: string }} entry */
 export function ledgerLine(entry) {
-  return `${String(entry.n).padStart(4, '0')} ${entry.slug}`;
+  const line = `${String(entry.n).padStart(4, '0')} ${entry.slug}`;
+  return entry.void === undefined ? line : `${line} void: ${entry.void}`;
 }
 
 /**
- * Published posts that still need a number, in the order they get one.
- * @param {ReturnType<typeof readPost>[]} posts
+ * Published posts that still need a number, in the order they get one. A post with errors, or
+ * with a `specimen` field in any state, never gets one here.
+ * @param {Post[]} posts
  */
 export function needingNumbers(posts) {
   return posts
-    .filter((post) => !post.draft && post.specimen === null)
-    .sort((a, b) => {
-      const at = Date.parse(a.pubDate ?? '');
-      const bt = Date.parse(b.pubDate ?? '');
-      return (Number.isNaN(at) ? Infinity : at) - (Number.isNaN(bt) ? Infinity : bt) || a.slug.localeCompare(b.slug);
-    });
+    .filter((post) => !post.draft && !post.hasSpecimenField && post.errors.length === 0)
+    .sort((a, b) => (a.pubTime ?? Infinity) - (b.pubTime ?? Infinity) || a.slug.localeCompare(b.slug));
 }
 
 /**
- * Plan the numbers for posts that need one. Pure: returns what to write.
- * @param {ReturnType<typeof readPost>[]} posts
- * @param {{ n: number, slug: string }[]} ledger
+ * Plan the numbers for posts that need one. Pure: returns what to write. A post whose slug
+ * already holds one live number in the ledger gets that number back (`restored`), with no new
+ * ledger line; every other post gets the next unused number.
+ * @param {Post[]} posts
+ * @param {{ n: number, slug: string, void?: string }[]} ledger
+ * @returns {{ slug: string, n: number, restored?: true }[]}
  */
 export function assignNumbers(posts, ledger) {
-  let next = nextNumber(ledger);
-  return needingNumbers(posts).map((post) => ({ slug: post.slug, n: next++ }));
+  const state = ledgerState(ledger);
+  let next = state.max + 1;
+  return needingNumbers(posts).map((post) => {
+    const held = state.numbersOf.get(post.slug);
+    if (held !== undefined && held.length === 1) return { slug: post.slug, n: held[0], restored: true };
+    return { slug: post.slug, n: next++ };
+  });
 }
 
-/** @param {string} text @param {number} n @returns {string} text with `specimen: n` added after pubDate */
+/**
+ * @param {string} text whole post file
+ * @param {number} n
+ * @returns {string} text with one line, `specimen: n`, added after the pubDate line
+ * @throws {Error} when the post already has a specimen field, has no top-level pubDate line,
+ *   or the edit would change anything else
+ */
 export function withSpecimen(text, n) {
-  const fm = frontmatterOf(text);
+  const fm = readFrontmatter(text);
   if (fm === null) throw new Error('post has no frontmatter');
-  if (/^specimen:/m.test(fm)) throw new Error('post already has a specimen line');
-  const stamped = fm.replace(/^(pubDate:.*)$/m, `$1\nspecimen: ${n}`);
-  if (stamped === fm) throw new Error('post has no pubDate line to anchor the specimen');
-  return text.replace(fm, stamped);
+  if (Object.hasOwn(fm.data, 'specimen')) throw new Error('post already has a specimen line');
+  const line = topLevelLine(fm.raw, 'pubDate');
+  if (line === null) throw new Error('post has no top-level `pubDate:` line to anchor the specimen');
+  const cr = line.cr ? '\r' : '';
+  const raw = `${fm.raw.slice(0, line.end)}\nspecimen: ${n}${cr}${fm.raw.slice(line.end)}`;
+  const stamped = withRaw(text, fm, raw);
+  assertOnlyChanged(fm.data, stamped, 'specimen', (value) => value === n);
+  return stamped;
 }
 
 /**
  * Every contract problem that publish-state rules catch (the schema catches types).
- * @param {ReturnType<typeof readPost>[]} posts
- * @param {{ n: number, slug: string }[]} ledger
+ * @param {Post[]} posts
+ * @param {{ n: number, slug: string, void?: string }[]} ledger
  * @returns {string[]}
  */
 export function findProblems(posts, ledger) {
-  const problems = [];
-  const byNumber = new Map();
-  for (const entry of ledger) {
-    if (byNumber.has(entry.n)) problems.push(`ledger issues ${entry.n} twice (${byNumber.get(entry.n)} and ${entry.slug})`);
-    else byNumber.set(entry.n, entry.slug);
-  }
+  const state = ledgerState(ledger);
+  const problems = [...state.problems];
   const seen = new Map();
   for (const post of posts) {
+    for (const error of post.errors) problems.push(`${post.slug}: ${error}`);
     if (post.specimen !== null) {
-      if (!Number.isInteger(post.specimen) || post.specimen < 1) {
-        problems.push(`${post.slug}: specimen must be a positive whole number`);
-        continue;
+      const n = post.specimen;
+      if (seen.has(n)) problems.push(`${post.slug}: specimen ${n} is also on ${seen.get(n)}`);
+      seen.set(n, post.slug);
+      const owners = state.ownersOf.get(n) ?? [];
+      if (owners.length === 0) {
+        problems.push(
+          state.issued.has(n)
+            ? `${post.slug}: specimen ${n} was voided in the ledger; no post may carry it (delete the line and run \`npm run stamp\`)`
+            : `${post.slug}: specimen ${n} is not in the ledger`,
+        );
+      } else if (!owners.includes(post.slug)) {
+        problems.push(`${post.slug}: specimen ${n} belongs to ${owners.join(' and ')} in the ledger`);
       }
-      if (seen.has(post.specimen)) problems.push(`${post.slug}: specimen ${post.specimen} is also on ${seen.get(post.specimen)}`);
-      seen.set(post.specimen, post.slug);
-      const owner = byNumber.get(post.specimen);
-      if (owner === undefined) problems.push(`${post.slug}: specimen ${post.specimen} is not in the ledger`);
-      else if (owner !== post.slug) problems.push(`${post.slug}: specimen ${post.specimen} belongs to ${owner} in the ledger`);
     }
     if (post.draft) continue;
-    if (post.specimen === null) problems.push(`${post.slug}: published but has no specimen number (run \`npm run stamp\`)`);
+    if (post.specimen === null && !post.hasSpecimenField) {
+      problems.push(`${post.slug}: published but has no specimen number (run \`npm run stamp\`)`);
+    }
     if (!post.hasSources && post.section !== 'opinion' && !post.withdrawn) {
       problems.push(`${post.slug}: published outside Opinion with no sources`);
     }
@@ -151,15 +305,36 @@ export function findProblems(posts, ledger) {
   return problems;
 }
 
+/**
+ * Every post file under `dir`. Astro's loader reads `**\/*.{md,mdx}`, so a post in a
+ * subfolder would be published under `sub/name` and never numbered here: that is a problem.
+ * @returns {{ files: { file: string, text: string, post: Post }[], problems: string[] }}
+ */
 function loadPosts(dir) {
-  return readdirSync(dir)
-    .filter((name) => POST_FILE.test(name))
-    .sort()
-    .map((name) => {
-      const file = join(dir, name);
-      const text = readFileSync(file, 'utf8');
-      return { file, text, post: readPost(basename(name).replace(POST_FILE, ''), text) };
-    });
+  const files = [];
+  const problems = [];
+  const walk = (folder, prefix) => {
+    for (const name of readdirSync(folder).sort()) {
+      const path = join(folder, name);
+      if (statSync(path).isDirectory()) {
+        walk(path, `${prefix}${name}/`);
+      } else if (POST_FILE.test(name)) {
+        if (prefix !== '') {
+          problems.push(`${prefix}${name}: posts live directly in ${dir}; a subfolder changes the URL and skips numbering`);
+          continue;
+        }
+        const text = readFileSync(path, 'utf8');
+        files.push({ file: path, text, post: readPost(name.replace(POST_FILE, ''), text) });
+      }
+    }
+  };
+  walk(dir, '');
+  const bySlug = new Map();
+  for (const { file, post } of files) {
+    if (bySlug.has(post.slug)) problems.push(`${post.slug}: two files share this slug (${bySlug.get(post.slug)} and ${file})`);
+    else bySlug.set(post.slug, file);
+  }
+  return { files, problems };
 }
 
 function loadLedger(file) {
@@ -168,16 +343,21 @@ function loadLedger(file) {
   return { ...parseLedger(text), text };
 }
 
-export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE } = {}) {
+/**
+ * @param {string[]} argv
+ * @param {{ postsDir?: string, ledgerFile?: string, stampPost?: typeof withSpecimen }} [options]
+ *   `stampPost` is the in-memory edit, replaceable only so a test can make it fail
+ */
+export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE, stampPost = withSpecimen } = {}) {
   const check = argv.includes('--check');
-  const files = loadPosts(postsDir);
+  const { files, problems: loadProblems } = loadPosts(postsDir);
   const ledger = loadLedger(ledgerFile);
   const posts = files.map((f) => f.post);
 
   if (check) {
-    const problems = [...ledger.errors, ...findProblems(posts, ledger.entries)];
+    const problems = [...loadProblems, ...ledger.errors, ...findProblems(posts, ledger.entries)];
     if (problems.length === 0) {
-      console.log(`check:specimens: ${posts.filter((p) => !p.draft).length} published posts numbered; ledger holds ${ledger.entries.length}.`);
+      console.log(`check:specimens: ${posts.filter((p) => !p.draft).length} published posts numbered; ledger holds ${ledger.entries.length} lines.`);
       return 0;
     }
     console.error('check:specimens: fix these, then commit:');
@@ -185,8 +365,16 @@ export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE } = 
     return 1;
   }
 
-  if (ledger.errors.length > 0) {
-    for (const error of ledger.errors) console.error(error);
+  // 1. Validate everything first. Anything unsafe stops the run before a number is issued.
+  const blocking = [
+    ...loadProblems,
+    ...ledger.errors,
+    ...ledgerState(ledger.entries).problems,
+    ...posts.flatMap((post) => post.errors.map((error) => `${post.slug}: ${error}`)),
+  ];
+  if (blocking.length > 0) {
+    console.error('stamp-specimens: nothing was stamped. Fix these first:');
+    for (const problem of blocking) console.error(`  ${problem}`);
     return 1;
   }
   const plan = assignNumbers(posts, ledger.entries);
@@ -194,13 +382,43 @@ export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE } = 
     console.log('stamp-specimens: nothing to do.');
     return 0;
   }
+  const carried = new Map(posts.filter((p) => p.specimen !== null).map((p) => [p.specimen, p.slug]));
+  for (const { slug, n, restored } of plan) {
+    if (restored && carried.has(n)) {
+      console.error(`stamp-specimens: nothing was stamped. ${slug} holds ${n} in the ledger, but ${carried.get(n)} carries it.`);
+      return 1;
+    }
+  }
+
+  // 2. Compute every new post text in memory.
+  const writes = [];
   for (const { slug, n } of plan) {
     const target = files.find((f) => f.post.slug === slug);
-    writeFileSync(target.file, withSpecimen(target.text, n));
-    console.log(`specimen ${ledgerLine({ n, slug })}`);
+    try {
+      writes.push({ file: target.file, text: stampPost(target.text, n) });
+    } catch (error) {
+      console.error(`stamp-specimens: nothing was stamped. ${target.file}: ${error.message}`);
+      return 1;
+    }
   }
-  const body = ledger.text.trim() === '' ? LEDGER_HEADER.join('\n') + '\n' : ledger.text.replace(/\n?$/, '\n');
-  writeFileSync(ledgerFile, body + plan.map(ledgerLine).join('\n') + '\n');
+
+  // 3. Append the ledger. Issuing a number that no post ends up carrying is safe: it is never reused.
+  const fresh = plan.filter((p) => !p.restored);
+  if (fresh.length > 0) {
+    const body = ledger.text.trim() === '' ? LEDGER_HEADER.join('\n') + '\n' : ledger.text.replace(/\n?$/, '\n');
+    const next = body + fresh.map(ledgerLine).join('\n') + '\n';
+    const kept = ledger.text.trim() === '' ? '' : ledger.text.replace(/\n?$/, '');
+    if (!next.startsWith(kept)) {
+      throw new Error('internal error: the ledger rewrite is not an append; nothing was written');
+    }
+    writeFileAtomic(ledgerFile, next);
+  }
+
+  // 4. Write the posts.
+  for (const { file, text } of writes) writeFileAtomic(file, text);
+  for (const { slug, n, restored } of plan) {
+    console.log(`specimen ${ledgerLine({ n, slug })}${restored ? ' (restored from the ledger)' : ''}`);
+  }
   return 0;
 }
 

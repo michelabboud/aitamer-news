@@ -11,7 +11,7 @@ aitamer.news is a static news site. Astro renders every page to HTML at build ti
 - **Routes** (`src/pages/`): home, `/posts/[slug]`, `/section/[section]` (the seven habitats from `src/lib/habitats.ts`; the five retired desk URLs render a noindex redirect page built by `src/lib/redirect-stub.ts`, and `public/_redirects` gives Cloudflare a real 301 for them), `/authors/[id]`, `/archive/` + `/archive/[year]/` + `/archive/[year]/[month]/` (month grouping in `src/lib/archive.ts`, UTC), `/about/`, `/privacy/`, `/terms/`, `/rss.xml`.
 - **Shared code:** `src/lib/site.ts` (site constants, sections, `withBase()` for the path prefix), `src/lib/covers.ts` (hero/cover selection), `src/layouts/BaseLayout.astro`, `src/components/`.
 - **Styling:** `src/styles/big-top-tokens.css` and `src/styles/global.css` — the Big Top daylight theme, described in `docs/big-top.md`.
-- **Publish times:** `pubDate` holds a full UTC time for every published post, written by `scripts/stamp-post-times.mjs` (`npm run stamp`) from git history; `npm run check:times` enforces it in both deploy workflows. Listings sort newest first, ties broken by post id.
+- **Publish times:** `pubDate` holds a full UTC time for every published post, written by `scripts/stamp-post-times.mjs` (`npm run stamp`) from git history. The same command gives each published post a permanent specimen number from the append-only ledger `src/content/specimen-ledger.txt` (`scripts/stamp-specimens.mjs`; format and repair in `POST.md` section 4). `npm run check:posts` enforces both: in `deploy-pages.yml` before every deploy, and in `check-posts.yml` on every pull request and every push to another branch. The scripts read frontmatter through `scripts/frontmatter.mjs`, which parses it with `js-yaml` the way Astro does, so they never disagree with the build about what a post says. Listings sort newest first, ties broken by post id.
 - **Hero images:** JPEGs in `public/heroes/`. `scripts/decode-heroes.mjs` runs before every dev/build to assemble any base64-encoded hero parts into binaries.
 - **Incremental build:** `experimental.incrementalBuild` reuses HTML for unchanged pages when `node_modules/.astro` is restored from the CI cache. Build concurrency must stay at 1 or Astro disables the cache.
 
@@ -21,7 +21,7 @@ Only `src/pages/` and `public/` reach the published `dist/`. Repository document
 
 | Destination | Workflow | Build settings |
 |---|---|---|
-| https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` — runs `npm test` and `check:times`, builds, runs `check:dist`, uploads `dist/` | defaults: site `https://aitamer.news`, base `/` |
+| https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` — runs `npm test` and `check:posts`, builds, runs `check:dist`, uploads `dist/` | defaults: site `https://aitamer.news`, base `/` |
 | https://contact.aitamer.news/ (contact Worker `aitamer-contact`) | `.github/workflows/deploy-contact-worker.yml`, only when `workers/contact/**` changes | `workers/contact/wrangler.toml` |
 
 Both trigger on a push to `main`. Google Analytics loads only on the main domain.
