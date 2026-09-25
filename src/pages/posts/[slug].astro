@@ -214,7 +214,7 @@ const breadcrumbs = {
             <ol>
               {data.sources.map((source) => (
                 <li>
-                  <a href={source.url} rel="noopener noreferrer">{source.title ?? source.url}</a>
+                  <a href={source.url} target="_blank" rel="noopener noreferrer">{source.title ?? source.url}<span class="sr-only"> (opens in a new tab)</span></a>
                 </li>
               ))}
             </ol>

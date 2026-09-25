@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.22] — 2026-09-25
+
+### Changed
+- Links to other sites open in a new tab, so aitamer.news stays open behind them (Michel). Links within the site keep the normal behaviour, so Back still works; `aitamer.news` and `www.aitamer.news` count as one site. Each external link carries `rel="noopener noreferrer"` and a screen-reader note "(opens in a new tab)". Sources and the YouTube link have it in the HTML; links in story text and search results get it from a small script in the layout (search results on click, since they appear later).
+
 ## [0.1.21] — 2026-09-25
 
 ### Changed

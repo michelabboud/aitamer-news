@@ -286,5 +286,42 @@ const STATION_LINKS = [
         });
       })();
     </script>
+    <script is:inline>
+      // Links to other sites open in a new tab, so aitamer.news stays open behind them.
+      // Links within the site keep the normal behaviour (same tab, Back button works).
+      (function () {
+        var NOTE = ' (opens in a new tab)';
+        function external(a) {
+          if (!a.href || a.hasAttribute('download')) return false;
+          var url;
+          try { url = new URL(a.href, location.href); } catch (e) { return false; }
+          if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+          // aitamer.news and www.aitamer.news are one site; comment links point at the canonical host.
+          var site = /^(www\.)?aitamer\.news$/;
+          if (site.test(url.hostname) && site.test(location.hostname)) return false;
+          return url.hostname !== location.hostname && !site.test(url.hostname);
+        }
+        function mark(a) {
+          if (a.target) return;
+          a.target = '_blank';
+          var rel = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean);
+          if (rel.indexOf('noopener') < 0) rel.push('noopener');
+          if (rel.indexOf('noreferrer') < 0) rel.push('noreferrer');
+          a.setAttribute('rel', rel.join(' '));
+          if (!a.querySelector('.sr-only')) {
+            var hint = document.createElement('span');
+            hint.className = 'sr-only';
+            hint.textContent = NOTE;
+            a.appendChild(hint);
+          }
+        }
+        document.querySelectorAll('a[href]').forEach(function (a) { if (external(a)) mark(a); });
+        // Links added later (search results) are handled on click.
+        document.addEventListener('click', function (event) {
+          var a = event.target instanceof Element ? event.target.closest('a[href]') : null;
+          if (a && external(a)) mark(a);
+        }, true);
+      })();
+    </script>
   </body>
 </html>
