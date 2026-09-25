@@ -53,12 +53,14 @@ const cards = await Promise.all(
     ))}
   </div>
 
-  <nav class="archive-pager" aria-label="Other months">
-    {older ? (
-      <a rel="prev" href={archiveHref(older.year, older.month)}>← {formatArchiveMonth(older.year, older.month)}</a>
-    ) : <span />}
-    {newer && (
-      <a rel="next" href={archiveHref(newer.year, newer.month)}>{formatArchiveMonth(newer.year, newer.month)} →</a>
-    )}
-  </nav>
+  {(older || newer) && (
+    <nav class="archive-pager" aria-label="Other months">
+      {older ? (
+        <a rel="prev" href={archiveHref(older.year, older.month)}>← {formatArchiveMonth(older.year, older.month)}</a>
+      ) : <span />}
+      {newer && (
+        <a rel="next" href={archiveHref(newer.year, newer.month)}>{formatArchiveMonth(newer.year, newer.month)} →</a>
+      )}
+    </nav>
+  )}
 </BaseLayout>

@@ -200,10 +200,6 @@ code {
 .page-title { font-size: clamp(1.8rem, 4vw, 2.6rem); margin-bottom: 0.5rem; }
 .lede { color: var(--ink-muted); font-size: 1.125rem; max-width: 40rem; }
 
-.section-chips {
-  display: flex; flex-wrap: wrap; gap: 0.55rem; margin: 1.5rem 0 2rem;
-}
-
 .chip {
   display: inline-flex; align-items: center; gap: 0.4rem;
   border: var(--border-bold) solid var(--line);

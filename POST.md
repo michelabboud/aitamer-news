@@ -11,7 +11,7 @@ The mechanics of a story on aitamer.news, from file to live page, for humans and
 
 ## 2. Frontmatter
 
-Checked by the schema in `src/content.config.ts`. A post that breaks it fails the build.
+The schema in `src/content.config.ts` checks field types and the required fields below; a post that breaks it fails the build. `heroImage` is required by the posting standards, not by the schema.
 
 | Field | Required | What it is |
 |---|---|---|

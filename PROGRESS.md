@@ -8,6 +8,7 @@
 
 ## Log
 
+- **2026-09-25** — 0.1.4: desk pages no longer show the desk pills twice.
 - **2026-09-25** — 0.1.3: CI on Node 24 and the latest stable GitHub Actions; the Cloudflare deploy uses Wrangler 4.
 - **2026-09-25** — 0.1.2: archive by year and month; `POST.md` documents how a post works.
 - **2026-09-25** — 0.1.1: publish times stamped into every published post; CI refuses a published post without one.

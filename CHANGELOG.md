@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.4] — 2026-09-25
+
+### Fixed
+- Desk pages showed the row of desk pills twice (once in the header, once under the title). The header row alone remains and marks the current desk.
+- A month archive page with no neighbouring month no longer renders an empty "Other months" navigation.
+- `POST.md` no longer says the schema enforces `heroImage`; the posting standards do.
+
 ## [0.1.3] — 2026-09-25
 
 ### Changed
