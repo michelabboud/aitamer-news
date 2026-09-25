@@ -2,6 +2,17 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.9] — 2026-09-25
+
+### Fixed
+Deep review of the comment contract (fixes for its two blockers and eight minors):
+- **Invisible text is refused.** Names and comments may no longer carry format, invisible, private-use or bidirectional characters, Unicode tag characters (which can hide instructions for AI readers) or blank-looking fillers; the joiners U+200C/U+200D only between two characters, so scripts and emoji that need them still work. Both fields need a visible character. The list is one exported constant, `FORBIDDEN_CHARACTERS`, for the renderer and the desk to share.
+- `<?` is refused as HTML; the HTML rule no longer needs lookahead; ULIDs must start `0`–`7`; at most 2,000 comments per file, none later than the file's `generatedAt`; length is checked before any pattern.
+- **v1 is frozen:** `/contract/v1/comments.schema.json` has its own `$id` and a committed snapshot that a test compares byte for byte.
+- `check:comments` refuses links, folders and anything but `README.md` and lowercase `<slug>.json` files, never following a link.
+- Decision record 0006 now describes the publisher design Michel approved: a GitHub App behind the required `publisher-paths` check, confined to its own branches.
+- 36 more tests, including every published pattern compiled with and without the `u` flag.
+
 ## [0.2.8] — 2026-09-25
 
 ### Fixed

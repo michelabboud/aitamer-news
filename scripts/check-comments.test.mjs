@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { lstatSync, mkdirSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { commentFileProblems, loadCommentFiles, main, postSlugs } from './check-comments.mjs';
+import { COMMENT_FILE_NAME, commentFileProblems, entryProblem, loadCommentFiles, main, postSlugs } from './check-comments.mjs';
 import { quietly, tempDir } from './test-support.mjs';
 
 const file = (slug, overrides = {}) =>
@@ -84,18 +85,110 @@ test('postSlugs lists .md and .mdx posts, drafts included, and nothing else', ()
   assert.deepEqual([...postSlugs(postsDir)].sort(), ['README', 'grok-4-7', 'still-a-draft']);
 });
 
-test('loadCommentFiles: a missing directory is zero files; README.md is ignored; a nested file is a problem', () => {
+// --- what belongs in the directory ------------------------------------------------------------
+
+test('a comment file name is a lowercase slug and .json, exactly', () => {
+  for (const name of ['grok-4-7.json', 'a.json', '0.json']) assert.equal(COMMENT_FILE_NAME.test(name), true, name);
+  for (const name of ['grok-4-7.JSON', 'grok-4-7.jsonc', 'grok-4-7.json.bak', 'Grok-4-7.json', '.grok.json', '.json', 'grok 4.json', 'grok-4-7.json ', 'README.md']) {
+    assert.equal(COMMENT_FILE_NAME.test(name), false, JSON.stringify(name));
+  }
+});
+
+test('loadCommentFiles: a missing directory is zero files; README.md is ignored; a regular comment file is read', () => {
   assert.deepEqual(loadCommentFiles(join(tempDir('check-comments-'), 'absent')), { files: [], problems: [] });
 
   const { commentsDir } = repo(POSTS, [
     ['README.md', '# Comment data files'],
     ['grok-4-7.json', file('grok-4-7')],
-    ['nested/deep.json', file('deep')],
   ]);
   const { files, problems } = loadCommentFiles(commentsDir);
-  assert.deepEqual(files.map((f) => f.name), ['grok-4-7.json']);
-  assert.deepEqual(problems, [`nested/deep.json: comment files live directly in ${commentsDir}; the build ignores a subfolder`]);
+  assert.deepEqual(files, [{ name: 'grok-4-7.json', text: file('grok-4-7') }]);
+  assert.deepEqual(problems, []);
 });
+
+test('loadCommentFiles: a folder is a problem in its own right, and nothing inside it is read', () => {
+  const { commentsDir } = repo(POSTS, [
+    ['nested/deep.json', file('deep')],
+    ['thread.json/index.json', file('thread')],
+  ]);
+  const { files, problems } = loadCommentFiles(commentsDir);
+  assert.deepEqual(files, []);
+  assert.deepEqual(problems, [
+    `nested/: a folder; comment files live directly in ${commentsDir}, and the build ignores anything deeper`,
+    `thread.json/: a folder; comment files live directly in ${commentsDir}, and the build ignores anything deeper`,
+  ]);
+});
+
+test('loadCommentFiles: every wrong name is a problem — uppercase extension, .jsonc, a backup, a dotfile, another README', () => {
+  const { commentsDir } = repo(POSTS, [
+    ['grok-4-7.JSON', file('grok-4-7')],
+    ['grok-4-7.jsonc', file('grok-4-7')],
+    ['grok-4-7.json.bak', file('grok-4-7')],
+    ['.grok-4-7.json', file('grok-4-7')],
+    ['.DS_Store', ''],
+    ['readme.md', '# lowercase is not the README'],
+    ['Grok-4-7.json', file('grok-4-7')],
+  ]);
+  const { files, problems } = loadCommentFiles(commentsDir);
+  assert.deepEqual(files, []);
+  assert.deepEqual(
+    problems.map((p) => p.split(':')[0]),
+    ['.DS_Store', '.grok-4-7.json', 'Grok-4-7.json', 'grok-4-7.JSON', 'grok-4-7.json.bak', 'grok-4-7.jsonc', 'readme.md'],
+  );
+  for (const problem of problems) assert.match(problem, /only README\.md and <slug>\.json comment files \(lowercase slug, \.json exactly\) belong in /);
+});
+
+test('loadCommentFiles: a symbolic link is refused and never followed, whether it points at a valid file, a directory, or nothing', () => {
+  const { commentsDir } = repo(POSTS, [['grok-4-7.json', file('grok-4-7')]]);
+  const outside = tempDir('check-comments-outside-');
+  writeFileSync(join(outside, 'real.json'), file('still-a-draft'));
+  symlinkSync(join(outside, 'real.json'), join(commentsDir, 'still-a-draft.json'));
+  symlinkSync(outside, join(commentsDir, 'linked-dir'));
+  symlinkSync(join(outside, 'missing.json'), join(commentsDir, 'dangling.json'));
+  symlinkSync(join(commentsDir, 'grok-4-7.json'), join(commentsDir, 'README.md'));
+  const { files, problems } = loadCommentFiles(commentsDir);
+  assert.deepEqual(files.map((f) => f.name), ['grok-4-7.json']);
+  assert.deepEqual(
+    problems,
+    ['README.md', 'dangling.json', 'linked-dir', 'still-a-draft.json'].map(
+      (name) => `${name}: a symbolic link; comment files are regular files, and links are never followed`,
+    ),
+  );
+});
+
+test('loadCommentFiles: a named pipe is refused as not a regular file', (t) => {
+  const { commentsDir } = repo(POSTS, []);
+  try {
+    execFileSync('mkfifo', [join(commentsDir, 'grok-4-7.json')]);
+  } catch (error) {
+    if (error.code === 'ENOENT') return t.skip('mkfifo is not available on this platform');
+    throw error;
+  }
+  const { files, problems } = loadCommentFiles(commentsDir);
+  assert.deepEqual(files, []);
+  assert.deepEqual(problems, ['grok-4-7.json: not a regular file (a pipe, a socket or a device); comment files are regular files']);
+});
+
+test('loadCommentFiles: a comments path that is a file, not a directory, is one problem', () => {
+  const dir = tempDir('check-comments-');
+  const notADir = join(dir, 'comments');
+  writeFileSync(notADir, 'x');
+  assert.deepEqual(loadCommentFiles(notADir), {
+    files: [],
+    problems: [`${notADir}: not a directory; the comment files live in a directory of that name`],
+  });
+});
+
+test('entryProblem judges by lstat: a link to a regular file is still a link', () => {
+  const dir = tempDir('check-comments-');
+  writeFileSync(join(dir, 'grok-4-7.json'), '{}');
+  symlinkSync(join(dir, 'grok-4-7.json'), join(dir, 'link.json'));
+  assert.equal(entryProblem('grok-4-7.json', lstatSync(join(dir, 'grok-4-7.json')), dir), undefined);
+  assert.equal(entryProblem('README.md', lstatSync(join(dir, 'grok-4-7.json')), dir), undefined);
+  assert.match(entryProblem('link.json', lstatSync(join(dir, 'link.json')), dir), /a symbolic link/);
+});
+
+// --- main ---------------------------------------------------------------------------------------
 
 test('main: exit 0 and a count when every file belongs to a post (a draft counts as a post)', () => {
   const dirs = repo(POSTS, [
@@ -117,18 +210,22 @@ test('main: exit 0 with no comment files at all, and with no comments directory'
   assert.equal(quietly(() => main([], { ...none, commentsDir: join(none.commentsDir, 'absent') })).result, 0);
 });
 
-test('main: exit 1 and every problem listed, orphan and mismatch and nested together', () => {
+test('main: exit 1 and every problem listed — orphan, mismatch, folder, wrong name and link together', () => {
   const dirs = repo(POSTS, [
     ['gone-post.json', file('gone-post')],
     ['grok-4-7.json', file('elsewhere')],
     ['sub/x.json', file('x')],
+    ['notes.json.bak', file('notes')],
   ]);
+  symlinkSync(join(dirs.commentsDir, 'grok-4-7.json'), join(dirs.commentsDir, 'still-a-draft.json'));
   const { result, output } = quietly(() => main([], dirs));
   assert.equal(result, 1);
   const lines = output.split('\n');
   assert.equal(lines[0], 'check:comments: fix these, then commit:');
-  assert.equal(lines.length, 4, output);
-  assert.match(output, /sub\/x\.json: comment files live directly in/);
+  assert.equal(lines.length, 6, output);
+  assert.match(output, /sub\/: a folder; comment files live directly in/);
+  assert.match(output, /notes\.json\.bak: only README\.md and <slug>\.json comment files/);
+  assert.match(output, /still-a-draft\.json: a symbolic link/);
   assert.match(output, /gone-post\.json: no post/);
   assert.match(output, /grok-4-7\.json: its slug field is "elsewhere"/);
 });

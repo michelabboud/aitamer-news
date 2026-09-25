@@ -5,10 +5,13 @@
  *   node scripts/check-comments.mjs   exit 1 when a comment file has no post, or is not what it says it is
  *
  * The desk's publisher writes `src/content/comments/<slug>.json` (ADR 0006); a human only ever
- * removes. This check catches what the schema cannot see, because it needs the file name and
- * the posts directory:
- *   - the file name is a slug, and the file sits directly in the directory (Astro's loader reads
- *     `*.json` there and nowhere deeper: a nested file would be silently ignored);
+ * removes. This check catches what the schema cannot see, because it needs the directory listing,
+ * the file name and the posts directory:
+ *   - every entry in the directory is `README.md` or a regular file named `<slug>.json` — lowercase
+ *     slug, `.json` exactly. Anything else is a problem, named: a symbolic link (never followed,
+ *     dangling or not), a folder (the build reads `*.json` in the directory and nowhere deeper: a
+ *     nested file would be silently ignored), a pipe or socket, `x.JSON`, `x.jsonc`, `x.json.bak`,
+ *     a dotfile;
  *   - the file parses as JSON, and its `slug` field equals the file name;
  *   - a post with that slug exists under src/content/posts/ (draft or not: a comment file for a
  *     draft is the publisher's mistake to fix, but not an orphan). An orphan is a file for a post
@@ -17,14 +20,18 @@
  * `npm run build` (src/content/comment-schema.ts). This script needs nothing but Node so it
  * runs before the build, on the pull request, and names the file.
  */
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { lstatSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SLUG } from './frontmatter.mjs';
 import { POSTS_DIR } from './stamp-post-times.mjs';
 
 export const COMMENTS_DIR = 'src/content/comments';
+/** The one file in the directory that is not a comment file. */
+export const COMMENTS_README = 'README.md';
 const COMMENT_FILE = /\.json$/;
+/** A comment file's whole name: a slug (the same shape as the posts', from `frontmatter.mjs`) and `.json`, exactly. */
+export const COMMENT_FILE_NAME = new RegExp(`${SLUG.source.replace(/\$$/, '')}\\.json$`);
 const POST_FILE = /\.mdx?$/;
 
 /**
@@ -74,31 +81,51 @@ export function postSlugs(dir) {
 }
 
 /**
- * Every comment file under `dir`, and every JSON file that sits where the loader will not find it.
- * A missing directory is zero files, not an error: the directory holds only a README until the
- * first comment is published.
+ * Why one directory entry is not a comment file, or `undefined` when it is one (or the README).
+ * Decided from `lstat`, so a link is judged as a link and never followed.
+ * @param {string} name the entry's name
+ * @param {import('node:fs').Stats} stat the entry's `lstat`
+ * @param {string} dir the directory, for the message
+ * @returns {string | undefined}
+ */
+export function entryProblem(name, stat, dir) {
+  if (stat.isSymbolicLink()) return `${name}: a symbolic link; comment files are regular files, and links are never followed`;
+  if (stat.isDirectory()) return `${name}/: a folder; comment files live directly in ${dir}, and the build ignores anything deeper`;
+  if (!stat.isFile()) return `${name}: not a regular file (a pipe, a socket or a device); comment files are regular files`;
+  if (name === COMMENTS_README || COMMENT_FILE_NAME.test(name)) return undefined;
+  return `${name}: only ${COMMENTS_README} and <slug>.json comment files (lowercase slug, .json exactly) belong in ${dir}; the build ignores this entry`;
+}
+
+/**
+ * Every comment file under `dir`, and every entry that does not belong there. A missing directory
+ * is zero files, not an error: the directory holds only a README until the first comment is
+ * published. A `dir` that exists and is not a directory is one problem.
  * @param {string} dir
  * @returns {{ files: { name: string, text: string }[], problems: string[] }}
  */
 export function loadCommentFiles(dir) {
   const files = [];
   const problems = [];
-  if (!existsSync(dir)) return { files, problems };
-  const walk = (folder, prefix) => {
-    for (const name of readdirSync(folder).sort()) {
-      const path = join(folder, name);
-      if (statSync(path).isDirectory()) {
-        walk(path, `${prefix}${name}/`);
-      } else if (COMMENT_FILE.test(name)) {
-        if (prefix !== '') {
-          problems.push(`${prefix}${name}: comment files live directly in ${dir}; the build ignores a subfolder`);
-          continue;
-        }
-        files.push({ name, text: readFileSync(path, 'utf8') });
-      }
+  let dirStat;
+  try {
+    dirStat = statSync(dir);
+  } catch (error) {
+    if (error.code === 'ENOENT') return { files, problems };
+    throw error;
+  }
+  if (!dirStat.isDirectory()) {
+    problems.push(`${dir}: not a directory; the comment files live in a directory of that name`);
+    return { files, problems };
+  }
+  for (const name of readdirSync(dir).sort()) {
+    const path = join(dir, name);
+    const problem = entryProblem(name, lstatSync(path), dir);
+    if (problem !== undefined) {
+      problems.push(problem);
+    } else if (name !== COMMENTS_README) {
+      files.push({ name, text: readFileSync(path, 'utf8') });
     }
-  };
-  walk(dir, '');
+  }
   return { files, problems };
 }
 

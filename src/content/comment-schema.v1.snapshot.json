@@ -1,0 +1,91 @@
+{
+  "$id": "https://aitamer.news/contract/v1/comments.schema.json",
+  "title": "AI Tamer comment data file",
+  "description": "The contract every comment data file (src/content/comments/<slug>.json) on aitamer.news satisfies. Generated from the same zod schema the build validates against, so it cannot drift. Lengths are counted in Unicode code points. Six rules cannot be expressed here and the build enforces them too: (1) the slug equals the file name; (2) a post with that slug exists; (3) a post with no approved comments has no file, so a file is never published empty; (4) ids are unique within a file; (5) comments are sorted oldest first by at; (6) every at is no later than generatedAt. The patterns are ECMA-262 without the u flag, which is how the build runs them. Compiled with the u flag they agree for every character up to U+FFFF and refuse lone surrogates, but let refused characters above U+FFFF (plane 14, the supplementary private use areas, the supplementary noncharacters) through; the build refuses those, so a validator using the u flag should also refuse the code-point ranges in FORBIDDEN_CHARACTERS.ranges (src/content/comment-schema.ts). The format is documented in POST.md: https://github.com/michelabboud/aitamer-news/blob/main/POST.md",
+  "x-contract-version": 1,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "comments": {
+      "minItems": 1,
+      "maxItems": 2000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "allOf": [
+              {
+                "pattern": "^(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD]|[\\uD800-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF])(?:[\\u200C\\u200D]*(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD]|[\\uD800-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF]))*$"
+              },
+              {
+                "pattern": "^(?:[^<]|<+[^<A-Za-z!/?])*<*$"
+              },
+              {
+                "pattern": "[^\\s\\u0300-\\u036F\\u1AB0-\\u1AFF\\u1DC0-\\u1DFF\\u200C\\u200D\\u20D0-\\u20FF\\uFE0E\\uFE0F\\uFE20-\\uFE2F]"
+              }
+            ],
+            "maxLength": 60
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "allOf": [
+              {
+                "pattern": "^(?:\\n|(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD]|[\\uD800-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF]))(?:[\\u200C\\u200D]*(?:\\n|(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD]|[\\uD800-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF])))*$"
+              },
+              {
+                "pattern": "^(?:[^<]|<+[^<A-Za-z!/?])*<*$"
+              },
+              {
+                "pattern": "[^\\s\\u0300-\\u036F\\u1AB0-\\u1AFF\\u1DC0-\\u1DFF\\u200C\\u200D\\u20D0-\\u20FF\\uFE0E\\uFE0F\\uFE20-\\uFE2F]"
+              }
+            ],
+            "maxLength": 2000
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "signedIn": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "text",
+          "at"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "version",
+    "slug",
+    "generatedAt",
+    "comments"
+  ],
+  "additionalProperties": false
+}
