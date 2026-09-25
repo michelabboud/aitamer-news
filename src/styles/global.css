@@ -450,7 +450,9 @@ code {
 .form-success, .form-error { margin: 0; font-weight: 700; }
 .form-success { color: var(--bot); }
 .form-error { color: var(--correction); }
-.form-success[hidden], .form-error[hidden] { display: none; }
+/* The live regions stay rendered so screen readers announce text set later.
+   Empty, they leave the grid flow instead of adding blank rows. */
+.form-success:empty, .form-error:empty { position: absolute; }
 .contact-honey {
   position: absolute;
   width: 1px;

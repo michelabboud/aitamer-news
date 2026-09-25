@@ -8,6 +8,12 @@ export const MESSAGE_MAX = 4000;
 export const DESK_FROM = 'desk@aitamer.news';
 export const DESK_FROM_NAME = 'AI Tamer';
 
+/**
+ * Hidden anti-bot field. The name must not be one browser autofill recognises
+ * (company, organization, address…), or a real visitor's note would be dropped.
+ */
+export const HONEYPOT_FIELD = 'desk_extra';
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -15,7 +21,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * @returns {{ ok: true, value: { name: string, email: string, message: string } } | { ok: false, error: string } | { ok: true, ignore: true }}
  */
 export function parseContactFields(fields) {
-  const honeypot = String(fields.get('company') ?? '').trim();
+  const honeypot = String(fields.get(HONEYPOT_FIELD) ?? '').trim();
   if (honeypot) return { ok: true, ignore: true };
 
   const name = oneLine(fields.get('name'));

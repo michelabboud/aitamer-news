@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { handleContactRequest } from './contact-handler.mjs';
-import { DESK_FROM, contactLetter, parseContactFields } from './contact-message.mjs';
+import { DESK_FROM, HONEYPOT_FIELD, contactLetter, parseContactFields } from './contact-message.mjs';
 
 const valid = {
   name: 'Ada Desk',
@@ -35,7 +35,7 @@ test('a real note is accepted and a filled honeypot is ignored', () => {
   bot.set('name', valid.name);
   bot.set('email', valid.email);
   bot.set('message', valid.message);
-  bot.set('company', 'Acme');
+  bot.set(HONEYPOT_FIELD, 'Acme');
   assert.deepEqual(parseContactFields(bot), { ok: true, ignore: true });
 });
 
@@ -87,7 +87,7 @@ test('a fetch from the site sends one letter and does not send a honeypot', asyn
   assert.equal(sent[0].replyTo.email, valid.email);
 
   const ignored = await handleContactRequest(
-    formRequest({ ...valid, company: 'spam' }, { accept: 'application/json' }),
+    formRequest({ ...valid, [HONEYPOT_FIELD]: 'spam' }, { accept: 'application/json' }),
     envWith(send),
   );
   assert.equal(ignored.status, 200);

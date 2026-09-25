@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, withBase } from '../lib/site';
+import { HONEYPOT_FIELD } from '../../functions/contact-message.mjs';
 
 // The GitHub Pages copy is rooted under /aitamer-news and cannot run the function.
 const onMirror = import.meta.env.BASE_URL !== '/';
@@ -56,8 +57,8 @@ const contactAction = onMirror ? `${SITE.url}/api/contact` : '/api/contact';
       <p class="form-note">The note is sent only from {SITE.domain}. The GitHub Pages copy posts to the same desk.</p>
     </div>
     <form id="contact-form" class="contact-form" action={contactAction} method="post">
-      <p id="contact-status" class="form-success" role="status" hidden></p>
-      <p id="contact-error" class="form-error" role="alert" hidden></p>
+      <p id="contact-status" class="form-success" role="status" aria-live="polite"></p>
+      <p id="contact-error" class="form-error" role="alert"></p>
       <div class="field">
         <label for="contact-name">Name</label>
         <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="80" />
@@ -71,8 +72,8 @@ const contactAction = onMirror ? `${SITE.url}/api/contact` : '/api/contact';
         <textarea id="contact-message" name="message" required minlength="10" maxlength="4000" rows="6"></textarea>
       </div>
       <div class="contact-honey" aria-hidden="true">
-        <label for="contact-company">Company</label>
-        <input id="contact-company" name="company" type="text" tabindex="-1" autocomplete="off" />
+        <label for="contact-extra">Leave this field empty</label>
+        <input id="contact-extra" name={HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="new-password" />
       </div>
       <button class="contact-submit" type="submit">Send the note</button>
     </form>
@@ -86,7 +87,6 @@ const contactAction = onMirror ? `${SITE.url}/api/contact` : '/api/contact';
     var error = document.getElementById('contact-error');
     var status = document.getElementById('contact-status');
     if (new URLSearchParams(location.search).get('sent') === '1') {
-      status.hidden = false;
       status.textContent = 'The desk has your note.';
       // Drop ?sent=1 so a reload does not announce the note again.
       history.replaceState(null, '', location.pathname + location.hash);
@@ -96,7 +96,8 @@ const contactAction = onMirror ? `${SITE.url}/api/contact` : '/api/contact';
     form.addEventListener('submit', function (event) {
       if (!form.reportValidity()) return;
       event.preventDefault();
-      error.hidden = true;
+      error.textContent = '';
+      status.textContent = '';
       button.disabled = true;
       button.textContent = 'Sending…';
       fetch(form.action, {
@@ -112,15 +113,12 @@ const contactAction = onMirror ? `${SITE.url}/api/contact` : '/api/contact';
         .then(function (result) {
           if (result.ok && result.payload && result.payload.ok) {
             form.reset();
-            status.hidden = false;
             status.textContent = 'The desk has your note.';
             return;
           }
-          error.hidden = false;
           error.textContent = (result.payload && result.payload.error) || 'The desk could not take that note. Try again in a moment.';
         })
         .catch(function () {
-          error.hidden = false;
           error.textContent = 'The desk could not take that note. Try again in a moment.';
         })
         .then(function () {

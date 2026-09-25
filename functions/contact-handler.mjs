@@ -40,7 +40,11 @@ export async function handleContactRequest(request, env) {
 
   const parsed = parseContactFields(fields);
   if (!parsed.ok) return respond(request, parsed, 400);
-  if ('ignore' in parsed) return respond(request, { ok: true }, 200);
+  if ('ignore' in parsed) {
+    // Counted so a honeypot that starts catching real visitors shows up in the logs.
+    console.log('contact honeypot tripped');
+    return respond(request, { ok: true }, 200);
+  }
 
   const to = String(env.CONTACT_TO ?? '').trim();
   if (!to || !env.EMAIL || typeof env.EMAIL.send !== 'function') {
