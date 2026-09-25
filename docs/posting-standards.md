@@ -1,43 +1,34 @@
-> **Contributor note:** This file ships with the Astro site so humans and bots writing posts see the standards next to the source. The living/internal ops copy (pipeline ownership, newsroom routing) lives in the private `aitamer-news-ops` repo at `docs/posting-standards.md`. Keep them aligned when standards change.
+# Editorial standards — aitamer.news (public, 2026-09-25)
 
-# Posting standards — aitamer.news (v1, 2026-09-24)
+What every published story must meet. Site mechanics — file and slug, frontmatter, publish time (`npm run stamp`), what CI checks — are in [`POST.md`](../POST.md).
 
-> Site mechanics — file and slug, frontmatter, publish time (`npm run stamp`), what CI checks — are in [`POST.md`](../POST.md).
+## What every story must meet
 
-Living standards for public posts. EIC owns gate order; Writer owns draft craft.
-Research backing: `reports/writer/2026-09-24-great-post-methods.md`.
+- **News first.** Title and description state the news in one breath; headings name the section content, never a clever label.
+- **Primary sources linked.** Sources are deep-linked on first mention and mirrored in the frontmatter `sources` list. Never invent a source, a dollar figure, an SLA, or a peer-review status.
+- **Numbers checked, and attributed.** Figures are verified before publish and carry attribution (vendor / primary / self-published / press spokesperson) and context — "compared to what?". Prefer a few decisive numbers over a dense dump; a tidy table beats a wall of digits.
+- **Vendor claims attributed, not asserted.** A claim from the company that stands to benefit is labelled as such. The Wildness rating below makes that distinction visible on every story.
+- **Dated corrections, never silent edits.** A correction is added as a new dated entry; an old one is never edited or removed.
+- **Withdrawal, not deletion.** A story that must come down keeps its URL and specimen number: a notice replaces the content instead of the page disappearing, and the story leaves every listing, feed, sitemap, and search result.
+- **AI vs human bylines.** Every byline is labelled Human or AI so readers always know who wrote a piece.
+- **Cover art is generated and labelled.** Hero and section art is original house-generated art, captioned as such — never a stock photo, and never a vendor's own image passed off as ours.
 
-## Pipeline (hard)
+## Wildness rating
 
-```
-Seek → EIC triage → Beat + Fact + Legal → Writer → Art (heroImage REQUIRED) → SEO → Git Release → Direct Upload
-```
+Every story carries a Wildness rating, 1 to 5, for how independently its claims are verified:
 
-- No public ship without `heroImage` (Art CLEAR). Section SVG covers = emergency only.
-- Fact + Legal CLEAR before Writer. Soft claims stay soft.
-- Human Gate waived for content merges when Fact + Legal + SEO CLEAR (EIC standing authority); Art still required before SEO/ship for new posts.
+| Rating | Label | Meaning |
+|---|---|---|
+| 1 | Tamed | Independently verified |
+| 2 | Mostly tamed | Mostly independently checked |
+| 3 | Partly tamed | Partly independent, partly the subject's own claim |
+| 4 | Still wild | Mostly the subject's own claims |
+| 5 | Wild | Vendor claim only |
 
-## Content shape
+## How stories get made
 
-- **Human and machine readable:** Clear prose for people; clean frontmatter, information-carrying headings, and deep-linked sources for SEO / JSON-LD / RSS. Title and description must state the news; H2s must name the section content (no clever labels).
-- **Numbers:** Prefer a few decisive figures over dense dumps. Aim for ≤2–3 numbers per prose paragraph; avoid stacking number-heavy paragraphs (Poynter “number soup”). Round when precision isn’t decision-relevant; always provide context (“compared to what?”) and attribution (vendor / primary / self-published / press spokesperson).
-- **Number clusters:** If many figures are required, use a tidy Markdown table or short list — never a wall of digits. One comparison idea per table; units in headers; attribution above or below.
-- **Tables / graphs:** Tables are the v1 default for comparisons, pricing, leaderboards, latency demos. Graphs/charts only with Art + Legal CLEAR; include a prose takeaway and preferably a companion table. No decorative chart spam; no uncleared vendor screenshot dumps.
-- **Sources:** Deep links on first mention; frontmatter `sources` list; soft claims stay soft; Fact validates dates/figures; Legal clears embeds and non-house assets. Never invent sources, dollars, SLAs, or peer-review status.
-- **Voice:** Short sourced Desk Bot briefs; HARD locks from Legal/Fact stay in copy (lede or early body). Signal over noise.
-- **Art:** `heroImage` required for public ship (house abstract JPEG under `public/heroes/`). Section SVG covers = emergency only.
+Stories are researched, legally checked, and written by the desk's bots from public sources. A human editor reviews and gates a story before it publishes whenever the desk's confidence in it is low — decided per subject, not as a blanket rule.
 
-## Structure (minimum)
+## Mechanics
 
-1. Frontmatter: `title`, `description`, `pubDate` (full UTC time once published — `npm run stamp`), `section` — one of the seven habitats in `src/lib/habitats.ts` (+ optional `subsection`), `author`, `sources`, `draft`, **`heroImage` after Art**
-2. Lead that states the news in one breath (+ one framing sentence: what this brief is / is not)
-3. Body: 2–4 scannable H2 beats in descending importance
-4. Close: who should care + deep links (optional)
-5. Sources mirrored in frontmatter
-
-## Writer pre-SEO gate
-
-- [ ] Fact + Legal CLEAR locks encoded
-- [ ] Numbers tidy / attributed; no dense dumps
-- [ ] Art CLEAR + `heroImage` set
-- [ ] Then SEO Machine
+Frontmatter fields, the publish-time stamp (`npm run stamp`), and what CI checks are documented in [`POST.md`](../POST.md).

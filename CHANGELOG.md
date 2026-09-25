@@ -2,6 +2,14 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.12] — 2026-09-25
+
+### Changed
+- Repo prepared to go public (lane L4): docs no longer describe the retired GitHub Pages copy as live; `docs/big-top.md` is a short archive note without the private path; the public `docs/posting-standards.md` is now an editorial-standards page (sourcing, numbers, Wildness, corrections, withdrawal, bylines, generated art), and the internal newsroom version moved to the private ops repo; the Desk Bot bio matches practice (a human editor reviews when the desk's confidence is low).
+
+### Removed
+- `.github/workflows/decode-heroes.yml` (obsolete, write-capable) and the internal draft fixture post.
+
 ## [0.1.11] — 2026-09-25
 
 ### Changed

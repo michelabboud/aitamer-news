@@ -72,12 +72,9 @@ Body copy in Markdown…
 
 ## Publishing
 
-A push to `main` publishes two copies.
+A push to `main` publishes **https://aitamer.news**. `.github/workflows/deploy-pages.yml` builds with no path prefix and uploads `dist` to Cloudflare Pages. Unchanged article, section, and author pages are copied from the previous build when `node_modules/.astro` is restored. The homepage, about page, and RSS feed are rendered every time.
 
-1. **https://aitamer.news** is the main site. `.github/workflows/deploy-pages.yml` builds with no path prefix and uploads `dist` to Cloudflare Pages. Unchanged article, section, and author pages are copied from the previous build when `node_modules/.astro` is restored. The homepage, about page, and RSS feed are rendered every time.
-2. **https://michelabboud.github.io/aitamer-news/** is the GitHub Pages copy. `.github/workflows/deploy-github-pages.yml` builds the same site with `ASTRO_BASE=/aitamer-news` so links work under that project path. Canonical URLs in the HTML still point at `https://aitamer.news`.
-
-GitHub Pages has to use **GitHub Actions** as its source. “Deploy from a branch” runs Jekyll on the Astro source and the build fails. The GitHub Pages site is public even though this repository is private.
+The build also supports a path prefix (`ASTRO_BASE`, applied through `withBase()` in `src/lib/site.ts`) for a future base-path deployment target; nothing uses it today. A GitHub Pages copy built under that prefix until it was retired on 2026-09-25 — its workflow, `.github/workflows/deploy-github-pages.yml`, is disabled but kept in the repo.
 
 ## Cloudflare Pages setup (free tier)
 

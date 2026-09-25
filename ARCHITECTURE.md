@@ -17,15 +17,16 @@ aitamer.news is a static news site. Astro renders every page to HTML at build ti
 
 Only `src/pages/` and `public/` reach the published `dist/`. Repository documents (`*.md` in the root, `docs/`) are never published.
 
-## Publishing — one build, two destinations
+## Publishing
 
 | Destination | Workflow | Build settings |
 |---|---|---|
 | https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` — runs `npm test` and `check:times`, builds, runs `check:dist`, uploads `dist/` | defaults: site `https://aitamer.news`, base `/` |
 | https://contact.aitamer.news/ (contact Worker `aitamer-contact`) | `.github/workflows/deploy-contact-worker.yml`, only when `workers/contact/**` changes | `workers/contact/wrangler.toml` |
-| https://michelabboud.github.io/aitamer-news/ (GitHub Pages) | `.github/workflows/deploy-github-pages.yml` | `ASTRO_SITE=https://michelabboud.github.io`, `ASTRO_BASE=/aitamer-news` |
 
-Both trigger on a push to `main`. Canonical URLs on both copies point at `https://aitamer.news`. Google Analytics loads only on the main domain.
+Both trigger on a push to `main`. Google Analytics loads only on the main domain.
+
+`ASTRO_SITE` and `ASTRO_BASE` (applied through `withBase()` in `src/lib/site.ts`) still work for a future base-path deployment target, but nothing sets them today. A GitHub Pages copy built with `ASTRO_BASE=/aitamer-news` until it was retired on 2026-09-25; its workflow, `.github/workflows/deploy-github-pages.yml`, is disabled but kept in the repo.
 
 ## Server code — the contact Worker
 

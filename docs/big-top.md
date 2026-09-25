@@ -1,8 +1,8 @@
-# Big Top theme
+# Big Top theme (archived)
 
-**Big Top** is the production Daylight theme for aitamer.news: bright-but-soft candy-shop poster editorial — pastel desk chips, warm blurred shadows, geometric house covers. Not SaaS glass. No gradients.
+**Big Top** was the production Daylight theme for aitamer.news — bright-but-soft candy-shop poster editorial — until 2026-09-25, when it was replaced by **the Bestiary** (`docs/bestiary.md`, coming with the theme port; see `docs/plans/2026-09-25-bestiary-redesign.md`). The theme is preserved on branch `archive/big-top-theme` (commit `29e1453`).
 
-Canonical token extract: `/workspace/atn-design-options/bigtop-tokens.md` (from the Claude artifact).
+Its token table is kept here for reference.
 
 ## Daylight tokens
 
@@ -21,32 +21,3 @@ Canonical token extract: `/workspace/atn-design-options/bigtop-tokens.md` (from 
 | bot-fill | `#c7ead9` |
 
 Fonts: **Bricolage Grotesque** (display), **Instrument Sans** (reading), **Martian Mono** (machine).
-
-Night show tokens live under `[data-theme="night"]` in `global.css` but are not shipped as the default.
-
-## Section covers
-
-House-owned SVGs at `public/covers/{slug}.svg` for every `ALL_SECTIONS` desk.
-
-| slug | motif |
-|------|--------|
-| top | rings |
-| models | stacked layers |
-| tools | modular blocks |
-| image | overlapping lenses |
-| video | film + play |
-| data | bars |
-| databases | cylinders |
-| rust | hex nuts |
-| policy | columns |
-| opinion | speech bubbles |
-
-**Legal:** original house SVG art — not stock photos, not third-party logos. Caption: “Generated cover art (X motif). Not a photo.”
-
-Regenerate: `python3 scripts/generate-covers.py`
-
-`src/lib/covers.ts` maps sections → paths; `postCover(post)` prefers custom `heroImage`.
-
-## Scope
-
-Big Top applies to the main site shell only.

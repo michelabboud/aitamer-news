@@ -3,7 +3,7 @@
 **Current handoff note:** none — no work was left mid-way. A session that ends mid-work writes one under `docs/handoffs/YYYY-MM-DD-slug.md` and points this file at it.
 
 **Where we are (2026-09-25):**
-1. The site is live on Cloudflare Pages and GitHub Pages; `main` deploys on every push.
+1. The site is live on Cloudflare Pages; `main` deploys on every push. The GitHub Pages copy was retired on 2026-09-25 (its workflow is disabled).
 2. The About-page contact form (0.1.5) posts to the `contact.aitamer.news` Worker; going live needs Email Routing, a first Worker deploy and the `CONTACT_TO` secret (see README).
 3. Open work is in `BACKLOG.md`.
 4. Version and history: `VERSION`, `CHANGELOG.md`.
