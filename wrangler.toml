@@ -1,8 +1,10 @@
-# Optional: static-assets config for Wrangler / Workers Static Assets.
-# Cloudflare Pages does not require this file — use build command
-# `npm run build` and output directory `dist` in the Pages UI.
+# Pages project. pages_build_output_dir makes this file the source of truth
+# on the next `wrangler pages deploy` (bindings included). The contact form
+# is functions/api/contact.js and sends through the EMAIL binding.
 name = "aitamer-news"
+pages_build_output_dir = "./dist"
 compatibility_date = "2026-09-23"
 
-[assets]
-directory = "./dist"
+[[send_email]]
+name = "EMAIL"
+allowed_sender_addresses = [ "desk@aitamer.news" ]

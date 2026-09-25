@@ -22,11 +22,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          # No package-lock.json in repo — do not set cache: npm (it requires a lockfile).
+          cache: npm
 
       - name: Install
-        run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+        run: npm ci
+
+      - name: Test the contact function
+        run: npm test
 
       - name: Restore Astro incremental cache
         uses: actions/cache@v4
@@ -44,4 +46,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: "48a3301b0d9817c1b50c2b81c36d799f"
+          # Pinned to the version the contact function and its send_email binding were tested with.
+          wranglerVersion: "4.139.0"
           command: pages deploy dist --project-name=aitamer-news --branch=main

@@ -3,7 +3,7 @@
 Production-ready **static** Astro news site for [aitamer.news](https://aitamer.news), aimed at **Cloudflare Pages (free tier)**.
 
 - Astro + TypeScript + MDX content collections
-- `output: 'static'` (no Cloudflare adapter required for Pages)
+- `output: 'static'` (no Cloudflare adapter). The contact form is one Pages Function, not a server-rendered site.
 - Sections: Top, Models, Tools, Image, Video, Data, Databases, Rust, Policy, Opinion
 - Human / AI byline badges
 - RSS + sitemap + robots.txt
@@ -32,7 +32,8 @@ src/content/posts/     # news posts (Markdown / MDX)
 src/pages/             # routes
 src/components/        # PostCard, badges, chips
 src/layouts/           # BaseLayout
-src/styles/global.css  # editorial dark theme
+src/styles/global.css  # Big Top daylight theme
+functions/             # Pages Function for the contact form
 ```
 
 ## Editorial standards
@@ -87,15 +88,32 @@ GitHub Pages has to use **GitHub Actions** as its source. “Deploy from a branc
    - **Build output directory:** `dist`
    - **Node version:** `22` (set `NODE_VERSION=22` in Pages environment variables if needed)
 4. Deploy. Then **Custom domains** → add `aitamer.news` (and `www` if you want) and follow DNS instructions.
-5. No Wrangler Worker/`@astrojs/cloudflare` adapter is required for this static site. Optional `wrangler.toml` is included only for local static asset preview via Wrangler if you prefer Workers static assets later.
+5. No `@astrojs/cloudflare` adapter. Pages stays a static upload. `functions/api/contact.js` is the only server code, and `wrangler.toml` is the Pages config (`pages_build_output_dir`) so the email binding deploys with the site.
 
-### Optional Wrangler (static assets only)
+## Contact form
+
+The About page posts to `https://aitamer.news/api/contact`. Cloudflare Pages runs `functions/api/contact.js`, which sends one plain-text email through the `EMAIL` binding (`send_email` in `wrangler.toml`).
+
+That send needs three things on the Cloudflare account, none of which live in this repo:
+
+1. Onboard `aitamer.news` to Email Routing or Email Sending. The domain has no MX or SPF records today, so onboarding adds those DNS records. It does not replace an existing mailbox.
+2. Verify the inbox that should receive notes (Email Routing destination). Sending to a verified destination is on the free plan. General Email Sending to any address is a Workers paid feature, and this form does not need it.
+3. Set the Pages secret `CONTACT_TO` to that verified address. The address is not written in the site or in git.
 
 ```bash
-npx wrangler pages dev dist
-# or, with the included wrangler.toml assets config:
-npx wrangler dev
+npx wrangler pages secret put CONTACT_TO --project-name=aitamer-news
 ```
+
+Local check, without sending real mail:
+
+```bash
+printf 'CONTACT_TO=owner@example.com\n' > .dev.vars
+npm test
+npm run build
+npx wrangler pages dev dist --port 8788
+```
+
+`.dev.vars` is gitignored. The GitHub Pages copy has the same form and posts it to `aitamer.news`.
 
 ## Key routes
 
@@ -105,11 +123,12 @@ npx wrangler dev
 | `/posts/[slug]` | Article |
 | `/section/[section]` | Section listing |
 | `/authors/[id]` | Author page |
-| `/about/` | About stub |
+| `/about/` | About the desk, and the contact form |
+| `/api/contact` | Pages Function. Emails the desk. Not a static file. |
 | `/rss.xml` | RSS feed |
 | `/sitemap-index.xml` | Sitemap (via `@astrojs/sitemap`) |
 | `/robots.txt` | Crawler rules |
 
 ## Design notes
 
-Dark, editorial UI: Source Serif headlines, IBM Plex Sans UI, deep teal accent (`#1fa6a0`), muted meta, mobile-first cards, **Human** / **AI** badges on every byline.
+Daylight paper UI (Big Top): Bricolage Grotesque headlines, Instrument Sans text, Martian Mono labels, rose correction bar, mobile-first cards, **Human** / **AI** badges on every byline. See `docs/big-top.md`.

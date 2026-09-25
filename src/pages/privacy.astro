@@ -7,7 +7,7 @@ import { SITE, withBase } from '../lib/site';
   <h1 class="page-title">Privacy</h1>
   <div class="article">
     <p class="lede">
-      {SITE.title} does not run accounts, comments, or a mailing list. Last updated 25 September 2026.
+      {SITE.title} does not run accounts or a mailing list. The about page can email the desk. Last updated 25 September 2026.
     </p>
     <div class="article__body">
       <p>
@@ -25,12 +25,18 @@ import { SITE, withBase } from '../lib/site';
       <p>
         On {SITE.domain} the site also loads Google Analytics. The tag sends Google the page address
         and stores a cookie so a later visit from the same browser can be counted together. The
-        GitHub Pages copy does not load this tag. The site still does not ask for your name or email,
-        and it does not sell this information.
+        GitHub Pages copy does not load this tag. The site does not sell this information.
       </p>
       <p>
         The type is loaded from Google Fonts. Your browser requests those font files from Google
         when it draws a page.
+      </p>
+      <p>
+        The <a href={withBase('/about/#contact')}>contact form</a> asks for a name, an email address,
+        and a note. Sending it asks Cloudflare Email to deliver that note to the desk, with your
+        address as the reply-to. The site does not store the note in a database. The form on the
+        GitHub Pages copy posts to {SITE.domain}, so the note still goes to the same desk. A hidden
+        field is there for spam; filling it drops the note.
       </p>
       <p>
         The desk does not sell personal information, because the site does not collect an account

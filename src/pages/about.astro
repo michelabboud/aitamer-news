@@ -1,25 +1,132 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, withBase } from '../lib/site';
+
+// The GitHub Pages copy is rooted under /aitamer-news and cannot run the function.
+const onMirror = import.meta.env.BASE_URL !== '/';
+const contactAction = onMirror ? `${SITE.url}/api/contact` : '/api/contact';
 ---
-<BaseLayout title="About" description={`About ${SITE.title} (${SITE.domain}).`} image="/heroes/welcome-to-aitamer.jpg">
-  <p class="page-kicker">About</p>
-  <h1 class="page-title">{SITE.title}</h1>
-  <div class="article">
-    <p class="lede">{SITE.description}</p>
-    <div class="article__body">
-      <p>
-        We cover models, tools, policy, and opinion. Stories live as Markdown (or MDX) in a
-        content collection, build to static HTML, and deploy to Cloudflare Pages on the free tier.
-      </p>
-      <p>
-        Desk bots may draft briefs; humans edit and decide what ships. Draft posts never appear in
-        listings or RSS until <code>draft: false</code>.
-      </p>
-      <p>
-        Contact and contributions will land here later. For now: read the latest on the
-        <a href={withBase('/')}>homepage</a> or subscribe via <a href={withBase('/rss.xml')}>RSS</a>.
-      </p>
+<BaseLayout
+  title="About"
+  description={`${SITE.description} Write to the desk from this page.`}
+  image="/masthead.jpg"
+>
+  <section class="hero" aria-label="About AI Tamer">
+    <div class="hero-plane">
+      <div class="hero-copy">
+        <p class="hero-domain">About · {SITE.domain}</p>
+        <h1 class="hero-name">{SITE.title}</h1>
+        <p class="hero-about">{SITE.description}</p>
+        <p class="about-jump"><a href="#contact">Write to the desk</a></p>
+      </div>
+      <figure class="hero-art">
+        <img
+          src={withBase('/masthead.jpg')}
+          alt="Black paper cat with a collar and a large ruby, sitting by rose paper rings. Generated cover art, not a photo."
+          width="1280"
+          height="720"
+        />
+      </figure>
     </div>
-  </div>
+  </section>
+
+  <section class="about-points" aria-label="How the desk works">
+    <article class="about-point">
+      <h2>What ships</h2>
+      <p>Short briefs on models, tools, and policy. A story names its author, human or bot, and links the sources it used.</p>
+    </article>
+    <article class="about-point">
+      <h2>Who writes</h2>
+      <p>Desk bots may draft. A human edits and decides what ships. A draft stays off the site and out of the feed.</p>
+    </article>
+    <article class="about-point">
+      <h2>Where to talk</h2>
+      <p>Comments stay on the story, through Disqus. A correction or a tip comes through the form on this page.</p>
+    </article>
+  </section>
+
+  <section class="contact-panel" id="contact" aria-labelledby="contact-title">
+    <div class="contact-copy">
+      <p class="hero-domain">Contact</p>
+      <h2 id="contact-title">Write to the desk</h2>
+      <p>
+        A correction, a tip, or a note about a story. The form emails the desk. There is no account,
+        and the site does not keep a database of messages.
+      </p>
+      <p class="form-note">The note is sent only from {SITE.domain}. The GitHub Pages copy posts to the same desk.</p>
+    </div>
+    <form id="contact-form" class="contact-form" action={contactAction} method="post">
+      <p id="contact-status" class="form-success" role="status" hidden></p>
+      <p id="contact-error" class="form-error" role="alert" hidden></p>
+      <div class="field">
+        <label for="contact-name">Name</label>
+        <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="80" />
+      </div>
+      <div class="field">
+        <label for="contact-email">Email</label>
+        <input id="contact-email" name="email" type="email" autocomplete="email" required maxlength="254" inputmode="email" />
+      </div>
+      <div class="field">
+        <label for="contact-message">Note</label>
+        <textarea id="contact-message" name="message" required minlength="10" maxlength="4000" rows="6"></textarea>
+      </div>
+      <div class="contact-honey" aria-hidden="true">
+        <label for="contact-company">Company</label>
+        <input id="contact-company" name="company" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+      <button class="contact-submit" type="submit">Send the note</button>
+    </form>
+  </section>
 </BaseLayout>
+
+<script is:inline>
+  (function () {
+    var form = document.getElementById('contact-form');
+    if (!form) return;
+    var error = document.getElementById('contact-error');
+    var status = document.getElementById('contact-status');
+    if (new URLSearchParams(location.search).get('sent') === '1') {
+      status.hidden = false;
+      status.textContent = 'The desk has your note.';
+      // Drop ?sent=1 so a reload does not announce the note again.
+      history.replaceState(null, '', location.pathname + location.hash);
+    }
+    var button = form.querySelector('[type="submit"]');
+    var idle = button.textContent;
+    form.addEventListener('submit', function (event) {
+      if (!form.reportValidity()) return;
+      event.preventDefault();
+      error.hidden = true;
+      button.disabled = true;
+      button.textContent = 'Sending…';
+      fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+      })
+        .then(function (response) {
+          return response.json().catch(function () { return null; }).then(function (payload) {
+            return { ok: response.ok, payload: payload };
+          });
+        })
+        .then(function (result) {
+          if (result.ok && result.payload && result.payload.ok) {
+            form.reset();
+            status.hidden = false;
+            status.textContent = 'The desk has your note.';
+            return;
+          }
+          error.hidden = false;
+          error.textContent = (result.payload && result.payload.error) || 'The desk could not take that note. Try again in a moment.';
+        })
+        .catch(function () {
+          error.hidden = false;
+          error.textContent = 'The desk could not take that note. Try again in a moment.';
+        })
+        .then(function () {
+          button.disabled = false;
+          button.textContent = idle;
+        });
+    });
+  })();
+</script>

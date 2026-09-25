@@ -20,10 +20,22 @@ Only `src/pages/` and `public/` reach the published `dist/`. Repository document
 
 | Destination | Workflow | Build settings |
 |---|---|---|
-| https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` | defaults: site `https://aitamer.news`, base `/` |
+| https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` — runs `npm test`, builds, uploads `dist/` and `functions/` | defaults: site `https://aitamer.news`, base `/` |
 | https://michelabboud.github.io/aitamer-news/ (GitHub Pages) | `.github/workflows/deploy-github-pages.yml` | `ASTRO_SITE=https://michelabboud.github.io`, `ASTRO_BASE=/aitamer-news` |
 
 Both trigger on a push to `main`. Canonical URLs on both copies point at `https://aitamer.news`. Google Analytics loads only on the main domain.
+
+## Server code — the contact form
+
+The only server code is one Cloudflare Pages Function. The site stays a static upload; there is no Astro Cloudflare adapter.
+
+- `functions/api/contact.js` — the route (`POST /api/contact`). Pages turns only files that export `onRequest*` into routes, so the helpers beside it are not exposed.
+- `functions/contact-handler.mjs` — origin check, form parsing, response shape (JSON for `fetch`, a 303 redirect for a plain submit).
+- `functions/contact-message.mjs` — field limits, validation, honeypot, and the outgoing letter (From `desk@aitamer.news`, Reply-To the visitor).
+- `functions/contact.test.mjs` — `npm test`; CI runs it before every Cloudflare deploy.
+- `wrangler.toml` is the source of truth for the Pages project's configuration, including the `EMAIL` send_email binding. The recipient is the secret `CONTACT_TO`, never in git.
+
+The GitHub Pages copy cannot run functions, so its form posts to `https://aitamer.news/api/contact`; the function allows that origin. Why this design: `docs/adr/0001-contact-form-uses-cloudflare-email.md`.
 
 ## Third parties in the browser
 
