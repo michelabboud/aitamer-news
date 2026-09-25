@@ -32,6 +32,10 @@ sources:
     url: https://github.com/anthropics/claude-code/issues/91870
   - title: "AGENTS.md convention"
     url: https://agents.md/
+wildness: 2
+wildnessTamed: "AGENTS.md support is in the changelog and mod source"
+wildnessWild: "The 2.1.281 gate fix is a staff HN claim only"
+verdict: "Useful for repos shared across coding agents. If you disable telemetry, confirm you are on 2.1.281+ or import @AGENTS.md from CLAUDE.md."
 ---
 
 **Claude Code 2.1.277** added **`AGENTS.md` support**: in a project with no `CLAUDE.md`, Claude Code reads `AGENTS.md` instead. Change the behavior under **Project instructions** in `/config`. The changelog notes it is **not yet on Bedrock, Vertex, or Foundry** ([CHANGELOG](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)).

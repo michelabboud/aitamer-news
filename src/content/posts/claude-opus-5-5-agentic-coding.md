@@ -22,6 +22,10 @@ sources:
     url: https://code.claude.com/docs/en/changelog
   - title: "Claude Opus 5.5 is now available in GitHub Copilot — GitHub Changelog"
     url: https://github.blog/changelog/2026-09-22-claude-opus-5-5-is-now-available-in-github-copilot/
+wildness: 3
+wildnessTamed: "Prices and availability are in official changelogs"
+wildnessWild: "“~40% cheaper” is a vendor claim"
+verdict: "Worth an A/B for cache-heavy Claude Code or Copilot agent runs. The list-price cut is about 20%; the ~40% saving is Anthropic’s figure."
 ---
 
 Anthropic released **Claude Opus 5.5** on **2026-09-22** as the first Claude 5.5-family model. For developers, the news is where it showed up and how it is priced for long agent sessions — not a models-desk scorecard.

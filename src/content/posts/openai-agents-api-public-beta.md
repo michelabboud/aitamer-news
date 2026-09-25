@@ -31,6 +31,10 @@ sources:
     url: https://developers.openai.com/api/docs/guides/your-data
   - title: "Introducing the Agents API — OpenAI"
     url: https://openai.com/index/introducing-the-agents-api/
+wildness: 2
+wildnessTamed: "Endpoints, billing and data rules are in OpenAI docs"
+wildnessWild: "“No extra Agents API fee” is from the announcement"
+verdict: "For teams that want a managed Codex agent loop with MCP and sandboxes. US-only data residency and no ZDR rule it out for some."
 ---
 
 OpenAI put the **Agents API** into **public beta** on **2026-09-10**: a managed **Codex harness** reachable through a closed API so apps get durable cloud agents without owning the orchestration loop ([overview](https://developers.openai.com/api/docs/guides/agents-api/overview), [announcement](https://openai.com/index/introducing-the-agents-api/)).

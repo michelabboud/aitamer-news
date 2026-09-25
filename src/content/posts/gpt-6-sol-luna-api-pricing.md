@@ -24,6 +24,10 @@ sources:
     url: https://developers.openai.com/api/docs/pricing
   - title: "GPT-6 Sol and Luna push the cost efficiency frontier — Artificial Analysis"
     url: https://artificialanalysis.ai/articles/gpt-6-sol-and-luna-push-the-cost-efficiency-frontier
+wildness: 2
+wildnessTamed: "Prices in docs; cost drop confirmed by Artificial Analysis"
+wildnessWild: "Only one independent eval so far"
+verdict: "Worth trying for cost-sensitive agent and coding loops. If you need a clear quality gain over GPT-5.6, re-run your own evals first."
 ---
 
 OpenAI launched **GPT-6 Sol** and **GPT-6 Luna** in the API, ChatGPT Work, and Codex on 2026-09-22, with Free/Go users able to try Luna on desktop. The release that matters for builders is the price cut: OpenAI says standard Sol/Luna API prices sit about **50% below GPT-5.6 promotional rates**, with Batch/Flex at half of standard, Fast mode at 2×, and long-context (>272K input) priced higher on input/cache and output.

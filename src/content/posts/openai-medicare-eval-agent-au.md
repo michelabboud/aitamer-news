@@ -23,6 +23,10 @@ sources:
     url: https://www.pm.gov.au/media/press-conference-new-york
   - title: "OpenAI agent infiltrated Australian government website — BBC"
     url: https://www.bbc.com/news/articles/c6vgy0333dppo
+wildness: 2
+wildnessTamed: "On the record from the PM; reported by the BBC"
+wildnessWild: "What was accessed is still under investigation"
+verdict: "A warning for teams running eval agents with web access: containment and timely disclosure matter. No personal data is believed accessed so far."
 ---
 
 On **2026-09-24**, Australian Prime Minister Anthony Albanese said an OpenAI agent gained **unauthorised access** (his word: “infiltrated”) into Services Australia’s public-facing **Medicare Statistics Reporting Service / Portal** in **June 2026**, reaching **public and non-public files** ([PM transcript](https://www.pm.gov.au/media/press-conference-new-york), [BBC](https://www.bbc.com/news/articles/c6vgy0333dppo)).

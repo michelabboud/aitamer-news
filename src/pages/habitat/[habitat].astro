@@ -3,16 +3,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import { getCollection } from 'astro:content';
 import {
-  ALL_SECTIONS,
+  HABITATS,
   SECTION_LABELS,
   entryStamp,
-  getPostsBySection,
+  getPostsByHabitat,
   getPublishedPosts,
   getSpecimenNumbers,
-  habitatHref,
-  habitatOf,
-  isSection,
+  habitatBySlug,
   resolveAuthor,
+  sectionHref,
   type Section,
 } from '../../lib/site';
 import { postCover, coverForSection } from '../../lib/covers';
@@ -22,28 +21,26 @@ export async function getStaticPaths() {
   const numbers = await getSpecimenNumbers();
   const authors = await getCollection('authors');
   const authorById = new Map(authors.map((author) => [author.id, author]));
-  return ALL_SECTIONS.map((section) => {
+  return HABITATS.map((habitat) => {
     const stamps = posts
-      .filter((post) => post.data.section === section)
+      .filter((post) => habitat.sections.includes(post.data.section))
       .flatMap((post) => {
         const author = authorById.get(post.data.author.id);
         return [entryStamp(post), author ? entryStamp(author) : 'missing-author', `specimen:${numbers.get(post.id)}`];
       })
       .sort();
     return {
-      params: { section },
+      params: { habitat: habitat.slug },
       cacheKey: stamps.join('|'),
     };
   });
 }
 
-const raw = Astro.params.section ?? '';
-if (!isSection(raw)) {
+const habitat = habitatBySlug(Astro.params.habitat ?? '');
+if (!habitat) {
   return Astro.redirect('/');
 }
-const section = raw as Section;
-const habitat = habitatOf(section);
-const posts = await getPostsBySection(section);
+const posts = await getPostsByHabitat(habitat);
 const numbers = await getSpecimenNumbers();
 const cards = await Promise.all(
   posts.map(async (post) => {
@@ -52,22 +49,30 @@ const cards = await Promise.all(
     return { post, author };
   }),
 );
-const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
+const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(habitat.sections[0] as Section);
+const desks = habitat.sections.length > 1 ? (habitat.sections as Section[]) : [];
 ---
 <BaseLayout
-  title={SECTION_LABELS[section]}
-  description={`AI Tamer stories on the ${SECTION_LABELS[section]} desk.`}
+  title={habitat.name}
+  description={`AI Tamer sightings in Habitat ${habitat.code}: ${habitat.name}.`}
   image={ogImage}
   habitat={habitat.slug}
 >
   <header class="page-head">
-    <p class="page-kicker">Desk · part of <a href={habitatHref(habitat)}>Habitat {habitat.code} · {habitat.name}</a></p>
-    <h1 class="page-title">{SECTION_LABELS[section]}</h1>
-    <p class="lede">Every sighting filed on the {SECTION_LABELS[section]} desk, newest first.</p>
+    <p class="page-kicker">Habitat {habitat.code} · {cards.length} {cards.length === 1 ? 'sighting' : 'sightings'}</p>
+    <h1 class="page-title">{habitat.name}</h1>
+    <p class="lede">Every sighting in this habitat, newest first. Each carries its specimen number and wildness rating.</p>
+    {desks.length > 0 && (
+      <ul class="desk-list" aria-label="Desks in this habitat">
+        {desks.map((desk) => (
+          <li><a class="tag tag--plain" href={sectionHref(desk)}>{SECTION_LABELS[desk]} desk</a></li>
+        ))}
+      </ul>
+    )}
   </header>
 
   {cards.length === 0 ? (
-    <p class="empty">No sightings on this desk yet.</p>
+    <p class="empty">No sightings in this habitat yet.</p>
   ) : (
     <ul class="cards listing">
       {cards.map(({ post, author }, i) => (

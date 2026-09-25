@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ExtinctionList from '../components/ExtinctionList.astro';
+import { extinctionWatch, getPublishedPosts, withBase } from '../lib/site';
+
+const posts = await getPublishedPosts();
+const { upcoming, extinct } = extinctionWatch(posts, new Date());
+---
+<BaseLayout
+  title="Extinction Watch"
+  description="Models and APIs about to be shut down, counted down in days. Migrate before they go."
+>
+  <header class="page-head">
+    <p class="page-kicker">Field guide · counted in UTC days</p>
+    <h1 class="page-title" style="color: var(--ember-text)">Extinction Watch</h1>
+    <p class="lede">
+      Models and APIs about to disappear, taken from the shutdown dates in our stories. Migrate before
+      they do. The count updates each time you open the page.
+    </p>
+  </header>
+
+  <div class="split">
+    <section class="watch watch--page" aria-labelledby="upcoming-title">
+      <div class="watch__head"><h2 id="upcoming-title">Going extinct</h2></div>
+      {upcoming.length > 0 ? (
+        <ExtinctionList entries={upcoming} showTitle />
+      ) : (
+        <p class="watch-item__note" style="margin: 0">No shutdowns on the calendar right now.</p>
+      )}
+    </section>
+
+    <aside class="side">
+      <section class="panel" aria-labelledby="extinct-title">
+        <div class="panel__head"><h2 id="extinct-title">Already extinct</h2></div>
+        {extinct.length > 0 ? (
+          <ExtinctionList entries={extinct} showTitle />
+        ) : (
+          <p class="muted" style="margin: 0">Nothing has gone extinct on our watch yet.</p>
+        )}
+      </section>
+      <div class="legend">
+        <span class="mono muted">How a story gets here</span>
+        <p style="margin: 0; font-size: 0.9375rem; color: var(--ink-soft)">
+          A story that reports a shutdown date carries it in its frontmatter (<code>sunset</code>). If we
+          missed one, <a href={withBase('/about/#contact')}>report a sighting</a>.
+        </p>
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

@@ -25,6 +25,10 @@ sources:
     url: https://github.com/aditya-ramabadran/drivingbench_harness_v1
   - title: "drivingbench-traces — Hugging Face"
     url: https://huggingface.co/datasets/drivingbench/drivingbench-traces
+wildness: 5
+wildnessTamed: "Harness code and run traces are published openly"
+wildnessWild: "Self-published; one trial per model, no replication"
+verdict: "Interesting for embodied-agent and eval teams. It shows a low-speed cone course in an empty lot, not that any model can drive."
 ---
 
 **DrivingBench** (Aditya Ramabadran, Simon Mahns, Tobias Gessler — equal contribution) gives frontier models control of a **Toyota Corolla’s** steering, accelerator, and brakes via tools, then scores them on a **fixed cone course** ([site](https://drivingbench.com/), [report](https://drivingbench.com/report/)).

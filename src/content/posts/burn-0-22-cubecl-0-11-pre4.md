@@ -24,6 +24,10 @@ sources:
     url: https://github.com/tracel-ai/burn
   - title: "tracel-ai/cubecl — GitHub"
     url: https://github.com/tracel-ai/cubecl
+wildness: 1
+wildnessTamed: "Both tags and changelogs are public on GitHub"
+wildnessWild: "Nothing rests on vendor say-so"
+verdict: "Only for teams tracking Burn and CubeCL pre-releases, and several changes break code. Everyone else should wait for stable 0.22 / 0.11."
 ---
 
 On **2026-09-22**, Tracel tagged paired **pre-releases**: Burn [`v0.22.0-pre.4`](https://github.com/tracel-ai/burn/releases/tag/v0.22.0-pre.4) and CubeCL [`v0.11.0-pre.4`](https://github.com/tracel-ai/cubecl/releases/tag/v0.11.0-pre.4). Both GitHub releases are marked **Pre-release**—this is **not** stable Burn 0.22 or CubeCL 0.11.

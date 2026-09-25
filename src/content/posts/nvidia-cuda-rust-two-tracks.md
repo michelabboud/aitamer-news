@@ -21,6 +21,10 @@ sources:
     url: https://github.com/NVlabs/cuda-oxide
   - title: "NVlabs/cutile-rs"
     url: https://github.com/NVlabs/cutile-rs
+wildness: 2
+wildnessTamed: "Toolchains and Apache-2.0 licenses are in NVlabs repos"
+wildnessWild: "Adoption by Grout and mistral.rs is NVIDIA’s claim"
+verdict: "Worth watching for Rust GPU developers. Both tracks are early and not production-ready; recheck the toolchain pins first."
 ---
 
 NVIDIA’s Developer Blog (**2026-09-08**) introduces **CUDA Rust** as two tracks for writing GPU kernels in Rust that compile toward PTX / CUDA Tile IR — not wrappers around foreign kernel source. Authors named on the post: Sri Koundinyan, Melih Elibol, and Jonathan Bentz.

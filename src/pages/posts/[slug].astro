@@ -4,16 +4,23 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
 import CommentCount from '../../components/CommentCount.astro';
 import Comments from '../../components/Comments.astro';
+import SpecimenTag from '../../components/SpecimenTag.astro';
+import WildnessPanel from '../../components/WildnessPanel.astro';
 import {
   SECTION_LABELS,
   authorHref,
   canonicalUrlFor,
   formatDate,
   formatDateTime,
+  formatSpecimen,
   archiveHref,
   archiveMonthOf,
   entryStamp,
   getPublishedPosts,
+  getSpecimenNumbers,
+  habitatHref,
+  habitatOfPost,
+  readingMinutes,
   resolveAuthor,
   sectionHref,
   withBase,
@@ -23,105 +30,116 @@ import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
+  const numbers = await getSpecimenNumbers();
   return Promise.all(
     posts.map(async (post) => {
       const author = await resolveAuthor(post);
+      const specimen = numbers.get(post.id)!;
       return {
         params: { slug: post.id },
-        props: { post },
-        cacheKey: [entryStamp(post), author ? entryStamp(author) : 'missing-author'].join('|'),
+        props: { post, specimen },
+        cacheKey: [
+          entryStamp(post),
+          author ? entryStamp(author) : 'missing-author',
+          `specimen:${specimen}`,
+        ].join('|'),
       };
     }),
   );
 }
 
-const { post } = Astro.props;
+const { post, specimen } = Astro.props;
 const author = await resolveAuthor(post);
 if (!author) throw new Error(`Missing author for post ${post.id}`);
 const { Content } = await render(post);
 const section = post.data.section as Section;
+const habitat = habitatOfPost(post);
 const generated = usesGeneratedCover(post);
 const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
-const hasHeroImage = Boolean(post.data.heroImage?.trim());
 const commentUrl = canonicalUrlFor(`/posts/${post.id}/`);
 const published = archiveMonthOf(post.data.pubDate);
 ---
-<BaseLayout title={post.data.title} description={post.data.description} image={heroSrc} ogType="article">
-  <article class="article" data-section={section}>
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  image={heroSrc}
+  ogType="article"
+  habitat={habitat.slug}
+>
+  <article class="article">
     <header class="article__header">
-      <p class="page-kicker">
-        <a href={sectionHref(section)}>{SECTION_LABELS[section]}</a>
+      <p class="page-kicker" style="margin: 0">
+        Specimen No. {formatSpecimen(specimen)} ·{' '}
+        <a href={habitatHref(habitat)}>Habitat {habitat.code} · {habitat.name}</a>
+        {habitat.sections.length > 1 && <> · <a href={sectionHref(section)}>{SECTION_LABELS[section]}</a></>}
       </p>
       <h1 class="article__title">{post.data.title}</h1>
       <p class="lede">{post.data.description}</p>
       <div class="byline">
-        <AuthorBadge kind={author.data.kind} />
-        <span>
-          By <a href={authorHref(author.id)}>{author.data.name}</a>
-        </span>
-        <a class="byline__date" href={archiveHref(published.year, published.month)} title="More stories from this month">
-          <time datetime={post.data.pubDate.toISOString()}>
-            {formatDateTime(post.data.pubDate)}
-          </time>
+        <a href={authorHref(author.id)} style="text-decoration: none">
+          <AuthorBadge kind={author.data.kind} name={author.data.name} />
         </a>
+        <a class="byline__date" href={archiveHref(published.year, published.month)} title="More stories from this month">
+          <time datetime={post.data.pubDate.toISOString()}>{formatDateTime(post.data.pubDate)}</time>
+        </a>
+        <span>{readingMinutes(post.body)} MIN</span>
         <CommentCount id={post.id} />
         {post.data.updatedDate && (
           <span>
-            Updated{' '}
-            <time datetime={post.data.updatedDate.toISOString()}>
-              {formatDate(post.data.updatedDate)}
-            </time>
+            Updated <time datetime={post.data.updatedDate.toISOString()}>{formatDate(post.data.updatedDate)}</time>
           </span>
         )}
       </div>
-      {post.data.tags.length > 0 && (
-        <p class="byline" style="margin-top: 0.75rem;">
-          {post.data.tags.map((tag) => (
-            <span class="badge badge--section">{tag}</span>
-          ))}
-        </p>
+      {post.data.wildness && (
+        <WildnessPanel level={post.data.wildness} tamed={post.data.wildnessTamed} wild={post.data.wildnessWild} />
       )}
     </header>
 
-    <figure class="article__hero-figure">
-      <img
-        class="article__hero"
-        src={withBase(heroSrc)}
-        alt={post.data.title}
-        width="1600"
-        height="900"
-        decoding="async"
-      />
-      {generated && (
-        <figcaption class="article__hero-caption">
-          Generated cover art ({SECTION_LABELS[section]} motif). Not a photo.
-        </figcaption>
-      )}
-      {!generated && hasHeroImage && (
-        <figcaption class="article__hero-caption">
-          Generated cover art. Not a photo.
-        </figcaption>
-      )}
+    <figure class="article__figure">
+      <div class="specimen-photo">
+        <img src={withBase(heroSrc)} alt="" width="1600" height="900" decoding="async" fetchpriority="high" />
+        <SpecimenTag specimen={specimen} habitat={habitat} />
+      </div>
+      <figcaption class="article__caption">
+        {generated ? `Generated cover art (${SECTION_LABELS[section]} motif). Not a photo.` : 'Generated cover art. Not a photo.'}
+      </figcaption>
     </figure>
 
     <div class="article__body">
       <Content />
     </div>
 
-    {post.data.sources && post.data.sources.length > 0 && (
-      <aside class="sources">
-        <h2>Sources</h2>
-        <ul>
-          {post.data.sources.map((source) => (
-            <li>
-              <a href={source.url} rel="noopener noreferrer">
-                {source.title ?? source.url}
-              </a>
-            </li>
-          ))}
-        </ul>
+    {post.data.verdict && (
+      <aside class="verdict" aria-label="Tamer’s verdict">
+        <p class="verdict__text"><span class="verdict-label">Tamer’s verdict:</span> {post.data.verdict}</p>
       </aside>
     )}
+
+    {post.data.sources && post.data.sources.length > 0 && (
+      <aside class="sources" aria-labelledby="sources-title">
+        <h2 id="sources-title">Sources</h2>
+        <ol>
+          {post.data.sources.map((source) => (
+            <li>
+              <a href={source.url} rel="noopener noreferrer">{source.title ?? source.url}</a>
+            </li>
+          ))}
+        </ol>
+      </aside>
+    )}
+
+    {post.data.tags.length > 0 && (
+      <ul class="tag-list" aria-label="Tags" style="margin-top: 2rem">
+        {post.data.tags.map((tag) => <li class="tag tag--plain">{tag}</li>)}
+      </ul>
+    )}
+
+    <div class="rating-report">
+      <p>
+        Is the wildness rating wrong, or a fact out of date?
+        <a href={withBase('/about/#contact')}>Tell the desk, and quote the line →</a>
+      </p>
+    </div>
 
     <Comments pageUrl={commentUrl} pageId={post.id} />
   </article>

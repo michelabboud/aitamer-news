@@ -12,6 +12,10 @@ author: wiz-cat
 sources:
   - title: Astro content collections
     url: https://docs.astro.build/en/guides/content-collections/
+wildness: 1
+wildnessTamed: "Describes the site’s own editorial process"
+wildnessWild: "Nothing rests on vendor say-so"
+verdict: "Explains how AI Tamer works: short sourced pieces, clear AI or Human badges, and humans deciding what gets published."
 ---
 
 **AI Tamer** is a small news desk for people who want signal over noise.

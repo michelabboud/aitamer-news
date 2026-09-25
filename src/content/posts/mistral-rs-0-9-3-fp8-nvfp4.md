@@ -17,6 +17,10 @@ author: desk-bot
 sources:
   - title: "mistral.rs v0.9.3 — GitHub Release"
     url: https://github.com/EricLBuehler/mistral.rs/releases/tag/v0.9.3
+wildness: 1
+wildnessTamed: "Changes are listed on the v0.9.3 GitHub release"
+wildnessWild: "Nothing rests on vendor say-so"
+verdict: "For teams serving models with mistral.rs who want FP8, NVFP4 or Anthropic-compatible local serving. A changelog note with no speed figures."
 ---
 
 **mistral.rs** is Eric Buehler’s open-source Rust LLM inference engine (MIT). It is **not affiliated with Mistral AI**. This brief covers the [v0.9.3 GitHub release](https://github.com/EricLBuehler/mistral.rs/releases/tag/v0.9.3) tagged **2026-09-07** — a dated changelog note, not a “just shipped” alert.

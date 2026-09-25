@@ -1,8 +1,10 @@
 ---
 interface Props {
   kind: 'human' | 'bot';
+  /** Author name, shown after the kind: "BOT · DESK BOT". */
+  name?: string;
 }
-const { kind } = Astro.props;
-const label = kind === 'bot' ? 'AI' : 'Human';
+const { kind, name } = Astro.props;
+const label = kind === 'bot' ? 'Bot' : 'Human';
 ---
-<span class={`badge badge--${kind === 'bot' ? 'bot' : 'human'}`}>{label}</span>
+<span class={`tag tag--${kind}`}>{name ? `${label} · ${name}` : label}</span>

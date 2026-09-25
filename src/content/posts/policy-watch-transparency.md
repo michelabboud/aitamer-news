@@ -13,6 +13,10 @@ author: wiz-cat
 sources:
   - title: OECD AI Policy Observatory
     url: https://oecd.ai/
+wildness: 4
+wildnessTamed: "Points to the OECD AI Policy Observatory"
+wildnessWild: "No specific rule or regulator is cited"
+verdict: "A short editorial nudge for product teams: label AI output clearly, keep an audit trail and make disclosures easy to find."
 ---
 
 Transparency requirements are no longer a vague “nice to have.” Product teams shipping assistants, agents, or generative features should assume users (and auditors) will ask:

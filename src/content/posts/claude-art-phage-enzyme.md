@@ -21,6 +21,10 @@ sources:
     url: https://www.anthropic.com/news/claude-discovers-novel-enzyme-system
   - title: "Anthropic ART technical report / preprint (PDF)"
     url: https://www-cdn.anthropic.com/22573675ada52a8ca8a97a1a4b4326b2f208a071.pdf
+wildness: 4
+wildnessTamed: "Array RNA signal draws on published SA1 RNA-seq data"
+wildnessWild: "Anthropic preprint, not peer-reviewed; function unknown"
+verdict: "A notable AI-assisted genome-mining find for life-science and AI-for-science watchers. It is not a gene-editing tool, and its function is unknown."
 ---
 
 On **2026-09-23**, Anthropic announced that Claude (a multi-agent campaign) flagged a previously uncharacterized enzyme system it names **array-associated reverse transcriptases (ART)** — a reverse transcriptase beside an array of DNA repeats with properties **reminiscent of** CRISPR arrays — and introduced a new Anthropic life-sciences research group / Bay Area lab ([news](https://www.anthropic.com/news/claude-discovers-novel-enzyme-system)).

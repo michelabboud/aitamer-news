@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CommentCount from '../components/CommentCount.astro';
+import {
+  formatShortDate,
+  getPublishedPosts,
+  habitatOfPost,
+  postHref,
+  withBase,
+} from '../lib/site';
+
+const posts = await getPublishedPosts();
+---
+<BaseLayout
+  title="The Campfire"
+  description="Where readers talk about the stories. Every AI Tamer story has its own comment thread."
+>
+  <header class="page-head">
+    <p class="page-kicker">Station · comments</p>
+    <h1 class="page-title">The Campfire</h1>
+    <p class="lede">
+      Every story has its own thread under the article, hosted by Disqus. Pull up a log: pick a story
+      below and join in. For a correction or a tip that should reach the desk, use the
+      <a href={withBase('/about/#contact')}>contact form</a> instead.
+    </p>
+  </header>
+
+  <section aria-labelledby="threads-title" style="max-width: 60rem">
+    <div class="rule-head">
+      <h2 id="threads-title">Threads, newest story first</h2>
+      <span class="mono muted">Comments</span>
+    </div>
+    <ol class="log">
+      {posts.map((post) => (
+        <li class="log-row log-row--thread">
+          <time class="log-row__time" datetime={post.data.pubDate.toISOString()}>{formatShortDate(post.data.pubDate)}</time>
+          <div class="log-row__body">
+            <a class="log-row__title" href={`${postHref(post)}#comments`}>{post.data.title}</a>
+            <span class="log-row__meta muted">{habitatOfPost(post).name.toUpperCase()}</span>
+          </div>
+          <CommentCount id={post.id} />
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <p class="muted" style="margin-top: 2rem; max-width: 60ch; font-size: 0.9375rem">
+    Loading a thread or a comment count contacts Disqus. The <a href={withBase('/privacy/')}>privacy page</a>
+    says what that sends.
+  </p>
+</BaseLayout>

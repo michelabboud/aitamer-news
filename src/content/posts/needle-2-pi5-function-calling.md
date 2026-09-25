@@ -22,6 +22,10 @@ sources:
     url: https://huggingface.co/Cactus-Compute/needle2
   - title: "cactus-compute/needle — GitHub"
     url: https://github.com/cactus-compute/needle
+wildness: 3
+wildnessTamed: "Size and license match across RPi, HF and GitHub"
+wildnessWild: "Latency is an RPi demo; ~500 tok/s is vendor-reported"
+verdict: "Handy for Pi-class projects that map plain-English commands to local functions. It picks tools; it does not chat."
 ---
 
 On **2026-09-22**, Raspberry Pi News covered Cactus Compute’s **Needle 2**: a **~14MB** function-calling model that turns plain English into **local actions** on a **Raspberry Pi 5** using the **CPU alone** (no dedicated AI HAT) ([RPi News](https://www.raspberrypi.com/news/turn-text-input-into-actions-with-needle-a-14mb-function-calling-llm/)).

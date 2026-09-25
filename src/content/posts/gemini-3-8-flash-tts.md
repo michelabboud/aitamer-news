@@ -22,6 +22,10 @@ sources:
     url: https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-8-text-to-speech/
   - title: "Gemini API pricing — Google AI for Developers"
     url: https://ai.google.dev/gemini-api/docs/pricing
+wildness: 3
+wildnessTamed: "Prices are in Google’s developer pricing docs"
+wildnessWild: "Benchmark wins are Google-cited, not re-run"
+verdict: "Worth a look for dubbing, audio and voice-agent builders. Promo prices double on 2027-01-01, and voice cloning is geo-blocked in some regions."
 ---
 
 On **2026-09-23**, Google introduced **Gemini 3.8 Flash TTS** (creative direction / character design) and **Gemini 3.8 Flash-Lite TTS** (high-volume, cost-efficient scale for dubbing, audio content, and voice agents) ([blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-8-text-to-speech/)).

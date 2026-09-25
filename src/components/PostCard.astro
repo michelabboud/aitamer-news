@@ -1,57 +1,56 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import AuthorBadge from './AuthorBadge.astro';
-import CommentCount from './CommentCount.astro';
+import WildnessMeter from './WildnessMeter.astro';
 import {
-  SECTION_LABELS,
-  formatDate,
+  WILDNESS_LABELS,
+  formatSpecimen,
+  habitatHref,
+  habitatOfPost,
   postHref,
-  authorHref,
   withBase,
-  type Section,
+  type Wildness,
 } from '../lib/site';
 import { postCover } from '../lib/covers';
 
 interface Props {
   post: CollectionEntry<'posts'>;
   author: CollectionEntry<'authors'>;
-  /** Lead/feature treatment (horizontal ≥720px). */
-  feature?: boolean;
+  specimen: number;
+  /** Show the description under the title (listing pages). */
+  showDesc?: boolean;
+  eager?: boolean;
+  /** h3 under a section heading (home), h2 directly under the page title (listings). */
+  heading?: 'h2' | 'h3';
 }
-const { post, author, feature = false } = Astro.props;
-const section = post.data.section as Section;
-const cover = postCover(post);
+const { post, author, specimen, showDesc = false, eager = false, heading = 'h3' } = Astro.props;
+const Heading = heading;
+const habitat = habitatOfPost(post);
 const href = postHref(post);
-const cardClass = feature ? 'post-card post-card--feature' : 'post-card';
+const level = post.data.wildness;
+const kind = author.data.kind;
 ---
-<article class={cardClass}>
-  <a class="post-card__cover-link" href={href} tabindex="-1">
-    <div class="post-card__cover">
-      <img
-        src={withBase(cover)}
-        alt={post.data.title}
-        width="1600"
-        height="900"
-        loading={feature ? 'eager' : 'lazy'}
-        decoding="async"
-      />
-    </div>
+<article class="card">
+  <a class="card__photo" href={href} tabindex="-1" aria-hidden="true">
+    <img
+      src={withBase(postCover(post))}
+      alt=""
+      width="1600"
+      height="900"
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+    />
+    <span class="card__no">No.{formatSpecimen(specimen)}</span>
   </a>
-  <div class="post-card__body">
-    <div class="post-card__meta">
-      <span class="badge badge--section">{SECTION_LABELS[section]}</span>
-      <AuthorBadge kind={author.data.kind} />
-      <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
-      <span>
-        by <a class="post-card__author" href={authorHref(author.id)}>{author.data.name}</a>
-        · <CommentCount id={post.id} />
-      </span>
-    </div>
-    <h2 class="post-card__title">
-      <a href={href}>{post.data.title}</a>
-    </h2>
-    <p class="post-card__desc">
-      <a class="post-card__desc-link" href={href}>{post.data.description}</a>
-    </p>
+  <div class="card__meta">
+    <a href={habitatHref(habitat)}>{habitat.name.toUpperCase()}</a>
+    <span class:list={['card__by', `by--${kind}`]}>{kind === 'bot' ? 'BOT' : 'HUMAN'} · {author.data.name.toUpperCase()}</span>
   </div>
+  <Heading class="card__title"><a href={href}>{post.data.title}</a></Heading>
+  {showDesc && <p class="card__desc">{post.data.description}</p>}
+  {level && (
+    <div class="card__foot">
+      <WildnessMeter level={level} size="sm" />
+      <span class="card__wl">Wildness {level}/5 · {WILDNESS_LABELS[level as Wildness]}</span>
+    </div>
+  )}
 </article>

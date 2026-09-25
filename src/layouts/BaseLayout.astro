@@ -1,7 +1,6 @@
 ---
 import '../styles/global.css';
-import SectionChip from '../components/SectionChip.astro';
-import { ALL_SECTIONS, ANALYTICS_ID, DISQUS_SHORTNAME, SITE, canonicalUrlFor, withBase } from '../lib/site';
+import { ANALYTICS_ID, DISQUS_SHORTNAME, HABITATS, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
 
 interface Props {
   title?: string;
@@ -13,6 +12,16 @@ interface Props {
   ogType?: 'website' | 'article';
   /** When true, emit robots noindex. */
   noindex?: boolean;
+  /** Habitat slug to mark in the habitat nav (desk and story pages). */
+  habitat?: string;
+  /**
+   * Home only: the big masthead, with counts in the habitat nav. Other pages leave this out
+   * so their HTML does not change when an unrelated post lands (incremental build cache).
+   */
+  home?: {
+    habitatCounts: Map<string, number>;
+    stats: { sightings: number; bots: number; humans: number };
+  };
 }
 const {
   title,
@@ -21,6 +30,8 @@ const {
   image,
   ogType = 'website',
   noindex = false,
+  habitat: currentHabitat,
+  home,
 } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.domain}`;
 const canonicalUrl = canonical ?? canonicalUrlFor(Astro.url.pathname);
@@ -33,16 +44,26 @@ function isCurrent(href: string): boolean {
   const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   return path === target;
 }
+const current = (href: string) => (isCurrent(href) ? 'page' : undefined);
+
+/** Station links: the top bar on wide screens, the menu on phones. */
+const STATION_LINKS = [
+  { href: '/about/', label: 'About' },
+  { href: '/campfire/', label: 'Campfire' },
+  { href: '/about/#contact', label: 'Report a sighting' },
+  { href: '/about/#contact', label: 'Contact' },
+  { href: '/rss.xml', label: 'RSS' },
+];
 ---
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
-    <meta name="theme-color" content="#fff8f0" />
-    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#111513" />
+    <meta name="color-scheme" content="dark" />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
@@ -70,7 +91,7 @@ function isCurrent(href: string): boolean {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Martian+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
 
@@ -89,45 +110,144 @@ function isCurrent(href: string): boolean {
     <slot name="head" />
     <title>{pageTitle}</title>
   </head>
-  <body data-theme="big-top">
+  <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <header class="site-header">
-      <div class="site-shell site-header__inner">
-        <a class="brand" href={withBase('/')}>
-          <span class="brand__title">{SITE.title}</span>
-          <span class="brand__domain">{SITE.domain}</span>
-        </a>
-        <nav class="nav" aria-label="Primary">
-          <a href={withBase('/')} aria-current={isCurrent('/') ? 'page' : undefined}>Home</a>
-          <a href={withBase('/archive/')} aria-current={isCurrent('/archive/') ? 'page' : undefined}>Archive</a>
-          <a href={withBase('/about/')} aria-current={isCurrent('/about/') ? 'page' : undefined}>About</a>
-          <a href={withBase('/rss.xml')}>RSS</a>
+
+    <div class="station-bar">
+      <div class="site-shell station-bar__inner">
+        <div class="station-bar__status">
+          <span class="station-bar__online"><span class="station-bar__pulse" aria-hidden="true"></span>STATION ONLINE</span>
+          <span id="station-clock"></span>
+        </div>
+        <nav class="station-bar__links" aria-label="Station">
+          {STATION_LINKS.map((link) => (
+            <a href={withBase(link.href)} aria-current={link.href.includes('#') ? undefined : current(link.href)}>{link.label}</a>
+          ))}
         </nav>
       </div>
-      <nav class="desk-nav" aria-label="Sections">
-        <div class="site-shell desk-nav__inner">
-          {ALL_SECTIONS.map((section) => (
-            <SectionChip section={section} active={isCurrent(`/section/${section}/`)} />
-          ))}
-        </div>
-      </nav>
+    </div>
+
+    <header class:list={['masthead', { 'masthead--home': home }]}>
+      <div class="site-shell masthead__inner">
+        <a class="wordmark" href={withBase('/')}>
+          <span class="wordmark__kicker">A FIELD GUIDE TO THE MACHINES</span>
+          <span class="wordmark__name">{SITE.title}</span>
+        </a>
+        {home && (
+          <div class="masthead__aside">
+            <p class="masthead__about">
+              Every sighting sourced. Every tamer named, human or bot. Every claim rated for how wild it still is.
+            </p>
+            <dl class="stats">
+              <div><dt>Sightings logged</dt><dd>{home.stats.sightings}</dd></div>
+              <div><dt>{home.stats.bots === 1 ? 'Bot' : 'Bots'} on shift</dt><dd class="is-bot">{home.stats.bots}</dd></div>
+              <div><dt>Human {home.stats.humans === 1 ? 'editor' : 'editors'}</dt><dd class="is-human">{home.stats.humans}</dd></div>
+            </dl>
+          </div>
+        )}
+        <details class="menu">
+          <summary aria-label="Menu"><span></span><span></span></summary>
+          <nav class="menu__panel" aria-label="Station menu">
+            {STATION_LINKS.map((link) => (
+              <a href={withBase(link.href)} aria-current={link.href.includes('#') ? undefined : current(link.href)}>{link.label}</a>
+            ))}
+            <a href={withBase('/archive/')} aria-current={current('/archive/')}>Archive</a>
+          </nav>
+        </details>
+      </div>
     </header>
-    <main id="main" class="site-shell site-main">
+
+    <nav class="site-shell habitat-bar" aria-label="Habitats">
+      <ul class="habitat-nav">
+        <li class="habitat-nav__all">
+          <a href={withBase('/')} aria-current={current('/')}><span class="habitat-nav__name">All</span></a>
+        </li>
+        {HABITATS.map((h) => (
+          <li>
+            <a
+              href={habitatHref(h)}
+              aria-current={isCurrent(`/habitat/${h.slug}/`) ? 'page' : currentHabitat === h.slug ? 'true' : undefined}
+            >
+              <span class="habitat-nav__code">{h.code}{home && ` · ${home.habitatCounts.get(h.slug) ?? 0}`}</span>
+              <span class="habitat-nav__name">{h.name}</span>
+            </a>
+          </li>
+        ))}
+        <li class="habitat-nav__watch">
+          <a href={withBase('/extinction-watch/')} aria-current={current('/extinction-watch/')}>
+            <span class="habitat-nav__code" data-watch-soon>SHUTDOWNS, COUNTED DOWN</span>
+            <span class="habitat-nav__name">Extinction Watch <span aria-hidden="true">→</span></span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <main id="main" class:list={['site-shell', 'site-main', { 'site-main--home': home }]}>
       <slot />
     </main>
+
     <footer class="site-footer">
-      <div class="site-shell site-footer__inner">
-        <p class="footer-about">{SITE.description}</p>
-        <nav class="footer-nav" aria-label="Legal">
-          <a href={withBase('/about/')} aria-current={isCurrent('/about/') ? 'page' : undefined}>About</a>
-          <a href={withBase('/about/#contact')}>Contact</a>
-          <a href={withBase('/archive/')}>Archive</a>
-          <a href={withBase('/terms/')} aria-current={isCurrent('/terms/') ? 'page' : undefined}>Terms of Use</a>
-          <a href={withBase('/privacy/')} aria-current={isCurrent('/privacy/') ? 'page' : undefined}>Privacy</a>
+      <div class="site-shell site-footer__grid">
+        <div class="site-footer__brand">
+          <span class="site-footer__name">{SITE.title}</span>
+          <p class="site-footer__about">A field guide to the machines. Cover art is generated collage, never photos.</p>
+        </div>
+        <nav aria-labelledby="footer-habitats">
+          <h2 id="footer-habitats">Habitats</h2>
+          {HABITATS.map((h) => (
+            <a href={habitatHref(h)} aria-current={current(`/habitat/${h.slug}/`)}>{h.name}</a>
+          ))}
+        </nav>
+        <nav aria-labelledby="footer-guide">
+          <h2 id="footer-guide">Field guide</h2>
+          <a href={withBase('/')} aria-current={current('/')}>Field log</a>
+          <a href={withBase('/habitats/')} aria-current={current('/habitats/')}>All habitats</a>
+          <a href={withBase('/archive/')} aria-current={current('/archive/')}>Archive</a>
+          <a href={withBase('/extinction-watch/')} aria-current={current('/extinction-watch/')}>Extinction Watch</a>
+          <a href={withBase('/about/#wildness')}>Wildness ratings</a>
           <a href={withBase('/rss.xml')}>RSS</a>
         </nav>
-        <p class="footer-meta">© {new Date().getFullYear()} {SITE.title} · {SITE.domain}</p>
+        <nav aria-labelledby="footer-station">
+          <h2 id="footer-station">Station</h2>
+          <a href={withBase('/about/')} aria-current={current('/about/')}>About</a>
+          <a href={withBase('/about/#tamers')}>The Tamers</a>
+          <a href={withBase('/campfire/')} aria-current={current('/campfire/')}>The Campfire</a>
+          <a href={withBase('/about/#contact')}>Report a sighting</a>
+          <a href={withBase('/about/#contact')}>Contact</a>
+        </nav>
+        <nav aria-labelledby="footer-legal">
+          <h2 id="footer-legal">Legal</h2>
+          <a href={withBase('/terms/')} aria-current={current('/terms/')}>Terms of Use</a>
+          <a href={withBase('/privacy/')} aria-current={current('/privacy/')}>Privacy Policy</a>
+        </nav>
+      </div>
+      <div class="site-shell site-footer__base">
+        <span>© {new Date().getFullYear()} AI TAMER · {SITE.domain.toUpperCase()}</span>
+        <span>STATION 01 · SERVED STATIC FROM CLOUDFLARE</span>
       </div>
     </footer>
+
+    <nav class="tabbar" aria-label="Quick links">
+      <a href={withBase('/')} aria-current={current('/')}><span class="tabbar__icon" aria-hidden="true"></span>Log</a>
+      <a href={withBase('/habitats/')} aria-current={current('/habitats/')}><span class="tabbar__icon" aria-hidden="true"></span>Habitats</a>
+      <a href={withBase('/extinction-watch/')} aria-current={current('/extinction-watch/')}><span class="tabbar__icon tabbar__icon--round" aria-hidden="true"></span>Extinction</a>
+      <a href={withBase('/campfire/')} aria-current={current('/campfire/')}><span class="tabbar__icon tabbar__icon--diamond" aria-hidden="true"></span>Campfire</a>
+    </nav>
+
+    <script is:inline>
+      // The station clock: the reader's current time in UTC. Static HTML cannot know it.
+      (function () {
+        var el = document.getElementById('station-clock');
+        if (!el) return;
+        function tick() {
+          var d = new Date();
+          var day = d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+          var time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' });
+          el.textContent = (day.replace(/,/g, '') + ' · ' + time + ' UTC').toUpperCase();
+        }
+        tick();
+        setInterval(tick, 30000);
+      })();
+    </script>
   </body>
 </html>

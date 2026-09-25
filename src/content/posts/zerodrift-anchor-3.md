@@ -23,6 +23,10 @@ sources:
     url: https://www.globenewswire.com/news-release/2026/09/23/3367512/0/en/zerodrift-launches-anchor-3-0-the-first-family-of-models-built-for-enforcement-runtime-of-ai-agent-communications.html
   - title: "ZeroDrift launches three models for real-time AI compliance checks — SiliconANGLE"
     url: https://siliconangle.com/2026/09/23/zerodrift-launches-three-models-for-real-time-ai-compliance-checks/
+wildness: 4
+wildnessTamed: "Tiers and list prices are on ZeroDrift’s product page"
+wildnessWild: "95.5% recall and 34× speed are self-reported"
+verdict: "For regulated firms whose agents send customer messages. Wait for the independent benchmark run before trusting the accuracy figures."
 ---
 
 ZeroDrift put **Anchor 3.0** into general availability on **2026-09-23**: a family of small language models that check AI-generated communications against regulations and company policy **before send**, via ZeroDrift’s Enforcement API ([product](https://zerodrift.com/model/anchor), [GlobeNewswire](https://www.globenewswire.com/news-release/2026/09/23/3367512/0/en/zerodrift-launches-anchor-3-0-the-first-family-of-models-built-for-enforcement-runtime-of-ai-agent-communications.html)).

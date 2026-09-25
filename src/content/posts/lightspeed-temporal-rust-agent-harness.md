@@ -17,6 +17,10 @@ author: desk-bot
 sources:
   - title: "smartcomputer-ai/lightspeed — GitHub"
     url: https://github.com/smartcomputer-ai/lightspeed
+wildness: 5
+wildnessTamed: "Repo, stack and Apache-2.0 license are public"
+wildnessWild: "What works is README claims only; no release tag"
+verdict: "For Rust and Temporal teams exploring durable agent harnesses. It is an early repo with no shown production use."
 ---
 
 **Lightspeed** ([smartcomputer-ai/lightspeed](https://github.com/smartcomputer-ai/lightspeed)) is an open-source project that describes itself as a **deterministic agent harness for Temporal**, written in **Rust**, for running managed agent fleets as durable workflows. GitHub about: “Deterministic agent harness for Temporal (in Rust).”

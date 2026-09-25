@@ -44,6 +44,24 @@ const posts = defineCollection({
         }),
       )
       .optional(),
+    /** How verified the story's claims are: 1 tamed (independently checked) to 5 wild (vendor claim only). */
+    wildness: z.number().int().min(1).max(5).optional(),
+    /** Short phrase: what is verified. Shown on the tamed end of the meter. */
+    wildnessTamed: z.string().optional(),
+    /** Short phrase: what still rests on a vendor or self-published claim. */
+    wildnessWild: z.string().optional(),
+    /** Tamer's verdict: one line on why the story matters, and to whom. */
+    verdict: z.string().optional(),
+    /** A shutdown the story reports. Listed on Extinction Watch. */
+    sunset: z
+      .object({
+        date: z.coerce.date(),
+        /** The model IDs or product going away, terse. */
+        what: z.string(),
+        /** The replacement, or "No replacement listed". */
+        note: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 

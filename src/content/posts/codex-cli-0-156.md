@@ -23,6 +23,10 @@ sources:
     url: https://github.com/openai/codex/releases/tag/rust-v0.156.0
   - title: "Codex rust-v0.156.1 — GitHub Release"
     url: https://github.com/openai/codex/releases/tag/rust-v0.156.1
+wildness: 1
+wildnessTamed: "Features are listed in the GitHub release notes"
+wildnessWild: "Nothing rests on vendor say-so"
+verdict: "Codex CLI users get an optional fullscreen TUI, a /usage dashboard and Sol/Luna in the picker. Note that voice is now on by default."
 ---
 
 OpenAI tagged Codex CLI **`rust-v0.156.0`** on **2026-09-22**, then hotfix **`rust-v0.156.1`** on **2026-09-23** ([0.156.0](https://github.com/openai/codex/releases/tag/rust-v0.156.0), [0.156.1](https://github.com/openai/codex/releases/tag/rust-v0.156.1)).

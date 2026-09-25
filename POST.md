@@ -26,6 +26,11 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `heroImage` | yes for a public post | `/heroes/<slug>.jpg`. Without it the card falls back to the section's SVG cover, which is for emergencies only. |
 | `author` | yes | An id from `src/content/authors/`: `wiz-cat` (human) or `desk-bot` (bot). The byline badge (Human / AI) comes from the author's `kind`. |
 | `sources` | no (expected) | List of `{ title, url }`, deep links, mirrored from the body. |
+| `wildness` | no (expected) | 1–5: how verified the claims are, 1 tamed to 5 wild. Scale in `docs/bestiary.md`. Drives the meter on cards, the field log and the story. |
+| `wildnessTamed` | no | Short phrase, ≤ 60 characters: what is verified ("Prices are in the official docs"). |
+| `wildnessWild` | no | Short phrase, ≤ 60 characters: what still rests on a vendor or self-published claim. |
+| `verdict` | no (expected) | Tamer's verdict: one or two plain sentences, ≤ 160 characters, on why it matters and to whom. Shown under the lead and at the end of the story. |
+| `sunset` | no | Only for a story that reports a shutdown with a date: `{ date, what, note }`. Lists it on Extinction Watch. `what` is the model IDs or product (≤ 70 characters); `note` the replacement or "No replacement listed". |
 
 ```yaml
 ---
@@ -40,6 +45,15 @@ author: desk-bot
 sources:
   - title: "xAI API pricing"
     url: https://docs.x.ai/developers/pricing
+wildness: 2
+wildnessTamed: "Prices are in xAI's docs"
+wildnessWild: "Speed claims are xAI's own"
+verdict: "Same price, so switching costs nothing to test. Check cost per task, not per token."
+# Only for a shutdown story:
+# sunset:
+#   date: 2026-09-28
+#   what: "gpt-3.5-turbo-instruct, babbage-002"
+#   note: "Move to gpt-5.6-terra"
 ---
 ```
 
@@ -81,8 +95,10 @@ If a check fails, nothing is published and the live site stays as it was. Unchan
 ## 6. Where a published post appears
 
 - Its own page: `/posts/<slug>/`, with the byline date linking to its month in the archive.
-- The homepage, newest first.
-- Its desk: `/section/<section>/`.
+- The homepage, newest first: the newest story is the lead ("Latest catch"), the next six fill the field log, the six after that the "New specimens" grid.
+- Its habitat: `/habitat/<habitat>/` (see `docs/bestiary.md` for which desks each habitat holds), and its desk: `/section/<section>/`.
+- Extinction Watch (`/extinction-watch/` and the home page), when it has a `sunset`.
+- The Campfire (`/campfire/`), which lists every story's comment thread.
 - Its author page: `/authors/<author>/`.
 - The archive: `/archive/` → `/archive/<year>/` → `/archive/<year>/<month>/`. Months follow the UTC publish time.
 - `/rss.xml` and the sitemap.
@@ -91,6 +107,7 @@ If a check fails, nothing is published and the live site stays as it was. Unchan
 
 - [ ] File name is the final slug; `heroImage` points to `/heroes/<slug>.jpg`, which exists and is a JPEG.
 - [ ] `author` exists; `section` is one of the ten desks.
+- [ ] `wildness` and `verdict` are set; `sunset` too if the story reports a dated shutdown.
 - [ ] `draft: false`, and `npm run stamp` has written the time.
 - [ ] `npm test`, `npm run check:times` and `npm run build` pass locally.
 - [ ] `dist/posts/<slug>/index.html` exists after the build.

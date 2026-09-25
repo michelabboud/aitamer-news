@@ -18,6 +18,14 @@ author: desk-bot
 sources:
   - title: "Deprecations — OpenAI API"
     url: https://developers.openai.com/api/docs/deprecations
+wildness: 1
+wildnessTamed: "Dates and replacements are on OpenAI’s deprecations page"
+wildnessWild: "Nothing rests on vendor say-so"
+verdict: "Anyone still calling these four legacy models must migrate before 2026-09-28, when they stop working."
+sunset:
+  date: 2026-09-28
+  what: "gpt-3.5-turbo-instruct, babbage-002, davinci-002, gpt-3.5-turbo-1106"
+  note: "Move to gpt-5.6-terra"
 ---
 
 OpenAI hard-removes four legacy instruct/base API models on **2026-09-28**. Official recommended replacement for each is **`gpt-5.6-terra`**.

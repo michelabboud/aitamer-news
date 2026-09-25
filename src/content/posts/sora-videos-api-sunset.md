@@ -21,6 +21,14 @@ sources:
     url: https://developers.openai.com/api/docs/guides/video-generation
   - title: "What to know about the Sora discontinuation — OpenAI Help Center"
     url: https://help.openai.com/en/articles/20001152-what-to-know-about-the-sora-discontinuation
+wildness: 1
+wildnessTamed: "Dates and missing replacement are in OpenAI’s docs"
+wildnessWild: "Nothing rests on vendor say-so"
+verdict: "Hard cutoff for anyone still on the Videos API or sora-2 models. Export Sora content and move to another video stack."
+sunset:
+  date: 2026-09-24
+  what: "Videos API, sora-2, sora-2-pro and dated snapshots"
+  note: "No replacement listed"
 ---
 
 OpenAI’s **Videos API** and every listed **Sora 2** model alias and snapshot shut down on **2026-09-24**. The company’s deprecations table lists **no recommended replacement** for any of them.

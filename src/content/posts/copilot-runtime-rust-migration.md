@@ -19,6 +19,10 @@ author: desk-bot
 sources:
   - title: "Migrating the GitHub Copilot runtime to Rust, using Copilot — Stephen Toub"
     url: https://github.blog/ai-and-ml/generative-ai/migrating-the-github-copilot-runtime-to-rust-using-copilot/
+wildness: 4
+wildnessTamed: "The Rust rewrite is described in GitHub’s primary post"
+wildnessWild: "LoC, latency and cost figures are GitHub’s own numbers"
+verdict: "A concrete case study for teams weighing agent-assisted rewrites. The latency gains exclude model and network time."
 ---
 
 Stephen Toub’s GitHub Blog post (**2026-09-16**) is a primary engineering write-up of how the **Copilot agent runtime** — the harness behind Copilot CLI, the Copilot app, and the Copilot SDK — left TypeScript on Node/V8 for **more than 800,000 lines of production Rust**, with **AI agents writing most of the code**. As Toub put it, a rewrite of this size “wasn’t affordable before agents.”

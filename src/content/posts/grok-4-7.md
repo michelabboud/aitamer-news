@@ -22,6 +22,10 @@ sources:
     url: https://docs.x.ai/developers/models
   - title: "Benchmarking Grok 4.7 — Artificial Analysis"
     url: https://artificialanalysis.ai/articles/benchmarking-grok-4-7
+wildness: 2
+wildnessTamed: "Prices in xAI docs; gains measured by Artificial Analysis"
+wildnessWild: "Only one independent eval so far"
+verdict: "Coding gains show up in one independent eval, but Grok 4.7 used about twice the tokens. Check cost per task before switching."
 ---
 
 SpaceXAI launched **Grok 4.7** for coding and knowledge work, available in Cursor, Grok Build, the Grok API, third-party harnesses, and cloud routers. The pitch is capability and longer hard-task RL — at the **same** public API token rates as Grok 4.6.

@@ -1,0 +1,16 @@
+---
+import { formatSpecimen, type Habitat } from '../lib/site';
+
+interface Props {
+  specimen: number;
+  /** Short name on the tag, e.g. "Claude Opus 5.5". Defaults to nothing. */
+  name?: string;
+  habitat: Habitat;
+}
+const { specimen, name, habitat } = Astro.props;
+---
+<span class="specimen-tag" aria-hidden="true">
+  <span class="specimen-tag__no">SPECIMEN No. {formatSpecimen(specimen)}</span>
+  {name && <span class="specimen-tag__name">{name}</span>}
+  <span class="specimen-tag__hab">HABITAT {habitat.code} · {habitat.name.toUpperCase()}</span>
+</span>

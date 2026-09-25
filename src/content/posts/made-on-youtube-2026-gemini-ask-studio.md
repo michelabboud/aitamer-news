@@ -24,6 +24,10 @@ sources:
     url: https://techcrunch.com/2026/09/23/youtubes-conversational-video-editing-tool-lets-creators-make-edits-in-natural-language/
   - title: "YouTube releases new AI features for creators within its Studio app — TechCrunch"
     url: https://techcrunch.com/2026/09/23/youtube-releases-new-ai-features-for-creators-within-its-studio-app/
+wildness: 2
+wildnessTamed: "Features are listed on the official YouTube Blog"
+wildnessWild: "Early-2027 timing comes from TechCrunch, not YouTube"
+verdict: "Relevant to YouTube creators: more AI feedback and thumbnail tools in Studio, and chat-based Gemini editing coming to Shorts and Create."
 ---
 
 At **Made on YouTube 2026** (New York), YouTube expanded **Ask Studio** as a personalized Studio teammate and integrated **Gemini** as a conversational editing partner for **Shorts** and **YouTube Create** — plus AI comment-moderation tests and broader voice/likeness detection ([YouTube Blog](https://blog.youtube/news-and-events/made-on-youtube-new-tools-power-creation-journey/), Aparna Pappu, 2026-09-23).

@@ -1,0 +1,14 @@
+---
+import { WILDNESS_LABELS, wildnessSegments, type Wildness } from '../lib/site';
+
+interface Props {
+  level: number;
+  /** lg 8px (lead, article), md 6px (field log), sm 5px (cards). */
+  size?: 'lg' | 'md' | 'sm';
+}
+const { level, size = 'lg' } = Astro.props;
+const label = `Wildness ${level} of 5: ${WILDNESS_LABELS[level as Wildness]}`;
+---
+<div class:list={['meter', size !== 'lg' && `meter--${size}`]} role="img" aria-label={label}>
+  {wildnessSegments(level).map((token) => <span style={`background: var(${token})`}></span>)}
+</div>

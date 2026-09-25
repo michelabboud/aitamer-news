@@ -1,7 +1,20 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { groupByMonth, type ArchiveMonth } from './archive.ts';
+import { HABITATS, habitatOf, specimenNumbers, type Habitat } from './bestiary.ts';
 
 export { archiveMonthOf, formatArchiveMonth, type ArchiveMonth } from './archive.ts';
+export {
+  HABITATS,
+  WILDNESS_LABELS,
+  WILDNESS_MEANINGS,
+  extinctionWatch,
+  formatSpecimen,
+  habitatBySlug,
+  habitatOf,
+  wildnessSegments,
+  type Habitat,
+  type Wildness,
+} from './bestiary.ts';
 
 export const SITE = {
   title: 'AI Tamer',
@@ -83,6 +96,25 @@ export async function getPostsBySection(
   return posts.filter((p) => p.data.section === section);
 }
 
+/** Published posts in one habitat, newest first. */
+export async function getPostsByHabitat(habitat: Habitat): Promise<CollectionEntry<'posts'>[]> {
+  const posts = await getPublishedPosts();
+  return posts.filter((p) => habitat.sections.includes(p.data.section));
+}
+
+/** Published post count per habitat slug. */
+export async function getHabitatCounts(): Promise<Map<string, number>> {
+  const posts = await getPublishedPosts();
+  return new Map(
+    HABITATS.map((h) => [h.slug, posts.filter((p) => h.sections.includes(p.data.section)).length]),
+  );
+}
+
+/** Specimen number for every published post id. See `specimenNumbers` in bestiary.ts. */
+export async function getSpecimenNumbers(): Promise<Map<string, number>> {
+  return specimenNumbers(await getPublishedPosts());
+}
+
 export async function getPostsByAuthor(
   authorId: string,
 ): Promise<CollectionEntry<'posts'>[]> {
@@ -151,6 +183,37 @@ export function sectionHref(section: Section): string {
 
 export function postHref(post: CollectionEntry<'posts'>): string {
   return withBase(`/posts/${post.id}/`);
+}
+
+export function habitatHref(habitat: Habitat): string {
+  return withBase(`/habitat/${habitat.slug}/`);
+}
+
+export function habitatOfPost(post: CollectionEntry<'posts'>): Habitat {
+  return habitatOf(post.data.section);
+}
+
+/** "09:15", in UTC. */
+export function formatClock(date: Date): string {
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'UTC',
+  });
+}
+
+/** "SEP 23", in UTC. */
+export function formatShortDate(date: Date): string {
+  return date
+    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+    .toUpperCase();
+}
+
+/** Rough reading time from a Markdown body, at 230 words a minute. */
+export function readingMinutes(body: string | undefined): number {
+  const words = (body ?? '').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 230));
 }
 
 export function archiveHref(year?: string, month?: string): string {

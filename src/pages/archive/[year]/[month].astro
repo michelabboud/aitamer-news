@@ -7,11 +7,13 @@ import {
   entryStamp,
   formatArchiveMonth,
   getArchiveMonths,
+  getSpecimenNumbers,
   resolveAuthor,
 } from '../../../lib/site';
 
 export async function getStaticPaths() {
   const months = await getArchiveMonths();
+  const numbers = await getSpecimenNumbers();
   const authors = await getCollection('authors');
   const authorById = new Map(authors.map((author) => [author.id, author]));
   // months is newest first, so the newer neighbour is i - 1 and the older one i + 1.
@@ -20,7 +22,7 @@ export async function getStaticPaths() {
     const older = months[i + 1] ? { year: months[i + 1].year, month: months[i + 1].month } : null;
     const stamps = entry.posts.flatMap((post) => {
       const author = authorById.get(post.data.author.id);
-      return [entryStamp(post), author ? entryStamp(author) : 'missing-author'];
+      return [entryStamp(post), author ? entryStamp(author) : 'missing-author', `specimen:${numbers.get(post.id)}`];
     });
     return {
       params: { year: entry.year, month: entry.month },
@@ -34,6 +36,7 @@ export async function getStaticPaths() {
 const { year, month } = Astro.params;
 const { posts, newer, older } = Astro.props;
 const label = formatArchiveMonth(year, month);
+const numbers = await getSpecimenNumbers();
 const cards = await Promise.all(
   posts.map(async (post) => {
     const author = await resolveAuthor(post);
@@ -43,15 +46,17 @@ const cards = await Promise.all(
 );
 ---
 <BaseLayout title={`${label} archive`} description={`AI Tamer stories published in ${label}.`}>
-  <p class="page-kicker"><a href={archiveHref()}>Archive</a> · <a href={archiveHref(year)}>{year}</a></p>
-  <h1 class="page-title">{label}</h1>
-  <p class="lede">{posts.length} published {posts.length === 1 ? 'story' : 'stories'}, newest first.</p>
+  <header class="page-head">
+    <p class="page-kicker"><a href={archiveHref()}>Archive</a> · <a href={archiveHref(year)}>{year}</a></p>
+    <h1 class="page-title">{label}</h1>
+    <p class="lede">{posts.length} {posts.length === 1 ? 'sighting' : 'sightings'} logged, newest first.</p>
+  </header>
 
-  <div class="post-list post-list--plain">
-    {cards.map(({ post, author }) => (
-      <PostCard post={post} author={author} />
+  <ul class="cards listing">
+    {cards.map(({ post, author }, i) => (
+      <li><PostCard post={post} author={author} specimen={numbers.get(post.id)!} heading="h2" showDesc eager={i < 3} /></li>
     ))}
-  </div>
+  </ul>
 
   {(older || newer) && (
     <nav class="archive-pager" aria-label="Other months">

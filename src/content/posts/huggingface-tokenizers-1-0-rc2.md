@@ -19,6 +19,10 @@ sources:
     url: https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2
   - title: "tokenizers v1: encode, decode and scaling, measured — Hugging Face Blog"
     url: https://huggingface.co/blog/tokenizers-v1
+wildness: 3
+wildnessTamed: "RC tag and install path are on GitHub"
+wildnessWild: "3–30× faster encode is Hugging Face’s own benchmark"
+verdict: "Worth testing if tokenization speed matters and you can run a release candidate. Treat it as a candidate, not a stable 1.0."
 ---
 
 On **2026-09-21**, Hugging Face tagged Rust **tokenizers** [`v1.0.0-rc.2`](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2)—a **release candidate**, not stable `1.0.0`. Install path: `cargo add tokenizers --pre`. Companion post: [tokenizers v1 on the HF blog](https://huggingface.co/blog/tokenizers-v1).

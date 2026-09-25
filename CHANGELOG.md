@@ -2,6 +2,27 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.0] — 2026-09-25
+
+### Changed
+- New theme, **The Bestiary** (from the Claude Design handoff, Concept 2), replacing Big Top. The site is now a dark field station: Gloock, Hanken Grotesk and IBM Plex Mono; one ember accent; cover art on a night background. Described in `docs/bestiary.md`.
+- The home page follows the design: big masthead with counts, the latest story as "Latest catch" with a paper specimen tag, the Field log, Extinction Watch, "New specimens", and panels for the Tamers, the Campfire and reporting a sighting.
+- Navigation: a station bar (live UTC clock, About, Campfire, Report a sighting, Contact, RSS); a habitat nav of seven habitats plus Extinction Watch, which becomes a sideways chip strip on phones; a full footer map; a tab bar on phones (Log, Habitats, Extinction, Campfire). This fixes the phone header that covered almost half the screen.
+- The ten desks are grouped into seven habitats for display (Models, Tools, Creative, Infra, Rust, Policy, Opinion). Frontmatter keeps the desks.
+- Story pages show the specimen number, habitat, wildness meter, reading time, the Tamer's verdict, numbered sources, tags and a "rating wrong?" link. Comments are headed "The Campfire".
+- Listings (desk, habitat, author, month) use specimen cards.
+- About adds the wildness scale (`#wildness`), the Tamers (`#tamers`) and the field guide's words; the contact panel is "Report a sighting".
+
+### Added
+- Optional frontmatter: `wildness` (1–5), `wildnessTamed`, `wildnessWild`, `verdict`, `sunset { date, what, note }`. All 25 published posts have ratings and verdicts; the two shutdown stories have `sunset`.
+- Specimen numbers, counted in publish order.
+- Pages: `/habitat/<slug>/`, `/habitats/`, `/extinction-watch/` (days left recounted in the browser), `/campfire/`.
+- `src/lib/bestiary.ts` with 5 tests.
+- Wiz Cat's avatar.
+
+### Removed
+- `src/styles/big-top-tokens.css`, `SectionChip.astro`, the unshipped night theme.
+
 ## [0.1.5] — 2026-09-25
 
 ### Added

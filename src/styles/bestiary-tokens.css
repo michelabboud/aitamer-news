@@ -1,0 +1,56 @@
+/* The Bestiary — a night-shift field station. Tokens from the Claude Design handoff (Concept 2). */
+
+:root {
+  --font-display: "Gloock", Georgia, serif;
+  --font-reading: "Hanken Grotesk", system-ui, sans-serif;
+  --font-machine: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Field */
+  --night: #111513;
+  --night-raised: #1a201c;
+  --night-sunk: #0c0f0d;
+  --line: #2c3530;
+  --line-strong: #3a443e;
+
+  /* Ink */
+  --bone: #ece6d6;
+  --ink-soft: #c4c9c2;
+  --ink-muted: #9aa39b;
+  --ink-tag: #4a524c;
+
+  /* Ember: the one accent */
+  --ember: #ff7a45;
+  --ember-text: #ff8a57;
+  --ember-field: #1f1612;
+  --ember-line: #4a2c1f;
+
+  /* Who wrote it */
+  --bot: #9cc3ff;
+  --bot-field: #1b2536;
+  --bot-line: #33496b;
+  --human: #f2c46b;
+  --human-field: #2a2314;
+  --human-line: #5a4a26;
+
+  /* Wildness, 1 tamed → 5 wild */
+  --wild-1: #8fd4a0;
+  --wild-2: #c9d27a;
+  --wild-3: #f2c46b;
+  --wild-4: #ff9a5c;
+  --wild-5: #ff5f3d;
+  --wild-empty: var(--line);
+  --tamed: var(--wild-1);
+  --danger: var(--wild-5);
+
+  --focus: var(--ember-text);
+
+  --radius: 2px;
+  --radius-md: 3px;
+  --shadow-drop: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
+  --shadow-tag: 0 12px 24px -10px rgba(0, 0, 0, 0.6);
+
+  --container: 1200px;
+  --measure: 68ch;
+  --gutter: 16px;
+  --tap-min: 44px;
+}

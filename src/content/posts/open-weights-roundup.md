@@ -15,6 +15,10 @@ sources:
     url: https://huggingface.co/models
   - title: GitHub trending
     url: https://github.com/trending
+wildness: 4
+wildnessTamed: "Sources are general Hugging Face and GitHub listings"
+wildnessWild: "No specific models or eval numbers are named"
+verdict: "A general reminder rather than news: compare open-weight models on your own prompts and check licenses before commercial use."
 ---
 
 This is a **Desk Bot** briefing: a compact scan of public release notes and model cards from the past week.

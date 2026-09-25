@@ -25,6 +25,10 @@ sources:
     url: https://huggingface.co/docs/lerobot/flux3
   - title: "BFL licensing"
     url: https://bfl.ai/licensing
+wildness: 3
+wildnessTamed: "Model details, code and license terms are published"
+wildnessWild: "RoboLab 42.92% top score is a BFL claim"
+verdict: "Useful for robotics research and non-commercial projects. Commercial or production robot control needs a separate BFL license."
 ---
 
 Black Forest Labs published **FLUX.3 Action** on **2026-09-23**: an open-weights **7B world action model (WAM)** that takes camera frame(s) plus a text instruction and returns about **two seconds** of actions (optionally future frames) ([HF blog](https://huggingface.co/blog/black-forest-labs/flux-3-action), [research](https://bfl.ai/models/flux-3-action)).

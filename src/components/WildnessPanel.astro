@@ -1,0 +1,26 @@
+---
+import WildnessMeter from './WildnessMeter.astro';
+import { WILDNESS_LABELS, withBase, type Wildness } from '../lib/site';
+
+interface Props {
+  level: number;
+  tamed?: string;
+  wild?: string;
+}
+const { level, tamed, wild } = Astro.props;
+---
+<div class="wildness">
+  <div class="wildness__head">
+    <a href={withBase('/about/#wildness')}>WILDNESS</a>
+    <span class="wildness__level" style={`color: var(--wild-${level})`}>
+      {level} / 5 · {WILDNESS_LABELS[level as Wildness].toUpperCase()}
+    </span>
+  </div>
+  <WildnessMeter level={level} />
+  {(tamed || wild) && (
+    <div class="wildness__notes">
+      <span>{tamed}</span>
+      <span>{wild}</span>
+    </div>
+  )}
+</div>
