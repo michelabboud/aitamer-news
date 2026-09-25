@@ -520,7 +520,9 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
 .comments__empty { color: var(--ink-soft); }
 .comment-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
 .comment-list > li + li { margin-top: 1rem; }
-.comment { background: var(--night-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.875rem 1rem; scroll-margin-top: 5rem; }
+/* contain: paint clips everything a comment draws to its own box, so a flood of stacked combining
+   marks (which a schema cannot usefully cap) cannot paint over the comments around it. */
+.comment { background: var(--night-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.875rem 1rem; scroll-margin-top: 5rem; contain: paint; }
 .comment:target { border-color: var(--ember-line); box-shadow: inset 3px 0 0 var(--ember); }
 .comment__meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; margin-bottom: 0.5rem; }
 .comment__name { font-weight: 600; color: var(--bone); overflow-wrap: anywhere; unicode-bidi: isolate; }

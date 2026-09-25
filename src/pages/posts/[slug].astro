@@ -101,7 +101,7 @@ const jsonLd = withdrawn
       citation: data.sources?.map((source) => source.url),
       isAccessibleForFree: true,
       // Approved reader comments: the count, and the newest few as schema.org Comments.
-      ...commentsJsonLd(comments),
+      ...commentsJsonLd(comments, canonical),
     };
 const breadcrumbs = {
   '@context': 'https://schema.org',

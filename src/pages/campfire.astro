@@ -1,8 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CommentCount from '../components/CommentCount.astro';
+import { commentCountFor } from '../lib/comment-text';
 import {
   formatShortDate,
+  getCommentThreads,
   getPublishedPosts,
   habitatOfPost,
   postHref,
@@ -10,6 +12,8 @@ import {
 } from '../lib/site';
 
 const posts = await getPublishedPosts();
+// Looked up once for every row's count, not once per row.
+const threads = await getCommentThreads();
 ---
 <BaseLayout
   title="The Campfire"
@@ -38,7 +42,7 @@ const posts = await getPublishedPosts();
             <a class="log-row__title" href={`${postHref(post)}#comments`}>{post.data.title}</a>
             <span class="log-row__meta muted">{habitatOfPost(post).name.toUpperCase()}</span>
           </div>
-          <CommentCount id={post.id} />
+          <CommentCount id={post.id} count={commentCountFor(threads, post.id)} />
         </li>
       ))}
     </ol>

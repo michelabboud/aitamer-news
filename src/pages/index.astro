@@ -16,6 +16,7 @@ import {
   formatClock,
   formatShortDate,
   formatSpecimen,
+  getCommentThreads,
   getHabitatCounts,
   getPublishedPosts,
   habitatOfPost,
@@ -24,6 +25,7 @@ import {
   withBase,
 } from '../lib/site';
 import { postCover } from '../lib/covers';
+import { commentCountFor } from '../lib/comment-text';
 
 const LOG_SIZE = 6;
 const SPECIMEN_SIZE = 6;
@@ -53,6 +55,8 @@ const watch = extinctionWatch(posts, new Date());
 const watchEntries = [...watch.upcoming, ...watch.extinct.slice(0, Math.max(0, 3 - watch.upcoming.length))];
 
 const counts = await getHabitatCounts();
+// Looked up once for the Campfire panel's counts, not once per row.
+const threads = await getCommentThreads();
 const stats = {
   sightings: posts.length,
   bots: authors.filter((a) => a.data.kind === 'bot').length,
@@ -208,7 +212,7 @@ const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
         {posts.slice(0, 3).map((post) => (
           <li>
             <a href={`${postHref(post)}#comments`}>{post.data.title}</a>
-            <CommentCount id={post.id} />
+            <CommentCount id={post.id} count={commentCountFor(threads, post.id)} />
           </li>
         ))}
       </ul>

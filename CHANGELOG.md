@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.12] — 2026-09-26
+
+### Fixed
+Deep review of comment rendering:
+- **A comment link always shows where it really goes.** The visible text is rebuilt from the parsed address, with the whole host shown (in punycode when it is not plain ASCII); long links are shortened only after the host; addresses with a user name or password, or an IP-address host, stay plain text. Seven regression tests that failed on the old code.
+- The display strips exactly the characters the comment contract refuses (`FORBIDDEN_CHARACTERS`, one list).
+- Counts on the home page and the Campfire are looked up once per page; trailing-punctuation handling is linear (6.9 ms → 0.1 ms per worst-case comment) and knows Chinese and Japanese punctuation; long links are cut on whole characters, emoji included.
+- Each comment in the structured data carries its own URL; comment bodies cannot paint over their neighbours; names and text follow their own writing direction.
+
 ## [0.2.11] — 2026-09-25
 
 ### Fixed

@@ -2,18 +2,16 @@
 /**
  * A story's comments, baked into the page at build time from its data file
  * (`src/content/comments/<slug>.json`, ADR 0006; plan §6.2). No request leaves the page to show
- * them. Text goes through `renderCommentHtml` (escaped, paragraphs, `http(s)` links only) and
- * never through the Markdown pipeline; names are Astro-escaped text.
+ * them. What to show comes from `commentViews` (pure, tested in `src/lib/comment-text.test.ts`):
+ * text through `renderCommentHtml` (escaped, paragraphs, `http(s)` links only) and never through
+ * the Markdown pipeline; names stripped of forbidden characters, then Astro-escaped as text.
+ * Name and text carry `dir="auto"`, so a right-to-left comment reads right to left without
+ * reordering its neighbours.
  *
  * A withdrawn story renders nothing here: no comments and no form.
  */
 import type { CollectionEntry } from 'astro:content';
-import {
-  commentAnchor,
-  commentCountLabel,
-  renderCommentHtml,
-  stripInvisible,
-} from '../lib/comment-text';
+import { commentCountLabel, commentViews } from '../lib/comment-text';
 import { formatDateTime } from '../lib/site';
 import CommentForm from './CommentForm.astro';
 
@@ -31,42 +29,40 @@ interface Props {
 }
 
 const { slug, comments, withdrawn, closed = false } = Astro.props;
+const views = commentViews(comments, withdrawn);
 ---
-{!withdrawn && (
+{views && (
   <section class="comments" id="comments" aria-labelledby="comments-title" data-thread={slug}>
     <div class="comments__head">
       <h2 id="comments-title">The Campfire</h2>
       <span class="comments__count">{commentCountLabel(comments.length)}</span>
     </div>
 
-    {comments.length === 0 ? (
+    {views.length === 0 ? (
       <p class="comments__empty">
         Nobody has pulled up a log by this one yet. Be the first to say what you make of it.
       </p>
     ) : (
       <ol class="comment-list">
-        {comments.map((comment) => {
-          const anchor = commentAnchor(comment.id);
-          return (
-            <li>
-              <article class="comment" id={anchor} aria-labelledby={`${anchor}-name`}>
-                <header class="comment__meta">
-                  <span class="comment__name" id={`${anchor}-name`}>{stripInvisible(comment.name)}</span>
-                  {comment.signedIn && (
-                    <span class="comment__signed" title="Signed in when they wrote this">Signed in</span>
-                  )}
-                  <a class="comment__time" href={`#${anchor}`} title="Link to this comment">
-                    <time datetime={comment.at}>{formatDateTime(new Date(comment.at))}</time>
-                  </a>
-                  <span class="comment__id" title="This comment's id: quote it to the desk to ask for a removal">
-                    {comment.id}
-                  </span>
-                </header>
-                <div class="comment__text" set:html={renderCommentHtml(comment.text)} />
-              </article>
-            </li>
-          );
-        })}
+        {views.map((comment) => (
+          <li>
+            <article class="comment" id={comment.anchor} aria-labelledby={comment.nameId}>
+              <header class="comment__meta">
+                <span class="comment__name" id={comment.nameId} dir="auto">{comment.name}</span>
+                {comment.signedIn && (
+                  <span class="comment__signed" title="Signed in when they wrote this">Signed in</span>
+                )}
+                <a class="comment__time" href={`#${comment.anchor}`} title="Link to this comment">
+                  <time datetime={comment.at}>{formatDateTime(new Date(comment.at))}</time>
+                </a>
+                <span class="comment__id" title="This comment's id: quote it to the desk to ask for a removal">
+                  {comment.id}
+                </span>
+              </header>
+              <div class="comment__text" dir="auto" set:html={comment.html} />
+            </article>
+          </li>
+        ))}
       </ol>
     )}
 

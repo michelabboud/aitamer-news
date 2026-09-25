@@ -3,22 +3,22 @@
  * A story's approved comment count, counted at build time from its data file, linking to the
  * thread on the story page. Nothing loads in the reader's browser.
  *
- * Pass `count` when the page already holds the thread (the post page does, and must: its
- * incremental-build key covers exactly that thread). Without it the count is looked up, which is
- * right only on pages that are rebuilt on every build (home, Campfire) — never on a page with a
- * `cacheKey` that does not cover every thread it shows (plan decision D6: no counts on cards).
+ * The caller passes the count: the post page from the thread it already holds (its
+ * incremental-build key covers exactly that thread), the home page and the Campfire from one
+ * `getCommentThreads()` per page through `commentCountFor` — never one directory listing per row.
+ * Only pages rebuilt on every build (home, Campfire) may show counts for many posts; never a page
+ * with a `cacheKey` that does not cover every thread it shows (plan decision D6: no counts on cards).
  */
 import { commentCountLabel } from '../lib/comment-text';
-import { getCommentThreads, withBase } from '../lib/site';
+import { withBase } from '../lib/site';
 
 interface Props {
   /** The post's id. */
   id: string;
-  /** The number of approved comments, when the caller already has it. */
-  count?: number;
+  /** The number of approved comments. */
+  count: number;
 }
 
-const { id } = Astro.props;
-const count = Astro.props.count ?? (await getCommentThreads()).get(id)?.data.comments.length ?? 0;
+const { id, count } = Astro.props;
 ---
 <a class="comment-count" href={`${withBase(`/posts/${id}/`)}#comments`}>{commentCountLabel(count)}</a>

@@ -5,17 +5,21 @@ import {
   COMMENT_LINK_REL,
   COMMENT_LINK_TEXT_MAX,
   commentAnchor,
+  commentCountFor,
   commentCountLabel,
   commentsJsonLd,
+  commentViews,
   escapeHtml,
+  linkText,
   renderCommentHtml,
   stripInvisible,
-  truncateLinkText,
+  truncateGraphemes,
   type CommentLike,
 } from './comment-text.ts';
 import { toJsonLd } from './json-ld.ts';
+import { FORBIDDEN_CHARACTERS } from '../content/comment-schema.ts';
 
-const REL = `rel="${COMMENT_LINK_REL}" target="_blank"`;
+const REL = `rel="${COMMENT_LINK_REL}" target="_blank" dir="ltr"`;
 const link = (href: string, text = href) => `<a href="${href}" ${REL}>${text}</a>`;
 
 // ---- paragraphs and line breaks ----
@@ -74,7 +78,7 @@ test('an https URL becomes a link with rel and target', () => {
 
 test('http links too, and the scheme is case-insensitive', () => {
   assert.equal(renderCommentHtml('http://example.com/'), `<p>${link('http://example.com/')}</p>`);
-  assert.equal(renderCommentHtml('HTTPS://Example.COM/X'), `<p>${link('https://example.com/X', 'HTTPS://Example.COM/X')}</p>`);
+  assert.equal(renderCommentHtml('HTTPS://Example.COM/X'), `<p>${link('https://example.com/X')}</p>`);
 });
 
 test('javascript: and data: are never linked, nor any other scheme', () => {
@@ -157,11 +161,30 @@ test('an ampersand in a URL is escaped in the href and the text; a quote ends th
   );
 });
 
-test('a URL with a non-ASCII host gets a punycode href and keeps its readable text', () => {
-  assert.equal(renderCommentHtml('https://bücher.example/'), `<p>${link('https://xn--bcher-kva.example/', 'https://bücher.example/')}</p>`);
+test('a URL with a non-ASCII host shows the punycode host its href goes to', () => {
+  assert.equal(renderCommentHtml('https://bücher.example/'), `<p>${link('https://xn--bcher-kva.example/')}</p>`);
 });
 
-test('a long URL keeps its full href; its visible text is cut at 80 characters with an ellipsis', () => {
+test('the visible text is the parsed URL: host lowercased, default port dropped, dot segments resolved', () => {
+  assert.equal(linkText(new URL('HTTPS://Example.COM:443/a/../b?q=1#f')), 'https://example.com/b?q=1#f');
+  assert.equal(linkText(new URL('https://example.com:8443/x')), 'https://example.com:8443/x');
+});
+
+test('a path typed in another script reads decoded; reserved escapes stay encoded', () => {
+  assert.equal(
+    renderCommentHtml('https://ja.wikipedia.org/wiki/東京'),
+    `<p>${link('https://ja.wikipedia.org/wiki/%E6%9D%B1%E4%BA%AC', 'https://ja.wikipedia.org/wiki/東京')}</p>`,
+  );
+  assert.equal(linkText(new URL('https://example.com/a%2Fb%3Fc%23d')), 'https://example.com/a%2Fb%3Fc%23d');
+});
+
+test('a path whose decoded form hides or reorders text, or is not UTF-8, is shown encoded', () => {
+  for (const encoded of ['/a%E2%80%AEb', '/a%E2%80%8Bb', '/a%20b', '/a%FFb', '/a%E2%80%8Db']) {
+    assert.equal(linkText(new URL(`https://example.com${encoded}`)), `https://example.com${encoded}`, encoded);
+  }
+});
+
+test('a long URL keeps its full href; its visible text is cut after the host at 80 graphemes with an ellipsis', () => {
   const url = `https://example.com/${'a'.repeat(200)}`;
   const html = renderCommentHtml(url);
   const [, href, text] = html.match(/<a href="([^"]*)"[^>]*>([^<]*)<\/a>/) ?? [];
@@ -171,13 +194,43 @@ test('a long URL keeps its full href; its visible text is cut at 80 characters w
   assert.ok(url.startsWith(text.slice(0, -1)));
 });
 
-test('truncateLinkText counts code points, so an emoji is never split', () => {
+test('a host longer than the cap is shown whole, followed by the ellipsis for the path', () => {
+  const host = `${'sub.'.repeat(30)}example.com`;
+  assert.equal(linkText(new URL(`https://${host}/story/about/it`)), `https://${host}…`);
+  assert.equal(linkText(new URL(`https://${host}/`)), `https://${host}/`);
+});
+
+test('truncateGraphemes counts grapheme clusters: an emoji sequence or an accented letter is never split', () => {
   const exact = 'x'.repeat(COMMENT_LINK_TEXT_MAX);
-  assert.equal(truncateLinkText(exact), exact);
-  const emoji = '\u{1F525}'.repeat(COMMENT_LINK_TEXT_MAX + 5);
-  const cut = truncateLinkText(emoji);
-  assert.equal(Array.from(cut).length, COMMENT_LINK_TEXT_MAX);
-  assert.ok(Array.from(cut).slice(0, -1).every((point) => point === '\u{1F525}'));
+  assert.equal(truncateGraphemes(exact, COMMENT_LINK_TEXT_MAX), exact);
+  const family = '\u{1F469}\u200D\u{1F469}\u200D\u{1F467}';
+  const cut = truncateGraphemes(family.repeat(10), 5);
+  assert.equal(cut, family.repeat(4) + '…');
+  const accented = 'e\u0301'.repeat(10);
+  assert.equal(truncateGraphemes(accented, 3), 'e\u0301e\u0301…');
+  assert.equal(truncateGraphemes('abc', 1), '…');
+  assert.throws(() => truncateGraphemes('abc', 0), RangeError);
+  assert.throws(() => truncateGraphemes('abc', 1.5), RangeError);
+});
+
+test('CJK and fullwidth closing punctuation after a URL stays outside the link', () => {
+  for (const mark of ['。', '，', '、', '）', '」', '』', '】', '！', '？', '；', '：']) {
+    assert.equal(renderCommentHtml(`見て https://example.com/a${mark}`), `<p>見て ${link('https://example.com/a')}${mark}</p>`, mark);
+  }
+  // No space after a URL in Chinese or Japanese: the ideographic full stop and commas end it.
+  for (const mark of ['。', '，', '、']) {
+    assert.equal(renderCommentHtml(`https://example.com/a${mark}次の文`), `<p>${link('https://example.com/a')}${mark}次の文</p>`, mark);
+  }
+  assert.equal(renderCommentHtml('https://example.com/（注）。'), `<p>${link('https://example.com/%EF%BC%88%E6%B3%A8%EF%BC%89', 'https://example.com/（注）')}。</p>`);
+});
+
+test('trailing punctuation is split in one pass: a URL followed by 2,000 closers and dots', () => {
+  const tail = ').'.repeat(1000);
+  assert.equal(renderCommentHtml(`https://example.com/a${tail}`), `<p>${link('https://example.com/a')}${tail}</p>`);
+  const balanced = `https://example.com/${'('.repeat(1000)}${')'.repeat(1000)}`;
+  const [, text] = renderCommentHtml(`${balanced}).`).match(/>([^<]*)<\/a>(.*)<\/p>/) ?? [];
+  assert.ok(text.startsWith('https://example.com/((('));
+  assert.equal(renderCommentHtml(`${balanced}).`).endsWith('</a>).</p>'), true);
 });
 
 test('links work across lines and paragraphs', () => {
@@ -188,6 +241,24 @@ test('links work across lines and paragraphs', () => {
 });
 
 // ---- invisible characters ----
+
+test('the render strip uses the schema\'s one list: every forbidden character except the newline and the joiners goes', () => {
+  for (const [first, last] of FORBIDDEN_CHARACTERS.ranges) {
+    for (const point of new Set([first, last])) {
+      if (point >= 0xd800 && point <= 0xdfff) continue;
+      const character = String.fromCodePoint(point);
+      const kept = point === 0x0a || FORBIDDEN_CHARACTERS.joiners.includes(point);
+      assert.equal(stripInvisible(`a${character}b`), kept ? `a${character}b` : 'ab', `U+${point.toString(16)}`);
+    }
+  }
+  assert.equal(stripInvisible('a\uD800b\uDFFFc'), 'abc', 'lone surrogates');
+  assert.equal(stripInvisible('\u{1F98A}'), '\u{1F98A}', 'a surrogate pair is one allowed character');
+  assert.equal(stripInvisible('a\u2800b\u3164c\u00ADd\u{E0041}e\u{F0000}'), 'abcde');
+});
+
+test('a tab and other control characters are stripped, a carriage return still breaks the line', () => {
+  assert.equal(renderCommentHtml('a\tb\u0007c\rd'), '<p>abc<br>d</p>');
+});
 
 test('bidirectional controls, the zero-width space and the BOM are stripped', () => {
   const hostile = '\uFEFFsafe\u202Etxt.exe\u202C \u2066iso\u2069 zero\u200Bwidth \u202A\u202B\u202D\u2067\u2068';
@@ -218,7 +289,42 @@ test('the anchor of a comment', () => {
   assert.equal(commentAnchor('01K63M4Q3ZJ8W3Y8N5V2R7T9AB'), 'c-01K63M4Q3ZJ8W3Y8N5V2R7T9AB');
 });
 
+test('commentCountFor reads the count from threads looked up once, 0 for a post with no file', () => {
+  const threads = new Map([['grok-4-7', { data: { comments: [1, 2, 3] } }]]);
+  assert.equal(commentCountFor(threads, 'grok-4-7'), 3);
+  assert.equal(commentCountFor(threads, 'no-file'), 0);
+  assert.equal(commentCountFor(new Map(), 'grok-4-7'), 0);
+});
+
+// ---- what Comments.astro shows ----
+
+test('a withdrawn story shows no comments at all', () => {
+  assert.equal(commentViews(thread(3), true), null);
+  assert.equal(commentViews([], true), null);
+});
+
+test('a live story shows each comment, oldest first, with anchor, stripped name and rendered text', () => {
+  const [first, second] = thread(2);
+  const hostile = { ...second, name: '<b>Bob</b>\u202E', text: 'hi <script> https://example.com/x.', signedIn: true };
+  const views = commentViews([first, hostile], false);
+  assert.equal(views?.length, 2);
+  assert.deepEqual(views?.[1], {
+    id: second.id,
+    anchor: `c-${second.id}`,
+    nameId: `c-${second.id}-name`,
+    // Text for Astro to escape: stripped here, never turned into HTML.
+    name: '<b>Bob</b>',
+    html: `<p>hi &lt;script&gt; ${link('https://example.com/x')}.</p>`,
+    at: second.at,
+    signedIn: true,
+  });
+  assert.equal(views?.[0].signedIn, false);
+  assert.deepEqual(commentViews([], false), []);
+});
+
 // ---- JSON-LD ----
+
+const PAGE = 'https://aitamer.news/posts/grok-4-7/';
 
 const thread = (count: number): CommentLike[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -229,7 +335,7 @@ const thread = (count: number): CommentLike[] =>
   }));
 
 test('51 comments: commentCount is 51 and the JSON-LD carries the 50 newest, newest first', () => {
-  const ld = commentsJsonLd(thread(51));
+  const ld = commentsJsonLd(thread(51), PAGE);
   assert.equal(ld.commentCount, 51);
   assert.equal(ld.comment?.length, COMMENT_JSON_LD_MAX);
   assert.equal(ld.comment?.[0].text, 'Comment number 50');
@@ -238,27 +344,33 @@ test('51 comments: commentCount is 51 and the JSON-LD carries the 50 newest, new
 
 test('each JSON-LD comment is a schema.org Comment with a Person author', () => {
   const [only] = thread(1);
-  assert.deepEqual(commentsJsonLd([only]), {
+  assert.deepEqual(commentsJsonLd([only], PAGE), {
     commentCount: 1,
     comment: [
-      { '@type': 'Comment', text: only.text, dateCreated: only.at, author: { '@type': 'Person', name: only.name } },
+      {
+        '@type': 'Comment',
+        url: `${PAGE}#c-${only.id}`,
+        text: only.text,
+        dateCreated: only.at,
+        author: { '@type': 'Person', name: only.name },
+      },
     ],
   });
 });
 
 test('no comments: commentCount 0 and no comment list', () => {
-  assert.deepEqual(commentsJsonLd([]), { commentCount: 0 });
+  assert.deepEqual(commentsJsonLd([], PAGE), { commentCount: 0 });
 });
 
 test('JSON-LD strips invisible characters from text and name', () => {
-  const ld = commentsJsonLd([{ id: 'x', name: 'A\u202Eda', text: 'hi\u200B there', at: '2026-09-25T00:00:00Z' }]);
+  const ld = commentsJsonLd([{ id: 'x', name: 'A\u202Eda', text: 'hi\u200B there', at: '2026-09-25T00:00:00Z' }], PAGE);
   assert.equal(ld.comment?.[0].author.name, 'Ada');
   assert.equal(ld.comment?.[0].text, 'hi there');
 });
 
 test('a comment with </script> in its text cannot close the JSON-LD block through toJsonLd', () => {
   const hostile = 'nice </script><script>alert(1)</script> <!-- & more';
-  const out = toJsonLd({ '@type': 'NewsArticle', ...commentsJsonLd([{ id: 'x', name: '</script>', text: hostile, at: '2026-09-25T00:00:00Z' }]) });
+  const out = toJsonLd({ '@type': 'NewsArticle', ...commentsJsonLd([{ id: 'x', name: '</script>', text: hostile, at: '2026-09-25T00:00:00Z' }], PAGE) });
   assert.doesNotMatch(out, /<\/script/i);
   assert.doesNotMatch(out, /<!--/);
   assert.equal(JSON.parse(out).comment[0].text, hostile);
