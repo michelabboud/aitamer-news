@@ -20,7 +20,7 @@ fails `npm run check:posts` naming the entry; links are never followed.
 {
   "version": 1,
   "slug": "grok-4-7",
-  "generatedAt": "2026-09-25T12:37:00Z",
+  "generatedAt": "2026-09-25T10:00:00Z",
   "comments": [
     {
       "id": "01K63M4Q3ZJ8W3Y8N5V2R7T9AB",
@@ -37,7 +37,7 @@ fails `npm run check:posts` naming the entry; links are never followed.
 |---|---|
 | `version` | Always `1`. |
 | `slug` | Lowercase letters, digits and hyphens, starting with a letter or digit, at most 120 characters; equal to the file name; a post with that slug exists. |
-| `generatedAt` | When the desk wrote the file. ISO-8601, UTC, ending in `Z`. No comment's `at` is later than this. |
+| `generatedAt` | The time of the newest comment in the file, so an unchanged thread always produces identical bytes (it can move back when the newest comment is removed). ISO-8601, UTC, ending in `Z`. No comment's `at` is later than this. |
 | `comments` | At least one and at most 2,000, sorted oldest first by `at`. A post with zero approved comments has **no file**. |
 | `comments[].id` | A ULID: 26 uppercase Crockford base32 characters, the first `0`–`7`. Unique in the file. Readers quote it when they ask for a removal. |
 | `comments[].name` | 1–60 characters, one line, at least one visible character. No control, invisible, format, private-use or bidirectional characters (the list below); no HTML. |

@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.17] — 2026-09-26
+
+### Changed
+- Comment file format docs: `generatedAt` is the time of the newest comment in the file (the desk now writes it that way, so an unchanged thread produces identical bytes). The format itself is unchanged.
+
 ## [0.2.16] — 2026-09-26
 
 ### Fixed

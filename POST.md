@@ -161,7 +161,7 @@ The format, v1:
 {
   "version": 1,
   "slug": "grok-4-7",
-  "generatedAt": "2026-09-25T12:37:00Z",
+  "generatedAt": "2026-09-25T10:00:00Z",
   "comments": [
     { "id": "01K63M4Q3ZJ8W3Y8N5V2R7T9AB", "name": "Ada", "text": "First paragraph.\n\nSecond paragraph with https://example.com/a-link.", "at": "2026-09-25T10:00:00Z", "signedIn": true }
   ]
