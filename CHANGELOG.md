@@ -2,6 +2,16 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.6] — 2026-09-25
+
+### Added
+- Plan `docs/plans/2026-09-25-bestiary-redesign.md`: the Bestiary theme site-wide, post contract v1 (habitat, specimen number, Wildness, verdict, sunset, video, corrections, withdrawn), scheduled publishing, search, SEO, and LLM-readable output. Ends in release 0.2.0.
+- Dependency vetting for Pagefind: `docs/reports/2026-09-25-pagefind-vetting.md`.
+
+### Changed
+- The GitHub Pages copy is retired: the `Deploy GitHub Pages` workflow is disabled (not deleted).
+- The Big Top theme is preserved on branch `archive/big-top-theme` (commit 29e1453).
+
 ## [0.1.5] — 2026-09-25
 
 ### Added
