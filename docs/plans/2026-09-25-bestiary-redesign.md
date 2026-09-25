@@ -161,3 +161,20 @@ New: `src/lib/{habitats,redirect-stub,wildness,specimen,counts,sunset}.test.ts`,
 - **Q2** May the report card say "A human reads every report"?
 - **Q3** One `sunset` per post, only when it is the story (default), or also for secondary dated deprecations?
 - Plus the vision questions put to Michel on 2026-09-25: how posts reach the repo (PR vs direct commit), human approval before bot posts go live, wildness history, meaning of "remove a post", where generated images live at scale, corrections as records.
+
+## 9. Execution lanes (2026-09-25, after A4)
+
+A cloud session (Claude Design's hand-off) had already built the theme on branch `feat/bestiary` (9e51549, off 29e1453). Decision: **reuse its visual work, keep this plan's contract.** Batch B becomes "port `feat/bestiary` onto `main`": its CSS, components and pages, rewired to `src/lib/habitats.ts`, stored `specimen` numbers and the nested `wildness` shape; its `/habitat/<slug>/` pages fold into `/section/<slug>/` (D7). Its 25 drafted ratings are converted, not rewritten.
+
+Host at dispatch: 28 cores, load 1.06 (factor 0.04, near idle), 67 GB available → cap ~19; five lanes run.
+
+| Lane | Tier | Work | Owns (only these files) | Depends on | Lands as |
+|---|---|---|---|---|---|
+| L1 | Standard (Sonnet), worktree | A5: convert `feat/bestiary` field data to contract v1; welcome post gets no wildness and a neutral verdict; review doc | `src/content/posts/*.md` (field data only), `docs/reviews/2026-09-25-field-data-drafts.md` | A3, A4 | branch → coordinator merges |
+| L2 | Standard (Sonnet), worktree | A6: scheduled publishing (`isPublished` honours future `pubDate`, `scripts/due-posts.mjs`, hourly `scheduled-publish.yml`) | `src/lib/site.ts` (`isPublished` only), `scripts/due-posts*.mjs`, `.github/workflows/scheduled-publish.yml`, `POST.md` §4 | A3 | branch → merge |
+| L3 | Standard (Sonnet), worktree | C6: `llms.txt`, JSON feed, RSS capped to 50, `/contract/post.schema.json` | new `src/pages/*.ts` endpoints, `src/lib/feeds.ts` + test, `src/pages/rss.xml.ts` | A3 | branch → merge |
+| L4 | Standard (Sonnet), worktree | Public-repo cleanup from the privacy audit; ops-internal editorial text moved to `aitamer-news-ops` | `README.md`, `ARCHITECTURE.md`, `.env.example`, `docs/big-top.md`, `docs/posting-standards.md`, `src/content/authors/desk-bot.md`, obsolete `decode-heroes.yml`, the draft fixture post | — | branch → merge |
+| L5 | Strong (Opus), read-only | Deep review of batch A: `29e1453..106bdd9` | none (report only) | A1–A4 | report → `docs/reviews/` |
+| Coordinator | Strong (Opus), main checkout | Batch B: the theme port | styles, layout, components, pages | L1 for real data (not blocking) | commits on `main` |
+
+Lanes never bump `VERSION` or edit `CHANGELOG.md`; the coordinator does both when it merges a lane, so version allocation stays single-writer. After lanes merge, one mechanical review (Standard) covers L1–L4. C3 (search), C7 (SEO), B7 (video/corrections/withdrawn rendering) and C1/C2 follow the theme port because they touch the same pages.

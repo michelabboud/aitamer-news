@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.11] — 2026-09-25
+
+### Changed
+- Plan: the theme built by an earlier Claude Design hand-off (branch `feat/bestiary`) is reused and ported onto this plan's post contract; the work is split into five parallel lanes with fixed file ownership (plan §9).
+
 ## [0.1.10] — 2026-09-25
 
 ### Added
