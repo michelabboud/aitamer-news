@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../lib/site';
+---
+<BaseLayout
+  title="Search the field guide"
+  description="Search every sighting in the AI Tamer field guide by model, tool, company, or habitat."
+  noindex={true}
+>
+  <Fragment slot="head">
+    <link rel="stylesheet" href={withBase('/pagefind/pagefind-ui.css')} />
+  </Fragment>
+
+  <header class="page-head">
+    <p class="page-kicker">Field guide</p>
+    <h1 class="page-title">Search the field guide</h1>
+    <p class="lede">Look up a model, tool, or company across every sighting we&rsquo;ve filed.</p>
+  </header>
+
+  <div id="search-ui" class="search-ui"></div>
+
+  <noscript>
+    <p>Search needs JavaScript turned on. Browse the <a href={withBase('/archive/')}>full archive</a> instead.</p>
+  </noscript>
+
+  <script is:inline src={withBase('/pagefind/pagefind-ui.js')}></script>
+  <script is:inline define:vars={{ baseUrl: withBase('/') }}>
+    window.addEventListener('DOMContentLoaded', function () {
+      var mount = document.getElementById('search-ui');
+      if (!mount || typeof PagefindUI === 'undefined') return;
+      var ui = new PagefindUI({
+        element: '#search-ui',
+        baseUrl: baseUrl,
+        showSubResults: false,
+        showImages: false,
+      });
+      var q = new URLSearchParams(window.location.search).get('q');
+      if (q) ui.triggerSearch(q);
+    });
+  </script>
+</BaseLayout>

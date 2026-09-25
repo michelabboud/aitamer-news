@@ -1,13 +1,13 @@
 {
   "name": "aitamer-news",
   "type": "module",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "node scripts/decode-heroes.mjs && astro dev",
-    "build": "node scripts/decode-heroes.mjs && astro build",
+    "build": "node scripts/decode-heroes.mjs && astro build && pagefind --site dist",
     "preview": "astro preview",
     "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test \"scripts/*.test.mjs\" \"src/lib/*.test.ts\" \"workers/contact/test/*.test.mjs\"",
     "stamp": "node scripts/stamp-post-times.mjs && node scripts/stamp-specimens.mjs",
@@ -29,5 +29,8 @@
   "allowScripts": {
     "esbuild": true
   },
-  "description": "AI Tamer news site (aitamer.news) — static Astro on Cloudflare Pages"
+  "description": "AI Tamer news site (aitamer.news) — static Astro on Cloudflare Pages",
+  "devDependencies": {
+    "pagefind": "1.5.2"
+  }
 }

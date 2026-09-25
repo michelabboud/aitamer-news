@@ -48,6 +48,7 @@ const current = (href: string) => (isCurrent(href) ? 'page' : undefined);
 
 /** Station links: the top bar on wide screens, the menu on phones. */
 const STATION_LINKS = [
+  { href: '/search/', label: 'Search' },
   { href: '/about/', label: 'About' },
   { href: '/campfire/', label: 'Campfire' },
   { href: '/about/?topic=sighting#contact', label: 'Report a sighting' },
@@ -140,6 +141,23 @@ const STATION_LINKS = [
             <p class="masthead__about">
               Every sighting sourced. Every tamer named, human or bot. Every claim rated for how wild it still is.
             </p>
+            <form class="search-box" action={withBase('/search/')} method="get" role="search">
+              <label for="site-search" class="sr-only">Search the field guide</label>
+              <input
+                id="site-search"
+                type="search"
+                name="q"
+                placeholder="Look up a model, tool, or company…"
+                autocomplete="off"
+              />
+              <span class="search-box__hint" aria-hidden="true">⌘K</span>
+              <button type="submit" class="search-box__submit" aria-label="Search">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="1.6" />
+                  <path d="M13.5 13.5 18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+              </button>
+            </form>
             <dl class="stats">
               <div><dt>Sightings logged</dt><dd>{home.stats.sightings}</dd></div>
               <div><dt>{home.stats.bots === 1 ? "Bot" : "Bots"} on the desk</dt><dd class="is-bot">{home.stats.bots}</dd></div>
@@ -203,6 +221,7 @@ const STATION_LINKS = [
         <nav aria-labelledby="footer-guide">
           <h2 id="footer-guide">Field guide</h2>
           <a href={withBase('/')} aria-current={current('/')}>Field log</a>
+          <a href={withBase('/search/')} aria-current={current('/search/')}>Search</a>
           <a href={withBase('/section/')} aria-current={current('/section/')}>All habitats</a>
           <a href={withBase('/archive/')} aria-current={current('/archive/')}>Archive</a>
           <a href={withBase('/extinction-watch/')} aria-current={current('/extinction-watch/')}>Extinction Watch</a>
@@ -249,6 +268,22 @@ const STATION_LINKS = [
         }
         tick();
         setInterval(tick, 30000);
+      })();
+    </script>
+
+    <script is:inline>
+      // Cmd/Ctrl+K focuses the home page's search box (the hint next to it promises exactly this).
+      // A no-op on every other page, where #site-search does not exist.
+      (function () {
+        document.addEventListener('keydown', function (event) {
+          var isCombo = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k';
+          if (!isCombo) return;
+          var input = document.getElementById('site-search');
+          if (!input) return;
+          event.preventDefault();
+          input.focus();
+          input.select();
+        });
       })();
     </script>
   </body>

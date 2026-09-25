@@ -128,6 +128,10 @@ PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://lo
 
 `ALLOW_LOCAL_ORIGINS` exists only in that git-ignored file and is never deployed.
 
+## Search
+
+`/search/` runs on [Pagefind](https://pagefind.app/), which indexes the built `dist/` and writes its index to `dist/pagefind/` — so search only exists after `npm run build`, never in `npm run dev`. Only story pages are indexed (they carry `data-pagefind-body`); withdrawn posts and every other route are excluded.
+
 ## Key routes
 
 | Route | Purpose |
@@ -138,6 +142,7 @@ PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://lo
 | `/authors/[id]` | Author page |
 | `/archive/`, `/archive/[year]/`, `/archive/[year]/[month]/` | Archive by year and month (UTC publish time) |
 | `/about/` | How the desk works, and the contact form |
+| `/search/` | Pagefind search (built assets only, see above) |
 | `https://contact.aitamer.news/` | Contact Worker. Receives the form and emails the desk. |
 | `/rss.xml` | RSS feed |
 | `/sitemap-index.xml` | Sitemap (via `@astrojs/sitemap`) |

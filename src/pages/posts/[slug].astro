@@ -114,8 +114,14 @@ const breadcrumbs = {
   <article class="article" data-pagefind-body={withdrawn ? undefined : ''}>
     <header class="article__header">
       <p class="page-kicker" style="margin: 0">
-        {data.specimen && <>Specimen No. {formatSpecimen(data.specimen)} ·{' '}</>}
-        <a href={habitatHref(habitat)}>Habitat {habitat.code} · {habitat.name}</a>
+        {data.specimen && (
+          <>
+            <span data-pagefind-meta="specimen">Specimen No. {formatSpecimen(data.specimen)}</span> ·{' '}
+          </>
+        )}
+        <a href={habitatHref(habitat)}>
+          Habitat {habitat.code} · <span data-pagefind-filter="habitat" data-pagefind-meta="habitat">{habitat.name}</span>
+        </a>
       </p>
       <h1 class="article__title">{data.title}</h1>
       {!withdrawn && <p class="lede">{data.description}</p>}

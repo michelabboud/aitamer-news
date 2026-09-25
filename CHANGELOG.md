@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.20] — 2026-09-25
+
+### Added
+- Site search (lane C3): Pagefind 1.5.2 indexes the story pages after every build (`pagefind --site dist`; 25 pages, 41 index files), and `/search/` searches them in the reader's browser, styled to the theme, with results filterable by habitat. The home masthead has a real search box (Cmd/Ctrl+K focuses it); "Search" is in the station bar, the phone menu and the footer. The search page is `noindex`. Withdrawn posts are never indexed. Vetting: `docs/reports/2026-09-25-pagefind-vetting.md`; `npm audit`: 0 vulnerabilities.
+
 ## [0.1.19] — 2026-09-25
 
 ### Fixed
