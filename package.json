@@ -9,11 +9,12 @@
     "dev": "node scripts/decode-heroes.mjs && astro dev",
     "build": "node scripts/decode-heroes.mjs && astro build",
     "preview": "astro preview",
-    "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test scripts/stamp-post-times.test.mjs scripts/check-dist-secrets.test.mjs src/lib/archive.test.ts functions/contact.test.mjs",
+    "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test scripts/stamp-post-times.test.mjs scripts/check-dist-secrets.test.mjs src/lib/archive.test.ts workers/contact/test/contact.test.mjs",
     "stamp": "node scripts/stamp-post-times.mjs",
     "check:times": "node scripts/stamp-post-times.mjs --check",
     "check:dist": "node scripts/check-dist-secrets.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "dev:contact": "npx --yes wrangler@4.139.0 dev --config workers/contact/wrangler.toml"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.2",

@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE, withBase } from '../lib/site';
+import { SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
 ---
 <BaseLayout title="Privacy" description={`Privacy for ${SITE.title} (${SITE.domain}).`}>
   <p class="page-kicker">Legal</p>
@@ -33,10 +33,12 @@ import { SITE, withBase } from '../lib/site';
       </p>
       <p>
         The <a href={withBase('/about/#contact')}>contact form</a> asks for a name, an email address,
-        and a note. Sending it asks Cloudflare Email to deliver that note to the desk, with your
-        address as the reply-to. The site does not store the note in a database. The form on the
-        GitHub Pages copy posts to {SITE.domain}, so the note still goes to the same desk. A hidden
-        field is there for spam; filling it drops the note.
+        and a note. Sending it goes to contact.{SITE.domain}, a small Cloudflare program that checks
+        the note and asks Cloudflare Email to deliver it to the desk, with your address as the
+        reply-to. Nothing is stored in a database. To stop floods, Cloudflare counts how many notes
+        come from your IP address in the last minute; the count is not kept. The form on the GitHub
+        Pages copy posts to the same place. A hidden field is there for spam; filling it drops the
+        note.{TURNSTILE_SITE_KEY && ' The form also runs Cloudflare Turnstile, which checks your browser for signs of a bot before the note is accepted.'}
       </p>
       <p>
         The desk does not sell personal information, because the site does not collect an account

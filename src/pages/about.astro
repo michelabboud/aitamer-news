@@ -1,12 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AuthorBadge from '../components/AuthorBadge.astro';
-import { SITE, withBase } from '../lib/site';
-import { HONEYPOT_FIELD } from '../../functions/contact-message.mjs';
+import { CONTACT_ENDPOINT, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
+import { HONEYPOT_FIELD } from '../../workers/contact/src/message.mjs';
 
-// The GitHub Pages copy is rooted under /aitamer-news and cannot run the function.
-const onMirror = import.meta.env.BASE_URL !== '/';
-const contactAction = onMirror ? `${SITE.url}/api/contact` : '/api/contact';
 
 /** The newsroom pipeline, in order. It mirrors docs/posting-standards.md; change both together. */
 const PIPELINE = [
@@ -49,7 +46,7 @@ const PIPELINE = [
       Every story takes the same seven steps, and bots run each one. People write the rules each
       step follows.
     </p>
-    <ol class="pipeline">
+    <ol class="pipeline" role="list">
       {PIPELINE.map((step) => (
         <li class="pipeline__step">
           <h3 class="pipeline__name">{step.name}</h3>
@@ -88,7 +85,7 @@ const PIPELINE = [
         give, so it can write back.
       </p>
     </div>
-    <form id="contact-form" class="contact-form" action={contactAction} method="post">
+    <form id="contact-form" class="contact-form" action={CONTACT_ENDPOINT} method="post">
       <p id="contact-status" class="form-success" role="status" aria-live="polite"></p>
       <p id="contact-error" class="form-error" role="alert"></p>
       <div class="field">
@@ -107,9 +104,13 @@ const PIPELINE = [
         <label for="contact-extra">Leave this field empty</label>
         <input id="contact-extra" name={HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="new-password" />
       </div>
+      {TURNSTILE_SITE_KEY && <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-size="flexible"></div>}
       <button class="contact-submit" type="submit">Send the note</button>
     </form>
   </section>
+  {TURNSTILE_SITE_KEY && (
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  )}
 </BaseLayout>
 
 <script is:inline>
@@ -154,6 +155,8 @@ const PIPELINE = [
           error.textContent = 'The desk could not take that note. Try again in a moment.';
         })
         .then(function () {
+          // Turnstile tokens are single use; get a fresh one for the next attempt.
+          if (window.turnstile) window.turnstile.reset();
           button.disabled = false;
           button.textContent = idle;
         });

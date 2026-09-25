@@ -5,19 +5,18 @@ import { FORBIDDEN_MARKERS, devVarsValues, findLeaks } from './check-dist-secret
 const page = (text) => ({ path: 'dist/about/index.html', text });
 
 test('a clean page passes', () => {
-  assert.deepEqual(findLeaks([page('<form action="/api/contact"></form>')], FORBIDDEN_MARKERS, ['s3cret-token-value']), []);
+  assert.deepEqual(findLeaks([page('<form action="https://contact.aitamer.news/"></form>')], FORBIDDEN_MARKERS, ['s3cret-token-value']), []);
 });
 
-test('secret names, the bearer header, and the API address are caught', () => {
-  const leaks = findLeaks(
-    [page('fetch("https://api.cloudflare.com/client/v4/accounts/x/email/sending/send", { headers: { authorization: "Bearer " + env.CF_EMAIL_API_TOKEN } })')],
-    FORBIDDEN_MARKERS,
-    [],
-  );
+test('secret names are caught', () => {
+  const leaks = findLeaks([page('const to = env.CONTACT_TO; const k = env.TURNSTILE_SECRET_KEY;')], FORBIDDEN_MARKERS, []);
   const found = leaks.map((l) => l.what);
-  for (const marker of ['CF_EMAIL_API_TOKEN', 'api.cloudflare.com', 'email/sending/send', 'Bearer ']) {
-    assert.ok(found.includes(`contains "${marker}"`), marker);
-  }
+  assert.ok(found.includes('contains "CONTACT_TO"'));
+  assert.ok(found.includes('contains "TURNSTILE_SECRET_KEY"'));
+});
+
+test('a story that quotes an API hostname or a bearer header does not block a deploy', () => {
+  assert.deepEqual(findLeaks([page('<p>Send it to api.cloudflare.com with an Authorization: Bearer header.</p>')], FORBIDDEN_MARKERS, []), []);
 });
 
 test('a leaked secret value is caught and never echoed back', () => {
@@ -33,5 +32,5 @@ test('very short values are not searched, to avoid false alarms', () => {
 });
 
 test('.dev.vars values are read without comments or quotes', () => {
-  assert.deepEqual(devVarsValues('# local\nCONTACT_TO=owner@example.com\nCF_EMAIL_API_TOKEN="abc=def"\n\n'), ['owner@example.com', 'abc=def']);
+  assert.deepEqual(devVarsValues('# local\nCONTACT_TO=owner@example.com\nTURNSTILE_SECRET_KEY="abc=def"\n\n'), ['owner@example.com', 'abc=def']);
 });

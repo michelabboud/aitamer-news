@@ -8,7 +8,7 @@
 
 ## Log
 
-- **2026-09-25** — 0.1.5: About page redesigned around the bot pipeline, with the contact form (Cloudflare Email REST API; waits on Email Routing setup and two Pages secrets). Roomier post cards.
+- **2026-09-25** — 0.1.5: About page redesigned around the bot pipeline, with the contact form served by the `contact.aitamer.news` Worker (rate-limited, no API token). Live sending waits on Email Routing, the first Worker deploy, and the `CONTACT_TO` secret. Roomier post cards.
 - **2026-09-25** — 0.1.4: desk pages no longer show the desk pills twice.
 - **2026-09-25** — 0.1.3: CI on Node 24 and the latest stable GitHub Actions; the Cloudflare deploy uses Wrangler 4.
 - **2026-09-25** — 0.1.2: archive by year and month; `POST.md` documents how a post works.

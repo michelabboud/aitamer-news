@@ -21,24 +21,24 @@ Only `src/pages/` and `public/` reach the published `dist/`. Repository document
 
 | Destination | Workflow | Build settings |
 |---|---|---|
-| https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` — runs `npm test` and `check:times`, builds, runs `check:dist`, uploads `dist/` and `functions/` | defaults: site `https://aitamer.news`, base `/` |
+| https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` — runs `npm test` and `check:times`, builds, runs `check:dist`, uploads `dist/` | defaults: site `https://aitamer.news`, base `/` |
+| https://contact.aitamer.news/ (contact Worker `aitamer-contact`) | `.github/workflows/deploy-contact-worker.yml`, only when `workers/contact/**` changes | `workers/contact/wrangler.toml` |
 | https://michelabboud.github.io/aitamer-news/ (GitHub Pages) | `.github/workflows/deploy-github-pages.yml` | `ASTRO_SITE=https://michelabboud.github.io`, `ASTRO_BASE=/aitamer-news` |
 
 Both trigger on a push to `main`. Canonical URLs on both copies point at `https://aitamer.news`. Google Analytics loads only on the main domain.
 
-## Server code — the contact form
+## Server code — the contact Worker
 
-The only server code is one Cloudflare Pages Function. The site stays a static upload; there is no Astro Cloudflare adapter and no Worker.
+The site itself is static files only (no `functions/`, no Astro adapter). The one piece of server code is a separate Cloudflare Worker, `aitamer-contact`, on its own hostname `https://contact.aitamer.news/`, deployed from `workers/contact/`.
 
-- `functions/api/contact.js` — the route (`POST /api/contact`). Pages turns only files that export `onRequest*` into routes, so the helpers beside it are not exposed.
-- `functions/contact-handler.mjs` — origin check, form parsing, response shape (JSON for `fetch`, a 303 redirect for a plain submit).
-- `functions/contact-message.mjs` — field limits, validation, honeypot, and the outgoing letter (From `desk@aitamer.news`, Reply-To the visitor).
-- `functions/contact-send.mjs` — one call to the Cloudflare Email Sending REST API with the `CF_EMAIL_API_TOKEN` secret; 10-second timeout; bounces and API errors are failures.
-- `functions/contact.test.mjs` — part of `npm test`, which CI runs before every deploy.
+- `workers/contact/src/index.mjs` — entry; answers only `/`, 404 elsewhere. Exports nothing but the handler: workerd treats every named export of the entry module as an entrypoint and refuses to start on anything else.
+- `workers/contact/src/handler.mjs` — the checks, cheapest first: method → origin allowlist → body size (≤ 32 KB, before reading) → rate limits (5/min per IP, 30/min site-wide; fails closed without the bindings) → parse → Turnstile (when its secret is set) → send. JSON answers for `fetch`, a 303 back to the About page for a plain submit.
+- `workers/contact/src/message.mjs` — field limits, cleaning (control characters stripped, one-line names, strict addresses), honeypot, and the letter (From `desk@aitamer.news`, Reply-To the visitor).
+- `workers/contact/src/turnstile.mjs` — server-side Turnstile check (5 s timeout; any failure is a rejection).
+- `workers/contact/wrangler.toml` — custom domain, `send_email` binding (sender locked to the desk address), two rate-limit bindings; `workers.dev` and preview URLs off.
+- `workers/contact/test/contact.test.mjs` — part of `npm test`.
 
-Secrets (`CONTACT_TO`, `CF_EMAIL_API_TOKEN`) are Pages secrets, read only at request time. The build never has them, and `npm run check:dist` fails CI if any secret name, bearer header, API address or known secret value appears in `dist/`. `wrangler.toml` is not the Pages configuration (it has no `pages_build_output_dir`), so the dashboard stays the source of truth for settings.
-
-The GitHub Pages copy cannot run functions, so its form posts to `https://aitamer.news/api/contact`; the function allows that origin. Why this design: `docs/adr/0002-contact-form-sends-through-the-email-rest-api.md`.
+Secrets (`CONTACT_TO`, optional `TURNSTILE_SECRET_KEY`) are Worker secrets. The site build never has them; `npm run check:dist` fails CI if a secret name or a known secret value appears in `dist/`. The form's address is `CONTACT_ENDPOINT` in `src/lib/site.ts` (override with `PUBLIC_CONTACT_ENDPOINT` for local work). Deploys: `.github/workflows/deploy-contact-worker.yml`, only when `workers/contact/**` changes. Why this design: `docs/adr/0003-contact-form-runs-on-a-worker.md`.
 
 ## Third parties in the browser
 

@@ -2,10 +2,10 @@
 /**
  * Fail if the static build (dist/) contains anything that belongs only to server code.
  *
- * Secrets for the contact form (CF_EMAIL_API_TOKEN, CONTACT_TO) live as Cloudflare Pages
- * secrets and are read by functions/ at request time. The build never sees them, so they
+ * Secrets for the contact form (CONTACT_TO, TURNSTILE_SECRET_KEY) are secrets on the contact
+ * Worker (workers/contact), read at request time. The site build never sees them, so they
  * cannot be in dist/ — this check proves it stays that way:
- *   1. no secret names, no bearer header, no Cloudflare API address in any published file;
+ *   1. no secret names in any published file;
  *   2. no secret *value* from the environment or from a local .dev.vars file.
  * Values are compared, never printed.
  */
@@ -15,18 +15,18 @@ import { fileURLToPath } from 'node:url';
 
 export const DIST_DIR = 'dist';
 
-/** Names and strings that only server code has any reason to contain. */
+/**
+ * Secret names that only server code or CI has any reason to contain. Generic strings such as
+ * an API hostname are left out on purpose: a news story may quote them.
+ */
 export const FORBIDDEN_MARKERS = [
-  'CF_EMAIL_API_TOKEN',
   'CONTACT_TO',
+  'TURNSTILE_SECRET_KEY',
   'CLOUDFLARE_API_TOKEN',
-  'api.cloudflare.com',
-  'email/sending/send',
-  'Bearer ',
 ];
 
 /** Environment variables whose values must never appear in a published file. */
-export const SECRET_ENV_NAMES = ['CF_EMAIL_API_TOKEN', 'CONTACT_TO', 'CLOUDFLARE_API_TOKEN'];
+export const SECRET_ENV_NAMES = ['CONTACT_TO', 'TURNSTILE_SECRET_KEY', 'CLOUDFLARE_API_TOKEN'];
 
 /** Values shorter than this are too common to search for without false alarms. */
 const MIN_SECRET_LENGTH = 8;
