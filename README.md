@@ -116,7 +116,10 @@ npx wrangler secret put CONTACT_TO --config workers/contact/wrangler.toml
 
 Later deploys run from CI (`deploy-contact-worker.yml`) when `workers/contact/` changes. The `CLOUDFLARE_API_TOKEN` repository secret needs **Workers Scripts: Edit** and permission for Workers custom domains on `aitamer.news`, as well as Pages.
 
-4. Optional, recommended: create a **Turnstile** widget for `aitamer.news`, put its public site key in `TURNSTILE_SITE_KEY` (`src/lib/site.ts`), and set the secret key on the Worker with `wrangler secret put TURNSTILE_SECRET_KEY`. Set both or neither. The comment form on story pages uses the same site key and needs it: until it is set, story pages say commenting is not set up yet.
+4. Set `CONTACT_FORM_LIVE` to `true` in `src/lib/site.ts`, in the commit after the Worker's first successful deploy. Until then the About page, the Campfire and the privacy page say the form opens soon instead of pointing readers at a form that would fail.
+5. Optional for the contact form, required for comments: create a **Turnstile** widget for `aitamer.news`, put its public site key in `TURNSTILE_SITE_KEY` (`src/lib/site.ts`), and set the secret key on the Worker with `wrangler secret put TURNSTILE_SECRET_KEY`. Set both or neither. The About page's widget declares the action `contact`, and the Worker accepts a token only for that action, solved on `aitamer.news` (so a token solved on the comment form, action `comment`, cannot send a note). The comment form on story pages uses the same site key and needs it: until it is set, story pages say commenting is not set up yet.
+
+**Go-live order: the contact form goes live before comments open.** It is the channel readers use to ask for a comment's removal (the privacy page sends them there), so steps 1–4 come first. Setting `TURNSTILE_SITE_KEY` is what shows the comment form on every story page, so set it only once the contact form answers and `CONTACT_FORM_LIVE` is `true`, and the desk's comments Worker is deployed.
 
 Secrets never reach the static pages: CI runs `npm run check:dist` after every build.
 

@@ -32,6 +32,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   SLUG,
+  SLUG_MAX_LENGTH,
   assertOnlyChanged,
   isPublishedDraftField,
   pubDateOf,
@@ -77,6 +78,9 @@ export function readPost(slug, text) {
   const errors = [];
   if (!SLUG.test(slug)) {
     errors.push(`file name "${slug}" is not a slug: lowercase letters, digits and hyphens only, starting with a letter or digit (rename the file before it is published)`);
+  }
+  if (slug.length > SLUG_MAX_LENGTH) {
+    errors.push(`file name is ${slug.length} characters; a slug is at most ${SLUG_MAX_LENGTH}, or the post could never take a comment (rename the file before it is published)`);
   }
   let fm;
   try {

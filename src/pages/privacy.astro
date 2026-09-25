@@ -7,7 +7,7 @@ import { CONTACT_FORM_LIVE, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/si
   <h1 class="page-title">Privacy</h1>
   <div class="article">
     <p class="lede">
-      {SITE.title} does not run accounts or a mailing list. The about page can email the desk. Last updated 26 September 2026.
+      {SITE.title} does not run accounts or a mailing list.{CONTACT_FORM_LIVE ? ' The about page can email the desk.' : ' The contact form on the about page opens soon.'} Last updated 26 September 2026.
     </p>
     <div class="article__body">
       <p>
@@ -15,27 +15,47 @@ import { CONTACT_FORM_LIVE, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/si
         It does not record who subscribes.
       </p>
       <p>
-        Comments under a story are built into the page from the desk's own records; nothing is
+        Comments under a story are built into the page from the desk's own records. Nothing is
         loaded from a comment host when you read one. To post a comment, the form on the story page
         sends your name, the comment text, how long the form was open before you sent it, and a
         check from Cloudflare Turnstile that you are not a bot, to comments.{SITE.domain}. No email
-        address is asked. A comment waits for the desk to read and approve it before anyone else sees it.
+        address is asked. A comment waits for the desk to read and approve it before anyone else
+        sees it.
       </p>
       <p>
-        A published comment is public: it appears on the story's page and in that page's structured
-        data (the machine-readable summary search engines read), and it stays in the site's public
-        source history even after it is removed from the page. To ask for a comment's removal, use{' '}
+        The comments Worker is the desk's own program, not a vendor's. Nothing about a comment goes
+        through a third-party comment host or an advertising tracker. This is what the desk keeps
+        when you send a comment, and for how long:
+      </p>
+      <ul>
+        <li>
+          Your IP address, only as a salted, shortened hash. The address itself is never stored.
+          The hash is kept for 30 days. It is used to limit how many comments one visitor can send,
+          to spot the same comment sent twice, to judge how far to trust a new comment, and to
+          enforce a ban. When the desk bans a visitor, the hash is kept for up to 30 days from the ban.
+        </li>
+        <li>How long the form was open before you sent it. This is kept for 30 days.</li>
+        <li>
+          Your name and comment text, while the desk reviews the comment. If the desk rejects it,
+          the name and text are erased 30 days after the review.
+        </li>
+        <li>If the desk removes a comment, its name and text are erased from the desk's records at once.</li>
+      </ul>
+      <p>
+        A published comment is public. It appears on the story's page, on the{' '}
+        <a href={withBase('/campfire/')}>Campfire</a> page with the other newest comments, and in the
+        story page's structured data (the machine-readable summary search engines read). The site's
+        source is public on GitHub, and a published comment is part of its history there. Removing a
+        comment takes it off the site and out of the desk's records, but it cannot erase it from that
+        public history.
+      </p>
+      <p>
+        To ask for a comment's removal, use{' '}
         {CONTACT_FORM_LIVE ? (
           <>the <a href={withBase('/about/#contact')}>contact form</a></>
         ) : (
-          'the contact form, which opens soon'
+          'the contact form on the about page, which opens before comments do'
         )}, and quote the comment's id, shown next to its time.
-      </p>
-      <p>
-        The comments Worker, which is the desk's own program and not a vendor's, keeps the IP
-        address that posted a comment only as a salted, shortened hash, for a short period, to
-        limit how many comments one visitor can post; it never stores the address itself and never
-        turns it into an account. Nothing about a comment goes through a third-party comment host or an advertising tracker.
       </p>
       <p>
         {SITE.domain} is hosted on Cloudflare Pages. The host receives the ordinary details of a web request: the address of the page, the IP
@@ -55,14 +75,21 @@ import { CONTACT_FORM_LIVE, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/si
         play. Then the player loads from YouTube’s privacy-enhanced domain (youtube-nocookie.com),
         and YouTube receives the ordinary details of that request under its own policy.
       </p>
-      <p>
-        The <a href={withBase('/about/#contact')}>contact form</a> asks for a name, an email address,
-        and a note. Sending it goes to contact.{SITE.domain}, a small Cloudflare program that checks
-        the note and asks Cloudflare Email to deliver it to the desk, with your address as the
-        reply-to. Nothing is stored in a database. To stop floods, Cloudflare counts how many notes
-        come from your IP address in the last minute; the count is not kept. A hidden field is there for spam; filling it drops the
-        note.{TURNSTILE_SITE_KEY && ' The form also runs Cloudflare Turnstile, which checks your browser for signs of a bot before the note is accepted.'}
-      </p>
+      {CONTACT_FORM_LIVE ? (
+        <p>
+          The <a href={withBase('/about/#contact')}>contact form</a> asks for a name, an email address,
+          and a note. Sending it goes to contact.{SITE.domain}, a small Cloudflare program that checks
+          the note and asks Cloudflare Email to deliver it to the desk, with your address as the
+          reply-to. Nothing is stored in a database. To stop floods, Cloudflare counts how many notes
+          come from your IP address in the last minute; the count is not kept. A hidden field is there
+          for spam; filling it drops the note.{TURNSTILE_SITE_KEY && ' The form also runs Cloudflare Turnstile, which checks your browser for signs of a bot before the note is accepted.'}
+        </p>
+      ) : (
+        <p>
+          The contact form on the about page is not open yet, so it collects nothing. When it opens,
+          this page will say what it sends and where.
+        </p>
+      )}
       <p>
         The desk does not sell personal information, because the site does not collect an account
         or a subscriber list. The <a href={withBase('/terms/')}>terms of use</a> cover how the

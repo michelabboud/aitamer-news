@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import CommentCount from '../components/CommentCount.astro';
 import { commentAnchor, commentCountFor, stripInvisible, truncateGraphemes } from '../lib/comment-text';
 import {
+  CONTACT_FORM_LIVE,
   formatShortDate,
   getCommentThreads,
   getPublishedPosts,
@@ -50,7 +51,12 @@ const recentComments = [...threads.values()]
     <h1 class="page-title">The Campfire</h1>
     <p class="lede">
       Every story has its own thread under the article. Pull up a log: pick a story below and join
-      in. For a correction or a tip that should reach the desk, use the <a href={withBase('/about/#contact')}>contact form</a> instead.
+      in.{' '}
+      {CONTACT_FORM_LIVE ? (
+        <>For a correction or a tip that should reach the desk, use the <a href={withBase('/about/#contact')}>contact form</a> instead.</>
+      ) : (
+        'For a correction or a tip that should reach the desk, the contact form on the About page opens soon.'
+      )}
     </p>
   </header>
 
@@ -89,9 +95,9 @@ const recentComments = [...threads.values()]
             <time class="log-row__time" datetime={comment.at}>{formatShortDate(new Date(comment.at))}</time>
             <div class="log-row__body">
               <a class="log-row__title" href={`${postHref(post)}#${commentAnchor(comment.id)}`}>
-                {stripInvisible(comment.name)} on {post.data.title}
+                <span class="log-row__name" dir="auto">{stripInvisible(comment.name)}</span> on {post.data.title}
               </a>
-              <p class="log-row__excerpt">{fireExcerpt(comment.text)}</p>
+              <p class="log-row__excerpt" dir="auto">{fireExcerpt(comment.text)}</p>
             </div>
           </li>
         ))}

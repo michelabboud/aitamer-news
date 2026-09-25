@@ -18,8 +18,8 @@
 import { isDeepStrictEqual } from 'node:util';
 import yaml from 'js-yaml';
 
-/** The slug rule. It lives in the dependency-free `./slug.mjs` (the publisher check imports it without `npm ci`). */
-export { SLUG } from './slug.mjs';
+/** The slug rule and its length cap. They live in the dependency-free `./slug.mjs` (the publisher check imports it without `npm ci`). */
+export { SLUG, SLUG_MAX_LENGTH } from './slug.mjs';
 
 /**
  * The frontmatter fence. Like Astro's: an optional byte-order mark or leading blank lines, then

@@ -10,6 +10,7 @@ import {
   COMMENT_NAME_MAX,
   COMMENT_PATTERNS,
   COMMENT_SLUG,
+  COMMENT_SLUG_MAX,
   COMMENT_TEXT_MAX,
   COMMENTS_PER_FILE_MAX,
   COMMENTS_SCHEMA_ROUTES,
@@ -22,6 +23,7 @@ import {
 } from '../content/comment-schema.ts';
 import { commentEntryId, commentsLoader, isEmptyCommentsWarning } from '../content/comments-loader.ts';
 import { SLUG } from '../../scripts/frontmatter.mjs';
+import { SLUG_MAX_LENGTH } from '../../scripts/slug.mjs';
 
 /**
  * `commentsFileSchema` has no `astro:content` import (see the file's header), so it is tested
@@ -82,6 +84,8 @@ test('COMMENT_CONTRACT_VERSION is 1 — v1 is frozen; a breaking change is v2, n
   assert.equal(COMMENT_CONTRACT_VERSION, 1, 'the v1 schema is frozen; a breaking change needs a v2 schema and a sibling route, not a bump here');
   assert.equal(COMMENT_SLUG.source, SLUG.source);
   assert.equal(COMMENT_SLUG.flags, SLUG.flags);
+  assert.equal(COMMENT_SLUG_MAX, SLUG_MAX_LENGTH, 'the comment contract caps the slug where check:posts caps a post\'s file name');
+  assert.equal(COMMENT_SLUG_MAX, 120, 'the comments Worker accepts slugs of at most 120 characters');
 });
 
 test('text may hold paragraphs and single line breaks; `<` that is not HTML is fine', () => {
@@ -100,7 +104,6 @@ test('real scripts and emoji sequences pass: joiners between characters, present
     '\u{1F44B}\u{1F3FE}', // waving hand with a skin tone (its trail unit is DFFE)
     '\u{1F1EB}\u{1F1F7}', // a flag
     '❤\uFE0E', // text presentation
-    'a\u200C\u200Db', // two joiners in a row, between characters
     'Zoë', // NFC accented letter
   ]) {
     assert.equal(commentSchema.safeParse(comment({ name })).success, true, JSON.stringify(name));
@@ -163,6 +166,14 @@ test('a slug that is not lowercase letters, digits and hyphens is rejected', () 
   for (const slug of ['Grok-4-7', '-grok', 'grok 4', 'grok_4', '']) {
     assert.equal(commentsFileSchema.safeParse({ ...validFile, slug }).success, false, slug);
   }
+});
+
+test('a slug is at most 120 characters, the cap the comments Worker and check:posts apply', () => {
+  const longest = `a${'-b'.repeat((COMMENT_SLUG_MAX - 2) / 2)}c`;
+  assert.equal(longest.length, COMMENT_SLUG_MAX);
+  assert.equal(commentsFileSchema.safeParse({ ...validFile, slug: longest }).success, true);
+  const over = commentsFileSchema.safeParse({ ...validFile, slug: `${longest}c` });
+  assert.deepEqual(messagesOf(over), [`slug must be at most ${COMMENT_SLUG_MAX} characters`]);
 });
 
 test('generatedAt and at must be UTC instants ending in Z', () => {
@@ -270,6 +281,15 @@ const REFUSED_SAMPLES: [string, string][] = [
 
 /** Refused code points above U+FFFF: exact without the `u` flag, let through with it (see the schema header). */
 const REFUSED_ASTRAL_SAMPLES: [string, string][] = [
+  ['\u{110BD}', 'Kaithi number sign (format)'],
+  ['\u{110CD}', 'Kaithi number sign above (format)'],
+  ['\u{13430}', 'Egyptian hieroglyph vertical joiner (format)'],
+  ['\u{13438}', 'Egyptian hieroglyph end segment (format)'],
+  ['\u{1343F}', 'Egyptian hieroglyph end walled enclosure (format)'],
+  ['\u{1BCA0}', 'shorthand format letter overlap'],
+  ['\u{1BCA3}', 'shorthand format up step'],
+  ['\u{1D173}', 'musical symbol begin beam (format)'],
+  ['\u{1D17A}', 'musical symbol end phrase (format)'],
   ['\u{1FFFE}', 'plane 1 noncharacter'],
   ['\u{DFFFF}', 'plane 13 noncharacter'],
   ['\u{E0001}', 'tag: language'],
@@ -291,9 +311,19 @@ test('invisible, format, private-use, noncharacter and bidirectional characters 
   }
 });
 
-test('a joiner is allowed only between two other characters: never first, never last, never alone', () => {
+test('a joiner is allowed only between two other characters: never first, never last, never alone, never two in a row', () => {
   for (const joiner of ['\u200C', '\u200D']) {
-    for (const bad of [joiner, `${joiner}${joiner}`, `${joiner}Ada`, `Ada${joiner}`, `${joiner}Ada${joiner}`]) {
+    for (const bad of [
+      joiner,
+      `${joiner}${joiner}`,
+      `${joiner}Ada`,
+      `Ada${joiner}`,
+      `${joiner}Ada${joiner}`,
+      `A${joiner}${joiner}da`,
+      `A\u200C\u200Dda`,
+      `A\u200D\u200Cda`,
+      `A${joiner.repeat(40)}da`,
+    ]) {
       assert.equal(commentSchema.safeParse(comment({ name: bad })).success, false, JSON.stringify(bad));
       assert.equal(commentSchema.safeParse(comment({ text: bad })).success, false, JSON.stringify(bad));
     }
@@ -363,6 +393,27 @@ test('the ranges are sorted, disjoint, and hold the joiners, the bidi marks and 
     assert.equal(isForbidden(codePoint), false, codePoint.toString(16));
   }
   assert.equal(isForbidden(0x000a), true, 'the newline is a control character; only the text pattern lets it through, as an exception');
+});
+
+/**
+ * The format characters (general category Cf) the list deliberately allows: the prepended
+ * concatenation marks in the Basic Multilingual Plane, which are visible (an Arabic number sign
+ * is drawn under the digits that follow it) and appear in real Arabic, Syriac and related text.
+ */
+const ALLOWED_FORMAT_CHARACTERS: ReadonlySet<number> = new Set([0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x06dd, 0x070f, 0x0890, 0x0891, 0x08e2]);
+
+test('every format character (Unicode category Cf) is refused, except the visible prepended concatenation marks below U+FFFF', () => {
+  const format = /^\p{General_Category=Format}$/u;
+  const missing: string[] = [];
+  let astral = 0;
+  for (let codePoint = 0; codePoint <= 0x10ffff; codePoint++) {
+    if (isSurrogate(codePoint) || !format.test(String.fromCodePoint(codePoint))) continue;
+    if (codePoint > 0xffff) astral++;
+    if (!isForbidden(codePoint) && !ALLOWED_FORMAT_CHARACTERS.has(codePoint)) missing.push(`U+${codePoint.toString(16).toUpperCase()}`);
+  }
+  assert.deepEqual(missing, [], `format characters the list lets through (Unicode ${process.versions.unicode})`);
+  assert.ok(astral >= 127, `${astral} format characters above U+FFFF checked`);
+  for (const codePoint of ALLOWED_FORMAT_CHARACTERS) assert.equal(format.test(String.fromCodePoint(codePoint)), true, `U+${codePoint.toString(16)} is still Cf`);
 });
 
 test('the u-flag class and the no-flag alternation agree with the ranges at every boundary and across a stride of every plane', () => {
@@ -518,6 +569,8 @@ test('the published patterns give the same verdict with and without the u flag, 
     '\u200Da',
     'a\u200D',
     'a\u200D\u200D',
+    'a\u200C\u200Db',
+    'a\u200D\u200Db',
     ...REFUSED_SAMPLES.map(([bad]) => `a${bad}b`),
     ...REFUSED_SAMPLES.map(([bad]) => bad),
   ];
@@ -558,6 +611,15 @@ test('the JSON Schema is plain JSON: serialising and parsing it changes nothing'
   assert.deepEqual(JSON.parse(JSON.stringify(schema)), schema);
 });
 
+/**
+ * Every deliberate change to the frozen v1 snapshot, newest last. v1 may change only before a
+ * file has been published against it, or additively; each entry says which and why.
+ */
+const V1_SNAPSHOT_REVISIONS = [
+  '2026-09-25: first frozen',
+  '2026-09-26: tightened before any comment file was published (batch A deep review B3, M3): slug maxLength 120 (the comments Worker\'s cap); at most one joiner between two other characters; the format characters above U+FFFF (Kaithi number signs, Egyptian hieroglyph format controls, shorthand format controls, musical beam and phrase controls) refused',
+];
+
 test('the v1 document is frozen: it matches the committed snapshot byte for byte', () => {
   const snapshot = readFileSync(SNAPSHOT, 'utf8');
   const document = commentsFileJsonSchemaDocument('v1');
@@ -569,7 +631,8 @@ test('the v1 document is frozen: it matches the committed snapshot byte for byte
     const line = actual.findIndex((text, i) => text !== expected[i]);
     assert.fail(
       `the v1 contract changed (first difference at line ${line + 1}: ${JSON.stringify(actual[line])} instead of ${JSON.stringify(expected[line])}). ` +
-        'Additive changes need a new snapshot (src/content/comment-schema.v1.snapshot.json) and a deliberate review; breaking changes need v2.',
+        'Additive changes need a new snapshot (src/content/comment-schema.v1.snapshot.json), a line in V1_SNAPSHOT_REVISIONS and a deliberate review; ' +
+        `breaking changes need v2. Revisions so far: ${V1_SNAPSHOT_REVISIONS.join(' | ')}.`,
     );
   }
   assert.deepEqual(JSON.parse(snapshot), commentsFileJsonSchema('v1'));

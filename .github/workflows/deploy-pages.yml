@@ -34,26 +34,39 @@ jobs:
         # edits from an App without the `workflows` permission, which the publisher lacks), and
         # the first line is the pull request check, run from main.
         #
-        # PUBLISHER_ACTOR is the App's bot login (`<app-slug>[bot]`, a repository variable). Unset:
-        # the step says so and skips. A push whose before is all zeros or not fetchable fails.
+        # Who the publisher is: the repository variable PUBLISHER_ACTOR_ID, the App's numeric bot
+        # account id (`gh api users/<app-slug>[bot] --jq .id`), compared with `github.actor_id`,
+        # the account that pushed. An id, not a login: a login can be renamed and then taken by
+        # someone else, an id never changes hands. Unset or blank: the step says so and skips. Set
+        # but not a numeric id: the deploy fails, because a typo would otherwise switch the guard
+        # off without a word. A publisher push whose before is all zeros or not fetchable fails.
+        # This decision is made here, in the workflow, not by a script: a script would come from
+        # the tree being judged. scripts/deploy-publisher-guard.test.mjs runs this shell as is.
         env:
-          PUBLISHER_ACTOR: ${{ vars.PUBLISHER_ACTOR }}
-          ACTOR: ${{ github.actor }}
-          TRIGGERING_ACTOR: ${{ github.triggering_actor }}
+          PUBLISHER_ACTOR_ID: ${{ vars.PUBLISHER_ACTOR_ID }}
+          ACTOR_ID: ${{ github.actor_id }}
           EVENT_NAME: ${{ github.event_name }}
           BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.event.after }}
         run: |
           set -euo pipefail
-          publisher="$(printf '%s' "$PUBLISHER_ACTOR" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
-          if [ -z "$publisher" ]; then
-            echo "::notice::PUBLISHER_ACTOR is not set, so the publisher push check is skipped."
+          if [ -z "${PUBLISHER_ACTOR_ID//[[:space:]]/}" ]; then
+            echo "::notice::PUBLISHER_ACTOR_ID is not set, so the publisher push check is skipped."
             exit 0
           fi
-          actor="$(printf '%s' "$ACTOR" | tr '[:upper:]' '[:lower:]')"
-          triggering="$(printf '%s' "$TRIGGERING_ACTOR" | tr '[:upper:]' '[:lower:]')"
-          if [ "$actor" != "$publisher" ] && [ "$triggering" != "$publisher" ]; then
-            echo "The pusher is not the publisher; nothing to check."
+          # Whitespace around the id is forgiven; anything else that is not one number is not.
+          if ! [[ "$PUBLISHER_ACTOR_ID" =~ ^[[:space:]]*([1-9][0-9]*)[[:space:]]*$ ]]; then
+            echo "::error::PUBLISHER_ACTOR_ID is not a numeric account id; fix the repository variable (or clear it to skip this check)"
+            exit 1
+          fi
+          publisher="${BASH_REMATCH[1]}"
+          if ! [[ "$ACTOR_ID" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::github.actor_id is not a numeric account id, so whether the publisher pushed cannot be told"
+            exit 1
+          fi
+          # Both are canonical decimal numbers now, so comparing the strings compares the ids.
+          if [ "$ACTOR_ID" != "$publisher" ]; then
+            echo "The pusher (account $ACTOR_ID) is not the publisher; nothing to check."
             exit 0
           fi
           if [ "$EVENT_NAME" != "push" ]; then
@@ -87,7 +100,7 @@ jobs:
           npm run check:posts
 
       - name: Restore Astro incremental cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules/.astro
           key: astro-incremental-cloudflare-${{ github.sha }}

@@ -2,6 +2,17 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.14] — 2026-09-26
+
+### Fixed
+Batch A deep review (site side):
+- **Removing a comment** is the desk's delete, which also erases the stored name and text; a hand edit of a comment file is only an emergency stopgap (POST.md §8, comments README), because the desk regenerates files from its records.
+- **Privacy page** states the retention: IP address only as a salted, shortened hash for 30 days (rate limits, duplicates, trust, bans); time on page 30 days; a rejected comment's name and text erased 30 days after review, a removed one's at once; published comments also appear on the Campfire and stay in the public source history.
+- **Comment contract v1, deliberately revised before any file was published:** slugs at most 120 characters (the site's `check:posts` enforces the same cap), at most one joiner between two characters, and the invisible format characters above U+FFFF refused. The frozen snapshot records the revision.
+- Decision record 0007 describes the publisher guard as built and supersedes 0006's guard section. The deploy guard compares the pusher's numeric id (`PUBLISHER_ACTOR_ID`).
+- The contact form's Turnstile widget has its own action, and the contact Worker checks action and hostname, so a token from one form cannot be spent on the other.
+- Privacy and Campfire copy follow whether the contact form is live; the Campfire list gets the same text-direction protections as the post page; remaining workflow actions pinned by commit; the account-id test also catches dashboard URLs.
+
 ## [0.2.13] — 2026-09-26
 
 ### Removed

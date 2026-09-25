@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseFrontmatter } from '@astrojs/internal-helpers/frontmatter';
-import { FrontmatterError, SLUG, assertOnlyChanged, isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
-import { SLUG as DEPENDENCY_FREE_SLUG } from './slug.mjs';
+import { FrontmatterError, SLUG, SLUG_MAX_LENGTH, assertOnlyChanged, isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
+import { SLUG as DEPENDENCY_FREE_SLUG, SLUG_MAX_LENGTH as DEPENDENCY_FREE_SLUG_MAX_LENGTH } from './slug.mjs';
 
 const BOM = '\uFEFF';
 
@@ -82,4 +82,5 @@ test('the slug rule accepts the real slugs and refuses what Astro or the ledger 
 
 test('the slug rule is the one in the dependency-free scripts/slug.mjs, re-exported', () => {
   assert.equal(SLUG, DEPENDENCY_FREE_SLUG);
+  assert.equal(SLUG_MAX_LENGTH, DEPENDENCY_FREE_SLUG_MAX_LENGTH);
 });

@@ -14,6 +14,7 @@ import {
   readPost,
   withSpecimen,
 } from './stamp-specimens.mjs';
+import { SLUG_MAX_LENGTH } from './slug.mjs';
 import { gitIn, quietly, tempDir } from './test-support.mjs';
 
 const post = (fields) =>
@@ -176,6 +177,21 @@ test('a file name that breaks the slug rule, or a slug: field, is a problem (Inf
   assert.equal(s.readLedger(), null, 'no ledger line may be burned for a bad slug');
   assert.equal(s.read('ok.md'), post({}));
   assert.equal(quietly(() => main(['--check'], s)).result, 1);
+});
+
+test('a file name longer than 120 characters is a problem: the comments Worker refuses a longer slug', () => {
+  assert.equal(SLUG_MAX_LENGTH, 120);
+  const longest = 'a'.repeat(SLUG_MAX_LENGTH);
+  assert.deepEqual(readPost(longest, post({})).errors, []);
+  const over = `${longest}b`;
+  assert.match(readPost(over, post({})).errors.join(), /file name is 121 characters; a slug is at most 120/);
+  const s = site({ [`${over}.md`]: post({}), 'ok.md': post({}) });
+  const check = quietly(() => main(['--check'], s));
+  assert.equal(check.result, 1);
+  assert.match(check.output, /is 121 characters; a slug is at most 120/);
+  const stamp = quietly(() => main([], s));
+  assert.equal(stamp.result, 1);
+  assert.equal(s.readLedger(), null, 'no ledger line may be burned for an over-long slug');
 });
 
 test('check refuses a post in a subfolder and two files with one slug', () => {

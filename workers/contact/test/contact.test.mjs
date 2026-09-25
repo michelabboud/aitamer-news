@@ -4,7 +4,7 @@ import worker from '../src/index.mjs';
 import * as entry from '../src/index.mjs';
 import { MAX_BODY_BYTES, handleContactRequest, rateLimitKey } from '../src/handler.mjs';
 import { DESK_FROM, HONEYPOT_FIELD, contactLetter, parseContactFields } from '../src/message.mjs';
-import { TURNSTILE_FIELD, verifyTurnstile } from '../src/turnstile.mjs';
+import { TURNSTILE_ACTION, TURNSTILE_FIELD, TURNSTILE_HOSTNAME, verifyTurnstile } from '../src/turnstile.mjs';
 
 const valid = {
   name: 'Ada Desk',
@@ -189,7 +189,7 @@ test('with Turnstile on, a note needs a token Cloudflare accepts', async () => {
   const calls = [];
   const siteverify = (success, codes = []) => async (url, init) => {
     calls.push({ url, secret: init.body.get('secret'), response: init.body.get('response'), ip: init.body.get('remoteip') });
-    return new Response(JSON.stringify({ success, 'error-codes': codes }));
+    return new Response(JSON.stringify({ success, 'error-codes': codes, action: 'contact', hostname: 'aitamer.news' }));
   };
   const { env, sent } = envWith({ TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA' });
 
@@ -214,6 +214,40 @@ test('with Turnstile on, a note needs a token Cloudflare accepts', async () => {
     response: 'good-token',
     ip: '203.0.113.7',
   });
+});
+
+test('the contact form widget\'s action and the site\'s hostname are what the Worker requires', () => {
+  assert.equal(TURNSTILE_ACTION, 'contact');
+  // Turnstile's rule for an action: up to 32 characters of letters, digits, `_` and `-`.
+  assert.match(TURNSTILE_ACTION, /^[A-Za-z0-9_-]{1,32}$/);
+  assert.equal(TURNSTILE_HOSTNAME, 'aitamer.news');
+});
+
+test('a token Cloudflare accepts still fails for another widget\'s action or another site', async () => {
+  const answer = (fields) => async () => new Response(JSON.stringify({ success: true, 'error-codes': [], ...fields }));
+  const ok = { action: 'contact', hostname: 'aitamer.news' };
+  assert.deepEqual(await verifyTurnstile('t', 's', null, answer(ok)), { ok: true });
+  // The comment form's token must not send a contact note, and the reverse.
+  assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, action: 'comment' })), { ok: false, reason: 'wrong-action' });
+  assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, action: undefined })), { ok: false, reason: 'wrong-action' });
+  assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, action: 'Contact' })), { ok: false, reason: 'wrong-action' });
+  // A widget solved on another site (the same site key, embedded elsewhere) is refused.
+  for (const hostname of ['evil.example', 'www.aitamer.news', 'aitamer.news.evil.example', 'localhost', undefined]) {
+    assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, hostname })), { ok: false, reason: 'wrong-hostname' }, String(hostname));
+  }
+  // Cloudflare's own refusal still comes first, with its codes.
+  assert.deepEqual(
+    await verifyTurnstile('t', 's', null, answer({ success: false, 'error-codes': ['timeout-or-duplicate'], action: 'comment' })),
+    { ok: false, reason: 'timeout-or-duplicate' },
+  );
+});
+
+test('with Turnstile on, a token for the comment form is refused by the contact Worker', async () => {
+  const { env, sent } = envWith({ TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA' });
+  const commentToken = async () => new Response(JSON.stringify({ success: true, action: 'comment', hostname: 'aitamer.news' }));
+  const response = await handleContactRequest(await formRequest({ ...valid, [TURNSTILE_FIELD]: 'token' }, json), env, commentToken);
+  assert.equal(response.status, 400);
+  assert.equal(sent.length, 0);
 });
 
 test('Turnstile verification treats timeouts and odd answers as failures', async () => {

@@ -256,6 +256,11 @@ test('the render strip uses the schema\'s one list: every forbidden character ex
   assert.equal(stripInvisible('a\u2800b\u3164c\u00ADd\u{E0041}e\u{F0000}'), 'abcde');
 });
 
+test('the format characters above U+FFFF are stripped: Kaithi number signs, hieroglyph and shorthand format controls, musical beams', () => {
+  assert.equal(stripInvisible('a\u{110BD}b\u{110CD}c\u{13430}d\u{1343F}e\u{1BCA0}f\u{1BCA3}g\u{1D173}h\u{1D17A}i'), 'abcdefghi');
+  assert.equal(renderCommentHtml('x\u{13436}y'), '<p>xy</p>');
+});
+
 test('a tab and other control characters are stripped, a carriage return still breaks the line', () => {
   assert.equal(renderCommentHtml('a\tb\u0007c\rd'), '<p>abc<br>d</p>');
 });

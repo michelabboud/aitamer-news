@@ -147,7 +147,7 @@ the build bakes them into the post pages.**
 
 ## Status
 
-Accepted, 2026-09-25.
+Accepted, 2026-09-25; guard section superseded by 0007.
 
 **Note, 2026-09-25 (later the same day).** The guard in the "Decision" section was rewritten
 before anything was built against it, so this is a correction of a same-day draft, not a

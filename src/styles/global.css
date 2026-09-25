@@ -334,7 +334,10 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 .log-row--thread { grid-template-columns: 64px minmax(0, 1fr) auto; }
 .log-row--thread .comment-count { font-family: var(--font-machine); font-size: 0.6875rem; white-space: nowrap; }
 
-.log-row--comment { grid-template-columns: 64px minmax(0, 1fr); }
+/* A reader's name and text: a flood of combining marks cannot paint outside the row, and
+   right-to-left text cannot reorder the words around it. */
+.log-row--comment { grid-template-columns: 64px minmax(0, 1fr); contain: paint; }
+.log-row__name, .log-row__excerpt { unicode-bidi: isolate; }
 .log-row__excerpt { margin: 0; font-size: 0.875rem; color: var(--ink-muted); }
 
 .side { display: flex; flex-direction: column; gap: 16px; }

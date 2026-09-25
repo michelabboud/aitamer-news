@@ -40,7 +40,8 @@ import { SITE } from '../lib/site-meta.ts';
  * above U+FFFF is either a surrogate-pair alternation (which the `u` flag never matches, because
  * it sees code points, not UTF-16 units) or a `\u{…}` range (a syntax error without the flag).
  * So the patterns are exact without the flag, and with the flag they let the refused characters
- * above U+FFFF through — the build then refuses the file. `FORBIDDEN_CHARACTERS.unicodeClass`
+ * above U+FFFF (format characters, plane 14, private use, noncharacters) through — the build
+ * then refuses the file. `FORBIDDEN_CHARACTERS.unicodeClass`
  * is the exact `u`-mode class for a consumer that wants the same list there.
  */
 
@@ -62,6 +63,12 @@ export type CommentsSchemaRoute = keyof typeof COMMENTS_SCHEMA_ROUTES;
  * hyphens, starting with a letter or digit.
  */
 export const COMMENT_SLUG = /^[a-z0-9][a-z0-9-]*$/;
+/**
+ * The longest slug: 120 characters, the comments Worker's cap and `SLUG_MAX_LENGTH` in
+ * `scripts/slug.mjs` (the test asserts they agree), which `npm run check:posts` applies to a
+ * post's file name. A slug is ASCII, so characters and UTF-16 units count the same.
+ */
+export const COMMENT_SLUG_MAX = 120;
 
 /**
  * A ULID: 26 characters of Crockford base32, uppercase — time-ordered, so ids sort with the
@@ -135,6 +142,13 @@ const FORBIDDEN_RANGES: readonly CodePointRange[] = Object.freeze([
   [0xffa0, 0xffa0, 'halfwidth Hangul filler'],
   [0xfff0, 0xfffb, 'unassigned specials and interlinear annotation'],
   [0xfffe, 0xffff, 'noncharacters'],
+  // The format characters (Unicode general category Cf) above U+FFFF, as of Unicode 17.0; plane 14's
+  // tags are refused with the rest of plane 14 below. The test checks every Cf code point.
+  [0x110bd, 0x110bd, 'Kaithi number sign (format)'],
+  [0x110cd, 0x110cd, 'Kaithi number sign above (format)'],
+  [0x13430, 0x1343f, 'Egyptian hieroglyph format controls: joiners, insertions, segments, enclosures'],
+  [0x1bca0, 0x1bca3, 'shorthand format controls (Duployan): letter overlap, continuing overlap, up and down step'],
+  [0x1d173, 0x1d17a, 'musical symbol format controls: begin and end beam, tie, slur and phrase'],
   ...supplementaryNoncharacters(),
   [0xe0000, 0xeffff, 'plane 14: tags (U+E0000–E007F), variation selectors 17–256 (U+E0100–E01EF), the rest unassigned'],
   [0xf0000, LAST_CODE_POINT, 'supplementary private use areas (planes 15 and 16)'],
@@ -212,10 +226,10 @@ function allowedAstralPairs(ranges: readonly CodePointRange[]): string {
  * agree with the ranges at every range boundary and across every plane.
  *
  * The joiners U+200C and U+200D are in `ranges` and in every class, because a joiner on its own
- * is invisible text. A comment may still carry them **between two other allowed characters** —
- * Persian and Indic scripts and emoji sequences need them there — which is what the anchored
- * name and text patterns below allow, and nothing else: never first, never last, never a string
- * made only of joiners.
+ * is invisible text. A comment may still carry **one** of them **between two other allowed
+ * characters** — Persian and Indic scripts and emoji sequences need one there, never two — which
+ * is what the anchored name and text patterns below allow, and nothing else: never first, never
+ * last, never two in a row, never a string made only of joiners.
  */
 export const FORBIDDEN_CHARACTERS = Object.freeze({
   /** Every refused code point, as inclusive ranges with the reason. The source the other forms derive from. */
@@ -236,15 +250,16 @@ export const FORBIDDEN_CHARACTERS = Object.freeze({
   joinerClass: `[${JOINERS.map(u4).join('')}]`,
 });
 
-const FORBIDDEN_MESSAGE = 'control, invisible, format, private-use or bidirectional characters, and no joiner first, last or alone';
+const FORBIDDEN_MESSAGE = 'control, invisible, format, private-use or bidirectional characters, and no joiner first, last, alone or next to another joiner';
 
 /**
- * One allowed character, then any number of (optional joiners, one allowed character): so a
- * joiner sits only between two other characters. Each alternative is disjoint from the others
- * (a BMP unit, a lead surrogate, a newline), so the match is deterministic and linear.
+ * One allowed character, then any number of (at most one joiner, one allowed character): so a
+ * joiner sits only between two other characters, and never next to another joiner. Each
+ * alternative is disjoint from the others (a BMP unit, a lead surrogate, a newline), so the
+ * match is deterministic and linear.
  */
 function stringOf(allowed: string): RegExp {
-  return new RegExp(`^${allowed}(?:${FORBIDDEN_CHARACTERS.joinerClass}*${allowed})*$`);
+  return new RegExp(`^${allowed}(?:${FORBIDDEN_CHARACTERS.joinerClass}?${allowed})*$`);
 }
 
 /** One line: every character allowed, so no newline or tab either. */
@@ -371,7 +386,10 @@ export const commentsFileSchema = z
   .object({
     version: z.literal(COMMENT_CONTRACT_VERSION),
     /** The post's slug. Must equal the file name (checked by `npm run check:posts` and the loader). */
-    slug: z.string().regex(COMMENT_SLUG, 'slug must be lowercase letters, digits and hyphens, starting with a letter or digit'),
+    slug: z
+      .string()
+      .regex(COMMENT_SLUG, 'slug must be lowercase letters, digits and hyphens, starting with a letter or digit')
+      .max(COMMENT_SLUG_MAX, `slug must be at most ${COMMENT_SLUG_MAX} characters`),
     /** When the desk generated this file. */
     generatedAt: utcInstant(),
     /** Every approved comment, oldest first. A post with none has no file at all. */
@@ -400,8 +418,8 @@ const COMMENTS_SCHEMA_DESCRIPTION =
   '(6) every at is no later than generatedAt. ' +
   'The patterns are ECMA-262 without the u flag, which is how the build runs them. Compiled with ' +
   'the u flag they agree for every character up to U+FFFF and refuse lone surrogates, but let ' +
-  'refused characters above U+FFFF (plane 14, the supplementary private use areas, the ' +
-  'supplementary noncharacters) through; the build refuses those, so a validator using the u ' +
+  'refused characters above U+FFFF (the format characters above U+FFFF, plane 14, the ' +
+  'supplementary private use areas, the supplementary noncharacters) through; the build refuses those, so a validator using the u ' +
   'flag should also refuse the code-point ranges in FORBIDDEN_CHARACTERS.ranges ' +
   '(src/content/comment-schema.ts). The format is documented in POST.md: ' +
   'https://github.com/michelabboud/aitamer-news/blob/main/POST.md';

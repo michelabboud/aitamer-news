@@ -13,6 +13,7 @@ import {
   type WildnessRating,
 } from '../lib/site';
 import { HONEYPOT_FIELD } from '../../workers/contact/src/message.mjs';
+import { TURNSTILE_ACTION } from '../../workers/contact/src/turnstile.mjs';
 
 
 /** The newsroom pipeline, in order. It mirrors docs/posting-standards.md; change both together. */
@@ -156,7 +157,7 @@ const VOCAB = [
           <label for="contact-extra">Leave this field empty</label>
           <input id="contact-extra" name={HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="new-password" />
         </div>
-        {TURNSTILE_SITE_KEY && <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-size="flexible"></div>}
+        {TURNSTILE_SITE_KEY && <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-action={TURNSTILE_ACTION} data-size="flexible"></div>}
         <button class="contact-submit" type="submit">Send the note</button>
       </form>
     ) : (
