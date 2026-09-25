@@ -45,9 +45,6 @@ export const COMMENTS_ENDPOINT: string =
  */
 export const TURNSTILE_SITE_KEY = '';
 
-/** Disqus shortname for story comments. Threads are keyed to the aitamer.news canonical URL. */
-export const DISQUS_SHORTNAME = 'ai-tamer-news';
-
 /** The habitats, in reading order. Kept under the old name: routes and props still say "section". */
 export const ALL_SECTIONS = HABITATS;
 

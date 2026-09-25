@@ -52,7 +52,6 @@ The comments Worker (`https://comments.aitamer.news/`) lives in the desk's priva
 
 ## Third parties in the browser
 
-- **Disqus** (`src/components/DisqusThread.astro`, and `count.js` in `BaseLayout.astro`) — the old per-story threads, keyed to the canonical URL, shown below the site's own comments until Disqus is removed (phase 2, task A4).
 - **Google Analytics** (GA4) — main domain only.
 - **Google Fonts** — Gloock, Hanken Grotesk, IBM Plex Mono.
 - **YouTube** — only when a reader presses play on an embedded video (`src/components/VideoEmbed.astro`, youtube-nocookie.com).

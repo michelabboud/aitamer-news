@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { ANALYTICS_ID, DISQUS_SHORTNAME, HABITAT_LIST, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
+import { ANALYTICS_ID, HABITAT_LIST, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
 import { resolveMedia } from '../lib/media';
 
 interface Props {
@@ -72,12 +72,6 @@ const STATION_LINKS = [
     <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href={withBase('/rss.xml')} />
     <link rel="alternate" type="application/feed+json" title={`${SITE.title} JSON Feed`} href={withBase('/feed.json')} />
     <link rel="alternate" type="text/plain" title="Guide for language models" href={withBase('/llms.txt')} />
-    <script
-      is:inline
-      id="dsq-count-scr"
-      src={`https://${DISQUS_SHORTNAME}.disqus.com/count.js`}
-      async
-    ></script>
     <script is:inline define:vars={{ analyticsId: ANALYTICS_ID }}>
       (function () {
         var host = location.hostname;

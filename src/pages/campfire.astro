@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CommentCount from '../components/CommentCount.astro';
-import { commentCountFor } from '../lib/comment-text';
+import { commentAnchor, commentCountFor, stripInvisible, truncateGraphemes } from '../lib/comment-text';
 import {
   formatShortDate,
   getCommentThreads,
@@ -11,9 +11,35 @@ import {
   withBase,
 } from '../lib/site';
 
+/** How many of the newest comments site-wide "Around the fire" shows. */
+const AROUND_THE_FIRE_MAX = 30;
+/** How many characters of a comment's text "Around the fire" shows, before an ellipsis. */
+const AROUND_THE_FIRE_EXCERPT_MAX = 160;
+const WHITESPACE_RUN = /\s+/g;
+
 const posts = await getPublishedPosts();
 // Looked up once for every row's count, not once per row.
 const threads = await getCommentThreads();
+const postsById = new Map(posts.map((post) => [post.id, post]));
+
+/** A comment's text as one line, cut to a feed-row length. Plain text: Astro escapes it on output. */
+function fireExcerpt(text: string): string {
+  const collapsed = stripInvisible(text).replace(WHITESPACE_RUN, ' ').trim();
+  return truncateGraphemes(collapsed, AROUND_THE_FIRE_EXCERPT_MAX);
+}
+
+/**
+ * Every approved comment on a published, non-withdrawn story — the only ones with a live comment
+ * section to link to — newest first, capped at AROUND_THE_FIRE_MAX. A thread whose post is
+ * withdrawn or not yet published (its data file exists but its page does not) is left out.
+ */
+const recentComments = [...threads.values()]
+  .flatMap((thread) => {
+    const post = postsById.get(thread.id);
+    return post ? thread.data.comments.map((comment) => ({ post, comment })) : [];
+  })
+  .sort((a, b) => Date.parse(b.comment.at) - Date.parse(a.comment.at))
+  .slice(0, AROUND_THE_FIRE_MAX);
 ---
 <BaseLayout
   title="The Campfire"
@@ -23,9 +49,8 @@ const threads = await getCommentThreads();
     <p class="page-kicker">Station · comments</p>
     <h1 class="page-title">The Campfire</h1>
     <p class="lede">
-      Every story has its own thread under the article, hosted by Disqus. Pull up a log: pick a story
-      below and join in. For a correction or a tip that should reach the desk, use the
-      <a href={withBase('/about/#contact')}>contact form</a> instead.
+      Every story has its own thread under the article. Pull up a log: pick a story below and join
+      in. For a correction or a tip that should reach the desk, use the <a href={withBase('/about/#contact')}>contact form</a> instead.
     </p>
   </header>
 
@@ -48,8 +73,34 @@ const threads = await getCommentThreads();
     </ol>
   </section>
 
+  <section aria-labelledby="around-fire-title" style="max-width: 60rem; margin-top: 3rem">
+    <div class="rule-head">
+      <h2 id="around-fire-title">Around the fire</h2>
+      <span class="mono muted">Newest comments</span>
+    </div>
+    {recentComments.length === 0 ? (
+      <p class="muted" style="max-width: 60ch">
+        Nobody has pulled up a log yet. Be the first, on any story.
+      </p>
+    ) : (
+      <ol class="log">
+        {recentComments.map(({ post, comment }) => (
+          <li class="log-row log-row--comment">
+            <time class="log-row__time" datetime={comment.at}>{formatShortDate(new Date(comment.at))}</time>
+            <div class="log-row__body">
+              <a class="log-row__title" href={`${postHref(post)}#${commentAnchor(comment.id)}`}>
+                {stripInvisible(comment.name)} on {post.data.title}
+              </a>
+              <p class="log-row__excerpt">{fireExcerpt(comment.text)}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    )}
+  </section>
+
   <p class="muted" style="margin-top: 2rem; max-width: 60ch; font-size: 0.9375rem">
-    Loading a thread or a comment count contacts Disqus. The <a href={withBase('/privacy/')}>privacy page</a>
-    says what that sends.
+    Posting a comment sends it to comments.aitamer.news. The <a href={withBase('/privacy/')}>privacy page</a> says
+    what that sends.
   </p>
 </BaseLayout>

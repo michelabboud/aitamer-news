@@ -32,7 +32,7 @@ Fonts (Google Fonts): **Gloock** for headlines, **Hanken Grotesk** for reading, 
 | Wildness 1–5 | How verified the claims are | `wildness: { rating, verified, claimed }` frontmatter |
 | Tamer's verdict | One line: so what, for whom | `verdict` frontmatter |
 | Extinction Watch | Shutdowns, counted down | `sunset` frontmatter |
-| The Campfire | Comments | Disqus threads under each story |
+| The Campfire | Comments | The site's own threads, baked into each story's page at build time |
 
 ### Habitats
 
@@ -70,7 +70,7 @@ The rating is about the claims, not the product. It is shown on the About page (
 - **Phone tab bar:** Log, Habitats, Extinction, Campfire.
 - Days left on Extinction Watch are counted at build time and recounted in the browser (`ExtinctionList.astro`), because the page is static.
 
-Not built yet: the Morning Leash newsletter and extinction alerts by email (they need a subscriber store and bulk sending, which need Michel's approval), and a forum beyond Disqus. Search comes with Pagefind (plan task C3). Ported from the Claude Design hand-off branch `feat/bestiary` (9e51549) onto post contract v1.
+Not built yet: the Morning Leash newsletter and extinction alerts by email (they need a subscriber store and bulk sending, which need Michel's approval), and a forum beyond one thread per story. Search comes with Pagefind (plan task C3). Ported from the Claude Design hand-off branch `feat/bestiary` (9e51549) onto post contract v1.
 
 ## Fallback covers
 

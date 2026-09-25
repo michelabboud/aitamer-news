@@ -6,7 +6,7 @@ The mechanics of a story on aitamer.news, from file to live page, for humans and
 
 - Location: `src/content/posts/<slug>.md` (or `.mdx` when you need components).
 - The file name is the slug, and the slug is the address: `grok-4-7.md` → `https://aitamer.news/posts/grok-4-7/`.
-- Pick the slug once. Renaming the file changes the address, breaks every link to it, and starts a new, empty Disqus comment thread (threads are keyed to the slug).
+- Pick the slug once. Renaming the file changes the address, breaks every link to it, and orphans its comment data file (`src/content/comments/<slug>.json`), which is named and keyed to the slug.
 - Slugs are lowercase words joined by `-`. Two posts cannot share a slug, since they would be the same file. When a name is taken, be more specific (`grok-4-7-pricing`).
 
 ## 2. Frontmatter

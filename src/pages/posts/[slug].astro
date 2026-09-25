@@ -5,7 +5,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
 import CommentCount from '../../components/CommentCount.astro';
 import Comments from '../../components/Comments.astro';
-import DisqusThread from '../../components/DisqusThread.astro';
 import SpecimenTag from '../../components/SpecimenTag.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
 import WildnessPanel from '../../components/WildnessPanel.astro';
@@ -254,8 +253,6 @@ const breadcrumbs = {
 
         <div data-pagefind-ignore>
           <Comments slug={post.id} comments={comments} withdrawn={Boolean(withdrawn)} closed={Boolean(post.data.comments?.closed)} />
-          {/* Until Disqus leaves the site (plan task A4), its thread stays below ours. */}
-          <DisqusThread pageUrl={canonical} pageId={post.id} />
         </div>
       </>
     )}

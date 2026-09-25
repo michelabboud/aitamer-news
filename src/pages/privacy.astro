@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
+import { CONTACT_FORM_LIVE, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
 ---
 <BaseLayout title="Privacy" description={`Privacy for ${SITE.title} (${SITE.domain}).`}>
   <p class="page-kicker">Legal</p>
@@ -12,10 +12,30 @@ import { SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
     <div class="article__body">
       <p>
         The pages do not ask you to make an account on {SITE.domain}. The RSS feed is a public file.
-        It does not record who subscribes. Comments under a story are loaded from Disqus. If you
-        comment, you use a Disqus account, and Disqus receives what you type, plus the usual data
-        a comment host collects. Every page also loads a small Disqus script that shows comment
-        counts next to story links, so Disqus sees each page you visit. Their policy applies to that account.
+        It does not record who subscribes.
+      </p>
+      <p>
+        Comments under a story are built into the page from the desk's own records; nothing is
+        loaded from a comment host when you read one. To post a comment, the form on the story page
+        sends your name, the comment text, how long the form was open before you sent it, and a
+        check from Cloudflare Turnstile that you are not a bot, to comments.{SITE.domain}. No email
+        address is asked. A comment waits for the desk to read and approve it before anyone else sees it.
+      </p>
+      <p>
+        A published comment is public: it appears on the story's page and in that page's structured
+        data (the machine-readable summary search engines read), and it stays in the site's public
+        source history even after it is removed from the page. To ask for a comment's removal, use{' '}
+        {CONTACT_FORM_LIVE ? (
+          <>the <a href={withBase('/about/#contact')}>contact form</a></>
+        ) : (
+          'the contact form, which opens soon'
+        )}, or quote the comment's id, shown next to its time.
+      </p>
+      <p>
+        The comments Worker, which is the desk's own program and not a vendor's, keeps the IP
+        address that posted a comment only as a salted, shortened hash, for a short period, to
+        limit how many comments one visitor can post; it never stores the address itself and never
+        turns it into an account. Nothing about a comment goes through a third-party comment host or an advertising tracker.
       </p>
       <p>
         {SITE.domain} is hosted on Cloudflare Pages. The host receives the ordinary details of a web request: the address of the page, the IP

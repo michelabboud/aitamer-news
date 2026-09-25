@@ -17,6 +17,7 @@ Only the site as currently deployed at https://aitamer.news, built from `main`, 
 
 - The static site at aitamer.news and its build (`src/`, `scripts/`, `astro.config.mjs`), including injection through post content, feeds, structured data and search.
 - The contact Worker at `contact.aitamer.news` (`workers/contact/`): abuse, rate-limit bypass, header injection, anything that makes it send mail it should not.
+- The comments Worker at `comments.aitamer.news`: it is ours, not a vendor's, so a way past its moderation queue, its rate limits, or its checks on a submitted comment is in scope here too. Report through the same channels above.
 - The GitHub Actions workflows (`.github/workflows/`) and anything that could expose a deploy secret.
 
 ## Trust model
@@ -26,6 +27,6 @@ Posts are written by the desk's own bots, the posts tool and editors, all truste
 ## Out of scope
 
 - Findings that need a compromised maintainer account or machine.
-- Third-party services the site loads (Disqus, Google Analytics, Google Fonts, YouTube when a reader presses play): report those to the vendor.
+- Third-party services the site loads (Google Analytics, Google Fonts, YouTube when a reader presses play): report those to the vendor.
 - Denial of service by traffic volume; Cloudflare handles that layer.
 - Missing security headers or best-practice notes with no demonstrated impact (still welcome as ordinary issues).

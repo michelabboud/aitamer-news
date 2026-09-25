@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.13] — 2026-09-26
+
+### Removed
+- **Disqus is gone:** no comment-count script on every page, no embedded threads, no Disqus settings. `grep -ri disqus dist/` is empty.
+
+### Changed
+- **The Campfire runs on our own comments:** every story with its count, and "Around the fire", the 30 newest comments site-wide.
+- **Privacy and terms** say exactly what a comment sends (name, text, time the form was open, a Turnstile check) and where; that comments wait for approval; that a published comment is public, sits in the page's structured data and stays in the public source history; how to ask for removal; that the IP address is kept only as a salted, shortened hash for a short period. `SECURITY.md` puts `comments.aitamer.news` in scope.
+
 ## [0.2.12] — 2026-09-26
 
 ### Fixed

@@ -24,10 +24,11 @@ import { SITE, withBase } from '../lib/site';
         keeps its address with a notice. The copy at {SITE.domain} is the one that counts.
       </p>
       <p>
-        Each story has a comment thread hosted by Disqus. The desk does not run its own accounts.
-        A correction or a tip goes through the <a href={withBase('/about/#contact')}>contact form</a>.
+        Each story has a comment thread, held on the desk's own comments Worker; the desk does not
+        run reader accounts. A comment waits for the desk to approve it before it appears, and once
+        published it is public. A correction or a tip goes through the <a href={withBase('/about/#contact')}>contact form</a>.
         The <a href={withBase('/privacy/')}>privacy page</a> says what a visit, a comment, and that
-        form send to Disqus, to Google, and to the desk.
+        form send, and to whom.
       </p>
     </div>
   </div>
