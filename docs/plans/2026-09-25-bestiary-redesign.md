@@ -18,7 +18,7 @@ Replace the Big Top theme site-wide with "The Bestiary" (design canvas `AI Tamer
 Owner decisions (2026-09-25, from "save current template aside and migrate fully to the new design"):
 
 - **D1** 10 sections → 7 habitats (H1 models, H2 tools, H3 creative = image+video, H4 infra = data+databases, H5 rust, H6 policy, H7 opinion); the one `top` post moves to opinion; old URLs keep working on both hosts.
-- **D2** New fields `specimen`, `wildness`, `verdict`, `sunset` — a public contract for aitamer-news-ops (bots) and atn-mcp (posting tool). Humans and bots both write posts, so every field must be fillable by hand.
+- **D2** New fields `specimen`, `wildness`, `verdict`, `sunset` — a public contract for atn-ops (bots) and atn-mcp (posting tool). Humans and bots both write posts, so every field must be fillable by hand.
 - **D3** Pagefind search in scope.
 - **D4** Newsletter and email alerts out; Campfire = existing Disqus; "Report a sighting" = existing contact form.
 - **D5** No invented numbers; every count derives from content at build time.
@@ -40,9 +40,9 @@ Planner decisions:
 ## 3a. Vision decisions (Michel, 2026-09-25) and what they change here
 
 - **V1 — free tier first**, ~$5/month Workers Paid acceptable later. Cloudflare's free plan caps a deploy at 20,000 files, so this phase keeps the file count lean (RSS/JSON feed/llms.txt capped to the newest 50, no per-post duplicates) and lets `heroImage` hold an absolute `https://` URL so images can move to R2 in phase 2 without another contract change.
-- **V2 — the site repo goes public** after a privacy audit of the full history, the moves of anything internal to aitamer-news-ops / atn-mcp, and Michel's OK on the result; then repository rulesets (no force-push, no deletion, no outside pushes), read-only default `GITHUB_TOKEN`, approval required for workflows from outside contributors, secret scanning with push protection.
+- **V2 — the site repo goes public** after a privacy audit of the full history, the moves of anything internal to atn-ops / atn-mcp, and Michel's OK on the result; then repository rulesets (no force-push, no deletion, no outside pushes), read-only default `GITHUB_TOKEN`, approval required for workflows from outside contributors, secret scanning with push protection.
 - **V3 — the GitHub Pages copy is retired.** Its workflow is disabled (2026-09-25). `withBase()` stays so the code still builds under a base path, but base-path checks are no longer acceptance criteria. The pushed GitHub Pages site stays up, stale, until Michel says to unpublish it.
-- **V4 — bot posts publish automatically or wait for a human per subject, from a score** (subject, confidence, trust). That logic lives in aitamer-news-ops / atn-mcp; this repo only needs `draft` and the checks.
+- **V4 — bot posts publish automatically or wait for a human per subject, from a score** (subject, confidence, trust). That logic lives in atn-ops / atn-mcp; this repo only needs `draft` and the checks.
 - **V5 — YouTube:** posts may embed videos from other creators on an allow-list Michel curates, human-gated for legality in the MCP. This repo adds a `video` field and a click-to-load embed.
 - **V6 — humans and LLMs read and post naturally.** This repo publishes `llms.txt`, a JSON feed, schema.org JSON-LD, and the post contract as JSON Schema (`/contract/post.schema.json`) for the MCP to validate against.
 - **V7 — SEO:** NewsArticle + BreadcrumbList JSON-LD, a Google News sitemap for the last 48 hours, `lastmod` in the sitemap, `max-image-preview:large`, real image alt text (`heroAlt`), noindex on redirect stubs and withdrawn posts.
@@ -173,7 +173,7 @@ Host at dispatch: 28 cores, load 1.06 (factor 0.04, near idle), 67 GB available 
 | L1 | Standard (Sonnet), worktree | A5: convert `feat/bestiary` field data to contract v1; welcome post gets no wildness and a neutral verdict; review doc | `src/content/posts/*.md` (field data only), `docs/reviews/2026-09-25-field-data-drafts.md` | A3, A4 | branch → coordinator merges |
 | L2 | Standard (Sonnet), worktree | A6: scheduled publishing (`isPublished` honours future `pubDate`, `scripts/due-posts.mjs`, hourly `scheduled-publish.yml`) | `src/lib/site.ts` (`isPublished` only), `scripts/due-posts*.mjs`, `.github/workflows/scheduled-publish.yml`, `POST.md` §4 | A3 | branch → merge |
 | L3 | Standard (Sonnet), worktree | C6: `llms.txt`, JSON feed, RSS capped to 50, `/contract/post.schema.json` | new `src/pages/*.ts` endpoints, `src/lib/feeds.ts` + test, `src/pages/rss.xml.ts` | A3 | branch → merge |
-| L4 | Standard (Sonnet), worktree | Public-repo cleanup from the privacy audit; ops-internal editorial text moved to `aitamer-news-ops` | `README.md`, `ARCHITECTURE.md`, `.env.example`, `docs/big-top.md`, `docs/posting-standards.md`, `src/content/authors/desk-bot.md`, obsolete `decode-heroes.yml`, the draft fixture post | — | branch → merge |
+| L4 | Standard (Sonnet), worktree | Public-repo cleanup from the privacy audit; ops-internal editorial text moved to `atn-ops` | `README.md`, `ARCHITECTURE.md`, `.env.example`, `docs/big-top.md`, `docs/posting-standards.md`, `src/content/authors/desk-bot.md`, obsolete `decode-heroes.yml`, the draft fixture post | — | branch → merge |
 | L5 | Strong (Opus), read-only | Deep review of batch A: `29e1453..106bdd9` | none (report only) | A1–A4 | report → `docs/reviews/` |
 | Coordinator | Strong (Opus), main checkout | Batch B: the theme port | styles, layout, components, pages | L1 for real data (not blocking) | commits on `main` |
 

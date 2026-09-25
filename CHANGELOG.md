@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.25] — 2026-09-25
+
+### Changed
+- The private ops repo is now **atn-ops** (renamed from aitamer-news-ops, to match atn-mcp); `POST.md`, the plan and code comments use the new name. Both stay private.
+- `POST.md` documents `npm run stamp -- --restore` (from 0.1.24) and the date-only future `pubDate` behaviour.
+
 ## [0.1.24] — 2026-09-25
 
 ### Fixed
