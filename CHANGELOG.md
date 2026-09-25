@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.15] — 2026-09-25
+
+### Added
+- Machine-readable site (lane L3): `/llms.txt` (llmstxt.org format: how to read the site, habitats, feeds, the newest 50 sightings), `/feed.json` (JSON Feed 1.1 with an `_aitamer` extension carrying specimen, habitat, Wildness, verdict and sunset), and `/contract/post.schema.json`, the post contract as JSON Schema generated from the same schema the build validates with (moved to `src/content/post-schema.ts`). atn-mcp validates against it. 13 tests.
+
+### Changed
+- RSS is capped to the newest 50 posts (a feed of 10,000 would be megabytes) and its categories use habitat names.
+- `npm test` finds test files by pattern (`scripts/*.test.mjs`, `src/lib/*.test.ts`, `workers/contact/test/*.test.mjs`) instead of a hand-kept list, so a new test file can't be forgotten and parallel work no longer conflicts on that line.
+
 ## [0.1.14] — 2026-09-25
 
 ### Added
