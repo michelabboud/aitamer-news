@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.4] — 2026-09-25
+
+### Added
+- Decision record 0006: comments are baked into the static pages from data files the desk publishes into this repo; readers never cause a Worker request, and the key that can push here never sits in a public-facing Worker.
+
 ## [0.2.3] — 2026-09-25
 
 ### Added
