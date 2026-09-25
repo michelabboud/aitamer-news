@@ -6,7 +6,7 @@ aitamer.news is a static news site. Astro renders every page to HTML at build ti
 
 - **Framework:** Astro 7, `output: 'static'`, MDX and sitemap integrations (`astro.config.mjs`).
 - **Content:** Astro content collections defined in `src/content.config.ts`.
-  - `src/content/comments/*.json` — approved reader comments, one file per post, written by the desk's publisher and validated against the strict comment contract (`src/content/comment-schema.ts`, ADR 0006; loader `src/content/comments-loader.ts`, which names entries after their files and is silent when the directory has no file yet). `scripts/check-comments.mjs` (in `npm run check:posts`) fails a file with no post.
+  - `src/content/comments/*.json` — approved reader comments, one file per post, written by the desk's publisher and validated against the strict comment contract (`src/content/comment-schema.ts`, ADR 0006; loader `src/content/comments-loader.ts`, which names entries after their files and is silent when the directory has no file yet). `scripts/check-comments.mjs` (in `npm run check:posts`) fails a file with no post. The post page bakes them in at build time: `src/components/Comments.astro` renders each as `<article id="c-<id>">`, with text through `renderCommentHtml` in `src/lib/comment-text.ts` (escaped plain text, paragraphs, `http(s)` links only with `rel="nofollow ugc noopener noreferrer"`, bidirectional and zero-width characters stripped — never the Markdown pipeline); the `NewsArticle` JSON-LD carries `commentCount` and the 50 newest as `Comment`s; `CommentCount.astro` is a build-time count. `getCommentThreads()` in `src/lib/site.ts` reads the collection once per `getStaticPaths`, and each post's `cacheKey` carries its own thread's stamp, so a new comment re-renders only that post. It checks the directory for a `.json` file first (`hasCommentFiles`, `src/content/comment-files.ts`) rather than globbing: a glob would put every comment file into every post page's module graph, which the incremental build hashes.
   - `src/content/posts/*.md(x)` — articles, validated against the strict post contract (`src/content/post-schema.ts`, ADR 0004). A post is live when `draft` is not true and its `pubDate` has passed at build time (`src/lib/schedule.ts`); a future `pubDate` is a scheduled post. `getPostPages()` builds a page for every live post, withdrawn ones included (title and notice only, `noindex`); `getPublishedPosts()` feeds every list, feed, sitemap and the search index and leaves withdrawn posts out.
   - Scheduled posts go live through `.github/workflows/scheduled-publish.yml`: hourly at minute 7 it runs `scripts/due-posts.mjs` and, if a post fell due in the last two hours, dispatches the normal deploy.
   - `src/content/authors/*.md` — author profiles; a post's `author` must match one.
@@ -48,7 +48,7 @@ Secrets (`CONTACT_TO`, optional `TURNSTILE_SECRET_KEY`) are Worker secrets. The 
 
 ## Third parties in the browser
 
-- **Disqus** (`src/components/Comments.astro`, `CommentCount.astro`) — per-story comment threads, keyed to the canonical URL.
+- **Disqus** (`src/components/DisqusThread.astro`, and `count.js` in `BaseLayout.astro`) — the old per-story threads, keyed to the canonical URL, shown below the site's own comments until Disqus is removed (phase 2, task A4).
 - **Google Analytics** (GA4) — main domain only.
 - **Google Fonts** — Gloock, Hanken Grotesk, IBM Plex Mono.
 - **YouTube** — only when a reader presses play on an embedded video (`src/components/VideoEmbed.astro`, youtube-nocookie.com).

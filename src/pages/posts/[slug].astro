@@ -5,6 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
 import CommentCount from '../../components/CommentCount.astro';
 import Comments from '../../components/Comments.astro';
+import DisqusThread from '../../components/DisqusThread.astro';
 import SpecimenTag from '../../components/SpecimenTag.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
 import WildnessPanel from '../../components/WildnessPanel.astro';
@@ -19,6 +20,7 @@ import {
   archiveHref,
   archiveMonthOf,
   entryStamp,
+  getCommentThreads,
   getPostPages,
   habitatHref,
   habitatOfPost,
@@ -29,23 +31,32 @@ import {
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 import { resolveMedia } from '../../lib/media';
+import { commentsJsonLd } from '../../lib/comment-text';
 
 export async function getStaticPaths() {
   // Withdrawn posts keep their page (and URL); they only leave lists and feeds.
   const posts = await getPostPages();
+  // Loaded once for every post. Each page's key carries its own thread's stamp, so a new comment
+  // re-renders that story's page and no other (plan §6.4).
+  const threads = await getCommentThreads();
   return Promise.all(
     posts.map(async (post) => {
       const author = await resolveAuthor(post);
+      const thread = threads.get(post.id);
       return {
         params: { slug: post.id },
-        props: { post },
-        cacheKey: [entryStamp(post), author ? entryStamp(author) : 'missing-author'].join('|'),
+        props: { post, comments: thread?.data.comments ?? [] },
+        cacheKey: [
+          entryStamp(post),
+          author ? entryStamp(author) : 'missing-author',
+          thread ? entryStamp(thread) : 'no-comments',
+        ].join('|'),
       };
     }),
   );
 }
 
-const { post } = Astro.props;
+const { post, comments } = Astro.props;
 const author = await resolveAuthor(post);
 if (!author) throw new Error(`Missing author for post ${post.id}`);
 const { Content } = await render(post);
@@ -89,6 +100,8 @@ const jsonLd = withdrawn
       publisher: { '@type': 'Organization', name: SITE.title, url: SITE.url },
       citation: data.sources?.map((source) => source.url),
       isAccessibleForFree: true,
+      // Approved reader comments: the count, and the newest few as schema.org Comments.
+      ...commentsJsonLd(comments),
     };
 const breadcrumbs = {
   '@context': 'https://schema.org',
@@ -138,7 +151,7 @@ const breadcrumbs = {
           <time datetime={data.pubDate.toISOString()}>{formatDateTime(data.pubDate)}</time>
         </a>
         {!withdrawn && <span>{readingMinutes(post.body)} MIN</span>}
-        {!withdrawn && <CommentCount id={post.id} />}
+        {!withdrawn && <CommentCount id={post.id} count={comments.length} />}
         {data.updatedDate && (
           <span>
             Updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time>
@@ -240,7 +253,9 @@ const breadcrumbs = {
         </div>
 
         <div data-pagefind-ignore>
-          <Comments pageUrl={canonical} pageId={post.id} />
+          <Comments slug={post.id} comments={comments} withdrawn={Boolean(withdrawn)} />
+          {/* Until Disqus leaves the site (plan task A4), its thread stays below ours. */}
+          <DisqusThread pageUrl={canonical} pageId={post.id} />
         </div>
       </>
     )}

@@ -1,5 +1,6 @@
 import { glob } from 'astro/loaders';
 import type { Loader, LoaderContext } from 'astro/loaders';
+import { COMMENTS_BASE, COMMENTS_PATTERN, COMMENT_FILE_EXTENSION } from './comment-files.ts';
 
 /**
  * The loader for the `comments` collection (`src/content.config.ts`): Astro's own glob loader
@@ -20,9 +21,7 @@ import type { Loader, LoaderContext } from 'astro/loaders';
  *
  * The directory itself always exists in git (it holds `README.md`, which the pattern ignores).
  */
-export const COMMENTS_BASE = './src/content/comments';
-export const COMMENTS_PATTERN = '*.json';
-const COMMENT_FILE_EXTENSION = /\.json$/;
+export { COMMENTS_BASE, COMMENTS_PATTERN };
 
 /** The exact warning Astro 7's glob loader emits for an empty match (`node_modules/astro/dist/content/loaders/glob.js`). */
 const EMPTY_MATCH_WARNING_PREFIX = `No files found matching "${COMMENTS_PATTERN}"`;

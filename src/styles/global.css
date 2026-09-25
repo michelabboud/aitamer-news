@@ -511,6 +511,28 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
 .comment-count { color: var(--ink-muted); text-decoration: none; }
 .comment-count:hover { color: var(--ember-text); text-decoration: underline; }
 
+/* Reader comments, baked at build time (Comments.astro). Plain text: only p, br and a inside. */
+.comments__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1rem; }
+.comments__count, .comment__signed, .comment__time, .comment__id {
+  font-family: var(--font-machine); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.comments__count { color: var(--ink-muted); }
+.comments__empty { color: var(--ink-soft); }
+.comment-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+.comment-list > li + li { margin-top: 1rem; }
+.comment { background: var(--night-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.875rem 1rem; scroll-margin-top: 5rem; }
+.comment:target { border-color: var(--ember-line); box-shadow: inset 3px 0 0 var(--ember); }
+.comment__meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; margin-bottom: 0.5rem; }
+.comment__name { font-weight: 600; color: var(--bone); overflow-wrap: anywhere; unicode-bidi: isolate; }
+.comment__signed { color: var(--tamed); border: 1px solid currentColor; border-radius: var(--radius); padding: 0 0.35em; }
+.comment__time { color: var(--ink-muted); text-decoration: none; }
+.comment__time:hover { color: var(--ember-text); text-decoration: underline; }
+.comment__id { color: var(--ink-muted); text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
+/* isolate: a right-to-left name or text cannot reorder what sits next to it; anywhere: a run of
+   combining marks or a long URL wraps instead of widening the page. */
+.comment__text { color: var(--ink-soft); overflow-wrap: anywhere; unicode-bidi: isolate; }
+.comment__text p:last-child { margin-bottom: 0; }
+
 /* ---------- Listings (desk, habitat, author, archive) ---------- */
 
 .listing .cards { margin-top: 0; }

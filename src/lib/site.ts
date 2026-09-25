@@ -1,4 +1,6 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import { root } from 'astro:config/server';
+import { hasCommentFiles } from '../content/comment-files.ts';
 import { groupByMonth, type ArchiveMonth } from './archive.ts';
 import { HABITATS, HABITAT_META, isHabitat, type Habitat } from './habitats.ts';
 import { isLive } from './schedule.ts';
@@ -90,6 +92,17 @@ export async function getSunsetPosts(): Promise<CollectionEntry<'posts'>[]> {
   return posts
     .filter((post) => post.data.sunset)
     .sort((a, b) => a.data.sunset!.date.valueOf() - b.data.sunset!.date.valueOf() || a.id.localeCompare(b.id));
+}
+
+/**
+ * Every published comment thread, keyed by post id (the data file's name). A post with no
+ * approved comments has no entry. Asks the file system first so a site with no comment files
+ * yet does not log Astro's "collection is empty" warning on every page (`hasCommentFiles`).
+ */
+export async function getCommentThreads(): Promise<Map<string, CollectionEntry<'comments'>>> {
+  if (!hasCommentFiles(root)) return new Map();
+  const threads = await getCollection('comments');
+  return new Map(threads.map((thread) => [thread.id, thread]));
 }
 
 /** Published posts grouped by month, newest month first; posts keep newest-first order. */

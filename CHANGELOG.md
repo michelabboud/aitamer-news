@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.6] — 2026-09-25
+
+### Added
+- **Comments render on the post page** from the published data files: our own `#comments` section with plain text made safe (escaped, paragraphs, only `http(s)` links, marked `nofollow ugc`), each comment linkable by its id, an empty state, nothing on withdrawn posts. The article's structured data carries `commentCount` and the 50 newest comments.
+- Only the post whose comments changed is rebuilt: each post's incremental cache key includes its own comment file. Verified: one changed file re-renders one post page.
+- Build-time comment counts on the home page and the Campfire. The Disqus thread stays below ours until Disqus is removed. 39 tests.
+
 ## [0.2.5] — 2026-09-25
 
 ### Added

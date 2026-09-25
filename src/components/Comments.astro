@@ -1,32 +1,74 @@
 ---
-import { DISQUS_SHORTNAME } from '../lib/site';
+/**
+ * A story's comments, baked into the page at build time from its data file
+ * (`src/content/comments/<slug>.json`, ADR 0006; plan §6.2). No request leaves the page to show
+ * them. Text goes through `renderCommentHtml` (escaped, paragraphs, `http(s)` links only) and
+ * never through the Markdown pipeline; names are Astro-escaped text.
+ *
+ * A withdrawn story renders nothing here: no comments and no form.
+ */
+import type { CollectionEntry } from 'astro:content';
+import {
+  commentAnchor,
+  commentCountLabel,
+  renderCommentHtml,
+  stripInvisible,
+} from '../lib/comment-text';
+import { formatDateTime } from '../lib/site';
+
+type Comment = CollectionEntry<'comments'>['data']['comments'][number];
 
 interface Props {
-  /** Canonical story URL on aitamer.news. Keeps one thread per story. */
-  pageUrl: string;
-  /** Stable id for the thread. The post slug. */
-  pageId: string;
+  /** The post's id, which is also its comment file's name. */
+  slug: string;
+  /** The approved comments, oldest first, as the data file holds them. Empty when there is no file. */
+  comments: readonly Comment[];
+  /** A withdrawn story shows no comments and takes none. */
+  withdrawn: boolean;
 }
 
-const { pageUrl, pageId } = Astro.props;
-const shortname = DISQUS_SHORTNAME;
+const { slug, comments, withdrawn } = Astro.props;
 ---
-<section class="comments" id="comments" aria-labelledby="comments-title">
-  <h2 id="comments-title">The Campfire</h2>
-  <div id="disqus_thread"></div>
-  <script is:inline define:vars={{ pageUrl, pageId, shortname }}>
-    window.disqus_config = function () {
-      this.page.url = pageUrl;
-      this.page.identifier = pageId;
-    };
-    (function () {
-      var d = document, s = d.createElement('script');
-      s.src = 'https://' + shortname + '.disqus.com/embed.js';
-      s.setAttribute('data-timestamp', +new Date());
-      (d.head || d.body).appendChild(s);
-    })();
-  </script>
-  <noscript>
-    Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a>.
-  </noscript>
-</section>
+{!withdrawn && (
+  <section class="comments" id="comments" aria-labelledby="comments-title" data-thread={slug}>
+    <div class="comments__head">
+      <h2 id="comments-title">The Campfire</h2>
+      <span class="comments__count">{commentCountLabel(comments.length)}</span>
+    </div>
+
+    {comments.length === 0 ? (
+      <p class="comments__empty">
+        Nobody has pulled up a log by this one yet. Be the first to say what you make of it.
+      </p>
+    ) : (
+      <ol class="comment-list">
+        {comments.map((comment) => {
+          const anchor = commentAnchor(comment.id);
+          return (
+            <li>
+              <article class="comment" id={anchor} aria-labelledby={`${anchor}-name`}>
+                <header class="comment__meta">
+                  <span class="comment__name" id={`${anchor}-name`}>{stripInvisible(comment.name)}</span>
+                  {comment.signedIn && (
+                    <span class="comment__signed" title="Signed in when they wrote this">Signed in</span>
+                  )}
+                  <a class="comment__time" href={`#${anchor}`} title="Link to this comment">
+                    <time datetime={comment.at}>{formatDateTime(new Date(comment.at))}</time>
+                  </a>
+                  <span class="comment__id" title="This comment's id: quote it to the desk to ask for a removal">
+                    {comment.id}
+                  </span>
+                </header>
+                <div class="comment__text" set:html={renderCommentHtml(comment.text)} />
+              </article>
+            </li>
+          );
+        })}
+      </ol>
+    )}
+
+    {/* COMMENT FORM SLOT — lane A3 builds src/components/CommentForm.astro; the coordinator
+        inserts it here, e.g. <CommentForm slug={slug} />. It renders below the thread, so the
+        empty state above is its invitation. */}
+  </section>
+)}
