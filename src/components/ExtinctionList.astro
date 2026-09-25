@@ -14,15 +14,15 @@ interface Props {
 }
 const { entries, showTitle = false } = Astro.props;
 
-/** Days left are counted at build time, then recounted in the browser (script below). */
+/**
+ * The HTML carries only facts that cannot go stale: the shutdown date, and "extinct" once the
+ * date has passed at build time. The countdown ("3 days left") is written by the script below in
+ * the reader's browser, so a page that is not rebuilt for a week never shows an old count to
+ * readers without JavaScript, crawlers or LLMs (plan decision D12; release review B-2).
+ */
 function countOf(daysLeft: number, date: Date) {
   if (daysLeft < 0) return { big: '†', unit: `Extinct ${formatShortDate(date)}`, state: 'extinct' };
-  if (daysLeft === 0) return { big: '0', unit: 'Goes today', state: 'soon' };
-  return {
-    big: String(daysLeft),
-    unit: daysLeft === 1 ? 'Day left' : 'Days left',
-    state: daysLeft <= 7 ? 'soon' : 'later',
-  };
+  return { big: formatShortDate(date), unit: 'Shuts down', state: 'later' };
 }
 ---
 <ul class="watch-list">
@@ -30,7 +30,7 @@ function countOf(daysLeft: number, date: Date) {
     const count = countOf(daysLeft, date);
     const sunset = post.data.sunset!;
     return (
-      <li class="watch-item" data-sunset={date.toISOString()} data-state={count.state}>
+      <li class="watch-item" data-sunset={date.toISOString()} data-state={count.state} data-static-date={count.state === 'later' ? '' : undefined}>
         <div class="watch-item__count">
           <span class="watch-item__big">{count.big}</span>
           <span class="watch-item__unit">{count.unit}</span>
@@ -59,6 +59,7 @@ function countOf(daysLeft: number, date: Date) {
   let soon = 0;
   document.querySelectorAll<HTMLElement>('.watch-item[data-sunset]').forEach((item) => {
     const date = new Date(item.dataset.sunset!);
+    item.removeAttribute('data-static-date');
     const days = Math.round((Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - todayUtc) / DAY);
     const big = item.querySelector('.watch-item__big')!;
     const unit = item.querySelector('.watch-item__unit')!;

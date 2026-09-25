@@ -189,3 +189,12 @@ test('source links must be http(s); dates may not be bare numbers', async () => 
   assert.equal(postSchema.safeParse({ ...base, updatedDate: 20261023 }).success, false);
   assert.equal(postSchema.safeParse({ ...base, pubDate: '2026-09-25T09:15:12Z' }).success, true);
 });
+
+test('title, description and tags may not be empty', () => {
+  const base = { title: 't', description: 'd', pubDate: '2026-09-25', section: 'models', author: 'desk-bot' };
+  assert.equal(postSchema.safeParse(base).success, true);
+  assert.equal(postSchema.safeParse({ ...base, title: '' }).success, false);
+  assert.equal(postSchema.safeParse({ ...base, description: '' }).success, false);
+  assert.equal(postSchema.safeParse({ ...base, tags: ['ok', ''] }).success, false);
+  assert.equal(postSchema.safeParse({ ...base, title: 'x'.repeat(201) }).success, false);
+});

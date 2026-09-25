@@ -40,8 +40,7 @@ import { SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
         and a note. Sending it goes to contact.{SITE.domain}, a small Cloudflare program that checks
         the note and asks Cloudflare Email to deliver it to the desk, with your address as the
         reply-to. Nothing is stored in a database. To stop floods, Cloudflare counts how many notes
-        come from your IP address in the last minute; the count is not kept. The form on the GitHub
-        Pages copy posts to the same place. A hidden field is there for spam; filling it drops the
+        come from your IP address in the last minute; the count is not kept. A hidden field is there for spam; filling it drops the
         note.{TURNSTILE_SITE_KEY && ' The form also runs Cloudflare Turnstile, which checks your browser for signs of a bot before the note is accepted.'}
       </p>
       <p>

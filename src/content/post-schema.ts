@@ -83,14 +83,15 @@ const withdrawal = z
 
 export const postSchema = z
   .object({
-    title: z.string(),
-    description: z.string(),
+    // Non-empty and bounded: they become the h1, the <title>, the feed item and the JSON-LD headline.
+    title: z.string().min(1).max(200),
+    description: z.string().min(1).max(400),
     // A plain date while drafting, a full UTC time once stamped; never a bare number (review N-minor 9, info 7).
     pubDate: strictDate(),
     updatedDate: strictDate().optional(),
     section: z.enum(HABITATS),
     subsection: z.string().optional(),
-    tags: z.array(z.string()).default([]),
+    tags: z.array(z.string().min(1).max(60)).default([]),
     draft: z.boolean().default(false),
     /** `/heroes/<slug>.jpg` in this repo, or an absolute https URL (R2, later). */
     heroImage: z

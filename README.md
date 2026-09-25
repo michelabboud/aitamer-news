@@ -30,9 +30,9 @@ npm run preview  # preview the production build
 src/content/authors/   # author profiles (Markdown frontmatter)
 src/content/posts/     # news posts (Markdown / MDX)
 src/pages/             # routes
-src/components/        # PostCard, badges, chips
+src/components/        # post card, Wildness meter, specimen tag, Extinction list, video embed
 src/layouts/           # BaseLayout
-src/styles/global.css  # editorial dark theme
+src/styles/global.css  # the Bestiary theme (tokens in bestiary-tokens.css)
 ```
 
 ## Editorial standards
@@ -56,7 +56,7 @@ section: tools            # models | tools | creative | infra | rust | policy | 
 subsection: cli           # optional
 tags: [briefing, tools]
 draft: true               # keep true until ready
-heroImage: /images/foo.jpg # optional
+heroImage: /heroes/my-post.jpg # /heroes/<slug>.jpg or an https:// URL
 author: desk-bot          # must match an authors/*.md id
 sources:                  # optional
   - title: Example source
@@ -136,7 +136,7 @@ PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://lo
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Latest published posts + section chips |
+| `/` | The field log: latest catch, recent sightings, Extinction Watch, habitat counts |
 | `/posts/[slug]` | Article |
 | `/section/[section]` | Habitat listing (old desk URLs redirect) |
 | `/authors/[id]` | Author page |

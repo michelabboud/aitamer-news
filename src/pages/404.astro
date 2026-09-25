@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { HABITAT_LIST, habitatHref, withBase } from '../lib/site';
+
+/*
+ * Cloudflare Pages serves this file with status 404 for any path that has no page. Without it,
+ * Pages assumes a single-page app and answers every unknown URL with the home page and a 200,
+ * which search engines count as soft 404s (release review, finding B-1).
+ */
+---
+<BaseLayout title="Specimen not found" description="This page does not exist on AI Tamer." noindex>
+  <header class="page-head">
+    <p class="page-kicker">Error 404</p>
+    <h1 class="page-title">Specimen not found</h1>
+    <p class="lede">
+      Nothing lives at this address. It may have been mistyped, or it never existed. Stories keep their
+      address for good, even when they are withdrawn.
+    </p>
+  </header>
+
+  <form class="search-inline" action={withBase('/search/')} method="get" role="search">
+    <label for="notfound-q">Search the field guide</label>
+    <input id="notfound-q" name="q" type="search" autocomplete="off" />
+    <button type="submit">Search</button>
+  </form>
+
+  <h2 style="margin-top: 2.5rem">Or walk a habitat</h2>
+  <ul class="notfound-habitats">
+    {HABITAT_LIST.map((h) => (
+      <li><a href={habitatHref(h)}>{h.code} · {h.name}</a></li>
+    ))}
+    <li><a href={withBase('/')}>The field log (home)</a></li>
+    <li><a href={withBase('/archive/')}>The archive</a></li>
+  </ul>
+</BaseLayout>

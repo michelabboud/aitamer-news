@@ -356,6 +356,8 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 .watch-item__unit { font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--ink-muted); text-transform: uppercase; }
 .watch-item[data-state="soon"] .watch-item__big { color: var(--danger); }
 .watch-item[data-state="extinct"] .watch-item__big { color: var(--ink-muted); }
+/* Before the browser script counts the days, the big slot shows the date ("SEP 28"): smaller type. */
+.watch-item[data-static-date] .watch-item__big { font-size: 20px; white-space: nowrap; }
 .watch-item__body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .watch-item__what { font-family: var(--font-machine); font-size: 0.8125rem; line-height: 1.4; color: var(--bone); text-decoration: none; overflow-wrap: anywhere; }
 a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline; }
@@ -907,3 +909,23 @@ a.archive-month__name:hover { color: var(--ember-text); }
 .video__note { font-family: var(--font-machine); font-size: 0.75rem; color: var(--ink-muted); letter-spacing: 0.04em; }
 .video__play:hover .video__icon, .video__play:focus-visible .video__icon { background: var(--ember-text); }
 .video__caption { margin-top: 0.6rem; font-family: var(--font-machine); font-size: 0.78rem; color: var(--ink-muted); }
+
+/* ---- 404 page ---- */
+.search-inline { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; max-width: 36rem; }
+.search-inline label { flex-basis: 100%; font-family: var(--font-machine); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); }
+.search-inline input {
+  flex: 1 1 14rem; min-height: var(--tap-min); padding: 0 14px;
+  font: inherit; color: var(--bone); background: var(--night-raised);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-md);
+}
+.search-inline input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.search-inline button {
+  min-height: var(--tap-min); padding: 0 18px; font: inherit; font-weight: 700; cursor: pointer;
+  color: var(--night); background: var(--bone); border: 0; border-radius: var(--radius);
+}
+.notfound-habitats { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); }
+.notfound-habitats a {
+  display: flex; align-items: center; min-height: var(--tap-min); padding: 0 14px;
+  border: 1px solid var(--line); color: var(--bone); text-decoration: none;
+}
+.notfound-habitats a:hover, .notfound-habitats a:focus-visible { border-color: var(--ember); color: var(--ember-text); }

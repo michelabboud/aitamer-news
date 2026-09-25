@@ -2,6 +2,18 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.27] — 2026-09-25
+
+### Fixed
+Release review, reviewer B (`docs/reviews/2026-09-25-release-review.md` once both reviewers report):
+- **A real 404 page.** Without `404.html`, Cloudflare Pages served the home page with status 200 for every unknown URL (soft 404s). `/404.html` now says "Specimen not found" with search and the habitats, `noindex`.
+- **No stale countdowns in the HTML.** Extinction Watch writes only the shutdown date ("SEP 28") or "Extinct" into the page; the "3 days left" count is computed in the reader's browser, as plan decision D12 required.
+- **The contract refuses empty headlines:** `title` (1–200), `description` (1–400) and each tag (1–60) must be non-empty, before v1 is released. 1 test.
+- Copy: the privacy and terms pages no longer mention the retired GitHub Pages copy; the Desk Bot bio drops "Placeholder"; the README post template passes the contract.
+- The retired GitHub Pages workflow no longer triggers on push (manual only), so a fork cannot run it by accident.
+- `SECURITY.md` states the trust model (writers are trusted; Markdown bodies may carry HTML by design).
+- The plan records every task's status at release; deferred items are in BACKLOG.
+
 ## [0.1.26] — 2026-09-25
 
 ### Changed

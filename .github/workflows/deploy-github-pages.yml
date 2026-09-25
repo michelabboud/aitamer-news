@@ -1,8 +1,8 @@
 name: Deploy GitHub Pages
 
+# Retired 2026-09-25: aitamer.news on Cloudflare is the only copy. Kept for reference, manual
+# trigger only, and disabled in the repository's Actions settings; forks do not inherit that switch.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 # Lets the deploy job publish the github-pages environment.
@@ -35,7 +35,7 @@ jobs:
       - name: Check scripts and post times
         run: |
           npm test
-          npm run check:times
+          npm run check:posts
 
       - name: Restore Astro incremental cache
         uses: actions/cache@v6

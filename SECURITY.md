@@ -19,6 +19,10 @@ Only the site as currently deployed at https://aitamer.news, built from `main`, 
 - The contact Worker at `contact.aitamer.news` (`workers/contact/`): abuse, rate-limit bypass, header injection, anything that makes it send mail it should not.
 - The GitHub Actions workflows (`.github/workflows/`) and anything that could expose a deploy secret.
 
+## Trust model
+
+Posts are written by the desk's own bots, the posts tool and editors, all trusted writers. The post contract (`POST.md`, strict JSON Schema) blocks malformed data and dangerous link schemes, and everything rendered from frontmatter is escaped; but Markdown bodies may contain raw HTML by design, so a writer with commit access can publish arbitrary markup. Protection against that sits upstream: only the maintainer can push, and pull requests from outside run no deploy.
+
 ## Out of scope
 
 - Findings that need a compromised maintainer account or machine.

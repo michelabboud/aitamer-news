@@ -178,3 +178,28 @@ Host at dispatch: 28 cores, load 1.06 (factor 0.04, near idle), 67 GB available 
 | Coordinator | Strong (Opus), main checkout | Batch B: the theme port | styles, layout, components, pages | L1 for real data (not blocking) | commits on `main` |
 
 Lanes never bump `VERSION` or edit `CHANGELOG.md`; the coordinator does both when it merges a lane, so version allocation stays single-writer. After lanes merge, one mechanical review (Standard) covers L1–L4. C3 (search), C7 (SEO), B7 (video/corrections/withdrawn rendering) and C1/C2 follow the theme port because they touch the same pages.
+
+## 10. Status at release (2026-09-25)
+
+| Task | Status | Where |
+|---|---|---|
+| A0 plan | done | 0.1.6, lanes 0.1.11 |
+| A1 habitats | done | 0.1.7 |
+| A2 legacy stubs | done | 0.1.8 (Cloudflare 301 confirmed live) |
+| A3 contract v1 | done, then strict and versioned | 0.1.9, 0.1.18, 0.1.24, 0.1.27 |
+| A4 specimen stamping | done, then hardened | 0.1.10, 0.1.19 |
+| A5 field data | done, awaiting Michel's editorial review | 0.1.13, `docs/reviews/2026-09-25-field-data-drafts.md` |
+| A6 scheduled publishing | done, fixed | 0.1.14, 0.1.24 |
+| B1–B5 theme, components, home, post, listings | done (ported from `feat/bestiary`) | 0.1.16 |
+| B6 About, privacy, terms, 404 | done; the 404 landed late | 0.1.16, 0.1.27 |
+| B7 video, corrections, withdrawn | done | 0.1.16 |
+| C1 Extinction Watch | done (`/extinction-watch/`, counts in the browser only) | 0.1.16, 0.1.27 |
+| C2 Campfire | done | 0.1.16 |
+| C3 search | done | 0.1.20 |
+| C4 docs | done | 0.1.21 |
+| C5 copy and accessibility pass | partly: contrast measured in the batch B–C review (all text ≥ 6.4:1), `aria-current`, reduced motion, home `h1`; the scripted dead-link check is deferred (BACKLOG) | 0.1.24 |
+| C6 machine-readable | done | 0.1.15 |
+| C7 SEO | done | 0.1.16, 0.1.17, 0.1.21 |
+| C8 going public | done, protections verified | 0.1.23, 0.1.26 |
+
+Reviews: batch A deep (0.1.10), batch B–C deep with batch A re-review (0.1.21), release high deep, dual-blind (0.1.25 candidate). Deviations from the plan: D13 (theme branch) replaced by V9 (staging on `main`); the plan's `/extinction/` became `/extinction-watch/`; `counts.ts` and `sunset.ts` became `src/lib/bestiary.ts`.
