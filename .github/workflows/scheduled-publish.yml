@@ -1,0 +1,35 @@
+name: Scheduled publish
+
+on:
+  schedule:
+    # :07, not :00 — GitHub's own docs flag the top of the hour as the most popular cron
+    # minute, so jobs scheduled there queue behind everyone else's and can start late.
+    # :07 avoids that congestion and keeps this job starting close to on time.
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  check-due:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Check for due posts
+        id: due
+        run: node scripts/due-posts.mjs
+
+      - name: Trigger the deploy
+        if: steps.due.outputs.due == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy-pages.yml --ref main

@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.14] — 2026-09-25
+
+### Added
+- Scheduled and delayed posts (lane L2): a post with a future `pubDate` stays off the site until a build runs after that time (`src/lib/schedule.ts`). `scripts/due-posts.mjs` finds posts that fell due in the last two hours, and `.github/workflows/scheduled-publish.yml` checks hourly (minute 7) and triggers the deploy only when something is due. `POST.md` §4 explains scheduling. 13 tests.
+
 ## [0.1.13] — 2026-09-25
 
 ### Added

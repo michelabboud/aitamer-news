@@ -1,6 +1,7 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { groupByMonth, type ArchiveMonth } from './archive.ts';
 import { HABITATS, HABITAT_META, isHabitat, type Habitat } from './habitats.ts';
+import { isLive } from './schedule.ts';
 
 export { HABITATS, HABITAT_META, LEGACY_SECTIONS, type Habitat } from './habitats.ts';
 
@@ -47,8 +48,11 @@ export function entryStamp(entry: { id: string; digest?: string }): string {
   return `${entry.id}@${entry.digest ?? 'no-digest'}`;
 }
 
+/** Captured once per build, so every page of the same build agrees on what "live" means. */
+const BUILD_TIME = new Date();
+
 export function isPublished(post: CollectionEntry<'posts'>): boolean {
-  return !post.data.draft;
+  return isLive(post.data, BUILD_TIME);
 }
 
 /** Every post that gets a page: published, withdrawn ones included (they keep their URL). */
