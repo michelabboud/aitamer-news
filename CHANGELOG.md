@@ -2,6 +2,19 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.26] — 2026-09-25
+
+### Changed
+- **The repository is public** (Michel, 2026-09-25), after the privacy audit and clean-up (0.1.12, 0.1.23). Protections, all verified:
+  - rulesets: no force-push or deletion of `main`; `v*` and `checkpoint/*` tags can't be moved or deleted;
+  - Actions: read-only default token, no pull-request approvals by workflows, and workflows from outside contributors wait for the owner's approval;
+  - secret scanning with push protection, Dependabot alerts and security fixes, private vulnerability reporting;
+  - the wiki and projects tabs are off. Only the owner can push.
+- The ops and MCP repos (`atn-ops`, `atn-mcp`) stay private.
+
+### Added
+- `SECURITY.md` (how to report, scope) and `CONTRIBUTING.md` (setup, the checks CI runs, versions, licence of contributions).
+
 ## [0.1.25] — 2026-09-25
 
 ### Changed
