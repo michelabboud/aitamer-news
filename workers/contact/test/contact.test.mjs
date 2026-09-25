@@ -4,7 +4,7 @@ import worker from '../src/index.mjs';
 import * as entry from '../src/index.mjs';
 import { MAX_BODY_BYTES, handleContactRequest, rateLimitKey } from '../src/handler.mjs';
 import { DESK_FROM, HONEYPOT_FIELD, contactLetter, parseContactFields } from '../src/message.mjs';
-import { TURNSTILE_ACTION, TURNSTILE_FIELD, TURNSTILE_HOSTNAME, verifyTurnstile } from '../src/turnstile.mjs';
+import { TURNSTILE_ACTION, TURNSTILE_FIELD, TURNSTILE_HOSTNAMES, verifyTurnstile } from '../src/turnstile.mjs';
 
 const valid = {
   name: 'Ada Desk',
@@ -220,19 +220,21 @@ test('the contact form widget\'s action and the site\'s hostname are what the Wo
   assert.equal(TURNSTILE_ACTION, 'contact');
   // Turnstile's rule for an action: up to 32 characters of letters, digits, `_` and `-`.
   assert.match(TURNSTILE_ACTION, /^[A-Za-z0-9_-]{1,32}$/);
-  assert.equal(TURNSTILE_HOSTNAME, 'aitamer.news');
+  assert.deepEqual([...TURNSTILE_HOSTNAMES].sort(), ['aitamer.news', 'www.aitamer.news']);
 });
 
 test('a token Cloudflare accepts still fails for another widget\'s action or another site', async () => {
   const answer = (fields) => async () => new Response(JSON.stringify({ success: true, 'error-codes': [], ...fields }));
   const ok = { action: 'contact', hostname: 'aitamer.news' };
   assert.deepEqual(await verifyTurnstile('t', 's', null, answer(ok)), { ok: true });
+  // The site serves the same pages at www, so a note solved there passes too.
+  assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, hostname: 'www.aitamer.news' })), { ok: true });
   // The comment form's token must not send a contact note, and the reverse.
   assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, action: 'comment' })), { ok: false, reason: 'wrong-action' });
   assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, action: undefined })), { ok: false, reason: 'wrong-action' });
   assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, action: 'Contact' })), { ok: false, reason: 'wrong-action' });
   // A widget solved on another site (the same site key, embedded elsewhere) is refused.
-  for (const hostname of ['evil.example', 'www.aitamer.news', 'aitamer.news.evil.example', 'localhost', undefined]) {
+  for (const hostname of ['evil.example', 'aitamer.news.evil.example', 'www.aitamer.news.evil.example', 'localhost', undefined]) {
     assert.deepEqual(await verifyTurnstile('t', 's', null, answer({ ...ok, hostname })), { ok: false, reason: 'wrong-hostname' }, String(hostname));
   }
   // Cloudflare's own refusal still comes first, with its codes.

@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.16] — 2026-09-26
+
+### Fixed
+Focused review of the batch A fixes:
+- **The contact Worker accepts Turnstile tokens solved on `www.aitamer.news`** as well as the apex. The site serves the same pages on both, so with Turnstile on, every note from www would otherwise have been refused, including removal requests.
+- **Privacy page, exact about what stays:** the trust score and link count kept with each comment's record; a removed comment leaves a bare record (id, story, times, score, link count) and its erased text can remain in the database's restorable backups for up to 30 days; a ban keeps a short reason with the hash for 30 days; Cloudflare's rate limit and Turnstile see the address itself while you send.
+- `POST.md`: after a refused publisher push, also disable the scheduled publish until the revert, since its hourly deploy is not a push. The decision index points 0006's readers to the corrected removal rule.
+- The last two workflows (`check-posts`, `scheduled-publish`) pin their actions by commit.
+
 ## [0.2.15] — 2026-09-26
 
 ### Changed

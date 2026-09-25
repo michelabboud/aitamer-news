@@ -32,22 +32,33 @@ import { CONTACT_FORM_LIVE, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/si
           Your IP address, only as a salted, shortened hash. The address itself is never stored.
           The hash is kept for 30 days. It is used to limit how many comments one visitor can send,
           to spot the same comment sent twice, to judge how far to trust a new comment, and to
-          enforce a ban. When the desk bans a visitor, the hash is kept for up to 30 days from the ban.
+          enforce a ban. When the desk bans a visitor, the hash and a short note of the reason are
+          kept for up to 30 days from the ban, then deleted. While you send, Cloudflare's rate limit
+          and its Turnstile check see the address itself; that handling is Cloudflare's.
+        </li>
+        <li>
+          A trust score for the comment, worked out from its content and from that hash's recent
+          history, and the number of links in it. These stay with the comment's record.
         </li>
         <li>How long the form was open before you sent it. This is kept for 30 days.</li>
         <li>
           Your name and comment text, while the desk reviews the comment. If the desk rejects it,
           the name and text are erased 30 days after the review.
         </li>
-        <li>If the desk removes a comment, its name and text are erased from the desk's records at once.</li>
+        <li>
+          If the desk removes a comment, its name and text are erased from the desk's database at
+          once. A bare record that a comment existed stays: its id, story, times, trust score and link
+          count. The database keeps restorable backups for up to 30 days, so erased text can remain in
+          those backups until they expire.
+        </li>
       </ul>
       <p>
         A published comment is public. It appears on the story's page, on the{' '}
         <a href={withBase('/campfire/')}>Campfire</a> page with the other newest comments, and in the
         story page's structured data (the machine-readable summary search engines read). The site's
         source is public on GitHub, and a published comment is part of its history there. Removing a
-        comment takes it off the site and out of the desk's records, but it cannot erase it from that
-        public history.
+        comment takes it off the site and erases its name and text from the desk's database, but it
+        cannot erase it from that public history.
       </p>
       <p>
         To ask for a comment's removal, use{' '}

@@ -22,10 +22,11 @@ export const SITEVERIFY_TIMEOUT_MS = 5_000;
 export const TURNSTILE_ACTION = 'contact';
 
 /**
- * The hostname siteverify must report: the page the widget was solved on. Anything else is the
+ * The hostnames siteverify may report: the site serves the same pages at the apex and at www, and
+ * the Worker accepts both as origins, so a note solved on either must pass. Anything else is the
  * widget embedded on another site (or a local page) with this site's key.
  */
-export const TURNSTILE_HOSTNAME = 'aitamer.news';
+export const TURNSTILE_HOSTNAMES = new Set(['aitamer.news', 'www.aitamer.news']);
 
 /**
  * @param {string} token value of the cf-turnstile-response field
@@ -33,8 +34,8 @@ export const TURNSTILE_HOSTNAME = 'aitamer.news';
  * @param {string | null} remoteIp visitor IP, passed along as Cloudflare recommends
  * @param {typeof fetch} fetchImpl
  * @returns {Promise<{ ok: true } | { ok: false, reason: string }>} never throws; failure to verify is a failure.
- * A token Cloudflare accepts still fails unless it was solved for {@link TURNSTILE_ACTION} on
- * {@link TURNSTILE_HOSTNAME} (reasons `wrong-action`, `wrong-hostname`).
+ * A token Cloudflare accepts still fails unless it was solved for {@link TURNSTILE_ACTION} on one of
+ * {@link TURNSTILE_HOSTNAMES} (reasons `wrong-action`, `wrong-hostname`).
  */
 export async function verifyTurnstile(token, secret, remoteIp, fetchImpl) {
   if (!token) return { ok: false, reason: 'missing-token' };
@@ -54,7 +55,7 @@ export async function verifyTurnstile(token, secret, remoteIp, fetchImpl) {
     const result = await response.json();
     if (result && result.success === true) {
       if (result.action !== TURNSTILE_ACTION) return { ok: false, reason: 'wrong-action' };
-      if (result.hostname !== TURNSTILE_HOSTNAME) return { ok: false, reason: 'wrong-hostname' };
+      if (!TURNSTILE_HOSTNAMES.has(result.hostname)) return { ok: false, reason: 'wrong-hostname' };
       return { ok: true };
     }
     const codes = Array.isArray(result?.['error-codes']) ? result['error-codes'].join(',') : 'no-codes';
