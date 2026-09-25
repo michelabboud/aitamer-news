@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseFrontmatter } from '@astrojs/internal-helpers/frontmatter';
 import { FrontmatterError, SLUG, assertOnlyChanged, isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
+import { SLUG as DEPENDENCY_FREE_SLUG } from './slug.mjs';
 
 const BOM = '\uFEFF';
 
@@ -77,4 +78,8 @@ test('assertOnlyChanged refuses an edit that touched another field', () => {
 test('the slug rule accepts the real slugs and refuses what Astro or the ledger would change', () => {
   for (const ok of ['grok-4-7', 'gpt-6-sol-luna-api-pricing', '0day']) assert.match(ok, SLUG);
   for (const bad of ['Grok-5', 'gpt-5.6', 'a b', '-lead', 'under_score', '']) assert.doesNotMatch(bad, SLUG);
+});
+
+test('the slug rule is the one in the dependency-free scripts/slug.mjs, re-exported', () => {
+  assert.equal(SLUG, DEPENDENCY_FREE_SLUG);
 });

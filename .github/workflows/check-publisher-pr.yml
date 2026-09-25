@@ -1,27 +1,36 @@
 name: Publisher paths
 
-# The desk's publisher — a GitHub App whose login is the repository variable PUBLISHER_LOGIN — may
-# only ever add, change or delete src/content/comments/<slug>.json (phase 2 plan D12, ADR 0006).
-# It pushes to a desk/comments-* branch and opens a pull request into main; this job is the
-# required check on pull requests in the branch ruleset. Repository admins bypass the ruleset, so
-# the maintainer's direct pushes to main keep working. When PUBLISHER_LOGIN is unset or empty,
-# every pull request is held to the rule (fail safe).
+# The desk's publisher, a GitHub App, may only ever add, change or delete
+# src/content/comments/<slug>.json (phase 2 plan D12, ADR 0006). It pushes to a desk/comments-*
+# branch and opens a pull request into main with its installation token; this job is the
+# required check on pull requests in the branch ruleset.
+#
+# Who is held to the rule: EVERY pull request, unless its author and this event's sender are both
+# the maintainer, compared by numeric account id with the repository variable MAINTAINER_ID, and
+# the event is `opened` or `synchronize` (the sender of `edited` or `reopened` did not push the
+# head). Keying on the author alone would let the publisher push into someone else's pull request
+# (Dependabot's, say) and pass. MAINTAINER_ID unset, empty or not a number: nobody is exempt.
 #
 # pull_request_target: the workflow, and the script it runs, always come from main — never from
-# the pull request. Nothing from the pull request's head is checked out or executed: the list of
-# changed files comes from the API, and the head tree's file modes from `git ls-tree` on a commit
-# that is fetched but never checked out. The pull request's number and head SHA are the only
-# event values that reach a shell line; both are numeric or hexadecimal by construction. The
-# author's login goes through the environment, never a shell line.
+# the pull request. Nothing from the pull request's head is checked out or executed, and no
+# dependency is installed (the script needs only node's built-ins). The verdict is pinned to the
+# event's head commit: the job fetches refs/pull/<n>/head, fails if it is not that commit (the
+# branch moved; the `synchronize` run for the new head judges it), and reads the changes from
+# `git diff --name-status -M <merge base> <head>` and the modes from `git ls-tree -r <head>` on
+# objects that are fetched but never checked out. Event values reach shell lines only through
+# the environment, and each one is checked to be numeric or hexadecimal before use.
+#
+# The fetch is anonymous (persist-credentials: false), which works because this repository is
+# public. A private copy would need an authenticated fetch, e.g. `persist-credentials: true`
+# (safe here only because nothing from the pull request runs in this job).
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
     branches: [main]
 
 permissions:
   contents: read
-  pull-requests: read
 
 concurrency:
   group: publisher-paths-${{ github.event.pull_request.number }}
@@ -33,36 +42,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main (the base; never the pull request)
-        uses: actions/checkout@v7
+        # Pinned to a commit: this job runs with the base repository's token on untrusted input.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.base.ref }}
+          ref: ${{ github.sha }}
+          # Full history, so the merge base of any pull request is in the clone.
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
 
-      - name: Install (main's lockfile)
-        run: npm ci
-
-      - name: List the pull request's changed files (API, not a checkout)
+      - name: Fetch the pull request's head (never checked out) and pin it
         env:
-          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
-            --paginate --slurp > "$RUNNER_TEMP/pr-files.json"
-
-      - name: Read the head tree's file modes (fetched, never checked out)
-        # The tree is read at the event's head SHA. If the branch moved since, the SHA is not in
-        # the shallow fetch and this step fails; the `synchronize` run for the new head checks it.
-        run: |
-          git fetch --no-tags --depth=1 origin "refs/pull/${{ github.event.pull_request.number }}/head"
-          git ls-tree -r -z "${{ github.event.pull_request.head.sha }}" > "$RUNNER_TEMP/head-modes.txt"
+          set -euo pipefail
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || { echo "::error::pull request number is not a number"; exit 1; }
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::base sha is not a commit id"; exit 1; }
+          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::head sha is not a commit id"; exit 1; }
+          git fetch --no-tags origin "$BASE_SHA" "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
+          fetched="$(git rev-parse --verify 'refs/remotes/pull/head^{commit}')"
+          if [ "$fetched" != "$HEAD_SHA" ]; then
+            echo "::error::the pull request's head is now $fetched, not the $HEAD_SHA this run was for; the run for the new head judges it"
+            exit 1
+          fi
 
       - name: Check the changed paths
         env:
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PUBLISHER_LOGIN: ${{ vars.PUBLISHER_LOGIN }}
-          PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
-        run: node scripts/check-publisher-paths.mjs --files "$RUNNER_TEMP/pr-files.json" --modes "$RUNNER_TEMP/head-modes.txt"
+          PR_ACTION: ${{ github.event.action }}
+          PR_AUTHOR_ID: ${{ github.event.pull_request.user.id }}
+          EVENT_SENDER_ID: ${{ github.event.sender.id }}
+          MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/check-publisher-paths.mjs pr --base "$BASE_SHA" --head "$HEAD_SHA"

@@ -16,10 +16,64 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        # Pinned to a commit, like the deploy action: this job goes on to hold the Cloudflare token.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: The publisher may only have changed comment files
+        # Defence in depth behind the required check `publisher-paths` (check-publisher-pr.yml):
+        # the desk's publisher should only ever land comment files through a pull request, but if
+        # it ever pushes to main itself (a ruleset gap, a leaked key), this refuses to build or
+        # deploy unless every path changed between github.event.before and after is
+        # src/content/comments/<slug>.json. It runs first, before `npm ci` or anything else from
+        # the pushed tree, with the runner's own node (the script needs only node's built-ins).
+        #
+        # The checked-out tree IS the push being judged, so its copy of the script cannot be the
+        # judge. The script (and the slug module it imports) is taken from the commit BEFORE the
+        # push instead, read with `git show`, never checked out. That is still only a second
+        # line: this workflow file itself comes from the pushed commit (GitHub refuses workflow
+        # edits from an App without the `workflows` permission, which the publisher lacks), and
+        # the first line is the pull request check, run from main.
+        #
+        # PUBLISHER_ACTOR is the App's bot login (`<app-slug>[bot]`, a repository variable). Unset:
+        # the step says so and skips. A push whose before is all zeros or not fetchable fails.
+        env:
+          PUBLISHER_ACTOR: ${{ vars.PUBLISHER_ACTOR }}
+          ACTOR: ${{ github.actor }}
+          TRIGGERING_ACTOR: ${{ github.triggering_actor }}
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        run: |
+          set -euo pipefail
+          publisher="$(printf '%s' "$PUBLISHER_ACTOR" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if [ -z "$publisher" ]; then
+            echo "::notice::PUBLISHER_ACTOR is not set, so the publisher push check is skipped."
+            exit 0
+          fi
+          actor="$(printf '%s' "$ACTOR" | tr '[:upper:]' '[:lower:]')"
+          triggering="$(printf '%s' "$TRIGGERING_ACTOR" | tr '[:upper:]' '[:lower:]')"
+          if [ "$actor" != "$publisher" ] && [ "$triggering" != "$publisher" ]; then
+            echo "The pusher is not the publisher; nothing to check."
+            exit 0
+          fi
+          if [ "$EVENT_NAME" != "push" ]; then
+            echo "::error::the publisher started a $EVENT_NAME run; it may only push comment files"
+            exit 1
+          fi
+          if [[ "$BEFORE" =~ ^0+$ ]]; then
+            echo "::error::the publisher's push has no previous commit, so what it changed cannot be told"
+            exit 1
+          fi
+          [[ "$BEFORE" =~ ^[0-9a-f]{40}$ && "$AFTER" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::before or after is not a commit id"; exit 1; }
+          git fetch --no-tags --depth=1 origin "$BEFORE" || { echo "::error::the commit before the publisher's push, $BEFORE, cannot be fetched"; exit 1; }
+          judge="$RUNNER_TEMP/publisher-judge"
+          mkdir -p "$judge"
+          git show "$BEFORE:scripts/check-publisher-paths.mjs" > "$judge/check-publisher-paths.mjs"
+          git show "$BEFORE:scripts/slug.mjs" > "$judge/slug.mjs"
+          node "$judge/check-publisher-paths.mjs" push --before "$BEFORE" --after "$AFTER"
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
 

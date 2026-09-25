@@ -26,7 +26,11 @@ export interface ThreadPost {
 
 export interface ThreadsFile {
   version: typeof THREADS_VERSION;
-  /** When this file was generated: the build time, UTC. */
+  /**
+   * The build's clock (`BUILD_TIME` in `src/lib/site.ts`, UTC), which is also the instant the
+   * thread states were judged against: a post scheduled after it is absent. It changes on every
+   * build, so this field, unlike `threads`, is not a function of the content.
+   */
   generatedAt: string;
   /** Every live post by slug. A slug absent here has no page, so it takes no comment either. */
   threads: Record<string, ThreadState>;
@@ -38,8 +42,9 @@ export function threadState(data: ThreadPost['data']): ThreadState {
 }
 
 /**
- * The thread state of every live post, keyed by slug and sorted by slug so the file's bytes
- * depend only on the content. Drafts and scheduled (future) posts are absent: they have no page.
+ * The thread state of every live post, keyed by slug and sorted by slug, so this map depends only
+ * on the content and `now` (the file's `generatedAt` changes on every build). Drafts and
+ * scheduled (future) posts are absent: they have no page.
  */
 export function threadStates(posts: readonly ThreadPost[], now: Date): Record<string, ThreadState> {
   const live = posts.filter((post) => isLive(post.data, now)).sort((a, b) => a.id.localeCompare(b.id));

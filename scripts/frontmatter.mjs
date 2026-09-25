@@ -18,12 +18,8 @@
 import { isDeepStrictEqual } from 'node:util';
 import yaml from 'js-yaml';
 
-/**
- * A slug: the post's file name without extension, its URL segment, and its name in the specimen
- * ledger. Lowercase letters, digits and hyphens, starting with a letter or digit. With this shape,
- * Astro's glob loader derives the same id from the file name (its slugger changes nothing).
- */
-export const SLUG = /^[a-z0-9][a-z0-9-]*$/;
+/** The slug rule. It lives in the dependency-free `./slug.mjs` (the publisher check imports it without `npm ci`). */
+export { SLUG } from './slug.mjs';
 
 /**
  * The frontmatter fence. Like Astro's: an optional byte-order mark or leading blank lines, then

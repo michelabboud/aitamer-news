@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.11] — 2026-09-25
+
+### Fixed
+Deep review of the comment form and the publisher check:
+- **The publisher cannot slip code into someone else's pull request.** `publisher-paths` now holds every pull request to the comments-only rule unless both its author and the account that triggered the run are the maintainer (`MAINTAINER_ID`, numeric id); edits and reopenings never exempt. The verdict is pinned to one commit, read with `git diff` and `git ls-tree` without ever checking out or running the pull request, and the check installs nothing (`scripts/slug.mjs` holds the slug rule without dependencies). Actions are pinned by commit.
+- **Second line:** the deploy refuses a push to `main` by the publisher (`PUBLISHER_ACTOR`) that touches anything outside `src/content/comments/`, judged by the script as it was before the push.
+- Form: the "held for the desk" note shows without JavaScript (`#comment-held`); the submit button waits for Turnstile; errors from the Worker are shown as plain text; a plain `http:` endpoint is accepted only for localhost.
+- 26 more tests, several on real temporary git repositories.
+
 ## [0.2.10] — 2026-09-25
 
 ### Changed

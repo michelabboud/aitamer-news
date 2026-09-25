@@ -3,22 +3,36 @@ import { COMMENTS_ENDPOINT, TURNSTILE_SITE_KEY } from '../lib/site';
 import {
   COMMENTED_QUERY,
   COMMENTED_VALUE,
+  COMMENT_CHECK_FAILED_MESSAGE,
+  COMMENT_ERROR_MAX,
   COMMENT_FAILED_MESSAGE,
+  COMMENT_HELD_ANCHOR,
   COMMENT_FORM_FIELDS,
   COMMENT_HELD_MESSAGE,
   COMMENT_NAME_MAX,
   COMMENT_TEXT_MAX,
   COMMENT_TURNSTILE_ACTION,
+  COMMENT_TURNSTILE_CALLBACKS,
   commentFormSetup,
 } from '../lib/comment-form';
 
 /**
  * The comment form (phase 2 plan §6.3), the same progressive-enhancement pattern as the About
- * page's contact form: a plain `<form method="post">` to the comments Worker works without
- * script (the Worker answers with a 303 back to `/posts/<slug>/?commented=1#comments`), and the
- * script below turns the submit into a `fetch` that shows the held message in place. Turnstile
- * is mandatory for comments (plan D8), so a reader without JavaScript cannot in fact get a
- * comment accepted; the `<noscript>` note says so rather than letting the submit fail silently.
+ * page's contact form: a plain `<form method="post">` to the comments Worker, which answers a
+ * no-script submit with a 303 back to `/posts/<slug>/?commented=1#comment-held`, and the script
+ * below turns the submit into a `fetch` that shows the held message in place. The page is static,
+ * so the no-script path cannot read the query: the held note (`#comment-held`) is always in the
+ * page and CSS shows it only while it is the `:target`, which the redirect's fragment makes it.
+ * Turnstile is mandatory for comments (plan D8), so a reader without JavaScript cannot in fact
+ * get a comment accepted; the `<noscript>` note says so rather than letting the submit fail
+ * silently.
+ *
+ * The submit button is turned off by the script until Turnstile's `data-callback` hands it a
+ * token, and again after every attempt (tokens are single use), on expiry and on a Turnstile
+ * error; a no-script reader keeps a working button, since the form must stay a plain form. The
+ * script that defines those callbacks comes before Turnstile's `api.js`, so they exist before the
+ * widget can call them. A failure reason from the Worker is shown only when it is a short string
+ * (`commentErrorText` in `src/lib/comment-form.ts` states the rule; the script mirrors it).
  *
  * Fields, as the Worker reads them (`COMMENT_FORM_FIELDS`): `slug`, `name`, `text`, the honeypot
  * `desk_extra`, Turnstile's own `cf-turnstile-response`, and `elapsed` — whole milliseconds
@@ -46,7 +60,12 @@ const failedMessage = COMMENT_FAILED_MESSAGE;
 const commentedQuery = COMMENTED_QUERY;
 const commentedValue = COMMENTED_VALUE;
 const elapsedField = fields.elapsed;
+const checkFailedMessage = COMMENT_CHECK_FAILED_MESSAGE;
+const errorMax = COMMENT_ERROR_MAX;
+const heldAnchor = COMMENT_HELD_ANCHOR;
+const callbacks = COMMENT_TURNSTILE_CALLBACKS;
 ---
+<p id={COMMENT_HELD_ANCHOR} class="form-success comment-held" role="status">{heldMessage}</p>
 {closed ? (
   <p class="form-note comment-form-note">Comments are closed on this story.</p>
 ) : !setup.ready ? (
@@ -74,7 +93,15 @@ const elapsedField = fields.elapsed;
         <label for="comment-extra">Leave this field empty</label>
         <input id="comment-extra" name={fields.honeypot} type="text" tabindex="-1" autocomplete="new-password" />
       </div>
-      <div class="cf-turnstile" data-sitekey={setup.turnstileSiteKey} data-action={COMMENT_TURNSTILE_ACTION} data-size="flexible"></div>
+      <div
+        class="cf-turnstile"
+        data-sitekey={setup.turnstileSiteKey}
+        data-action={COMMENT_TURNSTILE_ACTION}
+        data-callback={callbacks.ready}
+        data-expired-callback={callbacks.expired}
+        data-error-callback={callbacks.error}
+        data-size="flexible"
+      ></div>
       <noscript>
         <p class="form-note">
           Commenting needs JavaScript: the check that keeps bots out (Cloudflare Turnstile) runs in
@@ -83,13 +110,35 @@ const elapsedField = fields.elapsed;
       </noscript>
       <button class="contact-submit" type="submit">Post the comment</button>
     </form>
-    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script is:inline define:vars={{ heldMessage, failedMessage, commentedQuery, commentedValue, elapsedField }}>
+    <script is:inline define:vars={{ heldMessage, failedMessage, checkFailedMessage, errorMax, commentedQuery, commentedValue, heldAnchor, elapsedField, callbacks }}>
       (function () {
         var form = document.getElementById('comment-form');
         if (!form) return;
         var status = document.getElementById('comment-status');
         var error = document.getElementById('comment-error');
+        var button = form.querySelector('[type="submit"]');
+        var idle = button.textContent;
+        // Off until Turnstile hands over a token (the ready callback), and after every attempt.
+        var tokenReady = false;
+        var posting = false;
+        function syncButton() {
+          button.disabled = posting || !tokenReady;
+        }
+        syncButton();
+        window[callbacks.ready] = function () {
+          tokenReady = true;
+          if (error.textContent === checkFailedMessage) error.textContent = '';
+          syncButton();
+        };
+        window[callbacks.expired] = function () {
+          tokenReady = false;
+          syncButton();
+        };
+        window[callbacks.error] = function () {
+          tokenReady = false;
+          error.textContent = checkFailedMessage;
+          syncButton();
+        };
         // The Worker refuses a comment written faster than a person could. `elapsed` is the
         // milliseconds since the form became usable, a performance.now() difference so a
         // reader's wrong clock cannot skew it; the field exists only when this script runs.
@@ -99,23 +148,28 @@ const elapsedField = fields.elapsed;
         elapsed.name = elapsedField;
         form.appendChild(elapsed);
         var params = new URLSearchParams(location.search);
-        if (params.get(commentedQuery) === commentedValue) {
-          // The no-script path: the Worker sent the reader back here after taking the comment.
-          status.textContent = heldMessage;
-          // Drop ?commented=1 so a reload does not announce the comment again.
+        if (params.get(commentedQuery) === commentedValue || location.hash === '#' + heldAnchor) {
+          // Back from a plain submit: CSS already shows the held note (it is the :target). Drop
+          // the query and the fragment so a reload does not show it again; :target keeps
+          // matching until the next navigation, so the note stays up for now.
           params.delete(commentedQuery);
           var query = params.toString();
-          history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+          history.replaceState(null, '', location.pathname + (query ? '?' + query : ''));
         }
-        var button = form.querySelector('[type="submit"]');
-        var idle = button.textContent;
+        function readableError(payload) {
+          var reason = payload !== null && typeof payload === 'object' ? payload.error : undefined;
+          if (typeof reason !== 'string') return failedMessage;
+          reason = reason.trim();
+          return reason && reason.length <= errorMax ? reason : failedMessage;
+        }
         form.addEventListener('submit', function (event) {
-          if (!form.reportValidity()) return;
           event.preventDefault();
+          if (posting || !tokenReady || !form.reportValidity()) return;
           elapsed.value = String(Math.round(performance.now() - renderedAt));
           error.textContent = '';
           status.textContent = '';
-          button.disabled = true;
+          posting = true;
+          syncButton();
           button.textContent = 'Posting…';
           fetch(form.action, {
             method: 'POST',
@@ -128,32 +182,38 @@ const elapsedField = fields.elapsed;
               });
             })
             .then(function (result) {
-              if (result.ok && result.payload && result.payload.ok) {
+              if (result.ok && result.payload && result.payload.ok === true) {
                 form.reset();
                 // The reader starts over: the next comment's time is counted from now.
                 renderedAt = performance.now();
                 status.textContent = heldMessage;
                 return;
               }
-              error.textContent = (result.payload && result.payload.error) || failedMessage;
+              error.textContent = readableError(result.payload);
             })
             .catch(function () {
               error.textContent = failedMessage;
             })
             .then(function () {
-              // Turnstile tokens are single use; get a fresh one for the next attempt.
+              // Turnstile tokens are single use: the button stays off until the fresh one arrives.
+              tokenReady = false;
+              posting = false;
               if (window.turnstile) window.turnstile.reset();
-              button.disabled = false;
               button.textContent = idle;
+              syncButton();
             });
         });
       })();
     </script>
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </>
 )}
 
 <style>
   .comment-form-note { margin-top: 1.5rem; }
+  /* The held note after a no-script submit: shown only while the redirect's fragment targets it. */
+  .comment-held { margin-top: 1.5rem; scroll-margin-top: 6rem; }
+  .comment-held:not(:target) { display: none; }
   .comment-form { position: relative; display: grid; gap: 1rem; margin-top: 1.5rem; max-width: var(--measure); }
   .comment-form__title { font-size: 1.125rem; margin: 0; }
   .comment-form .form-note { margin: 0; }
