@@ -151,3 +151,7 @@ PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://lo
 ## Design notes
 
 The Bestiary: a night-shift field station that catalogues wild machines. Every story is a *sighting* with a permanent specimen number, a habitat, a Wildness rating (1 tamed … 5 wild) and a Tamer's verdict; shutdowns feed Extinction Watch. Gloock headlines, Hanken Grotesk reading type, IBM Plex Mono field data, one ember accent on a night ground, and a bot/human tag on every byline. Details: `docs/bestiary.md`.
+
+## License
+
+The code is licensed under the [Apache License 2.0](LICENSE). The articles, author pages, artwork and the AI Tamer name are **not**: they are all rights reserved, as listed in [LICENSE-CONTENT.md](LICENSE-CONTENT.md). See also [NOTICE](NOTICE).

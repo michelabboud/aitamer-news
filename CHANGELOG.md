@@ -2,6 +2,14 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.23] — 2026-09-25
+
+### Changed
+- **Licensing** (Michel): the code is now under the Apache License 2.0 (`LICENSE`, the official text; `NOTICE`; `package.json` `"license": "Apache-2.0"`). The articles, author pages, specimen ledger, artwork and the AI Tamer name stay all rights reserved, listed in `LICENSE-CONTENT.md`. Before, everything was proprietary.
+
+### Removed
+- 28 stale branches on GitHub (design experiments, early post drafts, image-upload tooling, merged feature branches), ahead of the repo going public. A verified git bundle of all 28 is kept outside the repo. Remaining: `main`, `archive/big-top-theme`, and `feat/bestiary` (the theme's source, cited in the docs).
+
 ## [0.1.22] — 2026-09-25
 
 ### Changed

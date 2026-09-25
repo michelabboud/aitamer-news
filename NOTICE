@@ -1,0 +1,11 @@
+AI Tamer (aitamer.news)
+Copyright 2026 Michel Abboud
+
+The source code in this repository is licensed under the Apache License,
+Version 2.0 (see LICENSE).
+
+The editorial content and artwork are NOT covered by the Apache License.
+They remain all rights reserved; see LICENSE-CONTENT.md for exactly which
+files that means.
+
+Third-party packages installed through npm remain under their own licenses.
