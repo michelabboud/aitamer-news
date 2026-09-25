@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.3] — 2026-09-25
+
+### Added
+- `src/lib/media.ts`: one place that knows the media host (`https://media.aitamer.news`) and rewrites it for local work with `PUBLIC_MEDIA_BASE` (e.g. `/media-local`, files under the git-ignored `public/media-local/heroes/`). Every hero-image consumer (cards, post page, social image, JSON feed) resolves through it. Built pages are unchanged today. 10 tests.
+
 ## [0.2.2] — 2026-09-25
 
 ### Changed

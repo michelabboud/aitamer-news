@@ -1,5 +1,6 @@
 import type { CollectionEntry } from 'astro:content';
 import { ALL_SECTIONS, type Section } from './site';
+import { resolveMedia } from './media';
 
 export const SECTION_COVERS: Record<Section, string> = {
   models: '/covers/models.svg',
@@ -19,9 +20,10 @@ export function coverForSection(section: Section): string {
   return SECTION_COVERS[section];
 }
 
-/** Prefer a post's heroImage when set; otherwise the section house cover. */
+/** Prefer a post's heroImage when set (resolved to the local media override, if any); otherwise the section house cover. */
 export function postCover(post: CollectionEntry<'posts'>): string {
-  return post.data.heroImage?.trim() || coverForSection(post.data.section as Section);
+  const hero = post.data.heroImage?.trim();
+  return hero ? resolveMedia(hero) : coverForSection(post.data.section as Section);
 }
 
 export function usesGeneratedCover(post: CollectionEntry<'posts'>): boolean {

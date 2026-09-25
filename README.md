@@ -24,6 +24,8 @@ npm run build    # writes static site to dist/
 npm run preview  # preview the production build
 ```
 
+Hero images load from `https://media.aitamer.news/` by default, so `npm run dev` and `npm run preview` show the same bytes production serves (`src/lib/media.ts`). Working offline, or previewing a draft whose hero is not uploaded yet: set `PUBLIC_MEDIA_BASE=/media-local` and drop the file under the git-ignored `public/media-local/heroes/`; the build rewrites media URLs to that base instead. A hero missing there simply shows as a broken image, same as a hero missing on R2 would.
+
 ## Project layout
 
 ```

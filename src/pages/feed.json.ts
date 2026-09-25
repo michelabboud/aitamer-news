@@ -10,12 +10,13 @@ import {
   withBase,
   type Section,
 } from '../lib/site';
+import { resolveMedia } from '../lib/media';
 
-/** `/heroes/<slug>.jpg` (site-relative) or an already-absolute `https://` URL (R2, later). */
+/** `/heroes/<slug>.jpg` (site-relative) or an already-absolute `https://` URL (R2). */
 function absoluteHeroImageUrl(heroImage: string | undefined): string | undefined {
   const trimmed = heroImage?.trim();
   if (!trimmed) return undefined;
-  return new URL(trimmed, SITE.url).toString();
+  return new URL(resolveMedia(trimmed), SITE.url).toString();
 }
 
 export async function GET(_context: APIContext) {

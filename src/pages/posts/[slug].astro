@@ -28,6 +28,7 @@ import {
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
+import { resolveMedia } from '../../lib/media';
 
 export async function getStaticPaths() {
   // Withdrawn posts keep their page (and URL); they only leave lists and feeds.
@@ -52,7 +53,7 @@ const data = post.data;
 const section = data.section as Section;
 const habitat = habitatOfPost(post);
 const generated = usesGeneratedCover(post);
-const heroSrc = data.heroImage?.trim() || coverForSection(section);
+const heroSrc = resolveMedia(data.heroImage?.trim() || coverForSection(section));
 const heroAlt = data.heroAlt ?? `Generated cover art for: ${data.title}`;
 const canonical = canonicalUrlFor(`/posts/${post.id}/`);
 const published = archiveMonthOf(data.pubDate);

@@ -44,6 +44,9 @@ blob-report/
 .dev.vars
 .dev.vars.*
 
+# Offline hero images for PUBLIC_MEDIA_BASE=/media-local (never committed; see README)
+public/media-local/
+
 # Wrangler local state
 .wrangler/
 
