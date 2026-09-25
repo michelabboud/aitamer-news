@@ -33,7 +33,7 @@ test('the form is ready with an https endpoint and a Turnstile site key', () => 
 
 test('a local http endpoint (wrangler dev) is accepted, and surrounding whitespace is trimmed', () => {
   const setup = commentFormSetup({ endpoint: ' http://localhost:8788/ ', turnstileSiteKey: ` ${SITE_KEY}\n`, contactFormLive: true });
-  assert.deepEqual(setup, { ready: true, endpoint: 'http://localhost:8788/', turnstileSiteKey: SITE_KEY, contactFormLive: true });
+  assert.deepEqual(setup, { ready: true, endpoint: 'http://localhost:8788/', turnstileSiteKey: SITE_KEY });
   assert.equal(commentFormSetup({ endpoint: 'http://127.0.0.1:8788/', turnstileSiteKey: SITE_KEY, contactFormLive: true }).ready, true);
   assert.deepEqual([...LOCAL_HTTP_HOSTS].sort(), ['127.0.0.1', 'localhost']);
 });
