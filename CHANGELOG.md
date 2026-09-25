@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.10] — 2026-09-25
+
+### Changed
+- The Cloudflare account id is no longer written in the workflows; both deploys read the Actions secret `CLOUDFLARE_ACCOUNT_ID`. A test fails if a literal account id appears in any tracked file again.
+
 ## [0.2.9] — 2026-09-25
 
 ### Fixed
