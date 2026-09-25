@@ -46,6 +46,9 @@ jobs:
       - name: Check the build holds no secrets
         run: npm run check:dist
 
+      - name: Check the deploy fits the file budget
+        run: npm run check:files
+
       - name: Deploy to Cloudflare Pages
         # Pinned to a commit: this step receives the Cloudflare API token.
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3

@@ -41,3 +41,8 @@ jobs:
 
       - name: Check posts
         run: npm run check:posts
+
+      # The strict schema (retired sections, misspelled fields) is only enforced by the build,
+      # so build here too: a bad post fails its pull request, not the next deploy of main.
+      - name: Build
+        run: npm run build

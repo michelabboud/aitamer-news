@@ -4,7 +4,7 @@ import { SITE } from '../lib/site-meta.ts';
 import { WILDNESS_MAX, WILDNESS_MIN } from '../lib/wildness.ts';
 
 /**
- * Post contract v1 (2026-09-25). aitamer-news-ops (bots), atn-mcp (the posts tool) and human
+ * Post contract v1 (2026-09-25). atn-ops (bots), atn-mcp (the posts tool) and human
  * editors all write these fields; POST.md documents each one. Change it additively.
  * Rules that depend on publish state (a number, a time, sources) live in `npm run check:posts`,
  * so a post can be edited freely while it is a draft.
@@ -85,8 +85,9 @@ export const postSchema = z
   .object({
     title: z.string(),
     description: z.string(),
-    pubDate: z.coerce.date(),
-    updatedDate: z.coerce.date().optional(),
+    // A plain date while drafting, a full UTC time once stamped; never a bare number (review N-minor 9, info 7).
+    pubDate: strictDate(),
+    updatedDate: strictDate().optional(),
     section: z.enum(HABITATS),
     subsection: z.string().optional(),
     tags: z.array(z.string()).default([]),
@@ -126,7 +127,8 @@ export const postSchema = z
         z
           .object({
             title: z.string().optional(),
-            url: z.string(),
+            /** http(s) only: a `javascript:` or `data:` link must never reach an href. */
+            url: z.string().regex(/^https?:\/\/\S+$/, 'source url must start with http:// or https://'),
           })
           .strict(),
       )

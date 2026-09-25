@@ -24,6 +24,11 @@ jobs:
         with:
           node-version: "24"
 
+      # due-posts.mjs reads frontmatter with js-yaml (scripts/frontmatter.mjs), so dependencies
+      # must be installed. Without this step every run failed from 0.1.19 on (review N2).
+      - name: Install
+        run: npm ci --omit=dev --ignore-scripts
+
       - name: Check for due posts
         id: due
         run: node scripts/due-posts.mjs

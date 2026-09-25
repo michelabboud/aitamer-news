@@ -42,3 +42,7 @@ Adopt `pagefind@1.5.2` as a dev dependency, run as `pagefind --site dist` after 
 - [v1.5.0 release discussion](https://github.com/Pagefind/pagefind/discussions/1095)
 - [Pagefind security advisories](https://github.com/Pagefind/pagefind/security/advisories)
 - [Installing and running Pagefind](https://pagefind.app/docs/installation/)
+
+## Addendum (2026-09-25): file cost
+
+Measured after adoption: Pagefind writes one fragment file per indexed page plus a few dozen index and runtime files (41 files for 25 posts). Against Cloudflare's 20,000-files-per-deploy free cap that makes each post cost about three files (page, hero, fragment). The budget and the migration order are recorded in `docs/adr/0005-deploy-file-budget.md`, and `npm run check:files` guards it in CI.

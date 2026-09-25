@@ -2,6 +2,20 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.24] — 2026-09-25
+
+### Fixed
+Findings of the batch B–C deep review (`docs/reviews/2026-09-25-batch-bc-deep-review.md`):
+- **N1, script injection through JSON-LD:** a title containing `</script>` could close a structured-data block and run script. Every JSON-LD block now goes through `src/lib/json-ld.ts` (`<`, `>`, `&`, U+2028/2029 escaped; still valid JSON). Checked with a hostile-title probe build. 2 tests.
+- **N2, scheduled publishing failed every run since 0.1.19:** the hourly job never installed dependencies, so the YAML reader could not load. It now runs `npm ci --omit=dev`. New smoke tests run each command-line script as its own process.
+- **N3, the deploy file budget:** each post costs about three deploy files (page, hero, search fragment), so the free plan's 20,000-file cap arrives near 6,600 posts. Decision recorded in `docs/adr/0005-deploy-file-budget.md`; `npm run check:files` in the deploy warns from 16,000 files and fails from 19,500; BACKLOG's R2 threshold corrected.
+- Pull requests now also build, so a post that breaks the strict schema fails its pull request, not the next deploy.
+- Source links must be `http(s)`; `pubDate` and `updatedDate` refuse bare numbers; the published JSON Schema accepts a plain date for drafts.
+- The home page has its `h1` again (the wordmark); JSON-LD `dateModified` uses the same newest-date rule as the sitemap.
+- A new story filed under a deleted post's slug no longer inherits that post's specimen number: restoring a ledger number after an interrupted stamp now needs `npm run stamp -- --restore`.
+- A contact note that is only the prefilled opener ("Correction: ") is refused in the browser.
+- Wording: `llms.txt` (numbers are in filing order; opinion pieces may have no sources), `POST.md` (date-only future `pubDate`, `--restore`), `ARCHITECTURE.md` (live, scheduled and withdrawn posts; the scheduled workflow). The sitemap reader names a file with no frontmatter.
+
 ## [0.1.23] — 2026-09-25
 
 ### Changed

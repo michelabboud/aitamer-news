@@ -178,3 +178,14 @@ test('heroImage rejects an http (non-https) URL', () => {
   const result = postSchema.safeParse({ ...validPost, heroImage: 'http://example.com/hero.jpg' });
   assert.equal(result.success, false);
 });
+
+test('source links must be http(s); dates may not be bare numbers', async () => {
+  const { postSchema } = await import('../content/post-schema.ts');
+  const base = { title: 't', description: 'd', pubDate: '2026-09-25', section: 'models', author: 'desk-bot' };
+  assert.equal(postSchema.safeParse({ ...base, sources: [{ url: 'https://example.com/a' }] }).success, true);
+  assert.equal(postSchema.safeParse({ ...base, sources: [{ url: 'javascript:alert(1)' }] }).success, false);
+  assert.equal(postSchema.safeParse({ ...base, sources: [{ url: 'data:text/html,x' }] }).success, false);
+  assert.equal(postSchema.safeParse({ ...base, pubDate: 20261023 }).success, false);
+  assert.equal(postSchema.safeParse({ ...base, updatedDate: 20261023 }).success, false);
+  assert.equal(postSchema.safeParse({ ...base, pubDate: '2026-09-25T09:15:12Z' }).success, true);
+});

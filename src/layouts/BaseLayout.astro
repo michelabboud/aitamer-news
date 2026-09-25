@@ -134,7 +134,7 @@ const STATION_LINKS = [
       <div class="site-shell masthead__inner">
         <a class="wordmark" href={withBase('/')}>
           <span class="wordmark__kicker">A FIELD GUIDE TO THE MACHINES</span>
-          <span class="wordmark__name">{SITE.title}</span>
+          {home ? <h1 class="wordmark__name">{SITE.title}</h1> : <span class="wordmark__name">{SITE.title}</span>}
         </a>
         {home && (
           <div class="masthead__aside">

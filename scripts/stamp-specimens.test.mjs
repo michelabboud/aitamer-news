@@ -223,12 +223,16 @@ test('a failure while computing any post text writes nothing, whatever the cause
   for (const [name, text] of Object.entries(posts)) assert.equal(s.read(name), text, name);
 });
 
-test('an interrupted run is repaired by the next: a post gets back the number the ledger holds for it', () => {
+test('an interrupted run is repaired with --restore: a post gets back the number the ledger holds for it', () => {
   // The ledger was appended (step 3) but the post write (step 4) never happened.
   const ledger = '# header\n0001 one\n0002 two\n';
   const s = site({ 'one.md': post({ extra: 'specimen: 1\n' }), 'two.md': post({}) }, ledger);
   assert.deepEqual(assignNumbers([readPost('two', post({}))], parseLedger(ledger).entries), [{ slug: 'two', n: 2, restored: true }]);
-  assert.equal(quietly(() => main([], s)).result, 0);
+  // Without --restore it refuses: the same state is what a new story under a deleted slug looks like.
+  assert.equal(quietly(() => main([], s)).result, 1);
+  assert.doesNotMatch(s.read('two.md'), /^specimen:/m);
+  assert.equal(s.readLedger(), ledger);
+  assert.equal(quietly(() => main(['--restore'], s)).result, 0);
   assert.match(s.read('two.md'), /^specimen: 2$/m);
   assert.equal(s.readLedger(), ledger, 'a restored number adds no ledger line');
   assert.equal(quietly(() => main(['--check'], s)).result, 0);

@@ -136,6 +136,8 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 .wordmark__name {
   font-family: var(--font-display); font-size: 64px; line-height: 0.85; letter-spacing: -0.03em;
 }
+/* On the home page the wordmark is the page's h1; keep it looking exactly like the span. */
+h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 
 .masthead--home .masthead__inner {
   grid-template-columns: minmax(0, 1fr) 380px;

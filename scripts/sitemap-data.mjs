@@ -43,7 +43,9 @@ export function loadSitemapData(dir = POSTS_DIR, now = new Date()) {
   for (const name of readdirSync(dir)) {
     if (!POST_FILE.test(name)) continue;
     const slug = name.replace(POST_FILE, '');
-    const { data } = readFrontmatter(readFileSync(join(dir, name), 'utf8'));
+    const fm = readFrontmatter(readFileSync(join(dir, name), 'utf8'));
+    if (fm === null) throw new Error(`sitemap: ${join(dir, name)} has no frontmatter (POST.md §2)`);
+    const { data } = fm;
     const { listed, lastmod } = sitemapEntry(slug, data, now);
     entries.set(slug, { listed, lastmod });
   }

@@ -24,7 +24,7 @@
  * write is interrupted, the ledger already holds their numbers, and the next run writes the
  * same numbers back (a post with no `specimen:` whose slug holds a live number gets that number).
  *
- * aitamer-news-ops and atn-mcp must run `npm run stamp` before committing a published post,
+ * atn-ops and atn-mcp must run `npm run stamp` before committing a published post,
  * and commit the ledger with it.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -381,6 +381,17 @@ export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE, sta
   if (plan.length === 0) {
     console.log('stamp-specimens: nothing to do.');
     return 0;
+  }
+  // A slug that already holds a number is either the same post after an interrupted run, or a
+  // new story filed under a deleted post's slug. Only a person can tell, so restoring is opt-in
+  // (docs/reviews/2026-09-25-batch-bc-deep-review.md, minor 5).
+  const restoring = plan.filter((p) => p.restored);
+  if (restoring.length > 0 && !argv.includes('--restore')) {
+    console.error('stamp-specimens: nothing was stamped. These slugs already hold a number in the ledger:');
+    for (const { slug, n } of restoring) console.error(`  ${slug}: ${ledgerLine({ n, slug })}`);
+    console.error('If each is the same story (an interrupted stamp), run `npm run stamp -- --restore`.');
+    console.error('If it is a new story, give it a new slug: a slug is an address and is never reused.');
+    return 1;
   }
   const carried = new Map(posts.filter((p) => p.specimen !== null).map((p) => [p.specimen, p.slug]));
   for (const { slug, n, restored } of plan) {

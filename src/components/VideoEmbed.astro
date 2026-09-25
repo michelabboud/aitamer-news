@@ -1,4 +1,5 @@
 ---
+import { toJsonLd } from '../lib/json-ld';
 /**
  * A YouTube video that loads only when the reader asks for it.
  *
@@ -27,7 +28,7 @@ const jsonLd = {
 };
 ---
 <figure class="video" data-pagefind-ignore>
-  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={toJsonLd(jsonLd)} />
   <div class="video__frame" data-embed={embedUrl}>
     <button type="button" class="video__play" aria-label={`Play “${video.title}” from ${video.channel} (loads YouTube)`}>
       <span class="video__icon" aria-hidden="true"></span>

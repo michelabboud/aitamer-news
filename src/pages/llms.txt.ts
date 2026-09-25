@@ -46,7 +46,7 @@ export async function GET(_context: APIContext) {
 
 > ${SITE.description}
 
-This site is written for people and read by machines too. A specimen number (shown as "No. 0012") is a permanent, citable ID: assigned once, in publish order, and never reused, even if the post is later withdrawn — cite the number, not just the URL. Wildness is a 1-5 scale on how tamed a story's claims are: 1 means independently verified, 5 means a vendor claim only, and every rated post explains what's verified and what's only claimed. Every story lists its sources, and its byline states plainly whether a human or a bot wrote it.
+This site is written for people and read by machines too. A specimen number (shown as "No. 0012") is a permanent, citable ID: assigned once, in filing order, and never reused, even if the post is later withdrawn — cite the number, not just the URL. Wildness is a 1-5 scale on how tamed a story's claims are: 1 means independently verified, 5 means a vendor claim only, and every rated post explains what's verified and what's only claimed. Every news story lists its sources (signed opinion pieces may not), and its byline states plainly whether a human or a bot wrote it.
 
 ## Habitats
 

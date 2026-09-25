@@ -1,4 +1,5 @@
 ---
+import { toJsonLd } from '../lib/json-ld';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AuthorBadge from '../components/AuthorBadge.astro';
@@ -68,7 +69,7 @@ const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
   <script
     slot="head"
     type="application/ld+json"
-    set:html={JSON.stringify({
+    set:html={toJsonLd({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: SITE.title,

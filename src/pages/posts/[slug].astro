@@ -1,4 +1,5 @@
 ---
+import { toJsonLd } from '../../lib/json-ld';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
@@ -71,7 +72,10 @@ const jsonLd = withdrawn
       url: canonical,
       mainEntityOfPage: canonical,
       datePublished: data.pubDate.toISOString(),
-      dateModified: (data.updatedDate ?? data.corrections.at(-1)?.date ?? data.pubDate).toISOString(),
+      // Newest of publish, update and correction dates: the same rule as the sitemap's lastmod.
+      dateModified: new Date(
+        Math.max(data.pubDate.valueOf(), data.updatedDate?.valueOf() ?? 0, ...data.corrections.map((c) => c.date.valueOf())),
+      ).toISOString(),
       image: [/^https:\/\//.test(heroSrc) ? heroSrc : absolute(heroSrc)],
       articleSection: habitat.name,
       keywords: data.tags.join(', ') || undefined,
@@ -104,8 +108,8 @@ const breadcrumbs = {
   noindex={Boolean(withdrawn)}
 >
   <Fragment slot="head">
-    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
-    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbs)} />
+    {jsonLd && <script type="application/ld+json" set:html={toJsonLd(jsonLd)} />}
+    <script type="application/ld+json" set:html={toJsonLd(breadcrumbs)} />
     <meta property="article:published_time" content={data.pubDate.toISOString()} />
     {data.updatedDate && <meta property="article:modified_time" content={data.updatedDate.toISOString()} />}
     <meta property="article:section" content={habitat.name} />

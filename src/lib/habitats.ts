@@ -2,7 +2,7 @@
  * The seven habitats (sections) a sighting can live in. The frontmatter key stays `section`;
  * "habitat" is the reader-facing word. No Astro imports, so the build scripts and tests can use it.
  *
- * This list is part of the post contract that aitamer-news-ops and atn-mcp write against (POST.md).
+ * This list is part of the post contract that atn-ops and atn-mcp write against (POST.md).
  * Adding a habitat is additive; renaming or removing one needs a legacy entry below so old URLs keep working.
  */
 export const HABITATS = ['models', 'tools', 'creative', 'infra', 'rust', 'policy', 'opinion'] as const;

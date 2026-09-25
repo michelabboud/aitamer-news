@@ -183,6 +183,14 @@ const VOCAB = [
     var button = form.querySelector('[type="submit"]');
     var idle = button.textContent;
     form.addEventListener('submit', function (event) {
+      // A prefilled opener alone ("Correction: ") is not a note; the browser's minlength
+      // does not check text the reader never typed.
+      if (opener && note && note.value.trim() === opener.trim()) {
+        event.preventDefault();
+        error.textContent = 'Add your note after "' + opener.trim() + '".';
+        note.focus();
+        return;
+      }
       if (!form.reportValidity()) return;
       event.preventDefault();
       error.textContent = '';
