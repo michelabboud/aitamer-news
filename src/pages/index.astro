@@ -1,12 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
-import SectionChip from '../components/SectionChip.astro';
 import {
-  ALL_SECTIONS,
   SITE,
   getPublishedPosts,
   resolveAuthor,
+  withBase,
 } from '../lib/site';
 import { postCover } from '../lib/covers';
 
@@ -23,17 +22,21 @@ const ogImage = cards[0] ? postCover(cards[0].post) : '/heroes/welcome-to-aitame
 <BaseLayout title="Latest" description={SITE.description} image={ogImage}>
   <section class="hero" aria-label="Site introduction">
     <div class="hero-plane">
-      <p class="page-kicker">Short, sourced AI briefs</p>
-      <h1 class="page-title">{SITE.title}</h1>
-      <p class="lede">
-        Concise reporting on models, tools, policy, and opinion — with clear human and bot bylines. Published static from Markdown.
-      </p>
+      <div class="hero-copy">
+        <p class="hero-domain">{SITE.domain}</p>
+        <h1 class="hero-name">{SITE.title}</h1>
+        <p class="hero-about">{SITE.description}</p>
+      </div>
+      <figure class="hero-art">
+        <img
+          src={withBase('/masthead.jpg')}
+          alt="Black paper cat with a collar and a large ruby, sitting by rose paper rings. Generated cover art, not a photo."
+          width="1280"
+          height="720"
+        />
+      </figure>
     </div>
   </section>
-
-  <div class="section-chips" aria-label="Sections">
-    {ALL_SECTIONS.map((section) => <SectionChip section={section} />)}
-  </div>
 
   <section aria-label="Latest posts">
     <div class="post-list">

@@ -4,9 +4,15 @@ export const SITE = {
   title: 'AI Tamer',
   domain: 'aitamer.news',
   description:
-    'AI Tamer (aitamer.news) — concise reporting on AI models, tools, policy, and opinion.',
+    'Short, sourced briefs on models, tools, and policy. Every story names a human or a bot.',
   url: 'https://aitamer.news',
 } as const;
+
+/** GA4 measurement ID. The tag loads only on aitamer.news, not on the GitHub Pages copy. */
+export const ANALYTICS_ID = 'G-3X3YRW621Y';
+
+/** Disqus shortname for story comments. Threads are keyed to the aitamer.news canonical URL. */
+export const DISQUS_SHORTNAME = 'ai-tamer-news';
 
 export const ALL_SECTIONS = [
   'top',

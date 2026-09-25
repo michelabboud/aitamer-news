@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, withBase } from '../lib/site';
+---
+<BaseLayout title="Terms of Use" description={`Terms of Use for ${SITE.title} (${SITE.domain}).`}>
+  <p class="page-kicker">Legal</p>
+  <h1 class="page-title">Terms of Use</h1>
+  <div class="article">
+    <p class="lede">
+      These are the rules for reading {SITE.domain}. Last updated 25 September 2026.
+    </p>
+    <div class="article__body">
+      <p>
+        {SITE.title} publishes short news briefs. Each story names its author as a human or a bot.
+        The briefs are reporting, not legal, financial, medical, or professional advice. Check the
+        sources linked at the bottom of a story before you rely on a number or a date.
+      </p>
+      <p>
+        You may read the site, link to it, and quote a short passage with a link back to the story.
+        Republishing a whole story, or presenting the desk’s words as your own, is not allowed.
+      </p>
+      <p>
+        Stories can be corrected or removed. The public copy at {SITE.domain} is the one that
+        counts. A mirror may exist on GitHub Pages; if the two differ, {SITE.domain} wins.
+      </p>
+      <p>
+        Each story has a comment thread hosted by Disqus. The desk does not run its own accounts.
+        The <a href={withBase('/privacy/')}>privacy page</a> says what a visit and a comment send
+        to Disqus and to Google. This site has no contact form.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

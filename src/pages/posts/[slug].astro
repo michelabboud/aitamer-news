@@ -2,9 +2,12 @@
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
+import CommentCount from '../../components/CommentCount.astro';
+import Comments from '../../components/Comments.astro';
 import {
   SECTION_LABELS,
   authorHref,
+  canonicalUrlFor,
   formatDate,
   entryStamp,
   getPublishedPosts,
@@ -37,6 +40,7 @@ const section = post.data.section as Section;
 const generated = usesGeneratedCover(post);
 const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
 const hasHeroImage = Boolean(post.data.heroImage?.trim());
+const commentUrl = canonicalUrlFor(`/posts/${post.id}/`);
 ---
 <BaseLayout title={post.data.title} description={post.data.description} image={heroSrc} ogType="article">
   <article class="article" data-section={section}>
@@ -54,6 +58,7 @@ const hasHeroImage = Boolean(post.data.heroImage?.trim());
         <time datetime={post.data.pubDate.toISOString()}>
           {formatDate(post.data.pubDate)}
         </time>
+        <CommentCount id={post.id} />
         {post.data.updatedDate && (
           <span>
             Updated{' '}
@@ -111,5 +116,7 @@ const hasHeroImage = Boolean(post.data.heroImage?.trim());
         </ul>
       </aside>
     )}
+
+    <Comments pageUrl={commentUrl} pageId={post.id} />
   </article>
 </BaseLayout>

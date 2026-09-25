@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
-import { SITE, canonicalUrlFor, withBase } from '../lib/site';
+import SectionChip from '../components/SectionChip.astro';
+import { ALL_SECTIONS, ANALYTICS_ID, DISQUS_SHORTNAME, SITE, canonicalUrlFor, withBase } from '../lib/site';
 
 interface Props {
   title?: string;
@@ -26,6 +27,12 @@ const canonicalUrl = canonical ?? canonicalUrlFor(Astro.url.pathname);
 const defaultImage = '/heroes/welcome-to-aitamer.jpg';
 const imagePath = image?.trim() || defaultImage;
 const absoluteImage = new URL(imagePath, SITE.url).toString();
+
+function isCurrent(href: string): boolean {
+  const target = withBase(href).replace(/\/$/, '') || '/';
+  const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+  return path === target;
+}
 ---
 <!doctype html>
 <html lang="en">
@@ -40,6 +47,26 @@ const absoluteImage = new URL(imagePath, SITE.url).toString();
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href={withBase('/rss.xml')} />
+    <script
+      is:inline
+      id="dsq-count-scr"
+      src={`https://${DISQUS_SHORTNAME}.disqus.com/count.js`}
+      async
+    ></script>
+    <script is:inline define:vars={{ analyticsId: ANALYTICS_ID }}>
+      (function () {
+        var host = location.hostname;
+        if (host !== 'aitamer.news' && host !== 'www.aitamer.news') return;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', analyticsId);
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(analyticsId);
+        document.head.appendChild(script);
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -71,22 +98,32 @@ const absoluteImage = new URL(imagePath, SITE.url).toString();
           <span class="brand__domain">{SITE.domain}</span>
         </a>
         <nav class="nav" aria-label="Primary">
-          <a href={withBase('/')}>Home</a>
-          <a href={withBase('/section/top/')}>Sections</a>
-          <a href={withBase('/about/')}>About</a>
+          <a href={withBase('/')} aria-current={isCurrent('/') ? 'page' : undefined}>Home</a>
+          <a href={withBase('/about/')} aria-current={isCurrent('/about/') ? 'page' : undefined}>About</a>
           <a href={withBase('/rss.xml')}>RSS</a>
         </nav>
       </div>
+      <nav class="desk-nav" aria-label="Sections">
+        <div class="site-shell desk-nav__inner">
+          {ALL_SECTIONS.map((section) => (
+            <SectionChip section={section} active={isCurrent(`/section/${section}/`)} />
+          ))}
+        </div>
+      </nav>
     </header>
     <main id="main" class="site-shell site-main">
       <slot />
     </main>
     <footer class="site-footer">
       <div class="site-shell site-footer__inner">
-        <p>© {new Date().getFullYear()} {SITE.title} · {SITE.domain}</p>
-        <p>
-          Human editors + desk bots. Static on Cloudflare Pages.
-        </p>
+        <p class="footer-about">{SITE.description}</p>
+        <nav class="footer-nav" aria-label="Legal">
+          <a href={withBase('/about/')} aria-current={isCurrent('/about/') ? 'page' : undefined}>About</a>
+          <a href={withBase('/terms/')} aria-current={isCurrent('/terms/') ? 'page' : undefined}>Terms of Use</a>
+          <a href={withBase('/privacy/')} aria-current={isCurrent('/privacy/') ? 'page' : undefined}>Privacy</a>
+          <a href={withBase('/rss.xml')}>RSS</a>
+        </nav>
+        <p class="footer-meta">© {new Date().getFullYear()} {SITE.title} · {SITE.domain}</p>
       </div>
     </footer>
   </body>

@@ -1,0 +1,11 @@
+---
+import { canonicalUrlFor } from '../lib/site';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+const href = `${canonicalUrlFor(`/posts/${id}/`)}#disqus_thread`;
+---
+<a class="comment-count" href={href} data-disqus-identifier={id}>Comments</a>

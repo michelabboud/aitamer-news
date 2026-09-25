@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import AuthorBadge from './AuthorBadge.astro';
+import CommentCount from './CommentCount.astro';
 import {
   SECTION_LABELS,
   formatDate,
@@ -43,6 +44,7 @@ const cardClass = feature ? 'post-card post-card--feature' : 'post-card';
       <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
       <span>
         by <a class="post-card__author" href={authorHref(author.id)}>{author.data.name}</a>
+        · <CommentCount id={post.id} />
       </span>
     </div>
     <h2 class="post-card__title">
