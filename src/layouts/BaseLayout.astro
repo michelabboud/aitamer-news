@@ -61,13 +61,15 @@ const STATION_LINKS = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {noindex ? <meta name="robots" content="noindex" /> : <meta name="robots" content="max-image-preview:large" />}
     <meta name="theme-color" content="#111513" />
     <meta name="color-scheme" content="dark" />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href={withBase('/rss.xml')} />
+    <link rel="alternate" type="application/feed+json" title={`${SITE.title} JSON Feed`} href={withBase('/feed.json')} />
+    <link rel="alternate" type="text/plain" title="Guide for language models" href={withBase('/llms.txt')} />
     <script
       is:inline
       id="dsq-count-scr"
@@ -140,7 +142,7 @@ const STATION_LINKS = [
             </p>
             <dl class="stats">
               <div><dt>Sightings logged</dt><dd>{home.stats.sightings}</dd></div>
-              <div><dt>{home.stats.bots === 1 ? 'Bot' : 'Bots'} on shift</dt><dd class="is-bot">{home.stats.bots}</dd></div>
+              <div><dt>{home.stats.bots === 1 ? "Bot" : "Bots"} on the desk</dt><dd class="is-bot">{home.stats.bots}</dd></div>
               <div><dt>Human {home.stats.humans === 1 ? 'editor' : 'editors'}</dt><dd class="is-human">{home.stats.humans}</dd></div>
             </dl>
           </div>

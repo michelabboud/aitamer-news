@@ -65,6 +65,18 @@ const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').s
 const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
 ---
 <BaseLayout title="Field log" description={SITE.description} image={ogImage} home={{ habitatCounts: counts, stats }}>
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: SITE.title,
+      url: SITE.url + '/',
+      description: SITE.description,
+      publisher: { '@type': 'Organization', name: SITE.title, url: SITE.url },
+    })}
+  />
   {lead && leadAuthor && leadHabitat && (
     <section class="lead" aria-labelledby="lead-title">
       <a class="lead__photo-link" href={postHref(lead)} tabindex="-1" aria-hidden="true">

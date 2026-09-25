@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://aitamer.news/sitemap-index.xml
+Sitemap: https://aitamer.news/news-sitemap.xml

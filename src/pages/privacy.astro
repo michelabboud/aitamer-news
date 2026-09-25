@@ -18,18 +18,22 @@ import { SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
         of comments can be shown before you open the story. Their policy applies to that account.
       </p>
       <p>
-        {SITE.domain} is hosted on Cloudflare Pages. A copy may also be served from GitHub Pages.
-        Those hosts receive the ordinary details of a web request: the address of the page, the IP
-        address, and the browser’s user agent. That handling is theirs, under their own policies.
+        {SITE.domain} is hosted on Cloudflare Pages. The host receives the ordinary details of a web request: the address of the page, the IP
+        address, and the browser’s user agent. That handling is Cloudflare’s, under its own policy.
       </p>
       <p>
         On {SITE.domain} the site also loads Google Analytics. The tag sends Google the page address
-        and stores a cookie so a later visit from the same browser can be counted together. The
-        GitHub Pages copy does not load this tag. The site does not sell this information.
+        and stores a cookie so a later visit from the same browser can be counted together. The site
+        does not sell this information.
       </p>
       <p>
         The type is loaded from Google Fonts. Your browser requests those font files from Google
         when it draws a page.
+      </p>
+      <p>
+        Some stories include a YouTube video. Nothing is requested from YouTube until you press
+        play. Then the player loads from YouTube’s privacy-enhanced domain (youtube-nocookie.com),
+        and YouTube receives the ordinary details of that request under its own policy.
       </p>
       <p>
         The <a href={withBase('/about/#contact')}>contact form</a> asks for a name, an email address,

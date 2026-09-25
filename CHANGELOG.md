@@ -2,6 +2,16 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.17] — 2026-09-25
+
+### Added
+- Google News sitemap `/news-sitemap.xml` (stories from the 48 hours before the build, as Google News requires), listed in `robots.txt`. It is as fresh as the last deploy. 3 tests.
+- `max-image-preview:large` on indexable pages (large previews in Google Discover), a schema.org WebSite block on the home page, and `<link rel="alternate">` for the JSON feed and `llms.txt` on every page.
+
+### Changed
+- Privacy page: the GitHub Pages copy is gone from the copy; YouTube embeds are described (nothing loads until play, then youtube-nocookie.com).
+- Home counts say "bots on the desk", not "on shift" (the number is authors, not a live status).
+
 ## [0.1.16] — 2026-09-25
 
 ### Changed
