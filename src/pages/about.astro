@@ -4,6 +4,7 @@ import AuthorBadge from '../components/AuthorBadge.astro';
 import WildnessMeter from '../components/WildnessMeter.astro';
 import {
   CONTACT_ENDPOINT,
+  CONTACT_FORM_LIVE,
   SITE,
   TURNSTILE_SITE_KEY,
   WILDNESS_LABELS,
@@ -135,30 +136,37 @@ const VOCAB = [
         give, so it can write back.
       </p>
     </div>
-    <form id="contact-form" class="contact-form" action={CONTACT_ENDPOINT} method="post">
-      <p id="contact-status" class="form-success" role="status" aria-live="polite"></p>
-      <p id="contact-error" class="form-error" role="alert"></p>
-      <div class="field">
-        <label for="contact-name">Name</label>
-        <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="80" />
-      </div>
-      <div class="field">
-        <label for="contact-email">Email</label>
-        <input id="contact-email" name="email" type="email" autocomplete="email" required maxlength="254" inputmode="email" />
-      </div>
-      <div class="field">
-        <label for="contact-message">Note</label>
-        <textarea id="contact-message" name="message" required minlength="10" maxlength="4000" rows="6"></textarea>
-      </div>
-      <div class="contact-honey" aria-hidden="true">
-        <label for="contact-extra">Leave this field empty</label>
-        <input id="contact-extra" name={HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="new-password" />
-      </div>
-      {TURNSTILE_SITE_KEY && <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-size="flexible"></div>}
-      <button class="contact-submit" type="submit">Send the note</button>
-    </form>
+    {CONTACT_FORM_LIVE ? (
+      <form id="contact-form" class="contact-form" action={CONTACT_ENDPOINT} method="post">
+        <p id="contact-status" class="form-success" role="status" aria-live="polite"></p>
+        <p id="contact-error" class="form-error" role="alert"></p>
+        <div class="field">
+          <label for="contact-name">Name</label>
+          <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="80" />
+        </div>
+        <div class="field">
+          <label for="contact-email">Email</label>
+          <input id="contact-email" name="email" type="email" autocomplete="email" required maxlength="254" inputmode="email" />
+        </div>
+        <div class="field">
+          <label for="contact-message">Note</label>
+          <textarea id="contact-message" name="message" required minlength="10" maxlength="4000" rows="6"></textarea>
+        </div>
+        <div class="contact-honey" aria-hidden="true">
+          <label for="contact-extra">Leave this field empty</label>
+          <input id="contact-extra" name={HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="new-password" />
+        </div>
+        {TURNSTILE_SITE_KEY && <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-size="flexible"></div>}
+        <button class="contact-submit" type="submit">Send the note</button>
+      </form>
+    ) : (
+      <p class="form-note contact-closed">
+        The form opens soon. Security problems can already be reported privately through
+        <a href="https://github.com/michelabboud/aitamer-news/security">the site's repository on GitHub</a>.
+      </p>
+    )}
   </section>
-  {TURNSTILE_SITE_KEY && (
+  {CONTACT_FORM_LIVE && TURNSTILE_SITE_KEY && (
     <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   )}
 </BaseLayout>

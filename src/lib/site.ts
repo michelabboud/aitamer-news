@@ -17,6 +17,13 @@ export { SITE };
 export const ANALYTICS_ID = 'G-3X3YRW621Y';
 
 /**
+ * Whether the contact Worker at contact.aitamer.news is deployed and answering. While false, the
+ * About page shows a notice instead of a form that would fail for every reader. Set it to true in
+ * the same commit that follows the Worker's first successful deploy (README, "Contact form").
+ */
+export const CONTACT_FORM_LIVE = false;
+
+/**
  * Where the About page form posts: the contact Worker (workers/contact). Public by nature.
  * PUBLIC_CONTACT_ENDPOINT points a local build at `wrangler dev` (http://localhost:8787/).
  */

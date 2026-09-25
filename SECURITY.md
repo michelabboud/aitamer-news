@@ -5,7 +5,7 @@
 Please report security problems privately, not in a public issue:
 
 - **Preferred:** GitHub's private vulnerability reporting on this repository (Security tab → "Report a vulnerability").
-- **Or:** the contact form at https://aitamer.news/about/#contact, marked "Security".
+- **Or, once it is open:** the contact form at https://aitamer.news/about/#contact, marked "Security".
 
 Include what you found, where (URL, file, or commit), and how to reproduce it. You will get an answer within a few days. Please give us reasonable time to fix a problem before disclosing it.
 

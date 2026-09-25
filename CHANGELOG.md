@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.8] — 2026-09-25
+
+### Fixed
+- **The About page no longer shows a contact form that cannot work.** `contact.aitamer.news` has never been deployed (the address does not resolve), so every note failed. Until it is, the page says the form opens soon and points security reports to GitHub's private reporting. `CONTACT_FORM_LIVE` in `src/lib/site.ts` turns the form back on after the Worker's first deploy.
+
 ## [0.2.7] — 2026-09-25
 
 ### Added
