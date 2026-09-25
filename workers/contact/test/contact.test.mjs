@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import worker from '../src/index.mjs';
 import * as entry from '../src/index.mjs';
-import { MAX_BODY_BYTES, handleContactRequest } from '../src/handler.mjs';
+import { MAX_BODY_BYTES, handleContactRequest, rateLimitKey } from '../src/handler.mjs';
 import { DESK_FROM, HONEYPOT_FIELD, contactLetter, parseContactFields } from '../src/message.mjs';
 import { TURNSTILE_FIELD, verifyTurnstile } from '../src/turnstile.mjs';
 
@@ -77,7 +77,7 @@ test('control characters are stripped: names stay one line, notes keep only newl
   fields.set('message', 'Line one\r\nLine\ttwo\u0007\u0000 end of note.');
   const parsed = parseContactFields(fields);
   assert.equal(parsed.ok, true);
-  assert.equal(parsed.value.name, 'Eve Bcc: x y');
+  assert.equal(parsed.value.name, 'Eve Bcc x y');
   assert.equal(parsed.value.message, 'Line one\nLine\ttwo end of note.');
 });
 
@@ -145,6 +145,7 @@ test('rate limits: a visitor gets 429 after their allowance, and so does everyon
   assert.deepEqual(statuses, [200, 200, 429]);
   assert.equal(sent.length, 2);
   assert.equal(perVisitor.keys.has('ip:203.0.113.7'), true);
+
 
   const other = await handleContactRequest(await formRequest(valid, { ...json, ip: '198.51.100.9' }), env);
   assert.equal(other.status, 200, 'a different visitor is not blocked by the first one');
@@ -264,4 +265,24 @@ test('the Worker answers only on / and 404s every other path', async () => {
 
 test('the entry module exports only the default handler (workerd rejects any other export)', () => {
   assert.deepEqual(Object.keys(entry), ['default']);
+});
+
+test('IPv6 visitors are rate-limited by their /64, so rotating addresses does not dodge the limit', () => {
+  assert.equal(rateLimitKey('203.0.113.7'), 'ip:203.0.113.7');
+  assert.equal(rateLimitKey('2001:db8:abcd:12:1::5'), 'ip6:2001:db8:abcd:12::/64');
+  assert.equal(rateLimitKey('2001:DB8:ABCD:0012:ffff:1:2:3'), 'ip6:2001:db8:abcd:12::/64');
+  assert.equal(rateLimitKey('2001:db8::1'), 'ip6:2001:db8:0:0::/64');
+  assert.equal(rateLimitKey('::1'), 'ip6:0:0:0:0::/64');
+  assert.equal(rateLimitKey(null), 'ip:unknown');
+});
+
+test('a name cannot smuggle address syntax into the Reply-To display name', () => {
+  const fields = new FormData();
+  fields.set('name', 'Ann" <evil@x.com>, "Bob');
+  fields.set('email', valid.email);
+  fields.set('message', valid.message);
+  const parsed = parseContactFields(fields);
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.value.name, 'Ann evil@x.com Bob');
+  assert.equal(/["<>,;:]/.test(contactLetter(parsed.value, 'owner@example.com').replyTo.name), false);
 });

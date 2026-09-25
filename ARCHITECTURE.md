@@ -32,10 +32,10 @@ Both trigger on a push to `main`. Canonical URLs on both copies point at `https:
 The site itself is static files only (no `functions/`, no Astro adapter). The one piece of server code is a separate Cloudflare Worker, `aitamer-contact`, on its own hostname `https://contact.aitamer.news/`, deployed from `workers/contact/`.
 
 - `workers/contact/src/index.mjs` — entry; answers only `/`, 404 elsewhere. Exports nothing but the handler: workerd treats every named export of the entry module as an entrypoint and refuses to start on anything else.
-- `workers/contact/src/handler.mjs` — the checks, cheapest first: method → origin allowlist → body size (≤ 32 KB, before reading) → rate limits (5/min per IP, 30/min site-wide; fails closed without the bindings) → parse → Turnstile (when its secret is set) → send. JSON answers for `fetch`, a 303 back to the About page for a plain submit.
+- `workers/contact/src/handler.mjs` — the checks, cheapest first: method → origin allowlist → body size (≤ 32 KB, before reading) → rate limits (5/min per IP, IPv6 counted per /64; 30/min site-wide; fails closed without the bindings) → parse → Turnstile (when its secret is set) → send. JSON answers for `fetch`, a 303 back to the About page for a plain submit.
 - `workers/contact/src/message.mjs` — field limits, cleaning (control characters stripped, one-line names, strict addresses), honeypot, and the letter (From `desk@aitamer.news`, Reply-To the visitor).
 - `workers/contact/src/turnstile.mjs` — server-side Turnstile check (5 s timeout; any failure is a rejection).
-- `workers/contact/wrangler.toml` — custom domain, `send_email` binding (sender locked to the desk address), two rate-limit bindings; `workers.dev` and preview URLs off.
+- `workers/contact/wrangler.toml` — custom domain, `send_email` binding (sender locked to the desk address), two rate-limit bindings; `workers.dev` and preview URLs off; Cloudflare's per-request invocation logs off (they carry visitor IPs, and the privacy page says the count is not kept).
 - `workers/contact/test/contact.test.mjs` — part of `npm test`.
 
 Secrets (`CONTACT_TO`, optional `TURNSTILE_SECRET_KEY`) are Worker secrets. The site build never has them; `npm run check:dist` fails CI if a secret name or a known secret value appears in `dist/`. The form's address is `CONTACT_ENDPOINT` in `src/lib/site.ts` (override with `PUBLIC_CONTACT_ENDPOINT` for local work). Deploys: `.github/workflows/deploy-contact-worker.yml`, only when `workers/contact/**` changes. Why this design: `docs/adr/0003-contact-form-runs-on-a-worker.md`.

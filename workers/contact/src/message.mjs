@@ -24,6 +24,12 @@ const EMAIL_PATTERN = /^[^\s@"<>(),;:\\[\]]+@[^\s@"<>(),;:\\[\]]+\.[^\s@"<>(),;:
 /** Control characters and Unicode line/paragraph separators; none belong in a one-line field. */
 const LINE_BREAKERS = /[\p{Cc}\u2028\u2029]+/gu;
 
+/**
+ * Characters with meaning in an address header. The name becomes the Reply-To display name,
+ * so it must not be able to open a quoted string, an angle-bracket address, or a list.
+ */
+const NAME_SYNTAX = /["<>,;:\\]/g;
+
 /** Control characters that are not ordinary text layout (tab and newline stay in a note). */
 const NOTE_CONTROLS = /[\p{Cc}\u2028\u2029]/gu;
 
@@ -35,7 +41,7 @@ export function parseContactFields(fields) {
   const honeypot = String(fields.get(HONEYPOT_FIELD) ?? '').trim();
   if (honeypot) return { ok: true, ignore: true };
 
-  const name = oneLine(fields.get('name'));
+  const name = oneLine(fields.get('name')).replace(NAME_SYNTAX, '').replace(/\s+/g, ' ').trim();
   const email = oneLine(fields.get('email')).toLowerCase();
   const message = String(fields.get('message') ?? '')
     .replace(/\r\n?/g, '\n')

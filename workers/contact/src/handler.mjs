@@ -69,9 +69,9 @@ export async function handleContactRequest(request, env, fetchImpl = (input, ini
     console.error('contact: rate limit bindings missing');
     return respond(request, env, { ok: false, error: 'Contact is not set up yet.' }, 503);
   }
-  const visitor = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+  const visitor = rateLimitKey(request.headers.get('CF-Connecting-IP'));
   const [perVisitor, siteWide] = await Promise.all([
-    env.CONTACT_RATE_LIMIT.limit({ key: `ip:${visitor}` }),
+    env.CONTACT_RATE_LIMIT.limit({ key: visitor }),
     env.CONTACT_GLOBAL_LIMIT.limit({ key: 'all' }),
   ]);
   if (!perVisitor.success || !siteWide.success) {
@@ -123,6 +123,26 @@ export async function handleContactRequest(request, env, fetchImpl = (input, ini
   }
 
   return respond(request, env, { ok: true }, 200);
+}
+
+/**
+ * Rate-limit key for a visitor. IPv4 is keyed by address. IPv6 is keyed by its /64 prefix, because
+ * one subscriber usually holds a whole /64 and could otherwise rotate addresses to dodge the limit.
+ * @param {string | null} ip the CF-Connecting-IP header (set by Cloudflare's edge in production)
+ * @returns {string}
+ */
+export function rateLimitKey(ip) {
+  const value = String(ip ?? '').trim().toLowerCase();
+  if (!value) return 'ip:unknown';
+  if (!value.includes(':')) return `ip:${value}`;
+  const [head, tail = ''] = value.split('::');
+  const left = head ? head.split(':') : [];
+  const right = value.includes('::') && tail ? tail.split(':') : [];
+  const groups = value.includes('::')
+    ? [...left, ...Array(Math.max(0, 8 - left.length - right.length)).fill('0'), ...right]
+    : left;
+  const prefix = groups.slice(0, 4).map((group) => group.replace(/^0+(?=.)/, '') || '0');
+  return `ip6:${prefix.join(':')}::/64`;
 }
 
 /**

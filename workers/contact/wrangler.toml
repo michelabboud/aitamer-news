@@ -41,5 +41,11 @@ namespace_id = "7302"
   limit = 30
   period = 60
 
+# Keep the Worker's own console lines (event names only: no IP, no note), but not Cloudflare's
+# per-request invocation logs, which carry request metadata such as the visitor's IP.
+# The privacy page promises the rate count is not kept.
 [observability]
 enabled = true
+
+[observability.logs]
+invocation_logs = false

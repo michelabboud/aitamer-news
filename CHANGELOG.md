@@ -18,7 +18,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - `npm run check:dist`, which fails CI if a secret name or a known secret value appears in the static build. Both site deploys run it after building.
 - `npm run dev:contact`, which runs the Worker locally. `PUBLIC_CONTACT_ENDPOINT` points a local build at it.
 - Tests:
-  - 16 for the Worker: rate limits, fail-closed, size limits, cleaning, Turnstile, origins, 404s, and that the entry module exports only the handler.
+  - 18 for the Worker: rate limits (IPv6 counted per /64), fail-closed, size limits, cleaning (names cannot carry address syntax), Turnstile, origins, 404s, and that the entry module exports only the handler.
   - 6 for the secret check.
 - `package-lock.json` is committed.
 
