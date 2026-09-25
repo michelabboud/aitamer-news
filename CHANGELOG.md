@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.18] — 2026-09-25
+
+### Changed
+- **The post contract is strict** (lane F2, fixing deep-review finding B5): an unknown or misspelled field, top-level or nested, fails the build naming the file. Dates in `sunset`, `corrections` and `withdrawn` accept only a YAML date, `YYYY-MM-DD` or a UTC ISO timestamp; `heroImage` must be `/heroes/<slug>.jpg` or an `https://` URL; the Wildness bounds come from `src/lib/wildness.ts`. Decision: `docs/adr/0004-post-contract-is-strict.md`.
+- The schema no longer imports Astro, so it is tested directly (24 tests); `content.config.ts` attaches the author reference. `SITE` moved to `src/lib/site-meta.ts`.
+
+### Added
+- The contract is versioned: the JSON Schema carries `"x-contract-version": 1` and is also served at `/contract/v1/post.schema.json`. `POST.md` documents both.
+
 ## [0.1.17] — 2026-09-25
 
 ### Added

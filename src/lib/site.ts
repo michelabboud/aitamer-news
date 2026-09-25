@@ -3,20 +3,15 @@ import { groupByMonth, type ArchiveMonth } from './archive.ts';
 import { HABITATS, HABITAT_META, isHabitat, type Habitat } from './habitats.ts';
 import { isLive } from './schedule.ts';
 import { HABITAT_LIST, habitatOf, type HabitatView } from './bestiary.ts';
+import { SITE } from './site-meta.ts';
 
 export { HABITATS, HABITAT_META, LEGACY_SECTIONS, type Habitat } from './habitats.ts';
 
 export { archiveMonthOf, formatArchiveMonth, type ArchiveMonth } from './archive.ts';
 
-export const SITE = {
-  title: 'AI Tamer',
-  domain: 'aitamer.news',
-  description:
-    'Short, sourced briefs on models, tools, and policy. Every story names a human or a bot.',
-  url: 'https://aitamer.news',
-} as const;
+export { SITE };
 
-/** GA4 measurement ID. The tag loads only on aitamer.news, not on the GitHub Pages copy. */
+/** GA4 measurement ID. The tag loads only on aitamer.news (and www), never on another host or a local build. */
 export const ANALYTICS_ID = 'G-3X3YRW621Y';
 
 /**

@@ -35,6 +35,10 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `corrections` | no | Dated corrections shown on the post: a list of `{ date, text }`. Add a new entry; never edit or delete an old one. |
 | `withdrawn` | no | `{ date, reason }` takes a post down without breaking links: the page stays at its URL with the notice, and the post leaves every list, feed, sitemap and search result. Its specimen number is retired with it. |
 
+**The contract is strict.** An unknown field, at any level, fails the build naming the file, so a typo is never silently dropped. Dates in `sunset`, `corrections` and `withdrawn` must be a YAML date, a plain `YYYY-MM-DD`, or a full UTC timestamp ending in `Z`, never a bare number or `true`/`false`. `heroImage` must be `/heroes/<slug>.jpg` or start with `https://`. Why: `docs/adr/0004-post-contract-is-strict.md`.
+
+**The contract is versioned and published.** `https://aitamer.news/contract/post.schema.json` is the JSON Schema of these rules, generated from the schema the build itself uses, with `"x-contract-version": 1`; `/contract/v1/post.schema.json` is the same file at a pinned address, so a future breaking change can live at `/contract/v2/` beside it. atn-mcp and aitamer-news-ops validate against it before writing.
+
 The field rules above are the **post contract**. aitamer-news-ops (the bots), atn-mcp (the posts tool) and human editors all write against it. It only grows: a field is never renamed or given a new meaning.
 
 ```yaml
