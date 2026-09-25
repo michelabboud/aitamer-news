@@ -179,6 +179,12 @@ test('heroImage rejects an http (non-https) URL', () => {
   assert.equal(result.success, false);
 });
 
+test('heroImage rejects an https URL carrying whitespace or quotes', () => {
+  for (const heroImage of ['https://example.com/a b.jpg', 'https://example.com/a.jpg" onerror="x', 'https://']) {
+    assert.equal(postSchema.safeParse({ ...validPost, heroImage }).success, false, heroImage);
+  }
+});
+
 test('source links must be http(s); dates may not be bare numbers', async () => {
   const { postSchema } = await import('../content/post-schema.ts');
   const base = { title: 't', description: 'd', pubDate: '2026-09-25', section: 'models', author: 'desk-bot' };

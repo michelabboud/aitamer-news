@@ -97,7 +97,7 @@ export const postSchema = z
     heroImage: z
       .string()
       .regex(
-        /^(?:\/heroes\/[a-z0-9-]+\.jpg|https:\/\/.*)$/,
+        /^(?:\/heroes\/[a-z0-9-]+\.jpg|https:\/\/\S+)$/,
         'heroImage must be /heroes/<slug>.jpg in this repo, or an absolute https:// URL',
       )
       .optional(),

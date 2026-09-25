@@ -2,10 +2,22 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.28] — 2026-09-25
+
+### Fixed
+Release review, reviewer A (`docs/reviews/2026-09-25-release-review.md`, with both reports beside it):
+- `heroImage` as an `https://` URL may no longer contain spaces or quotes, matching `sources[].url`. 1 test.
+- The privacy page says what the code does: the Disqus comment-count script loads on every page.
+- The About page imports the wildness type that exists (`WildnessRating`).
+- BACKLOG: Campfire pagination, the footer year on cached pages, GitHub's 60-day pause of scheduled workflows; the Big Top phone-header line is marked superseded.
+
+### Added
+- The combined release review record and both reviewers' reports under `docs/reviews/`.
+
 ## [0.1.27] — 2026-09-25
 
 ### Fixed
-Release review, reviewer B (`docs/reviews/2026-09-25-release-review.md` once both reviewers report):
+Release review, reviewer B (`docs/reviews/2026-09-25-release-review.md`):
 - **A real 404 page.** Without `404.html`, Cloudflare Pages served the home page with status 200 for every unknown URL (soft 404s). `/404.html` now says "Specimen not found" with search and the habitats, `noindex`.
 - **No stale countdowns in the HTML.** Extinction Watch writes only the shutdown date ("SEP 28") or "Extinct" into the page; the "3 days left" count is computed in the reader's browser, as plan decision D12 required.
 - **The contract refuses empty headlines:** `title` (1–200), `description` (1–400) and each tag (1–60) must be non-empty, before v1 is released. 1 test.

@@ -14,8 +14,8 @@ import { SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
         The pages do not ask you to make an account on {SITE.domain}. The RSS feed is a public file.
         It does not record who subscribes. Comments under a story are loaded from Disqus. If you
         comment, you use a Disqus account, and Disqus receives what you type, plus the usual data
-        a comment host collects. Pages that list stories also load a Disqus count, so the number
-        of comments can be shown before you open the story. Their policy applies to that account.
+        a comment host collects. Every page also loads a small Disqus script that shows comment
+        counts next to story links, so Disqus sees each page you visit. Their policy applies to that account.
       </p>
       <p>
         {SITE.domain} is hosted on Cloudflare Pages. The host receives the ordinary details of a web request: the address of the page, the IP

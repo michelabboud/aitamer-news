@@ -9,7 +9,7 @@ import {
   WILDNESS_LABELS,
   WILDNESS_MEANINGS,
   withBase,
-  type Wildness,
+  type WildnessRating,
 } from '../lib/site';
 import { HONEYPOT_FIELD } from '../../workers/contact/src/message.mjs';
 
@@ -25,7 +25,7 @@ const PIPELINE = [
   { name: 'Publish', text: 'Stamp the time in UTC and put the story live.' },
 ];
 
-const LEVELS: Wildness[] = [1, 2, 3, 4, 5];
+const LEVELS: WildnessRating[] = [1, 2, 3, 4, 5];
 
 /** The field guide's words, in the order a reader meets them. */
 const VOCAB = [
