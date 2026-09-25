@@ -10,7 +10,7 @@ Production-ready **static** Astro news site for [aitamer.news](https://aitamer.n
 
 ## Local development
 
-Requires **Node.js ≥ 22.12**.
+Requires **Node.js 24** (`.nvmrc`; CI uses 24). Node 22.12 or later still works.
 
 ```bash
 npm install
@@ -87,7 +87,7 @@ GitHub Pages has to use **GitHub Actions** as its source. “Deploy from a branc
    - **Framework preset:** Astro (or None)
    - **Build command:** `npm run build`
    - **Build output directory:** `dist`
-   - **Node version:** `22` (set `NODE_VERSION=22` in Pages environment variables if needed)
+   - **Node version:** `24` (set `NODE_VERSION=24` in Pages environment variables if needed)
 4. Deploy. Then **Custom domains** → add `aitamer.news` (and `www` if you want) and follow DNS instructions.
 5. No Wrangler Worker/`@astrojs/cloudflare` adapter is required for this static site. Optional `wrangler.toml` is included only for local static asset preview via Wrangler if you prefer Workers static assets later.
 

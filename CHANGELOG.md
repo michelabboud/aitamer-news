@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.3] — 2026-09-25
+
+### Changed
+- CI runs on Node 24 (`.nvmrc` too). Node 22.12+ still works locally.
+- Latest stable GitHub Actions: `checkout` v7, `setup-node` v7, `cache` v6, `upload-pages-artifact` v5, `deploy-pages` v5, and `cloudflare/wrangler-action` v4.1.3, pinned to its commit because it holds the Cloudflare token. The Cloudflare deploy now uses Wrangler 4.139.0 (it was Wrangler 3). Vetting: `docs/reports/2026-09-25-ci-actions-upgrade.md`.
+
 ## [0.1.2] — 2026-09-25
 
 ### Added
