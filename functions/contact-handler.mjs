@@ -1,4 +1,5 @@
 import { contactLetter, parseContactFields } from './contact-message.mjs';
+import { emailConfigFrom, sendEmail } from './contact-send.mjs';
 
 const PRODUCTION_ORIGINS = new Set([
   'https://aitamer.news',
@@ -13,9 +14,10 @@ const CANONICAL_ABOUT = 'https://aitamer.news/about/?sent=1';
  * A browser fetch sends Accept: application/json. A plain form submit does not, and gets a redirect.
  *
  * @param {Request} request
- * @param {{ CONTACT_TO?: string, EMAIL?: { send: (message: object) => Promise<unknown> } }} env
+ * @param {{ CONTACT_TO?: string, CF_EMAIL_API_TOKEN?: string, CF_ACCOUNT_ID?: string }} env
+ * @param {typeof fetch} [fetchImpl] injected by tests; production uses the global fetch
  */
-export async function handleContactRequest(request, env) {
+export async function handleContactRequest(request, env, fetchImpl = (input, init) => fetch(input, init)) {
   const origin = request.headers.get('Origin');
 
   if (request.method === 'OPTIONS') {
@@ -46,15 +48,15 @@ export async function handleContactRequest(request, env) {
     return respond(request, { ok: true }, 200);
   }
 
-  const to = String(env.CONTACT_TO ?? '').trim();
-  if (!to || !env.EMAIL || typeof env.EMAIL.send !== 'function') {
+  const config = emailConfigFrom(env);
+  if (!config) {
     return respond(request, { ok: false, error: 'Contact is not set up yet.' }, 503);
   }
 
   try {
-    await env.EMAIL.send(contactLetter(parsed.value, to));
+    await sendEmail(contactLetter(parsed.value, config.to), config, fetchImpl);
   } catch (error) {
-    console.error('contact send failed', error instanceof Error ? error.name : 'error');
+    console.error('contact send failed', error instanceof Error ? error.message : 'error');
     return respond(request, { ok: false, error: 'The desk could not send that note. Try again in a moment.' }, 502);
   }
 

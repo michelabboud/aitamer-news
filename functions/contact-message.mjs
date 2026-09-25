@@ -4,7 +4,7 @@ export const EMAIL_MAX = 254;
 export const MESSAGE_MIN = 10;
 export const MESSAGE_MAX = 4000;
 
-/** Sender on aitamer.news. The domain has to be onboarded to Cloudflare Email before a send succeeds. */
+/** Sender on aitamer.news. It must be an address on a domain onboarded to Cloudflare Email Routing. */
 export const DESK_FROM = 'desk@aitamer.news';
 export const DESK_FROM_NAME = 'AI Tamer';
 
@@ -46,10 +46,12 @@ export function parseContactFields(fields) {
  * @param {string} to
  */
 export function contactLetter(value, to) {
+  // Field names follow the Email Sending REST API: named addresses use `address`, and
+  // `reply_to` is snake_case (the Workers binding spells these `email` and `replyTo`).
   return {
     to,
-    from: { email: DESK_FROM, name: DESK_FROM_NAME },
-    replyTo: { email: value.email, name: value.name },
+    from: { address: DESK_FROM, name: DESK_FROM_NAME },
+    reply_to: value.email,
     subject: `Note from ${value.name}`.slice(0, 120),
     text: [`Name: ${value.name}`, `Email: ${value.email}`, '', value.message].join('\n'),
   };

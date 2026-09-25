@@ -2,6 +2,21 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.5] — 2026-09-25
+
+### Added
+- Contact form on a redesigned About page. The page now explains how a story gets here (the seven-step bot pipeline: seek, sort, research, legal, write, art, publish), what the Human and AI badges mean, and ends with the form. "Contact" joins the footer.
+- `functions/api/contact.js` (Pages Function, `POST /api/contact`) validates the note and sends it through the Cloudflare Email Sending REST API with a scoped token (`CF_EMAIL_API_TOKEN`) to the verified inbox in `CONTACT_TO`. Nothing is stored. Decision: `docs/adr/0002-contact-form-sends-through-the-email-rest-api.md`, which supersedes 0001.
+- `npm run check:dist` — fails CI if a secret name, a bearer header, the Cloudflare API address, or a known secret value appears in the static build. Both deploy workflows run it after building.
+- Tests: 9 for the contact function (API calls, failures, bounces, timeouts, no secret or note in logs), 5 for the secret check. `package-lock.json` is committed.
+
+### Changed
+- More room between and inside post cards: the grid gap grows with the screen (28–44px) and card padding is larger.
+- Privacy and terms pages describe what the form sends.
+
+### Fixed
+- The first contact-form design used a `send_email` binding that Cloudflare Pages rejects at deploy time; it never reached `main`.
+
 ## [0.1.4] — 2026-09-25
 
 ### Fixed

@@ -99,6 +99,32 @@ npx wrangler pages dev dist
 npx wrangler dev
 ```
 
+## Contact form
+
+The About page form posts to `https://aitamer.news/api/contact`. Cloudflare Pages runs `functions/api/contact.js`, which sends one plain-text email through the Cloudflare Email Sending REST API. Nothing is stored. Why: `docs/adr/0002-contact-form-sends-through-the-email-rest-api.md`.
+
+To make it send, on the Cloudflare account (none of this lives in the repo):
+
+1. Onboard `aitamer.news` to Email Routing. The domain has no MX or SPF records today, so this adds them without replacing a mailbox.
+2. Add and verify the inbox that should receive notes as an Email Routing destination. Sending to a verified destination is free.
+3. Create an API token with only **Email Sending: Edit** on this account.
+4. Set both secrets on the Pages project:
+
+```bash
+npx wrangler pages secret put CONTACT_TO --project-name=aitamer-news
+npx wrangler pages secret put CF_EMAIL_API_TOKEN --project-name=aitamer-news
+```
+
+Until then the form answers "Contact is not set up yet." Secrets never reach the static pages: CI runs `npm run check:dist` after every build.
+
+Local check without sending mail (no token in `.dev.vars` means a 503 answer):
+
+```bash
+printf 'CONTACT_TO=owner@example.com\n' > .dev.vars
+npm test && npm run build && npm run check:dist
+npx wrangler pages dev dist --port 8788
+```
+
 ## Key routes
 
 | Route | Purpose |
@@ -108,7 +134,8 @@ npx wrangler dev
 | `/section/[section]` | Section listing |
 | `/authors/[id]` | Author page |
 | `/archive/`, `/archive/[year]/`, `/archive/[year]/[month]/` | Archive by year and month (UTC publish time) |
-| `/about/` | About stub |
+| `/api/contact` | Pages Function. Emails the desk. Not a static file. |
+| `/about/` | How the desk works, and the contact form |
 | `/rss.xml` | RSS feed |
 | `/sitemap-index.xml` | Sitemap (via `@astrojs/sitemap`) |
 | `/robots.txt` | Crawler rules |

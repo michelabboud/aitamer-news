@@ -1,7 +1,7 @@
 {
   "name": "aitamer-news",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -9,9 +9,10 @@
     "dev": "node scripts/decode-heroes.mjs && astro dev",
     "build": "node scripts/decode-heroes.mjs && astro build",
     "preview": "astro preview",
-    "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test scripts/stamp-post-times.test.mjs src/lib/archive.test.ts",
+    "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test scripts/stamp-post-times.test.mjs scripts/check-dist-secrets.test.mjs src/lib/archive.test.ts functions/contact.test.mjs",
     "stamp": "node scripts/stamp-post-times.mjs",
     "check:times": "node scripts/stamp-post-times.mjs --check",
+    "check:dist": "node scripts/check-dist-secrets.mjs",
     "astro": "astro"
   },
   "dependencies": {

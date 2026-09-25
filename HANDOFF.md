@@ -4,6 +4,6 @@
 
 **Where we are (2026-09-25):**
 1. The site is live on Cloudflare Pages and GitHub Pages; `main` deploys on every push.
-2. 0.1.1 added the About-page contact form; live sending waits on Cloudflare Email setup.
+2. The About-page contact form (0.1.5) sends through the Cloudflare Email REST API; live sending waits on Email Routing setup and two Pages secrets (see README).
 3. Open work is in `BACKLOG.md`.
 4. Version and history: `VERSION`, `CHANGELOG.md`.

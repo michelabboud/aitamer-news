@@ -51,6 +51,9 @@ jobs:
           ASTRO_BASE: /aitamer-news
         run: npm run build
 
+      - name: Check the build holds no secrets
+        run: npm run check:dist
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
