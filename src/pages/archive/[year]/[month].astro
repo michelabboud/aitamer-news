@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+import {
+  archiveHref,
+  entryStamp,
+  formatArchiveMonth,
+  getArchiveMonths,
+  resolveAuthor,
+} from '../../../lib/site';
+
+export async function getStaticPaths() {
+  const months = await getArchiveMonths();
+  const authors = await getCollection('authors');
+  const authorById = new Map(authors.map((author) => [author.id, author]));
+  // months is newest first, so the newer neighbour is i - 1 and the older one i + 1.
+  return months.map((entry, i) => {
+    const newer = months[i - 1] ? { year: months[i - 1].year, month: months[i - 1].month } : null;
+    const older = months[i + 1] ? { year: months[i + 1].year, month: months[i + 1].month } : null;
+    const stamps = entry.posts.flatMap((post) => {
+      const author = authorById.get(post.data.author.id);
+      return [entryStamp(post), author ? entryStamp(author) : 'missing-author'];
+    });
+    return {
+      params: { year: entry.year, month: entry.month },
+      props: { posts: entry.posts, newer, older },
+      // A past month only changes when one of its posts or authors does, or a neighbour appears.
+      cacheKey: [...stamps, `newer:${newer?.year}-${newer?.month}`, `older:${older?.year}-${older?.month}`].join('|'),
+    };
+  });
+}
+
+const { year, month } = Astro.params;
+const { posts, newer, older } = Astro.props;
+const label = formatArchiveMonth(year, month);
+const cards = await Promise.all(
+  posts.map(async (post) => {
+    const author = await resolveAuthor(post);
+    if (!author) throw new Error(`Missing author for post ${post.id}`);
+    return { post, author };
+  }),
+);
+---
+<BaseLayout title={`${label} archive`} description={`AI Tamer stories published in ${label}.`}>
+  <p class="page-kicker"><a href={archiveHref()}>Archive</a> · <a href={archiveHref(year)}>{year}</a></p>
+  <h1 class="page-title">{label}</h1>
+  <p class="lede">{posts.length} published {posts.length === 1 ? 'story' : 'stories'}, newest first.</p>
+
+  <div class="post-list post-list--plain">
+    {cards.map(({ post, author }) => (
+      <PostCard post={post} author={author} />
+    ))}
+  </div>
+
+  {(older || newer) && (
+    <nav class="archive-pager" aria-label="Other months">
+      {older ? (
+        <a rel="prev" href={archiveHref(older.year, older.month)}>← {formatArchiveMonth(older.year, older.month)}</a>
+      ) : <span />}
+      {newer && (
+        <a rel="next" href={archiveHref(newer.year, newer.month)}>{formatArchiveMonth(newer.year, newer.month)} →</a>
+      )}
+    </nav>
+  )}
+</BaseLayout>

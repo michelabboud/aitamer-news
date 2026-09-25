@@ -8,9 +8,10 @@ aitamer.news is a static news site. Astro renders every page to HTML at build ti
 - **Content:** Astro content collections defined in `src/content.config.ts`.
   - `src/content/posts/*.md(x)` — articles. `draft: true` keeps a post off every listing, author page, and the RSS feed.
   - `src/content/authors/*.md` — author profiles; a post's `author` must match one.
-- **Routes** (`src/pages/`): home, `/posts/[slug]`, `/section/[section]`, `/authors/[id]`, `/about/`, `/privacy/`, `/terms/`, `/rss.xml`.
+- **Routes** (`src/pages/`): home, `/posts/[slug]`, `/section/[section]`, `/authors/[id]`, `/archive/` + `/archive/[year]/` + `/archive/[year]/[month]/` (month grouping in `src/lib/archive.ts`, UTC), `/about/`, `/privacy/`, `/terms/`, `/rss.xml`.
 - **Shared code:** `src/lib/site.ts` (site constants, sections, `withBase()` for the path prefix), `src/lib/covers.ts` (hero/cover selection), `src/layouts/BaseLayout.astro`, `src/components/`.
 - **Styling:** `src/styles/big-top-tokens.css` and `src/styles/global.css` — the Big Top daylight theme, described in `docs/big-top.md`.
+- **Publish times:** `pubDate` holds a full UTC time for every published post, written by `scripts/stamp-post-times.mjs` (`npm run stamp`) from git history; `npm run check:times` enforces it in both deploy workflows. Listings sort newest first, ties broken by post id.
 - **Hero images:** JPEGs in `public/heroes/`. `scripts/decode-heroes.mjs` runs before every dev/build to assemble any base64-encoded hero parts into binaries.
 - **Incremental build:** `experimental.incrementalBuild` reuses HTML for unchanged pages when `node_modules/.astro` is restored from the CI cache. Build concurrency must stay at 1 or Astro disables the cache.
 

@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { archiveHref, formatArchiveMonth, getArchiveMonths, type ArchiveMonth } from '../../lib/site';
+
+const months = await getArchiveMonths();
+const years = new Map<string, ArchiveMonth[]>();
+for (const entry of months) {
+  years.set(entry.year, [...(years.get(entry.year) ?? []), entry]);
+}
+const total = months.reduce((sum, entry) => sum + entry.posts.length, 0);
+---
+<BaseLayout title="Archive" description="Every published AI Tamer story, by month.">
+  <p class="page-kicker">Archive</p>
+  <h1 class="page-title">Every story, by month</h1>
+  <p class="lede">{total} published {total === 1 ? 'story' : 'stories'}. Months follow the publish time in UTC.</p>
+
+  {months.length === 0 ? (
+    <p class="empty">Nothing is published yet.</p>
+  ) : (
+    [...years].map(([year, entries]) => (
+      <section class="archive-year" aria-labelledby={`archive-${year}`}>
+        <h2 id={`archive-${year}`}><a href={archiveHref(year)}>{year}</a></h2>
+        <ul class="archive-months">
+          {entries.map((entry) => (
+            <li>
+              <a class="archive-month" href={archiveHref(entry.year, entry.month)}>
+                <span class="archive-month__name">{formatArchiveMonth(entry.year, entry.month)}</span>
+                <span class="archive-month__count">{entry.posts.length} {entry.posts.length === 1 ? 'story' : 'stories'}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  )}
+</BaseLayout>

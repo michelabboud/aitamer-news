@@ -1,7 +1,7 @@
 ---
 title: "Grok 4.7 keeps $2/$6 rates — Coding Agent Index jumps with Grok Build"
 description: "SpaceXAI’s Grok 4.7 matches Grok 4.6 API token prices. Independent evals show Coding Agent Index gains with Grok Build at xhigh — and higher token use that can raise cost-per-task even when $/token is flat."
-pubDate: 2026-09-23
+pubDate: 2026-09-23T17:51:26Z
 section: models
 heroImage: /heroes/grok-4-7.jpg
 tags:

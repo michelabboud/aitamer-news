@@ -1,4 +1,7 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import { groupByMonth, type ArchiveMonth } from './archive.ts';
+
+export { archiveMonthOf, formatArchiveMonth, type ArchiveMonth } from './archive.ts';
 
 export const SITE = {
   title: 'AI Tamer',
@@ -53,8 +56,10 @@ export function isPublished(post: CollectionEntry<'posts'>): boolean {
 
 export async function getPublishedPosts(): Promise<CollectionEntry<'posts'>[]> {
   const posts = await getCollection('posts', isPublished);
+  // Posts merged together share a publish time; the id keeps their order stable.
   return posts.sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+    (a, b) =>
+      b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || a.id.localeCompare(b.id),
   );
 }
 
@@ -72,6 +77,11 @@ export async function getPostsByAuthor(
   return posts.filter((p) => p.data.author.id === authorId);
 }
 
+/** Published posts grouped by month, newest month first; posts keep newest-first order. */
+export async function getArchiveMonths(): Promise<ArchiveMonth<CollectionEntry<'posts'>>[]> {
+  return groupByMonth(await getPublishedPosts());
+}
+
 export async function resolveAuthor(post: CollectionEntry<'posts'>) {
   return getEntry(post.data.author);
 }
@@ -83,6 +93,20 @@ export function formatDate(date: Date): string {
     day: 'numeric',
     timeZone: 'UTC',
   });
+}
+
+/** Publish date and time for the article byline, in UTC, e.g. "Sep 24, 2026, 09:15 UTC". */
+export function formatDateTime(date: Date): string {
+  const stamp = date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'UTC',
+  });
+  return `${stamp} UTC`;
 }
 
 /** Prefix a root path with Astro's base. No-op when the site is served at `/`. */
@@ -114,6 +138,12 @@ export function sectionHref(section: Section): string {
 
 export function postHref(post: CollectionEntry<'posts'>): string {
   return withBase(`/posts/${post.id}/`);
+}
+
+export function archiveHref(year?: string, month?: string): string {
+  if (!year) return withBase('/archive/');
+  if (!month) return withBase(`/archive/${year}/`);
+  return withBase(`/archive/${year}/${month}/`);
 }
 
 export function authorHref(id: string): string {

@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import {
+  archiveHref,
+  entryStamp,
+  formatArchiveMonth,
+  getArchiveMonths,
+  postHref,
+} from '../../../lib/site';
+
+/** Headlines shown under each month on the year page; the month page lists them all. */
+const HEADLINES_PER_MONTH = 3;
+
+export async function getStaticPaths() {
+  const months = await getArchiveMonths();
+  const years = [...new Set(months.map((entry) => entry.year))];
+  return years.map((year) => {
+    const entries = months.filter((entry) => entry.year === year);
+    return {
+      params: { year },
+      props: { entries },
+      cacheKey: entries.flatMap((entry) => entry.posts.map(entryStamp)).join('|'),
+    };
+  });
+}
+
+const { year } = Astro.params;
+const { entries } = Astro.props;
+const total = entries.reduce((sum, entry) => sum + entry.posts.length, 0);
+---
+<BaseLayout title={`Archive ${year}`} description={`AI Tamer stories published in ${year}, by month.`}>
+  <p class="page-kicker"><a href={archiveHref()}>Archive</a></p>
+  <h1 class="page-title">{year}</h1>
+  <p class="lede">{total} published {total === 1 ? 'story' : 'stories'} in {year}.</p>
+
+  <ul class="archive-months archive-months--detail">
+    {entries.map((entry) => (
+      <li class="archive-month archive-month--detail">
+        <a class="archive-month__name" href={archiveHref(entry.year, entry.month)}>
+          {formatArchiveMonth(entry.year, entry.month)}
+        </a>
+        <span class="archive-month__count">{entry.posts.length} {entry.posts.length === 1 ? 'story' : 'stories'}</span>
+        <ul class="archive-headlines">
+          {entry.posts.slice(0, HEADLINES_PER_MONTH).map((post) => (
+            <li><a href={postHref(post)}>{post.data.title}</a></li>
+          ))}
+        </ul>
+        {entry.posts.length > HEADLINES_PER_MONTH && (
+          <a class="archive-more" href={archiveHref(entry.year, entry.month)}>
+            All {entry.posts.length} from {formatArchiveMonth(entry.year, entry.month)}
+          </a>
+        )}
+      </li>
+    ))}
+  </ul>
+</BaseLayout>

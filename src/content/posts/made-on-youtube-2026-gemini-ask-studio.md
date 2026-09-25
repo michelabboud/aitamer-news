@@ -1,7 +1,7 @@
 ---
 title: "Made on YouTube 2026: Gemini conversational editing + Ask Studio feedback"
 description: "YouTube’s Made on YouTube 2026 expands Ask Studio with draft feedback, Insights/Research, and dynamic thumbnails, and packs Gemini into a conversational editing partner for Shorts and Create. Early-2027 Shorts/Create availability is TechCrunch-attributed."
-pubDate: 2026-09-24
+pubDate: 2026-09-24T09:10:48Z
 heroImage: /heroes/made-on-youtube-2026-gemini-ask-studio.jpg
 section: video
 subsection: youtube

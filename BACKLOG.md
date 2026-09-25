@@ -2,8 +2,9 @@
 
 Dated one-liners for everything deferred or spotted and not done. Format: `date · source · status — item`.
 
-- 2026-09-25 · contact form · open — Onboard `aitamer.news` to Cloudflare Email Routing, verify the receiving inbox, and set the `CONTACT_TO` Pages secret. Until then the form answers "Contact is not set up yet." (needs Michel's Cloudflare account).
-- 2026-09-25 · deep review B1 · BLOCKING, open — Cloudflare Pages rejects `send_email` in `wrangler.toml` (reproduced with Wrangler 4.139.0). The form cannot send as designed; choose a new sending path (separate Worker on the `/api/contact` route, or Pages Function → service binding → Worker), write the superseding ADR, fix ARCHITECTURE/CHANGELOG. Work is held on `feat/contact-form`, not on `main`.
-- 2026-09-25 · deep review I1 · open — Add a Cloudflare rate-limit rule (or Turnstile) on `/api/contact`; the origin check stops browsers, not scripts.
-- 2026-09-25 · contact form · idea — Add Cloudflare Turnstile if the honeypot stops being enough; needs a widget created in the account.
-- 2026-09-25 · maintenance · open — Log in Wrangler on this machine (`wrangler login`) so live Pages settings can be read (`wrangler pages download config aitamer-news`) and compared with `wrangler.toml`.
+- 2026-09-25 · publish times · open — Three launch posts went live on 2026-09-23 but are dated earlier, so they carry 00:00 UTC: `welcome-to-aitamer`, `open-weights-roundup`, `policy-watch-transparency`. An editor should set the real time or correct the date.
+- 2026-09-25 · publish times · open — The bot pipeline (private `aitamer-news-ops`) must run `npm run stamp` before committing a published post, or the deploy stops at `check:times`. Mirror the rule into its copy of `docs/posting-standards.md`.
+- 2026-09-25 · contact form · open — `feat/contact-form` also claims VERSION 0.1.1; `main` took 0.1.1 first, so the branch re-allocates when it merges.
+- 2026-09-25 · archive · open — A month page lists every story that month; paginate it (and the desk and author pages) before a month holds a few hundred posts. Number archive pages oldest-first so old pages stay cached.
+- 2026-09-25 · pipeline · idea — The posts MCP (new / update / remove) should implement `POST.md` exactly: immutable slug, `npm run stamp` on publish, `updatedDate` on edit, hero JPEG at `public/heroes/<slug>.jpg`.
+- 2026-09-25 · CI · idea — Add Dependabot for GitHub Actions and npm so version bumps arrive as pull requests instead of by hand.

@@ -9,6 +9,9 @@ import {
   authorHref,
   canonicalUrlFor,
   formatDate,
+  formatDateTime,
+  archiveHref,
+  archiveMonthOf,
   entryStamp,
   getPublishedPosts,
   resolveAuthor,
@@ -41,6 +44,7 @@ const generated = usesGeneratedCover(post);
 const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
 const hasHeroImage = Boolean(post.data.heroImage?.trim());
 const commentUrl = canonicalUrlFor(`/posts/${post.id}/`);
+const published = archiveMonthOf(post.data.pubDate);
 ---
 <BaseLayout title={post.data.title} description={post.data.description} image={heroSrc} ogType="article">
   <article class="article" data-section={section}>
@@ -55,9 +59,11 @@ const commentUrl = canonicalUrlFor(`/posts/${post.id}/`);
         <span>
           By <a href={authorHref(author.id)}>{author.data.name}</a>
         </span>
-        <time datetime={post.data.pubDate.toISOString()}>
-          {formatDate(post.data.pubDate)}
-        </time>
+        <a class="byline__date" href={archiveHref(published.year, published.month)} title="More stories from this month">
+          <time datetime={post.data.pubDate.toISOString()}>
+            {formatDateTime(post.data.pubDate)}
+          </time>
+        </a>
         <CommentCount id={post.id} />
         {post.data.updatedDate && (
           <span>

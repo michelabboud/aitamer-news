@@ -2,6 +2,8 @@
 
 # Posting standards — aitamer.news (v1, 2026-09-24)
 
+> Site mechanics — file and slug, frontmatter, publish time (`npm run stamp`), what CI checks — are in [`POST.md`](../POST.md).
+
 Living standards for public posts. EIC owns gate order; Writer owns draft craft.
 Research backing: `reports/writer/2026-09-24-great-post-methods.md`.
 
@@ -27,7 +29,7 @@ Seek → EIC triage → Beat + Fact + Legal → Writer → Art (heroImage REQUIR
 
 ## Structure (minimum)
 
-1. Frontmatter: `title`, `description`, `pubDate`, `section` (+ optional `subsection`), `author`, `sources`, `draft`, **`heroImage` after Art**
+1. Frontmatter: `title`, `description`, `pubDate` (full UTC time once published — `npm run stamp`), `section` (+ optional `subsection`), `author`, `sources`, `draft`, **`heroImage` after Art**
 2. Lead that states the news in one breath (+ one framing sentence: what this brief is / is not)
 3. Body: 2–4 scannable H2 beats in descending importance
 4. Close: who should care + deep links (optional)

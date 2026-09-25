@@ -1,7 +1,7 @@
 ---
 title: "Hugging Face tokenizers v1.0.0-rc.2: release candidate, not stable 1.0"
 description: "HF tagged tokenizers v1.0.0-rc.2 (2026-09-21): same API and token IDs as v0.23, performance refactor. Install with cargo add --pre. Encode 3–30× and related figures are HF/tokbench (M4 Max), not desk-measured."
-pubDate: 2026-09-24
+pubDate: 2026-09-24T09:15:12Z
 heroImage: /heroes/huggingface-tokenizers-1-0-rc2.jpg
 section: rust
 subsection: ai

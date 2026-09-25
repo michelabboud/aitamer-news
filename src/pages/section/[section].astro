@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
-import SectionChip from '../../components/SectionChip.astro';
 import { getCollection } from 'astro:content';
 import {
   ALL_SECTIONS,
@@ -58,12 +57,6 @@ const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
     <p class="page-kicker">Section</p>
     <h1 class="page-title">{SECTION_LABELS[section]}</h1>
     <p class="lede">Published stories filed under {SECTION_LABELS[section]}.</p>
-
-    <div class="section-chips" aria-label="Sections">
-      {ALL_SECTIONS.map((s) => (
-        <SectionChip section={s} active={s === section} />
-      ))}
-    </div>
 
     {cards.length === 0 ? (
       <p class="empty">No published posts in this section yet.</p>
