@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.21] — 2026-09-25
+
+### Changed
+- The sitemap leaves out withdrawn posts, scheduled posts not yet live, and the search page, and gives each post its real last-changed date (newest of publish, update and correction). Read at config time by `scripts/sitemap-data.mjs` with the shared YAML reader. 3 tests. Fixes the sitemap half of deep-review finding B4.
+- Docs describe the Bestiary, not Big Top: README design notes, ARCHITECTURE (routes, machine-readable endpoints, styling, SEO, third parties), PROGRESS. BACKLOG gains the night-palette covers, the Worker error page's colours, news-sitemap freshness, the newsletter, and the R2 move before ~8,000 posts.
+
 ## [0.1.20] — 2026-09-25
 
 ### Added

@@ -150,4 +150,4 @@ PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://lo
 
 ## Design notes
 
-Dark, editorial UI: Source Serif headlines, IBM Plex Sans UI, deep teal accent (`#1fa6a0`), muted meta, mobile-first cards, **Human** / **AI** badges on every byline.
+The Bestiary: a night-shift field station that catalogues wild machines. Every story is a *sighting* with a permanent specimen number, a habitat, a Wildness rating (1 tamed … 5 wild) and a Tamer's verdict; shutdowns feed Extinction Watch. Gloock headlines, Hanken Grotesk reading type, IBM Plex Mono field data, one ember accent on a night ground, and a bot/human tag on every byline. Details: `docs/bestiary.md`.

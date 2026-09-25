@@ -3,10 +3,12 @@
 ## Where the site is (2026-09-25)
 
 - **Live:** https://aitamer.news (Cloudflare Pages). A push to `main` deploys it. The GitHub Pages copy is retired: its workflow was disabled on 2026-09-25 and the last copy there is stale.
-- **Content:** 28 posts across the Models, Tools, Image, Video, Data, Databases, Rust, Policy and Opinion desks, each with a house hero image. Two authors: `wiz-cat` (human) and `desk-bot` (bot).
-- **Site features:** Big Top daylight theme, human/AI byline badges, Disqus comments, Google Analytics on the main domain only, RSS, sitemap, incremental Astro builds.
+- **Content:** 25 published posts (specimens 0001–0025) across seven habitats (Models, Tools, Creative, Infra, Rust, Policy, Opinion), each with a house hero image, a Wildness rating and a verdict (the welcome note has no rating). Two authors: `wiz-cat` (human) and `desk-bot` (bot).
+- **Site features:** the Bestiary theme; post contract v1 (strict, versioned, published as JSON Schema); scheduled publishing; Pagefind search; Extinction Watch and Campfire pages; click-to-load YouTube; RSS, JSON Feed, `llms.txt`, sitemaps (general and Google News) and JSON-LD; Disqus comments; Google Analytics on the main domain only; incremental Astro builds.
 
 ## Log
+
+- **2026-09-25** — 0.1.7–0.1.21: the Bestiary redesign, phase 1 (plan `docs/plans/2026-09-25-bestiary-redesign.md`): habitats, the post contract with permanent specimen numbers, the theme site-wide, scheduled posts, search, feeds for machines, SEO, and the repo cleaned up to go public. Release 0.2.0 waits on the release review.
 
 - **2026-09-25** — 0.1.6: the Bestiary redesign plan is approved and running (`docs/plans/2026-09-25-bestiary-redesign.md`). The Big Top theme is kept on branch `archive/big-top-theme`. GitHub Pages deploys are switched off.
 
