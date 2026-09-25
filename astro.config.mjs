@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
+import { sitemapIncludes } from './src/lib/habitats.ts';
 
 // Two publishes of one static build:
 // - Cloudflare (aitamer.news) uses the defaults: site root, no path prefix.
@@ -18,5 +19,6 @@ export default defineConfig({
   experimental: {
     incrementalBuild: true,
   },
-  integrations: [mdx(), sitemap()],
+  // Retired section URLs are redirect pages; keep them out of the sitemap.
+  integrations: [mdx(), sitemap({ filter: sitemapIncludes })],
 });

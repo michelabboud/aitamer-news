@@ -2,9 +2,13 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import { getCollection } from 'astro:content';
+import { LEGACY_SECTIONS, isLegacySection } from '../../lib/habitats';
+import { redirectStubHtml } from '../../lib/redirect-stub';
 import {
   ALL_SECTIONS,
   SECTION_LABELS,
+  canonicalUrlFor,
+  sectionHref,
   entryStamp,
   getPostsBySection,
   getPublishedPosts,
@@ -18,7 +22,12 @@ export async function getStaticPaths() {
   const posts = await getPublishedPosts();
   const authors = await getCollection('authors');
   const authorById = new Map(authors.map((author) => [author.id, author]));
-  return ALL_SECTIONS.map((section) => {
+  // Retired desks get a redirect page at their old URL; the cache key is the target only.
+  const legacy = Object.entries(LEGACY_SECTIONS).map(([section, target]) => ({
+    params: { section },
+    cacheKey: `legacy:${target}`,
+  }));
+  const habitats = ALL_SECTIONS.map((section) => {
     const stamps = posts
       .filter((post) => post.data.section === section)
       .flatMap((post) => {
@@ -31,13 +40,20 @@ export async function getStaticPaths() {
       cacheKey: stamps.join('|'),
     };
   });
+  return [...habitats, ...legacy];
 }
 
 const raw = Astro.params.section ?? '';
-if (!isSection(raw)) {
-  return Astro.redirect('/');
-}
-const section = raw as Section;
+const legacyTarget = isLegacySection(raw) ? LEGACY_SECTIONS[raw] : null;
+const stub = legacyTarget
+  ? redirectStubHtml({
+      to: sectionHref(legacyTarget),
+      canonical: canonicalUrlFor(`/section/${legacyTarget}/`),
+      label: SECTION_LABELS[legacyTarget],
+    })
+  : null;
+if (!stub && !isSection(raw)) throw new Error(`Unknown section ${raw}`);
+const section = (legacyTarget ?? raw) as Section;
 const posts = await getPostsBySection(section);
 const cards = await Promise.all(
   posts.map(async (post) => {
@@ -48,6 +64,7 @@ const cards = await Promise.all(
 );
 const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
 ---
+{stub ? <Fragment set:html={stub} /> : (
 <BaseLayout
   title={SECTION_LABELS[section]}
   description={`AI Tamer stories in ${SECTION_LABELS[section]}.`}
@@ -69,3 +86,4 @@ const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
     )}
   </div>
 </BaseLayout>
+)}

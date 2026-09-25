@@ -1,0 +1,12 @@
+# Retired desks (2026-09-25) -> the habitat that absorbed them. The pages under dist/section/<old>/
+# carry the same redirect for hosts that ignore this file. Source of truth: src/lib/habitats.ts.
+/section/top/ /section/opinion/ 301
+/section/top /section/opinion/ 301
+/section/image/ /section/creative/ 301
+/section/image /section/creative/ 301
+/section/video/ /section/creative/ 301
+/section/video /section/creative/ 301
+/section/data/ /section/infra/ 301
+/section/data /section/infra/ 301
+/section/databases/ /section/infra/ 301
+/section/databases /section/infra/ 301

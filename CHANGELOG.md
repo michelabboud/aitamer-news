@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.8] — 2026-09-25
+
+### Added
+- The retired desk URLs keep working: `/section/top/`, `/image/`, `/video/`, `/data/` and `/databases/` send readers to the habitat that absorbed them. Cloudflare answers with a 301 from `public/_redirects`; the built page itself is a noindex redirect with the right canonical, for any host that ignores that file. They are left out of the sitemap.
+- 2 tests for the redirect page (content and escaping).
+
 ## [0.1.7] — 2026-09-25
 
 ### Changed
