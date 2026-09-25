@@ -2,6 +2,7 @@
 title: "OpenAI Agents API public beta: managed Codex harness for cloud agents"
 description: "OpenAI’s Agents API (public beta since 2026-09-10) exposes a managed Codex harness via sessions, MCP, subagents, and sandboxes. Billing = model + tool + container rates. US residency only; not ZDR-eligible even with self-hosted."
 pubDate: 2026-09-24T09:48:45Z
+specimen: 25
 heroImage: /heroes/openai-agents-api-public-beta.jpg
 section: tools
 subsection: agents

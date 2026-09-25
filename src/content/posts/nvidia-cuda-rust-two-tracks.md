@@ -2,6 +2,7 @@
 title: "NVIDIA introduces CUDA Rust: cuda-oxide (SIMT) and cutile-rs (Tile)"
 description: "A dated brief on NVIDIA’s Sep 2026 CUDA Rust post: two early-stage kernel tracks — cuda-oxide (SIMT, early alpha) and cutile-rs (Tile) — neither production-ready. Correctness demo only; no perf claims."
 pubDate: 2026-09-23T17:51:03Z
+specimen: 5
 section: rust
 heroImage: /heroes/nvidia-cuda-rust-two-tracks.jpg
 subsection: ai

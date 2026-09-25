@@ -1,0 +1,28 @@
+# Specimen ledger: every number ever issued, and the post it went to. Append-only.
+# Written by `npm run stamp` (scripts/stamp-specimens.mjs). Never edit or remove a line;
+# a withdrawn or deleted post keeps its number here so it is never reused.
+0001 welcome-to-aitamer
+0002 open-weights-roundup
+0003 policy-watch-transparency
+0004 mistral-rs-0-9-3-fp8-nvfp4
+0005 nvidia-cuda-rust-two-tracks
+0006 gpt-6-sol-luna-api-pricing
+0007 grok-4-7
+0008 claude-opus-5-5-agentic-coding
+0009 copilot-runtime-rust-migration
+0010 claude-art-phage-enzyme
+0011 claude-code-agents-md-mods
+0012 flux-3-action
+0013 gemini-3-8-flash-tts
+0014 made-on-youtube-2026-gemini-ask-studio
+0015 openai-legacy-instruct-base-hard-remove-2026-09-28
+0016 sora-videos-api-sunset
+0017 zerodrift-anchor-3
+0018 burn-0-22-cubecl-0-11-pre4
+0019 huggingface-tokenizers-1-0-rc2
+0020 lightspeed-temporal-rust-agent-harness
+0021 drivingbench-gpt6-astra
+0022 needle-2-pi5-function-calling
+0023 openai-medicare-eval-agent-au
+0024 codex-cli-0-156
+0025 openai-agents-api-public-beta

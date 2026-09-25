@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.10] — 2026-09-25
+
+### Added
+- Specimen numbers: `npm run stamp` now also gives every published post a permanent number (`specimen: N`) and records it in the append-only `src/content/specimen-ledger.txt`, so a number is never reissued, even after a post is withdrawn or deleted. The 25 published posts are numbered 0001–0025 in publish order.
+- `npm run check:posts` (times + specimens + sources) replaces `check:times` in the deploy. It fails on a published post with no number, a duplicate, a number the ledger does not hold, or no `sources` outside Opinion.
+- 6 tests for the numbering and the checks.
+
 ## [0.1.9] — 2026-09-25
 
 ### Added

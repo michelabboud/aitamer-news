@@ -2,6 +2,7 @@
 title: "Needle 2: 14MB Apache-2.0 action-only function-calling LLM on Raspberry Pi 5"
 description: "Cactus Compute’s Needle 2 (~14MB) turns plain English into local tool calls on a Raspberry Pi 5 CPU—action-only, not a chatbot. RPi News latency demos attributed; don’t conflate ~500 tok/s vendor decode with table ~248–314."
 pubDate: 2026-09-24T09:48:07Z
+specimen: 22
 heroImage: /heroes/needle-2-pi5-function-calling.jpg
 section: models
 tags:

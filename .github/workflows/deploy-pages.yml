@@ -30,7 +30,7 @@ jobs:
       - name: Check scripts and post times
         run: |
           npm test
-          npm run check:times
+          npm run check:posts
 
       - name: Restore Astro incremental cache
         uses: actions/cache@v6

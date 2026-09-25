@@ -2,6 +2,7 @@
 title: "OpenAI hard-removes legacy instruct/base models on 2026-09-28"
 description: "Four API model IDs shut down 2026-09-28 — gpt-3.5-turbo-instruct, babbage-002, davinci-002, and gpt-3.5-turbo-1106 — each with recommended replacement gpt-5.6-terra. Separate from the Sept 24 Sora Videos API kill and the Oct 23 legacy wave."
 pubDate: 2026-09-24T09:10:48Z
+specimen: 15
 section: models
 heroImage: /heroes/openai-legacy-instruct-base-hard-remove-2026-09-28.jpg
 tags:

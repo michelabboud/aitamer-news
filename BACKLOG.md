@@ -14,3 +14,4 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - 2026-09-25 · layout · open — On a phone the sticky header (nav + ten desk pills on four rows) covers about 45% of the screen. Make the pill row scroll sideways or collapse on small screens.
 - 2026-09-25 · contact review · open — Honeypot uses `autocomplete="new-password"`; a password manager might offer to fill it and silently drop a real note. Test with 1Password/Bitwarden/Chrome and pick the attribute that no manager fills.
 - 2026-09-25 · contact review · open — Night theme (not shipped): the Publish node's white text on the night rose and `--bot` success text on the night card fail contrast. Fix before ever shipping night.
+- 2026-09-25 · specimens · open — Two posts stamped on separate branches can take the same number; `check:posts` catches it at merge. When atn-mcp becomes the only writer, it should serialise stamping (one queue) so this never happens.

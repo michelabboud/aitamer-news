@@ -73,13 +73,15 @@ verdict: "Same price, better agent scores: worth a rerun of your evals."
 
 1. Write with `draft: true` and a plain `pubDate` date. Drafts appear nowhere: not on the homepage, desks, authors, archive, or in RSS.
 2. When the story clears the gates in `docs/posting-standards.md`, set `draft: false`.
-3. Run `npm run stamp`. It replaces the plain date with the full publish time in UTC:
+3. Run `npm run stamp`. It does two things. First it replaces the plain date with the full publish time in UTC:
    - if git already has the post published, the time of that commit (when it went live);
    - otherwise, the current time.
    The date you wrote always wins. If the chosen time falls on another UTC day, the post keeps its date at `00:00 UTC` and the command lists it, so set the real time by hand.
-4. Commit and merge to `main`.
 
-**The deploy refuses a published post without a time.** Both deploy workflows run `npm run check:times`, which fails and names the file. The fix is always the same: run `npm run stamp`, commit, push.
+   Then it gives the post its **specimen number**: the next unused number, written as `specimen: N` under `pubDate` and appended to `src/content/specimen-ledger.txt`. Posts stamped together are numbered oldest first, ties by slug. The ledger is append-only: a withdrawn or deleted post keeps its line, so its number is never issued again.
+4. Commit the post **and the ledger** together, and merge to `main`.
+
+**The deploy refuses a post that breaks the contract.** The deploy runs `npm run check:posts`, which fails and names the file when a published post has no time, no specimen number, a number the ledger does not hold or that another post also carries, or (outside Opinion) no `sources`. For the first two the fix is always the same: run `npm run stamp`, commit, push. Two bots stamping in parallel branches can pick the same number; the check catches it at merge, and re-running `npm run stamp` on the second after removing its `specimen:` line fixes it.
 
 Rules for times:
 
@@ -89,12 +91,7 @@ Rules for times:
 
 ## 5. What happens on a push to `main`
 
-Two workflows run on every push to `main`:
-
-| Workflow | Checks | Publishes to |
-|---|---|---|
-| `deploy-pages.yml` | `npm test`, `npm run check:times`, build | https://aitamer.news (Cloudflare Pages) |
-| `deploy-github-pages.yml` | the same checks, build under `/aitamer-news` | https://michelabboud.github.io/aitamer-news/ |
+`deploy-pages.yml` runs on every push to `main`: `npm test`, `npm run check:posts`, the build, `npm run check:dist`, then the upload to https://aitamer.news (Cloudflare Pages). The GitHub Pages copy was retired on 2026-09-25; its workflow is disabled.
 
 If a check fails, nothing is published and the live site stays as it was. Unchanged post, desk, author and archive-month pages are reused from the previous build (Astro's incremental build cache), so adding one post does not rebuild the whole site.
 

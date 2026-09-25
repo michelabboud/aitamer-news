@@ -2,6 +2,7 @@
 title: "Gemini 3.8 Flash TTS and Flash-Lite TTS: generative voice design + promo API rates"
 description: "Google launched Gemini 3.8 Flash TTS and Flash-Lite TTS on 2026-09-23 — promptable voice design, 2,000+ voices, and consent-gated replication. Pricing from ai.google.dev: Flash $0.50/$9 and Lite $0.50/$6 through 2026-12-31."
 pubDate: 2026-09-24T09:10:48Z
+specimen: 13
 heroImage: /heroes/gemini-3-8-flash-tts.jpg
 section: models
 tags:

@@ -2,6 +2,7 @@
 title: "mistral.rs 0.9.3 adds FP8, DFlash, and NVFP4 serving paths"
 description: "A dated changelog brief on Eric Buehler’s mistral.rs v0.9.3 (tagged 2026-09-07): FP8 and DFlash decode, NVFP4 with cuTile Blackwell, and stronger Anthropic Messages / Claude Code server support. Not affiliated with Mistral AI."
 pubDate: 2026-09-23T17:50:51Z
+specimen: 4
 section: rust
 heroImage: /heroes/mistral-rs-0-9-3-fp8-nvfp4.jpg
 subsection: ai
