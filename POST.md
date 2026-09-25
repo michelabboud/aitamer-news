@@ -92,7 +92,8 @@ verdict: "Same price, better agent scores: worth a rerun of your evals."
 - a published post has no time, no specimen number, a number the ledger does not hold, a number another post also carries, or (outside Opinion) no `sources`;
 - a post's file name is not a slug, a post sits in a subfolder of `src/content/posts/`, or it has a `slug:` field;
 - a post's frontmatter is not valid YAML, or `draft` or `specimen` holds something other than what the contract allows;
-- the ledger itself is inconsistent.
+- the ledger itself is inconsistent;
+- a comment data file (section 8) has no post, or is not named after the post its `slug` field names.
 
 For a missing time or number the fix is always the same: run `npm run stamp`, commit the post **and the ledger**, push. `npm run stamp` refuses to run while any post or the ledger has one of these problems. When it runs, it checks everything first, appends the ledger, and only then writes the posts, so a run that fails changes nothing.
 
@@ -142,3 +143,29 @@ If a check fails, nothing is published and the live site stays as it was. Unchan
 - [ ] The ledger (`src/content/specimen-ledger.txt`) is committed with the post.
 - [ ] `npm test`, `npm run check:posts` and `npm run build` pass locally.
 - [ ] `dist/posts/<slug>/index.html` exists after the build.
+
+## 8. Comments
+
+Readers' comments are not part of a post's file. Approved comments arrive as **comment data files**, `src/content/comments/<slug>.json`, one per post that has at least one approved comment, and the build bakes them into the post's page (the decision and its costs: `docs/adr/0006-comments-are-baked-static-from-published-data-files.md`).
+
+**The desk's publisher writes these files. Editors only remove.** Nobody writes or rewords one by hand; the one edit a human makes is deleting a comment's entry (or the file, when the last comment goes), which takes it off the site at the next deploy. It stays in this repository's public history, and the privacy page says so.
+
+The format, v1:
+
+```json
+{
+  "version": 1,
+  "slug": "grok-4-7",
+  "generatedAt": "2026-09-25T12:37:00Z",
+  "comments": [
+    { "id": "01K63M4Q3ZJ8W3Y8N5V2R7T9AB", "name": "Ada", "text": "First paragraph.\n\nSecond paragraph with https://example.com/a-link.", "at": "2026-09-25T10:00:00Z", "signedIn": true }
+  ]
+}
+```
+
+- `version` is `1`; `slug` is the post's slug and the file's name; `generatedAt` and every `at` are UTC times ending in `Z`.
+- `comments` holds at least one comment, oldest first. A post with no approved comments has **no file**.
+- `id` is a ULID (26 uppercase characters), unique in the file. `name` is 1–60 characters on one line. `text` is 1–2,000 characters of plain text: paragraphs separated by a blank line, `\n` the only control character, no HTML (`<` may not be followed by a letter, `/` or `!`). Links are plain `https://…` text. Lengths count Unicode code points. `signedIn` is an optional boolean.
+- No other key, at any level. A file holds only what the page shows: never an email address, an IP address, a hash or a moderation note.
+
+Enforcement: `npm run check:posts` fails a file whose post does not exist or whose `slug` is not its file name; `npm run build` fails a file that breaks the format (`src/content/comment-schema.ts`, strict at every level), naming it. The same schema is published as JSON Schema at `/contract/comments.schema.json` (and `/contract/v1/`) for the desk to validate against before it commits. Field-by-field detail: `src/content/comments/README.md`.

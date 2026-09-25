@@ -1,7 +1,7 @@
 {
   "name": "aitamer-news",
   "type": "module",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -16,7 +16,8 @@
     "astro": "astro",
     "dev:contact": "npx --yes wrangler@4.139.0 dev --config workers/contact/wrangler.toml",
     "check:specimens": "node scripts/stamp-specimens.mjs --check",
-    "check:posts": "node scripts/stamp-post-times.mjs --check && node scripts/stamp-specimens.mjs --check",
+    "check:comments": "node scripts/check-comments.mjs",
+    "check:posts": "node scripts/stamp-post-times.mjs --check && node scripts/stamp-specimens.mjs --check && node scripts/check-comments.mjs",
     "check:files": "node scripts/check-dist-files.mjs"
   },
   "dependencies": {

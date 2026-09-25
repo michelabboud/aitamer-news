@@ -14,7 +14,7 @@ Run what CI runs; every pull request runs the same checks (`.github/workflows/ch
 
 ```sh
 npm test              # all unit tests (found by pattern)
-npm run check:posts   # publish times, specimen numbers, sources, slugs
+npm run check:posts   # publish times, specimen numbers, sources, slugs, comment files belong to posts
 npm run build         # the strict post schema is enforced here
 npm run check:dist    # no secrets in the built site
 npm run check:files   # the deploy stays under Cloudflare's file cap

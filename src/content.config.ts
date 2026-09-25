@@ -1,6 +1,8 @@
 import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { commentsFileSchema } from './content/comment-schema';
+import { commentsLoader } from './content/comments-loader';
 import { postSchema } from './content/post-schema';
 
 const authors = defineCollection({
@@ -26,4 +28,17 @@ const posts = defineCollection({
   schema: postSchema.extend({ author: reference('authors') }),
 });
 
-export const collections = { authors, posts };
+/**
+ * Comment data files, contract v1 (2026-09-25): `src/content/comments/<slug>.json`, one per post
+ * with at least one approved comment, written by the desk's publisher (ADR 0006). The schema in
+ * `./content/comment-schema.ts` also generates `/contract/comments.schema.json`. The loader is
+ * Astro's glob loader with the entry id fixed to the file name and the empty-directory warning
+ * silenced (`./content/comments-loader.ts`): zero files is the normal state until the first
+ * comment is published, and the build must pass on it.
+ */
+const comments = defineCollection({
+  loader: commentsLoader(),
+  schema: commentsFileSchema,
+});
+
+export const collections = { authors, posts, comments };

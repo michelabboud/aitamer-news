@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.5] — 2026-09-25
+
+### Added
+- **Comment data contract v1** (`src/content/comment-schema.ts`): strict format for `src/content/comments/<slug>.json` — ULID ids, names and plain-text bodies with no HTML, control, zero-width or bidirectional characters, lengths in Unicode code points, oldest first. Published at `/contract/comments.schema.json` and `/contract/v1/`. A bad file fails the build naming it.
+- `check:posts` now also checks comment files: no orphan, file name equals slug, no nested or non-JSON file (`scripts/check-comments.mjs`). POST.md §8 documents the format.
+- 41 tests.
+
 ## [0.2.4] — 2026-09-25
 
 ### Added
