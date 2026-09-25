@@ -1,6 +1,7 @@
 import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { HABITATS } from './lib/habitats';
 
 const authors = defineCollection({
   loader: glob({ base: './src/content/authors', pattern: '**/*.{md,mdx}' }),
@@ -19,18 +20,7 @@ const posts = defineCollection({
     description: z.string(),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
-    section: z.enum([
-      'top',
-      'models',
-      'tools',
-      'image',
-      'video',
-      'data',
-      'databases',
-      'rust',
-      'policy',
-      'opinion',
-    ]),
+    section: z.enum(HABITATS),
     subsection: z.string().optional(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),

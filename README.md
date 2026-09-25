@@ -4,7 +4,7 @@ Production-ready **static** Astro news site for [aitamer.news](https://aitamer.n
 
 - Astro + TypeScript + MDX content collections
 - `output: 'static'` (no Cloudflare adapter required for Pages)
-- Sections: Top, Models, Tools, Image, Video, Data, Databases, Rust, Policy, Opinion
+- Habitats (sections): Models, Tools, Creative, Infra, Rust, Policy, Opinion
 - Human / AI byline badges
 - RSS + sitemap + robots.txt
 
@@ -52,7 +52,7 @@ title: Your headline
 description: One-line dek / summary.
 pubDate: 2026-09-23          # date only while drafting; `npm run stamp` adds the time at publish
 updatedDate: 2026-09-24   # optional
-section: tools            # top | models | tools | image | video | data | databases | rust | policy | opinion
+section: tools            # models | tools | creative | infra | rust | policy | opinion
 subsection: cli           # optional
 tags: [briefing, tools]
 draft: true               # keep true until ready
@@ -137,7 +137,7 @@ PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://lo
 | --- | --- |
 | `/` | Latest published posts + section chips |
 | `/posts/[slug]` | Article |
-| `/section/[section]` | Section listing |
+| `/section/[section]` | Habitat listing (old desk URLs redirect) |
 | `/authors/[id]` | Author page |
 | `/archive/`, `/archive/[year]/`, `/archive/[year]/[month]/` | Archive by year and month (UTC publish time) |
 | `/about/` | How the desk works, and the contact form |

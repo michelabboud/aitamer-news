@@ -1,5 +1,8 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { groupByMonth, type ArchiveMonth } from './archive.ts';
+import { HABITATS, HABITAT_META, isHabitat, type Habitat } from './habitats.ts';
+
+export { HABITATS, HABITAT_META, LEGACY_SECTIONS, type Habitat } from './habitats.ts';
 
 export { archiveMonthOf, formatArchiveMonth, type ArchiveMonth } from './archive.ts';
 
@@ -30,33 +33,14 @@ export const TURNSTILE_SITE_KEY = '';
 /** Disqus shortname for story comments. Threads are keyed to the aitamer.news canonical URL. */
 export const DISQUS_SHORTNAME = 'ai-tamer-news';
 
-export const ALL_SECTIONS = [
-  'top',
-  'models',
-  'tools',
-  'image',
-  'video',
-  'data',
-  'databases',
-  'rust',
-  'policy',
-  'opinion',
-] as const;
+/** The habitats, in reading order. Kept under the old name: routes and props still say "section". */
+export const ALL_SECTIONS = HABITATS;
 
-export type Section = (typeof ALL_SECTIONS)[number];
+export type Section = Habitat;
 
-export const SECTION_LABELS: Record<Section, string> = {
-  top: 'Top',
-  models: 'Models',
-  tools: 'Tools',
-  image: 'Image',
-  video: 'Video',
-  data: 'Data',
-  databases: 'Databases',
-  rust: 'Rust',
-  policy: 'Policy',
-  opinion: 'Opinion',
-};
+export const SECTION_LABELS: Record<Section, string> = Object.fromEntries(
+  HABITATS.map((habitat) => [habitat, HABITAT_META[habitat].label]),
+) as Record<Section, string>;
 
 /** Changes when a content entry's body or frontmatter changes. Used as an incremental-build cache key. */
 export function entryStamp(entry: { id: string; digest?: string }): string {
@@ -164,5 +148,5 @@ export function authorHref(id: string): string {
 }
 
 export function isSection(value: string): value is Section {
-  return (ALL_SECTIONS as readonly string[]).includes(value);
+  return isHabitat(value);
 }

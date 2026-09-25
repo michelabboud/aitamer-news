@@ -19,7 +19,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `description` | yes | One-line dek. Used on cards, in RSS, and as the search/social description. |
 | `pubDate` | yes | Publish date. While drafting, a plain date (`2026-09-25`); once published, a full UTC time (`2026-09-25T09:15:12Z`) written by `npm run stamp` (section 4). |
 | `updatedDate` | no | Date of a substantive update. Written by hand, and shown as "Updated …". |
-| `section` | yes | One desk: `top` `models` `tools` `image` `video` `data` `databases` `rust` `policy` `opinion`. |
+| `section` | yes | One habitat: `models` `tools` `creative` `infra` `rust` `policy` `opinion` (codes H1–H7, defined in `src/lib/habitats.ts`). The retired values `top`, `image`, `video`, `data` and `databases` fail the build; use `opinion`, `creative`, `creative`, `infra` and `infra`. |
 | `subsection` | no | Free text, e.g. `cli`. |
 | `tags` | no | List of lowercase tags. |
 | `draft` | no | `true` keeps the post off the site. Defaults to `false`, so a missing `draft` line means **published**. |
@@ -82,7 +82,7 @@ If a check fails, nothing is published and the live site stays as it was. Unchan
 
 - Its own page: `/posts/<slug>/`, with the byline date linking to its month in the archive.
 - The homepage, newest first.
-- Its desk: `/section/<section>/`.
+- Its habitat: `/section/<section>/`. The old desk pages (`/section/top/`, `/image/`, `/video/`, `/data/`, `/databases/`) redirect to the habitat that absorbed them.
 - Its author page: `/authors/<author>/`.
 - The archive: `/archive/` → `/archive/<year>/` → `/archive/<year>/<month>/`. Months follow the UTC publish time.
 - `/rss.xml` and the sitemap.
@@ -90,7 +90,7 @@ If a check fails, nothing is published and the live site stays as it was. Unchan
 ## 7. Checklist before merging
 
 - [ ] File name is the final slug; `heroImage` points to `/heroes/<slug>.jpg`, which exists and is a JPEG.
-- [ ] `author` exists; `section` is one of the ten desks.
+- [ ] `author` exists; `section` is one of the seven habitats.
 - [ ] `draft: false`, and `npm run stamp` has written the time.
 - [ ] `npm test`, `npm run check:times` and `npm run build` pass locally.
 - [ ] `dist/posts/<slug>/index.html` exists after the build.

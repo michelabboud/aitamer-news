@@ -2,13 +2,10 @@ import type { CollectionEntry } from 'astro:content';
 import { ALL_SECTIONS, type Section } from './site';
 
 export const SECTION_COVERS: Record<Section, string> = {
-  top: '/covers/top.svg',
   models: '/covers/models.svg',
   tools: '/covers/tools.svg',
-  image: '/covers/image.svg',
-  video: '/covers/video.svg',
-  data: '/covers/data.svg',
-  databases: '/covers/databases.svg',
+  creative: '/covers/creative.svg',
+  infra: '/covers/infra.svg',
   rust: '/covers/rust.svg',
   policy: '/covers/policy.svg',
   opinion: '/covers/opinion.svg',

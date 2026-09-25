@@ -29,7 +29,7 @@ Seek → EIC triage → Beat + Fact + Legal → Writer → Art (heroImage REQUIR
 
 ## Structure (minimum)
 
-1. Frontmatter: `title`, `description`, `pubDate` (full UTC time once published — `npm run stamp`), `section` (+ optional `subsection`), `author`, `sources`, `draft`, **`heroImage` after Art**
+1. Frontmatter: `title`, `description`, `pubDate` (full UTC time once published — `npm run stamp`), `section` — one of the seven habitats in `src/lib/habitats.ts` (+ optional `subsection`), `author`, `sources`, `draft`, **`heroImage` after Art**
 2. Lead that states the news in one breath (+ one framing sentence: what this brief is / is not)
 3. Body: 2–4 scannable H2 beats in descending importance
 4. Close: who should care + deep links (optional)

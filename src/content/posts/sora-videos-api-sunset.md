@@ -2,7 +2,7 @@
 title: "OpenAI shuts down Sora Videos API and all sora-2* aliases"
 description: "OpenAI removes Videos API and all listed sora-2* aliases on 2026-09-24. Deprecations table shows no replacement. Consumer Sora ended April 26."
 pubDate: 2026-09-24T09:10:48Z
-section: video
+section: creative
 heroImage: /heroes/sora-videos-api-sunset.jpg
 tags:
   - openai

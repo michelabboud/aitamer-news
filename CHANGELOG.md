@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.7] — 2026-09-25
+
+### Changed
+- Seven habitats replace the ten desks: Models (H1), Tools (H2), Creative (H3), Infra (H4), Rust (H5), Policy (H6), Opinion (H7), defined once in `src/lib/habitats.ts`. Image and Video folded into Creative, Data and Databases into Infra, and the one Top post (the welcome note) moved to Opinion. The schema rejects the retired values so an out-of-date bot fails loudly.
+- Fallback covers: `image.svg` became `creative.svg`, `databases.svg` became `infra.svg`; the `top`, `video` and `data` covers are gone.
+
+### Added
+- 4 tests for the habitat list, the legacy mapping, and the sitemap filter the redirect pages will use.
+
 ## [0.1.6] — 2026-09-25
 
 ### Added

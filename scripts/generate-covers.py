@@ -14,8 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "public" / "covers"
 SECTIONS = [
-    "top", "models", "tools", "image", "video",
-    "data", "databases", "rust", "policy", "opinion",
+    "models", "tools", "creative", "infra", "rust", "policy", "opinion",
 ]
 
 def main() -> None:
