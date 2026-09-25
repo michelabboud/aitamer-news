@@ -1,6 +1,6 @@
 # Big Top theme (archived)
 
-**Big Top** was the production Daylight theme for aitamer.news — bright-but-soft candy-shop poster editorial — until 2026-09-25, when it was replaced by **the Bestiary** (`docs/bestiary.md`, coming with the theme port; see `docs/plans/2026-09-25-bestiary-redesign.md`). The theme is preserved on branch `archive/big-top-theme` (commit `29e1453`).
+**Big Top** was the production Daylight theme for aitamer.news — bright-but-soft candy-shop poster editorial — until 2026-09-25, when it was replaced by **the Bestiary** (`docs/bestiary.md`, coming with the theme port; see `docs/plans/2026-09-25-bestiary-redesign.md`). The theme is preserved at tag `checkpoint/0.1.5` (commit `29e1453`); the branch that held it was removed on 2026-09-25.
 
 Its token table is kept here for reference.
 

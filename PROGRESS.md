@@ -8,9 +8,11 @@
 
 ## Log
 
-- **2026-09-25** — 0.1.7–0.1.21: the Bestiary redesign, phase 1 (plan `docs/plans/2026-09-25-bestiary-redesign.md`): habitats, the post contract with permanent specimen numbers, the theme site-wide, scheduled posts, search, feeds for machines, SEO, and the repo cleaned up to go public. Release 0.2.0 waits on the release review.
+- **2026-09-25** — **v0.2.0 released: the Bestiary redesign.** Both release reviewers' blockers fixed (0.1.27–0.1.28): a real 404 page, no stale countdowns in the HTML, no empty headlines in contract v1. The Wildness ratings and verdicts are provisional until Michel's editorial sign-off. Next phase not chosen yet.
 
-- **2026-09-25** — 0.1.6: the Bestiary redesign plan is approved and running (`docs/plans/2026-09-25-bestiary-redesign.md`). The Big Top theme is kept on branch `archive/big-top-theme`. GitHub Pages deploys are switched off.
+- **2026-09-25** — 0.1.7–0.1.21: the Bestiary redesign, phase 1 (plan `docs/plans/2026-09-25-bestiary-redesign.md`): habitats, the post contract with permanent specimen numbers, the theme site-wide, scheduled posts, search, feeds for machines, SEO, and the repo cleaned up to go public. Released as v0.2.0 after 0.1.22–0.1.28 (reviews and fixes).
+
+- **2026-09-25** — 0.1.6: the Bestiary redesign plan is approved and running (`docs/plans/2026-09-25-bestiary-redesign.md`). The Big Top theme is kept at tag `checkpoint/0.1.5` (the branch that held it was removed later). GitHub Pages deploys are switched off.
 
 - **2026-09-25** — 0.1.5: About page redesigned around the bot pipeline, with the contact form served by the `contact.aitamer.news` Worker (rate-limited, no API token). Live sending waits on Email Routing, the first Worker deploy, and the `CONTACT_TO` secret. Roomier post cards.
 - **2026-09-25** — 0.1.4: desk pages no longer show the desk pills twice.

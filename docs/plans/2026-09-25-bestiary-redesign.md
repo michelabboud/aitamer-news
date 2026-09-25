@@ -202,4 +202,4 @@ Lanes never bump `VERSION` or edit `CHANGELOG.md`; the coordinator does both whe
 | C7 SEO | done | 0.1.16, 0.1.17, 0.1.21 |
 | C8 going public | done, protections verified | 0.1.23, 0.1.26 |
 
-Reviews: batch A deep (0.1.10), batch B–C deep with batch A re-review (0.1.21), release high deep, dual-blind (0.1.25 candidate). Deviations from the plan: D13 (theme branch) replaced by V9 (staging on `main`); the plan's `/extinction/` became `/extinction-watch/`; `counts.ts` and `sunset.ts` became `src/lib/bestiary.ts`.
+Reviews: batch A deep (0.1.10), batch B–C deep with batch A re-review (0.1.21), release high deep, dual-blind (0.1.25 candidate; rulings in `docs/reviews/2026-09-25-release-review.md`, fixes in 0.1.27 and 0.1.28). Released as v0.2.0 on 2026-09-25. Deviations from the plan: D13 (theme branch) replaced by V9 (staging on `main`); the plan's `/extinction/` became `/extinction-watch/`; `counts.ts` and `sunset.ts` became `src/lib/bestiary.ts`.
