@@ -2,10 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.2] — 2026-09-25
+
+### Changed
+- The phase 2 plan is approved and now lives in the private operations repository; `PLAN.md` keeps the record.
+
 ## [0.2.1] — 2026-09-25
 
 ### Added
-- Draft plan for phase 2: our own comments in place of Disqus, hero images on R2, and reader sign-in with Google and GitHub (`docs/plans/2026-09-25-comments-and-r2-media.md`). Awaiting approval.
+- Draft plan for phase 2: our own comments in place of Disqus, hero images on R2, and reader sign-in with Google and GitHub. Awaiting approval.
 
 ## [0.2.0] — 2026-09-25
 
