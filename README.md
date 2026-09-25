@@ -116,7 +116,7 @@ npx wrangler secret put CONTACT_TO --config workers/contact/wrangler.toml
 
 Later deploys run from CI (`deploy-contact-worker.yml`) when `workers/contact/` changes. The `CLOUDFLARE_API_TOKEN` repository secret needs **Workers Scripts: Edit** and permission for Workers custom domains on `aitamer.news`, as well as Pages.
 
-4. Optional, recommended: create a **Turnstile** widget for `aitamer.news`, put its public site key in `TURNSTILE_SITE_KEY` (`src/lib/site.ts`), and set the secret key on the Worker with `wrangler secret put TURNSTILE_SECRET_KEY`. Set both or neither.
+4. Optional, recommended: create a **Turnstile** widget for `aitamer.news`, put its public site key in `TURNSTILE_SITE_KEY` (`src/lib/site.ts`), and set the secret key on the Worker with `wrangler secret put TURNSTILE_SECRET_KEY`. Set both or neither. The comment form on story pages uses the same site key and needs it: until it is set, story pages say commenting is not set up yet.
 
 Secrets never reach the static pages: CI runs `npm run check:dist` after every build.
 
@@ -129,6 +129,8 @@ PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://lo
 ```
 
 `ALLOW_LOCAL_ORIGINS` exists only in that git-ignored file and is never deployed.
+
+The comment form on story pages posts to `https://comments.aitamer.news/`, the desk's comments Worker (it lives in the desk's private repository; the form fields and the files it reads are documented in `POST.md` section 8 and `ARCHITECTURE.md`). `PUBLIC_COMMENTS_ENDPOINT=http://localhost:8788/ npm run dev` points a local build at a local copy of that Worker.
 
 ## Search
 

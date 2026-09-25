@@ -18,3 +18,11 @@ test('the post checks run and pass on the repository', () => {
   assert.match(run('scripts/stamp-post-times.mjs', ['--check']), /every published post has a publish time/);
   assert.match(run('scripts/stamp-specimens.mjs', ['--check']), /published posts numbered/);
 });
+
+test('the publisher path guard starts, and refuses to run without its inputs', () => {
+  // A crash at import would exit 1 with a stack trace; a clean refusal is exit 2 with the usage line.
+  assert.throws(
+    () => run('scripts/check-publisher-paths.mjs'),
+    (error) => error.status === 2 && /usage: check-publisher-paths\.mjs --files/.test(error.stderr),
+  );
+});

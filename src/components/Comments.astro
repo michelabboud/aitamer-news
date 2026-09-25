@@ -15,6 +15,7 @@ import {
   stripInvisible,
 } from '../lib/comment-text';
 import { formatDateTime } from '../lib/site';
+import CommentForm from './CommentForm.astro';
 
 type Comment = CollectionEntry<'comments'>['data']['comments'][number];
 
@@ -25,9 +26,11 @@ interface Props {
   comments: readonly Comment[];
   /** A withdrawn story shows no comments and takes none. */
   withdrawn: boolean;
+  /** `comments: { closed: true }` in the post's frontmatter: the thread stays, the form does not. */
+  closed?: boolean;
 }
 
-const { slug, comments, withdrawn } = Astro.props;
+const { slug, comments, withdrawn, closed = false } = Astro.props;
 ---
 {!withdrawn && (
   <section class="comments" id="comments" aria-labelledby="comments-title" data-thread={slug}>
@@ -67,8 +70,6 @@ const { slug, comments, withdrawn } = Astro.props;
       </ol>
     )}
 
-    {/* COMMENT FORM SLOT — lane A3 builds src/components/CommentForm.astro; the coordinator
-        inserts it here, e.g. <CommentForm slug={slug} />. It renders below the thread, so the
-        empty state above is its invitation. */}
+    <CommentForm slug={slug} closed={closed} />
   </section>
 )}

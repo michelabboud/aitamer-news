@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { POST_CONTRACT_VERSION, postSchema } from '../content/post-schema.ts';
+import { POST_CONTRACT_VERSION, postFrontmatterJsonSchema, postSchema } from '../content/post-schema.ts';
 
 /**
  * `postSchema` has no `astro:content` import (see the file's own header comment), so it is tested
@@ -203,4 +203,42 @@ test('title, description and tags may not be empty', () => {
   assert.equal(postSchema.safeParse({ ...base, description: '' }).success, false);
   assert.equal(postSchema.safeParse({ ...base, tags: ['ok', ''] }).success, false);
   assert.equal(postSchema.safeParse({ ...base, title: 'x'.repeat(201) }).success, false);
+});
+
+// ---- comments: { closed } (phase 2 plan D7, lane A3) ----
+
+test('comments: { closed: true } is accepted, and so is an explicit closed: false', () => {
+  assert.equal(postSchema.safeParse({ ...validPost, comments: { closed: true } }).success, true);
+  assert.equal(postSchema.safeParse({ ...validPost, comments: { closed: false } }).success, true);
+});
+
+test('comments is optional and absent by default: a post without it stays open', () => {
+  const result = postSchema.safeParse(validPost);
+  assert.equal(result.success, true);
+  assert.equal(result.success && result.data.comments, undefined);
+});
+
+test("comments: { closed: 'yes' } is rejected — closed must be a boolean", () => {
+  assert.equal(postSchema.safeParse({ ...validPost, comments: { closed: 'yes' } }).success, false);
+  assert.equal(postSchema.safeParse({ ...validPost, comments: { closed: 1 } }).success, false);
+});
+
+test('an unknown key inside comments is rejected, and so is a bare boolean or an empty object', () => {
+  assert.equal(postSchema.safeParse({ ...validPost, comments: { closed: true, reason: 'too hot' } }).success, false);
+  assert.equal(postSchema.safeParse({ ...validPost, comments: { close: true } }).success, false);
+  assert.equal(postSchema.safeParse({ ...validPost, comments: true }).success, false);
+  assert.equal(postSchema.safeParse({ ...validPost, comments: {} }).success, false);
+});
+
+test('the published JSON Schema carries comments.closed as a required boolean in a closed object', () => {
+  const schema = postFrontmatterJsonSchema() as {
+    properties: Record<string, { type?: string; properties?: Record<string, { type?: string }>; required?: string[]; additionalProperties?: boolean }>;
+    required: string[];
+  };
+  const comments = schema.properties.comments;
+  assert.equal(comments.type, 'object');
+  assert.deepEqual(comments.properties?.closed, { type: 'boolean' });
+  assert.deepEqual(comments.required, ['closed']);
+  assert.equal(comments.additionalProperties, false);
+  assert.equal(schema.required.includes('comments'), false);
 });

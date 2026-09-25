@@ -81,6 +81,19 @@ const withdrawal = z
   })
   .strict();
 
+/**
+ * Per-post comment settings (phase 2 plan D7). An object rather than a bare boolean so a
+ * `reason` or a `closesAt` can be added later without renaming anything. `closed: true` stops
+ * new comments: the page shows "comments are closed" instead of the form, and
+ * `/comments/threads.json` marks the thread closed so the Worker refuses posts to it.
+ * Approved comments already published stay on the page. A withdrawn post is closed regardless.
+ */
+const comments = z
+  .object({
+    closed: z.boolean(),
+  })
+  .strict();
+
 export const postSchema = z
   .object({
     // Non-empty and bounded: they become the h1, the <title>, the feed item and the JSON-LD headline.
@@ -114,6 +127,8 @@ export const postSchema = z
     corrections: z.array(correction).default([]),
     /** Set to take a post down: its URL stays with this notice; it leaves every list and feed. */
     withdrawn: withdrawal.optional(),
+    /** `{ closed: true }` closes the post's comment thread. Absent means open (unless withdrawn). */
+    comments: comments.optional(),
     /**
      * The id of an entry under `src/content/authors/`, e.g. `desk-bot`. A plain string here:
      * `content.config.ts` replaces this field with `reference('authors')` before the schema

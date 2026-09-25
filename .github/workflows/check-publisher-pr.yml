@@ -1,0 +1,68 @@
+name: Publisher paths
+
+# The desk's publisher — a GitHub App whose login is the repository variable PUBLISHER_LOGIN — may
+# only ever add, change or delete src/content/comments/<slug>.json (phase 2 plan D12, ADR 0006).
+# It pushes to a desk/comments-* branch and opens a pull request into main; this job is the
+# required check on pull requests in the branch ruleset. Repository admins bypass the ruleset, so
+# the maintainer's direct pushes to main keep working. When PUBLISHER_LOGIN is unset or empty,
+# every pull request is held to the rule (fail safe).
+#
+# pull_request_target: the workflow, and the script it runs, always come from main — never from
+# the pull request. Nothing from the pull request's head is checked out or executed: the list of
+# changed files comes from the API, and the head tree's file modes from `git ls-tree` on a commit
+# that is fetched but never checked out. The pull request's number and head SHA are the only
+# event values that reach a shell line; both are numeric or hexadecimal by construction. The
+# author's login goes through the environment, never a shell line.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: publisher-paths-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  publisher-paths:
+    name: publisher-paths
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main (the base; never the pull request)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install (main's lockfile)
+        run: npm ci
+
+      - name: List the pull request's changed files (API, not a checkout)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
+            --paginate --slurp > "$RUNNER_TEMP/pr-files.json"
+
+      - name: Read the head tree's file modes (fetched, never checked out)
+        # The tree is read at the event's head SHA. If the branch moved since, the SHA is not in
+        # the shallow fetch and this step fails; the `synchronize` run for the new head checks it.
+        run: |
+          git fetch --no-tags --depth=1 origin "refs/pull/${{ github.event.pull_request.number }}/head"
+          git ls-tree -r -z "${{ github.event.pull_request.head.sha }}" > "$RUNNER_TEMP/head-modes.txt"
+
+      - name: Check the changed paths
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PUBLISHER_LOGIN: ${{ vars.PUBLISHER_LOGIN }}
+          PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
+        run: node scripts/check-publisher-paths.mjs --files "$RUNNER_TEMP/pr-files.json" --modes "$RUNNER_TEMP/head-modes.txt"

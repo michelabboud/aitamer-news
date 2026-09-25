@@ -1,0 +1,160 @@
+---
+import { COMMENTS_ENDPOINT, TURNSTILE_SITE_KEY } from '../lib/site';
+import {
+  COMMENTED_QUERY,
+  COMMENTED_VALUE,
+  COMMENT_FAILED_MESSAGE,
+  COMMENT_FORM_FIELDS,
+  COMMENT_HELD_MESSAGE,
+  COMMENT_NAME_MAX,
+  COMMENT_TEXT_MAX,
+  COMMENT_TURNSTILE_ACTION,
+  commentFormSetup,
+} from '../lib/comment-form';
+
+/**
+ * The comment form (phase 2 plan §6.3), the same progressive-enhancement pattern as the About
+ * page's contact form: a plain `<form method="post">` to the comments Worker works without
+ * script (the Worker answers with a 303 back to `/posts/<slug>/?commented=1#comments`), and the
+ * script below turns the submit into a `fetch` that shows the held message in place. Turnstile
+ * is mandatory for comments (plan D8), so a reader without JavaScript cannot in fact get a
+ * comment accepted; the `<noscript>` note says so rather than letting the submit fail silently.
+ *
+ * Fields, as the Worker reads them (`COMMENT_FORM_FIELDS`): `slug`, `name`, `text`, the honeypot
+ * `desk_extra`, Turnstile's own `cf-turnstile-response`, and `elapsed` — whole milliseconds
+ * between the form being rendered and the submit, which the script measures with
+ * `performance.now()` and adds only itself, so a no-script submit carries no `elapsed` at all.
+ * The Turnstile widget is created with `data-action="comment"`; the Worker requires that action
+ * and the aitamer.news hostname on the token, so one solved on the contact form is no use here.
+ *
+ * Renders nothing but a note when the thread is closed, or when the endpoint or the Turnstile
+ * site key is not configured (`commentFormSetup`). Turnstile's `api.js` loads only where the
+ * form renders.
+ */
+interface Props {
+  /** The post's slug: the thread the comment belongs to. */
+  slug: string;
+  /** True for a withdrawn post or one whose frontmatter says `comments: { closed: true }`. */
+  closed?: boolean;
+}
+
+const { slug, closed = false } = Astro.props;
+const setup = commentFormSetup({ endpoint: COMMENTS_ENDPOINT, turnstileSiteKey: TURNSTILE_SITE_KEY });
+const fields = COMMENT_FORM_FIELDS;
+const heldMessage = COMMENT_HELD_MESSAGE;
+const failedMessage = COMMENT_FAILED_MESSAGE;
+const commentedQuery = COMMENTED_QUERY;
+const commentedValue = COMMENTED_VALUE;
+const elapsedField = fields.elapsed;
+---
+{closed ? (
+  <p class="form-note comment-form-note">Comments are closed on this story.</p>
+) : !setup.ready ? (
+  <p class="form-note comment-form-note">Commenting is not set up yet.</p>
+) : (
+  <>
+    <form id="comment-form" class="comment-form" action={setup.endpoint} method="post">
+      <h3 class="comment-form__title">Add a comment</h3>
+      <p class="form-note">
+        Plain text, up to {COMMENT_TEXT_MAX.toLocaleString('en-US')} characters. The desk reads every
+        comment before it appears, under the name you give.
+      </p>
+      <p id="comment-status" class="form-success" role="status" aria-live="polite"></p>
+      <p id="comment-error" class="form-error" role="alert"></p>
+      <input type="hidden" name={fields.slug} value={slug} />
+      <div class="field">
+        <label for="comment-name">Name</label>
+        <input id="comment-name" name={fields.name} type="text" autocomplete="nickname" required maxlength={COMMENT_NAME_MAX} />
+      </div>
+      <div class="field">
+        <label for="comment-text">Comment</label>
+        <textarea id="comment-text" name={fields.text} required maxlength={COMMENT_TEXT_MAX} rows="5"></textarea>
+      </div>
+      <div class="contact-honey" aria-hidden="true">
+        <label for="comment-extra">Leave this field empty</label>
+        <input id="comment-extra" name={fields.honeypot} type="text" tabindex="-1" autocomplete="new-password" />
+      </div>
+      <div class="cf-turnstile" data-sitekey={setup.turnstileSiteKey} data-action={COMMENT_TURNSTILE_ACTION} data-size="flexible"></div>
+      <noscript>
+        <p class="form-note">
+          Commenting needs JavaScript: the check that keeps bots out (Cloudflare Turnstile) runs in
+          the browser.
+        </p>
+      </noscript>
+      <button class="contact-submit" type="submit">Post the comment</button>
+    </form>
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script is:inline define:vars={{ heldMessage, failedMessage, commentedQuery, commentedValue, elapsedField }}>
+      (function () {
+        var form = document.getElementById('comment-form');
+        if (!form) return;
+        var status = document.getElementById('comment-status');
+        var error = document.getElementById('comment-error');
+        // The Worker refuses a comment written faster than a person could. `elapsed` is the
+        // milliseconds since the form became usable, a performance.now() difference so a
+        // reader's wrong clock cannot skew it; the field exists only when this script runs.
+        var renderedAt = performance.now();
+        var elapsed = document.createElement('input');
+        elapsed.type = 'hidden';
+        elapsed.name = elapsedField;
+        form.appendChild(elapsed);
+        var params = new URLSearchParams(location.search);
+        if (params.get(commentedQuery) === commentedValue) {
+          // The no-script path: the Worker sent the reader back here after taking the comment.
+          status.textContent = heldMessage;
+          // Drop ?commented=1 so a reload does not announce the comment again.
+          params.delete(commentedQuery);
+          var query = params.toString();
+          history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+        }
+        var button = form.querySelector('[type="submit"]');
+        var idle = button.textContent;
+        form.addEventListener('submit', function (event) {
+          if (!form.reportValidity()) return;
+          event.preventDefault();
+          elapsed.value = String(Math.round(performance.now() - renderedAt));
+          error.textContent = '';
+          status.textContent = '';
+          button.disabled = true;
+          button.textContent = 'Posting…';
+          fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { Accept: 'application/json' },
+          })
+            .then(function (response) {
+              return response.json().catch(function () { return null; }).then(function (payload) {
+                return { ok: response.ok, payload: payload };
+              });
+            })
+            .then(function (result) {
+              if (result.ok && result.payload && result.payload.ok) {
+                form.reset();
+                // The reader starts over: the next comment's time is counted from now.
+                renderedAt = performance.now();
+                status.textContent = heldMessage;
+                return;
+              }
+              error.textContent = (result.payload && result.payload.error) || failedMessage;
+            })
+            .catch(function () {
+              error.textContent = failedMessage;
+            })
+            .then(function () {
+              // Turnstile tokens are single use; get a fresh one for the next attempt.
+              if (window.turnstile) window.turnstile.reset();
+              button.disabled = false;
+              button.textContent = idle;
+            });
+        });
+      })();
+    </script>
+  </>
+)}
+
+<style>
+  .comment-form-note { margin-top: 1.5rem; }
+  .comment-form { position: relative; display: grid; gap: 1rem; margin-top: 1.5rem; max-width: var(--measure); }
+  .comment-form__title { font-size: 1.125rem; margin: 0; }
+  .comment-form .form-note { margin: 0; }
+</style>

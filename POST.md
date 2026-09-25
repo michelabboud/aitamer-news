@@ -34,6 +34,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `video` | no | A YouTube video to embed: `youtube` (the 11-character video ID, never a URL), `title`, `channel`. Only channels on the desk's allow-list, cleared by a human (the MCP enforces this). |
 | `corrections` | no | Dated corrections shown on the post: a list of `{ date, text }`. Add a new entry; never edit or delete an old one. |
 | `withdrawn` | no | `{ date, reason }` takes a post down without breaking links: the page stays at its URL with the notice, and the post leaves every list, feed, sitemap and search result. Its specimen number is retired with it. |
+| `comments` | no | `{ closed: true }` closes the post's comment thread: the page shows "comments are closed" instead of the form, and `/comments/threads.json` tells the desk's Worker to refuse new comments for the slug. Comments already published stay. Absent means open; a withdrawn post is closed regardless. An object, so a reason or a closing date can be added later without renaming anything (section 8). |
 
 **The contract is strict.** An unknown field, at any level, fails the build naming the file, so a typo is never silently dropped. Dates in `sunset`, `corrections` and `withdrawn` must be a YAML date, a plain `YYYY-MM-DD`, or a full UTC timestamp ending in `Z`, never a bare number or `true`/`false`. `heroImage` must be `/heroes/<slug>.jpg` or an `https://` URL with no spaces or quotes. Why: `docs/adr/0004-post-contract-is-strict.md`.
 
@@ -126,6 +127,8 @@ Rules for times:
 
 If a check fails, nothing is published and the live site stays as it was. Unchanged post, desk, author and archive-month pages are reused from the previous build (Astro's incremental build cache), so adding one post does not rebuild the whole site.
 
+The desk's publisher never pushes to `main` itself: it opens a pull request from a `desk/comments-*` branch, and `check-publisher-pr.yml` (the required check `publisher-paths`) refuses the pull request if it changes anything but `src/content/comments/<slug>.json` (section 8). Only a merge lands its comment files on `main` and triggers the deploy above.
+
 ## 6. Where a published post appears
 
 - Its own page: `/posts/<slug>/`, with the byline date linking to its month in the archive.
@@ -169,3 +172,11 @@ The format, v1:
 - No other key, at any level. A file holds only what the page shows: never an email address, an IP address, a hash or a moderation note.
 
 Enforcement: `npm run check:posts` fails a file whose post does not exist or whose `slug` is not its file name; `npm run build` fails a file that breaks the format (`src/content/comment-schema.ts`, strict at every level), naming it. The same schema is published as JSON Schema at `/contract/comments.schema.json` (and `/contract/v1/`) for the desk to validate against before it commits. Field-by-field detail: `src/content/comments/README.md`.
+
+**How the publisher gets its files in.** It never pushes to `main`: it pushes a `desk/comments-*` branch and opens a pull request, and the required check `publisher-paths` (`.github/workflows/check-publisher-pr.yml`, `scripts/check-publisher-paths.mjs`) refuses the pull request if any changed path is not `src/content/comments/<slug>.json`, if a file is renamed from or to anywhere else, or if an added or changed file is a symlink, a submodule or executable. Deleting a comment file is allowed: that is how an emptied thread leaves the site. A pull request by anyone else is left to the maintainer's review — unless the repository variable `PUBLISHER_LOGIN` is unset, in which case every pull request is held to the rule (`CONTRIBUTING.md`).
+
+**Closing a thread.** Set `comments: { closed: true }` in the post's frontmatter (section 2). The page then shows "Comments are closed on this story." instead of the form, and the build writes the thread as `closed` in `/comments/threads.json`, which the desk's Worker reads to refuse a new comment for that slug. Published comments stay on the page; remove entries from the data file to take them down. A withdrawn post is closed without the field.
+
+**The form.** Every story page carries a plain `<form method="post">` to `https://comments.aitamer.news/` (`COMMENTS_ENDPOINT` in `src/lib/site.ts`; `PUBLIC_COMMENTS_ENDPOINT` points a local build at a local Worker) with the fields `slug`, `name` (1–60 characters), `text` (1–2,000), the honeypot `desk_extra` (must stay empty), Turnstile's `cf-turnstile-response` (widget action `comment`), and — added by the page script only — `elapsed`, the whole milliseconds between the form being rendered and the submit. Without JavaScript the form still submits and the Worker sends the reader back to `/posts/<slug>/?commented=1#comments`, but Turnstile needs JavaScript, so the no-script note says commenting does too. With no Turnstile site key configured (`TURNSTILE_SITE_KEY` in `src/lib/site.ts`), the page says commenting is not set up yet instead of showing a form that cannot succeed.
+
+**`/comments/threads.json`.** Regenerated on every build: `{ "version": 1, "generatedAt": "<build time>", "threads": { "<slug>": "open" | "closed" } }`, one entry per live post (drafts and scheduled posts are absent, so the Worker refuses comments for a page that does not exist yet). Withdrawn posts and posts with `comments: { closed: true }` are `closed`.

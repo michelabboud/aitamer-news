@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.7] — 2026-09-25
+
+### Added
+- **The comment form** under each story's comments: works without script (a plain post that returns to the story), and with script posts in place and says the comment is held for the desk. Honeypot, Turnstile with its own `comment` action, and the time spent on the form (`elapsed`, from `performance.now()`). Until Turnstile and the comments Worker are set up, the form says commenting is not set up yet.
+- `comments: { closed: true }` in a post's frontmatter closes its thread (additive to contract v1).
+- `/comments/threads.json`: which stories accept comments, for the comments Worker.
+- The `publisher-paths` check (`.github/workflows/check-publisher-pr.yml`): on pull requests from the desk's publisher it refuses any change outside `src/content/comments/<slug>.json`, symlinks, submodules and executables, without ever running the pull request's code.
+- 52 tests.
+
 ## [0.2.6] — 2026-09-25
 
 ### Added

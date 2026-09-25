@@ -253,7 +253,7 @@ const breadcrumbs = {
         </div>
 
         <div data-pagefind-ignore>
-          <Comments slug={post.id} comments={comments} withdrawn={Boolean(withdrawn)} />
+          <Comments slug={post.id} comments={comments} withdrawn={Boolean(withdrawn)} closed={Boolean(post.data.comments?.closed)} />
           {/* Until Disqus leaves the site (plan task A4), its thread stays below ours. */}
           <DisqusThread pageUrl={canonical} pageId={post.id} />
         </div>

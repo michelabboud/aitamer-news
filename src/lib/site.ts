@@ -24,8 +24,17 @@ export const CONTACT_ENDPOINT: string =
   import.meta.env.PUBLIC_CONTACT_ENDPOINT || 'https://contact.aitamer.news/';
 
 /**
- * Cloudflare Turnstile site key for the contact form. Public (it ships in the page); empty = widget off.
- * Set it together with the Worker secret TURNSTILE_SECRET_KEY, never one without the other.
+ * Where the comment form posts: the desk's comments Worker (phase 2 plan §5.2). Public by nature.
+ * PUBLIC_COMMENTS_ENDPOINT points a local build at a local Worker, like PUBLIC_CONTACT_ENDPOINT.
+ */
+export const COMMENTS_ENDPOINT: string =
+  import.meta.env.PUBLIC_COMMENTS_ENDPOINT || 'https://comments.aitamer.news/';
+
+/**
+ * Cloudflare Turnstile site key for the contact form and the comment form. Public (it ships in
+ * the page); empty = the contact form's widget is off, and the comment form says commenting is
+ * not set up yet (Turnstile is mandatory for comments, plan D8).
+ * Set it together with the Workers' secret TURNSTILE_SECRET_KEY, never one without the other.
  */
 export const TURNSTILE_SITE_KEY = '';
 
@@ -46,8 +55,11 @@ export function entryStamp(entry: { id: string; digest?: string }): string {
   return `${entry.id}@${entry.digest ?? 'no-digest'}`;
 }
 
-/** Captured once per build, so every page of the same build agrees on what "live" means. */
-const BUILD_TIME = new Date();
+/**
+ * Captured once per build, so every page of the same build agrees on what "live" means.
+ * Exported for `/comments/threads.json`, which must list exactly the posts that got a page.
+ */
+export const BUILD_TIME = new Date();
 
 export function isPublished(post: CollectionEntry<'posts'>): boolean {
   return isLive(post.data, BUILD_TIME);
