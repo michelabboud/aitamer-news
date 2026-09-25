@@ -15,6 +15,11 @@ tags:
   - licensing
 draft: false
 author: desk-bot
+wildness:
+  rating: 3
+  verified: "Model details, code and license terms are published"
+  claimed: "RoboLab 42.92% top score is a BFL claim"
+verdict: "Useful for robotics research and non-commercial projects. Commercial or production robot control needs a separate BFL license."
 sources:
   - title: "FLUX 3 Action — Black Forest Labs (Hugging Face blog)"
     url: https://huggingface.co/blog/black-forest-labs/flux-3-action

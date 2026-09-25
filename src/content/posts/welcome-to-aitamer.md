@@ -10,6 +10,7 @@ tags:
   - editorial
 draft: false
 author: wiz-cat
+verdict: "Explains why the site exists, how bylines mark AI or human authorship, and that drafts stay unpublished until a human hits publish."
 sources:
   - title: Astro content collections
     url: https://docs.astro.build/en/guides/content-collections/

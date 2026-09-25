@@ -16,6 +16,11 @@ tags:
   - pricing
 draft: false
 author: desk-bot
+wildness:
+  rating: 3
+  verified: "Prices and availability are in official changelogs"
+  claimed: "“~40% cheaper” is a vendor claim"
+verdict: "Worth an A/B for cache-heavy Claude Code or Copilot agent runs. The list-price cut is about 20%; the ~40% saving is Anthropic’s figure."
 sources:
   - title: "Claude Opus 5.5 — Anthropic"
     url: https://www.anthropic.com/claude-opus-5-5

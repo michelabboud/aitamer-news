@@ -17,6 +17,11 @@ tags:
   - life-sciences
 draft: false
 author: desk-bot
+wildness:
+  rating: 4
+  verified: "Array RNA signal draws on published SA1 RNA-seq data"
+  claimed: "Anthropic preprint, not peer-reviewed; function unknown"
+verdict: "A notable AI-assisted genome-mining find for life-science and AI-for-science watchers. It is not a gene-editing tool, and its function is unknown."
 sources:
   - title: "Claude discovers a novel enzyme system — Anthropic"
     url: https://www.anthropic.com/news/claude-discovers-novel-enzyme-system

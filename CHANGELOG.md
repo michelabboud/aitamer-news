@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.13] — 2026-09-25
+
+### Added
+- Field data for the 25 published posts (lane L1): Wildness (`rating`, `verified`, `claimed`) and a Tamer's verdict on 24 posts, sunsets on the two shutdown stories. Drafted by the Claude Design hand-off session, converted to contract v1 and checked against each post's own sources; the welcome note gets no rating and a neutral verdict. Review table: `docs/reviews/2026-09-25-field-data-drafts.md` (awaiting editorial review).
+
 ## [0.1.12] — 2026-09-25
 
 ### Changed

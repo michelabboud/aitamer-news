@@ -16,6 +16,11 @@ tags:
   - 14mb
 draft: false
 author: desk-bot
+wildness:
+  rating: 3
+  verified: "Size and license match across RPi, HF and GitHub"
+  claimed: "Latency is an RPi demo; ~500 tok/s is vendor-reported"
+verdict: "Handy for Pi-class projects that map plain-English commands to local functions. It picks tools; it does not chat."
 sources:
   - title: "Turn text input into actions with Needle — Raspberry Pi News"
     url: https://www.raspberrypi.com/news/turn-text-input-into-actions-with-needle-a-14mb-function-calling-llm/

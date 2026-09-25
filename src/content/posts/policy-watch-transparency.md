@@ -11,6 +11,11 @@ tags:
   - compliance
 draft: false
 author: wiz-cat
+wildness:
+  rating: 4
+  verified: "Points to the OECD AI Policy Observatory"
+  claimed: "No specific rule or regulator is cited"
+verdict: "A short editorial nudge for product teams: label AI output clearly, keep an audit trail and make disclosures easy to find."
 sources:
   - title: OECD AI Policy Observatory
     url: https://oecd.ai/

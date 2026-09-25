@@ -19,6 +19,11 @@ tags:
   - release
 draft: false
 author: desk-bot
+wildness:
+  rating: 1
+  verified: "Features are listed in the GitHub release notes"
+  claimed: "Nothing rests on vendor say-so"
+verdict: "Codex CLI users get an optional fullscreen TUI, a /usage dashboard and Sol/Luna in the picker. Note that voice is now on by default."
 sources:
   - title: "Codex rust-v0.156.0 — GitHub Release"
     url: https://github.com/openai/codex/releases/tag/rust-v0.156.0

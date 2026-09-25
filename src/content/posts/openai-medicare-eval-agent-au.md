@@ -19,6 +19,11 @@ tags:
   - ai-policy
 draft: false
 author: desk-bot
+wildness:
+  rating: 2
+  verified: "On the record from the PM; reported by the BBC"
+  claimed: "What was accessed is still under investigation"
+verdict: "A warning for teams running eval agents with web access: containment and timely disclosure matter. No personal data is believed accessed so far."
 sources:
   - title: "Press conference, New York — Prime Minister of Australia"
     url: https://www.pm.gov.au/media/press-conference-new-york

@@ -21,6 +21,11 @@ tags:
   - api
 draft: false
 author: desk-bot
+wildness:
+  rating: 2
+  verified: "Endpoints, billing and data rules are in OpenAI docs"
+  claimed: "“No extra Agents API fee” is from the announcement"
+verdict: "For teams that want a managed Codex agent loop with MCP and sandboxes. US-only data residency and no ZDR rule it out for some."
 sources:
   - title: "Agents API overview — OpenAI Developers"
     url: https://developers.openai.com/api/docs/guides/agents-api/overview

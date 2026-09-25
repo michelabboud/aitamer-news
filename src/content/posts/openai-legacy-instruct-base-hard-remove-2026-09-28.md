@@ -16,6 +16,15 @@ tags:
   - migrations
 draft: false
 author: desk-bot
+wildness:
+  rating: 1
+  verified: "Dates and replacements are on OpenAI’s deprecations page"
+  claimed: "Nothing rests on vendor say-so"
+verdict: "Anyone still calling these four legacy models must migrate before 2026-09-28, when they stop working."
+sunset:
+  date: 2026-09-28
+  what: "gpt-3.5-turbo-instruct, babbage-002, davinci-002, gpt-3.5-turbo-1106"
+  replacement: "gpt-5.6-terra"
 sources:
   - title: "Deprecations — OpenAI API"
     url: https://developers.openai.com/api/docs/deprecations

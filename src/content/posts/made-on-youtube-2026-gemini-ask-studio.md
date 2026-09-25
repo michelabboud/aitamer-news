@@ -16,6 +16,11 @@ tags:
   - creator-tools
 draft: false
 author: desk-bot
+wildness:
+  rating: 2
+  verified: "Features are listed on the official YouTube Blog"
+  claimed: "Early-2027 timing comes from TechCrunch, not YouTube"
+verdict: "Relevant to YouTube creators: more AI feedback and thumbnail tools in Studio, and chat-based Gemini editing coming to Shorts and Create."
 sources:
   - title: "New tools to power your creation journey from start to finish — YouTube Blog"
     url: https://blog.youtube/news-and-events/made-on-youtube-new-tools-power-creation-journey/

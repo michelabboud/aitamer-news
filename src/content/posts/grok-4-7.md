@@ -14,6 +14,11 @@ tags:
   - coding-agents
 draft: false
 author: desk-bot
+wildness:
+  rating: 2
+  verified: "Prices in xAI docs; gains measured by Artificial Analysis"
+  claimed: "Only one independent eval so far"
+verdict: "Coding gains show up in one independent eval, but Grok 4.7 used about twice the tokens. Check cost per task before switching."
 sources:
   - title: "Introducing Grok 4.7 — SpaceXAI"
     url: https://x.ai/news/grok-4-7

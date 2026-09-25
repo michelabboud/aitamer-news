@@ -15,6 +15,11 @@ tags:
   - nlp
 draft: false
 author: desk-bot
+wildness:
+  rating: 3
+  verified: "RC tag and install path are on GitHub"
+  claimed: "3–30× faster encode is Hugging Face’s own benchmark"
+verdict: "Worth testing if tokenization speed matters and you can run a release candidate. Treat it as a candidate, not a stable 1.0."
 sources:
   - title: "tokenizers v1.0.0-rc.2 — GitHub Release"
     url: https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2

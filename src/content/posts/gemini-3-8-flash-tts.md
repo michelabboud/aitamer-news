@@ -18,6 +18,11 @@ tags:
   - synthid
 draft: false
 author: desk-bot
+wildness:
+  rating: 3
+  verified: "Prices are in Google’s developer pricing docs"
+  claimed: "Benchmark wins are Google-cited, not re-run"
+verdict: "Worth a look for dubbing, audio and voice-agent builders. Promo prices double on 2027-01-01, and voice cloning is geo-blocked in some regions."
 sources:
   - title: "Gemini 3.8 Text-to-Speech — Google Blog"
     url: https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-8-text-to-speech/

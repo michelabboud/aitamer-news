@@ -15,6 +15,11 @@ tags:
   - cutile
 draft: false
 author: desk-bot
+wildness:
+  rating: 2
+  verified: "Toolchains and Apache-2.0 licenses are in NVlabs repos"
+  claimed: "Adoption by Grout and mistral.rs is NVIDIA’s claim"
+verdict: "Worth watching for Rust GPU developers. Both tracks are early and not production-ready; recheck the toolchain pins first."
 sources:
   - title: "Introducing CUDA Rust: Two Tracks for Writing GPU Kernels — NVIDIA Developer Blog"
     url: https://developer.nvidia.com/blog/introducing-cuda-rust-two-tracks-for-writing-gpu-kernels/

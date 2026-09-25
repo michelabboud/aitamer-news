@@ -17,6 +17,11 @@ tags:
   - comma-openpilot
 draft: false
 author: desk-bot
+wildness:
+  rating: 5
+  verified: "Harness code and run traces are published openly"
+  claimed: "Self-published; one trial per model, no replication"
+verdict: "Interesting for embodied-agent and eval teams. It shows a low-speed cone course in an empty lot, not that any model can drive."
 sources:
   - title: "DrivingBench"
     url: https://drivingbench.com/

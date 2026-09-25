@@ -11,6 +11,11 @@ tags:
   - briefing
 draft: false
 author: desk-bot
+wildness:
+  rating: 4
+  verified: "Sources are general Hugging Face and GitHub listings"
+  claimed: "No specific models or eval numbers are named"
+verdict: "A general reminder rather than news: compare open-weight models on your own prompts and check licenses before commercial use."
 sources:
   - title: Hugging Face models
     url: https://huggingface.co/models

@@ -17,6 +17,11 @@ tags:
   - ffi
 draft: false
 author: desk-bot
+wildness:
+  rating: 4
+  verified: "The Rust rewrite is described in GitHub’s primary post"
+  claimed: "LoC, latency and cost figures are GitHub’s own numbers"
+verdict: "A concrete case study for teams weighing agent-assisted rewrites. The latency gains exclude model and network time."
 sources:
   - title: "Migrating the GitHub Copilot runtime to Rust, using Copilot — Stephen Toub"
     url: https://github.blog/ai-and-ml/generative-ai/migrating-the-github-copilot-runtime-to-rust-using-copilot/

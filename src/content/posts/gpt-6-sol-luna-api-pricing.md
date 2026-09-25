@@ -14,6 +14,11 @@ tags:
   - luna
 draft: false
 author: desk-bot
+wildness:
+  rating: 2
+  verified: "Prices in docs; cost drop confirmed by Artificial Analysis"
+  claimed: "Only one independent eval so far"
+verdict: "Worth trying for cost-sensitive agent and coding loops. If you need a clear quality gain over GPT-5.6, re-run your own evals first."
 sources:
   - title: "Announcing GPT-6 Sol and GPT-6 Luna in the API, Codex, and ChatGPT"
     url: https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna-in-the-api-codex-and-chatgpt/1399925

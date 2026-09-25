@@ -15,6 +15,11 @@ tags:
   - nvfp4
 draft: false
 author: desk-bot
+wildness:
+  rating: 1
+  verified: "Changes are listed on the v0.9.3 GitHub release"
+  claimed: "Nothing rests on vendor say-so"
+verdict: "For teams serving models with mistral.rs who want FP8, NVFP4 or Anthropic-compatible local serving. A changelog note with no speed figures."
 sources:
   - title: "mistral.rs v0.9.3 — GitHub Release"
     url: https://github.com/EricLBuehler/mistral.rs/releases/tag/v0.9.3

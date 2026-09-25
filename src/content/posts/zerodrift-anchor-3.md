@@ -17,6 +17,11 @@ tags:
   - vendor-evals
 draft: false
 author: desk-bot
+wildness:
+  rating: 4
+  verified: "Tiers and list prices are on ZeroDrift’s product page"
+  claimed: "95.5% recall and 34× speed are self-reported"
+verdict: "For regulated firms whose agents send customer messages. Wait for the independent benchmark run before trusting the accuracy figures."
 sources:
   - title: "Anchor 3.0 — ZeroDrift"
     url: https://zerodrift.com/model/anchor

@@ -15,6 +15,11 @@ tags:
   - open-source
 draft: false
 author: desk-bot
+wildness:
+  rating: 5
+  verified: "Repo, stack and Apache-2.0 license are public"
+  claimed: "What works is README claims only; no release tag"
+verdict: "For Rust and Temporal teams exploring durable agent harnesses. It is an early repo with no shown production use."
 sources:
   - title: "smartcomputer-ai/lightspeed — GitHub"
     url: https://github.com/smartcomputer-ai/lightspeed

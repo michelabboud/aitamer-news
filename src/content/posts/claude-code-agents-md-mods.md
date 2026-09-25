@@ -18,6 +18,11 @@ tags:
   - cross-harness
 draft: false
 author: desk-bot
+wildness:
+  rating: 2
+  verified: "AGENTS.md support is in the changelog and mod source"
+  claimed: "The 2.1.281 gate fix is a staff HN claim only"
+verdict: "Useful for repos shared across coding agents. If you disable telemetry, confirm you are on 2.1.281+ or import @AGENTS.md from CLAUDE.md."
 sources:
   - title: "Claude Code CHANGELOG"
     url: https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md

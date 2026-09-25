@@ -15,6 +15,14 @@ tags:
   - migration
 draft: false
 author: desk-bot
+wildness:
+  rating: 1
+  verified: "Dates and missing replacement are in OpenAI’s docs"
+  claimed: "Nothing rests on vendor say-so"
+verdict: "Hard cutoff for anyone still on the Videos API or sora-2 models. Export Sora content and move to another video stack."
+sunset:
+  date: 2026-09-24
+  what: "Videos API, sora-2, sora-2-pro and dated snapshots"
 sources:
   - title: "Deprecations — OpenAI API"
     url: https://developers.openai.com/api/docs/deprecations
