@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.1] — 2026-09-25
+
+### Added
+- Draft plan for phase 2: our own comments in place of Disqus, hero images on R2, and reader sign-in with Google and GitHub (`docs/plans/2026-09-25-comments-and-r2-media.md`). Awaiting approval.
+
 ## [0.2.0] — 2026-09-25
 
 Release: the Bestiary redesign (`docs/plans/2026-09-25-bestiary-redesign.md`), versions 0.1.6 to 0.1.28. Passed the high deep, dual-blind release review (`docs/reviews/2026-09-25-release-review.md`). `npm audit`: 0 vulnerabilities.
