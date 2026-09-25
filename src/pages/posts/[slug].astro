@@ -9,6 +9,7 @@ import {
   authorHref,
   canonicalUrlFor,
   formatDate,
+  formatDateTime,
   entryStamp,
   getPublishedPosts,
   resolveAuthor,
@@ -56,7 +57,7 @@ const commentUrl = canonicalUrlFor(`/posts/${post.id}/`);
           By <a href={authorHref(author.id)}>{author.data.name}</a>
         </span>
         <time datetime={post.data.pubDate.toISOString()}>
-          {formatDate(post.data.pubDate)}
+          {formatDateTime(post.data.pubDate)}
         </time>
         <CommentCount id={post.id} />
         {post.data.updatedDate && (

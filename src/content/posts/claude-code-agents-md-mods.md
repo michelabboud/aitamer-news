@@ -1,7 +1,7 @@
 ---
 title: "Claude Code reads AGENTS.md via Mods — telemetry gate fixed in 2.1.281"
 description: "Claude Code 2.1.277 adds AGENTS.md when no CLAUDE.md is present (not yet on Bedrock, Vertex, or Foundry). Built as a Mods function-hook. Anthropic staff say a telemetry/feature-flag silent skip was fixed in v2.1.281."
-pubDate: 2026-09-24
+pubDate: 2026-09-24T09:10:48Z
 heroImage: /heroes/claude-code-agents-md-mods.jpg
 section: tools
 subsection: cli

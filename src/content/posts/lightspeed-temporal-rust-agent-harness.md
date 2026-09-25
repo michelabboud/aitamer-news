@@ -1,7 +1,7 @@
 ---
 title: "Lightspeed: open-source Temporal agent harness in Rust"
 description: "smartcomputer-ai/lightspeed describes a deterministic Rust agent harness on Temporal for durable managed-agent workflows, with Postgres/optional S3 and a TypeScript/React UI. Early public repo—README claims only; Apache-2.0."
-pubDate: 2026-09-24
+pubDate: 2026-09-24T09:15:12Z
 heroImage: /heroes/lightspeed-temporal-rust-agent-harness.jpg
 section: rust
 subsection: ai

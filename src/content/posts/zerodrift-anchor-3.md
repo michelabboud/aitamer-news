@@ -1,7 +1,7 @@
 ---
 title: "ZeroDrift Anchor 3.0: enforcement SLMs for agent messages vs FINRA/SEC-style rules"
 description: "ZeroDrift launched Anchor 3.0 GA on 2026-09-23 — mini, flagship, and max models that classify, cite, and rewrite AI communications before send. Vendor-run FINRA recall (95.5% vs 92.9%) is self-reported; independent run in progress."
-pubDate: 2026-09-24
+pubDate: 2026-09-24T09:10:48Z
 section: models
 heroImage: /heroes/zerodrift-anchor-3.jpg
 tags:

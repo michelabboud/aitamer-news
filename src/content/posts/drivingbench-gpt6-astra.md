@@ -1,7 +1,7 @@
 ---
 title: "DrivingBench: GPT-6 Astra finishes a fixed Corolla cone course (self-published)"
 description: "Self-published DrivingBench gives frontier models tool control of a Toyota Corolla on a fixed cone course. Live board: GPT-6 Astra 100% in 5:22. Cone course only—not ‘can drive’ / AV-solved."
-pubDate: 2026-09-24
+pubDate: 2026-09-24T09:48:07Z
 heroImage: /heroes/drivingbench-gpt6-astra.jpg
 section: models
 tags:

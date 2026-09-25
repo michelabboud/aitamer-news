@@ -53,8 +53,10 @@ export function isPublished(post: CollectionEntry<'posts'>): boolean {
 
 export async function getPublishedPosts(): Promise<CollectionEntry<'posts'>[]> {
   const posts = await getCollection('posts', isPublished);
+  // Posts merged together share a publish time; the id keeps their order stable.
   return posts.sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+    (a, b) =>
+      b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || a.id.localeCompare(b.id),
   );
 }
 
@@ -83,6 +85,20 @@ export function formatDate(date: Date): string {
     day: 'numeric',
     timeZone: 'UTC',
   });
+}
+
+/** Publish date and time for the article byline, in UTC, e.g. "Sep 24, 2026, 09:15 UTC". */
+export function formatDateTime(date: Date): string {
+  const stamp = date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'UTC',
+  });
+  return `${stamp} UTC`;
 }
 
 /** Prefix a root path with Astro's base. No-op when the site is served at `/`. */

@@ -28,6 +28,11 @@ jobs:
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+      - name: Check scripts and post times
+        run: |
+          npm test
+          npm run check:times
+
       - name: Restore Astro incremental cache
         uses: actions/cache@v4
         with:

@@ -48,7 +48,7 @@ Before drafting or editing posts, read [`docs/posting-standards.md`](docs/postin
 ---
 title: Your headline
 description: One-line dek / summary.
-pubDate: 2026-09-23
+pubDate: 2026-09-23          # date only while drafting; `npm run stamp` adds the time at publish
 updatedDate: 2026-09-24   # optional
 section: tools            # top | models | tools | image | video | data | databases | rust | policy | opinion
 subsection: cli           # optional
@@ -65,7 +65,7 @@ Body copy in Markdown…
 ```
 
 3. Author ids today: `wiz-cat` (human), `desk-bot` (bot). Add more under `src/content/authors/`.
-4. Set `draft: false` to publish. Drafts are excluded from home, section pages, author pages, and `/rss.xml`.
+4. Set `draft: false` to publish, then run `npm run stamp`. It writes the publish time into `pubDate` (UTC, e.g. `2026-09-23T17:51:26Z`); the deploy fails if a published post has no time. Drafts are excluded from home, section pages, author pages, and `/rss.xml`.
 5. Run `npm run build` and confirm `/posts/your-slug/` exists in `dist/`.
 
 ## Publishing
