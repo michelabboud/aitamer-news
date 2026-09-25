@@ -41,6 +41,8 @@ Before drafting or editing posts, read [`docs/posting-standards.md`](docs/postin
 
 ## How bots (or humans) add posts
 
+The full mechanics — slug, frontmatter, hero image, publish time, CI, where a post appears — are in [`POST.md`](POST.md). The short version:
+
 1. Create a file: `src/content/posts/your-slug.md` (or `.mdx`).
 2. Use this frontmatter shape:
 
@@ -105,6 +107,7 @@ npx wrangler dev
 | `/posts/[slug]` | Article |
 | `/section/[section]` | Section listing |
 | `/authors/[id]` | Author page |
+| `/archive/`, `/archive/[year]/`, `/archive/[year]/[month]/` | Archive by year and month (UTC publish time) |
 | `/about/` | About stub |
 | `/rss.xml` | RSS feed |
 | `/sitemap-index.xml` | Sitemap (via `@astrojs/sitemap`) |

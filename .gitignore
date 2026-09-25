@@ -73,3 +73,6 @@ Desktop.ini
 .vscode/*
 !.vscode/extensions.json
 *.code-workspace
+
+# Browser automation screenshots
+.playwright-mcp/

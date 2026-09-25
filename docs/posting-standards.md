@@ -2,6 +2,8 @@
 
 # Posting standards — aitamer.news (v1, 2026-09-24)
 
+> Site mechanics — file and slug, frontmatter, publish time (`npm run stamp`), what CI checks — are in [`POST.md`](../POST.md).
+
 Living standards for public posts. EIC owns gate order; Writer owns draft craft.
 Research backing: `reports/writer/2026-09-24-great-post-methods.md`.
 

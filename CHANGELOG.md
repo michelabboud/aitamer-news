@@ -2,6 +2,18 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.2] — 2026-09-25
+
+### Added
+- Archive by month: `/archive/` (every month, grouped by year), `/archive/<year>/` (each month with its latest headlines) and `/archive/<year>/<month>/` (every story that month, with links to the neighbouring months). Months follow the UTC publish time. Past months are reused by the incremental build unless one of their posts changes.
+- "Archive" in the header and footer; an article's byline date links to its month.
+- `POST.md` — how a post works end to end: file and slug, frontmatter, hero image, publishing and the publish time, what CI does, where a post appears, and a pre-merge checklist.
+- `src/lib/archive.ts` with tests; `npm test` now also runs TypeScript tests (Node's `--experimental-strip-types`, checked on Node 22.23.3 and 24.20.0).
+
+### Fixed
+- The `## [0.1.0]` heading in this changelog, dropped by the 0.1.1 edit.
+- `package.json` description kept its em dash instead of a `\u2014` escape.
+
 ## [0.1.1] — 2026-09-25
 
 ### Added
@@ -12,7 +24,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 ### Changed
 - The 25 published posts were stamped from git history. Posts published together keep the same time; their order is now fixed by post id instead of being arbitrary.
 
- — 2026-09-25
+## [0.1.0] — 2026-09-25
 
 Baseline. Versioning starts here; everything before it is in `git log` (commits up to `63e4065`).
 

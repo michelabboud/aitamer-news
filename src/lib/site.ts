@@ -1,4 +1,7 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import { groupByMonth, type ArchiveMonth } from './archive.ts';
+
+export { archiveMonthOf, formatArchiveMonth, type ArchiveMonth } from './archive.ts';
 
 export const SITE = {
   title: 'AI Tamer',
@@ -74,6 +77,11 @@ export async function getPostsByAuthor(
   return posts.filter((p) => p.data.author.id === authorId);
 }
 
+/** Published posts grouped by month, newest month first; posts keep newest-first order. */
+export async function getArchiveMonths(): Promise<ArchiveMonth<CollectionEntry<'posts'>>[]> {
+  return groupByMonth(await getPublishedPosts());
+}
+
 export async function resolveAuthor(post: CollectionEntry<'posts'>) {
   return getEntry(post.data.author);
 }
@@ -130,6 +138,12 @@ export function sectionHref(section: Section): string {
 
 export function postHref(post: CollectionEntry<'posts'>): string {
   return withBase(`/posts/${post.id}/`);
+}
+
+export function archiveHref(year?: string, month?: string): string {
+  if (!year) return withBase('/archive/');
+  if (!month) return withBase(`/archive/${year}/`);
+  return withBase(`/archive/${year}/${month}/`);
 }
 
 export function authorHref(id: string): string {

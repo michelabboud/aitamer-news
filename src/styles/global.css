@@ -230,6 +230,42 @@ code {
   .post-list > *:first-child { grid-column: 1 / -1; }
 }
 
+.post-list--plain > *:first-child { grid-column: auto; }
+
+.archive-year { margin: 2rem 0 0; }
+.archive-year h2 { font-size: 1.6rem; margin-bottom: 0.8rem; }
+.archive-year h2 a { color: var(--ink); text-decoration: none; }
+.archive-year h2 a:hover { color: var(--accent); text-decoration: underline; }
+.archive-months {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+}
+.archive-months--detail { grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); margin-top: 1.5rem; }
+.archive-month {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  background: var(--paper-raised);
+  border: var(--border-chunk) solid var(--line);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  padding: 1rem 1.15rem; color: var(--ink); text-decoration: none;
+  min-height: var(--tap-min);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+a.archive-month:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.archive-month__name { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; color: var(--ink); }
+a.archive-month__name { text-decoration: none; }
+a.archive-month__name:hover { color: var(--accent); text-decoration: underline; }
+.archive-month__count { font-family: var(--font-machine); font-size: 0.8rem; color: var(--ink-muted); }
+.archive-headlines { margin: 0.5rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; }
+.archive-headlines a { color: var(--ink); }
+.archive-more { margin-top: 0.4rem; font-weight: 700; font-size: 0.95rem; }
+.archive-pager {
+  display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  margin: 2.25rem 0 0; font-weight: 700;
+}
+.byline__date { color: inherit; text-decoration: none; }
+.byline__date:hover { color: var(--accent); text-decoration: underline; }
+
 .post-card {
   display: flex; flex-direction: column;
   background: var(--paper-raised);

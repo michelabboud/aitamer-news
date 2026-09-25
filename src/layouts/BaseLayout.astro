@@ -99,6 +99,7 @@ function isCurrent(href: string): boolean {
         </a>
         <nav class="nav" aria-label="Primary">
           <a href={withBase('/')} aria-current={isCurrent('/') ? 'page' : undefined}>Home</a>
+          <a href={withBase('/archive/')} aria-current={isCurrent('/archive/') ? 'page' : undefined}>Archive</a>
           <a href={withBase('/about/')} aria-current={isCurrent('/about/') ? 'page' : undefined}>About</a>
           <a href={withBase('/rss.xml')}>RSS</a>
         </nav>
@@ -119,6 +120,7 @@ function isCurrent(href: string): boolean {
         <p class="footer-about">{SITE.description}</p>
         <nav class="footer-nav" aria-label="Legal">
           <a href={withBase('/about/')} aria-current={isCurrent('/about/') ? 'page' : undefined}>About</a>
+          <a href={withBase('/archive/')}>Archive</a>
           <a href={withBase('/terms/')} aria-current={isCurrent('/terms/') ? 'page' : undefined}>Terms of Use</a>
           <a href={withBase('/privacy/')} aria-current={isCurrent('/privacy/') ? 'page' : undefined}>Privacy</a>
           <a href={withBase('/rss.xml')}>RSS</a>
