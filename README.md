@@ -99,6 +99,38 @@ npx wrangler pages dev dist
 npx wrangler dev
 ```
 
+## Contact form
+
+The About page form posts to `https://contact.aitamer.news/`, a small Cloudflare Worker in `workers/contact/`. It checks where the post came from, refuses oversized posts, rate-limits (5 notes a minute per visitor, 30 site-wide), cleans the fields, optionally runs Cloudflare Turnstile, and emails the desk through Cloudflare Email. Nothing is stored. Why: `docs/adr/0003-contact-form-runs-on-a-worker.md`.
+
+To make it live, on the Cloudflare account (none of this lives in the repo):
+
+1. Onboard `aitamer.news` to **Email Routing**. The domain has no MX or SPF records today, so this adds them without replacing a mailbox.
+2. Add and verify the inbox that should receive notes as an Email Routing **destination address**.
+3. Deploy the Worker once, then set its secret:
+
+```bash
+npx wrangler login
+npx wrangler deploy --config workers/contact/wrangler.toml
+npx wrangler secret put CONTACT_TO --config workers/contact/wrangler.toml
+```
+
+Later deploys run from CI (`deploy-contact-worker.yml`) when `workers/contact/` changes. The `CLOUDFLARE_API_TOKEN` repository secret needs **Workers Scripts: Edit** and permission for Workers custom domains on `aitamer.news`, as well as Pages.
+
+4. Optional, recommended: create a **Turnstile** widget for `aitamer.news`, put its public site key in `TURNSTILE_SITE_KEY` (`src/lib/site.ts`), and set the secret key on the Worker with `wrangler secret put TURNSTILE_SECRET_KEY`. Set both or neither.
+
+Secrets never reach the static pages: CI runs `npm run check:dist` after every build.
+
+Local check, sending no real mail (Wrangler simulates the email and the rate limits):
+
+```bash
+printf 'CONTACT_TO=owner@example.com\nALLOW_LOCAL_ORIGINS=true\n' > workers/contact/.dev.vars
+npm run dev:contact                                   # Worker on http://localhost:8787/
+PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://localhost:4321/
+```
+
+`ALLOW_LOCAL_ORIGINS` exists only in that git-ignored file and is never deployed.
+
 ## Key routes
 
 | Route | Purpose |
@@ -108,7 +140,8 @@ npx wrangler dev
 | `/section/[section]` | Section listing |
 | `/authors/[id]` | Author page |
 | `/archive/`, `/archive/[year]/`, `/archive/[year]/[month]/` | Archive by year and month (UTC publish time) |
-| `/about/` | About stub |
+| `/about/` | How the desk works, and the contact form |
+| `https://contact.aitamer.news/` | Contact Worker. Receives the form and emails the desk. |
 | `/rss.xml` | RSS feed |
 | `/sitemap-index.xml` | Sitemap (via `@astrojs/sitemap`) |
 | `/robots.txt` | Crawler rules |

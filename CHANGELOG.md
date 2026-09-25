@@ -2,6 +2,35 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.5] — 2026-09-25
+
+### Added
+- About page redesign: how a story gets here (the seven-step bot pipeline: seek, sort, research, legal, write, art, publish), what the Human and AI badges mean, and the contact form. The copy no longer claims a human reviews every story. "Contact" joins the footer.
+- Contact Worker `aitamer-contact` on `https://contact.aitamer.news/` (`workers/contact/`). In order, it checks:
+  - the page's origin (allowlist);
+  - body size (32 KB at most, before reading);
+  - rate limits (5 notes a minute per IP, 30 site-wide; it fails closed without them);
+  - the fields, cleaned (control characters stripped, strict addresses);
+  - Turnstile, when enabled.
+
+  It then sends through the `send_email` binding, which can only send from `desk@aitamer.news`. There is no API token and nothing is stored. Decision: `docs/adr/0003-contact-form-runs-on-a-worker.md`, which supersedes 0001 and 0002.
+- Workflow `deploy-contact-worker.yml`. It deploys the Worker only when `workers/contact/**` changes.
+- `npm run check:dist`, which fails CI if a secret name or a known secret value appears in the static build. Both site deploys run it after building.
+- `npm run dev:contact`, which runs the Worker locally. `PUBLIC_CONTACT_ENDPOINT` points a local build at it.
+- Tests:
+  - 18 for the Worker: rate limits (IPv6 counted per /64), fail-closed, size limits, cleaning (names cannot carry address syntax), Turnstile, origins, 404s, and that the entry module exports only the handler.
+  - 6 for the secret check.
+- `package-lock.json` is committed.
+
+### Changed
+- Post cards have more room between and inside them: the grid gap grows with the screen (28 to 44px), and the padding is larger.
+- The privacy and terms pages describe what the form sends, including the per-IP rate count, which is not kept.
+
+### Notes
+- Two earlier designs never reached `main`:
+  - A Pages Function with a `send_email` binding. Pages rejects it at deploy time.
+  - A Pages Function calling the Email REST API with a token. It had no rate limiting.
+
 ## [0.1.4] — 2026-09-25
 
 ### Fixed

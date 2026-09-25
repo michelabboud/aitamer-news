@@ -1,13 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE, withBase } from '../lib/site';
+import { SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
 ---
 <BaseLayout title="Privacy" description={`Privacy for ${SITE.title} (${SITE.domain}).`}>
   <p class="page-kicker">Legal</p>
   <h1 class="page-title">Privacy</h1>
   <div class="article">
     <p class="lede">
-      {SITE.title} does not run accounts, comments, or a mailing list. Last updated 25 September 2026.
+      {SITE.title} does not run accounts or a mailing list. The about page can email the desk. Last updated 25 September 2026.
     </p>
     <div class="article__body">
       <p>
@@ -25,12 +25,20 @@ import { SITE, withBase } from '../lib/site';
       <p>
         On {SITE.domain} the site also loads Google Analytics. The tag sends Google the page address
         and stores a cookie so a later visit from the same browser can be counted together. The
-        GitHub Pages copy does not load this tag. The site still does not ask for your name or email,
-        and it does not sell this information.
+        GitHub Pages copy does not load this tag. The site does not sell this information.
       </p>
       <p>
         The type is loaded from Google Fonts. Your browser requests those font files from Google
         when it draws a page.
+      </p>
+      <p>
+        The <a href={withBase('/about/#contact')}>contact form</a> asks for a name, an email address,
+        and a note. Sending it goes to contact.{SITE.domain}, a small Cloudflare program that checks
+        the note and asks Cloudflare Email to deliver it to the desk, with your address as the
+        reply-to. Nothing is stored in a database. To stop floods, Cloudflare counts how many notes
+        come from your IP address in the last minute; the count is not kept. The form on the GitHub
+        Pages copy posts to the same place. A hidden field is there for spam; filling it drops the
+        note.{TURNSTILE_SITE_KEY && ' The form also runs Cloudflare Turnstile, which checks your browser for signs of a bot before the note is accepted.'}
       </p>
       <p>
         The desk does not sell personal information, because the site does not collect an account

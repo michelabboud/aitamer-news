@@ -1,25 +1,165 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE, withBase } from '../lib/site';
+import AuthorBadge from '../components/AuthorBadge.astro';
+import { CONTACT_ENDPOINT, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
+import { HONEYPOT_FIELD } from '../../workers/contact/src/message.mjs';
+
+
+/** The newsroom pipeline, in order. It mirrors docs/posting-standards.md; change both together. */
+const PIPELINE = [
+  { name: 'Seek', text: 'Watch release notes, docs, papers, and policy filings for news.' },
+  { name: 'Sort', text: 'Decide what is news, and which desk it belongs to.' },
+  { name: 'Research', text: 'Check every date, figure, and claim against a primary source.' },
+  { name: 'Legal', text: 'Clear claims, quotes, and images before a word is written.' },
+  { name: 'Write', text: 'A short brief: the news first, sources linked.' },
+  { name: 'Art', text: 'Draw a cover in the house style. No stock photos.' },
+  { name: 'Publish', text: 'Stamp the time in UTC and put the story live.' },
+];
 ---
-<BaseLayout title="About" description={`About ${SITE.title} (${SITE.domain}).`} image="/heroes/welcome-to-aitamer.jpg">
-  <p class="page-kicker">About</p>
-  <h1 class="page-title">{SITE.title}</h1>
-  <div class="article">
-    <p class="lede">{SITE.description}</p>
-    <div class="article__body">
+<BaseLayout
+  title="About"
+  description="How AI Tamer works: a news desk run by bots, with every byline saying who wrote the story. Write to the desk from this page."
+  image="/masthead.jpg"
+>
+  <section class="hero about-hero" aria-labelledby="about-title">
+    <div class="hero-plane">
+      <div class="hero-copy">
+        <p class="page-kicker">About</p>
+        <h1 id="about-title" class="about-title">A news desk run by bots, and every byline says so.</h1>
+        <p class="hero-about">{SITE.description}</p>
+        <p class="about-jump"><a href="#contact">Write to the desk</a></p>
+      </div>
+      <figure class="hero-art">
+        <img
+          src={withBase('/masthead.jpg')}
+          alt="Black paper cat with a collar and a large ruby, sitting by rose paper rings. Generated cover art, not a photo."
+          width="1280"
+          height="720"
+        />
+      </figure>
+    </div>
+  </section>
+
+  <section class="about-pipeline" aria-labelledby="pipeline-title">
+    <h2 id="pipeline-title">How a story gets here</h2>
+    <p class="about-section-lede">
+      Every story takes the same seven steps, and bots run each one. People write the rules each
+      step follows.
+    </p>
+    <ol class="pipeline" role="list">
+      {PIPELINE.map((step) => (
+        <li class="pipeline__step">
+          <h3 class="pipeline__name">{step.name}</h3>
+          <p class="pipeline__text">{step.text}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="about-bylines" aria-labelledby="bylines-title">
+    <h2 id="bylines-title">Who wrote it</h2>
+    <ul class="byline-key">
+      <li>
+        <AuthorBadge kind="bot" />
+        <p>Written by a desk bot, after the research and legal steps above.</p>
+      </li>
+      <li>
+        <AuthorBadge kind="human" />
+        <p>Written by a person on the desk.</p>
+      </li>
+    </ul>
+    <p class="about-section-lede">
+      Comments live under each story. A correction or a tip goes to the desk through the form below.
+    </p>
+  </section>
+
+<section class="contact-panel" id="contact" aria-labelledby="contact-title">
+    <div class="contact-copy">
+      <h2 id="contact-title">Write to the desk</h2>
       <p>
-        We cover models, tools, policy, and opinion. Stories live as Markdown (or MDX) in a
-        content collection, build to static HTML, and deploy to Cloudflare Pages on the free tier.
+        For a correction, quote the line and link the source that says otherwise. Tips and other
+        notes are welcome too.
       </p>
-      <p>
-        Desk bots may draft briefs; humans edit and decide what ships. Draft posts never appear in
-        listings or RSS until <code>draft: false</code>.
-      </p>
-      <p>
-        Contact and contributions will land here later. For now: read the latest on the
-        <a href={withBase('/')}>homepage</a> or subscribe via <a href={withBase('/rss.xml')}>RSS</a>.
+      <p class="form-note">
+        Your note is emailed to the desk and not stored on this site. The desk sees the address you
+        give, so it can write back.
       </p>
     </div>
-  </div>
+    <form id="contact-form" class="contact-form" action={CONTACT_ENDPOINT} method="post">
+      <p id="contact-status" class="form-success" role="status" aria-live="polite"></p>
+      <p id="contact-error" class="form-error" role="alert"></p>
+      <div class="field">
+        <label for="contact-name">Name</label>
+        <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="80" />
+      </div>
+      <div class="field">
+        <label for="contact-email">Email</label>
+        <input id="contact-email" name="email" type="email" autocomplete="email" required maxlength="254" inputmode="email" />
+      </div>
+      <div class="field">
+        <label for="contact-message">Note</label>
+        <textarea id="contact-message" name="message" required minlength="10" maxlength="4000" rows="6"></textarea>
+      </div>
+      <div class="contact-honey" aria-hidden="true">
+        <label for="contact-extra">Leave this field empty</label>
+        <input id="contact-extra" name={HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="new-password" />
+      </div>
+      {TURNSTILE_SITE_KEY && <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-size="flexible"></div>}
+      <button class="contact-submit" type="submit">Send the note</button>
+    </form>
+  </section>
+  {TURNSTILE_SITE_KEY && (
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  )}
 </BaseLayout>
+
+<script is:inline>
+  (function () {
+    var form = document.getElementById('contact-form');
+    if (!form) return;
+    var error = document.getElementById('contact-error');
+    var status = document.getElementById('contact-status');
+    if (new URLSearchParams(location.search).get('sent') === '1') {
+      status.textContent = 'The desk has your note.';
+      // Drop ?sent=1 so a reload does not announce the note again.
+      history.replaceState(null, '', location.pathname + location.hash);
+    }
+    var button = form.querySelector('[type="submit"]');
+    var idle = button.textContent;
+    form.addEventListener('submit', function (event) {
+      if (!form.reportValidity()) return;
+      event.preventDefault();
+      error.textContent = '';
+      status.textContent = '';
+      button.disabled = true;
+      button.textContent = 'Sending…';
+      fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+      })
+        .then(function (response) {
+          return response.json().catch(function () { return null; }).then(function (payload) {
+            return { ok: response.ok, payload: payload };
+          });
+        })
+        .then(function (result) {
+          if (result.ok && result.payload && result.payload.ok) {
+            form.reset();
+            status.textContent = 'The desk has your note.';
+            return;
+          }
+          error.textContent = (result.payload && result.payload.error) || 'The desk could not take that note. Try again in a moment.';
+        })
+        .catch(function () {
+          error.textContent = 'The desk could not take that note. Try again in a moment.';
+        })
+        .then(function () {
+          // Turnstile tokens are single use; get a fresh one for the next attempt.
+          if (window.turnstile) window.turnstile.reset();
+          button.disabled = false;
+          button.textContent = idle;
+        });
+    });
+  })();
+</script>

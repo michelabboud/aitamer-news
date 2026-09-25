@@ -4,5 +4,6 @@
 
 **Where we are (2026-09-25):**
 1. The site is live on Cloudflare Pages and GitHub Pages; `main` deploys on every push.
-2. Open work is in `BACKLOG.md`.
-3. Version and history: `VERSION`, `CHANGELOG.md`.
+2. The About-page contact form (0.1.5) posts to the `contact.aitamer.news` Worker; going live needs Email Routing, a first Worker deploy and the `CONTACT_TO` secret (see README).
+3. Open work is in `BACKLOG.md`.
+4. Version and history: `VERSION`, `CHANGELOG.md`.

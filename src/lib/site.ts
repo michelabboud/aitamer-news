@@ -14,6 +14,19 @@ export const SITE = {
 /** GA4 measurement ID. The tag loads only on aitamer.news, not on the GitHub Pages copy. */
 export const ANALYTICS_ID = 'G-3X3YRW621Y';
 
+/**
+ * Where the About page form posts: the contact Worker (workers/contact). Public by nature.
+ * PUBLIC_CONTACT_ENDPOINT points a local build at `wrangler dev` (http://localhost:8787/).
+ */
+export const CONTACT_ENDPOINT: string =
+  import.meta.env.PUBLIC_CONTACT_ENDPOINT || 'https://contact.aitamer.news/';
+
+/**
+ * Cloudflare Turnstile site key for the contact form. Public (it ships in the page); empty = widget off.
+ * Set it together with the Worker secret TURNSTILE_SECRET_KEY, never one without the other.
+ */
+export const TURNSTILE_SITE_KEY = '';
+
 /** Disqus shortname for story comments. Threads are keyed to the aitamer.news canonical URL. */
 export const DISQUS_SHORTNAME = 'ai-tamer-news';
 

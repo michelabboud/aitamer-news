@@ -1,0 +1,51 @@
+# The contact Worker: https://contact.aitamer.news/ receives the About page form and emails the desk.
+# Deploy: npx wrangler deploy --config workers/contact/wrangler.toml
+# Secrets (never in this file or the site build):
+#   npx wrangler secret put CONTACT_TO --config workers/contact/wrangler.toml
+#   npx wrangler secret put TURNSTILE_SECRET_KEY --config workers/contact/wrangler.toml   (optional, turns Turnstile on)
+# Why a Worker: docs/adr/0003-contact-form-runs-on-a-worker.md
+name = "aitamer-contact"
+main = "src/index.mjs"
+compatibility_date = "2026-09-23"
+
+# Only the custom domain; the workers.dev address would be a second, unprotected-by-origin door.
+workers_dev = false
+preview_urls = false
+
+[[routes]]
+pattern = "contact.aitamer.news"
+custom_domain = true
+
+# Send only from the desk address. The recipient is the CONTACT_TO secret, a verified
+# Email Routing destination (free on every plan).
+[[send_email]]
+name = "EMAIL"
+allowed_sender_addresses = [ "desk@aitamer.news" ]
+
+# Per visitor (keyed by IP): 5 notes a minute. Counters are per Cloudflare location and
+# approximate by design; this stops floods, not a patient human.
+[[ratelimits]]
+name = "CONTACT_RATE_LIMIT"
+namespace_id = "7301"
+
+  [ratelimits.simple]
+  limit = 5
+  period = 60
+
+# Whole site: 30 notes a minute, so many IPs together cannot flood the inbox either.
+[[ratelimits]]
+name = "CONTACT_GLOBAL_LIMIT"
+namespace_id = "7302"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60
+
+# Keep the Worker's own console lines (event names only: no IP, no note), but not Cloudflare's
+# per-request invocation logs, which carry request metadata such as the visitor's IP.
+# The privacy page promises the rate count is not kept.
+[observability]
+enabled = true
+
+[observability.logs]
+invocation_logs = false
