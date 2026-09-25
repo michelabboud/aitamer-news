@@ -8,6 +8,7 @@ import {
   ALL_SECTIONS,
   SECTION_LABELS,
   canonicalUrlFor,
+  habitatOf,
   sectionHref,
   entryStamp,
   getPostsBySection,
@@ -62,28 +63,30 @@ const cards = await Promise.all(
     return { post, author };
   }),
 );
+const habitat = habitatOf(section);
 const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
 ---
 {stub ? <Fragment set:html={stub} /> : (
 <BaseLayout
-  title={SECTION_LABELS[section]}
-  description={`AI Tamer stories in ${SECTION_LABELS[section]}.`}
+  title={habitat.name}
+  description={`AI Tamer sightings in Habitat ${habitat.code}: ${habitat.name}. ${habitat.blurb}`}
   image={ogImage}
+  habitat={habitat.slug}
 >
-  <div data-section={section}>
-    <p class="page-kicker">Section</p>
-    <h1 class="page-title">{SECTION_LABELS[section]}</h1>
-    <p class="lede">Published stories filed under {SECTION_LABELS[section]}.</p>
+  <header class="page-head">
+    <p class="page-kicker">Habitat {habitat.code} · {cards.length} {cards.length === 1 ? 'sighting' : 'sightings'}</p>
+    <h1 class="page-title">{habitat.name}</h1>
+    <p class="lede">{habitat.blurb} Every sighting here, newest first, with its specimen number and wildness rating.</p>
+  </header>
 
-    {cards.length === 0 ? (
-      <p class="empty">No published posts in this section yet.</p>
-    ) : (
-      <div class="post-list">
-        {cards.map(({ post, author }, i) => (
-          <PostCard post={post} author={author} feature={i === 0} />
-        ))}
-      </div>
-    )}
-  </div>
+  {cards.length === 0 ? (
+    <p class="empty">No sightings in this habitat yet.</p>
+  ) : (
+    <ul class="cards listing">
+      {cards.map(({ post, author }, i) => (
+        <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} /></li>
+      ))}
+    </ul>
+  )}
 </BaseLayout>
 )}

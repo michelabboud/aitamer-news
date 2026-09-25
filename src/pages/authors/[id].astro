@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
-import { entryStamp, getPostsByAuthor, getPublishedPosts, resolveAuthor } from '../../lib/site';
+import { entryStamp, getPostsByAuthor, getPublishedPosts, resolveAuthor, withBase } from '../../lib/site';
 
 export async function getStaticPaths() {
   const authors = await getCollection('authors');
@@ -11,7 +11,10 @@ export async function getStaticPaths() {
   return authors.map((author) => {
     const stamps = [
       entryStamp(author),
-      ...posts.filter((post) => post.data.author.id === author.id).map(entryStamp).sort(),
+      ...posts
+        .filter((post) => post.data.author.id === author.id)
+        .map(entryStamp)
+        .sort(),
     ];
     return {
       params: { id: author.id },
@@ -23,6 +26,7 @@ export async function getStaticPaths() {
 
 const { author } = Astro.props;
 const posts = await getPostsByAuthor(author.id);
+const initials = author.data.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 const cards = await Promise.all(
   posts.map(async (post) => {
     const resolved = await resolveAuthor(post);
@@ -31,25 +35,31 @@ const cards = await Promise.all(
   }),
 );
 ---
-<BaseLayout title={author.data.name} description={author.data.bio} image="/heroes/welcome-to-aitamer.jpg">
-  <p class="page-kicker">Author</p>
-  <h1 class="page-title">{author.data.name}</h1>
+<BaseLayout title={author.data.name} description={author.data.bio} image={author.data.avatar ?? '/heroes/welcome-to-aitamer.jpg'}>
+  <header class="page-head">
+    <p class="page-kicker">The Tamers · {cards.length} {cards.length === 1 ? 'sighting' : 'sightings'} filed</p>
+    <h1 class="page-title">{author.data.name}</h1>
+  </header>
   <div class="author-card">
-    <div class="byline" style="margin-bottom: 0.75rem;">
-      <AuthorBadge kind={author.data.kind} />
-      <span>{author.data.kind === 'bot' ? 'News bot' : 'Human editor'}</span>
+    {author.data.avatar ? (
+      <img class="tamer__avatar" src={withBase(author.data.avatar)} alt="" width="52" height="52" />
+    ) : (
+      <span class={`tamer__avatar tamer__avatar--${author.data.kind}`} aria-hidden="true">{initials}</span>
+    )}
+    <div class="author-card__text">
+      <span><AuthorBadge kind={author.data.kind} name={author.data.kind === 'bot' ? 'News bot' : 'Human editor'} /></span>
+      <p>{author.data.bio}</p>
     </div>
-    <p style="margin: 0;">{author.data.bio}</p>
   </div>
 
-  <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Published posts</h2>
+  <h2 class="rule-head" style="font-size: 32px; margin-bottom: 22px">Sightings filed</h2>
   {cards.length === 0 ? (
-    <p class="empty">No published posts yet.</p>
+    <p class="empty">No published sightings yet.</p>
   ) : (
-    <div class="post-list">
+    <ul class="cards listing">
       {cards.map(({ post, author: a }, i) => (
-        <PostCard post={post} author={a} feature={i === 0} />
+        <li><PostCard post={post} author={a} heading="h3" showDesc eager={i < 3} /></li>
       ))}
-    </div>
+    </ul>
   )}
 </BaseLayout>

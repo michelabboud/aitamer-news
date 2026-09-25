@@ -4,24 +4,32 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
 import CommentCount from '../../components/CommentCount.astro';
 import Comments from '../../components/Comments.astro';
+import SpecimenTag from '../../components/SpecimenTag.astro';
+import VideoEmbed from '../../components/VideoEmbed.astro';
+import WildnessPanel from '../../components/WildnessPanel.astro';
 import {
   SECTION_LABELS,
+  SITE,
   authorHref,
   canonicalUrlFor,
   formatDate,
   formatDateTime,
+  formatSpecimen,
   archiveHref,
   archiveMonthOf,
   entryStamp,
   getPostPages,
+  habitatHref,
+  habitatOfPost,
+  readingMinutes,
   resolveAuthor,
-  sectionHref,
   withBase,
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 
 export async function getStaticPaths() {
+  // Withdrawn posts keep their page (and URL); they only leave lists and feeds.
   const posts = await getPostPages();
   return Promise.all(
     posts.map(async (post) => {
@@ -39,90 +47,191 @@ const { post } = Astro.props;
 const author = await resolveAuthor(post);
 if (!author) throw new Error(`Missing author for post ${post.id}`);
 const { Content } = await render(post);
-const section = post.data.section as Section;
+const data = post.data;
+const section = data.section as Section;
+const habitat = habitatOfPost(post);
 const generated = usesGeneratedCover(post);
-const heroSrc = post.data.heroImage?.trim() || coverForSection(section);
-const hasHeroImage = Boolean(post.data.heroImage?.trim());
-const commentUrl = canonicalUrlFor(`/posts/${post.id}/`);
-const published = archiveMonthOf(post.data.pubDate);
+const heroSrc = data.heroImage?.trim() || coverForSection(section);
+const heroAlt = data.heroAlt ?? `Generated cover art for: ${data.title}`;
+const canonical = canonicalUrlFor(`/posts/${post.id}/`);
+const published = archiveMonthOf(data.pubDate);
+const withdrawn = data.withdrawn;
+// Newest correction first, so a reader sees the latest change at the top of the list.
+const corrections = [...data.corrections].sort((a, b) => b.date.valueOf() - a.date.valueOf());
+const absolute = (path: string) => new URL(withBase(path), SITE.url).toString();
+
+// schema.org NewsArticle for search engines and LLM crawlers. Withdrawn posts publish none.
+const jsonLd = withdrawn
+  ? null
+  : {
+      '@context': 'https://schema.org',
+      '@type': 'NewsArticle',
+      headline: data.title,
+      description: data.description,
+      url: canonical,
+      mainEntityOfPage: canonical,
+      datePublished: data.pubDate.toISOString(),
+      dateModified: (data.updatedDate ?? data.corrections.at(-1)?.date ?? data.pubDate).toISOString(),
+      image: [/^https:\/\//.test(heroSrc) ? heroSrc : absolute(heroSrc)],
+      articleSection: habitat.name,
+      keywords: data.tags.join(', ') || undefined,
+      identifier: data.specimen ? `AI Tamer specimen No. ${formatSpecimen(data.specimen)}` : undefined,
+      author: {
+        '@type': author.data.kind === 'bot' ? 'Organization' : 'Person',
+        name: author.data.name,
+        url: canonicalUrlFor(`/authors/${author.id}/`),
+      },
+      publisher: { '@type': 'Organization', name: SITE.title, url: SITE.url },
+      citation: data.sources?.map((source) => source.url),
+      isAccessibleForFree: true,
+    };
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: SITE.title, item: SITE.url + '/' },
+    { '@type': 'ListItem', position: 2, name: habitat.name, item: canonicalUrlFor(`/section/${habitat.slug}/`) },
+    { '@type': 'ListItem', position: 3, name: data.title, item: canonical },
+  ],
+};
 ---
-<BaseLayout title={post.data.title} description={post.data.description} image={heroSrc} ogType="article">
-  <article class="article" data-section={section}>
+<BaseLayout
+  title={withdrawn ? `Withdrawn: ${data.title}` : data.title}
+  description={withdrawn ? `Withdrawn on ${formatDate(withdrawn.date)}: ${withdrawn.reason}` : data.description}
+  image={heroSrc}
+  ogType="article"
+  habitat={habitat.slug}
+  noindex={Boolean(withdrawn)}
+>
+  <Fragment slot="head">
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbs)} />
+    <meta property="article:published_time" content={data.pubDate.toISOString()} />
+    {data.updatedDate && <meta property="article:modified_time" content={data.updatedDate.toISOString()} />}
+    <meta property="article:section" content={habitat.name} />
+  </Fragment>
+
+  <article class="article" data-pagefind-body={withdrawn ? undefined : ''}>
     <header class="article__header">
-      <p class="page-kicker">
-        <a href={sectionHref(section)}>{SECTION_LABELS[section]}</a>
+      <p class="page-kicker" style="margin: 0">
+        {data.specimen && <>Specimen No. {formatSpecimen(data.specimen)} ·{' '}</>}
+        <a href={habitatHref(habitat)}>Habitat {habitat.code} · {habitat.name}</a>
       </p>
-      <h1 class="article__title">{post.data.title}</h1>
-      <p class="lede">{post.data.description}</p>
+      <h1 class="article__title">{data.title}</h1>
+      {!withdrawn && <p class="lede">{data.description}</p>}
       <div class="byline">
-        <AuthorBadge kind={author.data.kind} />
-        <span>
-          By <a href={authorHref(author.id)}>{author.data.name}</a>
-        </span>
-        <a class="byline__date" href={archiveHref(published.year, published.month)} title="More stories from this month">
-          <time datetime={post.data.pubDate.toISOString()}>
-            {formatDateTime(post.data.pubDate)}
-          </time>
+        <a href={authorHref(author.id)} style="text-decoration: none">
+          <AuthorBadge kind={author.data.kind} name={author.data.name} />
         </a>
-        <CommentCount id={post.id} />
-        {post.data.updatedDate && (
+        <a class="byline__date" href={archiveHref(published.year, published.month)} title="More stories from this month">
+          <time datetime={data.pubDate.toISOString()}>{formatDateTime(data.pubDate)}</time>
+        </a>
+        {!withdrawn && <span>{readingMinutes(post.body)} MIN</span>}
+        {!withdrawn && <CommentCount id={post.id} />}
+        {data.updatedDate && (
           <span>
-            Updated{' '}
-            <time datetime={post.data.updatedDate.toISOString()}>
-              {formatDate(post.data.updatedDate)}
-            </time>
+            Updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time>
           </span>
         )}
       </div>
-      {post.data.tags.length > 0 && (
-        <p class="byline" style="margin-top: 0.75rem;">
-          {post.data.tags.map((tag) => (
-            <span class="badge badge--section">{tag}</span>
-          ))}
-        </p>
-      )}
+      {!withdrawn && data.wildness && <WildnessPanel wildness={data.wildness} />}
     </header>
 
-    <figure class="article__hero-figure">
-      <img
-        class="article__hero"
-        src={withBase(heroSrc)}
-        alt={post.data.title}
-        width="1600"
-        height="900"
-        decoding="async"
-      />
-      {generated && (
-        <figcaption class="article__hero-caption">
-          Generated cover art ({SECTION_LABELS[section]} motif). Not a photo.
-        </figcaption>
-      )}
-      {!generated && hasHeroImage && (
-        <figcaption class="article__hero-caption">
-          Generated cover art. Not a photo.
-        </figcaption>
-      )}
-    </figure>
+    {withdrawn ? (
+      <section class="notice notice--withdrawn" aria-labelledby="withdrawn-title">
+        <h2 id="withdrawn-title">This sighting was withdrawn</h2>
+        <p>
+          Withdrawn on <time datetime={withdrawn.date.toISOString()}>{formatDate(withdrawn.date)}</time>. {withdrawn.reason}
+        </p>
+        <p class="muted">
+          The page stays so links and citations keep working{data.specimen && <>, and specimen No. {formatSpecimen(data.specimen)} is retired with it</>}.
+          Questions go to <a href={withBase('/about/#contact')}>the desk</a>.
+        </p>
+      </section>
+    ) : (
+      <>
+        {corrections.length > 0 && (
+          <section class="notice notice--corrections" aria-labelledby="corrections-title">
+            <h2 id="corrections-title">{corrections.length === 1 ? 'Correction' : 'Corrections'}</h2>
+            <ul>
+              {corrections.map((c) => (
+                <li><time datetime={c.date.toISOString()}>{formatDate(c.date)}</time>: {c.text}</li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-    <div class="article__body">
-      <Content />
-    </div>
+        {data.sunset && (
+          <section class="notice notice--sunset" aria-labelledby="sunset-title">
+            <h2 id="sunset-title">On Extinction Watch</h2>
+            <p>
+              <strong>{data.sunset.what}</strong> shuts down on{' '}
+              <time datetime={data.sunset.date.toISOString()}>{formatDate(data.sunset.date)}</time>.{' '}
+              {data.sunset.replacement ? <>Move to <strong>{data.sunset.replacement}</strong>.</> : 'No replacement listed.'}{' '}
+              <a href={withBase('/extinction-watch/')}>Every shutdown, counted down →</a>
+            </p>
+          </section>
+        )}
 
-    {post.data.sources && post.data.sources.length > 0 && (
-      <aside class="sources">
-        <h2>Sources</h2>
-        <ul>
-          {post.data.sources.map((source) => (
-            <li>
-              <a href={source.url} rel="noopener noreferrer">
-                {source.title ?? source.url}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </aside>
+        <figure class="article__figure">
+          <div class="specimen-photo">
+            <img
+              src={/^https:\/\//.test(heroSrc) ? heroSrc : withBase(heroSrc)}
+              alt={heroAlt}
+              width="1600"
+              height="900"
+              decoding="async"
+              fetchpriority="high"
+            />
+            {data.specimen && <SpecimenTag specimen={data.specimen} habitat={habitat} />}
+          </div>
+          <figcaption class="article__caption">
+            {generated ? `Generated cover art (${SECTION_LABELS[section]} motif). Not a photo.` : 'Generated cover art. Not a photo.'}
+          </figcaption>
+        </figure>
+
+        <div class="article__body">
+          <Content />
+        </div>
+
+        {data.video && <VideoEmbed video={data.video} publishedAt={data.pubDate} />}
+
+        {data.verdict && (
+          <aside class="verdict" aria-label="Tamer’s verdict">
+            <p class="verdict__text"><span class="verdict-label">Tamer’s verdict:</span> {data.verdict}</p>
+          </aside>
+        )}
+
+        {data.sources && data.sources.length > 0 && (
+          <aside class="sources" aria-labelledby="sources-title">
+            <h2 id="sources-title">Sources</h2>
+            <ol>
+              {data.sources.map((source) => (
+                <li>
+                  <a href={source.url} rel="noopener noreferrer">{source.title ?? source.url}</a>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        )}
+
+        {data.tags.length > 0 && (
+          <ul class="tag-list" aria-label="Tags" style="margin-top: 2rem">
+            {data.tags.map((tag) => <li class="tag tag--plain">{tag}</li>)}
+          </ul>
+        )}
+
+        <div class="rating-report" data-pagefind-ignore>
+          <p>
+            Is the wildness rating wrong, or a fact out of date?{' '}
+            <a href={withBase('/about/?topic=correction#contact')}>Tell the desk, and quote the line →</a>
+          </p>
+        </div>
+
+        <div data-pagefind-ignore>
+          <Comments pageUrl={canonical} pageId={post.id} />
+        </div>
+      </>
     )}
-
-    <Comments pageUrl={commentUrl} pageId={post.id} />
   </article>
 </BaseLayout>

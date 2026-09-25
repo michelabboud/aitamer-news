@@ -2,6 +2,22 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.16] — 2026-09-25
+
+### Changed
+- **The Bestiary theme is live site-wide** (plan batch B). Night field-station palette, Gloock / Hanken Grotesk / IBM Plex Mono, the station bar with a live UTC clock, the habitat strip, and a phone tab bar (Log, Habitats, Extinction, Campfire). Every page moved: home (masthead with real counts, latest catch, field log, Extinction Watch panel, new specimens, tamers, campfire, report card), posts, habitats, the habitat index at `/section/`, authors, the archive and About. Ported from the Claude Design hand-off branch `feat/bestiary` (9e51549) and rewired to post contract v1: habitats from `src/lib/habitats.ts`, stored specimen numbers, nested Wildness. The Big Top theme is kept on branch `archive/big-top-theme`.
+- The post page renders the whole contract: specimen tag, Wildness with what is verified and what is only claimed, the Tamer's verdict, a sunset notice, dated corrections (newest first), and cover-art alt text from `heroAlt`. A **withdrawn** post keeps its URL but shows only its title and the withdrawal notice, with `noindex`, no body and no comments.
+- "Report a sighting" and "rating wrong?" links start the contact note ("Sighting report: ", "Correction: "). Client-side only; the contact Worker is unchanged and the form markup is byte-identical.
+
+### Added
+- `/extinction-watch/` (every shutdown, upcoming first, days recounted in the browser) and `/campfire/` (every sighting with its live Disqus count).
+- YouTube videos (`video` field) load only when the reader presses play: no request to YouTube before that, then the privacy-enhanced player. VideoObject structured data for search.
+- SEO on every post: schema.org NewsArticle (author, publisher, citations from `sources`, specimen as identifier) and BreadcrumbList, `article:published_time` / `modified_time`.
+- `src/lib/bestiary.ts` (habitat display, Wildness legend, Extinction Watch) with 4 tests; `docs/bestiary.md` describes the theme.
+
+### Removed
+- `src/styles/big-top-tokens.css` and the desk-chip component.
+
 ## [0.1.15] — 2026-09-25
 
 ### Added

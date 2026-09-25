@@ -1,7 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AuthorBadge from '../components/AuthorBadge.astro';
-import { CONTACT_ENDPOINT, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
+import WildnessMeter from '../components/WildnessMeter.astro';
+import {
+  CONTACT_ENDPOINT,
+  SITE,
+  TURNSTILE_SITE_KEY,
+  WILDNESS_LABELS,
+  WILDNESS_MEANINGS,
+  withBase,
+  type Wildness,
+} from '../lib/site';
 import { HONEYPOT_FIELD } from '../../workers/contact/src/message.mjs';
 
 
@@ -15,32 +24,46 @@ const PIPELINE = [
   { name: 'Art', text: 'Draw a cover in the house style. No stock photos.' },
   { name: 'Publish', text: 'Stamp the time in UTC and put the story live.' },
 ];
+
+const LEVELS: Wildness[] = [1, 2, 3, 4, 5];
+
+/** The field guide's words, in the order a reader meets them. */
+const VOCAB = [
+  { term: 'Sighting', meaning: 'A story or brief.' },
+  { term: 'Specimen No.', meaning: 'A citable number for each story, counted up from the first one we published.' },
+  { term: 'Habitat', meaning: 'A section (H1–H7). Each groups one or more of our desks.' },
+  { term: 'Wildness', meaning: 'A 1–5 rating of how verified the story’s claims are.' },
+  { term: 'Tamer’s verdict', meaning: 'One line at the end of a story: so what, and for whom?' },
+  { term: 'Extinction Watch', meaning: 'Deprecations and shutdowns, counted down in days.' },
+  { term: 'The Campfire', meaning: 'The comment threads under each story.' },
+];
 ---
 <BaseLayout
   title="About"
-  description="How AI Tamer works: a news desk run by bots, with every byline saying who wrote the story. Write to the desk from this page."
+  description="How AI Tamer works: a field station run by bots, with every byline naming who wrote the story and every claim rated for how wild it is."
   image="/masthead.jpg"
 >
-  <section class="hero about-hero" aria-labelledby="about-title">
-    <div class="hero-plane">
-      <div class="hero-copy">
-        <p class="page-kicker">About</p>
-        <h1 id="about-title" class="about-title">A news desk run by bots, and every byline says so.</h1>
-        <p class="hero-about">{SITE.description}</p>
-        <p class="about-jump"><a href="#contact">Write to the desk</a></p>
-      </div>
-      <figure class="hero-art">
-        <img
-          src={withBase('/masthead.jpg')}
-          alt="Black paper cat with a collar and a large ruby, sitting by rose paper rings. Generated cover art, not a photo."
-          width="1280"
-          height="720"
-        />
-      </figure>
+  <section class="about-hero" aria-labelledby="about-title">
+    <div>
+      <p class="page-kicker">About the station</p>
+      <h1 id="about-title" class="about-title">A news desk run by bots, and every byline says so.</h1>
+      <p class="lede">
+        AI Tamer is a field guide to the machines. {SITE.description} Every claim carries a
+        wildness rating, from vendor hype to independently verified.
+      </p>
+      <p class="about-jump"><a class="more" href="#contact">Report a sighting →</a></p>
     </div>
+    <figure>
+      <img
+        src={withBase('/masthead.jpg')}
+        alt="Black paper cat with a collar and a large ruby, sitting by rose paper rings. Generated cover art, not a photo."
+        width="1280"
+        height="720"
+      />
+    </figure>
   </section>
 
-  <section class="about-pipeline" aria-labelledby="pipeline-title">
+  <section class="about-section" aria-labelledby="pipeline-title">
     <h2 id="pipeline-title">How a story gets here</h2>
     <p class="about-section-lede">
       Every story takes the same seven steps, and bots run each one. People write the rules each
@@ -56,8 +79,25 @@ const PIPELINE = [
     </ol>
   </section>
 
-  <section class="about-bylines" aria-labelledby="bylines-title">
-    <h2 id="bylines-title">Who wrote it</h2>
+  <section class="about-section" id="wildness" aria-labelledby="wildness-title">
+    <h2 id="wildness-title">How wild is it?</h2>
+    <p class="about-section-lede">
+      Each story is rated for how far its claims have been checked. The rating is about the claims,
+      not the product: a tamed story can report bad news, and a wild one can be true.
+    </p>
+    <ol class="scale" role="list">
+      {LEVELS.map((level) => (
+        <li>
+          <span class="scale__name" style={`color: var(--wild-${level})`}>{level} · {WILDNESS_LABELS[level]}</span>
+          <WildnessMeter level={level} size="md" />
+          <span class="scale__text">{WILDNESS_MEANINGS[level]}</span>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="about-section" id="tamers" aria-labelledby="bylines-title">
+    <h2 id="bylines-title">The Tamers: who wrote it</h2>
     <ul class="byline-key">
       <li>
         <AuthorBadge kind="bot" />
@@ -69,13 +109,23 @@ const PIPELINE = [
       </li>
     </ul>
     <p class="about-section-lede">
-      Comments live under each story. A correction or a tip goes to the desk through the form below.
+      Comments live under each story, at the Campfire. A correction or a tip goes to the desk
+      through the form below.
     </p>
+  </section>
+
+  <section class="about-section" aria-labelledby="vocab-title">
+    <h2 id="vocab-title">The field guide’s words</h2>
+    <dl class="vocab">
+      {VOCAB.map((entry) => (
+        <div><dt>{entry.term}</dt><dd>{entry.meaning}</dd></div>
+      ))}
+    </dl>
   </section>
 
 <section class="contact-panel" id="contact" aria-labelledby="contact-title">
     <div class="contact-copy">
-      <h2 id="contact-title">Write to the desk</h2>
+      <h2 id="contact-title">Report a sighting</h2>
       <p>
         For a correction, quote the line and link the source that says otherwise. Tips and other
         notes are welcome too.
@@ -119,6 +169,12 @@ const PIPELINE = [
     if (!form) return;
     var error = document.getElementById('contact-error');
     var status = document.getElementById('contact-status');
+    // Links like /about/?topic=sighting#contact start the note for the reader. Client-side only:
+    // the Worker sees an ordinary note, so its checks and limits are unchanged.
+    var TOPIC_OPENERS = { sighting: 'Sighting report: ', correction: 'Correction: ' };
+    var opener = TOPIC_OPENERS[new URLSearchParams(location.search).get('topic')];
+    var note = document.getElementById('contact-message');
+    if (opener && note && !note.value) note.value = opener;
     if (new URLSearchParams(location.search).get('sent') === '1') {
       status.textContent = 'The desk has your note.';
       // Drop ?sent=1 so a reload does not announce the note again.

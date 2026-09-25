@@ -43,15 +43,17 @@ const cards = await Promise.all(
 );
 ---
 <BaseLayout title={`${label} archive`} description={`AI Tamer stories published in ${label}.`}>
-  <p class="page-kicker"><a href={archiveHref()}>Archive</a> · <a href={archiveHref(year)}>{year}</a></p>
-  <h1 class="page-title">{label}</h1>
-  <p class="lede">{posts.length} published {posts.length === 1 ? 'story' : 'stories'}, newest first.</p>
+  <header class="page-head">
+    <p class="page-kicker"><a href={archiveHref()}>Archive</a> · <a href={archiveHref(year)}>{year}</a></p>
+    <h1 class="page-title">{label}</h1>
+    <p class="lede">{posts.length} {posts.length === 1 ? 'sighting' : 'sightings'} logged, newest first.</p>
+  </header>
 
-  <div class="post-list post-list--plain">
-    {cards.map(({ post, author }) => (
-      <PostCard post={post} author={author} />
+  <ul class="cards listing">
+    {cards.map(({ post, author }, i) => (
+      <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} /></li>
     ))}
-  </div>
+  </ul>
 
   {(older || newer) && (
     <nav class="archive-pager" aria-label="Other months">

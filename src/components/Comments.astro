@@ -11,8 +11,8 @@ interface Props {
 const { pageUrl, pageId } = Astro.props;
 const shortname = DISQUS_SHORTNAME;
 ---
-<section class="comments" aria-label="Comments">
-  <h2>Comments</h2>
+<section class="comments" id="comments" aria-labelledby="comments-title">
+  <h2 id="comments-title">The Campfire</h2>
   <div id="disqus_thread"></div>
   <script is:inline define:vars={{ pageUrl, pageId, shortname }}>
     window.disqus_config = function () {

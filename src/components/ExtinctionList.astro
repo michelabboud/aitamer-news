@@ -1,0 +1,79 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatShortDate, postHref } from '../lib/site';
+
+interface Entry {
+  post: CollectionEntry<'posts'>;
+  date: Date;
+  daysLeft: number;
+}
+interface Props {
+  entries: Entry[];
+  /** Page variant also shows the story headline. */
+  showTitle?: boolean;
+}
+const { entries, showTitle = false } = Astro.props;
+
+/** Days left are counted at build time, then recounted in the browser (script below). */
+function countOf(daysLeft: number, date: Date) {
+  if (daysLeft < 0) return { big: '†', unit: `Extinct ${formatShortDate(date)}`, state: 'extinct' };
+  if (daysLeft === 0) return { big: '0', unit: 'Goes today', state: 'soon' };
+  return {
+    big: String(daysLeft),
+    unit: daysLeft === 1 ? 'Day left' : 'Days left',
+    state: daysLeft <= 7 ? 'soon' : 'later',
+  };
+}
+---
+<ul class="watch-list">
+  {entries.map(({ post, date, daysLeft }) => {
+    const count = countOf(daysLeft, date);
+    const sunset = post.data.sunset!;
+    return (
+      <li class="watch-item" data-sunset={date.toISOString()} data-state={count.state}>
+        <div class="watch-item__count">
+          <span class="watch-item__big">{count.big}</span>
+          <span class="watch-item__unit">{count.unit}</span>
+        </div>
+        <div class="watch-item__body">
+          {showTitle && <a class="watch-item__title" href={postHref(post)}>{post.data.title}</a>}
+          {showTitle ? (
+            <span class="watch-item__what">{sunset.what}</span>
+          ) : (
+            <a class="watch-item__what" href={postHref(post)}>{sunset.what}</a>
+          )}
+          <span class="watch-item__note">{sunset.replacement ? `Move to ${sunset.replacement}` : 'No replacement listed'}</span>
+        </div>
+      </li>
+    );
+  })}
+</ul>
+
+<script>
+  // The page is static, so recount the days on every visit. Same rules as bestiary.ts: UTC calendar days.
+  const DAY = 86_400_000;
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const fmt = (d: Date) =>
+    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).toUpperCase();
+  let soon = 0;
+  document.querySelectorAll<HTMLElement>('.watch-item[data-sunset]').forEach((item) => {
+    const date = new Date(item.dataset.sunset!);
+    const days = Math.round((Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - todayUtc) / DAY);
+    const big = item.querySelector('.watch-item__big')!;
+    const unit = item.querySelector('.watch-item__unit')!;
+    if (days < 0) {
+      big.textContent = '†';
+      unit.textContent = `Extinct ${fmt(date)}`;
+      item.dataset.state = 'extinct';
+    } else {
+      big.textContent = String(days);
+      unit.textContent = days === 0 ? 'Goes today' : days === 1 ? 'Day left' : 'Days left';
+      item.dataset.state = days <= 7 ? 'soon' : 'later';
+      if (days <= 7) soon += 1;
+    }
+  });
+  document.querySelectorAll<HTMLElement>('[data-watch-soon]').forEach((el) => {
+    el.textContent = soon > 0 ? `${soon} going extinct this week` : 'Shutdowns, counted down';
+  });
+</script>

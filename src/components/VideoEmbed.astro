@@ -1,0 +1,58 @@
+---
+/**
+ * A YouTube video that loads only when the reader asks for it.
+ *
+ * Until the click, the page makes no request to YouTube: no player, no thumbnail, no cookies.
+ * The click swaps in the privacy-enhanced player (youtube-nocookie.com). The VideoObject data
+ * lets search engines list the video without the page loading anything from YouTube.
+ * Which channels may be embedded is decided upstream (the posts tool's human-gated allow-list).
+ */
+interface Props {
+  video: { youtube: string; title: string; channel: string };
+  /** When the post went live; search engines require an upload date on VideoObject. */
+  publishedAt: Date;
+}
+const { video, publishedAt } = Astro.props;
+const watchUrl = `https://www.youtube.com/watch?v=${video.youtube}`;
+const embedUrl = `https://www.youtube-nocookie.com/embed/${video.youtube}?autoplay=1&rel=0`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoObject',
+  name: video.title,
+  description: `${video.title}, from ${video.channel} on YouTube.`,
+  thumbnailUrl: `https://i.ytimg.com/vi/${video.youtube}/hqdefault.jpg`,
+  uploadDate: publishedAt.toISOString(),
+  embedUrl: `https://www.youtube-nocookie.com/embed/${video.youtube}`,
+  contentUrl: watchUrl,
+};
+---
+<figure class="video" data-pagefind-ignore>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="video__frame" data-embed={embedUrl}>
+    <button type="button" class="video__play" aria-label={`Play “${video.title}” from ${video.channel} (loads YouTube)`}>
+      <span class="video__icon" aria-hidden="true"></span>
+      <span class="video__title">{video.title}</span>
+      <span class="video__note">Loads the player from YouTube when you press play.</span>
+    </button>
+  </div>
+  <figcaption class="video__caption">
+    Video: {video.channel} on YouTube. <a href={watchUrl} rel="noopener noreferrer">Watch on YouTube</a>
+  </figcaption>
+</figure>
+
+<script>
+  // One listener per page, however many videos: replace the button with the player on click.
+  document.querySelectorAll<HTMLElement>('.video__frame[data-embed]').forEach((frame) => {
+    const button = frame.querySelector('button');
+    button?.addEventListener('click', () => {
+      const iframe = document.createElement('iframe');
+      iframe.src = frame.dataset.embed ?? '';
+      iframe.title = button.getAttribute('aria-label') ?? 'YouTube video';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      frame.replaceChildren(iframe);
+      iframe.focus();
+    });
+  });
+</script>

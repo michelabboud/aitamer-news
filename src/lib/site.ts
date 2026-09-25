@@ -2,6 +2,7 @@ import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { groupByMonth, type ArchiveMonth } from './archive.ts';
 import { HABITATS, HABITAT_META, isHabitat, type Habitat } from './habitats.ts';
 import { isLive } from './schedule.ts';
+import { HABITAT_LIST, habitatOf, type HabitatView } from './bestiary.ts';
 
 export { HABITATS, HABITAT_META, LEGACY_SECTIONS, type Habitat } from './habitats.ts';
 
@@ -171,4 +172,64 @@ export function authorHref(id: string): string {
 
 export function isSection(value: string): value is Section {
   return isHabitat(value);
+}
+
+// ---- Bestiary theme helpers (ported from feat/bestiary onto contract v1) ----
+
+export {
+  HABITAT_LIST,
+  WILDNESS_MEANINGS,
+  extinctionWatch,
+  habitatOf,
+  wildnessTokens,
+  type HabitatView,
+} from './bestiary.ts';
+export { WILDNESS_LABELS, type WildnessRating } from './wildness.ts';
+export { formatSpecimen } from './specimen.ts';
+
+/** Published posts in one habitat, newest first. */
+export async function getPostsByHabitat(habitat: HabitatView): Promise<CollectionEntry<'posts'>[]> {
+  return getPostsBySection(habitat.slug);
+}
+
+/** Published post count per habitat slug. Home page only (see BaseLayout's `home` prop). */
+export async function getHabitatCounts(): Promise<Map<string, number>> {
+  const posts = await getPublishedPosts();
+  const counts = new Map<string, number>(HABITAT_LIST.map((h) => [h.slug, 0]));
+  for (const post of posts) counts.set(post.data.section, (counts.get(post.data.section) ?? 0) + 1);
+  return counts;
+}
+
+export function habitatHref(habitat: HabitatView): string {
+  return sectionHref(habitat.slug);
+}
+
+export function habitatOfPost(post: CollectionEntry<'posts'>): HabitatView {
+  return habitatOf(post.data.section);
+}
+
+/** "09:15", in UTC. */
+export function formatClock(date: Date): string {
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'UTC',
+  });
+}
+
+/** "SEP 23", in UTC. */
+export function formatShortDate(date: Date): string {
+  return date
+    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+    .toUpperCase();
+}
+
+/** Words per minute used for the reading-time estimate. */
+const READING_WPM = 230;
+
+/** Rough reading time from a Markdown body. */
+export function readingMinutes(body: string | undefined): number {
+  const words = (body ?? '').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / READING_WPM));
 }

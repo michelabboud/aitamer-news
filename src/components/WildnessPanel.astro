@@ -1,0 +1,24 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import WildnessMeter from './WildnessMeter.astro';
+import { WILDNESS_LABELS, withBase, type WildnessRating } from '../lib/site';
+
+interface Props {
+  wildness: NonNullable<CollectionEntry<'posts'>['data']['wildness']>;
+}
+const { wildness } = Astro.props;
+const level = wildness.rating as WildnessRating;
+---
+<div class="wildness">
+  <div class="wildness__head">
+    <a href={withBase('/about/#wildness')}>WILDNESS</a>
+    <span class="wildness__level" style={`color: var(--wild-${level})`}>
+      {level} / 5 · {WILDNESS_LABELS[level].toUpperCase()}
+    </span>
+  </div>
+  <WildnessMeter level={level} />
+  <div class="wildness__notes">
+    <span><span class="sr-only">Verified: </span>{wildness.verified}</span>
+    <span><span class="sr-only">Only claimed: </span>{wildness.claimed}</span>
+  </div>
+</div>

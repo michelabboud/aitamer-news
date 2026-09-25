@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  HABITAT_LIST,
+  getPublishedPosts,
+  habitatHref,
+  postHref,
+} from '../../lib/site';
+
+const LATEST = 3;
+const posts = await getPublishedPosts();
+const habitats = HABITAT_LIST.map((habitat) => {
+  const inHabitat = posts.filter((p) => p.data.section === habitat.slug);
+  return { habitat, count: inHabitat.length, latest: inHabitat.slice(0, LATEST) };
+});
+---
+<BaseLayout title="Habitats" description="The seven habitats of the AI Tamer field guide, with the latest sightings in each.">
+  <header class="page-head">
+    <p class="page-kicker">Field guide</p>
+    <h1 class="page-title">Habitats</h1>
+    <p class="lede">Where the machines live. Every sighting is filed in one of seven habitats.</p>
+  </header>
+
+  <ul class="habitat-index">
+    {habitats.map(({ habitat, count, latest }) => (
+      <li class="habitat-index__item">
+        <span class="mono muted">{habitat.code} · {count} {count === 1 ? 'sighting' : 'sightings'}</span>
+        <h2><a href={habitatHref(habitat)}>{habitat.name}</a></h2>
+        <p class="muted" style="margin: 0">{habitat.blurb}</p>
+        {latest.length > 0 ? (
+          <ul>
+            {latest.map((post) => <li><a href={postHref(post)}>{post.data.title}</a></li>)}
+          </ul>
+        ) : (
+          <p class="muted" style="margin: 0">No sightings yet.</p>
+        )}
+        <a class="more" href={habitatHref(habitat)}>Enter {habitat.name} →</a>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
