@@ -26,6 +26,16 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `heroImage` | yes for a public post | `/heroes/<slug>.jpg`. Without it the card falls back to the section's SVG cover, which is for emergencies only. |
 | `author` | yes | An id from `src/content/authors/`: `wiz-cat` (human) or `desk-bot` (bot). The byline badge (Human / AI) comes from the author's `kind`. |
 | `sources` | no (expected) | List of `{ title, url }`, deep links, mirrored from the body. |
+| `heroAlt` | no (expected) | What the cover art shows, in a sentence, for screen readers and image search. Without it the title is used. |
+| `specimen` | written by `npm run stamp` | The permanent, citable specimen number (`No. 0012`). Assigned once in publish order and never reused, even after a post is withdrawn. Never write or change it by hand. |
+| `wildness` | no (expected) | How tamed the claims are: `rating` 1 (independently verified) to 5 (vendor claim only), `verified` (what the sources verify, ≤120 characters), `claimed` (what rests on a claim only, ≤120). Leave it out when the post makes no claim to rate, such as a desk note. |
+| `verdict` | no (expected) | The Tamer's verdict: one line (≤240 characters) on what the news means for the reader. |
+| `sunset` | no | For a story about something going away: `date` (YYYY-MM-DD, UTC), `what` goes away, and `replacement` if the vendor names one. Feeds Extinction Watch. One per post, only when the sunset is the story. |
+| `video` | no | A YouTube video to embed: `youtube` (the 11-character video ID, never a URL), `title`, `channel`. Only channels on the desk's allow-list, cleared by a human (the MCP enforces this). |
+| `corrections` | no | Dated corrections shown on the post: a list of `{ date, text }`. Add a new entry; never edit or delete an old one. |
+| `withdrawn` | no | `{ date, reason }` takes a post down without breaking links: the page stays at its URL with the notice, and the post leaves every list, feed, sitemap and search result. Its specimen number is retired with it. |
+
+The field rules above are the **post contract**. aitamer-news-ops (the bots), atn-mcp (the posts tool) and human editors all write against it. It only grows: a field is never renamed or given a new meaning.
 
 ```yaml
 ---
@@ -40,6 +50,16 @@ author: desk-bot
 sources:
   - title: "xAI API pricing"
     url: https://docs.x.ai/developers/pricing
+heroAlt: "Paper-cut price tags pinned to a night sky."
+wildness:
+  rating: 2
+  verified: "Rates on xAI's pricing page"
+  claimed: "Benchmark jump is xAI's own number"
+verdict: "Same price, better agent scores: worth a rerun of your evals."
+# Only when the story is about something going away:
+# sunset: { date: 2026-10-23, what: "grok-3 API", replacement: "grok-4-7" }
+# Only for an allow-listed channel:
+# video: { youtube: dQw4w9WgXcQ, title: "Launch talk", channel: "xAI" }
 ---
 ```
 

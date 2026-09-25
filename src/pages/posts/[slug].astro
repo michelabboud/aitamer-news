@@ -13,7 +13,7 @@ import {
   archiveHref,
   archiveMonthOf,
   entryStamp,
-  getPublishedPosts,
+  getPostPages,
   resolveAuthor,
   sectionHref,
   withBase,
@@ -22,7 +22,7 @@ import {
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 
 export async function getStaticPaths() {
-  const posts = await getPublishedPosts();
+  const posts = await getPostPages();
   return Promise.all(
     posts.map(async (post) => {
       const author = await resolveAuthor(post);

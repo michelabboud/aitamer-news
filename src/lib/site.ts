@@ -51,8 +51,18 @@ export function isPublished(post: CollectionEntry<'posts'>): boolean {
   return !post.data.draft;
 }
 
-export async function getPublishedPosts(): Promise<CollectionEntry<'posts'>[]> {
+/** Every post that gets a page: published, withdrawn ones included (they keep their URL). */
+export async function getPostPages(): Promise<CollectionEntry<'posts'>[]> {
   const posts = await getCollection('posts', isPublished);
+  return posts.sort(
+    (a, b) =>
+      b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || a.id.localeCompare(b.id),
+  );
+}
+
+/** Published posts that appear in lists, feeds and search: withdrawn ones are left out. */
+export async function getPublishedPosts(): Promise<CollectionEntry<'posts'>[]> {
+  const posts = await getCollection('posts', (post) => isPublished(post) && !post.data.withdrawn);
   // Posts merged together share a publish time; the id keeps their order stable.
   return posts.sort(
     (a, b) =>
@@ -72,6 +82,14 @@ export async function getPostsByAuthor(
 ): Promise<CollectionEntry<'posts'>[]> {
   const posts = await getPublishedPosts();
   return posts.filter((p) => p.data.author.id === authorId);
+}
+
+/** Published posts with a sunset, soonest first. */
+export async function getSunsetPosts(): Promise<CollectionEntry<'posts'>[]> {
+  const posts = await getPublishedPosts();
+  return posts
+    .filter((post) => post.data.sunset)
+    .sort((a, b) => a.data.sunset!.date.valueOf() - b.data.sunset!.date.valueOf() || a.id.localeCompare(b.id));
 }
 
 /** Published posts grouped by month, newest month first; posts keep newest-first order. */

@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.1.9] — 2026-09-25
+
+### Added
+- Post contract v1: optional `heroAlt`, `specimen`, `wildness` (`rating` 1–5, `verified`, `claimed`), `verdict`, `sunset` (`date`, `what`, `replacement`), `video` (a YouTube ID, title, channel), `corrections` (dated list) and `withdrawn` (`date`, `reason`). All documented in `POST.md` as the contract the ops bots, the posts tool and human editors write against. Nothing renders them yet.
+- A withdrawn post keeps its page (`getPostPages`) but leaves every list and feed (`getPublishedPosts`). `getSunsetPosts()` lists sunsets soonest first.
+- `src/lib/wildness.ts` and `src/lib/specimen.ts`, with 4 tests.
+
 ## [0.1.8] — 2026-09-25
 
 ### Added
