@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.15] — 2026-09-26
+
+### Changed
+- Comments stay closed until the contact form is live: it is the channel readers use to ask for a comment's removal. The go-live order is now enforced in code (`commentFormSetup` requires `contactFormLive`), not only in the docs. 1 test.
+
 ## [0.2.14] — 2026-09-26
 
 ### Fixed

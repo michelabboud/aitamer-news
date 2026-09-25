@@ -24,7 +24,7 @@ const ENDPOINT = 'https://comments.aitamer.news/';
 const SITE_KEY = '0x4AAAAAAA_site_key';
 
 test('the form is ready with an https endpoint and a Turnstile site key', () => {
-  assert.deepEqual(commentFormSetup({ endpoint: ENDPOINT, turnstileSiteKey: SITE_KEY }), {
+  assert.deepEqual(commentFormSetup({ endpoint: ENDPOINT, turnstileSiteKey: SITE_KEY, contactFormLive: true }), {
     ready: true,
     endpoint: ENDPOINT,
     turnstileSiteKey: SITE_KEY,
@@ -32,9 +32,9 @@ test('the form is ready with an https endpoint and a Turnstile site key', () => 
 });
 
 test('a local http endpoint (wrangler dev) is accepted, and surrounding whitespace is trimmed', () => {
-  const setup = commentFormSetup({ endpoint: ' http://localhost:8788/ ', turnstileSiteKey: ` ${SITE_KEY}\n` });
-  assert.deepEqual(setup, { ready: true, endpoint: 'http://localhost:8788/', turnstileSiteKey: SITE_KEY });
-  assert.equal(commentFormSetup({ endpoint: 'http://127.0.0.1:8788/', turnstileSiteKey: SITE_KEY }).ready, true);
+  const setup = commentFormSetup({ endpoint: ' http://localhost:8788/ ', turnstileSiteKey: ` ${SITE_KEY}\n`, contactFormLive: true });
+  assert.deepEqual(setup, { ready: true, endpoint: 'http://localhost:8788/', turnstileSiteKey: SITE_KEY, contactFormLive: true });
+  assert.equal(commentFormSetup({ endpoint: 'http://127.0.0.1:8788/', turnstileSiteKey: SITE_KEY, contactFormLive: true }).ready, true);
   assert.deepEqual([...LOCAL_HTTP_HOSTS].sort(), ['127.0.0.1', 'localhost']);
 });
 
@@ -47,19 +47,19 @@ test('plain http to any other host is refused: a comment is never sent in the cl
     'http://localhost@evil.example/',
     'http://[::1]:8788/',
   ]) {
-    assert.deepEqual(commentFormSetup({ endpoint, turnstileSiteKey: SITE_KEY }), { ready: false, missing: 'endpoint' }, endpoint);
+    assert.deepEqual(commentFormSetup({ endpoint, turnstileSiteKey: SITE_KEY, contactFormLive: true }), { ready: false, missing: 'endpoint' }, endpoint);
   }
 });
 
 test('without a Turnstile site key the form is not set up (Turnstile is mandatory for comments)', () => {
-  assert.deepEqual(commentFormSetup({ endpoint: ENDPOINT, turnstileSiteKey: '' }), { ready: false, missing: 'turnstile' });
-  assert.deepEqual(commentFormSetup({ endpoint: ENDPOINT, turnstileSiteKey: '   ' }), { ready: false, missing: 'turnstile' });
+  assert.deepEqual(commentFormSetup({ endpoint: ENDPOINT, turnstileSiteKey: '', contactFormLive: true }), { ready: false, missing: 'turnstile' });
+  assert.deepEqual(commentFormSetup({ endpoint: ENDPOINT, turnstileSiteKey: '   ', contactFormLive: true }), { ready: false, missing: 'turnstile' });
 });
 
 test('an empty or malformed endpoint is reported as missing, never posted to', () => {
   for (const endpoint of ['', '   ', 'comments.aitamer.news', '/comments/', 'ftp://comments.aitamer.news/', 'javascript:alert(1)']) {
     assert.deepEqual(
-      commentFormSetup({ endpoint, turnstileSiteKey: SITE_KEY }),
+      commentFormSetup({ endpoint, turnstileSiteKey: SITE_KEY, contactFormLive: true }),
       { ready: false, missing: 'endpoint' },
       `endpoint ${JSON.stringify(endpoint)}`,
     );
@@ -67,7 +67,7 @@ test('an empty or malformed endpoint is reported as missing, never posted to', (
 });
 
 test('the endpoint is checked before the site key, so a broken override is named first', () => {
-  assert.deepEqual(commentFormSetup({ endpoint: 'nope', turnstileSiteKey: '' }), { ready: false, missing: 'endpoint' });
+  assert.deepEqual(commentFormSetup({ endpoint: 'nope', turnstileSiteKey: '', contactFormLive: true }), { ready: false, missing: 'endpoint' });
 });
 
 test('the field names are the ones the Worker reads (plan §5.2)', () => {
@@ -134,4 +134,11 @@ test('the Turnstile callbacks are distinct global names, and the check-failed no
   for (const name of names) assert.match(name, /^[A-Za-z_$][A-Za-z0-9_$]*$/);
   assert.equal(Object.isFrozen(COMMENT_TURNSTILE_CALLBACKS), true);
   assert.notEqual(COMMENT_CHECK_FAILED_MESSAGE, COMMENT_FAILED_MESSAGE);
+});
+
+test('comments stay closed until the contact form, the removal channel, is live', () => {
+  assert.deepEqual(
+    commentFormSetup({ endpoint: ENDPOINT, turnstileSiteKey: SITE_KEY, contactFormLive: false }),
+    { ready: false, missing: 'removal-channel' },
+  );
 });

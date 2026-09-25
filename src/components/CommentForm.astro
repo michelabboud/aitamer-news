@@ -1,5 +1,5 @@
 ---
-import { COMMENTS_ENDPOINT, TURNSTILE_SITE_KEY } from '../lib/site';
+import { COMMENTS_ENDPOINT, CONTACT_FORM_LIVE, TURNSTILE_SITE_KEY } from '../lib/site';
 import {
   COMMENTED_QUERY,
   COMMENTED_VALUE,
@@ -53,7 +53,11 @@ interface Props {
 }
 
 const { slug, closed = false } = Astro.props;
-const setup = commentFormSetup({ endpoint: COMMENTS_ENDPOINT, turnstileSiteKey: TURNSTILE_SITE_KEY });
+const setup = commentFormSetup({
+  endpoint: COMMENTS_ENDPOINT,
+  turnstileSiteKey: TURNSTILE_SITE_KEY,
+  contactFormLive: CONTACT_FORM_LIVE,
+});
 const fields = COMMENT_FORM_FIELDS;
 const heldMessage = COMMENT_HELD_MESSAGE;
 const failedMessage = COMMENT_FAILED_MESSAGE;

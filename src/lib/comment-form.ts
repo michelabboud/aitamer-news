@@ -88,7 +88,7 @@ export function commentErrorText(payload: unknown): string {
 }
 
 /** Why the form cannot render: the endpoint is not a usable URL, or Turnstile has no site key. */
-export type CommentFormMissing = 'endpoint' | 'turnstile';
+export type CommentFormMissing = 'endpoint' | 'turnstile' | 'removal-channel';
 
 export type CommentFormSetup =
   | { ready: true; endpoint: string; turnstileSiteKey: string }
@@ -103,9 +103,16 @@ export const LOCAL_HTTP_HOSTS: ReadonlySet<string> = new Set(['localhost', '127.
  * not set up yet instead of showing a form that cannot succeed. Likewise an endpoint that is not
  * an absolute `https:` URL — an empty override, a typo, a plain `http:` host that would send a
  * reader's comment in the clear — is reported, never posted to. `http:` is accepted only for
- * `LOCAL_HTTP_HOSTS`.
+ * `LOCAL_HTTP_HOSTS`. Comments also stay closed until the contact form is live
+ * (`contactFormLive`): it is the channel readers use to ask for a comment's removal, so comments
+ * must never open before it.
  */
-export function commentFormSetup(options: { endpoint: string; turnstileSiteKey: string }): CommentFormSetup {
+export function commentFormSetup(options: {
+  endpoint: string;
+  turnstileSiteKey: string;
+  contactFormLive: boolean;
+}): CommentFormSetup {
+  if (!options.contactFormLive) return { ready: false, missing: 'removal-channel' };
   const endpoint = options.endpoint.trim();
   if (!isUsableEndpoint(endpoint)) return { ready: false, missing: 'endpoint' };
   const turnstileSiteKey = options.turnstileSiteKey.trim();
