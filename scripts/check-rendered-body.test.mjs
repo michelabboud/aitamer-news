@@ -66,12 +66,31 @@ test('G1: a trailing unterminated tag is refused through the real render (the br
     'Hi.\n\n<iframe srcdoc="&lt;script&gt;alert(1)&lt;/script&gt;" ',
   ];
   const results = await checkPostSources(bodies.map((body, i) => ({ name: `eof-${i}.md`, contents: post(body) })));
-  results.forEach(({ findings }, i) => assert.match(problems(findings).join(), /parse error \(eof-in-tag\)/, bodies[i]));
+  // Parsed inside the page stand-in (G2), the open tag swallows what follows it, as on the page:
+  // parse errors either way, and the page structure breaks.
+  results.forEach(({ findings }, i) => assert.match(problems(findings).join(), /parse error \(/, bodies[i]));
 });
 
 test('G1: any parse error in the rendered HTML is a finding', () => {
-  refusedBy('<p>x</p><img src="https://media.aitamer.news/a.png" alt="a" ', /parse error \(eof-in-tag\)/);
+  refusedBy('<p>x</p><img src="https://media.aitamer.news/a.png" alt="a" ', /parse error \(/);
   refusedBy('<p>x</p><p a="1" a="2">y</p>', /parse error \(duplicate-attribute\)/);
+});
+
+test('G2: a body that leaves an element open or closes one it did not open is refused', async () => {
+  const bodies = {
+    'an unclosed link': 'Read more <a href="https://evil.example/">here',
+    'an unclosed table': '<table><tr><td>x',
+    'a stray </div>': 'a\n\n</div>\n\nb',
+    'an unclosed <em>': 'x <em>open',
+  };
+  const names = Object.keys(bodies);
+  const results = await checkPostSources(names.map((name, i) => ({ name: `open-${i}.md`, contents: post(bodies[name]) })));
+  results.forEach(({ findings }, i) => assert.match(problems(findings).join(), /does not close cleanly/, names[i]));
+  refusedBy('<p>x</p></div><p>outside</p>', /does not close cleanly/);
+  refusedBy('<p><a href="https://a.b/">open</p>', /does not close cleanly/);
+  // An unclosed list is closed by the page's own `</div>` exactly as here: nothing leaks, no finding.
+  assert.deepEqual(problems(checkRenderedHtml('<ul><li>x')), []);
+  assert.deepEqual(problems(checkRenderedHtml('<p>closed <a href="https://a.b/">link</a></p>\n')), []);
 });
 
 // ---------------------------------------------------------------------------------------------

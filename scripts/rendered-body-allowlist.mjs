@@ -485,6 +485,20 @@ function elementFindings(ctx) {
 }
 
 /**
+ * The body is parsed between a wrapper and a marker that stand for the page around it: the
+ * `<div class="article__body">` it sits in, and the element the layout puts after it. A body that
+ * leaves an element open (an unclosed `<a>` the browser re-opens around the verdict and Sources,
+ * an unclosed table that swallows the rest of the page) or closes one it did not open (a stray
+ * `</div>` that escapes `.article__body`) changes where the marker lands: it must come out as the
+ * wrapper's next sibling, alone, with its text, and nothing else may sit outside the wrapper.
+ */
+const BODY_WRAPPER_ATTR = 'data-rendered-body-wrapper';
+const BODY_MARKER_ATTR = 'data-rendered-body-end';
+const BODY_MARKER_TEXT = 'end';
+const BODY_OPEN = `<div ${BODY_WRAPPER_ATTR}>`;
+const BODY_CLOSE = `</div><p ${BODY_MARKER_ATTR}>${BODY_MARKER_TEXT}</p>`;
+
+/**
  * Check a rendered body against the allowlist.
  * @param {string} html the HTML the site's Markdown pipeline produced for one post body
  * @returns {Finding[]} empty when every node is allowed
@@ -503,7 +517,7 @@ export function checkRenderedHtml(html) {
   // differ. The sharp case: a trailing unterminated tag (`<details open ontoggle=… ` at the end of
   // the body) is dropped by a fragment parse at end of input (eof-in-tag), while on the page the
   // browser completes it with the layout's next `</div>` and ships a live element.
-  const fragment = parseFragment(context, html, {
+  const fragment = parseFragment(context, `${BODY_OPEN}${html}${BODY_CLOSE}`, {
     onParseError: (error) => {
       findings.push({ path: '', element: '#post', problem: `the rendered HTML has a parse error (${error.code}) at line ${error.startLine}, column ${error.startCol}` });
     },
@@ -544,6 +558,28 @@ export function checkRenderedHtml(html) {
       walk(node, [...ancestors, node], path);
     }
   };
-  walk(fragment, [], '');
+  const [wrapper, marker, ...rest] = fragment.childNodes;
+  const isWrapper = onlyAttribute(wrapper, 'div', BODY_WRAPPER_ATTR);
+  const closed =
+    isWrapper &&
+    rest.length === 0 &&
+    onlyAttribute(marker, 'p', BODY_MARKER_ATTR) &&
+    marker.childNodes.length === 1 &&
+    marker.childNodes[0].nodeName === '#text' &&
+    marker.childNodes[0].value === BODY_MARKER_TEXT;
+  if (!closed) {
+    findings.push({
+      path: '',
+      element: '#post',
+      problem: 'the body does not close cleanly: an element left open, or a stray end tag, would reshape the page after it',
+    });
+  }
+  // The wrapper's children are the body. When the wrapper itself was broken, judge everything.
+  walk(isWrapper ? wrapper : fragment, [], '');
   return findings;
+}
+
+/** @returns {boolean} whether `node` is a `tag` element whose only attribute is `attr=""` */
+function onlyAttribute(node, tag, attr) {
+  return Boolean(node && node.tagName === tag && node.attrs.length === 1 && node.attrs[0].name === attr && node.attrs[0].value === '');
 }
