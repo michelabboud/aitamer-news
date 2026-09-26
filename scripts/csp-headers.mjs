@@ -41,8 +41,9 @@
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join, relative, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from 'parse5';
 
 /**
@@ -85,11 +86,27 @@ export const GENERATED_MARKER = '# --- Content-Security-Policy: written by scrip
 
 /**
  * The comments and contact Workers. The same environment variables and defaults as
- * `src/lib/site.ts` (COMMENTS_ENDPOINT, CONTACT_ENDPOINT), so the policy names the endpoints the
- * build actually wrote into the forms; the guard checks the built forms against it either way.
+ * `src/lib/site.ts` (COMMENTS_ENDPOINT, CONTACT_ENDPOINT), read the way the build reads them
+ * (`loadBuildEnv`), so the policy names the endpoints the build actually wrote into the forms; the
+ * guard checks the built forms against it either way.
  */
 export const COMMENTS_ENDPOINT_DEFAULT = 'https://comments.aitamer.news/';
 export const CONTACT_ENDPOINT_DEFAULT = 'https://contact.aitamer.news/';
+
+/**
+ * The build's environment as Astro sees it: Astro loads it with Vite's `loadEnv` for the
+ * `production` mode from `vite.envDir`, else the project root (`astro/dist/env/env-loader.js`), so
+ * `.env`, `.env.local`, `.env.production` and `.env.production.local` count, and a variable already
+ * in the process's environment wins. Vite is loaded from where Astro resolves it, so this is the
+ * same `loadEnv` the build ran. Only `PUBLIC_` names are returned.
+ * @param {string} [root] the directory holding the .env files
+ * @returns {Promise<Record<string, string>>}
+ */
+export async function loadBuildEnv(root = SITE_ROOT) {
+  const astroRequire = createRequire(join(SITE_ROOT, 'node_modules', 'astro', 'package.json'));
+  const { loadEnv } = await import(pathToFileURL(astroRequire.resolve('vite')).href);
+  return loadEnv('production', root, 'PUBLIC_');
+}
 
 /** @param {NodeJS.ProcessEnv} [env] @returns {{ comments: string, contact: string }} the Workers' origins */
 export function endpointOrigins(env = process.env) {
@@ -108,8 +125,13 @@ export const ORIGINS = {
   turnstile: 'https://challenges.cloudflare.com',
   /** Google Analytics: the layout's bootstrap injects gtag.js from here (on aitamer.news only). */
   gtag: 'https://www.googletagmanager.com',
-  /** Where gtag.js sends measurements (Google's published GA4 CSP guidance). */
-  analyticsConnect: ['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'],
+  /**
+   * Where gtag.js sends measurements, besides its own host (`gtag` above): Google's GA4 guidance
+   * for the Google tag, https://developers.google.com/tag-platform/security/guides/csp (read
+   * 2026-09-26), lists `*.google-analytics.com` and `*.google.com` for connect-src. The site does not
+   * use the Ads features, which need more hosts.
+   */
+  analyticsConnect: ['https://*.google-analytics.com', 'https://*.google.com'],
   /** Google Fonts: the layout's stylesheet link, and the font files it points at. */
   fontsCss: 'https://fonts.googleapis.com',
   fontsFiles: 'https://fonts.gstatic.com',
@@ -135,7 +157,7 @@ export function directives({ hashes, endpoints, wasm = false, enforce = CSP_ENFO
     ['font-src', ["'self'", ORIGINS.fontsFiles]],
     // Human posts may use an image from any https host (and gtag's pixel is one).
     ['img-src', ["'self'", 'data:', 'https:']],
-    ['connect-src', ["'self'", endpoints.comments, endpoints.contact, ...ORIGINS.analyticsConnect]],
+    ['connect-src', ["'self'", endpoints.comments, endpoints.contact, ORIGINS.gtag, ...ORIGINS.analyticsConnect]],
     ['frame-src', [ORIGINS.turnstile, ORIGINS.youtubeNoCookie, ORIGINS.youtube]],
     ['form-action', ["'self'", endpoints.comments, endpoints.contact]],
     ['object-src', ["'none'"]],
@@ -181,7 +203,10 @@ export function scriptIsGoverned(attrs) {
     if (language === undefined || language === '') return true;
     type = `text/${language}`;
   }
-  const essence = type.trim().toLowerCase();
+  // The part before any MIME parameter: the standard says `text/javascript; charset=utf-8` is not
+  // a JavaScript MIME type and never runs, but browsers have run such scripts, and a hash too many
+  // costs nothing.
+  const essence = type.split(';')[0].trim().toLowerCase();
   return essence === '' || JAVASCRIPT_MIME_TYPES.has(essence) || OTHER_GOVERNED_TYPES.has(essence);
 }
 
@@ -190,18 +215,110 @@ export function sha256(text) {
   return createHash('sha256').update(text, 'utf8').digest('base64');
 }
 
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+
 /**
- * Where a page loads something from, by the directive that governs it. Only what the static HTML
- * names: the site's own scripts load a few more at run time, which `RUNTIME_ATTRIBUTES` covers.
+ * The URLs in a `srcset`, by the HTML standard's candidate parsing: a URL is a run of non-space
+ * characters (trailing commas end the candidate), then descriptors up to a comma outside brackets.
+ * @param {string} value @returns {string[]}
  */
-const LOADS = [
-  { element: 'script', attribute: 'src', directive: 'script-src' },
-  { element: 'iframe', attribute: 'src', directive: 'frame-src' },
-  { element: 'frame', attribute: 'src', directive: 'frame-src' },
-  { element: 'form', attribute: 'action', directive: 'form-action' },
-  { element: 'button', attribute: 'formaction', directive: 'form-action' },
-  { element: 'input', attribute: 'formaction', directive: 'form-action' },
-];
+export function srcsetUrls(value) {
+  const urls = [];
+  let i = 0;
+  while (i < value.length) {
+    while (i < value.length && /[\s,]/.test(value[i])) i++;
+    if (i >= value.length) break;
+    let url = '';
+    while (i < value.length && !/\s/.test(value[i])) url += value[i++];
+    if (/,$/.test(url)) {
+      urls.push(url.replace(/,+$/, ''));
+      continue;
+    }
+    urls.push(url);
+    let depth = 0;
+    while (i < value.length && !(value[i] === ',' && depth === 0)) {
+      if (value[i] === '(') depth++;
+      else if (value[i] === ')') depth = Math.max(0, depth - 1);
+      i++;
+    }
+  }
+  return urls.filter(Boolean);
+}
+
+/** What a `<link rel=preload>` fetches, by its `as`, to the directive that governs it. */
+const PRELOAD_AS = {
+  script: 'script-src', style: 'style-src', font: 'font-src', image: 'img-src', fetch: 'connect-src',
+  audio: 'media-src', video: 'media-src', track: 'media-src', worker: 'worker-src',
+};
+
+/**
+ * Where an element loads something from, by the directive that governs it. Only what the static
+ * HTML names: the site's own scripts load a few more at run time, which `RUNTIME_ATTRIBUTES` covers.
+ * @param {any} node @returns {{ directive: string, url: string, where: string }[]}
+ */
+function loadsOf(node) {
+  const tag = node.tagName;
+  const attrs = node.attrs ?? [];
+  const get = (name) => attr(attrs, name);
+  const out = [];
+  const add = (directive, url, where) => {
+    if (url !== undefined) out.push({ directive, url, where: `<${tag} ${where}>` });
+  };
+  const parentTag = node.parentNode?.tagName;
+  switch (tag) {
+    case 'script':
+      // An HTML script with src, and an SVG script with href or xlink:href, is external.
+      if (node.namespaceURI === SVG_NAMESPACE) add('script-src', get('href'), 'href');
+      else add('script-src', get('src'), 'src');
+      break;
+    case 'iframe':
+    case 'frame':
+      add('frame-src', get('src'), 'src');
+      break;
+    case 'form':
+      add('form-action', get('action'), 'action');
+      if (get('action') !== undefined) out.push({ directive: 'connect-src', url: get('action'), where: '<form action> (the form script fetches it)' });
+      break;
+    case 'button':
+      add('form-action', get('formaction'), 'formaction');
+      break;
+    case 'input':
+      add('form-action', get('formaction'), 'formaction');
+      if (get('type')?.toLowerCase() === 'image') add('img-src', get('src'), 'src');
+      break;
+    case 'img':
+      add('img-src', get('src'), 'src');
+      for (const url of srcsetUrls(get('srcset') ?? '')) add('img-src', url, 'srcset');
+      break;
+    case 'video':
+      add('img-src', get('poster'), 'poster');
+      add('media-src', get('src'), 'src');
+      break;
+    case 'audio':
+    case 'track':
+      add('media-src', get('src'), 'src');
+      break;
+    case 'source':
+      if (parentTag === 'picture') for (const url of srcsetUrls(get('srcset') ?? '')) add('img-src', url, 'srcset');
+      else add('media-src', get('src'), 'src');
+      break;
+    case 'link': {
+      const rel = (get('rel') ?? '').toLowerCase().split(/\s+/).filter(Boolean);
+      const href = get('href');
+      if (rel.includes('stylesheet')) add('style-src', href, 'rel=stylesheet href');
+      if (rel.includes('modulepreload')) add('script-src', href, 'rel=modulepreload href');
+      if (rel.includes('preload')) {
+        const as = (get('as') ?? '').toLowerCase();
+        add(PRELOAD_AS[/** @type {keyof typeof PRELOAD_AS} */ (as)] ?? 'default-src', href, `rel=preload as=${as || '(none)'} href`);
+      }
+      if (rel.includes('icon') || rel.includes('apple-touch-icon')) add('img-src', href, 'rel=icon href');
+      if (rel.includes('manifest')) add('manifest-src', href, 'rel=manifest href');
+      break;
+    }
+  }
+  return out;
+}
+
 /**
  * Data attributes the site's own scripts load from: Reactions posts to `data-endpoint`, and
  * VideoEmbed turns `data-embed` into an iframe when the reader presses play. The comment and
@@ -213,6 +330,11 @@ const RUNTIME_ATTRIBUTES = [
 ];
 /** Elements the policy refuses outright (`object-src 'none'`, `base-uri 'none'`). */
 const REFUSED_ELEMENTS = { object: "object-src 'none'", embed: "object-src 'none'", base: "base-uri 'none'" };
+/**
+ * Attributes refused outright. A `srcdoc` document inherits the page's policy, so a script or a
+ * handler inside it would be refused by the browser without this guard seeing it; the site uses none.
+ */
+const REFUSED_ATTRIBUTES = { srcdoc: "a srcdoc document inherits the page's policy, and this guard does not look inside it" };
 /** Attributes whose `javascript:` URL would need `'unsafe-inline'`. */
 const URL_ATTRIBUTES = new Set(['href', 'src', 'action', 'formaction', 'xlink:href']);
 
@@ -238,18 +360,18 @@ export function scanPage(html) {
       if (URL_ATTRIBUTES.has(name) && /^javascript:/i.test(value.replace(/[\u0000- ]/g, ''))) {
         scan.refusals.push({ what: `javascript: URL in ${name} on <${tag}> (needs 'unsafe-inline')` });
       }
+      if (name in REFUSED_ATTRIBUTES) {
+        scan.refusals.push({ what: `${name} on <${tag}> (${REFUSED_ATTRIBUTES[/** @type {keyof typeof REFUSED_ATTRIBUTES} */ (name)]})` });
+      }
       for (const runtime of RUNTIME_ATTRIBUTES) {
         if (name === runtime.attribute && value) scan.loads.push({ directive: runtime.directive, url: value, where: `<${tag} ${name}>` });
       }
     }
     if (tag in REFUSED_ELEMENTS) scan.refusals.push({ what: `<${tag}> element (the policy has ${REFUSED_ELEMENTS[/** @type {keyof typeof REFUSED_ELEMENTS} */ (tag)]})` });
-    for (const load of LOADS) {
-      const value = load.element === tag ? attr(attrs, load.attribute) : undefined;
-      if (value === undefined) continue;
-      scan.loads.push({ directive: load.directive, url: value, where: `<${tag} ${load.attribute}>` });
-      if (tag === 'form') scan.loads.push({ directive: 'connect-src', url: value, where: '<form action> (the form script fetches it)' });
-    }
-    if (tag === 'script' && attr(attrs, 'src') === undefined && scriptIsGoverned(attrs)) {
+    const loads = loadsOf(node);
+    scan.loads.push(...loads);
+    const external = tag === 'script' && loads.some((load) => load.directive === 'script-src');
+    if (tag === 'script' && !external && scriptIsGoverned(attrs)) {
       const body = (node.childNodes ?? []).map((/** @type {any} */ child) => child.value ?? '').join('');
       scan.inline.push({ hash: sha256(body), preview: body.trim().slice(0, 60).replace(/\s+/g, ' ') });
     }
@@ -374,6 +496,40 @@ export function headersFor(text, path) {
   return out;
 }
 
+/** CSP's fallback chains for the directives this guard checks; `default-src` ends every chain. */
+const FALLBACKS = {
+  'worker-src': ['child-src', 'script-src'],
+  'frame-src': ['child-src'],
+};
+
+/** @param {Map<string, string[]>} policy @param {string} directive @returns {string[]} the sources that govern it */
+export function sourcesFor(policy, directive) {
+  for (const name of [directive, ...(FALLBACKS[/** @type {keyof typeof FALLBACKS} */ (directive)] ?? []), 'default-src']) {
+    const sources = policy.get(name);
+    if (sources) return sources;
+  }
+  return [];
+}
+
+/**
+ * The `_headers` rule forms this script models: a path from the root with no placeholder, and at
+ * most one `*`, at its end. Cloudflare also accepts `:placeholders`, a `*` mid-path and absolute
+ * URLs; `headersFor` would misjudge those, so they are refused instead.
+ */
+const MODELED_RULE = /^\/[^*:\s]*\*?$/;
+
+/** @param {string} text a _headers file @returns {string[]} its rule lines this script does not model */
+export function unmodeledRules(text) {
+  return text
+    .split('\n')
+    .filter((raw) => raw.trim() && !raw.trimStart().startsWith('#') && !/^\s/.test(raw))
+    .map((raw) => raw.trim())
+    .filter((rule) => !MODELED_RULE.test(rule));
+}
+
+/** @param {string} rule @returns {string} */
+const unmodeledFinding = (rule) => `_headers: the rule ${rule} is a form this script does not model (only /exact/paths and /prefix/*); rewrite it, or teach headersFor the form and test it`;
+
 /** @param {string} value @returns {Map<string, string[]>} directive → sources */
 export function parsePolicy(value) {
   return new Map(
@@ -405,6 +561,8 @@ export function writeSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
   if (findings.length) return { findings, pages: pages.length, hashes };
   const target = join(dist, '_headers');
   const existing = existsSync(target) ? readFileSync(target, 'utf8') : '';
+  const unmodeled = unmodeledRules(existing);
+  if (unmodeled.length) return { findings: unmodeled.map(unmodeledFinding), pages: pages.length, hashes };
   const text = renderHeaders(existing, generatedBlock(pages, endpointOrigins(env), enforce));
   const long = overlongLines(text);
   if (long.length) {
@@ -432,6 +590,8 @@ export function checkSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
   const name = cspHeaderName(enforce).toLowerCase();
   const other = cspHeaderName(!enforce).toLowerCase();
   const pages = scanSite(dist);
+  const unmodeled = unmodeledRules(text);
+  if (unmodeled.length) return unmodeled.map(unmodeledFinding);
 
   for (const { page, scan } of pages) {
     for (const refusal of scan.refusals) findings.push(`${page}: ${refusal.what}`);
@@ -444,14 +604,14 @@ export function checkSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
     }
     if (value.includes(',')) findings.push(`${page}: two ${cspHeaderName(enforce)} values reach it (Cloudflare joins them with a comma, and both would apply)`);
     const policy = parsePolicy(value);
-    const scriptSources = policy.get('script-src') ?? policy.get('default-src') ?? [];
+    const scriptSources = sourcesFor(policy, 'script-src');
     for (const script of scan.inline) {
       if (!scriptSources.includes(`'sha256-${script.hash}'`)) {
         findings.push(`${page}: inline script sha256-${script.hash} is not in the policy (${script.preview}…)`);
       }
     }
     for (const load of scan.loads) {
-      const sources = policy.get(load.directive) ?? policy.get('default-src') ?? [];
+      const sources = sourcesFor(policy, load.directive);
       if (!allows(sources, load.url)) findings.push(`${page}: ${load.where} loads ${load.url}, which ${load.directive} does not allow`);
     }
   }
@@ -474,7 +634,7 @@ export function checkSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
   return findings;
 }
 
-function main(argv) {
+async function main(argv) {
   const check = argv.includes('--check');
   const rest = argv.filter((a) => a !== '--check');
   if (rest.length > 1 || rest.some((a) => a.startsWith('-'))) {
@@ -487,7 +647,7 @@ function main(argv) {
     return 2;
   }
   if (check) {
-    const findings = checkSitePolicy(dist);
+    const findings = checkSitePolicy(dist, { env: await loadBuildEnv() });
     for (const finding of findings) console.error(`csp: ${finding}`);
     if (findings.length) {
       console.error(`csp: ${findings.length} finding(s); SECURITY.md, "Content-Security-Policy"`);
@@ -496,7 +656,7 @@ function main(argv) {
     console.log(`check:csp: every inline script on ${scanSite(dist).length} pages is in the ${cspHeaderName()} policy, and nothing on them needs more.`);
     return 0;
   }
-  const { findings, pages, hashes } = writeSitePolicy(dist);
+  const { findings, pages, hashes } = writeSitePolicy(dist, { env: await loadBuildEnv() });
   for (const finding of findings) console.error(`csp: ${finding}`);
   if (findings.length) {
     console.error(`csp: ${findings.length} finding(s); ${join(dist, '_headers')} was not written. SECURITY.md, "Content-Security-Policy"`);
@@ -507,5 +667,5 @@ function main(argv) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  process.exitCode = main(process.argv.slice(2));
+  process.exitCode = await main(process.argv.slice(2));
 }
