@@ -2,6 +2,14 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.33] — 2026-09-27
+
+### Added
+**`check:posts` refuses a post whose author has no profile** (`scripts/check-authors.mjs`, found by the posts MCP lane in task B2):
+- `author` is a content reference to `src/content/authors/`. Measured on the real site: with an unknown author, `astro sync` and `astro build` both log `[ERROR] Invalid content reference`, exit 0, and the build drops the post. A deploy would have succeeded without the story.
+- The check now fails `npm run check:posts` for such a post, drafts included, naming the file, the unknown id and the known ids. A non-string author is refused too. A missing author stays the schema's job.
+- Nine tests, including one that runs the check over the real site.
+
 ## [0.2.32] — 2026-09-26
 
 ### Fixed
