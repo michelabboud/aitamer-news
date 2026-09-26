@@ -22,6 +22,7 @@ import {
   urlPathOf,
   writeSitePolicy,
 } from './csp-headers.mjs';
+import * as csp from './csp-headers.mjs';
 import { tempDir } from './test-support.mjs';
 
 const PUBLIC_HEADERS = `# hand-written
@@ -47,7 +48,7 @@ const SITE = {
 };
 
 /** @param {Record<string, string>} files @returns {{ dist: string, publicHeaders: string }} */
-function fixture(files = SITE) {
+function fixture(files = SITE, publicText = PUBLIC_HEADERS) {
   const root = tempDir('csp-');
   const dist = join(root, 'dist');
   for (const [path, text] of Object.entries(files)) {
@@ -55,9 +56,9 @@ function fixture(files = SITE) {
     writeFileSync(join(dist, path), text);
   }
   const publicHeaders = join(root, 'public-headers');
-  writeFileSync(publicHeaders, PUBLIC_HEADERS);
+  writeFileSync(publicHeaders, publicText);
   // The build copies public/_headers into dist before this script runs.
-  writeFileSync(join(dist, '_headers'), PUBLIC_HEADERS);
+  writeFileSync(join(dist, '_headers'), publicText);
   return { dist, publicHeaders };
 }
 
@@ -273,4 +274,127 @@ test('the build writes the policy after Pagefind, and check:csp is the guard', (
   const { scripts } = JSON.parse(readFileSync(join(SITE_ROOT, 'package.json'), 'utf8'));
   assert.match(scripts.build, /pagefind --site dist && node scripts\/csp-headers\.mjs$/);
   assert.equal(scripts['check:csp'], 'node scripts/csp-headers.mjs --check');
+});
+
+// ---- Hardening before enforcement (review of 0.2.31: S1–S4, N1, N2) ----------------------------
+
+/** The findings the guard reports for one extra page, after the writer ran on the site. */
+function pageFindings(html, name = 'posts/x/index.html') {
+  const files = { ...SITE, [name]: page('', html) };
+  const f = fixture(files);
+  const written = writeSitePolicy(f.dist, { env: ENV });
+  const guard = checkSitePolicy(f.dist, { env: ENV, publicHeaders: f.publicHeaders });
+  return { written: written.findings, guard: guard.filter((x) => x.startsWith(`${name}:`)) };
+}
+
+test('S1: an iframe srcdoc is refused by the writer and the guard, like <object>', () => {
+  const { written, guard } = pageFindings('<iframe srcdoc="<script>alert(1)</script>"></iframe>');
+  assert.ok(written.some((x) => x.includes('srcdoc')), written.join('\n'));
+  assert.ok(guard.some((x) => x.includes('srcdoc')), guard.join('\n'));
+});
+
+test('S2: media loads are checked against media-src (default-src when absent)', () => {
+  const { guard } = pageFindings(
+    '<video src="https://cdn.example.com/v.mp4" poster="http://img.example.com/p.jpg"><source src="https://cdn.example.com/v.webm"><track src="https://cdn.example.com/t.vtt"></video><audio src="/local.mp3"></audio>',
+  );
+  assert.equal(guard.filter((x) => x.includes('media-src')).length, 3, guard.join('\n'));
+  assert.equal(guard.filter((x) => x.includes('img-src')).length, 1, guard.join('\n'));
+  assert.ok(!guard.some((x) => x.includes('/local.mp3')));
+});
+
+test('S2: link loads are checked by rel (and by as, for preload)', () => {
+  const { guard } = pageFindings(
+    [
+      '<link rel="Stylesheet" href="https://cdn.example.com/x.css">',
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=X">',
+      '<link rel="preload" as="script" href="https://cdn.example.com/x.js">',
+      '<link rel="preload" as="style" href="https://cdn.example.com/y.css">',
+      '<link rel="preload" as="font" href="https://cdn.example.com/f.woff2" crossorigin>',
+      '<link rel="modulepreload" href="https://cdn.example.com/m.js">',
+      '<link rel="preconnect" href="https://cdn.example.com">',
+      '<link rel="alternate" href="https://elsewhere.example.com/feed.xml">',
+    ].join(''),
+  );
+  assert.equal(guard.filter((x) => x.includes('style-src')).length, 2, guard.join('\n'));
+  assert.equal(guard.filter((x) => x.includes('script-src')).length, 2, guard.join('\n'));
+  assert.equal(guard.filter((x) => x.includes('font-src')).length, 1, guard.join('\n'));
+  assert.equal(guard.length, 5, guard.join('\n'));
+});
+
+test('S2: images are checked against img-src, so http: fails and https:, data: and the site pass', () => {
+  const { guard } = pageFindings(
+    '<img src="http://img.example.com/a.jpg"><img src="https://img.example.com/b.jpg"><img src="data:image/png;base64,AAAA"><img src="/heroes/c.jpg" srcset="/heroes/c.jpg 1x, http://img.example.com/c@2x.jpg 2x"><picture><source srcset="http://img.example.com/d.webp"><img src="/d.jpg"></picture>',
+  );
+  const img = guard.filter((x) => x.includes('img-src'));
+  assert.equal(img.length, 3, guard.join('\n'));
+  assert.ok(img.every((x) => x.includes('http://img.example.com/')));
+});
+
+test('S2: a script with src, or an SVG script with href or xlink:href, is external and never hashed', () => {
+  const scan = scanPage(
+    page(
+      '',
+      '<script src="">window.never = 1;</script><svg><script href="https://cdn.example.com/a.js"></script><script xlink:href="https://cdn.example.com/b.js"></script><script>window.svgInline = 1;</script></svg>',
+    ),
+  );
+  assert.deepEqual(scan.inline.map((s) => s.hash), [sha256('window.svgInline = 1;')]);
+  const scripts = scan.loads.filter((l) => l.directive === 'script-src').map((l) => l.url);
+  assert.deepEqual(scripts, ['', 'https://cdn.example.com/a.js', 'https://cdn.example.com/b.js']);
+  const { guard } = pageFindings('<svg><script href="https://cdn.example.com/a.js"></script></svg>');
+  assert.equal(guard.filter((x) => x.includes('script-src')).length, 1, guard.join('\n'));
+  // An HTML script's href means nothing to the browser: its body runs, so it is hashed.
+  assert.equal(scanPage(page('', '<script href="/x.js">window.y = 1;</script>')).inline.length, 1);
+});
+
+test("S3: connect-src follows Google's current GA4 guidance", () => {
+  const connect = parsePolicy(headersFor(built().text(), '/').get(cspHeaderName().toLowerCase())).get('connect-src');
+  for (const host of ['https://www.googletagmanager.com', 'https://*.google-analytics.com', 'https://*.google.com']) assert.ok(connect.includes(host), host);
+  // Not in the guidance, and not seen in real traffic (SECURITY.md, "Content-Security-Policy").
+  assert.ok(!connect.includes('https://*.analytics.google.com'));
+  assert.ok(allows(connect, 'https://www.google.com/ccm/collect'));
+  assert.ok(allows(connect, 'https://region1.google-analytics.com/g/collect'));
+});
+
+test('S4: a script type with MIME parameters is judged by its essence; over-hashing is harmless', () => {
+  const a = (type) => [{ name: 'type', value: type }];
+  assert.ok(scriptIsGoverned(a('text/javascript; charset=utf-8')));
+  assert.ok(scriptIsGoverned(a(' Application/JavaScript ;version=1')));
+  assert.ok(!scriptIsGoverned(a('application/ld+json; charset=utf-8')));
+});
+
+test("N1: the endpoints are read the way Vite reads them: .env files for the production mode, the process's environment first", async () => {
+  const root = tempDir('csp-env-');
+  writeFileSync(join(root, '.env'), 'PUBLIC_COMMENTS_ENDPOINT=http://localhost:8792/\nPUBLIC_CONTACT_ENDPOINT=http://localhost:1/\n');
+  writeFileSync(join(root, '.env.production.local'), 'PUBLIC_CONTACT_ENDPOINT="http://localhost:8787/"\n');
+  writeFileSync(join(root, '.env.development'), 'PUBLIC_COMMENTS_ENDPOINT=http://dev.invalid/\n');
+  // Vite's loadEnv reads the real process.env, so the test sets and restores the two names itself.
+  const names = ['PUBLIC_COMMENTS_ENDPOINT', 'PUBLIC_CONTACT_ENDPOINT'];
+  const saved = Object.fromEntries(names.map((n) => [n, process.env[n]]));
+  try {
+    for (const n of names) delete process.env[n];
+    assert.deepEqual(endpointOrigins(await csp.loadBuildEnv(root)), { comments: 'http://localhost:8792', contact: 'http://localhost:8787' });
+    assert.deepEqual(endpointOrigins(await csp.loadBuildEnv(tempDir('csp-env-empty-'))), endpointOrigins({}));
+    process.env.PUBLIC_COMMENTS_ENDPOINT = 'https://comments.example.com/';
+    assert.equal(endpointOrigins(await csp.loadBuildEnv(root)).comments, 'https://comments.example.com');
+  } finally {
+    for (const n of names) {
+      if (saved[n] === undefined) delete process.env[n];
+      else process.env[n] = saved[n];
+    }
+  }
+  // Astro loads .env from vite.envDir, else the project root; this site sets no envDir.
+  assert.doesNotMatch(readFileSync(join(SITE_ROOT, 'astro.config.mjs'), 'utf8'), /envDir/);
+});
+
+test('N2: a _headers rule form the guard does not model is refused, not misjudged', () => {
+  for (const rule of ['/posts/:slug/*', '/a/*/b', 'https://aitamer.news/*', '/*.jpg']) {
+    const f = fixture(SITE, `${PUBLIC_HEADERS}${rule}\n  X-Test: 1\n`);
+    const written = writeSitePolicy(f.dist, { env: ENV });
+    assert.ok(written.findings.some((x) => x.includes(rule) && x.includes('does not model')), `${rule}: ${written.findings.join('\n')}`);
+    writeFileSync(join(f.dist, '_headers'), readFileSync(f.publicHeaders, 'utf8'));
+    const guard = checkSitePolicy(f.dist, { env: ENV, publicHeaders: f.publicHeaders });
+    assert.ok(guard.some((x) => x.includes(rule) && x.includes('does not model')), `${rule}: ${guard.join('\n')}`);
+  }
+  // The forms the site uses stay modelled.
+  assert.deepEqual(csp.unmodeledRules('/*\n  A: 1\n/search/*\n  B: 2\n/exact\n  C: 3\n/_astro/*\n  D: 4\n'), []);
 });

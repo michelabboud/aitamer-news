@@ -79,6 +79,32 @@ other origins. Michel approved a policy on 2026-09-26, starting in report-only m
 - Report-only violations currently reach only the reader's own console. Enforcing without a
   collector means trusting the browser checks and the report-only period seen by maintainers.
 
+## Amendment, 2026-09-26 (deep review of 0.2.31)
+
+The text above is kept as written; this corrects and extends it.
+
+- **The hash count.** Consequences says "9 today". The build has **8** distinct inline scripts.
+  The ninth was `VideoEmbed`'s script, present only in the browser check's temporary video post,
+  which was never committed. It comes back as soon as a post uses the `video:` field.
+- **connect-src follows Google's current guidance for the Google tag**
+  (developers.google.com/tag-platform/security/guides/csp, read 2026-09-26):
+  `https://www.googletagmanager.com`, `https://*.google-analytics.com` and `https://*.google.com`.
+  `https://*.analytics.google.com` and the wildcard `https://*.googletagmanager.com` are gone:
+  the guidance lists neither, and no traffic in the browser checks used them.
+- **The guard refuses an iframe `srcdoc`**, as it refuses `<object>` and `<embed>`. A srcdoc
+  document inherits the page's policy, and the guard does not look inside it.
+- **The guard checks more loads.** It now checks media, `<link>` stylesheets, preloads, module
+  preloads, icons and manifests, images (so an `http:` image fails), and SVG `<script href>`.
+  An SVG script with `href` and any HTML script with `src` count as external and are never hashed.
+  A script type is judged by its MIME essence, the part before `;`, so a script some browser
+  might run is always hashed.
+- **The endpoints are read the way the build reads them**, with Vite's `loadEnv` for the
+  production mode (resolved through Astro), so a local `.env` no longer fails the guard.
+- **Unmodelled `_headers` rule forms are refused.** A `:placeholder`, a `*` mid-path or an
+  absolute URL is refused by both the writer and the guard, so it is never misjudged.
+
+The decision itself stands.
+
 ## Status
 
 Accepted 2026-09-26 (report-only).

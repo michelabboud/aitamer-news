@@ -2,6 +2,21 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [Unreleased]
+
+### Fixed
+**The Content-Security-Policy, hardened before it is ever enforced** (the deep review of 0.2.31, `docs/reviews/2026-09-26-content-security-policy-review.md`; still report-only):
+- **An iframe `srcdoc` is refused** by the build and the guard, like `<object>` and `<embed>`. A srcdoc document inherits the page's policy, so a script inside it would have been blocked on enforcement without any check saying so. The site uses none.
+- **The guard checks every load the static HTML names.** It now covers media (`video`, `audio`, `source`, `track`), `<link>` stylesheets, preloads (by `as`), module preloads, icons and manifests, and images (`src`, `srcset`, `<picture>`, posters), so an `http:` image fails. It also covers SVG `<script href>` and `xlink:href`: those scripts are external and are no longer hashed as if inline.
+- **connect-src matches Google's current GA4 guidance**: `www.googletagmanager.com`, `*.google-analytics.com` and `*.google.com` (added). `*.analytics.google.com` and the wildcard `*.googletagmanager.com` are dropped, because the guidance does not list them and no traffic used them.
+- **A script type with MIME parameters** (`text/javascript; charset=utf-8`) is judged by the part before `;` and hashed. Some browsers run such scripts, and an extra hash costs nothing.
+- **A local `.env` no longer fails the guard.** The endpoints are read with Vite's own `loadEnv`, as the build reads them.
+- **A `_headers` rule the guard cannot model** (a `:placeholder`, a mid-path `*`, an absolute URL) is refused instead of misjudged.
+- The Content-Security-Policy decision record gains a dated amendment. It corrects the hash count (8 today, not 9) and records these changes.
+- **Checked again in Chromium** (the build served by `wrangler pages dev`, loaded as `https://aitamer.news`, with Google's collector answered locally). Home, search and contact were each loaded report-only and then enforced. There were zero violations, gtag's measurement requests went through the narrowed connect-src, and search returned 5 results.
+- The guard's first run in this task found a real build-cache problem: Astro's incremental cache does not notice a changed `PUBLIC_*` value, so story pages from an earlier build kept a local endpoint (BACKLOG).
+- **Production confirmed for 0.2.31**: `/`, `/search/` and `/pagefind/pagefind-worker.js` each carry exactly one report-only policy with 8 hashes, and `'wasm-unsafe-eval'` appears only on the last two.
+
 ## [0.2.31] — 2026-09-26
 
 ### Added
