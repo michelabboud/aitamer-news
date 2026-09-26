@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.19] — 2026-09-26
+
+### Changed
+- **Turnstile is on.** The site key is set, so the contact form and the comment form both show Cloudflare's bot check, and both Workers verify the token (action, and hostname `aitamer.news` or `www.aitamer.news`). The comment form now appears under stories; comments still wait for approval and appear on pages once the publisher is live. The privacy page now mentions Turnstile for the contact form.
+
 ## [0.2.18] — 2026-09-26
 
 ### Changed

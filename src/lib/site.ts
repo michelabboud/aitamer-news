@@ -42,8 +42,10 @@ export const COMMENTS_ENDPOINT: string =
  * the page); empty = the contact form's widget is off, and the comment form says commenting is
  * not set up yet (Turnstile is mandatory for comments, plan D8).
  * Set it together with the Workers' secret TURNSTILE_SECRET_KEY, never one without the other.
+ * Order when changing it: deploy the site with the key first, then set the secret; the contact
+ * Worker rejects every note without a token once the secret is set.
  */
-export const TURNSTILE_SITE_KEY = '';
+export const TURNSTILE_SITE_KEY = '0x4AAAAAAFD4NAnBkk3_-_1Y';
 
 /** The habitats, in reading order. Kept under the old name: routes and props still say "section". */
 export const ALL_SECTIONS = HABITATS;

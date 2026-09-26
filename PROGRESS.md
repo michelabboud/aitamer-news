@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.19: Turnstile on. Site key set; `TURNSTILE_SECRET_KEY` is on both the contact and the comments Workers. The comment form shows under stories; published comments wait on the publisher (GitHub App).
+
 - **2026-09-25** — **v0.2.0 released: the Bestiary redesign.** Both release reviewers' blockers fixed (0.1.27–0.1.28): a real 404 page, no stale countdowns in the HTML, no empty headlines in contract v1. The Wildness ratings and verdicts are provisional until Michel's editorial sign-off. Next phase not chosen yet.
 
 - **2026-09-25** — 0.1.7–0.1.21: the Bestiary redesign, phase 1 (plan `docs/plans/2026-09-25-bestiary-redesign.md`): habitats, the post contract with permanent specimen numbers, the theme site-wide, scheduled posts, search, feeds for machines, SEO, and the repo cleaned up to go public. Released as v0.2.0 after 0.1.22–0.1.28 (reviews and fixes).
