@@ -1,6 +1,10 @@
 # A Content-Security-Policy for aitamer.news — proposal (2026-09-26)
 
-- **Status:** proposal for Michel. Adding a CSP changes the live site's security headers, so it needs his yes.
+- **Status:** **adopted, report-only**, 2026-09-26 (Michel approved it the same day). The policy as built, with every origin and where it is used, is in `SECURITY.md`, "Content-Security-Policy"; the decision and the alternatives are `docs/adr/0010-content-security-policy-by-build-time-hashes.md`; the generator and guard are `scripts/csp-headers.mjs` (`npm run check:csp`). This page is kept as the proposal it was.
+- **What changed from the proposal** once it met a browser and the build:
+  - `'wasm-unsafe-eval'` goes on `/pagefind/*` as well as `/search/*`. Pagefind compiles WebAssembly in a worker, which obeys its own response's policy; with only the `/search/*` rule, search breaks when enforced.
+  - `style-src` adds `https://fonts.googleapis.com` and a `font-src https://fonts.gstatic.com` is added: the layout loads Google Fonts, which `default-src 'self'` would have refused.
+  - `upgrade-insecure-requests` is added only when enforcing (browsers ignore it in report-only mode and log an error on every page).
 - **Source:** the S4 deep review, derived from the site's source and a built page. Not yet tested in a browser.
 
 ## Why
