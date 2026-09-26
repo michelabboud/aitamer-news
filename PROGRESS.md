@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.30: the rendered-output gate for bot posts (posts MCP task S4). Every bot post is rendered and checked against an exact allowlist, in its place on a copy of the real page, both before and after the build. Five review rounds; clear. A CSP proposal awaits Michel.
+
 - **2026-09-26** — 0.2.29: fixes from the milestone review of reactions. A 404 is resent, because a new story is unknown to the Worker for minutes. Reactions run only on the site's own hosts. The privacy wording on removal is exact. Still off.
 
 - **2026-09-26** — 0.2.28: fixes from the focused review of the reactions fixes. A 410 on the page's own resend no longer moves focus; permanent refusals are not resent; the privacy wording is exact about what the hash does. `/_astro/` files are now cached for a year. Still off.

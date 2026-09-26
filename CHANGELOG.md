@@ -2,6 +2,19 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.30] — 2026-09-26
+
+### Added
+**The rendered-output gate for bot posts** (posts MCP plan, task S4; ADR 0009):
+- **Every bot-authored post is rendered and checked before the site builds.** `npm run check:posts` renders each post through Astro's own Markdown pipeline (satteri), then parses the result with parse5. A post fails unless every element, attribute and URL is on an exact allowlist (`scripts/rendered-body-allowlist.mjs`). The allowlist refuses scripts, event handlers, dangerous URL schemes, ids that could clobber the page's globals, and inline styles outside the pinned code-highlighting shapes.
+- **The post is judged in its place on the page.** The body is parsed inside a copy of the real story page, not as a loose fragment. A post cannot set attributes on the page's `<html>` or `<body>`, cannot close the page's `<article>` or `<main>`, and cannot close any element it did not open. Every parse error is a finding, and so is a tag the parser silently drops.
+- **The built site is checked too.** `npm run check:bodies:build` compares every built story page with the stored render. It also checks that the page's layout still has exactly the shape the gate models, so a layout change cannot quietly weaken it. Both deploy workflows run it after the build.
+- The gate covers a post if its front matter or Astro's stored author names a bot. It fails closed on a crash, a timeout, a stale data store, or moved Astro internals.
+- One existing post with two YouTube iframes is grandfathered, pinned by its hash and its exact findings, until Michel decides (BACKLOG).
+- New dependency: `parse5` 8.0.1 (vetting: `docs/reports/2026-09-26-parse5-vetting.md`). The GitHub Pages workflow's actions are pinned by commit.
+- Reviewed over five rounds (`docs/reviews/2026-09-26-site-s4-deep-review.md`); the final verdict is clear.
+- A Content-Security-Policy proposal is in `docs/ideas/2026-09-26-content-security-policy.md`, awaiting Michel's decision. It is not applied.
+
 ## [0.2.29] — 2026-09-26
 
 ### Fixed
