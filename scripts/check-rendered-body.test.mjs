@@ -28,7 +28,9 @@ import {
   imageSrcProblem,
   isGated,
   isProtectedId,
+  mergeResults,
   postFiles,
+  staleGrandfatherEntries,
 } from './check-rendered-body.mjs';
 import { tempDir } from './test-support.mjs';
 
@@ -298,8 +300,39 @@ test('a grandfathered post is excused only for its listed findings, and only whi
   const extra = { path: 'script[1]', element: 'script', problem: 'element <script> is not allowed' };
   assert.deepEqual(applyGrandfather(name, contents, known), { failing: [], excused: known });
   assert.deepEqual(applyGrandfather(name, contents, [...known, extra]).failing, [extra]);
-  assert.deepEqual(applyGrandfather(name, `${contents}\n`, known).failing, known, 'an edited file is gated in full');
+  const edited = applyGrandfather(name, `${contents}\n`, known);
+  assert.deepEqual(edited.excused, [], 'an edited file is gated in full');
+  assert.deepEqual(edited.failing.slice(0, 2), known);
+  assert.match(problems(edited.failing).join(), /changed since it was grandfathered, so its exemption is void/);
+  // An edit that removed the iframes still fails: the entry must not outlive it.
+  assert.match(problems(applyGrandfather(name, `${contents}\n`, []).failing).join(), /exemption is void/);
+  // Same bytes, but a finding the entry lists has gone (a renderer change): the entry is stale.
+  assert.match(problems(applyGrandfather(name, contents, known.slice(0, 1)).failing).join(), /lists findings this file no longer has/);
   assert.deepEqual(applyGrandfather('another.md', contents, known).failing, known);
+});
+
+test('a grandfather entry that matches no file as it stands fails the gate', () => {
+  assert.deepEqual(staleGrandfatherEntries(), [], 'the entries match main today');
+  const name = Object.keys(GRANDFATHERED_POSTS)[0];
+  const original = readFileSync(join(SITE_ROOT, 'src/content/posts', name), 'utf8');
+  const fixture = (contents, kind = 'bot') => {
+    const root = tempDir('grandfather-');
+    mkdirSync(join(root, 'src/content/authors'), { recursive: true });
+    mkdirSync(join(root, 'src/content/posts'), { recursive: true });
+    writeFileSync(join(root, 'src/content/authors/desk-bot.md'), `---\nname: Desk Bot\nkind: ${kind}\nbio: b\n---\n`);
+    if (contents !== null) writeFileSync(join(root, 'src/content/posts', name), contents);
+    return problems(staleGrandfatherEntries(root).flatMap((r) => r.findings)).join();
+  };
+  assert.equal(fixture(original), '');
+  assert.match(fixture(null), /the file is gone/);
+  assert.match(fixture(original.replace('<iframe', '<p')), /exemption is void/);
+  assert.match(fixture(original, 'human'), /no longer bot-authored/);
+});
+
+test('merged results keep each finding once per file', () => {
+  const f = { path: '', element: '#post', problem: 'x' };
+  const merged = mergeResults([{ file: 'a', findings: [f], excused: [] }], [{ file: 'a', findings: [f, { ...f, problem: 'y' }], excused: [] }]);
+  assert.deepEqual(problems(merged[0].findings), [': x', ': y']);
 });
 
 test('every post on main: the bot posts pass the gate; what it would say about the human posts is reported', async (t) => {

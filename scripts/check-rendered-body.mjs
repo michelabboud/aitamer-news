@@ -71,8 +71,10 @@ export const POST_MAX_BYTES = 512 * 1024;
  * Bot posts on `main` from before the gate that it would refuse, each exempt from **exactly** the
  * findings listed and only while the file is byte-for-byte the one hashed here. Any edit to the
  * file, or any other finding in it (a renderer upgrade that renders it differently), and the post
- * is gated in full again. Nothing may be added here for a new post: a new bot post passes the gate
- * or does not land. ADR 0009, "The one existing exception".
+ * is gated in full again. An entry that no longer matches its file exactly (changed bytes, a listed
+ * finding gone, the file gone, the author no longer a bot) is itself a finding, so the build fails
+ * until the entry is removed: it cannot silently outlive an edit. Nothing may be added here for a
+ * new post: a new bot post passes the gate or does not land. ADR 0009, "The one existing exception".
  *
  * - `made-on-youtube-2026-gemini-ask-studio.md` embeds two YouTube players as raw `<iframe>`s. It
  *   predates the `video` front matter field and `VideoEmbed.astro` (which holds one video, where
@@ -88,18 +90,74 @@ export const GRANDFATHERED_POSTS = Object.freeze({
   }),
 });
 
+const findingKey = (f) => JSON.stringify([f.path, f.element, f.attribute ?? null, f.problem]);
+const sha256 = (text) => createHash('sha256').update(text, 'utf8').digest('hex');
+const STALE_ENTRY = 'remove or update its GRANDFATHERED_POSTS entry in scripts/check-rendered-body.mjs';
+
 /**
- * Split a post's findings into those a grandfather entry excuses and those it does not.
+ * Split a post's findings into those a grandfather entry excuses and those it does not. An entry
+ * that no longer describes the file exactly is itself a finding, so it cannot outlive an edit:
+ * the file's hash has changed, or the file no longer has every finding the entry lists.
  * @param {string} name the file name @param {string} contents @param {Finding[]} findings
  * @returns {{ failing: Finding[], excused: Finding[] }}
  */
 export function applyGrandfather(name, contents, findings) {
   const entry = Object.hasOwn(GRANDFATHERED_POSTS, name) ? GRANDFATHERED_POSTS[name] : undefined;
-  if (!entry || createHash('sha256').update(contents, 'utf8').digest('hex') !== entry.sha256) return { failing: findings, excused: [] };
-  const key = (f) => JSON.stringify([f.path, f.element, f.attribute ?? null, f.problem]);
-  const allowed = new Set(entry.findings.map(key));
-  const failing = findings.filter((f) => !allowed.has(key(f)));
-  return { failing, excused: findings.filter((f) => allowed.has(key(f))) };
+  if (!entry) return { failing: findings, excused: [] };
+  if (sha256(contents) !== entry.sha256) {
+    return { failing: [...findings, postFinding(`this file changed since it was grandfathered, so its exemption is void: ${STALE_ENTRY}`)], excused: [] };
+  }
+  const allowed = new Set(entry.findings.map(findingKey));
+  const failing = findings.filter((f) => !allowed.has(findingKey(f)));
+  const excused = findings.filter((f) => allowed.has(findingKey(f)));
+  const present = new Set(excused.map(findingKey));
+  if (entry.findings.some((f) => !present.has(findingKey(f)))) {
+    failing.push(postFinding(`the grandfather entry lists findings this file no longer has: ${STALE_ENTRY}`));
+  }
+  return { failing, excused };
+}
+
+/**
+ * Grandfather entries that match no file as it stands: the file is gone (deleted or renamed), its
+ * bytes changed, or it is no longer gated (its author is not a bot any more). The gate reports each
+ * one as a finding, whether or not the file is otherwise checked.
+ * @param {string} [root] @returns {{ file: string, findings: Finding[], excused: Finding[] }[]}
+ */
+export function staleGrandfatherEntries(root = SITE_ROOT) {
+  const bots = botAuthorIds(root);
+  const out = [];
+  for (const [name, entry] of Object.entries(GRANDFATHERED_POSTS)) {
+    const file = join(root, POSTS_DIR, name);
+    let contents;
+    try {
+      contents = readFileSync(file, 'utf8');
+    } catch {
+      out.push({ file, findings: [postFinding(`the file is gone: ${STALE_ENTRY}`)], excused: [] });
+      continue;
+    }
+    if (sha256(contents) !== entry.sha256) out.push({ file, findings: [postFinding(`this file changed since it was grandfathered, so its exemption is void: ${STALE_ENTRY}`)], excused: [] });
+    else if (!isGated(contents, bots)) out.push({ file, findings: [postFinding(`the post is no longer bot-authored: ${STALE_ENTRY}`)], excused: [] });
+  }
+  return out;
+}
+
+/**
+ * Merge per-file results, the same finding reported twice kept once.
+ * @param {{ file: string, findings: Finding[], excused: Finding[] }[][]} lists
+ */
+export function mergeResults(...lists) {
+  const byFile = new Map();
+  for (const result of lists.flat()) {
+    const seen = byFile.get(result.file);
+    if (!seen) {
+      byFile.set(result.file, { ...result, findings: [...result.findings], excused: [...result.excused] });
+      continue;
+    }
+    const keys = new Set(seen.findings.map(findingKey));
+    for (const f of result.findings) if (!keys.has(findingKey(f))) seen.findings.push(f);
+    seen.excused.push(...result.excused.filter((f) => !seen.excused.some((e) => findingKey(e) === findingKey(f))));
+  }
+  return [...byFile.values()];
 }
 
 /** How much of the worker's standard error is kept for a crash report. */
@@ -506,7 +564,7 @@ export async function main(argv) {
   let results;
   let scope;
   if (againstBuild) {
-    results = (await checkAgainstBuild()).map((r) => ({ ...r, file: relative(process.cwd(), r.file) || r.file }));
+    results = mergeResults(await checkAgainstBuild(), staleGrandfatherEntries()).map((r) => ({ ...r, file: relative(process.cwd(), r.file) || r.file }));
     scope = `the build's ${results.length} posts`;
   } else if (stdin) {
     const contents = await readStdin();
@@ -517,6 +575,8 @@ export async function main(argv) {
   } else {
     const files = args.length ? args.map((a) => resolve(a)) : all ? postFiles() : gatedPostFiles();
     results = await checkPostFiles(files);
+    // The gate and the full report also refuse a grandfather entry that no longer matches its file.
+    if (!args.length) results = mergeResults(results, staleGrandfatherEntries());
     results = results.map((r) => ({ ...r, file: relative(process.cwd(), r.file) || r.file }));
     scope = args.length ? `${files.length} post file(s)` : all ? `all ${files.length} posts` : `${files.length} bot-authored post(s)`;
   }
