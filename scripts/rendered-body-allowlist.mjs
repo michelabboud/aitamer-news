@@ -12,7 +12,7 @@
  * How it reads the HTML: with parse5, a WHATWG-conformant parser, as a whole document that stands in
  * for the story page (`<html><body><main><article><div class="article__body">` + the body + a
  * marker for what follows), because a fragment parse silently drops what a browser would merge
- * into the page (`<body onload=…>`). Every start tag the tokenizer emits is also recorded,
+ * into the page (`<body onload=…>`). Every start and end tag the tokenizer emits is also recorded,
  * so a tag the tree drops is still judged. Never a regex over HTML.
  *
  * The rule: **unknown means refused.** Every element, every attribute and every attribute value
@@ -532,11 +532,16 @@ const PAGE_AFTER = `</div><p ${BODY_MARKER_ATTR}>${BODY_MARKER_TEXT}</p></articl
 /** The stand-in's own markup, for tests that keep it in step with the layout. */
 export const PAGE_STAND_IN = Object.freeze({ before: PAGE_BEFORE, after: PAGE_AFTER });
 
-/** A parse5 parser that also reports every start tag the tokenizer emits, dropped or not. */
+/** A parse5 parser that also reports every start and end tag the tokenizer emits, dropped or not. */
 class TagRecordingParser extends Parser {
   onStartTag(token) {
     this.options.onTagToken?.(token, 'start');
     super.onStartTag(token);
+  }
+
+  onEndTag(token) {
+    this.options.onTagToken?.(token, 'end');
+    super.onEndTag(token);
   }
 }
 
@@ -557,6 +562,8 @@ export function checkRenderedHtml(html) {
   const bodyEnd = bodyStart + html.length;
   /** Start tags inside the body that name no allowed element, whatever the tree did with them. */
   const strayStartTags = [];
+  /** End tags inside the body for elements the body may not contain (`</body>`, `</main>`, `</div>`…). */
+  const strayEndTags = [];
   // Any parse error is a finding. The renderer's own output parses cleanly (every post on main
   // does); errors mean raw HTML the parser had to repair, and the repair here and on the page can
   // differ (a trailing unterminated tag swallows whatever follows it).
@@ -567,7 +574,7 @@ export function checkRenderedHtml(html) {
     onTagToken: (token, kind) => {
       const at = token.location?.startOffset ?? -1;
       if (at < bodyStart || at >= bodyEnd || Object.hasOwn(ELEMENT_RULES, token.tagName)) return;
-      if (kind === 'start') strayStartTags.push(token.tagName);
+      (kind === 'start' ? strayStartTags : strayEndTags).push(token.tagName);
     },
   });
 
@@ -668,6 +675,12 @@ export function checkRenderedHtml(html) {
   for (const tag of new Set(strayStartTags)) {
     if (visited.has(tag)) continue;
     findings.push({ path: '', element: tag, problem: `the body contains a <${tag}> start tag that the parser drops or merges into the page; not allowed` });
+  }
+  // An end tag for an element the body may not contain, and did not open, can only close one of
+  // the page's own. (One that closes an element of the body is judged with that element.)
+  for (const tag of new Set(strayEndTags)) {
+    if (visited.has(tag)) continue;
+    findings.push({ path: '', element: tag, problem: `the body contains a </${tag}> end tag, which can only close one of the page's own elements; not allowed` });
   }
   return findings;
 }

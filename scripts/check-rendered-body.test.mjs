@@ -118,6 +118,14 @@ test("H1: tags that reach the page's <html>, <head> or <body> are refused throug
   assert.match(problems(results[3].findings).join(), /page's <html>|<html> start tag/);
 });
 
+test("H2: end tags for the page's own elements are refused through the real render", async () => {
+  const bodies = ['x\n\n</article>\n\ny', 'x\n\n</main>\n\ny', 'x\n\n</article></main><a href="https://evil.example/">z</a>', 'x\n\n</body>\n\ny', 'x\n\n</html><p>y</p>'];
+  const results = await checkPostSources(bodies.map((body, i) => ({ name: `end-${i}.md`, contents: post(body) })));
+  results.forEach(({ findings }, i) => assert.match(problems(findings).join(), /end tag, which can only close one of the page's own elements/, bodies[i]));
+  // The first three also move content out of the story, which the page-shape check sees.
+  results.slice(0, 3).forEach(({ findings }, i) => assert.match(problems(findings).join(), /breaks out of its place/, bodies[i]));
+});
+
 test("H1: the page stand-in mirrors the story page's real ancestor chain", () => {
   const layout = readFileSync(join(SITE_ROOT, 'src/layouts/BaseLayout.astro'), 'utf8');
   const page = readFileSync(join(SITE_ROOT, 'src/pages/posts/[slug].astro'), 'utf8');
