@@ -121,9 +121,17 @@ test("H1: tags that reach the page's <html>, <head> or <body> are refused throug
 test("H2: end tags for the page's own elements are refused through the real render", async () => {
   const bodies = ['x\n\n</article>\n\ny', 'x\n\n</main>\n\ny', 'x\n\n</article></main><a href="https://evil.example/">z</a>', 'x\n\n</body>\n\ny', 'x\n\n</html><p>y</p>'];
   const results = await checkPostSources(bodies.map((body, i) => ({ name: `end-${i}.md`, contents: post(body) })));
-  results.forEach(({ findings }, i) => assert.match(problems(findings).join(), /end tag, which can only close one of the page's own elements/, bodies[i]));
+  results.forEach(({ findings }, i) => assert.match(problems(findings).join(), /end tag that closes nothing the body opened/, bodies[i]));
   // The first three also move content out of the story, which the page-shape check sees.
   results.slice(0, 3).forEach(({ findings }, i) => assert.match(problems(findings).join(), /breaks out of its place/, bodies[i]));
+});
+
+test('should-fix 1b: an end tag that closes nothing the body opened is refused, allowed element or not', async () => {
+  const bodies = ['<p>a</p></section>', 'x\n\n</blockquote>\n\ny', 'x\n\n</li>\n\ny', 'x\n\n</table>\n\ny', 'x\n\n</p>\n\ny', '<p>a</span></p>', '<p>a</a></p>'];
+  const results = await checkPostSources(bodies.map((body, i) => ({ name: `unmatched-${i}.md`, contents: post(body) })));
+  results.forEach(({ findings }, i) => assert.match(problems(findings).join(), /end tag that closes nothing the body opened/, bodies[i]));
+  // Balanced bodies, nested and repeated, still pass.
+  assert.deepEqual(problems(checkRenderedHtml('<blockquote><blockquote><p>a <em>b</em></p></blockquote></blockquote><ul><li>x</li><li>y</li></ul>')), []);
 });
 
 test("H1: the page stand-in mirrors the story page's real ancestor chain", () => {

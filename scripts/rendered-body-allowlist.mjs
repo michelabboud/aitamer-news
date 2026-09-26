@@ -532,15 +532,27 @@ const PAGE_AFTER = `</div><p ${BODY_MARKER_ATTR}>${BODY_MARKER_TEXT}</p></articl
 /** The stand-in's own markup, for tests that keep it in step with the layout. */
 export const PAGE_STAND_IN = Object.freeze({ before: PAGE_BEFORE, after: PAGE_AFTER });
 
-/** A parse5 parser that also reports every start and end tag the tokenizer emits, dropped or not. */
+/**
+ * A parse5 parser that also reports every start and end tag the tokenizer emits, dropped or not,
+ * each exactly once: parse5 hands some tokens to `onEndTag` a second time when it reprocesses them
+ * (flushing pending table text), so tokens already reported are remembered.
+ */
 class TagRecordingParser extends Parser {
+  #seen = new WeakSet();
+
+  #report(token, kind) {
+    if (this.#seen.has(token)) return;
+    this.#seen.add(token);
+    this.options.onTagToken?.(token, kind);
+  }
+
   onStartTag(token) {
-    this.options.onTagToken?.(token, 'start');
+    this.#report(token, 'start');
     super.onStartTag(token);
   }
 
   onEndTag(token) {
-    this.options.onTagToken?.(token, 'end');
+    this.#report(token, 'end');
     super.onEndTag(token);
   }
 }
@@ -562,8 +574,14 @@ export function checkRenderedHtml(html) {
   const bodyEnd = bodyStart + html.length;
   /** Start tags inside the body that name no allowed element, whatever the tree did with them. */
   const strayStartTags = [];
-  /** End tags inside the body for elements the body may not contain (`</body>`, `</main>`, `</div>`…). */
-  const strayEndTags = [];
+  /**
+   * End tags inside the body that close nothing the body itself opened, whatever their name: a
+   * `</main>` or `</body>`, but also a `</p>`, `</section>` or `</blockquote>` with no opener in the
+   * body, which on the page would close (or be read against) one of the page's own elements.
+   */
+  const unmatchedEndTags = [];
+  /** Start tags seen in the body, per name, not yet matched by an end tag. */
+  const openedInBody = new Map();
   // Any parse error is a finding. The renderer's own output parses cleanly (every post on main
   // does); errors mean raw HTML the parser had to repair, and the repair here and on the page can
   // differ (a trailing unterminated tag swallows whatever follows it).
@@ -573,8 +591,16 @@ export function checkRenderedHtml(html) {
     },
     onTagToken: (token, kind) => {
       const at = token.location?.startOffset ?? -1;
-      if (at < bodyStart || at >= bodyEnd || Object.hasOwn(ELEMENT_RULES, token.tagName)) return;
-      (kind === 'start' ? strayStartTags : strayEndTags).push(token.tagName);
+      if (at < bodyStart || at >= bodyEnd) return;
+      const tag = token.tagName;
+      if (kind === 'start') {
+        openedInBody.set(tag, (openedInBody.get(tag) ?? 0) + 1);
+        if (!Object.hasOwn(ELEMENT_RULES, tag)) strayStartTags.push(tag);
+      } else if ((openedInBody.get(tag) ?? 0) > 0) {
+        openedInBody.set(tag, openedInBody.get(tag) - 1);
+      } else {
+        unmatchedEndTags.push(tag);
+      }
     },
   });
 
@@ -676,11 +702,11 @@ export function checkRenderedHtml(html) {
     if (visited.has(tag)) continue;
     findings.push({ path: '', element: tag, problem: `the body contains a <${tag}> start tag that the parser drops or merges into the page; not allowed` });
   }
-  // An end tag for an element the body may not contain, and did not open, can only close one of
-  // the page's own. (One that closes an element of the body is judged with that element.)
-  for (const tag of new Set(strayEndTags)) {
-    if (visited.has(tag)) continue;
-    findings.push({ path: '', element: tag, problem: `the body contains a </${tag}> end tag, which can only close one of the page's own elements; not allowed` });
+  // An end tag that closes nothing the body opened can only close one of the page's own elements,
+  // whatever the page wraps the body in today (balance per tag name, counted in the tokenizer's
+  // record, so it holds even for an allowed element such as `</section>` or `</blockquote>`).
+  for (const tag of new Set(unmatchedEndTags)) {
+    findings.push({ path: '', element: tag, problem: `the body contains a </${tag}> end tag that closes nothing the body opened, so it can only close one of the page's own elements; not allowed` });
   }
   return findings;
 }
