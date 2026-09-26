@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.25: the privacy page says retention exactly (deleted within a day after 30 days); the reactions paragraph says a comment and a reaction share the hash. From the ops-side deep review.
+
 - **2026-09-26** — 0.2.24: fixes from the deep review of RB1 and RB2 (rename-rule wording, ADR 0008 amendment, an 8 KiB cap on reactions files).
 
 - **2026-09-26** — 0.2.23: task RB4, the privacy paragraph for reactions, behind `REACTIONS_LIVE` (off). Batch R-B (site) is built; Michel's review of the paragraph is owed before go-live.

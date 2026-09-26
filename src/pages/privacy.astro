@@ -25,25 +25,30 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
       <p>
         The comments Worker is the desk's own program, not a vendor's. Nothing about a comment goes
         through a third-party comment host or an advertising tracker. This is what the desk keeps
-        when you send a comment, and for how long:
+        when you send a comment, and for how long. The desk deletes old data in a clean-up that runs
+        once a night, so anything kept "for 30 days" is deleted at the first clean-up after those 30
+        days: at most 31 days after it was stored.
       </p>
       <ul>
         <li>
           Your IP address, only as a salted, shortened hash. The address itself is never stored.
-          The hash is kept for 30 days. It is used to limit how many comments one visitor can send,
-          to spot the same comment sent twice, to judge how far to trust a new comment, and to
+          The hash is kept for 30 days and deleted within a day after that. It is used to limit how
+          many comments one visitor can send, to spot the same comment sent twice, to judge how far to trust a new comment, and to
           enforce a ban. When the desk bans a visitor, the hash and a short note of the reason are
-          kept for up to 30 days from the ban, then deleted. While you send, Cloudflare's rate limit
-          and its Turnstile check see the address itself; that handling is Cloudflare's.
+          kept for 30 days from the ban and deleted within a day after that. While you send,
+          Cloudflare's rate limit and its Turnstile check see the address itself; that handling is Cloudflare's.
         </li>
         <li>
           A trust score for the comment, worked out from its content and from that hash's recent
           history, and the number of links in it. These stay with the comment's record.
         </li>
-        <li>How long the form was open before you sent it. This is kept for 30 days.</li>
+        <li>
+          How long the form was open before you sent it. This is kept for 30 days and deleted within a
+          day after that.
+        </li>
         <li>
           Your name and comment text, while the desk reviews the comment. If the desk rejects it,
-          the name and text are erased 30 days after the review.
+          the name and text are kept for 30 days after the review and erased within a day after that.
         </li>
         <li>
           If the desk removes a comment, its name and text are erased from the desk's database at
@@ -73,9 +78,12 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
           Reacting to a story (the "React" button) sends the story's address and your choice to
           comments.{SITE.domain}. The desk keeps your choice with your IP address as the same salted,
           shortened hash it keeps for comments, for 30 days from your last change, so that one
-          visitor counts once per story; after 30 days the choice is folded into the story's
-          anonymous totals and the hash is deleted. Removing your reaction deletes it at once. The
-          totals are public and are baked into the story's page. Your browser remembers your own
+          visitor counts once per story. Within a day after those 30 days, the nightly clean-up folds
+          your choice into the story's anonymous totals and deletes the hash. Removing your reaction
+          deletes it at once. Because it is the same hash, for those 30 days the desk's database can
+          tell that a comment and a reaction came from the same connection. The desk does not use that
+          link for anything but limits on how often one visitor can act and bans, and never to follow
+          what you read or react to. The totals are public and are baked into the story's page. Your browser remembers your own
           choice in its local storage (not a cookie) for 30 days, so the button can show it; clearing
           site data forgets it.
         </p>

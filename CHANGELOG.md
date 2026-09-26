@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.25] — 2026-09-26
+
+### Fixed
+- **The privacy page is exact about retention.** The desk deletes old data in a nightly clean-up, so what it keeps "for 30 days" is deleted within a day after those 30 days (at most 31). The page now says so once, up front, and at each item: the IP hash, a ban's note, how long the form was open, and a rejected comment's name and text. The restorable-backup and browser-memory lines are unchanged (neither depends on the clean-up).
+- The reactions paragraph (still behind `REACTIONS_LIVE`) says the same, and adds that reactions and comments from the same connection carry the same shortened hash for those 30 days, so the desk's database can tell they came from the same visitor, and that the desk uses that link only for limits and bans.
+
 ## [0.2.24] — 2026-09-26
 
 ### Fixed

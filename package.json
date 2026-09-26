@@ -1,7 +1,7 @@
 {
   "name": "aitamer-news",
   "type": "module",
-  "version": "0.2.24",
+  "version": "0.2.25",
   "engines": {
     "node": ">=22.12.0"
   },
