@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.21] — 2026-09-26
+
+### Changed
+- **The publisher's second lane** (reactions plan, task RB2; ADR 0008, a security-boundary change). The guard `scripts/check-publisher-paths.mjs` now lets the desk's publisher add, change or delete `src/content/reactions/<slug>.json` as well as `src/content/comments/<slug>.json`, and nothing else; a rename may not cross between the two directories. The required check `publisher-paths` and the deploy's refusal of a publisher push both run this script, so both widen with it; neither workflow's logic changed (comments only), and the rulesets and the App's permissions are unchanged. 8 new tests: a reactions file passing, `README.md`, nested, lookalike (`src/content/reactionsx/`), traversal and wrong-extension paths failing, renames across lanes failing both ways (in real git output too), a pull request or push that adds anything else beside a reactions file failing, and the maintainer exemption unchanged.
+
 ## [0.2.20] — 2026-09-26
 
 ### Added

@@ -4,10 +4,13 @@ import { execFileSync } from 'node:child_process';
 import { chmodSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
+  COMMENTS_LANE,
   COMMENT_FILE_PATH,
   EXEMPTING_ACTIONS,
   MODE_FILE,
-  PUBLISHER_LANE,
+  PUBLISHER_LANES,
+  REACTIONS_LANE,
+  REACTION_FILE_PATH,
   UnjudgeableError,
   accountId,
   changeProblems,
@@ -15,6 +18,7 @@ import {
   collectPush,
   fileProblems,
   inPublisherLane,
+  laneOf,
   main,
   parseHeadModes,
   parseNameStatus,
@@ -24,7 +28,10 @@ import { gitIn, quietly, tempDir } from './test-support.mjs';
 
 const MAINTAINER = '29182417';
 const PUBLISHER = '9900001';
-const LANE_FILE = `${PUBLISHER_LANE}grok-4-7.json`;
+const LANE_FILE = `${COMMENTS_LANE}grok-4-7.json`;
+const REACTION_FILE = `${REACTIONS_LANE}grok-4-7.json`;
+/** What every "outside" message names as allowed. */
+const LANES_TEXT = /only src\/content\/comments\/<slug>\.json or src\/content\/reactions\/<slug>\.json may change/;
 
 /** A head tree where every listed path is a plain file unless said otherwise. */
 const tree = (entries) => new Map(Object.entries(entries).map(([path, mode]) => [path, mode ?? MODE_FILE]));
@@ -32,10 +39,13 @@ const plain = (...paths) => tree(Object.fromEntries(paths.map((path) => [path, M
 
 // ---- the lane ----
 
-test('only src/content/comments/<slug>.json is in the lane', () => {
-  assert.equal(PUBLISHER_LANE, 'src/content/comments/');
+test('only src/content/comments/<slug>.json and src/content/reactions/<slug>.json are in the lanes', () => {
+  assert.deepEqual(PUBLISHER_LANES, ['src/content/comments/', 'src/content/reactions/']);
   assert.equal(inPublisherLane(LANE_FILE), true);
-  assert.equal(inPublisherLane(`${PUBLISHER_LANE}a1.json`), true);
+  assert.equal(inPublisherLane(REACTION_FILE), true);
+  assert.equal(laneOf(LANE_FILE), COMMENTS_LANE);
+  assert.equal(laneOf(REACTION_FILE), REACTIONS_LANE);
+  assert.equal(inPublisherLane(`${COMMENTS_LANE}a1.json`), true);
 });
 
 test('outside the directory, nested, dotted, uppercase, README and non-json paths are not in the lane', () => {
@@ -43,17 +53,17 @@ test('outside the directory, nested, dotted, uppercase, README and non-json path
     'README.md',
     'src/lib/site.ts',
     '.github/workflows/deploy-pages.yml',
-    `${PUBLISHER_LANE}README.md`,
-    `${PUBLISHER_LANE}nested/grok-4-7.json`,
-    `${PUBLISHER_LANE}../posts/grok-4-7.md`,
-    `${PUBLISHER_LANE}../comments/grok-4-7.json`,
-    `${PUBLISHER_LANE}grok-4-7.JSON`,
-    `${PUBLISHER_LANE}Grok-4-7.json`,
-    `${PUBLISHER_LANE}-leading-hyphen.json`,
-    `${PUBLISHER_LANE}grok 4 7.json`,
-    `${PUBLISHER_LANE}grok-4-7.json.bak`,
-    `${PUBLISHER_LANE}grok-4-7.json\n`,
-    `${PUBLISHER_LANE}.json`,
+    `${COMMENTS_LANE}README.md`,
+    `${COMMENTS_LANE}nested/grok-4-7.json`,
+    `${COMMENTS_LANE}../posts/grok-4-7.md`,
+    `${COMMENTS_LANE}../comments/grok-4-7.json`,
+    `${COMMENTS_LANE}grok-4-7.JSON`,
+    `${COMMENTS_LANE}Grok-4-7.json`,
+    `${COMMENTS_LANE}-leading-hyphen.json`,
+    `${COMMENTS_LANE}grok 4 7.json`,
+    `${COMMENTS_LANE}grok-4-7.json.bak`,
+    `${COMMENTS_LANE}grok-4-7.json\n`,
+    `${COMMENTS_LANE}.json`,
     'src/content/comments',
     'src/content/commentsx/grok-4-7.json',
     'other/src/content/comments/grok-4-7.json',
@@ -65,8 +75,9 @@ test('outside the directory, nested, dotted, uppercase, README and non-json path
   }
 });
 
-test('the lane pattern is anchored and derived from the posts’ slug rule', () => {
+test('the lane patterns are anchored and derived from the posts’ slug rule', () => {
   assert.equal(COMMENT_FILE_PATH.source, '^src\\/content\\/comments\\/[a-z0-9][a-z0-9-]*\\.json$');
+  assert.equal(REACTION_FILE_PATH.source, '^src\\/content\\/reactions\\/[a-z0-9][a-z0-9-]*\\.json$');
 });
 
 test('the check imports nothing outside node: built-ins and its own dependency-free slug module', async () => {
@@ -150,12 +161,12 @@ test('adding, changing or deleting a comment file in the lane is allowed', () =>
 });
 
 test('a rename inside the lane is allowed; a rename from or to outside is not', () => {
-  const inside = { status: 'R', from: `${PUBLISHER_LANE}old-slug.json`, path: LANE_FILE };
+  const inside = { status: 'R', from: `${COMMENTS_LANE}old-slug.json`, path: LANE_FILE };
   assert.deepEqual(fileProblems(inside, plain(LANE_FILE)), []);
   const fromOutside = { status: 'R', from: 'src/lib/site.ts', path: LANE_FILE };
   assert.match(fileProblems(fromOutside, plain(LANE_FILE)).join('\n'), /renamed from src\/lib\/site\.ts, which is outside/);
   const toOutside = { status: 'R', from: LANE_FILE, path: 'src/lib/site.ts' };
-  assert.match(fileProblems(toOutside, plain('src/lib/site.ts')).join('\n'), /src\/lib\/site\.ts: outside the publisher's lane/);
+  assert.match(fileProblems(toOutside, plain('src/lib/site.ts')).join('\n'), /src\/lib\/site\.ts: outside the publisher's lanes/);
   const noFrom = { status: 'R', path: LANE_FILE };
   assert.match(fileProblems(noFrom, plain(LANE_FILE)).join('\n'), /renamed from \(unknown\)/);
 });
@@ -163,7 +174,8 @@ test('a rename inside the lane is allowed; a rename from or to outside is not', 
 test('a path outside the lane is a problem whatever its status, deletion included', () => {
   for (const status of ['A', 'M', 'D', 'R', 'C', 'T']) {
     const problems = fileProblems({ status, from: 'README.md', path: 'README.md' }, plain('README.md'));
-    assert.match(problems.join('\n'), /README\.md: outside the publisher's lane; only src\/content\/comments\/<slug>\.json may change/, status);
+    assert.match(problems.join('\n'), /README\.md: outside the publisher's lanes; /, status);
+    assert.match(problems.join('\n'), LANES_TEXT, status);
   }
 });
 
@@ -189,7 +201,7 @@ test('the problems of a set of changes name every offending path', () => {
     { status: 'A', path: LANE_FILE },
     { status: 'M', path: '.github/workflows/deploy-pages.yml' },
     { status: 'D', path: 'src/lib/site.ts' },
-    { status: 'D', path: `${PUBLISHER_LANE}emptied-thread.json` },
+    { status: 'D', path: `${COMMENTS_LANE}emptied-thread.json` },
   ];
   const problems = changeProblems({ changes, modes: plain(LANE_FILE, '.github/workflows/deploy-pages.yml') });
   assert.equal(problems.length, 2);
@@ -261,7 +273,7 @@ function repository() {
   };
   write('src/content/posts/grok-4-7.md', '---\ntitle: x\n---\n');
   write('src/lib/site.ts', 'export {};\n');
-  write(`${PUBLISHER_LANE}old-thread.json`);
+  write(`${COMMENTS_LANE}old-thread.json`);
   const root = commit('base');
   return { dir, git, write, commit, root };
 }
@@ -270,7 +282,7 @@ test('a pull request is judged from the merge base: later main commits are not t
   const { dir, git, write, commit, root } = repository();
   git(['checkout', '-q', '-b', 'desk/comments-1']);
   write(LANE_FILE, '{"comments":[1,2,3],"slug":"grok-4-7","version":1}\n');
-  rmSync(join(dir, PUBLISHER_LANE, 'old-thread.json'));
+  rmSync(join(dir, COMMENTS_LANE, 'old-thread.json'));
   const head = commit('comments');
   git(['checkout', '-q', 'main']);
   write('src/lib/site.ts', 'export const moved = 1;\n');
@@ -278,7 +290,7 @@ test('a pull request is judged from the merge base: later main commits are not t
   const { changes, modes } = collectPullRequest({ cwd: dir, base, head });
   assert.deepEqual(changes, [
     { status: 'A', path: LANE_FILE },
-    { status: 'D', path: `${PUBLISHER_LANE}old-thread.json` },
+    { status: 'D', path: `${COMMENTS_LANE}old-thread.json` },
   ]);
   assert.deepEqual(changeProblems({ changes, modes }), []);
   assert.notEqual(root, base);
@@ -288,10 +300,10 @@ test('real git output: a symlink, an executable and a rename from outside the la
   const { dir, git, write, commit } = repository();
   const base = git(['rev-parse', 'HEAD']).trim();
   git(['checkout', '-q', '-b', 'desk/comments-2']);
-  symlinkSync('../../lib/site.ts', join(dir, `${PUBLISHER_LANE}link.json`));
-  write(`${PUBLISHER_LANE}run.json`, '#!/bin/sh\n');
-  chmodSync(join(dir, `${PUBLISHER_LANE}run.json`), 0o755);
-  git(['mv', 'src/content/posts/grok-4-7.md', `${PUBLISHER_LANE}grok-4-7.json`]);
+  symlinkSync('../../lib/site.ts', join(dir, `${COMMENTS_LANE}link.json`));
+  write(`${COMMENTS_LANE}run.json`, '#!/bin/sh\n');
+  chmodSync(join(dir, `${COMMENTS_LANE}run.json`), 0o755);
+  git(['mv', 'src/content/posts/grok-4-7.md', `${COMMENTS_LANE}grok-4-7.json`]);
   const head = commit('sneaky');
   const { changes, modes } = collectPullRequest({ cwd: dir, base, head });
   const problems = changeProblems({ changes, modes }).join('\n');
@@ -350,7 +362,7 @@ test('CLI: a clean pull request passes, whoever sent it', () => {
   const { dir, base, clean } = pullRequests();
   const { code, output } = cli(['pr', '--base', base, '--head', clean], prEnv(PUBLISHER, PUBLISHER, MAINTAINER), dir);
   assert.equal(code, 0);
-  assert.match(output, /1 changed file in this pull request, all src\/content\/comments\/<slug>\.json \(held to the rule because the author is not the maintainer\)\./);
+  assert.match(output, /1 changed file in this pull request, all src\/content\/comments\/<slug>\.json or src\/content\/reactions\/<slug>\.json \(held to the rule because the author is not the maintainer\)\./);
 });
 
 test('CLI: the five scope cases on a pull request that touches code', () => {
@@ -412,4 +424,116 @@ test('the script runs as a program with a bare node, outside any npm context', (
   const script = new URL('./check-publisher-paths.mjs', import.meta.url).pathname;
   const output = execFileSync(process.execPath, [script, 'push', '--before', base, '--after', clean], { cwd: dir, encoding: 'utf8', env: { PATH: process.env.PATH } });
   assert.match(output, /1 changed file in this push/);
+});
+
+// ---- the second lane: reactions (ADR 0008) ----
+
+test('the reactions lane takes <slug>.json only: README, nested, lookalike directories, traversal and other names are out', () => {
+  for (const path of [
+    `${REACTIONS_LANE}README.md`,
+    `${REACTIONS_LANE}nested/grok-4-7.json`,
+    `${REACTIONS_LANE}../comments/grok-4-7.json`,
+    `${REACTIONS_LANE}../posts/grok-4-7.md`,
+    `${REACTIONS_LANE}./grok-4-7.json`,
+    `${REACTIONS_LANE}grok-4-7.JSON`,
+    `${REACTIONS_LANE}grok-4-7.json.bak`,
+    `${REACTIONS_LANE}grok-4-7.jsonc`,
+    `${REACTIONS_LANE}Grok-4-7.json`,
+    `${REACTIONS_LANE}.json`,
+    `${REACTIONS_LANE}grok-4-7.json\n`,
+    'src/content/reactions',
+    'src/content/reactionsx/a.json',
+    'src/content/reaction/a.json',
+    'src/content/Reactions/a.json',
+    'other/src/content/reactions/a.json',
+  ]) {
+    assert.equal(inPublisherLane(path), false, `path ${JSON.stringify(path)}`);
+    assert.equal(laneOf(path), null, `path ${JSON.stringify(path)}`);
+  }
+});
+
+test('adding, changing or deleting a reactions file is allowed, as in the comments lane', () => {
+  const modes = plain(REACTION_FILE);
+  assert.deepEqual(fileProblems({ status: 'A', path: REACTION_FILE }, modes), []);
+  assert.deepEqual(fileProblems({ status: 'M', path: REACTION_FILE }, modes), []);
+  assert.deepEqual(fileProblems({ status: 'D', path: REACTION_FILE }, new Map()), []);
+  assert.deepEqual(fileProblems({ status: 'R', from: `${REACTIONS_LANE}old-slug.json`, path: REACTION_FILE }, modes), []);
+});
+
+test('a reactions file is held to the same modes: no symlink, no executable, no submodule', () => {
+  assert.match(fileProblems({ status: 'A', path: REACTION_FILE }, tree({ [REACTION_FILE]: '120000' })).join('\n'), /is a symbolic link \(120000\)/);
+  assert.match(fileProblems({ status: 'M', path: REACTION_FILE }, tree({ [REACTION_FILE]: '100755' })).join('\n'), /is an executable \(100755\)/);
+  assert.match(fileProblems({ status: 'A', path: REACTION_FILE }, tree({ [REACTION_FILE]: '160000' })).join('\n'), /is a submodule \(160000\)/);
+});
+
+test('a rename across the lanes is refused, in either direction; so is a rename in from outside', () => {
+  const intoReactions = fileProblems({ status: 'R', from: LANE_FILE, path: REACTION_FILE }, plain(REACTION_FILE));
+  assert.deepEqual(intoReactions, [
+    `${REACTION_FILE}: renamed from ${LANE_FILE}, in another lane; a file never moves between src/content/comments/ and src/content/reactions/`,
+  ]);
+  const intoComments = fileProblems({ status: 'R', from: REACTION_FILE, path: LANE_FILE }, plain(LANE_FILE));
+  assert.match(intoComments.join('\n'), /grok-4-7\.json: renamed from src\/content\/reactions\/grok-4-7\.json, in another lane/);
+  const fromOutside = fileProblems({ status: 'R', from: 'src/lib/site.ts', path: REACTION_FILE }, plain(REACTION_FILE));
+  assert.match(fromOutside.join('\n'), /renamed from src\/lib\/site\.ts, which is outside the publisher's lanes/);
+});
+
+test('a change that touches a reactions file and anything else names the anything else', () => {
+  const changes = [
+    { status: 'A', path: REACTION_FILE },
+    { status: 'M', path: LANE_FILE },
+    { status: 'A', path: `${REACTIONS_LANE}README.md` },
+    { status: 'M', path: 'src/lib/reactions.ts' },
+    { status: 'D', path: `${REACTIONS_LANE}gone.json` },
+  ];
+  const problems = changeProblems({ changes, modes: plain(REACTION_FILE, LANE_FILE, `${REACTIONS_LANE}README.md`, 'src/lib/reactions.ts') });
+  assert.equal(problems.length, 2, problems.join('\n'));
+  assert.match(problems[0], /^src\/content\/reactions\/README\.md: outside the publisher's lanes; /);
+  assert.match(problems[1], /^src\/lib\/reactions\.ts: outside the publisher's lanes; /);
+  for (const problem of problems) assert.match(problem, LANES_TEXT);
+});
+
+test('real git output: a rename from the comments lane into the reactions lane is caught', () => {
+  const { dir, git, commit, root } = repository();
+  git(['checkout', '-q', '-b', 'desk/comments-3']);
+  mkdirSync(join(dir, REACTIONS_LANE), { recursive: true });
+  git(['mv', `${COMMENTS_LANE}old-thread.json`, `${REACTIONS_LANE}old-thread.json`]);
+  const head = commit('moved');
+  const { changes, modes } = collectPullRequest({ cwd: dir, base: root, head });
+  assert.deepEqual(changes, [{ status: 'R', from: `${COMMENTS_LANE}old-thread.json`, path: `${REACTIONS_LANE}old-thread.json` }]);
+  assert.match(changeProblems({ changes, modes }).join('\n'), /old-thread\.json: renamed from src\/content\/comments\/old-thread\.json, in another lane/);
+});
+
+/** A repository with a branch that writes both lanes, and one that also touches code. */
+function twoLanePullRequests() {
+  const repo = repository();
+  const base = repo.root;
+  repo.git(['checkout', '-q', '-b', 'desk/comments-4']);
+  repo.write(LANE_FILE);
+  repo.write(REACTION_FILE, '{"reactions":[{"id":"love","n":1}],"slug":"grok-4-7","version":1}\n');
+  const clean = repo.commit('comments and reactions');
+  repo.write('src/lib/site.ts', 'export const REACTIONS_LIVE = true;\n');
+  const dirty = repo.commit('and code');
+  return { dir: repo.dir, base, clean, dirty };
+}
+
+test('CLI: a pull request writing both lanes passes; the same plus code fails; the maintainer rules are unchanged', () => {
+  const { dir, base, clean, dirty } = twoLanePullRequests();
+  const passed = cli(['pr', '--base', base, '--head', clean], prEnv(PUBLISHER, PUBLISHER, MAINTAINER), dir);
+  assert.equal(passed.code, 0, passed.output);
+  assert.match(passed.output, /2 changed files in this pull request, all src\/content\/comments\/<slug>\.json or src\/content\/reactions\/<slug>\.json/);
+  const failed = cli(['pr', '--base', base, '--head', dirty], prEnv(PUBLISHER, PUBLISHER, MAINTAINER), dir);
+  assert.equal(failed.code, 1);
+  assert.match(failed.output, /\n  src\/lib\/site\.ts: outside the publisher's lanes; /);
+  assert.doesNotMatch(failed.output, /grok-4-7\.json:/, 'the lane files themselves are fine');
+  assert.equal(cli(['pr', '--base', base, '--head', dirty], prEnv(MAINTAINER, MAINTAINER, MAINTAINER, 'opened'), dir).code, 0);
+  assert.equal(cli(['pr', '--base', base, '--head', dirty], prEnv(MAINTAINER, PUBLISHER, MAINTAINER), dir).code, 1);
+  assert.equal(cli(['pr', '--base', base, '--head', dirty], prEnv(MAINTAINER, MAINTAINER, undefined), dir).code, 1);
+});
+
+test('CLI: push mode passes a push writing both lanes and fails one that adds anything else', () => {
+  const { dir, base, clean, dirty } = twoLanePullRequests();
+  assert.equal(cli(['push', '--before', base, '--after', clean], {}, dir).code, 0);
+  const touched = cli(['push', '--before', clean, '--after', dirty], {}, dir);
+  assert.equal(touched.code, 1);
+  assert.match(touched.output, /this push changes what the publisher may not \(the pusher is the publisher\):\n  src\/lib\/site\.ts: outside the publisher's lanes/);
 });

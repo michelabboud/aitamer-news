@@ -53,6 +53,11 @@ never a reader, an address, a hash or a time.
   (always the newest version) and `/contract/v1/reactions.schema.json` (v1, frozen byte for byte
   by `src/content/reaction-schema.v1.snapshot.json` and its test). The desk validates against it
   before it commits.
+- The publisher lands its files by pull request only, and the required check `publisher-paths`
+  (`scripts/check-publisher-paths.mjs`) refuses a pull request that changes anything but
+  `src/content/comments/<slug>.json` and `<slug>.json` here, renames a file between the two
+  directories, or adds a link, a submodule or an executable
+  (`docs/adr/0008-the-publishers-second-lane.md`).
 
 ## Removing a file
 

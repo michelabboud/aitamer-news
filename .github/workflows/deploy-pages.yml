@@ -21,11 +21,14 @@ jobs:
 
       - name: The publisher may only have changed comment files
         # Defence in depth behind the required check `publisher-paths` (check-publisher-pr.yml):
-        # the desk's publisher should only ever land comment files through a pull request, but if
+        # the desk's publisher should only ever land its data files through a pull request, but if
         # it ever pushes to main itself (a ruleset gap, a leaked key), this refuses to build or
-        # deploy unless every path changed between github.event.before and after is
-        # src/content/comments/<slug>.json. It runs first, before `npm ci` or anything else from
-        # the pushed tree, with the runner's own node (the script needs only node's built-ins).
+        # deploy unless every path changed between github.event.before and after is in one of its
+        # two lanes, src/content/comments/<slug>.json or src/content/reactions/<slug>.json (ADR
+        # 0008; the step keeps its original name, which the test finds it by). It runs first,
+        # before `npm ci` or anything else from the pushed tree, with the runner's own node (the
+        # script needs only node's built-ins). Because the judge is the script as it was before
+        # the push, a change to the lanes takes effect only once it is itself on main.
         #
         # The checked-out tree IS the push being judged, so its copy of the script cannot be the
         # judge. The script (and the slug module it imports) is taken from the commit BEFORE the

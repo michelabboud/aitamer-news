@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.21: task RB2, the publisher guard's second lane (`src/content/reactions/`, ADR 0008). It must be on `main` before the desk's publisher writes reactions files. Nothing changes for readers.
+
 - **2026-09-26** — 0.2.20: reactions plan approved and running (plan kept in the private operations repository). Task RB1: the reactions data contract v1, the `reactions` collection, its check and the reaction set. Nothing shows on the site yet (`REACTIONS_LIVE` is false).
 
 - **2026-09-26** — 0.2.19: Turnstile on. Site key set; `TURNSTILE_SECRET_KEY` is on both the contact and the comments Workers. The comment form shows under stories; published comments wait on the publisher (GitHub App).

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * The publisher path guard (phase 2 plan D12, ADR 0006): the desk's publisher may add, change or
- * delete `src/content/comments/<slug>.json` and nothing else.
+ * The publisher path guard (phase 2 plan D12, ADR 0006; widened to two lanes by ADR 0008): the
+ * desk's publisher may add, change or delete `src/content/comments/<slug>.json` and
+ * `src/content/reactions/<slug>.json`, and nothing else.
  *
  *   node scripts/check-publisher-paths.mjs pr --base <sha> --head <sha>
  *     PR_ACTION        github.event.action (opened, synchronize, reopened, edited)
@@ -27,10 +28,12 @@
  * else (the publisher, say) may have pushed the head. An unset, empty or non-numeric
  * `MAINTAINER_ID` exempts nobody.
  *
- * The rule: every changed path must be `src/content/comments/<slug>.json` — not nested, not
- * another name or extension, not a path outside the directory; a rename must start and end
- * inside; a deletion is allowed (that is how a thread empties); an added or changed file must be
- * a plain, non-executable file (mode 100644): no symlink, no submodule, no executable bit.
+ * The rule: every changed path must be `<lane><slug>.json` in one of the two lanes,
+ * `src/content/comments/` and `src/content/reactions/` — not nested, not another name or
+ * extension, not a path outside the directories; a rename must start and end inside **the same**
+ * lane (a comment file never becomes a reactions file, or the reverse); a deletion is allowed
+ * (that is how a thread empties, or a story's reactions go back to none); an added or changed file
+ * must be a plain, non-executable file (mode 100644): no symlink, no submodule, no executable bit.
  *
  * `.github/workflows/check-publisher-pr.yml` runs the `pr` mode from main's own copy of this file
  * (`pull_request_target`), as the required check `publisher-paths`; `.github/workflows/deploy-pages.yml`
@@ -41,11 +44,25 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { SLUG } from './slug.mjs';
 
-/** The one directory the publisher may write into. */
-export const PUBLISHER_LANE = 'src/content/comments/';
+/** The comment data files' directory: the publisher's first lane (ADR 0006, ADR 0007). */
+export const COMMENTS_LANE = 'src/content/comments/';
+/** The reactions data files' directory: the publisher's second lane (ADR 0008). */
+export const REACTIONS_LANE = 'src/content/reactions/';
+/** Every directory the publisher may write into, and nothing else. */
+export const PUBLISHER_LANES = Object.freeze([COMMENTS_LANE, REACTIONS_LANE]);
 
-/** `src/content/comments/<slug>.json`, and only that: the slug rule is the posts' (`scripts/slug.mjs`). */
-export const COMMENT_FILE_PATH = new RegExp(`^${PUBLISHER_LANE.replace(/[/.]/g, '\\$&')}${SLUG.source.slice(1, -1)}\\.json$`);
+/** `<lane><slug>.json`, and only that: the slug rule is the posts' (`scripts/slug.mjs`). */
+const laneFilePath = (lane) => new RegExp(`^${lane.replace(/[/.]/g, '\\$&')}${SLUG.source.slice(1, -1)}\\.json$`);
+/** `src/content/comments/<slug>.json`, exactly. */
+export const COMMENT_FILE_PATH = laneFilePath(COMMENTS_LANE);
+/** `src/content/reactions/<slug>.json`, exactly. */
+export const REACTION_FILE_PATH = laneFilePath(REACTIONS_LANE);
+const LANE_FILE_PATHS = new Map([
+  [COMMENTS_LANE, COMMENT_FILE_PATH],
+  [REACTIONS_LANE, REACTION_FILE_PATH],
+]);
+/** How the messages name what may change. */
+const LANES_TEXT = PUBLISHER_LANES.map((lane) => `${lane}<slug>.json`).join(' or ');
 
 /** git tree entry modes. Only a plain file may be added or changed. */
 export const MODE_FILE = '100644';
@@ -69,15 +86,22 @@ const NULL_OBJECT_ID = /^0+$/;
 /** `git diff --name-status` letters that leave a file in the new tree. `D` is the other kept one. */
 const PRESENT_STATUSES = new Set(['A', 'M', 'R', 'C', 'T']);
 const STATUS_TOKEN = /^([A-Z])([0-9]{0,3})$/;
-/** Output larger than this is not a comment batch; git's output is refused rather than truncated. */
+/** Output larger than this is not a publisher batch; git's output is refused rather than truncated. */
 const GIT_MAX_BUFFER = 256 * 1024 * 1024;
 
 /** A problem with the inputs that means the change cannot be judged: it fails, never passes. */
 export class UnjudgeableError extends Error {}
 
-/** @param {unknown} path @returns {boolean} whether `path` is a comment data file in the publisher's lane */
+/** @param {unknown} path @returns {string | null} the lane `path` is a data file of, or null when it is in none */
+export function laneOf(path) {
+  if (typeof path !== 'string') return null;
+  for (const [lane, pattern] of LANE_FILE_PATHS) if (pattern.test(path)) return lane;
+  return null;
+}
+
+/** @param {unknown} path @returns {boolean} whether `path` is a data file in one of the publisher's lanes */
 export function inPublisherLane(path) {
-  return typeof path === 'string' && COMMENT_FILE_PATH.test(path);
+  return laneOf(path) !== null;
 }
 
 /** @param {unknown} value @returns {string | null} the trimmed account id, or null when it is not one */
@@ -155,12 +179,18 @@ export function fileProblems(change, modes) {
   const { status, path, from } = change;
   if (typeof path !== 'string' || path === '') return ['a changed file has no name'];
   const problems = [];
-  if (!inPublisherLane(path)) {
-    problems.push(`${path}: outside the publisher's lane; only ${PUBLISHER_LANE}<slug>.json may change`);
+  const lane = laneOf(path);
+  if (lane === null) {
+    problems.push(`${path}: outside the publisher's lanes; only ${LANES_TEXT} may change`);
   }
   if (status === 'D') return problems;
-  if (status === 'R' && !inPublisherLane(from)) {
-    problems.push(`${path}: renamed from ${typeof from === 'string' ? from : '(unknown)'}, which is outside the publisher's lane`);
+  if (status === 'R') {
+    const fromLane = laneOf(from);
+    if (fromLane === null) {
+      problems.push(`${path}: renamed from ${typeof from === 'string' ? from : '(unknown)'}, which is outside the publisher's lanes`);
+    } else if (lane !== null && fromLane !== lane) {
+      problems.push(`${path}: renamed from ${from}, in another lane; a file never moves between ${PUBLISHER_LANES.join(' and ')}`);
+    }
   }
   if (!PRESENT_STATUSES.has(status)) {
     problems.push(`${path}: unexpected change status ${JSON.stringify(status)}`);
@@ -317,7 +347,7 @@ export function main(argv, env = process.env, cwd = process.cwd()) {
   const problems = changeProblems(collected);
   const count = collected.changes.length;
   if (problems.length === 0) {
-    console.log(`check:publisher: ${count} changed file${count === 1 ? '' : 's'} in this ${subject}, all ${PUBLISHER_LANE}<slug>.json (${why}).`);
+    console.log(`check:publisher: ${count} changed file${count === 1 ? '' : 's'} in this ${subject}, all ${LANES_TEXT} (${why}).`);
     return 0;
   }
   console.error(`check:publisher: this ${subject} changes what the publisher may not (${why}):`);

@@ -1,9 +1,10 @@
 name: Publisher paths
 
 # The desk's publisher, a GitHub App, may only ever add, change or delete
-# src/content/comments/<slug>.json (phase 2 plan D12, ADR 0006). It pushes to a desk/comments-*
-# branch and opens a pull request into main with its installation token; this job is the
-# required check on pull requests in the branch ruleset.
+# src/content/comments/<slug>.json and src/content/reactions/<slug>.json, its two lanes (phase 2
+# plan D12, ADR 0006; the second lane, ADR 0008); a rename never crosses from one lane to the
+# other. It pushes to a desk/comments-* branch and opens a pull request into main with its
+# installation token; this job is the required check on pull requests in the branch ruleset.
 #
 # Who is held to the rule: EVERY pull request, unless its author and this event's sender are both
 # the maintainer, compared by numeric account id with the repository variable MAINTAINER_ID, and
