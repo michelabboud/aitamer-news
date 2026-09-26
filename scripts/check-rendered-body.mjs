@@ -40,7 +40,7 @@ import { basename, extname, join, relative, resolve, sep } from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readFrontmatter } from './frontmatter.mjs';
-import { SHIKI_THEME, checkRenderedHtml } from './rendered-body-allowlist.mjs';
+import { SHIKI_THEME, builtPageProblems, checkRenderedHtml } from './rendered-body-allowlist.mjs';
 
 export * from './rendered-body-allowlist.mjs';
 
@@ -475,6 +475,8 @@ export function gatedPostFiles(root = SITE_ROOT) {
   return postFiles(root).filter((file) => isGated(readFileSync(file, 'utf8'), bots));
 }
 
+/** Where `astro build` writes the site (`outDir`, Astro's default; `astro.config.mjs` sets none). */
+export const BUILD_DIST_DIR = 'dist';
 /** Where `astro build` leaves its content data store (Astro's `DATA_STORE_FILE` in its cache dir). */
 export const BUILD_DATA_STORE = 'node_modules/.astro/data-store.json';
 const ASTRO_DATA_STORE_MODULE = 'astro/dist/content/mutable-data-store.js';
@@ -536,6 +538,28 @@ export async function checkAgainstBuild({ root = SITE_ROOT, options = {} } = {})
       : `first difference at character ${firstDifference(html, post.html)}`;
     results.get(post.file).findings.push(postFinding(`the checker's render differs from the build's (${why})`));
   });
+  // Every built story page: the body sits where the stand-in says, and the page parses cleanly.
+  let pagesChecked = 0;
+  for (const [file, entry] of entries) {
+    const page = join(root, BUILD_DIST_DIR, 'posts', entry.id, 'index.html');
+    let text;
+    try {
+      text = readFileSync(page, 'utf8');
+    } catch {
+      continue; // a draft or scheduled post has no page
+    }
+    pagesChecked += 1;
+    const problems = builtPageProblems(text);
+    const result = results.get(file);
+    for (const problem of problems) result.findings.push(postFinding(`${relative(root, page)}: ${problem}`));
+  }
+  if (pagesChecked === 0 && entries.size > 0) {
+    results.set(join(root, BUILD_DIST_DIR), {
+      file: join(root, BUILD_DIST_DIR),
+      findings: [postFinding(`no built story page under ${BUILD_DIST_DIR}/posts/ to check the page chain against (run npm run build first)`)],
+      excused: [],
+    });
+  }
   return [...results.values()];
 }
 

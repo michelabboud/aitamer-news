@@ -20,6 +20,7 @@ import {
   applyGrandfather,
   botAuthorIds,
   botSetProblems,
+  builtPageProblems,
   checkAgainstBuild,
   checkPostFiles,
   checkPostSources,
@@ -475,6 +476,47 @@ test('every post on main: the bot posts pass the gate; what it would say about t
 // After the build: the checker renders exactly what the build stored.
 // ---------------------------------------------------------------------------------------------
 
+/** A built story page shaped like the real one (dist/posts/grok-4-7/index.html), with its chain adjustable. */
+function builtPage(body, { main = '<main id="main" class="site-shell site-main">', article = '<article class="article" data-pagefind-body>', wrap = ['', ''] } = {}) {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>t</title></head><body><a class="skip-link" href="#main">Skip</a>${main}${article}<header><h1>T</h1></header>${wrap[0]}<div class="article__body">${body}</div>${wrap[1]}<aside class="verdict"><p>v</p></aside></article></main><footer>f</footer></body></html>`;
+}
+
+function writeBuiltPage(root, id, html) {
+  mkdirSync(join(root, 'dist/posts', id), { recursive: true });
+  writeFileSync(join(root, 'dist/posts', id, 'index.html'), html);
+}
+
+test('should-fix 1a: a built page whose body sits in another chain than the stand-in fails the gate', () => {
+  assert.deepEqual(builtPageProblems(builtPage('<p>x</p>')), []);
+  const wrapped = builtPageProblems(builtPage('<p>x</p>', { wrap: ['<section class="prose">', '</section>'] }));
+  assert.match(wrapped.join(), /ancestors on the built page are .*<section class="prose">.*not the chain the gate models/);
+  assert.match(builtPageProblems(builtPage('<p>x</p>', { main: '<main id="main" class="site-shell site-main site-main--wide">' })).join(), /not the chain the gate models/);
+  assert.match(builtPageProblems(builtPage('<p>x</p>', { article: '<article class="article">' })).join(), /not the chain the gate models/, 'data-pagefind-body is required on a live story');
+  assert.match(builtPageProblems(builtPage('<p>x</p>').replace('<body>', '<body class="x">')).join(), /not the chain the gate models/);
+  assert.match(builtPageProblems(builtPage('<p a="1" a="2">x</p>')).join(), /the built page has a parse error \(duplicate-attribute\)/);
+  assert.match(builtPageProblems(builtPage('x').replace('<div class="article__body">x</div>', '')).join(), /no <div class="article__body">/);
+});
+
+test('should-fix 1a: --against-build fails on a doctored built page, and on a build with no story page at all', async () => {
+  const [{ html }] = await checkPostSources([{ name: 'a.md', contents: post('Hello *there*.') }]);
+  const root = tempDir('rendered-1a-');
+  mkdirSync(join(root, 'node_modules/.astro'), { recursive: true });
+  mkdirSync(join(root, 'src/content/authors'), { recursive: true });
+  mkdirSync(join(root, 'src/content/posts'), { recursive: true });
+  for (const dep of ['astro', 'devalue']) symlinkSync(join(SITE_ROOT, 'node_modules', dep), join(root, 'node_modules', dep), 'dir');
+  writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: bot\nbio: b\n---\n');
+  writeFileSync(join(root, 'src/content/posts/a.md'), post('Hello *there*.'));
+  const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+  const entry = { id: 'a', data: { author: { collection: 'authors', id: 'desk-bot' } }, filePath: 'src/content/posts/a.md', digest: '0', rendered: { html, metadata: {} } };
+  writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map([['a', entry]])]])));
+  const findings = async () => problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(' | ');
+  assert.match(await findings(), /no built story page under dist\/posts\//);
+  writeBuiltPage(root, 'a', builtPage(html));
+  assert.equal(await findings(), '');
+  writeBuiltPage(root, 'a', builtPage(html, { wrap: ['<section>', '</section>'] }));
+  assert.match(await findings(), /dist\/posts\/a\/index\.html: the story body's ancestors .*<section>/);
+});
+
 test('after the build: a store that matches the checker passes; a different render or a bad shipped body fails', async () => {
   const [{ html }] = await checkPostSources([{ name: 'a.md', contents: post('Hello *there*.') }]);
   // A repo-shaped temp root with its own build store; Astro's modules come from this checkout.
@@ -493,6 +535,7 @@ test('after the build: a store that matches the checker passes; a different rend
     const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
     const entry = { id: 'a', data: {}, filePath: 'src/content/posts/a.md', digest: '0', rendered: { html: storedHtml, metadata: {} } };
     writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map([['a', entry]])]])));
+    writeBuiltPage(root, 'a', builtPage(storedHtml));
     return checkAgainstBuild({ root });
   };
   assert.deepEqual((await run(html)).flatMap((r) => r.findings), []);

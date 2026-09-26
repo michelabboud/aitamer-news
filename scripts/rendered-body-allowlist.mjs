@@ -22,7 +22,7 @@
  * When satteri, Shiki or Astro change what they emit, this fails closed and a human widens it here,
  * deliberately, with a test.
  */
-import { Parser, html as parse5Html } from 'parse5';
+import { Parser, parse as parseDocument, html as parse5Html } from 'parse5';
 
 const HTML_NS = parse5Html.NS.HTML;
 
@@ -529,6 +529,8 @@ const BODY_MARKER_TEXT = 'end';
 const attrText = (attrs) => attrs.map(([name, value]) => (value === '' ? ` ${name}` : ` ${name}="${value}"`)).join('');
 const PAGE_BEFORE = `<!doctype html><html><head></head><body><main${attrText(PAGE_MAIN_ATTRS)}><article${attrText(PAGE_ARTICLE_ATTRS)}><div${attrText(PAGE_BODY_DIV_ATTRS)}>`;
 const PAGE_AFTER = `</div><p ${BODY_MARKER_ATTR}>${BODY_MARKER_TEXT}</p></article></main></body></html>`;
+/** The chain the stand-in models, in words, for findings. */
+const PAGE_STAND_IN_CHAIN = `html > body > main${attrText(PAGE_MAIN_ATTRS)} > article${attrText(PAGE_ARTICLE_ATTRS)} > div${attrText(PAGE_BODY_DIV_ATTRS)}`;
 /** The stand-in's own markup, for tests that keep it in step with the layout. */
 export const PAGE_STAND_IN = Object.freeze({ before: PAGE_BEFORE, after: PAGE_AFTER });
 
@@ -709,6 +711,52 @@ export function checkRenderedHtml(html) {
     findings.push({ path: '', element: tag, problem: `the body contains a </${tag}> end tag that closes nothing the body opened, so it can only close one of the page's own elements; not allowed` });
   }
   return findings;
+}
+
+/**
+ * Check a built story page (`dist/posts/<slug>/index.html`) against the stand-in: the ancestor
+ * chain of its `div.article__body` must be exactly html > body > main > article > div, each with
+ * the stand-in's attributes (html may carry `lang`), and the page must parse with no parse error. This is what keeps the
+ * stand-in honest: if the layout ever wraps the body in another element, the stand-in no longer
+ * models the page, and the gate says so instead of vouching for bodies it judged in the wrong place.
+ * @param {string} page the built page's HTML
+ * @returns {string[]} problems, empty when the page matches
+ */
+export function builtPageProblems(page) {
+  const problems = [];
+  const document = parseDocument(page, {
+    onParseError: (error) => problems.push(`the built page has a parse error (${error.code}) at line ${error.startLine}`),
+  });
+  const bodies = [];
+  const find = (node) => {
+    for (const child of node.childNodes ?? []) {
+      if (hasExactly(child, 'div', PAGE_BODY_DIV_ATTRS)) bodies.push(child);
+      if (child.content) find(child.content);
+      find(child);
+    }
+  };
+  find(document);
+  if (bodies.length === 0) {
+    problems.push('the built page has no <div class="article__body">');
+    return problems;
+  }
+  if (bodies.length > 1) problems.push(`the built page has ${bodies.length} <div class="article__body"> elements`);
+  const chain = [];
+  for (let node = bodies[0]; node && node.tagName; node = node.parentNode) chain.unshift(node);
+  const describe = (node) => `<${node.tagName}${node.attrs.map((a) => ` ${a.name}="${a.value}"`).join('')}>`;
+  const [htmlEl, body, main, article, div, ...extra] = chain;
+  const htmlOk = htmlEl?.tagName === 'html' && htmlEl.attrs.every((a) => a.name === 'lang');
+  const ok =
+    htmlOk &&
+    hasExactly(body, 'body', []) &&
+    hasExactly(main, 'main', PAGE_MAIN_ATTRS) &&
+    hasExactly(article, 'article', PAGE_ARTICLE_ATTRS) &&
+    hasExactly(div, 'div', PAGE_BODY_DIV_ATTRS) &&
+    extra.length === 0;
+  if (!ok) {
+    problems.push(`the story body's ancestors on the built page are ${chain.map(describe).join(' > ')}, not the chain the gate models (${PAGE_STAND_IN_CHAIN}); update the stand-in in scripts/rendered-body-allowlist.mjs`);
+  }
+  return problems;
 }
 
 /** @returns {boolean} whether `node` is a `tag` element with exactly these attributes, in any order */

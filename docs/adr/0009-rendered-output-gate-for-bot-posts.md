@@ -56,7 +56,7 @@ the site's side of that decision.
    `author` is an author marked `kind: bot` under `src/content/authors/` (`desk-bot` today), and on
    any post whose author cannot be read. After `npm run build`, `npm run check:bodies:build` checks
    the HTML the build stored for those posts (the bytes that ship) and re-renders **every** `.md`
-   post with the checker, failing unless the checker's HTML is identical to the build's. Both run
+   post with the checker, failing unless the checker's HTML is identical to the build's. It also parses every built story page and fails unless the story body's ancestors there are exactly the chain the stand-in models (html > body > main > article > div.article__body, with the stand-in's attributes) and the page parses with no error, so a layout change cannot leave the stand-in modelling a page that no longer exists. Both run
    on every pull request (`check-posts.yml`, the required check `check`) and before every deploy
    (`deploy-pages.yml`). Any finding fails the job and nothing deploys.
 4. **The posts tool calls the same script** in its own checkout of the site at a pinned commit
