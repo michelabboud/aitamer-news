@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.18] — 2026-09-26
+
+### Changed
+- **The contact form is live.** The contact Worker was deployed at `contact.aitamer.news` and a test note reached the desk; `CONTACT_FORM_LIVE` is on, so the About page shows the form again and the privacy and Campfire pages point to it. The free plan accepted both rate-limit bindings. Comments stay closed until the Turnstile key is set and the comments Worker is live.
+
 ## [0.2.17] — 2026-09-26
 
 ### Changed

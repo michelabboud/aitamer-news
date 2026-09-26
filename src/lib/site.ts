@@ -21,7 +21,7 @@ export const ANALYTICS_ID = 'G-3X3YRW621Y';
  * About page shows a notice instead of a form that would fail for every reader. Set it to true in
  * the same commit that follows the Worker's first successful deploy (README, "Contact form").
  */
-export const CONTACT_FORM_LIVE = false;
+export const CONTACT_FORM_LIVE = true;
 
 /**
  * Where the About page form posts: the contact Worker (workers/contact). Public by nature.
