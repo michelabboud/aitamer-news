@@ -59,6 +59,21 @@ test('the five known bypass bodies are refused through the real render', async (
   });
 });
 
+test('G1: a trailing unterminated tag is refused through the real render (the browser would complete it)', async () => {
+  const bodies = [
+    'Hi.\n\n<details open ontoggle=alert(document.domain) ',
+    'Hi.\n\n<script src=https://evil.example/x.js ',
+    'Hi.\n\n<iframe srcdoc="&lt;script&gt;alert(1)&lt;/script&gt;" ',
+  ];
+  const results = await checkPostSources(bodies.map((body, i) => ({ name: `eof-${i}.md`, contents: post(body) })));
+  results.forEach(({ findings }, i) => assert.match(problems(findings).join(), /parse error \(eof-in-tag\)/, bodies[i]));
+});
+
+test('G1: any parse error in the rendered HTML is a finding', () => {
+  refusedBy('<p>x</p><img src="https://media.aitamer.news/a.png" alt="a" ', /parse error \(eof-in-tag\)/);
+  refusedBy('<p>x</p><p a="1" a="2">y</p>', /parse error \(duplicate-attribute\)/);
+});
+
 // ---------------------------------------------------------------------------------------------
 // Legitimate bodies pass.
 // ---------------------------------------------------------------------------------------------

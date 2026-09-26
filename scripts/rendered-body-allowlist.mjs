@@ -498,7 +498,16 @@ export function checkRenderedHtml(html) {
     findings.push({ path: '', element: '#post', problem: `the rendered body contains Astro's image marker ${ASTRO_IMAGE_MARKER}` });
   }
   const context = defaultTreeAdapter.createElement('div', HTML_NS, []);
-  const fragment = parseFragment(context, html);
+  // Any parse error is a finding. The renderer's own output parses cleanly (every post on main
+  // does); errors mean raw HTML the parser had to repair, and the repair here and on the page can
+  // differ. The sharp case: a trailing unterminated tag (`<details open ontoggle=… ` at the end of
+  // the body) is dropped by a fragment parse at end of input (eof-in-tag), while on the page the
+  // browser completes it with the layout's next `</div>` and ships a live element.
+  const fragment = parseFragment(context, html, {
+    onParseError: (error) => {
+      findings.push({ path: '', element: '#post', problem: `the rendered HTML has a parse error (${error.code}) at line ${error.startLine}, column ${error.startCol}` });
+    },
+  });
   const ids = new Map();
   const walk = (parent, ancestors, parentPath) => {
     const counts = new Map();
