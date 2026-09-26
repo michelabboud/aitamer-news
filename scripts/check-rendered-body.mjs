@@ -441,6 +441,23 @@ export async function checkPostFiles(files, options = {}) {
 }
 
 /**
+ * The gate's own precondition: at least one author is marked `kind: bot`. With none, the gate would
+ * check nothing and pass, which is exactly how a renamed field or a moved directory would switch it
+ * off. So an empty bot set is a finding, not an empty pass.
+ * @param {string} [root] @returns {{ file: string, findings: Finding[], excused: Finding[] }[]}
+ */
+export function botSetProblems(root = SITE_ROOT) {
+  let bots;
+  try {
+    bots = botAuthorIds(root);
+  } catch (error) {
+    return [{ file: join(root, AUTHORS_DIR), findings: [postFinding(`cannot read the authors: ${error.message}`)], excused: [] }];
+  }
+  if (bots.size) return [];
+  return [{ file: join(root, AUTHORS_DIR), findings: [postFinding(`no author is marked kind: ${BOT_AUTHOR_KIND}, so the gate would check nothing`)], excused: [] }];
+}
+
+/**
  * The posts the build gates: every post whose author is a bot.
  * @param {string} [root] @returns {string[]}
  */
@@ -473,6 +490,8 @@ export async function checkAgainstBuild({ root = SITE_ROOT, options = {} } = {})
   const { MutableDataStore } = await import(pathToFileURL(join(root, 'node_modules', ASTRO_DATA_STORE_MODULE)).href);
   const store = await MutableDataStore.fromString(text);
   const entries = new Map([...store.values('posts')].map((entry) => [resolve(root, entry.filePath), entry]));
+  const botProblems = botSetProblems(root);
+  if (botProblems.length) return botProblems;
   const bots = botAuthorIds(root);
   const files = postFiles(root);
   const posts = [];
@@ -573,10 +592,12 @@ export async function main(argv) {
     results = [{ file: name, findings: failing, excused }];
     scope = 'the post on standard input';
   } else {
-    const files = args.length ? args.map((a) => resolve(a)) : all ? postFiles() : gatedPostFiles();
+    const gate = !args.length && !all;
+    const botProblems = gate ? botSetProblems() : [];
+    const files = args.length ? args.map((a) => resolve(a)) : all ? postFiles() : botProblems.length ? [] : gatedPostFiles();
     results = await checkPostFiles(files);
     // The gate and the full report also refuse a grandfather entry that no longer matches its file.
-    if (!args.length) results = mergeResults(results, staleGrandfatherEntries());
+    if (!args.length) results = mergeResults(botProblems, results, botProblems.length ? [] : staleGrandfatherEntries());
     results = results.map((r) => ({ ...r, file: relative(process.cwd(), r.file) || r.file }));
     scope = args.length ? `${files.length} post file(s)` : all ? `all ${files.length} posts` : `${files.length} bot-authored post(s)`;
   }

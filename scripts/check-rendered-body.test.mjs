@@ -18,6 +18,7 @@ import {
   SITE_ROOT,
   applyGrandfather,
   botAuthorIds,
+  botSetProblems,
   checkAgainstBuild,
   checkPostFiles,
   checkPostSources,
@@ -300,6 +301,21 @@ test('the real renderer starts against this checkout: satteri, Shiki, and the th
 
 test('the bot ids come from the authors marked kind: bot, which today is desk-bot alone', () => {
   assert.deepEqual([...botAuthorIds()], ['desk-bot']);
+});
+
+test('G3: with no author marked kind: bot the gate fails instead of checking nothing', async () => {
+  assert.deepEqual(botSetProblems(), [], 'desk-bot is marked a bot on main');
+  const root = tempDir('no-bots-');
+  mkdirSync(join(root, 'src/content/authors'), { recursive: true });
+  writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: human\nbio: b\n---\n');
+  assert.match(problems(botSetProblems(root).flatMap((r) => r.findings)).join(), /no author is marked kind: bot/);
+  assert.match(problems(botSetProblems(tempDir('no-authors-')).flatMap((r) => r.findings)).join(), /cannot read the authors/);
+  // The post-build check refuses the same way, before looking at any post.
+  mkdirSync(join(root, 'node_modules/.astro'), { recursive: true });
+  for (const dep of ['astro', 'devalue']) symlinkSync(join(SITE_ROOT, 'node_modules', dep), join(root, 'node_modules', dep), 'dir');
+  const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+  writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map()]])));
+  assert.match(problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(), /no author is marked kind: bot/);
 });
 
 test('only bot-authored posts are gated; a post whose author cannot be read is gated too', () => {

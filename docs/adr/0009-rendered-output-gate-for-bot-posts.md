@@ -56,6 +56,22 @@ the site's side of that decision.
 4. **The posts tool calls the same script** in its own checkout of the site at a pinned commit
    (`--stdin --json`, or a file path), and refuses to validate or publish on any finding.
 
+### What the gate rests on, and what the posts lane must add
+
+The gate decides "bot post" from the `author` field of the post as it stands, and from the author
+files that mark `kind: bot`. Two consequences:
+
+- **An empty bot set is a failure, not a pass.** If no author file marks `kind: bot` (a renamed
+  field, a moved directory, a deleted file), the gate and the post-build check fail instead of
+  checking nothing.
+- **The author field is a claim, and the writer controls it.** A posts-App pull request could
+  write `author: wiz-cat` on its own post, or edit a human's post, and the gate would skip it. So
+  the posts lane guard (the posts MCP plan's task S1, not built yet) must enforce, for any pull
+  request by the posts App: every added or changed post has `author: desk-bot` (a bot id) in its
+  new version, and no post whose current author is not a bot is changed. If S1 cannot enforce that,
+  the gate must instead check **every post such a pull request touches**, whatever author it claims.
+  Until S1 lands there is no posts App and no posts lane, so nothing can use the gap.
+
 ### The one existing exception
 
 On 2026-09-26, 23 of the site's 25 posts are by `desk-bot`, and one of them,
