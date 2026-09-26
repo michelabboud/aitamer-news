@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
@@ -524,4 +524,23 @@ test('the CLI: exit 1 with JSON findings on a bad body, 0 on a good one, 2 on a 
   assert.equal(run(['--stdin', '--all']).status, 2);
   assert.equal(run(['--bogus']).status, 2);
   assert.equal(run(['--stdin', '--name', '../x.md'], '').status, 2);
+});
+
+test('G4: every workflow that builds the site gates bot posts before the build and after it, before any upload', () => {
+  const dir = join(SITE_ROOT, '.github/workflows');
+  const builders = [];
+  for (const name of readdirSync(dir).filter((n) => /\.ya?ml$/.test(n))) {
+    const text = readFileSync(join(dir, name), 'utf8');
+    const at = (pattern) => text.search(pattern);
+    const build = at(/npm run build\b/);
+    if (build < 0) continue;
+    builders.push(name);
+    const posts = at(/npm run check:posts\b/);
+    const after = at(/npm run check:bodies:build\b/);
+    const ship = at(/upload-pages-artifact|wrangler-action|pages deploy/);
+    assert.ok(posts >= 0 && posts < build, `${name}: check:posts must run before the build`);
+    assert.ok(after > build, `${name}: check:bodies:build must run after the build`);
+    if (ship >= 0) assert.ok(after < ship, `${name}: check:bodies:build must run before the upload`);
+  }
+  assert.deepEqual(builders.sort(), ['check-posts.yml', 'deploy-github-pages.yml', 'deploy-pages.yml']);
 });
