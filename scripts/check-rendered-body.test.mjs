@@ -616,7 +616,7 @@ test('G5: the lower-case third-party globals and empty ids are refused as headin
   for (const id of ['ga', 'google_tag_data', 'google_tag_manager', 'google_image_requests', 'google_tags_first_party', '_gaz', 'turnstile', 'grecaptcha', 'onloadturnstilecallback', 'gtag']) {
     refusedBy(`<h2 id="${id}">x</h2>`, /collides with an id the story page uses/);
   }
-  refusedBy('<h2 id="">x</h2>', /empty id/);
+  for (const level of [1, 2, 3, 4, 5, 6]) refusedBy(`<h${level} id="">x</h${level}>`, /empty id/);
 });
 
 test('the CLI: exit 1 with JSON findings on a bad body, 0 on a good one, 2 on a usage error', () => {
