@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.22] — 2026-09-26
+
+### Added
+- **The reactions component** (reactions plan, task RB3), `src/components/Reactions.astro`, **off**: `REACTIONS_LIVE` stays false, so no page shows it and the only change a visitor's browser receives is a larger stylesheet. Under the article: a React button (it shows your own choice once made), the top three reactions and the total (hidden at zero), and a small panel of the seven reactions as a native `popover` — no library, one inline script like the comment form's, a `hidden` fallback where `popover` is missing. Keyboard: Tab, Enter opens on your choice (else the first), arrows and Home/End move, Enter or Space chooses, Escape closes and returns focus, Tab leaves. Tapping your current choice removes it. One rise-and-fade on choosing, none (and no hover zoom) under reduced motion. A choice is one `keepalive` `POST /react` to the comments Worker; the counts move for that visit, your choice is remembered 30 days in `localStorage` (never a cookie); a 410 disables it with "Reactions are closed on this story.", any other failure is silent. A story with closed comments shows its totals and that note, no button. Without script the summary still shows and the panel says "Reacting needs JavaScript.".
+- Pure helpers for it in `src/lib/reactions.ts` (`reactEndpoint`, `reactionCaption`, `applyChoice`, `nextChoice`), with tests.
+
+### Changed
+- The story page's `cacheKey` carries its reactions file's stamp, so a changed total re-renders that story's page.
+
 ## [0.2.21] — 2026-09-26
 
 ### Changed

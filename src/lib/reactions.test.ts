@@ -3,6 +3,11 @@ import assert from 'node:assert/strict';
 import {
   REACTIONS,
   REACTION_ID,
+  REACTION_REQUEST_FIELDS,
+  applyChoice,
+  nextChoice,
+  reactEndpoint,
+  reactionCaption,
   REACTION_MEMORY_DAYS,
   isKnownReaction,
   parseStoredReaction,
@@ -163,4 +168,36 @@ test('parseStoredReaction: anything the page did not write is forgotten, never t
     JSON.stringify({ r: '__proto__', at }),
   ];
   for (const stored of cases) assert.equal(parseStoredReaction(stored, NOW), null, JSON.stringify(stored));
+});
+
+// --- the page's side of POST /react ------------------------------------------------------------
+
+test('reactEndpoint is /react on the comments Worker, wherever that Worker is', () => {
+  assert.equal(reactEndpoint('https://comments.aitamer.news/'), 'https://comments.aitamer.news/react');
+  assert.equal(reactEndpoint('http://localhost:8787/'), 'http://localhost:8787/react');
+  assert.equal(reactEndpoint('http://localhost:8787'), 'http://localhost:8787/react');
+  assert.throws(() => reactEndpoint('comments.aitamer.news'), TypeError);
+  assert.deepEqual({ ...REACTION_REQUEST_FIELDS }, { slug: 'slug', reaction: 'reaction' });
+});
+
+test('reactionCaption: label and count for the hovered choice', () => {
+  assert.equal(reactionCaption('overhyped', 12), 'Overhyped · 12');
+  assert.equal(reactionCaption('love', 1204), 'Love · 1,204');
+  assert.throws(() => reactionCaption('retired', 1), RangeError);
+});
+
+test('nextChoice: tapping the current reaction removes it, anything else replaces it', () => {
+  assert.equal(nextChoice(null, 'love'), 'love');
+  assert.equal(nextChoice('love', 'wow'), 'wow');
+  assert.equal(nextChoice('love', 'love'), null);
+});
+
+test('applyChoice: +1 new, -1 old, never below zero, input untouched', () => {
+  const baked = new Map([['love', 3], ['wow', 1]]);
+  assert.deepEqual([...applyChoice(baked, null, 'love')], [['love', 4], ['wow', 1]]);
+  assert.deepEqual([...applyChoice(baked, 'love', 'wow')], [['love', 2], ['wow', 2]]);
+  assert.deepEqual([...applyChoice(baked, 'love', null)], [['love', 2], ['wow', 1]]);
+  assert.deepEqual([...applyChoice(baked, 'angry', null)], [['love', 3], ['wow', 1], ['angry', 0]], 'a choice the file does not count yet stays at zero');
+  assert.deepEqual([...applyChoice(baked, 'love', 'love')], [['love', 3], ['wow', 1]]);
+  assert.deepEqual([...baked], [['love', 3], ['wow', 1]]);
 });

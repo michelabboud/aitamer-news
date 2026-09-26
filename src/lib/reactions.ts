@@ -190,3 +190,64 @@ export function parseStoredReaction(stored: string | null, now: Date): StoredRea
   if (age < 0 || age > REACTION_MEMORY_DAYS * DAY_MS) return null;
   return { r, at };
 }
+
+// --- the page's side of the contract with the comments Worker's `POST /react` ------------------
+
+/**
+ * Where a choice is sent: the `/react` path on the comments Worker, resolved against
+ * `COMMENTS_ENDPOINT` so a local build pointed at `wrangler dev` (`PUBLIC_COMMENTS_ENDPOINT`)
+ * reacts against the same local Worker.
+ * @throws {TypeError} when `commentsEndpoint` is not an absolute URL
+ */
+export function reactEndpoint(commentsEndpoint: string): string {
+  return new URL('react', commentsEndpoint).href;
+}
+
+/**
+ * The form fields the Worker reads, sent as `application/x-www-form-urlencoded` (a "simple"
+ * request: no preflight). An empty `reaction` removes the reader's reaction.
+ */
+export const REACTION_REQUEST_FIELDS = Object.freeze({ slug: 'slug', reaction: 'reaction' });
+
+/** The Worker's answer for a story whose comments (and so reactions) are closed. */
+export const REACTIONS_CLOSED_STATUS = 410;
+
+/** Shown in place of the React button on a closed story, and after the Worker answers 410. */
+export const REACTIONS_CLOSED_MESSAGE = 'Reactions are closed on this story.';
+
+/** Shown inside the panel when script is off: choosing needs the page script. */
+export const REACTIONS_NO_SCRIPT_MESSAGE = 'Reacting needs JavaScript.';
+
+/** The caption under the panel while a choice is hovered or focused: "Overhyped · 12". */
+export function reactionCaption(id: string, n: number): string {
+  const reaction = reactionById(id);
+  if (!reaction) throw new RangeError(`reactionCaption: ${JSON.stringify(id)} is not in the reaction set`);
+  return `${reaction.label} · ${COUNT_FORMAT.format(n)}`;
+}
+
+/**
+ * The in-session counts after the reader changes their choice from `previous` to `next` (either
+ * may be `null`: no reaction). The new choice gains one, the old one loses one and never goes
+ * below zero — the baked file may not include the reader's earlier click yet ("counts lag up to a
+ * run"). Choosing the current reaction again is the page's "remove", so callers pass `next: null`
+ * for it; `previous === next` changes nothing. Returns a new map; the input is not changed.
+ */
+export function applyChoice(
+  counts: ReadonlyMap<string, number>,
+  previous: ReactionId | null,
+  next: ReactionId | null,
+): Map<string, number> {
+  const after = new Map(counts);
+  if (previous === next) return after;
+  if (previous !== null) after.set(previous, Math.max(0, (after.get(previous) ?? 0) - 1));
+  if (next !== null) after.set(next, (after.get(next) ?? 0) + 1);
+  return after;
+}
+
+/**
+ * What a tap on `tapped` means, given the reader's current choice: the same reaction again
+ * removes it (`null`), any other replaces it.
+ */
+export function nextChoice(current: ReactionId | null, tapped: ReactionId): ReactionId | null {
+  return current === tapped ? null : tapped;
+}

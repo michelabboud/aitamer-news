@@ -5,6 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
 import CommentCount from '../../components/CommentCount.astro';
 import Comments from '../../components/Comments.astro';
+import Reactions from '../../components/Reactions.astro';
 import SpecimenTag from '../../components/SpecimenTag.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
 import WildnessPanel from '../../components/WildnessPanel.astro';
@@ -21,11 +22,13 @@ import {
   entryStamp,
   getCommentThreads,
   getPostPages,
+  getReactionThreads,
   habitatHref,
   habitatOfPost,
   readingMinutes,
   resolveAuthor,
   withBase,
+  REACTIONS_LIVE,
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
@@ -35,27 +38,30 @@ import { commentsJsonLd } from '../../lib/comment-text';
 export async function getStaticPaths() {
   // Withdrawn posts keep their page (and URL); they only leave lists and feeds.
   const posts = await getPostPages();
-  // Loaded once for every post. Each page's key carries its own thread's stamp, so a new comment
-  // re-renders that story's page and no other (plan §6.4).
+  // Loaded once for every post. Each page's key carries its own thread's and reactions file's
+  // stamps, so a new comment or a changed total re-renders that story's page and no other.
   const threads = await getCommentThreads();
+  const reactionFiles = await getReactionThreads();
   return Promise.all(
     posts.map(async (post) => {
       const author = await resolveAuthor(post);
       const thread = threads.get(post.id);
+      const reactions = reactionFiles.get(post.id);
       return {
         params: { slug: post.id },
-        props: { post, comments: thread?.data.comments ?? [] },
+        props: { post, comments: thread?.data.comments ?? [], reactions: reactions?.data },
         cacheKey: [
           entryStamp(post),
           author ? entryStamp(author) : 'missing-author',
           thread ? entryStamp(thread) : 'no-comments',
+          reactions ? entryStamp(reactions) : 'no-reactions',
         ].join('|'),
       };
     }),
   );
 }
 
-const { post, comments } = Astro.props;
+const { post, comments, reactions } = Astro.props;
 const author = await resolveAuthor(post);
 if (!author) throw new Error(`Missing author for post ${post.id}`);
 const { Content } = await render(post);
@@ -252,6 +258,7 @@ const breadcrumbs = {
         </div>
 
         <div data-pagefind-ignore>
+          {REACTIONS_LIVE && <Reactions slug={post.id} file={reactions} closed={Boolean(post.data.comments?.closed)} />}
           <Comments slug={post.id} comments={comments} withdrawn={Boolean(withdrawn)} closed={Boolean(post.data.comments?.closed)} />
         </div>
       </>

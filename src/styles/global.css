@@ -827,8 +827,78 @@ a.archive-month__name:hover { color: var(--ember-text); }
   .tabbar__icon--diamond { transform: rotate(45deg); }
 }
 
+/* ---- Reactions under a story (Reactions.astro): a button, a summary, a popover panel ---- */
+.reactions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem;
+  margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--line); max-width: var(--measure);
+}
+.reactions__react, .reactions__summary {
+  position: relative; display: inline-flex; align-items: center; gap: 0.4rem;
+  min-height: 2.75rem; padding: 0.4rem 0.9rem;
+  background: var(--night-raised); color: var(--bone);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  font: 600 0.95rem/1 var(--font-reading); cursor: pointer;
+}
+.reactions__react:hover, .reactions__summary:hover,
+.reactions__react[aria-expanded="true"], .reactions__summary[aria-expanded="true"] { border-color: var(--ember); color: var(--ember-text); }
+.reactions__react:disabled, .reactions__summary:disabled { cursor: default; border-color: var(--line); color: var(--ink-muted); }
+.reactions__own:empty { display: none; }
+.reactions__own { font-size: 1.15rem; line-height: 1; }
+.reactions__summary { background: transparent; padding-inline: 0.6rem; }
+.reactions__summary--static { margin: 0; cursor: default; border-color: var(--line); }
+.reactions__summary[hidden] { display: none; }
+.reactions__stack { display: inline-flex; align-items: center; isolation: isolate; }
+.reactions__stack-emoji { position: relative; }
+/* Overlapping by half a rem, each with a ring of the page colour so the edges read as separate. */
+.reactions__stack-emoji {
+  display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem;
+  background: var(--night); border-radius: 50%; box-shadow: 0 0 0 2px var(--night);
+  font-size: 1rem; line-height: 1;
+}
+.reactions__stack-emoji + .reactions__stack-emoji { margin-left: -0.5rem; }
+/* The most chosen sits on top of the ones it overlaps. */
+.reactions__stack-emoji:nth-child(1) { z-index: 3; }
+.reactions__stack-emoji:nth-child(2) { z-index: 2; }
+.reactions__stack-emoji:nth-child(3) { z-index: 1; }
+.reactions__total { font-family: var(--font-machine); font-size: 0.8125rem; color: var(--ink-soft); }
+.reactions__note { flex-basis: 100%; margin: 0; font-size: 0.95rem; color: var(--ink-soft); }
+.reactions__note:empty { display: none; }
+/* The panel lives in the top layer and is placed by the script (position: fixed, top/left).
+   Without script it opens centred in the viewport (the popover default), with a note inside. */
+.reactions__panel {
+  position: fixed; inset: 0; margin: auto; width: fit-content; height: fit-content;
+  max-width: calc(100vw - 1rem); padding: 0.5rem;
+  background: var(--night); color: var(--bone);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.5);
+}
+.reactions__panel[hidden] { display: none; }
+.reactions__panel--placing { visibility: hidden; }
+.reactions__choices { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.reactions__choice {
+  display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0;
+  background: transparent; border: 1px solid transparent; border-radius: var(--radius);
+  font-size: 1.5rem; line-height: 1; cursor: pointer;
+  transition: transform 120ms ease-out;
+}
+.reactions__choice:hover, .reactions__choice:focus-visible { transform: scale(1.15); }
+.reactions__choice[aria-checked="true"] { border-color: var(--ember); background: var(--ember-field); }
+.reactions__caption { min-height: 1.25rem; margin: 0.35rem 0.25rem 0; font-size: 0.8125rem; color: var(--ink-soft); }
+/* The rise-and-fade after a choice: a copy of the emoji floats up out of the React button. */
+.reactions__rise {
+  position: absolute; left: 50%; bottom: 60%; pointer-events: none;
+  font-size: 1.25rem; animation: reaction-rise 500ms ease-out forwards;
+}
+@keyframes reaction-rise {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to { opacity: 0; transform: translate(-50%, -1.5rem); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .reactions__choice { transition: none; }
+  .reactions__choice:hover, .reactions__choice:focus-visible { transform: none; }
+  .reactions__rise { display: none; }
 }
 
 /* ---- Contract v1 notices: corrections, sunsets, withdrawals (post page) ---- */

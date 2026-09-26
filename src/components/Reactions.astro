@@ -1,0 +1,383 @@
+---
+/**
+ * Reactions under a story: one "React" button, a compact summary of the baked totals beside it,
+ * and a small panel of the seven reactions (`REACTIONS` in `src/lib/reactions.ts`). Rendered by
+ * `src/pages/posts/[slug].astro` only while `REACTIONS_LIVE` is on and the story is not withdrawn.
+ *
+ * Reading costs nothing: the totals are baked into the page from `src/content/reactions/<slug>.json`
+ * (absent = zero), and the reader's own choice comes from `localStorage` (never a cookie). Choosing
+ * costs one small `POST /react` to the comments Worker, sent with `keepalive`. The counts on the
+ * page move optimistically for this visit only (+1 new, −1 old); the baked file catches up on a
+ * later publish.
+ *
+ * The panel is a native `popover` (light dismiss and Escape come free), positioned by the script
+ * from the button that opened it because the top layer ignores the page's layout; a browser
+ * without `popover` gets the same handlers with `hidden`. Keyboard: Tab to the button, Enter
+ * opens, focus goes to the current choice (else the first), arrows and Home/End move (roving
+ * `tabindex`), Enter or Space chooses, Escape closes and focus returns to the button, Tab leaves
+ * and closes. Screen readers hear "React, menu" and "Overhyped, 12 reactions" (`menuitemradio`,
+ * `aria-checked`).
+ *
+ * Answers: `ok` needs nothing more; 410 closes reactions on the page (both buttons disabled, the
+ * note says why and takes the focus); every other failure, the network's included, is quiet — the choice stays on the page
+ * and in storage, and the next tap tries again. Nothing is logged.
+ *
+ * The script mirrors the pure helpers in `src/lib/reactions.ts` (an inline script cannot import):
+ * `topReactions`, `reactionCount`, `reactionLabel`, `summaryLabel`, `reactionCaption`,
+ * `applyChoice`, `nextChoice` and `parseStoredReaction`. Their rules are tested there; the
+ * mirror is exercised in a real browser (task RB3's close-out).
+ */
+import { COMMENTS_ENDPOINT } from '../lib/site';
+import {
+  REACTIONS,
+  REACTIONS_CLOSED_MESSAGE,
+  REACTIONS_CLOSED_STATUS,
+  REACTIONS_NO_SCRIPT_MESSAGE,
+  REACTION_MEMORY_DAYS,
+  REACTION_REQUEST_FIELDS,
+  reactEndpoint,
+  reactionLabel,
+  reactionStorageKey,
+  reactionTotals,
+  summaryLabel,
+  topReactions,
+} from '../lib/reactions';
+
+interface Props {
+  /** The post's slug: the story reacted to. */
+  slug: string;
+  /** The story's baked reactions file, or `undefined` when it has none (zero reactions). */
+  file?: { reactions: readonly { id: string; n: number }[] };
+  /** Comments closed on the story (`comments: { closed: true }`): the summary stays, choosing does not. */
+  closed?: boolean;
+}
+
+const { slug, file, closed = false } = Astro.props;
+const totals = reactionTotals(file);
+const top = topReactions(totals.known);
+const summary = summaryLabel(totals);
+const countOf = (id: string) => totals.known.get(id as never) ?? 0;
+const panelId = `reactions-panel-${slug}`;
+
+// Everything the script needs, passed once through define:vars (JSON in the page, no import).
+const endpoint = reactEndpoint(COMMENTS_ENDPOINT);
+const set = REACTIONS.map(({ id, emoji, label }) => ({ id, emoji, label }));
+const baked = Object.fromEntries(totals.known);
+const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) => sum + n, 0);
+const storageKey = reactionStorageKey(slug);
+const memoryDays = REACTION_MEMORY_DAYS;
+const fields = REACTION_REQUEST_FIELDS;
+const closedStatus = REACTIONS_CLOSED_STATUS;
+const closedMessage = REACTIONS_CLOSED_MESSAGE;
+---
+<section class="reactions" data-slug={slug} data-closed={closed ? '' : undefined} aria-label="Reactions">
+  {!closed && (
+    <button type="button" class="reactions__react" popovertarget={panelId} aria-haspopup="menu" aria-expanded="false">
+      <span class="reactions__own" aria-hidden="true"></span><span class="reactions__mine sr-only"></span><span class="reactions__word">React</span>
+    </button>
+  )}
+  {closed ? (
+    <p class="reactions__summary reactions__summary--static" hidden={totals.total === 0}>
+      <span class="reactions__stack" aria-hidden="true">{top.map((id) => <span class="reactions__stack-emoji">{REACTIONS.find((r) => r.id === id)!.emoji}</span>)}</span>
+      <span class="reactions__total" aria-hidden="true">{totals.total.toLocaleString('en-US')}</span>
+      <span class="sr-only">{summary}</span>
+    </p>
+  ) : (
+    <button type="button" class="reactions__summary" popovertarget={panelId} aria-haspopup="menu" aria-expanded="false" aria-label={summary} hidden={totals.total === 0}>
+      <span class="reactions__stack" aria-hidden="true">{top.map((id) => <span class="reactions__stack-emoji">{REACTIONS.find((r) => r.id === id)!.emoji}</span>)}</span>
+      <span class="reactions__total" aria-hidden="true">{totals.total.toLocaleString('en-US')}</span>
+    </button>
+  )}
+  {closed ? (
+    <p class="reactions__note">{closedMessage}</p>
+  ) : (
+    <>
+      <div id={panelId} class="reactions__panel" popover role="menu" aria-label="React to this story">
+        <div class="reactions__choices">
+          {REACTIONS.map(({ id, emoji }, index) => (
+            <button
+              type="button"
+              class="reactions__choice"
+              role="menuitemradio"
+              aria-checked="false"
+              data-reaction={id}
+              aria-label={reactionLabel(id, countOf(id))}
+              tabindex={index === 0 ? '0' : '-1'}
+            ><span aria-hidden="true">{emoji}</span></button>
+          ))}
+        </div>
+        <p class="reactions__caption" aria-hidden="true"></p>
+        <noscript><p class="reactions__caption">{REACTIONS_NO_SCRIPT_MESSAGE}</p></noscript>
+      </div>
+      <p class="reactions__note" role="status" aria-live="polite" tabindex="-1"></p>
+      <script is:inline define:vars={{ panelId, endpoint, slug, set, baked, unknownTotal, storageKey, memoryDays, fields, closedStatus, closedMessage }}>
+        (function () {
+          var panel = document.getElementById(panelId);
+          if (!panel) return;
+          var root = panel.closest('.reactions');
+          var reactButton = root.querySelector('.reactions__react');
+          var summaryButton = root.querySelector('.reactions__summary');
+          var own = root.querySelector('.reactions__own');
+          var mine = root.querySelector('.reactions__mine');
+          var word = root.querySelector('.reactions__word');
+          var stack = root.querySelector('.reactions__stack');
+          var totalText = root.querySelector('.reactions__total');
+          var caption = panel.querySelector('.reactions__caption');
+          var note = root.querySelector('.reactions__note');
+          var choices = Array.prototype.slice.call(panel.querySelectorAll('.reactions__choice'));
+          var openers = [reactButton, summaryButton];
+          var byId = {};
+          set.forEach(function (r, i) { byId[r.id] = { emoji: r.emoji, label: r.label, order: i }; });
+          var counts = {};
+          set.forEach(function (r) { counts[r.id] = baked[r.id] || 0; });
+          var DAY_MS = 24 * 60 * 60 * 1000;
+          var numberFormat = new Intl.NumberFormat('en-US');
+          var native = Object.prototype.hasOwnProperty.call(HTMLElement.prototype, 'popover');
+          var opener = reactButton;
+          var closedNow = false;
+
+          // --- mirrors of src/lib/reactions.ts ---
+          function countText(n) { return numberFormat.format(n) + (n === 1 ? ' reaction' : ' reactions'); }
+          function total() {
+            var sum = unknownTotal;
+            set.forEach(function (r) { sum += counts[r.id]; });
+            return sum;
+          }
+          function top3() {
+            return set
+              .filter(function (r) { return counts[r.id] > 0; })
+              .sort(function (a, b) { return counts[b.id] - counts[a.id] || byId[a.id].order - byId[b.id].order; })
+              .slice(0, 3)
+              .map(function (r) { return r.id; });
+          }
+          function summaryText() {
+            var t = total();
+            if (t === 0) return 'No reactions yet';
+            var labels = top3().map(function (id) { return byId[id].label; });
+            if (labels.length === 0) return countText(t);
+            var list = labels.length === 1 ? labels[0] : labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1];
+            return countText(t) + ': ' + list;
+          }
+          function readStored() {
+            var raw = null;
+            try { raw = window.localStorage.getItem(storageKey); } catch (e) { return null; }
+            if (raw === null) return null;
+            var value;
+            try { value = JSON.parse(raw); } catch (e) { return null; }
+            if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
+            if (typeof value.r !== 'string' || !Object.prototype.hasOwnProperty.call(byId, value.r) || typeof value.at !== 'string') return null;
+            var chosen = Date.parse(value.at);
+            if (isNaN(chosen)) return null;
+            var age = Date.now() - chosen;
+            if (age < 0 || age > memoryDays * DAY_MS) return null;
+            return value.r;
+          }
+          function writeStored(id) {
+            try {
+              if (id === null) window.localStorage.removeItem(storageKey);
+              else window.localStorage.setItem(storageKey, JSON.stringify({ r: id, at: new Date().toISOString() }));
+            } catch (e) { /* storage off or full: the choice still shows for this visit */ }
+          }
+
+          var choice = readStored();
+          // A remembered choice that storage no longer holds validly is forgotten there too.
+          if (choice === null) writeStored(null);
+
+          function render() {
+            if (choice) {
+              own.textContent = byId[choice].emoji;
+              mine.textContent = 'Your reaction: ';
+              word.textContent = byId[choice].label;
+            } else {
+              own.textContent = '';
+              mine.textContent = '';
+              word.textContent = 'React';
+            }
+            var t = total();
+            summaryButton.hidden = t === 0;
+            summaryButton.setAttribute('aria-label', summaryText());
+            totalText.textContent = numberFormat.format(t);
+            stack.textContent = '';
+            top3().forEach(function (id) {
+              var span = document.createElement('span');
+              span.className = 'reactions__stack-emoji';
+              span.textContent = byId[id].emoji;
+              stack.appendChild(span);
+            });
+            choices.forEach(function (button) {
+              var id = button.getAttribute('data-reaction');
+              button.setAttribute('aria-checked', id === choice ? 'true' : 'false');
+              button.setAttribute('aria-label', byId[id].label + ', ' + countText(counts[id]));
+            });
+          }
+
+          // --- the request: one in flight, the latest intent queued behind it ---
+          var inFlight = false;
+          var queued;
+          function send(id) {
+            if (inFlight) { queued = id; return; }
+            inFlight = true;
+            var body = new URLSearchParams();
+            body.set(fields.slug, slug);
+            body.set(fields.reaction, id || '');
+            fetch(endpoint, { method: 'POST', body: body, headers: { Accept: 'application/json' }, keepalive: true, credentials: 'omit' })
+              .then(function (response) {
+                if (response.status === closedStatus) closeReactions();
+              }, function () { /* offline or refused: quiet, the next tap tries again */ })
+              .then(function () {
+                inFlight = false;
+                if (queued !== undefined && !closedNow) {
+                  var next = queued;
+                  queued = undefined;
+                  send(next);
+                }
+              });
+          }
+
+          function closeReactions() {
+            var active = document.activeElement;
+            var hadFocus = !active || active === document.body || root.contains(active);
+            closedNow = true;
+            queued = undefined;
+            hide();
+            reactButton.disabled = true;
+            summaryButton.disabled = true;
+            note.textContent = closedMessage;
+            // A disabled button drops focus to the page; the note takes it, so a keyboard or
+            // screen-reader reader stays where they were and hears why.
+            if (hadFocus) note.focus();
+          }
+
+          // --- the panel ---
+          function isOpen() { return native ? panel.matches(':popover-open') : !panel.hidden; }
+          function show() { if (native) panel.showPopover(); else { panel.hidden = false; opened(); } }
+          function hide() { if (!isOpen()) return; if (native) panel.hidePopover(); else { panel.hidden = true; closed(); } }
+
+          function place() {
+            var gutter = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.5;
+            var gap = gutter * 0.75;
+            var rect = opener.getBoundingClientRect();
+            var width = panel.offsetWidth;
+            var height = panel.offsetHeight;
+            var viewWidth = document.documentElement.clientWidth;
+            var viewHeight = window.innerHeight;
+            var top = rect.bottom + gap;
+            if (top + height > viewHeight - gutter && rect.top - gap - height >= gutter) top = rect.top - gap - height;
+            top = Math.max(gutter, Math.min(top, viewHeight - height - gutter));
+            var left = Math.max(gutter, Math.min(rect.left, viewWidth - width - gutter));
+            // Without script the stylesheet centres the panel in the viewport; placed, it sits
+            // by its button instead.
+            panel.style.inset = 'auto';
+            panel.style.margin = '0';
+            panel.style.top = top + 'px';
+            panel.style.left = left + 'px';
+          }
+          var placing = 0;
+          function placeSoon() {
+            if (placing || !isOpen()) return;
+            placing = window.requestAnimationFrame(function () { placing = 0; if (isOpen()) place(); });
+          }
+
+          function focusTarget() {
+            return choices.filter(function (b) { return b.getAttribute('data-reaction') === choice; })[0] || choices[0];
+          }
+          function rove(target) {
+            choices.forEach(function (b) { b.tabIndex = b === target ? 0 : -1; });
+            target.focus();
+          }
+          function opened() {
+            openers.forEach(function (b) { b.setAttribute('aria-expanded', b === opener ? 'true' : 'false'); });
+            place();
+            panel.classList.remove('reactions__panel--placing');
+            rove(focusTarget());
+            window.addEventListener('resize', placeSoon);
+            window.addEventListener('scroll', placeSoon, true);
+          }
+          function closed() {
+            openers.forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+            caption.textContent = '';
+            window.removeEventListener('resize', placeSoon);
+            window.removeEventListener('scroll', placeSoon, true);
+            var active = document.activeElement;
+            if (!closedNow && (!active || active === document.body || panel.contains(active))) opener.focus();
+          }
+
+          openers.forEach(function (button) {
+            button.addEventListener('click', function (event) {
+              opener = button;
+              if (!native) {
+                event.preventDefault();
+                if (isOpen()) hide(); else show();
+              }
+            });
+          });
+          if (native) {
+            panel.addEventListener('beforetoggle', function (event) {
+              if (event.newState === 'open') panel.classList.add('reactions__panel--placing');
+            });
+            panel.addEventListener('toggle', function (event) {
+              if (event.newState === 'open') opened(); else closed();
+            });
+          } else {
+            panel.hidden = true;
+            panel.removeAttribute('popover');
+            document.addEventListener('keydown', function (event) {
+              if (event.key === 'Escape' && isOpen()) { event.preventDefault(); hide(); }
+            });
+            document.addEventListener('pointerdown', function (event) {
+              if (isOpen() && !panel.contains(event.target) && openers.indexOf(event.target.closest && event.target.closest('button')) === -1) hide();
+            });
+          }
+
+          panel.addEventListener('keydown', function (event) {
+            var index = choices.indexOf(document.activeElement);
+            if (event.key === 'Tab') { hide(); return; }
+            if (index === -1) return;
+            var next = null;
+            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = choices[(index + 1) % choices.length];
+            else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = choices[(index - 1 + choices.length) % choices.length];
+            else if (event.key === 'Home') next = choices[0];
+            else if (event.key === 'End') next = choices[choices.length - 1];
+            if (next) { event.preventDefault(); rove(next); }
+          });
+
+          function showCaption(button) {
+            var id = button.getAttribute('data-reaction');
+            caption.textContent = byId[id].label + ' · ' + numberFormat.format(counts[id]);
+          }
+          choices.forEach(function (button) {
+            button.addEventListener('pointerenter', function () { showCaption(button); });
+            button.addEventListener('focus', function () { showCaption(button); });
+            button.addEventListener('pointerleave', function () { if (document.activeElement !== button) caption.textContent = ''; });
+            button.addEventListener('click', function () {
+              if (closedNow) return;
+              var tapped = button.getAttribute('data-reaction');
+              var next = choice === tapped ? null : tapped;
+              if (choice !== null) counts[choice] = Math.max(0, counts[choice] - 1);
+              if (next !== null) counts[next] += 1;
+              choice = next;
+              writeStored(choice);
+              render();
+              if (choice !== null) rise(byId[choice].emoji);
+              hide();
+              send(choice);
+            });
+          });
+
+          // One short rise-and-fade on the React button; CSS drops it under reduced motion.
+          function rise(emoji) {
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            var ghost = document.createElement('span');
+            ghost.className = 'reactions__rise';
+            ghost.setAttribute('aria-hidden', 'true');
+            ghost.textContent = emoji;
+            reactButton.appendChild(ghost);
+            ghost.addEventListener('animationend', function () { ghost.remove(); });
+          }
+
+          render();
+        })();
+      </script>
+    </>
+  )}
+</section>
