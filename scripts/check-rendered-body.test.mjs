@@ -665,3 +665,27 @@ test('G6: the parse5 vetting report names the licence each installed package dec
     assert.match(line, new RegExp(`\`${name}\` is ${license.replace(/[.-]/g, '\\$&')}`), `${name} is ${license}`);
   }
 });
+
+test('G4b: every action in every workflow is pinned to a commit, with its tag in a comment', () => {
+  const dir = join(SITE_ROOT, '.github/workflows');
+  for (const name of readdirSync(dir).filter((n) => /\.ya?ml$/.test(n))) {
+    for (const [line] of readFileSync(join(dir, name), 'utf8').matchAll(/^\s*(?:-\s*)?uses:.*$/gm)) {
+      assert.match(line, /uses: [\w.-]+\/[\w./-]+@[0-9a-f]{40} # v\d+\.\d+\.\d+$/, `${name}: ${line.trim()}`);
+    }
+  }
+});
+
+test('G4b: the post-build body check runs with the same environment as the build it checks', () => {
+  const dir = join(SITE_ROOT, '.github/workflows');
+  const stepEnv = (text, run) => {
+    const at = text.indexOf(`run: ${run}`);
+    const start = text.lastIndexOf('- name:', at);
+    const env = /\n\s+env:\n((?:\s{10,}[A-Z_]+:.*\n)+)/.exec(text.slice(start, at));
+    return env ? env[1].split('\n').map((l) => l.trim()).filter(Boolean).sort() : [];
+  };
+  for (const name of readdirSync(dir).filter((n) => /\.ya?ml$/.test(n))) {
+    const text = readFileSync(join(dir, name), 'utf8');
+    if (!text.includes('run: npm run check:bodies:build')) continue;
+    assert.deepEqual(stepEnv(text, 'npm run check:bodies:build'), stepEnv(text, 'npm run build'), name);
+  }
+});
