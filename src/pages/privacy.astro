@@ -27,7 +27,8 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         through a third-party comment host or an advertising tracker. This is what the desk keeps
         when you send a comment, and for how long. The desk deletes old data in a clean-up that runs
         once a night, so anything kept "for 30 days" is deleted at the first clean-up after those 30
-        days: at most 31 days after it was stored.
+        days: at most 31 days after it was stored. Deleted data can remain in the database's
+        restorable backups for up to 30 days more, until those backups expire.
       </p>
       <ul>
         <li>
@@ -77,15 +78,21 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         <p>
           Reacting to a story (the "React" button) sends the story's address and your choice to
           comments.{SITE.domain}. The desk keeps your choice with your IP address as the same salted,
-          shortened hash it keeps for comments, for 30 days from your last change, so that one
-          visitor counts once per story. Within a day after those 30 days, the nightly clean-up folds
-          your choice into the story's anonymous totals and deletes the hash. Removing your reaction
-          deletes it at once. Because it is the same hash, for those 30 days the desk's database can
-          tell that a comment and a reaction came from the same connection. The desk does not use that
-          link for anything but limits on how often one visitor can act and bans, and never to follow
-          what you read or react to. The totals are public and are baked into the story's page. Your browser remembers your own
-          choice in its local storage (not a cookie) for 30 days, so the button can show it; clearing
-          site data forgets it.
+          shortened hash it keeps for comments, for 30 days from your last change: the hash makes one
+          visitor count once per story, limits how often one visitor can react, and enforces a ban.
+          Within a day after those 30 days, the nightly clean-up folds your choice into the story's
+          anonymous totals and deletes the hash. Removing your reaction deletes it at once. A removed
+          or folded reaction, hash included, can remain in the database's restorable backups for up
+          to 30 days more. Because it
+          is the same hash, for those 30 days the desk's database can tell that a comment and a
+          reaction came from the same internet address (which several people on one network can
+          share). The desk does not use that link for anything but limits on how often one visitor
+          can act and bans, and never to follow what you read or react to. While you react,
+          Cloudflare's rate limit sees the address itself; that handling is Cloudflare's. The totals
+          are public and are baked into the story's page. Your browser remembers your own choice in
+          its local storage (not a cookie) for 30 days, so the button can show it; any story page you
+          open deletes remembered choices older than that, and clearing site data forgets them at
+          once.
         </p>
       )}
       <p>

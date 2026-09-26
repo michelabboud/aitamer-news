@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.27] — 2026-09-26
+
+### Fixed
+- **The privacy page names the backups once, up front**: data the nightly clean-up deletes can remain in the database's restorable backups for up to 30 days more (the removal bullet already said so for erased comments).
+- **The reactions paragraph** (still behind `REACTIONS_LIVE`) is exact against what the desk and the page do: the hash also limits how often one visitor can react and enforces a ban; a removed or folded reaction can remain in the backups for up to 30 days; Cloudflare's rate limit sees the address while you react; the link between a comment and a reaction is "the same internet address (which several people on one network can share)"; and the browser's 30-day memory is now true (every story page deletes older records).
+
 ## [0.2.26] — 2026-09-26
 
 ### Fixed

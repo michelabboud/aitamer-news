@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.27: privacy wording from the deep reviews (backups once up front; the reactions paragraph exact). Michel's review of the reactions paragraph is still owed before go-live.
+
 - **2026-09-26** — 0.2.26: fixes from the deep review of the reactions component (unsent choices resent, focus and scroll, the no-popover case, the expiry sweep, a bundled script). Still off.
 
 - **2026-09-26** — 0.2.25: the privacy page says retention exactly (deleted within a day after 30 days); the reactions paragraph says a comment and a reaction share the hash. From the ops-side deep review.
