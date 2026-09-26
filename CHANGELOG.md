@@ -2,6 +2,18 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.20] — 2026-09-26
+
+### Added
+- **Reactions data contract v1** (reactions plan, task RB1). `src/content/reactions/<slug>.json` will carry a story's reaction totals, written by the desk's publisher: `{ version: 1, slug, reactions: [{ id, n }] }`, ids sorted and unique, `n` a whole number ≥ 1, at most 64 entries, no timestamp (equal totals, equal bytes). Strict schema in `src/content/reaction-schema.ts`, published at `/contract/reactions.schema.json` and `/contract/v1/reactions.schema.json`, v1 frozen by a byte-for-byte snapshot. Unknown (retired) ids are allowed and counted in the total, never shown.
+- The reaction set and its pure helpers, `src/lib/reactions.ts`: the seven reactions (Love, Wow, Funny, Angry, Skeptical, Overhyped, Underrated), `REACTION_ID`, totals, the top three, accessible labels, and the 30-day memory of a reader's own choice in `localStorage` (never a cookie).
+- The `reactions` collection, `getReactionThreads()`, and `npm run check:reactions` in `npm run check:posts` (a file with no post, a slug that is not the file name, or anything but `README.md` and regular `<slug>.json` files fails it). POST.md section 9 and `src/content/reactions/README.md` document the format.
+- `REACTIONS_LIVE = false` in `src/lib/site.ts`: nothing about reactions shows on the site until the publisher bakes real totals.
+
+### Changed
+- The comment loader and file probe became shared by both data directories: `src/content/comments-loader.ts` → `src/content/data-file-loader.ts`, `src/content/comment-files.ts` → `src/content/data-files.ts` (`hasCommentFiles` → `hasDataFiles`), and the comment check's rules moved to `scripts/data-files.mjs`. No behaviour change: `scripts/check-comments.test.mjs` passes unchanged.
+- `package.json`'s version follows `VERSION` again (0.2.19 had left it at 0.2.18).
+
 ## [0.2.19] — 2026-09-26
 
 ### Changed

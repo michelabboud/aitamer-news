@@ -22,7 +22,7 @@ import { SITE } from '../lib/site-meta.ts';
  * Every object is `.strict()`: an unknown key fails the build naming the file. The rules that
  * need the file name (`slug` equals it) or the posts directory (the post exists) cannot live in a
  * schema; `scripts/check-comments.mjs` (part of `npm run check:posts`) and the collection loader
- * (`src/content/comments-loader.ts`) enforce those. The rules that need two fields at once
+ * (`src/content/data-file-loader.ts`) enforce those. The rules that need two fields at once
  * (unique ids, oldest first, every `at` no later than `generatedAt`) are zod refinements here
  * and prose in the JSON Schema's `description`.
  *

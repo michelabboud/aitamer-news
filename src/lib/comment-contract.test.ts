@@ -21,7 +21,7 @@ import {
   commentsFileJsonSchemaDocument,
   commentsFileSchema,
 } from '../content/comment-schema.ts';
-import { commentEntryId, commentsLoader, isEmptyCommentsWarning } from '../content/comments-loader.ts';
+import { commentEntryId, commentsLoader, isEmptyDataFilesWarning } from '../content/data-file-loader.ts';
 import { SLUG } from '../../scripts/frontmatter.mjs';
 import { SLUG_MAX_LENGTH } from '../../scripts/slug.mjs';
 
@@ -642,10 +642,10 @@ test('the v1 document is frozen: it matches the committed snapshot byte for byte
 // --- the collection loader --------------------------------------------------------------------
 
 test('only the glob loader\'s empty-match warning for *.json is recognised', () => {
-  assert.equal(isEmptyCommentsWarning('No files found matching "*.json" in directory "src/content/comments"'), true);
-  assert.equal(isEmptyCommentsWarning('No files found matching "**/*.{md,mdx}" in directory "src/content/posts"'), false);
-  assert.equal(isEmptyCommentsWarning('The base directory "/x/src/content/comments" does not exist.'), false);
-  assert.equal(isEmptyCommentsWarning(''), false);
+  assert.equal(isEmptyDataFilesWarning('No files found matching "*.json" in directory "src/content/comments"'), true);
+  assert.equal(isEmptyDataFilesWarning('No files found matching "**/*.{md,mdx}" in directory "src/content/posts"'), false);
+  assert.equal(isEmptyDataFilesWarning('The base directory "/x/src/content/comments" does not exist.'), false);
+  assert.equal(isEmptyDataFilesWarning(''), false);
 });
 
 test('the entry id is the file name, and a slug field that disagrees fails naming the file', () => {

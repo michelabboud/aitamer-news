@@ -1,6 +1,6 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { root } from 'astro:config/server';
-import { hasCommentFiles } from '../content/comment-files.ts';
+import { COMMENTS_BASE, REACTIONS_BASE, hasDataFiles } from '../content/data-files.ts';
 import { groupByMonth, type ArchiveMonth } from './archive.ts';
 import { HABITATS, HABITAT_META, isHabitat, type Habitat } from './habitats.ts';
 import { isLive } from './schedule.ts';
@@ -46,6 +46,16 @@ export const COMMENTS_ENDPOINT: string =
  * Worker rejects every note without a token once the secret is set.
  */
 export const TURNSTILE_SITE_KEY = '0x4AAAAAAFD4NAnBkk3_-_1Y';
+
+/**
+ * Whether story pages show reactions (the React button and the summary) and the privacy page
+ * describes them. False until the desk's publisher bakes real totals into
+ * `src/content/reactions/`, so nothing half-working reaches readers. While false, reaction files
+ * are still validated (`npm run check:posts`, the build) and the contract routes are still served,
+ * so the desk can publish before the switch. Flip it in the commit that also moves the privacy
+ * page's date.
+ */
+export const REACTIONS_LIVE = false;
 
 /** The habitats, in reading order. Kept under the old name: routes and props still say "section". */
 export const ALL_SECTIONS = HABITATS;
@@ -115,12 +125,23 @@ export async function getSunsetPosts(): Promise<CollectionEntry<'posts'>[]> {
 /**
  * Every published comment thread, keyed by post id (the data file's name). A post with no
  * approved comments has no entry. Asks the file system first so a site with no comment files
- * yet does not log Astro's "collection is empty" warning on every page (`hasCommentFiles`).
+ * yet does not log Astro's "collection is empty" warning on every page (`hasDataFiles`).
  */
 export async function getCommentThreads(): Promise<Map<string, CollectionEntry<'comments'>>> {
-  if (!hasCommentFiles(root)) return new Map();
+  if (!hasDataFiles(root, COMMENTS_BASE)) return new Map();
   const threads = await getCollection('comments');
   return new Map(threads.map((thread) => [thread.id, thread]));
+}
+
+/**
+ * Every published reactions file, keyed by post id (the data file's name). A post whose reactions
+ * add up to zero has no entry, which the page reads as zero. Asks the file system first, like
+ * `getCommentThreads`, so a site with no reaction files logs no "collection is empty" warning.
+ */
+export async function getReactionThreads(): Promise<Map<string, CollectionEntry<'reactions'>>> {
+  if (!hasDataFiles(root, REACTIONS_BASE)) return new Map();
+  const files = await getCollection('reactions');
+  return new Map(files.map((file) => [file.id, file]));
 }
 
 /** Published posts grouped by month, newest month first; posts keep newest-first order. */

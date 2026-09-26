@@ -1,0 +1,192 @@
+/**
+ * Reactions on story pages: the set a reader chooses from, and the pure helpers the page needs to
+ * show baked totals and remember a reader's own choice.
+ *
+ * The set is the one source of truth. The page renders it (`src/components/Reactions.astro`), the
+ * data contract checks each `id` against {@link REACTION_ID} (`src/content/reaction-schema.ts`),
+ * and the desk's comments Worker keeps its own vendored copy of the ids to decide what it accepts —
+ * never imported across repositories, pinned by a test on the desk's side. Order is display order.
+ *
+ * Swapping the set: adding an id goes here first (so the page can render it), then into the
+ * Worker (so it is accepted). Removing one goes the other way: the Worker stops accepting it, then
+ * the id may leave here. A retired id can stay in a baked file for good, because the totals are
+ * permanent, so everything below counts an unknown id in the total and never gives it a chip.
+ *
+ * Pure, with no `astro:content` import, so `src/lib/reactions.test.ts` runs it under plain
+ * `node:test`.
+ */
+
+/** One reaction a reader can choose. */
+export interface Reaction {
+  /** Stored by the desk and written in the data file. Matches {@link REACTION_ID}. Never changes once published. */
+  readonly id: string;
+  /** What the page shows. */
+  readonly emoji: string;
+  /** The reaction's name, for the button, the caption and screen readers. */
+  readonly label: string;
+}
+
+/**
+ * The reaction set, in display order. The emoji are written as escapes so the exact code points are
+ * visible: Love is U+2764 with U+FE0F (emoji presentation), which a bare heart glyph may lack.
+ */
+export const REACTIONS = Object.freeze([
+  { id: 'love', emoji: '\u2764\uFE0F', label: 'Love' }, // ❤️
+  { id: 'wow', emoji: '\u{1F92F}', label: 'Wow' }, // 🤯
+  { id: 'funny', emoji: '\u{1F602}', label: 'Funny' }, // 😂
+  { id: 'angry', emoji: '\u{1F621}', label: 'Angry' }, // 😡
+  { id: 'skeptical', emoji: '\u{1F914}', label: 'Skeptical' }, // 🤔
+  { id: 'overhyped', emoji: '\u{1F388}', label: 'Overhyped' }, // 🎈
+  { id: 'underrated', emoji: '\u{1F48E}', label: 'Underrated' }, // 💎
+] as const satisfies readonly Reaction[]);
+for (const reaction of REACTIONS) Object.freeze(reaction);
+
+/** An id of the current set. */
+export type ReactionId = (typeof REACTIONS)[number]['id'];
+
+/**
+ * The shape of any reaction id, known or retired: a lowercase letter, then up to 23 lowercase
+ * letters, digits or hyphens. ASCII only, so it means the same with and without the `u` flag.
+ */
+export const REACTION_ID = /^[a-z][a-z0-9-]{0,23}$/;
+
+const BY_ID: ReadonlyMap<string, Reaction> = new Map(REACTIONS.map((reaction) => [reaction.id, reaction]));
+
+/** @returns true when `id` is in the current set */
+export function isKnownReaction(id: string): id is ReactionId {
+  return BY_ID.has(id);
+}
+
+/** @returns the reaction with this id, or `undefined` for an id the set does not know */
+export function reactionById(id: string): Reaction | undefined {
+  return BY_ID.get(id);
+}
+
+/** The counts of one story, split into what the page can show and what it only counts. */
+export interface ReactionTotals {
+  /** Known ids with a count above zero, in set order. */
+  readonly known: ReadonlyMap<ReactionId, number>;
+  /** Ids the set does not know (retired ones), with their counts. Counted in `total`, never shown as a chip. */
+  readonly unknown: ReadonlyMap<string, number>;
+  /** Every count in the file, known and unknown. */
+  readonly total: number;
+}
+
+/**
+ * The totals of one story's reactions file, or zero when the story has none.
+ * @param file the parsed data file (`src/content/reactions/<slug>.json`), or `undefined` when the
+ *   story has no file — the normal state of a story nobody has reacted to
+ */
+export function reactionTotals(file: { reactions: readonly { id: string; n: number }[] } | undefined): ReactionTotals {
+  const counts = new Map<string, number>();
+  for (const { id, n } of file?.reactions ?? []) counts.set(id, (counts.get(id) ?? 0) + n);
+  const known = new Map<ReactionId, number>();
+  for (const { id } of REACTIONS) {
+    const n = counts.get(id);
+    if (n !== undefined && n > 0) known.set(id, n);
+  }
+  const unknown = new Map<string, number>();
+  let total = 0;
+  for (const [id, n] of counts) {
+    total += n;
+    if (!isKnownReaction(id) && n > 0) unknown.set(id, n);
+  }
+  return { known, unknown, total };
+}
+
+/**
+ * The reactions to show in the summary: the `count` known ids with the highest counts, ties broken
+ * by set order, zero counts never.
+ */
+export function topReactions(known: ReadonlyMap<ReactionId, number>, count = 3): ReactionId[] {
+  const order = new Map(REACTIONS.map((reaction, index) => [reaction.id, index]));
+  return [...known]
+    .filter(([, n]) => n > 0)
+    .sort(([a, na], [b, nb]) => nb - na || order.get(a)! - order.get(b)!)
+    .slice(0, count)
+    .map(([id]) => id);
+}
+
+const COUNT_FORMAT = new Intl.NumberFormat('en-US');
+
+/** "1 reaction", "12 reactions", "1,204 reactions". */
+export function reactionCount(n: number): string {
+  return `${COUNT_FORMAT.format(n)} ${n === 1 ? 'reaction' : 'reactions'}`;
+}
+
+/**
+ * A choice's accessible name in the panel: "Overhyped, 12 reactions".
+ * @throws {RangeError} for an id the set does not know: the panel only ever lists the set
+ */
+export function reactionLabel(id: string, n: number): string {
+  const reaction = reactionById(id);
+  if (!reaction) throw new RangeError(`reactionLabel: ${JSON.stringify(id)} is not in the reaction set`);
+  return `${reaction.label}, ${reactionCount(n)}`;
+}
+
+/** "Love", "Love and Wow", "Love, Wow and Funny". */
+function listLabels(ids: readonly ReactionId[]): string {
+  const labels = ids.map((id) => reactionById(id)!.label);
+  if (labels.length <= 1) return labels.join('');
+  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
+}
+
+/**
+ * The summary button's accessible name: "12 reactions: Overhyped, Love and Wow" — the total, then
+ * the top three. A story whose only counts are retired ids reads "4 reactions"; a story with none
+ * reads "No reactions yet" (the page hides the summary then, but the label is never empty).
+ */
+export function summaryLabel(totals: ReactionTotals): string {
+  if (totals.total === 0) return 'No reactions yet';
+  const top = topReactions(totals.known);
+  return top.length === 0 ? reactionCount(totals.total) : `${reactionCount(totals.total)}: ${listLabels(top)}`;
+}
+
+/**
+ * How long the browser remembers a reader's own choice: the same 30 days the desk keeps the choice
+ * against the reader's hashed address before folding it into the anonymous totals. After that the
+ * desk would count the reader again, so the browser forgets at the same time.
+ */
+export const REACTION_MEMORY_DAYS = 30;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** The `localStorage` key a story's own choice is kept under. Never a cookie. */
+export function reactionStorageKey(slug: string): string {
+  return `atn:react:${slug}`;
+}
+
+/** What the page stores under {@link reactionStorageKey}: the id and when it was chosen. */
+export interface StoredReaction {
+  /** A reaction id of the current set. */
+  readonly r: ReactionId;
+  /** When the reader chose it, as an ISO-8601 time. */
+  readonly at: string;
+}
+
+/**
+ * The reader's remembered choice, or `null` to forget it. Anything the page did not write is
+ * forgotten rather than trusted: storage is the reader's to edit. `null` for no value, text that
+ * is not JSON, a value of another shape, an id the set no longer knows, a time that does not parse,
+ * a time later than `now` (a choice cannot come from the future), and a choice older than
+ * {@link REACTION_MEMORY_DAYS}.
+ * @param stored the raw `localStorage` value, `null` when absent
+ * @param now the current time
+ */
+export function parseStoredReaction(stored: string | null, now: Date): StoredReaction | null {
+  if (stored === null) return null;
+  let value: unknown;
+  try {
+    value = JSON.parse(stored);
+  } catch {
+    return null;
+  }
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
+  const { r, at } = value as Record<string, unknown>;
+  if (typeof r !== 'string' || !isKnownReaction(r) || typeof at !== 'string') return null;
+  const chosen = Date.parse(at);
+  if (Number.isNaN(chosen)) return null;
+  const age = now.getTime() - chosen;
+  if (age < 0 || age > REACTION_MEMORY_DAYS * DAY_MS) return null;
+  return { r, at };
+}

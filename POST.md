@@ -182,3 +182,30 @@ Enforcement: `npm run check:posts` fails a file whose post does not exist or who
 **The form.** Every story page carries a plain `<form method="post">` to `https://comments.aitamer.news/` (`COMMENTS_ENDPOINT` in `src/lib/site.ts`; `PUBLIC_COMMENTS_ENDPOINT` points a local build at a local Worker) with the fields `slug`, `name` (1–60 characters), `text` (1–2,000), the honeypot `desk_extra` (must stay empty), Turnstile's `cf-turnstile-response` (widget action `comment`), and — added by the page script only — `elapsed`, the whole milliseconds between the form being rendered and the submit. Without JavaScript the form still submits and the Worker sends the reader back to `/posts/<slug>/?commented=1#comment-held`, where the held message shows without script, but Turnstile needs JavaScript, so the no-script note says commenting does too. With no Turnstile site key configured (`TURNSTILE_SITE_KEY` in `src/lib/site.ts`), the page says commenting is not set up yet instead of showing a form that cannot succeed.
 
 **`/comments/threads.json`.** Regenerated on every build: `{ "version": 1, "generatedAt": "<build time>", "threads": { "<slug>": "open" | "closed" } }`, one entry per live post (drafts and scheduled posts are absent, so the Worker refuses comments for a page that does not exist yet). Withdrawn posts and posts with `comments: { closed: true }` are `closed`.
+
+## 9. Reactions
+
+Readers will react to a story with one of seven reactions (Love, Wow, Funny, Angry, Skeptical, Overhyped, Underrated; the set is `REACTIONS` in `src/lib/reactions.ts`). Like comments, reactions are not part of a post's file: their totals arrive as **reactions data files**, `src/content/reactions/<slug>.json`, one per post whose reactions add up to more than zero, and the build bakes them into the post's page. **Not live yet:** until `REACTIONS_LIVE` in `src/lib/site.ts` is true, no page shows reactions, but any file that lands is already checked.
+
+**The desk's publisher writes these files, and nobody edits them by hand.** Each is regenerated from the desk's database (the permanent anonymous totals plus the reactions still live there), so a hand edit is overwritten by the next publish. The one hand edit that makes sense is deleting the file of a post that was deleted or renamed, in the same commit.
+
+The format, v1:
+
+```json
+{
+  "version": 1,
+  "slug": "grok-4-7",
+  "reactions": [
+    { "id": "love", "n": 3 },
+    { "id": "overhyped", "n": 7 },
+    { "id": "wow", "n": 2 }
+  ]
+}
+```
+
+- `version` is `1`; `slug` is the post's slug and the file's name (at most 120 characters).
+- `reactions` holds 1 to 64 entries, **sorted by `id`**, each `id` once. `id` is a lowercase letter then up to 23 lowercase letters, digits or hyphens; `n` is a whole number, at least 1. A post with no reactions has **no file**, and the page reads that as zero.
+- An `id` need not be in today's set: the set can change, and a retired reaction keeps its permanent total, which the page counts in the story's total without showing it.
+- No other key, at any level, and no timestamp: the same totals always produce the same bytes, so a publish that changes no count changes no file and opens no pull request.
+
+Enforcement is the comments' own: `npm run check:posts` (`scripts/check-reactions.mjs`) fails a file whose post does not exist or whose `slug` is not its file name, and any entry in `src/content/reactions/` that is not `README.md` or a regular `<slug>.json` file; `npm run build` fails a file that breaks the format (`src/content/reaction-schema.ts`, strict at every level), naming it. The same schema is published as JSON Schema at `/contract/reactions.schema.json` (newest) and `/contract/v1/reactions.schema.json` (v1, frozen) for the desk to validate against before it commits. Detail: `src/content/reactions/README.md`.

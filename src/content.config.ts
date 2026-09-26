@@ -2,8 +2,9 @@ import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { commentsFileSchema } from './content/comment-schema';
-import { commentsLoader } from './content/comments-loader';
+import { commentsLoader, reactionsLoader } from './content/data-file-loader';
 import { postSchema } from './content/post-schema';
+import { reactionsFileSchema } from './content/reaction-schema';
 
 const authors = defineCollection({
   loader: glob({ base: './src/content/authors', pattern: '**/*.{md,mdx}' }),
@@ -33,7 +34,7 @@ const posts = defineCollection({
  * with at least one approved comment, written by the desk's publisher (ADR 0006). The schema in
  * `./content/comment-schema.ts` also generates `/contract/comments.schema.json`. The loader is
  * Astro's glob loader with the entry id fixed to the file name and the empty-directory warning
- * silenced (`./content/comments-loader.ts`): zero files is the normal state until the first
+ * silenced (`./content/data-file-loader.ts`): zero files is the normal state until the first
  * comment is published, and the build must pass on it.
  */
 const comments = defineCollection({
@@ -41,4 +42,16 @@ const comments = defineCollection({
   schema: commentsFileSchema,
 });
 
-export const collections = { authors, posts, comments };
+/**
+ * Reactions data files, contract v1 (2026-09-26): `src/content/reactions/<slug>.json`, one per post
+ * whose readers' reactions add up to more than zero, written by the desk's publisher: integer
+ * totals per reaction id, sorted, no timestamp. The schema in `./content/reaction-schema.ts` also
+ * generates `/contract/reactions.schema.json`. Same loader as `comments`, over its own directory:
+ * zero files is the normal state, and the build must pass on it.
+ */
+const reactions = defineCollection({
+  loader: reactionsLoader(),
+  schema: reactionsFileSchema,
+});
+
+export const collections = { authors, posts, comments, reactions };

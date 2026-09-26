@@ -1,0 +1,49 @@
+{
+  "$id": "https://aitamer.news/contract/v1/reactions.schema.json",
+  "title": "AI Tamer reactions data file",
+  "description": "The contract every reactions data file (src/content/reactions/<slug>.json) on aitamer.news satisfies. Generated from the same zod schema the build validates against, so it cannot drift. Each n is the total for one reaction id: the desk's permanent anonymous totals plus its live reactions. Five rules cannot be expressed here and the build enforces them too: (1) the slug equals the file name; (2) a post with that slug exists; (3) a post whose reactions add up to zero has no file, so a file is never published empty; (4) ids are unique within a file; (5) reactions are sorted by id, ascending, by UTF-16 code unit. The file carries no timestamp, so the same totals always produce the same bytes. An id need not be in the site's current reaction set (src/lib/reactions.ts): a retired id keeps its total, which the page counts in the story's total without showing it. The format is documented in POST.md: https://github.com/michelabboud/aitamer-news/blob/main/POST.md",
+  "x-contract-version": 1,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "slug": {
+      "type": "string",
+      "maxLength": 120,
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "reactions": {
+      "minItems": 1,
+      "maxItems": 64,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,23}$"
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "n"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "version",
+    "slug",
+    "reactions"
+  ],
+  "additionalProperties": false
+}
