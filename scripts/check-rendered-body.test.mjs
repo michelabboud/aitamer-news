@@ -524,6 +524,80 @@ test('should-fix 1a: --against-build fails on a doctored built page, and on a bu
   assert.match(await findings(), /dist\/posts\/a\/index\.html: the story body's ancestors .*<section>/);
 });
 
+/**
+ * A repo-shaped temp root with a build store holding `entries` (id → data), every one a copy of the
+ * same bot post, rendered as the checker renders it; `pages` are the ids that get a built page.
+ */
+async function buildFixture(entries, { pages = [], generatedAt, withdrawnNoBody = [] } = {}) {
+  const contents = post('Hello *there*.');
+  const [{ html }] = await checkPostSources([{ name: 'a.md', contents }]);
+  const root = tempDir('rendered-build-set-');
+  mkdirSync(join(root, 'node_modules/.astro'), { recursive: true });
+  mkdirSync(join(root, 'src/content/authors'), { recursive: true });
+  mkdirSync(join(root, 'src/content/posts'), { recursive: true });
+  for (const dep of ['astro', 'devalue']) symlinkSync(join(SITE_ROOT, 'node_modules', dep), join(root, 'node_modules', dep), 'dir');
+  writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: bot\nbio: b\n---\n');
+  const store = new Map();
+  for (const [id, data] of Object.entries(entries)) {
+    writeFileSync(join(root, `src/content/posts/${id}.md`), contents);
+    store.set(id, { id, data: { author: { collection: 'authors', id: 'desk-bot' }, ...data }, filePath: `src/content/posts/${id}.md`, digest: '0', rendered: { html, metadata: {} } });
+  }
+  const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+  writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', store]])));
+  for (const id of pages) writeBuiltPage(root, id, builtPage(html));
+  for (const id of withdrawnNoBody) {
+    writeBuiltPage(root, id, builtPage('x', { article: '<article class="article">' }).replace('<div class="article__body">x</div>', '<section class="notice notice--withdrawn"><h2>Withdrawn</h2></section>'));
+  }
+  if (generatedAt) {
+    mkdirSync(join(root, 'dist/comments'), { recursive: true });
+    writeFileSync(join(root, 'dist/comments/threads.json'), JSON.stringify({ version: 1, generatedAt: generatedAt.toISOString(), threads: {} }));
+  }
+  return root;
+}
+
+const DAY = 24 * 60 * 60 * 1000;
+
+test('S4 round 5 (1): a build where no page had its body chain compared is a finding, even when every page is a withdrawn one', async () => {
+  const past = new Date(Date.now() - DAY);
+  const root = await buildFixture({ gone: { pubDate: past, draft: false, withdrawn: { date: past, reason: 'r' } } }, { withdrawnNoBody: ['gone'], generatedAt: new Date() });
+  const findings = problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(' | ');
+  assert.match(findings, /no built story page under dist\/posts\/ had its body's place checked/);
+  // One ordinary page beside it is enough.
+  const ok = await buildFixture(
+    { gone: { pubDate: past, draft: false, withdrawn: { date: past, reason: 'r' } }, live: { pubDate: past, draft: false } },
+    { withdrawnNoBody: ['gone'], pages: ['live'], generatedAt: new Date() },
+  );
+  assert.equal(problems((await checkAgainstBuild({ root: ok })).flatMap((r) => r.findings)).join(' | '), '');
+});
+
+test('S4 round 5 (2): a live, published entry with no built page is a finding; drafts and posts scheduled after the build are not', async () => {
+  const built = new Date(Date.now() - 60 * 60 * 1000); // the build ran an hour ago
+  const root = await buildFixture(
+    {
+      shown: { pubDate: new Date(built - DAY), draft: false },
+      dropped: { pubDate: new Date(built - DAY), draft: false },
+      pulled: { pubDate: new Date(built - DAY), draft: false, withdrawn: { date: built, reason: 'r' } },
+      draft: { pubDate: new Date(built - DAY), draft: true },
+      // Due since the build ran, so live now but not when the build judged it: no page, rightly.
+      duesince: { pubDate: new Date(built.valueOf() + 60 * 1000), draft: false },
+      future: { pubDate: new Date(Date.now() + DAY), draft: false },
+    },
+    { pages: ['shown'], generatedAt: built },
+  );
+  const results = await checkAgainstBuild({ root });
+  const byId = Object.fromEntries(results.map((r) => [basename(r.file, '.md'), problems(r.findings).join(' | ')]));
+  assert.match(byId.dropped, /dist\/posts\/dropped\/index\.html: missing, though the post was published when the site was built/);
+  assert.match(byId.pulled, /dist\/posts\/pulled\/index\.html: missing/, 'a withdrawn post keeps its page');
+  for (const id of ['shown', 'draft', 'duesince', 'future']) assert.equal(byId[id], '', id);
+});
+
+test("S4 round 5 (2): without the build's clock, a missing page cannot be excused", async () => {
+  const past = new Date(Date.now() - DAY);
+  const root = await buildFixture({ shown: { pubDate: past, draft: false }, maybe: { pubDate: past, draft: true } }, { pages: ['shown'] });
+  const findings = problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(' | ');
+  assert.match(findings, /cannot tell whether .*maybe.* was published when the site was built: .*threads\.json/);
+});
+
 test('after the build: a store that matches the checker passes; a different render or a bad shipped body fails', async () => {
   const [{ html }] = await checkPostSources([{ name: 'a.md', contents: post('Hello *there*.') }]);
   // A repo-shaped temp root with its own build store; Astro's modules come from this checkout.

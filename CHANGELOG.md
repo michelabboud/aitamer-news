@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [Unreleased]
+
+### Fixed
+**Two tightenings of the rendered-body gate's post-build check** (`npm run check:bodies:build`; the S4 review's fifth round):
+- **A build where no story page had its body's place checked now fails.** A withdrawn story's page can have no body, and such a page used to count as checked, so a build of only withdrawn pages would have passed while checking nothing. Only pages whose ancestor chain was actually compared now count (`inspectBuiltPage` in `scripts/rendered-body-allowlist.mjs`).
+- **A published post with no built page is a finding.** It used to be skipped silently, so a routing change that dropped some story pages would have gone unnoticed. "Published" is the routes' own rule: `isLive` from `src/lib/schedule.ts`, used by `isPublished` and `getPostPages` in `src/lib/site.ts`. The check imports that rule rather than copying it, and judges it against the build's own clock (`generatedAt` in `dist/comments/threads.json`, which is `BUILD_TIME`). Drafts, and posts that fell due after the build ran, are still skipped. Without a readable clock, a missing page is a finding, never a pass.
+
 ## [0.2.31] — 2026-09-26
 
 ### Added

@@ -729,7 +729,19 @@ export function checkRenderedHtml(html) {
  * @param {{ withdrawn?: boolean }} [options]
  * @returns {string[]} problems, empty when the page matches
  */
-export function builtPageProblems(page, { withdrawn = false } = {}) {
+export function builtPageProblems(page, options) {
+  return inspectBuiltPage(page, options).problems;
+}
+
+/**
+ * `builtPageProblems`, plus whether the body's ancestor chain was actually compared: a withdrawn
+ * story's page may ship no body at all, and then there was nothing to compare. The post-build
+ * check counts only compared pages, so a build in which none was compared fails.
+ * @param {string} page the built page's HTML
+ * @param {{ withdrawn?: boolean }} [options]
+ * @returns {{ problems: string[], chainCompared: boolean }}
+ */
+export function inspectBuiltPage(page, { withdrawn = false } = {}) {
   const problems = [];
   const document = parseDocument(page, {
     onParseError: (error) => problems.push(`the built page has a parse error (${error.code}) at line ${error.startLine}`),
@@ -746,7 +758,7 @@ export function builtPageProblems(page, { withdrawn = false } = {}) {
   if (bodies.length === 0) {
     // A withdrawn story ships no body at all: nothing to place, nothing to check.
     if (!withdrawn) problems.push('the built page has no <div class="article__body">');
-    return problems;
+    return { problems, chainCompared: false };
   }
   if (bodies.length > 1) problems.push(`the built page has ${bodies.length} <div class="article__body"> elements`);
   const chain = [];
@@ -765,7 +777,7 @@ export function builtPageProblems(page, { withdrawn = false } = {}) {
   if (!ok) {
     problems.push(`the story body's ancestors on the built page are ${chain.map(describe).join(' > ')}, not the chain the gate models (${PAGE_STAND_IN_CHAIN}); update the stand-in in scripts/rendered-body-allowlist.mjs`);
   }
-  return problems;
+  return { problems, chainCompared: true };
 }
 
 /** @returns {boolean} whether `node` is a `tag` element with exactly these attributes, in any order */
