@@ -113,6 +113,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Bot posts: the shipped HTML of every bot-authored post passes the allowlist, and the
+      # checker renders every post exactly as this build did (SECURITY.md, "Bot posts"; ADR 0009).
+      - name: Check bot post bodies against the build
+        run: npm run check:bodies:build
+
       - name: Check the build holds no secrets
         run: npm run check:dist
 
