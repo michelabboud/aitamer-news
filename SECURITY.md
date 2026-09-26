@@ -22,7 +22,20 @@ Only the site as currently deployed at https://aitamer.news, built from `main`, 
 
 ## Trust model
 
-Posts are written by the desk's own bots, the posts tool and editors, all trusted writers. The post contract (`POST.md`, strict JSON Schema) blocks malformed data and dangerous link schemes, and everything rendered from frontmatter is escaped; but Markdown bodies may contain raw HTML by design, so a writer with commit access can publish arbitrary markup. Protection against that sits upstream: only the maintainer can push, and pull requests from outside run no deploy.
+Posts are written by the desk's own bots, the posts tool and editors, all trusted writers. The post contract (`POST.md`, strict JSON Schema) blocks malformed data and dangerous link schemes, and everything rendered from frontmatter is escaped; but Markdown bodies may contain raw HTML by design, so a writer with commit access can publish arbitrary markup. Protection against that sits upstream: only the maintainer can push, and pull requests from outside run no deploy. A bot's post additionally passes the rendered-body gate below, because a bot copies untrusted text from the web.
+
+## Bot posts: the rendered-body gate
+
+Bots write post bodies from untrusted web content, so a bot post gets a check a human post does not. The build renders every post whose `author` is a bot (an author file under `src/content/authors/` with `kind: bot`; `desk-bot` today) with the site's own Markdown pipeline, and checks the **rendered HTML** against an exact allowlist (`scripts/check-rendered-body.mjs`, `scripts/rendered-body-allowlist.mjs`; ADR 0009):
+
+- only the elements Markdown produces, each with only the attributes and value shapes the site's renderer writes (Shiki's code blocks for the pinned theme, footnotes, task lists, table alignment); anything else, raw HTML included, is refused;
+- links: `http`, `https`, `mailto`, a `/path` or a `#fragment`, judged after the HTML parser decodes entities, never protocol-relative, never with a user name or password;
+- images: only `https://media.aitamer.news/…`, never through Astro's image pipeline;
+- heading ids in the slugger's shape, never one the story page, its layout or its scripts use (no DOM clobbering).
+
+The HTML is parsed with a spec-conformant parser (parse5), never a regex. The render runs in a child process with a timeout and a memory cap; a render error, a timeout or an exhausted cap is a finding. `npm run check:posts` runs it before the build; after the build, `npm run check:bodies:build` checks the HTML the build stored for those posts and fails unless the checker renders every post exactly as the build did. Both run on every pull request and before every deploy; any finding fails the job and nothing deploys. The posts tool runs the same check before it validates or publishes.
+
+**Human posts are not gated** (the trust model above is unchanged): editors may still use raw HTML. `node scripts/check-rendered-body.mjs --all` reports what the gate would say about every post. One bot post from before the gate, `made-on-youtube-2026-gemini-ask-studio.md`, embeds two YouTube players as raw `<iframe>`s; it is exempt from exactly those two findings, and only while the file is byte-for-byte unchanged (`GRANDFATHERED_POSTS`). A way to get markup past this gate in a bot post is in scope.
 
 ## Out of scope
 
