@@ -31,8 +31,14 @@ the site's side of that decision.
    renders a post file (front matter and body, exactly as the publisher writes it) through the
    functions Astro's content layer calls for a `.md` entry: `markdownContentEntryType.getEntryInfo`,
    then the renderer from `getRenderFunction(config)`, with the site's `astro.config.mjs` loaded by
-   Astro's own config resolver. It parses the result with parse5, a WHATWG-conformant parser, as a
-   fragment in a `<div>` context — where the post page puts it — and checks every node against an
+   Astro's own config resolver. It parses the result with parse5, a WHATWG-conformant parser,
+   inside a whole-document stand-in for the story page (the real ancestor chain,
+   `html > body > main#main > article.article > div.article__body`, then a marker for what
+   follows), never as a bare fragment: a fragment parse drops a `<body onload=…>` that the browser
+   merges into the page. Any parse error, any change to the page's shape (attributes on html, head
+   or body; content outside the body's div; the marker moved), and any start or end tag the
+   tokenizer saw that the allowlist does not name, even one the tree dropped, is a finding. It
+   checks every node against an
    exact allowlist (`scripts/rendered-body-allowlist.mjs`): the Markdown elements with their
    attribute names and value shapes; Shiki's `pre`/`code`/`span` forms for the pinned theme
    (`github-dark`); footnotes and task lists in their exact forms; table alignment; link schemes

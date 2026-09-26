@@ -13,6 +13,7 @@ import { pathToFileURL } from 'node:url';
 import {
   GRANDFATHERED_POSTS,
   MEDIA_PREFIX,
+  PAGE_STAND_IN,
   PROTECTED_IDS,
   SHIKI_THEME,
   SITE_ROOT,
@@ -93,6 +94,41 @@ test('G2: a body that leaves an element open or closes one it did not open is re
   // An unclosed list is closed by the page's own `</div>` exactly as here: nothing leaks, no finding.
   assert.deepEqual(problems(checkRenderedHtml('<ul><li>x')), []);
   assert.deepEqual(problems(checkRenderedHtml('<p>closed <a href="https://a.b/">link</a></p>\n')), []);
+});
+
+test("H1: tags that reach the page's <html>, <head> or <body> are refused through the real render", async () => {
+  const bodies = {
+    '<body onload>': 'x\n\n<body onload=alert(document.domain)>',
+    '<body onpageshow>': 'x\n\n<body onpageshow=alert(1) class=pwned>',
+    '<body> alone': 'x\n\n<body>',
+    '<html style>': 'x\n\n<html style="filter:invert(1)">',
+    '<head>': 'x\n\n<head>',
+    '<frameset>': '<frameset onload=alert(1)>',
+    '<base>': '<base href="https://evil.example/">',
+    '<meta>': '<meta http-equiv="refresh" content="0;url=https://evil.example/">',
+    '<link>': '<link rel="stylesheet" href="https://evil.example/x.css">',
+  };
+  const names = Object.keys(bodies);
+  const results = await checkPostSources(names.map((name, i) => ({ name: `doc-${i}.md`, contents: post(bodies[name]) })));
+  results.forEach(({ findings }, i) => {
+    assert.ok(findings.length > 0, `${names[i]}: no finding`);
+    assert.match(problems(findings).join(), /breaks out of its place|start tag that the parser drops or merges|element <(base|meta|link)> is not allowed/, names[i]);
+  });
+  assert.match(problems(results[0].findings).join(), /page's <body>/);
+  assert.match(problems(results[3].findings).join(), /page's <html>|<html> start tag/);
+});
+
+test("H1: the page stand-in mirrors the story page's real ancestor chain", () => {
+  const layout = readFileSync(join(SITE_ROOT, 'src/layouts/BaseLayout.astro'), 'utf8');
+  const page = readFileSync(join(SITE_ROOT, 'src/pages/posts/[slug].astro'), 'utf8');
+  // What the stand-in says, element by element.
+  assert.match(PAGE_STAND_IN.before, /^<!doctype html><html><head><\/head><body><main id="main" class="site-shell site-main"><article class="article" data-pagefind-body><div class="article__body">$/);
+  // What the page says: body > main#main (site-shell site-main on a story page) > slot;
+  // article.article[data-pagefind-body] > … > div.article__body > <Content />.
+  assert.match(layout, /\n  <body>\n/);
+  assert.match(layout, /<main id="main" class:list=\{\['site-shell', 'site-main', \{ 'site-main--home': home \}\]\}>\s*<slot \/>\s*<\/main>/);
+  assert.match(page, /<article class="article" data-pagefind-body=\{withdrawn \? undefined : ''\}>/);
+  assert.match(page, /<div class="article__body">\s*<Content \/>\s*<\/div>/);
 });
 
 // ---------------------------------------------------------------------------------------------

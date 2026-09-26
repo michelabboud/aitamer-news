@@ -9,10 +9,11 @@
  * reached readers. Judging the HTML the site actually ships closes that class: whatever the parser
  * did, only these shapes get through.
  *
- * How it reads the HTML: with parse5, a WHATWG-conformant parser, as a fragment whose context is a
- * `<div>` — exactly where the post page puts it (`<div class="article__body"><Content /></div>` in
- * `src/pages/posts/[slug].astro`), so the tree judged here is the tree a browser builds. Never a
- * regex over HTML.
+ * How it reads the HTML: with parse5, a WHATWG-conformant parser, as a whole document that stands in
+ * for the story page (`<html><body><main><article><div class="article__body">` + the body + a
+ * marker for what follows), because a fragment parse silently drops what a browser would merge
+ * into the page (`<body onload=…>`). Every start tag the tokenizer emits is also recorded,
+ * so a tag the tree drops is still judged. Never a regex over HTML.
  *
  * The rule: **unknown means refused.** Every element, every attribute and every attribute value
  * must match one of the shapes below; a comment node, a foreign (SVG or MathML) element, an
@@ -21,7 +22,7 @@
  * When satteri, Shiki or Astro change what they emit, this fails closed and a human widens it here,
  * deliberately, with a test.
  */
-import { defaultTreeAdapter, html as parse5Html, parseFragment } from 'parse5';
+import { Parser, html as parse5Html } from 'parse5';
 
 const HTML_NS = parse5Html.NS.HTML;
 
@@ -503,18 +504,41 @@ function elementFindings(ctx) {
 }
 
 /**
- * The body is parsed between a wrapper and a marker that stand for the page around it: the
- * `<div class="article__body">` it sits in, and the element the layout puts after it. A body that
- * leaves an element open (an unclosed `<a>` the browser re-opens around the verdict and Sources,
- * an unclosed table that swallows the rest of the page) or closes one it did not open (a stray
- * `</div>` that escapes `.article__body`) changes where the marker lands: it must come out as the
- * wrapper's next sibling, alone, with its text, and nothing else may sit outside the wrapper.
+ * The body is judged inside a stand-in for the whole story page, never as a bare fragment: a
+ * fragment parse silently drops a `<body>` or `<html>` start tag, while the browser merges its
+ * attributes onto the page's own `<body>`/`<html>` (`<body onload=…>` runs). The stand-in mirrors
+ * the real ancestor chain of the rendered body, from `src/layouts/BaseLayout.astro` and
+ * `src/pages/posts/[slug].astro` (a test keeps it in step with those files):
+ *
+ *   html > body > main#main.site-shell.site-main > article.article[data-pagefind-body]
+ *     > div.article__body > (the body)
+ *
+ * followed by a marker paragraph standing for the element the page puts after the body. After the
+ * parse, the document must have exactly that shape: no attribute on html, head or body, nothing in
+ * head, nothing in body but main, nothing in main but article, nothing in article but the body's
+ * div and the marker, the marker alone with its text. A body that leaves an element open (an
+ * unclosed `<a>` the browser re-opens around the verdict and Sources, an unclosed table), closes
+ * one it did not open (`</div>`, `</article>`, `</main>`), or reaches the document (`<body …>`,
+ * `<html …>`, `<frameset>`) breaks that shape and is refused.
  */
-const BODY_WRAPPER_ATTR = 'data-rendered-body-wrapper';
+const PAGE_MAIN_ATTRS = Object.freeze([['id', 'main'], ['class', 'site-shell site-main']]);
+const PAGE_ARTICLE_ATTRS = Object.freeze([['class', 'article'], ['data-pagefind-body', '']]);
+const PAGE_BODY_DIV_ATTRS = Object.freeze([['class', 'article__body']]);
 const BODY_MARKER_ATTR = 'data-rendered-body-end';
 const BODY_MARKER_TEXT = 'end';
-const BODY_OPEN = `<div ${BODY_WRAPPER_ATTR}>`;
-const BODY_CLOSE = `</div><p ${BODY_MARKER_ATTR}>${BODY_MARKER_TEXT}</p>`;
+const attrText = (attrs) => attrs.map(([name, value]) => (value === '' ? ` ${name}` : ` ${name}="${value}"`)).join('');
+const PAGE_BEFORE = `<!doctype html><html><head></head><body><main${attrText(PAGE_MAIN_ATTRS)}><article${attrText(PAGE_ARTICLE_ATTRS)}><div${attrText(PAGE_BODY_DIV_ATTRS)}>`;
+const PAGE_AFTER = `</div><p ${BODY_MARKER_ATTR}>${BODY_MARKER_TEXT}</p></article></main></body></html>`;
+/** The stand-in's own markup, for tests that keep it in step with the layout. */
+export const PAGE_STAND_IN = Object.freeze({ before: PAGE_BEFORE, after: PAGE_AFTER });
+
+/** A parse5 parser that also reports every start tag the tokenizer emits, dropped or not. */
+class TagRecordingParser extends Parser {
+  onStartTag(token) {
+    this.options.onTagToken?.(token, 'start');
+    super.onStartTag(token);
+  }
+}
 
 /**
  * Check a rendered body against the allowlist.
@@ -529,22 +553,36 @@ export function checkRenderedHtml(html) {
   if (html.includes(ASTRO_IMAGE_MARKER)) {
     findings.push({ path: '', element: '#post', problem: `the rendered body contains Astro's image marker ${ASTRO_IMAGE_MARKER}` });
   }
-  const context = defaultTreeAdapter.createElement('div', HTML_NS, []);
+  const bodyStart = PAGE_BEFORE.length;
+  const bodyEnd = bodyStart + html.length;
+  /** Start tags inside the body that name no allowed element, whatever the tree did with them. */
+  const strayStartTags = [];
   // Any parse error is a finding. The renderer's own output parses cleanly (every post on main
   // does); errors mean raw HTML the parser had to repair, and the repair here and on the page can
-  // differ. The sharp case: a trailing unterminated tag (`<details open ontoggle=… ` at the end of
-  // the body) is dropped by a fragment parse at end of input (eof-in-tag), while on the page the
-  // browser completes it with the layout's next `</div>` and ships a live element.
-  const fragment = parseFragment(context, `${BODY_OPEN}${html}${BODY_CLOSE}`, {
+  // differ (a trailing unterminated tag swallows whatever follows it).
+  const document = TagRecordingParser.parse(`${PAGE_BEFORE}${html}${PAGE_AFTER}`, {
     onParseError: (error) => {
-      findings.push({ path: '', element: '#post', problem: `the rendered HTML has a parse error (${error.code}) at line ${error.startLine}, column ${error.startCol}` });
+      findings.push({ path: '', element: '#post', problem: `the rendered HTML has a parse error (${error.code}) at line ${error.startLine} of the rendered body` });
+    },
+    onTagToken: (token, kind) => {
+      const at = token.location?.startOffset ?? -1;
+      if (at < bodyStart || at >= bodyEnd || Object.hasOwn(ELEMENT_RULES, token.tagName)) return;
+      if (kind === 'start') strayStartTags.push(token.tagName);
     },
   });
+
   const ids = new Map();
+  const standIn = new Set();
+  /** Tag names of the elements the walk judged. */
+  const visited = new Set();
   const walk = (parent, ancestors, parentPath) => {
     const counts = new Map();
     for (const node of parent.childNodes ?? []) {
       if (node.nodeName === '#text') continue;
+      if (standIn.has(node)) {
+        walk(node, [], '');
+        continue;
+      }
       const label = node.tagName ?? node.nodeName;
       const index = (counts.get(label) ?? 0) + 1;
       counts.set(label, index);
@@ -553,6 +591,7 @@ export function checkRenderedHtml(html) {
         findings.push({ path, element: node.nodeName, problem: `${node.nodeName} nodes are not allowed` });
         continue;
       }
+      visited.add(node.tagName);
       if (node.namespaceURI !== HTML_NS) {
         findings.push({ path, element: node.tagName, problem: 'foreign (SVG or MathML) content is not allowed' });
         continue;
@@ -576,28 +615,65 @@ export function checkRenderedHtml(html) {
       walk(node, [...ancestors, node], path);
     }
   };
-  const [wrapper, marker, ...rest] = fragment.childNodes;
-  const isWrapper = onlyAttribute(wrapper, 'div', BODY_WRAPPER_ATTR);
-  const closed =
-    isWrapper &&
-    rest.length === 0 &&
-    onlyAttribute(marker, 'p', BODY_MARKER_ATTR) &&
+
+  // The page's shape, checked element by element.
+  const elements = (node) => (node?.childNodes ?? []).filter((n) => n.nodeName !== '#documentType');
+  const [htmlEl, ...afterHtml] = elements(document);
+  const [head, body, ...afterBody] = elements(htmlEl);
+  const [main, ...afterMain] = elements(body);
+  const [article, ...afterArticle] = elements(main);
+  const [bodyDiv, marker, ...afterMarker] = elements(article);
+  const documentProblems = [];
+  if (!hasExactly(htmlEl, 'html', []) || afterHtml.length) documentProblems.push('it sets attributes on, or adds content to, the page\'s <html>');
+  if (!hasExactly(head, 'head', []) || elements(head).length) documentProblems.push('it reaches the page\'s <head>');
+  if (!hasExactly(body, 'body', []) || afterBody.length || afterMain.length) documentProblems.push('it sets attributes on, or adds content to, the page\'s <body> (a <body> or <frameset> tag, or content outside the story)');
+  const chainOk =
+    hasExactly(main, 'main', PAGE_MAIN_ATTRS) &&
+    hasExactly(article, 'article', PAGE_ARTICLE_ATTRS) &&
+    afterArticle.length === 0 &&
+    hasExactly(bodyDiv, 'div', PAGE_BODY_DIV_ATTRS) &&
+    hasExactly(marker, 'p', [[BODY_MARKER_ATTR, '']]) &&
+    afterMarker.length === 0 &&
     marker.childNodes.length === 1 &&
     marker.childNodes[0].nodeName === '#text' &&
     marker.childNodes[0].value === BODY_MARKER_TEXT;
-  if (!closed) {
-    findings.push({
-      path: '',
-      element: '#post',
-      problem: 'the body does not close cleanly: an element left open, or a stray end tag, would reshape the page after it',
-    });
+  if (!chainOk) documentProblems.push('it does not close cleanly: an element left open, or an end tag for one of the page\'s own elements, would reshape the page after it');
+  for (const problem of documentProblems) findings.push({ path: '', element: '#post', problem: `the body breaks out of its place in the page: ${problem}` });
+  // Walk the body. When the page's shape held, that is the body's div; otherwise judge everything
+  // in the document except the stand-in's own elements, found by their exact attributes.
+  if (documentProblems.length === 0) {
+    walk(bodyDiv, [], '');
+  } else {
+    // The first element of each stand-in shape, wherever the parse left it; the document's own
+    // html, head and body; and the doctype.
+    const shapes = [['main', PAGE_MAIN_ATTRS], ['article', PAGE_ARTICLE_ATTRS], ['div', PAGE_BODY_DIV_ATTRS], ['p', [[BODY_MARKER_ATTR, '']]]];
+    const found = new Set();
+    const find = (node) => {
+      for (const child of node.childNodes ?? []) {
+        const shape = shapes.findIndex(([tag, attrs]) => !found.has(tag) && hasExactly(child, tag, attrs));
+        if (shape >= 0) {
+          found.add(shapes[shape][0]);
+          standIn.add(child);
+        }
+        find(child);
+      }
+    };
+    find(document);
+    for (const node of [htmlEl, head, body].filter(Boolean)) standIn.add(node);
+    const doctype = document.childNodes.find((n) => n.nodeName === '#documentType');
+    walk({ childNodes: document.childNodes.filter((n) => n !== doctype) }, [], '');
   }
-  // The wrapper's children are the body. When the wrapper itself was broken, judge everything.
-  walk(isWrapper ? wrapper : fragment, [], '');
+  // A start tag the tree kept is judged as an element above; one it dropped or merged (`<head>`,
+  // `<body>`, `<html>`, `<frameset>` in the body) is refused here, from the tokenizer's record.
+  for (const tag of new Set(strayStartTags)) {
+    if (visited.has(tag)) continue;
+    findings.push({ path: '', element: tag, problem: `the body contains a <${tag}> start tag that the parser drops or merges into the page; not allowed` });
+  }
   return findings;
 }
 
-/** @returns {boolean} whether `node` is a `tag` element whose only attribute is `attr=""` */
-function onlyAttribute(node, tag, attr) {
-  return Boolean(node && node.tagName === tag && node.attrs.length === 1 && node.attrs[0].name === attr && node.attrs[0].value === '');
+/** @returns {boolean} whether `node` is a `tag` element with exactly these attributes, in any order */
+function hasExactly(node, tag, attrs) {
+  if (!node || node.tagName !== tag || node.attrs.length !== attrs.length) return false;
+  return attrs.every(([name, value]) => node.attrs.some((a) => a.name === name && a.value === value && !a.namespace));
 }
