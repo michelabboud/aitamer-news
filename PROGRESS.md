@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.31: a Content-Security-Policy in report-only mode, with every inline script allowed by its build-time hash and a guard in every workflow that builds. In the browser there were zero violations, report-only and enforced; the search worker's WebAssembly needed its own rule. The deep review is clear; four should-fixes land before enforcement.
+
 - **2026-09-26** — 0.2.30: the rendered-output gate for bot posts (posts MCP task S4). Every bot post is rendered and checked against an exact allowlist, in its place on a copy of the real page, both before and after the build. Five review rounds; clear. A CSP proposal awaits Michel.
 
 - **2026-09-26** — 0.2.29: fixes from the milestone review of reactions. A 404 is resent, because a new story is unknown to the Worker for minutes. Reactions run only on the site's own hosts. The privacy wording on removal is exact. Still off.

@@ -2,7 +2,7 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
-## [Unreleased]
+## [0.2.31] — 2026-09-26
 
 ### Added
 **A Content-Security-Policy, report-only** (approved by Michel 2026-09-26; ADR 0010; SECURITY.md, "Content-Security-Policy"):
