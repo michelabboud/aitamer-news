@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, readdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
@@ -208,7 +208,7 @@ test('images: only media.aitamer.news, valid for decodeURI, never a local import
 });
 
 test('heading ids: slugger shape only, never an id the page uses', () => {
-  assert.deepEqual(problems(checkRenderedHtml('<h2 id="a-heading_1">x</h2><h3 id="ünïcödé">y</h3><h4 id="">z</h4>')), []);
+  assert.deepEqual(problems(checkRenderedHtml('<h2 id="a-heading_1">x</h2><h3 id="ünïcödé">y</h3><h4 id="-1">z</h4>')), []);
   refusedBy('<h2 id="comments">x</h2>', /collides with an id the story page uses/);
   refusedBy('<h2 id="footnote-label">x</h2>', /collides/);
   refusedBy('<h2 id="user-content-fn-1">x</h2>', /collides/);
@@ -450,61 +450,133 @@ const DYNAMIC_IDS = {
   COMMENT_HELD_ANCHOR: 'comment-held',
 };
 
-/** The story page, its layout, and every component and local module they import, transitively. */
-function storyPageSources() {
+/**
+ * Id lookups that are not literals, reviewed by hand: `file: expression` → why it cannot collide.
+ * Empty today; a new one fails the test until someone reviews it and lists it here.
+ */
+const REVIEWED_DYNAMIC_LOOKUPS = {};
+
+const SOURCE_EXTENSIONS = ['', '.ts', '.js', '.mjs', '.astro', '/index.ts', '/index.js'];
+
+/**
+ * The files a page pulls in, transitively: `from '…'` and `from "…"` imports, side-effect
+ * `import '…'`, dynamic `import('…')`, and local `<script src="/…">` (served from `public/`).
+ * Package imports and other hosts are not followed; their globals are PROTECTED_IDS' third-party list.
+ * @param {string} root @param {string[]} entries
+ */
+function pageSources(root, entries) {
   const seen = new Set();
   const visit = (file) => {
     if (seen.has(file)) return;
     seen.add(file);
     const text = readFileSync(file, 'utf8');
-    for (const [, spec] of text.matchAll(/from\s+'(\.{1,2}\/[^']+)'/g)) {
-      const target = join(dirname(file), spec);
-      for (const candidate of [target, `${target}.ts`]) {
+    const specs = [
+      ...[...text.matchAll(/\b(?:from|import)\s*\(?\s*['"](\.{1,2}\/[^'"]+)['"]/g)].map(([, spec]) => join(dirname(file), spec)),
+      ...[...text.matchAll(/<script\b[^>]*\bsrc=["'](\/[^"'#?]+)["']/g)].map(([, src]) => join(root, 'public', src)),
+    ];
+    for (const target of specs) {
+      const found = SOURCE_EXTENSIONS.map((ext) => target + ext).find((candidate) => {
         try {
-          if (/\.(astro|ts|mjs)$/.test(candidate) && readFileSync(candidate)) {
-            visit(candidate);
-            break;
-          }
-        } catch {}
-      }
+          return statSync(candidate).isFile();
+        } catch {
+          return false;
+        }
+      });
+      if (found) visit(found);
     }
   };
-  visit(join(SITE_ROOT, 'src/pages/posts/[slug].astro'));
-  visit(join(SITE_ROOT, 'src/layouts/BaseLayout.astro'));
+  entries.forEach((entry) => visit(join(root, entry)));
   return [...seen];
 }
 
+/**
+ * Every id one source file defines or looks up: literal ones, `id={…}` expressions, and lookups
+ * that need a human (a variable passed to `getElementById`, an interpolated selector, a computed
+ * `.id =` or `setAttribute('id', …)`).
+ * @param {string} text
+ */
+function idUses(text) {
+  const literal = [];
+  const dynamic = [];
+  const review = [];
+  const q = `['"\`]`;
+  for (const [, ids] of text.matchAll(/\b(?:id|for|aria-labelledby|aria-describedby|aria-controls|popovertarget)="([^"{}]+)"/g)) literal.push(...ids.split(/\s+/));
+  for (const [, expr] of text.matchAll(/\bid=\{([^}]+)\}/g)) dynamic.push(expr.trim());
+  for (const [, arg] of text.matchAll(/getElementById\(\s*([^)]*?)\s*\)/g)) {
+    const m = new RegExp(`^${q}([^'"\`$]+)${q}$`).exec(arg);
+    if (m) literal.push(m[1]);
+    else review.push(`getElementById(${arg})`);
+  }
+  for (const [, arg] of text.matchAll(/querySelector(?:All)?(?:<[^>]*>)?\(\s*(['"`][^'"`]*['"`]|[^)]*)\s*\)/g)) {
+    if (!/^['"`]/.test(arg)) review.push(`querySelector(${arg})`);
+    else if (arg.includes('${')) review.push(`querySelector(${arg})`);
+    else for (const [, id] of arg.matchAll(/#([A-Za-z][\w-]*)/g)) literal.push(id);
+  }
+  for (const [, value] of text.matchAll(/\.id\s*=(?!=)\s*([^;\n]+)/g)) {
+    const m = new RegExp(`^${q}([^'"\`$]+)${q}$`).exec(value.trim());
+    if (m) literal.push(m[1]);
+    else review.push(`.id = ${value.trim()}`);
+  }
+  for (const [, value] of text.matchAll(/setAttribute\(\s*['"]id['"]\s*,\s*([^)]+)\)/g)) {
+    const m = new RegExp(`^${q}([^'"\`$]+)${q}$`).exec(value.trim());
+    if (m) literal.push(m[1]);
+    else review.push(`setAttribute('id', ${value.trim()})`);
+  }
+  // Same-page fragments in any file: `href="#main"`, `'#comments'`, or a template ending
+  // `…}#comments`. A path before the `#` (`/about/#contact`) is another page's id, and a hex
+  // colour (`'#c9d27a'`) is not an id.
+  for (const [, id] of text.matchAll(/(?<=["'`}])#([A-Za-z][\w-]*)(?=["'`])/g)) if (!/^[0-9a-f]{3,8}$/i.test(id)) literal.push(id);
+  return { literal, dynamic, review };
+}
+
+test('G5: the id scan follows every kind of import and flags lookups it cannot read', () => {
+  const root = tempDir('id-scan-');
+  mkdirSync(join(root, 'src/lib'), { recursive: true });
+  mkdirSync(join(root, 'public'), { recursive: true });
+  writeFileSync(join(root, 'src/page.astro'), '---\nimport { a } from "./lib/a";\nimport \'./lib/b.js\';\n---\n<script src="/c.js"></script>\n<script>const d = import(\'./lib/d.mjs\');</script>\n');
+  writeFileSync(join(root, 'src/lib/a.ts'), "export const a = document.getElementById('from-double-quoted-import');");
+  writeFileSync(join(root, 'src/lib/b.js'), "el.id = 'from-side-effect-import'; el.id = someVariable;");
+  writeFileSync(join(root, 'public/c.js'), "document.querySelector(`#from-script-src`); document.querySelector(`#${x}`); location.hash = '#from-a-fragment';");
+  writeFileSync(join(root, 'src/lib/d.mjs'), "document.getElementById(name); el.setAttribute('id', 'from-set-attribute');");
+  const files = pageSources(root, ['src/page.astro']).map((f) => relative(root, f)).sort();
+  assert.deepEqual(files, ['public/c.js', 'src/lib/a.ts', 'src/lib/b.js', 'src/lib/d.mjs', 'src/page.astro']);
+  const uses = files.map((f) => idUses(readFileSync(join(root, f), 'utf8')));
+  assert.deepEqual([...new Set(uses.flatMap((u) => u.literal))].sort(), ['from-a-fragment', 'from-double-quoted-import', 'from-script-src', 'from-set-attribute', 'from-side-effect-import']);
+  assert.deepEqual(uses.flatMap((u) => u.review).sort(), ['.id = someVariable', 'getElementById(name)', 'querySelector(`#${x}`)']);
+});
+
 test('every id the story page, its layout, components and scripts define or look up is protected', () => {
-  const files = storyPageSources();
+  const files = pageSources(SITE_ROOT, ['src/pages/posts/[slug].astro', 'src/layouts/BaseLayout.astro']);
   assert.ok(files.some((f) => f.endsWith('Reactions.astro')) && files.some((f) => f.endsWith('CommentForm.astro')), 'the import walk missed the components');
   const literal = new Map();
-  const dynamic = new Map();
   for (const file of files) {
-    const text = readFileSync(file, 'utf8');
     const where = relative(SITE_ROOT, file);
-    const add = (id) => literal.set(id, where);
-    for (const [, id] of text.matchAll(/\b(?:id|for|aria-labelledby|aria-describedby|aria-controls|popovertarget)="([^"{}]+)"/g)) id.split(/\s+/).forEach(add);
-    for (const [, id] of text.matchAll(/getElementById\(\s*['"]([^'"]+)['"]\s*\)/g)) add(id);
-    for (const [, id] of text.matchAll(/querySelector(?:All)?(?:<[^>]*>)?\(\s*['"`][^'"`]*#([A-Za-z][\w-]*)/g)) add(id);
-    if (file.endsWith('.astro')) {
-      // Same-page fragments: `href="#main"`, or a template ending `…}#comments`. A path before the
-      // `#` (`/about/#contact`) is another page's id and cannot be clobbered from a story.
-      for (const [, id] of text.matchAll(/(?<=["'`}])#([A-Za-z][\w-]*)(?=["'`])/g)) if (!/^[0-9a-f]{3,8}$/i.test(id)) add(id);
+    const { literal: ids, dynamic, review } = idUses(readFileSync(file, 'utf8'));
+    for (const id of ids) literal.set(id, where);
+    for (const expr of dynamic) {
+      assert.ok(Object.hasOwn(DYNAMIC_IDS, expr), `${where} builds an id from {${expr}}: add it to DYNAMIC_IDS and cover it in PROTECTED_ID_PATTERNS`);
+      if (DYNAMIC_IDS[expr] !== null) assert.ok(isProtectedId(DYNAMIC_IDS[expr]), `{${expr}} → "${DYNAMIC_IDS[expr]}" is not protected`);
     }
-    for (const [, expr] of text.matchAll(/\bid=\{([^}]+)\}/g)) dynamic.set(expr.trim(), where);
+    for (const lookup of review) {
+      assert.ok(Object.hasOwn(REVIEWED_DYNAMIC_LOOKUPS, `${where}: ${lookup}`), `${where} looks up an id it computes (${lookup}): review it, protect what it can reach, and list it in REVIEWED_DYNAMIC_LOOKUPS`);
+    }
   }
   for (const [id, where] of literal) assert.ok(isProtectedId(id), `${where} uses id "${id}", which PROTECTED_IDS does not cover`);
-  for (const [expr, where] of dynamic) {
-    assert.ok(Object.hasOwn(DYNAMIC_IDS, expr), `${where} builds an id from {${expr}}: add it to DYNAMIC_IDS and cover it in PROTECTED_ID_PATTERNS`);
-    if (DYNAMIC_IDS[expr] !== null) assert.ok(isProtectedId(DYNAMIC_IDS[expr]), `{${expr}} → "${DYNAMIC_IDS[expr]}" is not protected`);
-  }
-  // And nothing protected has gone stale without a reason: every literal in the list is still in use,
-  // except the window globals and the footnote heading, which satteri (not our code) writes.
-  const notInPage = new Set(['footnote-label', 'dataLayer', 'gtag', 'turnstile', 'comment-held']);
+  // Nothing protected has gone stale without a reason: every id of the site's own is still in use.
+  // Exempt: the footnote heading (satteri writes it), `comment-held` (reached through a constant,
+  // DYNAMIC_IDS), and the window globals, which scripts read rather than define.
+  const notInPage = new Set(['footnote-label', 'comment-held', 'dataLayer', 'gtag', 'ga', 'GoogleAnalyticsObject', 'gaGlobal', 'gaplugins', '_gaUserPrefs', '_gaz', 'google_tag_data', 'google_tag_manager', 'google_tag_manager_external', 'google_image_requests', 'google_tags_first_party', 'turnstile', 'grecaptcha', 'onloadTurnstileCallback', 'onloadturnstilecallback']);
   for (const id of PROTECTED_IDS) {
     if (notInPage.has(id) || id.startsWith('aitamerCommentTurnstile')) continue;
     assert.ok(literal.has(id), `PROTECTED_IDS lists "${id}", which the story page no longer uses`);
   }
+});
+
+test('G5: the lower-case third-party globals and empty ids are refused as heading ids', () => {
+  for (const id of ['ga', 'google_tag_data', 'google_tag_manager', 'google_image_requests', 'google_tags_first_party', '_gaz', 'turnstile', 'grecaptcha', 'onloadturnstilecallback', 'gtag']) {
+    refusedBy(`<h2 id="${id}">x</h2>`, /collides with an id the story page uses/);
+  }
+  refusedBy('<h2 id="">x</h2>', /empty id/);
 });
 
 test('the CLI: exit 1 with JSON findings on a bad body, 0 on a good one, 2 on a usage error', () => {

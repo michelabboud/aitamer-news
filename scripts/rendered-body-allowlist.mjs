@@ -83,15 +83,31 @@ export const PROTECTED_IDS = Object.freeze(
     'comment-extra',
     // The footnotes heading satteri writes, which every footnote reference points at.
     'footnote-label',
-    // Globals the page's scripts read through `window` (analytics, Turnstile callbacks). A named
-    // element would shadow them if they were ever read before being assigned. The heading-id shape
-    // (lower case only) already excludes these; they are listed so the rule does not rest on that.
+    // Globals read through `window`, where a named element could shadow one that is not yet set.
+    // The site's own inline scripts (BaseLayout.astro, CommentForm.astro):
     'dataLayer',
     'gtag',
-    'turnstile',
     'aitamerCommentTurnstileReady',
     'aitamerCommentTurnstileExpired',
     'aitamerCommentTurnstileError',
+    // Known third-party globals, read from the loaders themselves on 2026-09-26 (gtag.js from
+    // www.googletagmanager.com/gtag/js, Turnstile's challenges.cloudflare.com/turnstile/v0/api.js)
+    // and their docs. This covers what we found, not everything a third-party script may ever read.
+    'ga',
+    'GoogleAnalyticsObject',
+    'gaGlobal',
+    'gaplugins',
+    '_gaUserPrefs',
+    '_gaz',
+    'google_tag_data',
+    'google_tag_manager',
+    'google_tag_manager_external',
+    'google_image_requests',
+    'google_tags_first_party',
+    'turnstile',
+    'grecaptcha',
+    'onloadTurnstileCallback',
+    'onloadturnstilecallback',
   ]),
 );
 
@@ -115,9 +131,10 @@ export function isProtectedId(id) {
 
 /**
  * The shape of an id `github-slugger` writes (satteri's heading-ids plugin): letters (any script,
- * never ASCII upper case), marks, digits, `_` and `-`. It can be empty (a heading with no text).
+ * never ASCII upper case), marks, digits, `_` and `-`. Never empty: a heading with no text gets
+ * `id=""`, which is refused (the bot gives the heading text).
  */
-const HEADING_ID = /^[\p{L}\p{M}\p{N}_-]*$/u;
+const HEADING_ID = /^[\p{L}\p{M}\p{N}_-]+$/u;
 const ASCII_UPPER = /[A-Z]/;
 
 /**
@@ -262,6 +279,7 @@ const matching = (pattern, what) => (value) => (pattern.test(value) ? null : `mu
 const anyText = () => null;
 
 const headingId = (value) => {
+  if (value === '') return 'heading has an empty id (a heading with no text)';
   if (!HEADING_ID.test(value) || ASCII_UPPER.test(value)) return 'heading id is not in the slugger shape (lower-case letters, digits, _ and -)';
   if (isProtectedId(value)) return `heading id "${value}" collides with an id the story page uses`;
   return null;
