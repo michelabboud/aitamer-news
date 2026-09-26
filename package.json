@@ -27,7 +27,8 @@
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.4",
-    "js-yaml": "4.3.2"
+    "js-yaml": "4.3.2",
+    "parse5": "8.0.1"
   },
   "allowScripts": {
     "esbuild": true
