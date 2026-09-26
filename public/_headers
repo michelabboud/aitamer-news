@@ -1,0 +1,7 @@
+# Cloudflare Pages response headers (https://developers.cloudflare.com/pages/configuration/headers/).
+# Everything under /_astro/ is emitted by the build with a content hash in its file name
+# (BaseLayout.<hash>.css, Reactions…<hash>.js), so a changed file always has a new URL: browsers may
+# keep these for a year without asking again. Nothing else on the site is named by content, so
+# nothing else gets this rule.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

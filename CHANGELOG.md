@@ -2,6 +2,17 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.28] — 2026-09-26
+
+### Fixed
+Focused review of the reactions fixes (0.2.26, 0.2.27; still **off**: `REACTIONS_LIVE` is false):
+- **A 410 answering the on-load resend no longer moves focus or scrolls the page.** The note is shown and the buttons are disabled, but focus moves to the note only when the close follows the reader's own tap.
+- **A permanent refusal drops the unsent record.** A 400, 403, 404 or 410 means sending again cannot succeed, so the choice is no longer resent on every visit for 30 days. Only a transient failure is resent once per load: 429, a 5xx, offline, the 10-second timeout, or any other status. New tested helper `reactionOutcome` names the four outcomes (`ok`, `closed`, `rejected`, `failed`), and `settledRecord` takes the outcome.
+- **The reactions paragraph on the privacy page** (behind the flag) said the hash "limits how often one visitor can react". It does not: it makes one visitor count once per story and enforces a ban. The page now says exactly that.
+
+### Added
+- **`public/_headers`**: Cloudflare Pages serves everything under `/_astro/` with `Cache-Control: public, max-age=31536000, immutable`. Those files are named by their content's hash, so a changed file always has a new name. No other path gets the rule.
+
 ## [0.2.27] — 2026-09-26
 
 ### Fixed

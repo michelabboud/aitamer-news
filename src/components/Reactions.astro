@@ -14,8 +14,10 @@
  * tombstone), so nothing is lost when the reader leaves before a request goes out, or when the
  * Worker refuses quietly (a rate limit, the daily cap, offline, a timeout): the choice stays shown,
  * and the page sends it again **once per load of that story** until the desk confirms it or the
- * record expires after 30 days. Tapping the choice the button shows removes it, as ever. A 410
- * closes reactions on the page (both buttons disabled, the note says why and takes the focus).
+ * record expires after 30 days. A permanent refusal (400, 403, 404) drops the record instead: it
+ * would only be refused again. Tapping the choice the button shows removes it, as ever. A 410
+ * closes reactions on the page (both buttons disabled, the note says why, and takes the focus only
+ * when it answers the reader's own tap — never on the on-load resend).
  * Nothing is logged.
  *
  * The panel is a native `popover` (light dismiss and Escape come free), positioned by the script
@@ -274,7 +276,8 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
 
     // --- requests: one in flight, the latest unsent record queued behind it ---
     let inFlight = false;
-    let queued: StoredReaction | undefined;
+    /** The latest intent waiting behind the request in flight, and whether the reader just made it. */
+    let queued: { record: StoredReaction; byReader: boolean } | undefined;
 
     function post(sent: StoredReaction): Promise<ReactionOutcome> {
       const body = new URLSearchParams();
@@ -287,42 +290,47 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
       );
     }
 
-    function send(sent: StoredReaction) {
+    /**
+     * @param byReader true for a tap the reader just made; false for the once-per-load resend of an
+     *   unsent record, which must never move focus or scroll the page
+     */
+    function send(sent: StoredReaction, byReader: boolean) {
       if (inFlight) {
-        queued = sent;
+        queued = { record: sent, byReader };
         return;
       }
       inFlight = true;
       post(sent).then((outcome) => {
         inFlight = false;
+        // ok confirms the record; a permanent refusal (400, 403, 404, 410) drops it, since it would
+        // only be refused again; 'failed' is quiet and leaves it unsent for the next load.
+        const settled = settledRecord(readRecord(key), sent, outcome);
+        if (settled !== undefined) writeRecord(key, settled);
         if (outcome === 'closed') {
-          closeReactions();
+          closeReactions(byReader);
           return;
         }
-        if (outcome === 'ok') {
-          const settled = settledRecord(readRecord(key), sent);
-          if (settled !== undefined) writeRecord(key, settled);
-        }
-        // 'failed' is quiet: the record stays unsent and goes again on the next load.
         if (queued !== undefined && !closedNow) {
           const next = queued;
           queued = undefined;
-          send(next);
+          send(next.record, next.byReader);
         }
       });
     }
 
-    function closeReactions() {
+    /** @param byReader the close answers the reader's own tap: only then may focus move to the note */
+    function closeReactions(byReader: boolean) {
       const active = document.activeElement;
-      const hadFocus = !active || active === document.body || root.contains(active);
+      const hadFocus = byReader && active !== null && root.contains(active);
       closedNow = true;
       queued = undefined;
       hide();
       reactButton!.disabled = true;
       summaryButton!.disabled = true;
       note.textContent = REACTIONS_CLOSED_MESSAGE;
-      // A disabled button drops focus to the page; the note takes it, so a keyboard or
-      // screen-reader reader stays where they were and hears why.
+      // After the reader's own tap, a disabled button would drop focus to the page; the note takes
+      // it, so a keyboard or screen-reader reader stays where they were and hears why. An answer to
+      // the on-load resend moves nothing: the note is a live region and is announced anyway.
       if (hadFocus) note.focus();
     }
 
@@ -473,7 +481,7 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
         render();
         if (next !== null) rise(EMOJI.get(next)!);
         hide();
-        send(record);
+        send(record, true);
       });
     }
 
@@ -490,7 +498,7 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
 
     render();
     // A choice the desk has not confirmed goes again, once, on this load.
-    if (record?.unsent) send(record);
+    if (record?.unsent) send(record, false);
   }
 
   sweep(new Date());

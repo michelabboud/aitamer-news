@@ -215,27 +215,41 @@ export function encodeStoredReaction(record: StoredReaction): string {
 }
 
 /** How the page reads the Worker's answer to one `POST /react`. */
-export type ReactionOutcome = 'ok' | 'closed' | 'failed';
+export type ReactionOutcome = 'ok' | 'closed' | 'rejected' | 'failed';
 
 /**
- * `ok` for a 2xx answer, `closed` for 410 (the story's reactions are closed), `failed` for
- * anything else — a rate limit, the daily cap, a server error, no answer at all (pass `null`).
- * The page is quiet about `failed`: the choice stays shown and unsent, and is sent again on the
- * next load of the story.
+ * Answers that will never change for this request: 400 (a malformed request), 403 (an origin the
+ * Worker does not allow), 404 (a story the Worker does not know). Sending the same record again
+ * would only be refused again, so the page drops it. 410 is permanent too, and also closes
+ * reactions on the page.
+ */
+export const REACTION_REJECTED_STATUSES: ReadonlySet<number> = new Set([400, 403, 404]);
+
+/**
+ * `ok` for a 2xx answer; `closed` for 410 (the story's reactions are closed); `rejected` for a
+ * permanent refusal ({@link REACTION_REJECTED_STATUSES}); `failed` for anything transient — a rate
+ * limit, the daily cap, a server error, no answer at all (pass `null`). Only `failed` keeps the
+ * record unsent, to be sent again on the next load of the story; the page is quiet about it.
  */
 export function reactionOutcome(status: number | null): ReactionOutcome {
   if (status === null) return 'failed';
   if (status === REACTIONS_CLOSED_STATUS) return 'closed';
+  if (REACTION_REJECTED_STATUSES.has(status)) return 'rejected';
   return status >= 200 && status < 300 ? 'ok' : 'failed';
 }
 
 /**
- * What storage should hold after the desk answered `ok` to `sent`, given what it holds now:
- * `undefined` to leave it alone (a newer choice was made while `sent` was in flight, so that one is
- * still owed), `null` to delete the key (a confirmed removal), or the confirmed record.
+ * What storage should hold after the Worker answered `sent`, given what it holds now. `undefined`
+ * leaves it alone: a newer choice was made while `sent` was in flight, so that one is still owed,
+ * or the answer was transient (`failed`) and the record stays unsent. Otherwise, for the record
+ * that was sent: on `ok`, the confirmed record, or `null` (delete the key) for a confirmed
+ * removal; on a permanent refusal (`rejected`, `closed`), `null` — it will never be accepted, so
+ * it is not sent again.
  */
-export function settledRecord(current: StoredReaction | null, sent: StoredReaction): StoredReaction | null | undefined {
+export function settledRecord(current: StoredReaction | null, sent: StoredReaction, outcome: ReactionOutcome = 'ok'): StoredReaction | null | undefined {
+  if (outcome === 'failed') return undefined;
   if (current === null || current.r !== sent.r || current.at !== sent.at) return undefined;
+  if (outcome !== 'ok') return null;
   return sent.r === null ? null : { r: sent.r, at: sent.at };
 }
 

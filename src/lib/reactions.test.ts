@@ -233,11 +233,12 @@ test('encodeStoredReaction round-trips through parseStoredReaction', () => {
   assert.equal(encodeStoredReaction({ r: 'love', at }), `{"r":"love","at":"${at}"}`);
 });
 
-test('reactionOutcome: 2xx is ok, 410 closes, everything else (and no answer) fails quietly', () => {
+test('reactionOutcome: 2xx is ok, 410 closes, 400/403/404 are permanent, the rest (and no answer) transient', () => {
   assert.equal(reactionOutcome(200), 'ok');
   assert.equal(reactionOutcome(204), 'ok');
   assert.equal(reactionOutcome(410), 'closed');
-  for (const status of [400, 403, 404, 429, 500, 503, 0, null]) assert.equal(reactionOutcome(status), 'failed', String(status));
+  for (const status of [400, 403, 404]) assert.equal(reactionOutcome(status), 'rejected', String(status));
+  for (const status of [401, 405, 408, 413, 415, 429, 500, 502, 503, 0, null]) assert.equal(reactionOutcome(status), 'failed', String(status));
 });
 
 test('settledRecord: an ok confirms only the record that was sent', () => {
@@ -248,6 +249,17 @@ test('settledRecord: an ok confirms only the record that was sent', () => {
   assert.equal(settledRecord({ r: 'love', at: later, unsent: true }, { r: 'wow', at, unsent: true }), undefined, 'a newer choice is still owed');
   assert.equal(settledRecord({ r: 'wow', at: later, unsent: true }, { r: 'wow', at, unsent: true }), undefined);
   assert.equal(settledRecord(null, { r: 'wow', at, unsent: true }), undefined, 'storage cleared meanwhile: nothing to write');
+});
+
+test('settledRecord: a permanent refusal drops the record sent; a transient one keeps it unsent', () => {
+  const at = NOW.toISOString();
+  const later = new Date(NOW.getTime() + 1000).toISOString();
+  const sent = { r: 'wow', at, unsent: true } as const;
+  assert.equal(settledRecord(sent, sent, 'rejected'), null);
+  assert.equal(settledRecord(sent, sent, 'closed'), null);
+  assert.equal(settledRecord({ r: null, at, unsent: true }, { r: null, at, unsent: true }, 'rejected'), null);
+  assert.equal(settledRecord(sent, sent, 'failed'), undefined);
+  assert.equal(settledRecord({ r: 'love', at: later, unsent: true }, sent, 'rejected'), undefined, 'a newer choice is not dropped with the refused one');
 });
 
 test('expiredReactionKeys: only this site\'s reaction records that would be forgotten', () => {

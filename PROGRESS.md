@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.28: fixes from the focused review of the reactions fixes. A 410 on the page's own resend no longer moves focus; permanent refusals are not resent; the privacy wording is exact about what the hash does. `/_astro/` files are now cached for a year. Still off.
+
 - **2026-09-26** — 0.2.27: privacy wording from the deep reviews (backups once up front; the reactions paragraph exact). Michel's review of the reactions paragraph is still owed before go-live.
 
 - **2026-09-26** — 0.2.26: fixes from the deep review of the reactions component (unsent choices resent, focus and scroll, the no-popover case, the expiry sweep, a bundled script). Still off.
