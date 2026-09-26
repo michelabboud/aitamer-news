@@ -59,6 +59,11 @@ jobs:
           ASTRO_BASE: /aitamer-news
         run: npm run check:bodies:build
 
+      # GitHub Pages sends no _headers, so the policy has no effect on this copy; the check still runs
+      # so that this build is judged like the Cloudflare one (SECURITY.md, "Content-Security-Policy").
+      - name: Check the Content-Security-Policy against the build
+        run: npm run check:csp
+
       - name: Check the build holds no secrets
         run: npm run check:dist
 

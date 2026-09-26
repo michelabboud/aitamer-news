@@ -118,6 +118,11 @@ jobs:
       - name: Check bot post bodies against the build
         run: npm run check:bodies:build
 
+      # The Content-Security-Policy the build wrote into dist/_headers names every inline script on
+      # every page, and nothing on a page needs what it refuses (SECURITY.md, "Content-Security-Policy").
+      - name: Check the Content-Security-Policy against the build
+        run: npm run check:csp
+
       - name: Check the build holds no secrets
         run: npm run check:dist
 

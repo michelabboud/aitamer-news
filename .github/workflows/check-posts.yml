@@ -51,3 +51,8 @@ jobs:
       # checker renders every post exactly as this build did (SECURITY.md, "Bot posts"; ADR 0009).
       - name: Check bot post bodies against the build
         run: npm run check:bodies:build
+
+      # The Content-Security-Policy the build wrote names every inline script on every page
+      # (SECURITY.md, "Content-Security-Policy"): a change that adds one fails here, not on main.
+      - name: Check the Content-Security-Policy against the build
+        run: npm run check:csp

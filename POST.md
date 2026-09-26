@@ -123,7 +123,7 @@ Rules for times:
 
 ## 5. What happens on a push to `main`
 
-`deploy-pages.yml` runs on every push to `main`: `npm test`, `npm run check:posts`, the build, `npm run check:bodies:build`, `npm run check:dist`, then the upload to https://aitamer.news (Cloudflare Pages). The GitHub Pages copy was retired on 2026-09-25; its workflow is disabled.
+`deploy-pages.yml` runs on every push to `main`: `npm test`, `npm run check:posts`, the build (which writes the Content-Security-Policy into `dist/_headers`), `npm run check:bodies:build`, `npm run check:csp`, `npm run check:dist`, then the upload to https://aitamer.news (Cloudflare Pages). The GitHub Pages copy was retired on 2026-09-25; its workflow is disabled.
 
 If a check fails, nothing is published and the live site stays as it was. Unchanged post, desk, author and archive-month pages are reused from the previous build (Astro's incremental build cache), so adding one post does not rebuild the whole site.
 

@@ -37,6 +37,46 @@ The HTML is parsed with a spec-conformant parser (parse5), never a regex, inside
 
 **Human posts are not gated** (the trust model above is unchanged): editors may still use raw HTML. `node scripts/check-rendered-body.mjs --all` reports what the gate would say about every post. One bot post from before the gate, `made-on-youtube-2026-gemini-ask-studio.md`, embeds two YouTube players as raw `<iframe>`s; it is exempt from exactly those two findings, and only while the file is byte-for-byte unchanged (`GRANDFATHERED_POSTS`, pinned by SHA-256). If the file changes in any way, the exemption is void and the build fails until the entry is removed, so the exception cannot quietly outlive an edit. Nothing new is ever added to that list. A way to get markup past this gate in a bot post is in scope.
 
+## Content-Security-Policy
+
+Every response from aitamer.news carries a Content-Security-Policy, **in report-only mode** since 2026-09-26: browsers report what the policy would refuse (today in the reader's own console, since there is no report collector) and block nothing. It is a second line behind the content checks above, not a replacement for them. Decision record: `docs/adr/0010-content-security-policy-by-build-time-hashes.md`.
+
+**How it is produced.** `public/_headers` holds only hand-written rules. The last step of `npm run build` is `scripts/csp-headers.mjs`: it parses every built page with parse5, takes the SHA-256 of the text of every inline `<script>` a browser would run (JSON-LD data blocks never run and get no hash), and appends the policy to `dist/_headers` after the hand-written rules. Nobody writes a hash by hand; a changed script gets a new hash on the next build. `'unsafe-inline'` is never in `script-src`.
+
+**The policy** (the hash list is the build's; the rest is fixed in `directives()`):
+
+```
+default-src 'self'; script-src 'self' 'sha256-…' https://challenges.cloudflare.com https://www.googletagmanager.com;
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;
+img-src 'self' data: https:; connect-src 'self' https://comments.aitamer.news https://contact.aitamer.news
+https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;
+frame-src https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com;
+form-action 'self' https://comments.aitamer.news https://contact.aitamer.news; object-src 'none'; base-uri 'none';
+frame-ancestors 'none'
+```
+
+| Origin | Directive | Used by |
+|---|---|---|
+| `https://challenges.cloudflare.com` | `script-src`, `frame-src` | Turnstile: `api.js` on the About page's contact form and every comment form; the widget is its iframe |
+| `https://www.googletagmanager.com` | `script-src`, `connect-src` | gtag.js, injected by the layout's analytics bootstrap on aitamer.news only |
+| `https://*.google-analytics.com`, `https://*.analytics.google.com` | `connect-src` | gtag's measurement requests (Google's published GA4 CSP guidance; the browser check saw `www.google-analytics.com`) |
+| `https://fonts.googleapis.com` / `https://fonts.gstatic.com` | `style-src` / `font-src` | the layout's Google Fonts stylesheet and the font files it loads |
+| `https://comments.aitamer.news` | `connect-src`, `form-action` | the comment form (it `fetch`es its `action`), and reactions when they go live |
+| `https://contact.aitamer.news` | `connect-src`, `form-action` | the About page's contact form |
+| `https://www.youtube-nocookie.com` | `frame-src` | `VideoEmbed`'s click-to-load player |
+| `https://www.youtube.com` | `frame-src` | only the grandfathered post with raw iframes (`made-on-youtube-2026-gemini-ask-studio`); drop it when that post moves to the `video:` field |
+| any `https:` image | `img-src` | human posts may use any image host; bot posts only `media.aitamer.news` (the gate above) |
+
+`style-src 'unsafe-inline'` is there for Shiki's and the tables' `style` attributes; inline styles carry no script, and the rendered-body gate constrains them in bot posts.
+
+**Pagefind.** `/pagefind/*` and `/search/*` get the same policy plus `'wasm-unsafe-eval'`. Pagefind compiles its WebAssembly in a worker (`/pagefind/pagefind-worker.js`), and a worker obeys the policy on its own response, not the page's; the search page's copy covers Pagefind's main-thread fallback. Each of those rules detaches the site-wide header first (`! Content-Security-Policy-Report-Only`): Cloudflare joins two values of one header with a comma, and a browser reads that as two policies that must both pass.
+
+**The guard.** `npm run check:csp` runs after the build in `check-posts.yml` and both deploy workflows, before any upload (a test fails if a workflow that builds the site does not run it). It fails when a built page has an inline script missing from the policy, an inline event handler (`onclick=…`), a `javascript:` URL, an `<object>`, `<embed>` or `<base>`, a script, iframe, form action or `data-endpoint`/`data-embed` URL the policy does not name, when a path would get two policies, when Pagefind's worker would lack `'wasm-unsafe-eval'`, when a header line exceeds Cloudflare's 2,000 characters, or when `dist/_headers` is not exactly `public/_headers` plus the policy this build calls for. Event handlers and `javascript:` URLs fail the build itself too: use `addEventListener` in a script.
+
+**Limits.** Every page carries every hash, about 1,200 characters today; the build fails at Cloudflare's 2,000-character line limit, roughly 15 more distinct inline scripts from now. A `define:vars` block whose values differ per page adds one hash per page, so keep per-page values in `data-` attributes read by one shared script. `_headers` applies only on Cloudflare Pages: `astro preview`, `astro dev` and the retired GitHub Pages copy send no policy (serve `dist` with `npx wrangler@4.139.0 pages dev dist` to see it).
+
+**Enforcing.** Set `CSP_ENFORCE = true` in `scripts/csp-headers.mjs` and update the test that pins it (`scripts/csp-headers.test.mjs`, "the report-only switch"). The header becomes `Content-Security-Policy` and gains `upgrade-insecure-requests`, which browsers ignore in report-only mode and log an error about. Do it after a clean report-only period, with a browser pass over the pages listed in the CHANGELOG entry that introduced the policy.
+
 ## Out of scope
 
 - Findings that need a compromised maintainer account or machine.

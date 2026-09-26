@@ -2,6 +2,18 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [Unreleased]
+
+### Added
+**A Content-Security-Policy, report-only** (approved by Michel 2026-09-26; ADR 0010; SECURITY.md, "Content-Security-Policy"):
+- **Every page now sends `Content-Security-Policy-Report-Only`.** Browsers report what the policy would refuse and block nothing yet. The policy allows scripts only from the site, Turnstile and Google's tag manager, plus the site's own inline scripts by SHA-256 hash; frames only from Turnstile and YouTube; requests only to the site, the comments and contact Workers and Google Analytics; forms only to the site and the two Workers; no plugins, no `<base>`, and no framing of the site.
+- **The hashes come from the build.** `scripts/csp-headers.mjs` runs at the end of `npm run build`, hashes every inline script in the built HTML, and appends the policy to `dist/_headers` after the hand-written rules, which it keeps unchanged. `'unsafe-inline'` is never allowed for scripts.
+- **A guard, `npm run check:csp`,** runs after the build on every pull request and in both deploy workflows, before any upload. It fails on an inline script missing from the policy, an inline event handler, a `javascript:` URL, an endpoint the policy does not name, a path that would receive two policies, or a stale or hand-edited `dist/_headers`.
+- **Search keeps working when the policy is enforced.** Pagefind compiles WebAssembly inside a worker, and the worker obeys its own response's policy, so `/pagefind/*` gets `'wasm-unsafe-eval'` as well as `/search/*` (the proposal had only the search page; a browser showed search breaking under enforcement with that).
+- **Google Fonts are allowed** (`style-src` and `font-src`), which the proposal had missed.
+- Enforcing is `CSP_ENFORCE = true` in `scripts/csp-headers.mjs` plus the test that pins it. There is no report collector yet: that needs a Worker and Michel's go (BACKLOG).
+- **Checked in Chromium, 2026-09-26**, with `wrangler pages dev` serving the build and the browser loading it as `https://aitamer.news` (so the analytics tag ran; its measurements and the two form submissions were answered locally and never reached Google or the Workers). With the policy report-only and again with it enforced: home, a story page with its comment form and Turnstile widget (token issued; comment submitted), the contact page (Turnstile token issued; note submitted), search (two searches, 5 results each), a click-to-load video (a temporary post, not committed), the post with raw YouTube iframes, and the 404 page. **Zero violations** in the page and in Pagefind's worker, in both modes.
+
 ## [0.2.30] — 2026-09-26
 
 ### Added
