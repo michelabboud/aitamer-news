@@ -14,13 +14,16 @@ Run what CI runs; every pull request runs the same checks (`.github/workflows/ch
 
 ```sh
 npm test              # all unit tests (found by pattern)
-npm run check:posts   # publish times, specimen numbers, sources, slugs, comment files belong to posts
+npm run check:posts   # publish times, specimen numbers, sources, slugs, comment files belong to posts,
+                      # and the rendered body of every bot-authored post (npm run check:bodies alone)
 npm run build         # the strict post schema is enforced here
+npm run check:bodies:build  # after the build: bot posts' shipped HTML, and the checker renders as the build did
 npm run check:dist    # no secrets in the built site
 npm run check:files   # the deploy stays under Cloudflare's file cap
 ```
 
 - Posts follow the contract in `POST.md`; a post that breaks it fails the build and names the file.
+- A post by a bot author gets its rendered HTML checked against an exact allowlist (`SECURITY.md`, "Bot posts"; ADR 0009). To check one file, whoever wrote it: `node scripts/check-rendered-body.mjs src/content/posts/<slug>.md`, or `--stdin --json` for a post that is not on disk yet; `--all` reports on every post. A change to the story page that adds an element id must add it to `PROTECTED_IDS` in `scripts/rendered-body-allowlist.mjs` (a test fails until it does).
 - Keep diffs focused: one logical change per pull request, matching the code around it.
 - New behaviour comes with tests, including the failure path.
 - Decisions with real trade-offs get a record in `docs/adr/`.

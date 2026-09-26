@@ -123,7 +123,7 @@ Rules for times:
 
 ## 5. What happens on a push to `main`
 
-`deploy-pages.yml` runs on every push to `main`: `npm test`, `npm run check:posts`, the build, `npm run check:dist`, then the upload to https://aitamer.news (Cloudflare Pages). The GitHub Pages copy was retired on 2026-09-25; its workflow is disabled.
+`deploy-pages.yml` runs on every push to `main`: `npm test`, `npm run check:posts`, the build, `npm run check:bodies:build`, `npm run check:dist`, then the upload to https://aitamer.news (Cloudflare Pages). The GitHub Pages copy was retired on 2026-09-25; its workflow is disabled.
 
 If a check fails, nothing is published and the live site stays as it was. Unchanged post, desk, author and archive-month pages are reused from the previous build (Astro's incremental build cache), so adding one post does not rebuild the whole site.
 
@@ -145,6 +145,7 @@ The desk's publisher never pushes to `main` itself: it opens a pull request from
 - [ ] `draft: false`, and `npm run stamp` has written the time and the specimen number.
 - [ ] The ledger (`src/content/specimen-ledger.txt`) is committed with the post.
 - [ ] `npm test`, `npm run check:posts` and `npm run build` pass locally.
+- [ ] A bot-authored post (`author: desk-bot`) is plain Markdown: no raw HTML, images only from `https://media.aitamer.news/`, links `http(s)`, `mailto`, `/path` or `#fragment` only. `check:posts` renders it and refuses anything else (`SECURITY.md`, "Bot posts").
 - [ ] `dist/posts/<slug>/index.html` exists after the build.
 
 ## 8. Comments

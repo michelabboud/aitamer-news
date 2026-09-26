@@ -18,7 +18,9 @@
     "check:specimens": "node scripts/stamp-specimens.mjs --check",
     "check:comments": "node scripts/check-comments.mjs",
     "check:reactions": "node scripts/check-reactions.mjs",
-    "check:posts": "node scripts/stamp-post-times.mjs --check && node scripts/stamp-specimens.mjs --check && node scripts/check-comments.mjs && node scripts/check-reactions.mjs",
+    "check:posts": "node scripts/stamp-post-times.mjs --check && node scripts/stamp-specimens.mjs --check && node scripts/check-comments.mjs && node scripts/check-reactions.mjs && node scripts/check-rendered-body.mjs",
+    "check:bodies": "node scripts/check-rendered-body.mjs",
+    "check:bodies:build": "node scripts/check-rendered-body.mjs --against-build",
     "check:files": "node scripts/check-dist-files.mjs"
   },
   "dependencies": {
@@ -27,7 +29,8 @@
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.4",
-    "js-yaml": "4.3.2"
+    "js-yaml": "4.3.2",
+    "parse5": "8.0.1"
   },
   "allowScripts": {
     "esbuild": true
