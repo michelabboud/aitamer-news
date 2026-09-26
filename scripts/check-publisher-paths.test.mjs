@@ -537,3 +537,17 @@ test('CLI: push mode passes a push writing both lanes and fails one that adds an
   assert.equal(touched.code, 1);
   assert.match(touched.output, /this push changes what the publisher may not \(the pusher is the publisher\):\n  src\/lib\/site\.ts: outside the publisher's lanes/);
 });
+
+test('real git output: a delete in one lane plus a dissimilar add in the other passes as two lane changes (the rename rule is a tripwire)', () => {
+  const { dir, git, write, commit, root } = repository();
+  git(['checkout', '-q', '-b', 'desk/comments-5']);
+  rmSync(join(dir, COMMENTS_LANE, 'old-thread.json'));
+  write(`${REACTIONS_LANE}old-thread.json`, '{"reactions":[{"id":"love","n":1},{"id":"wow","n":2}],"slug":"old-thread","version":1}\n');
+  const head = commit('delete one, add a different one');
+  const { changes, modes } = collectPullRequest({ cwd: dir, base: root, head });
+  assert.deepEqual(changes, [
+    { status: 'D', path: `${COMMENTS_LANE}old-thread.json` },
+    { status: 'A', path: `${REACTIONS_LANE}old-thread.json` },
+  ], 'git does not pair dissimilar files as a rename');
+  assert.deepEqual(changeProblems({ changes, modes }), [], 'both are paths the publisher may write; the contracts judge the content');
+});

@@ -103,6 +103,19 @@ and far less than a comment file, which carries reader text.
 - A third lane, if one is ever wanted, is another decision like this one: a new ADR, the script,
   and the desk's own check, together.
 
+## Amendment, 2026-09-26 (deep review of batch R-B)
+
+Decision 2 overstates what the guard does. "A rename must start and end in the same lane" is
+enforced only for a rename **git detects**: `git diff -M` pairs a deletion and an addition as a
+rename when the two files are at least 50 % similar. A deletion in one lane plus a dissimilar
+addition in the other is reported as two separate changes, each a path the publisher may write,
+and passes. That has no security impact — both paths are inside the lanes, and each file must
+satisfy its own directory's contract, which the required check `check` enforces — but it means the
+cross-lane rename rule is a **tripwire, not a guarantee**. The guarantee that a lane holds only its
+own kind of file is the lane's contract. `scripts/check-publisher-paths.test.mjs` pins the
+delete-plus-add behaviour, and the script header, the pull-request workflow, `CONTRIBUTING.md`,
+`POST.md` and the reactions README now say so. The decision itself stands.
+
 ## Status
 
 Accepted, 2026-09-26. Supersedes the one-lane sentence of ADR 0007's rule 1 (quoted above); the

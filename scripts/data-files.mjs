@@ -11,6 +11,8 @@
  *     dangling or not), a folder (the build reads `*.json` in the directory and nowhere deeper: a
  *     nested file would be silently ignored), a pipe or socket, `x.JSON`, `x.jsonc`, `x.json.bak`,
  *     a dotfile;
+ *   - the file is no larger than the lane's byte cap, when the lane has one (judged from `lstat`
+ *     before the file is read, so an oversized file is never loaded);
  *   - the file parses as JSON, and its `slug` field equals the file name;
  *   - a post with that slug exists under src/content/posts/ (draft or not: a data file for a draft
  *     is the publisher's mistake to fix, but not an orphan). An orphan is a file for a post that
@@ -36,6 +38,7 @@ const POST_FILE = /\.mdx?$/;
  * @property {string} noun "comment" or "reaction": the files are "<noun> files"
  * @property {string} docs where the format is documented, e.g. "POST.md section 8"
  * @property {string} check the check's name at the start of its output, e.g. "check:comments"
+ * @property {number} [maxBytes] the largest file the lane accepts, in bytes; absent = no cap
  */
 
 /**
@@ -127,11 +130,16 @@ export function loadDataFiles(lane, dir) {
   }
   for (const name of readdirSync(dir).sort()) {
     const path = join(dir, name);
-    const problem = dataEntryProblem(lane, name, lstatSync(path), dir);
+    const stat = lstatSync(path);
+    const problem = dataEntryProblem(lane, name, stat, dir);
     if (problem !== undefined) {
       problems.push(problem);
     } else if (name !== DATA_README) {
-      files.push({ name, text: readFileSync(path, 'utf8') });
+      if (lane.maxBytes !== undefined && stat.size > lane.maxBytes) {
+        problems.push(`${name}: ${stat.size} bytes; a ${lane.noun} file is at most ${lane.maxBytes} bytes, far above the largest file its contract allows, so this one cannot be valid`);
+      } else {
+        files.push({ name, text: readFileSync(path, 'utf8') });
+      }
     }
   }
   return { files, problems };

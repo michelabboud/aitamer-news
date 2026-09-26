@@ -16,8 +16,23 @@ import { POSTS_DIR } from './stamp-post-times.mjs';
 
 export const REACTIONS_DIR = 'src/content/reactions';
 
+/**
+ * The largest reactions file the check accepts: 8 KiB. The largest file the contract allows —
+ * 64 ids of 24 characters, each with a count of 9,007,199,254,740,991, and a 120-character slug —
+ * is 5,358 bytes as the publisher writes it (two-space indent) and 6,646 bytes with a four-space
+ * indent; `check-reactions.test.mjs` builds it and proves it fits. So the cap never refuses a
+ * valid file, and a file past it is refused by size alone, before it is read.
+ */
+export const REACTION_FILE_MAX_BYTES = 8 * 1024;
+
 /** @type {import('./data-files.mjs').DataLane} */
-export const REACTIONS_LANE = Object.freeze({ dir: REACTIONS_DIR, noun: 'reaction', docs: 'POST.md section 9', check: 'check:reactions' });
+export const REACTIONS_LANE = Object.freeze({
+  dir: REACTIONS_DIR,
+  noun: 'reaction',
+  docs: 'POST.md section 9',
+  check: 'check:reactions',
+  maxBytes: REACTION_FILE_MAX_BYTES,
+});
 
 /**
  * The problems with one reactions file. Pure: no filesystem.

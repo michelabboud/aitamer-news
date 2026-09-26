@@ -42,7 +42,8 @@ never a reader, an address, a hash or a time.
 ## What enforces it
 
 - `npm run check:posts` (`scripts/check-reactions.mjs`): every entry in this directory is
-  `README.md` or a regular `<slug>.json` file; the file parses as JSON, its `slug` field equals
+  `README.md` or a regular `<slug>.json` file of at most 8 KiB (the largest valid file is about
+  5 KiB; a bigger one is refused by size before it is read); the file parses as JSON, its `slug` field equals
   the file name, and a post with that slug exists. An orphan — a file for a post that was deleted
   or renamed — fails the check naming the file.
 - `npm run build`: the strict schema (`src/content/reaction-schema.ts`) on every file, through the
@@ -56,7 +57,8 @@ never a reader, an address, a hash or a time.
 - The publisher lands its files by pull request only, and the required check `publisher-paths`
   (`scripts/check-publisher-paths.mjs`) refuses a pull request that changes anything but
   `src/content/comments/<slug>.json` and `<slug>.json` here, renames a file between the two
-  directories, or adds a link, a submodule or an executable
+  directories (as a tripwire: git sees a rename only when the files are at least half alike; the
+  contract above is the real guarantee), or adds a link, a submodule or an executable
   (`docs/adr/0008-the-publishers-second-lane.md`).
 
 ## Removing a file

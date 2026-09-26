@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.24] — 2026-09-26
+
+### Fixed
+Deep review of the reactions contract and the guard's second lane (RB1, RB2; no blocker):
+- **The cross-lane rename rule is described as what it is: a tripwire.** It fires only when git pairs a deletion and an addition as a rename (the files at least half alike); a deletion in one lane plus a dissimilar addition in the other passes as two lane changes. No security impact — both paths are the publisher's, and each file must meet its own lane's contract. The guard's header, the pull-request workflow's comment, `CONTRIBUTING.md`, `POST.md`, `ARCHITECTURE.md` and the reactions README now say so; ADR 0008 carries a dated amendment. A test pins the behaviour on real git output.
+- **Reactions files are capped at 8 KiB** by `npm run check:posts` (judged by size before the file is read). The largest file the contract allows is 5,358 bytes as the publisher writes it (6,646 with a four-space indent); a test builds it and proves it fits. Comment files stay uncapped, by decision: their contract allows files of tens of megabytes, so a cap that never refuses a valid file would guard nothing (`scripts/check-comments.mjs` says why).
+
 ## [0.2.23] — 2026-09-26
 
 ### Added

@@ -30,8 +30,13 @@
  *
  * The rule: every changed path must be `<lane><slug>.json` in one of the two lanes,
  * `src/content/comments/` and `src/content/reactions/` — not nested, not another name or
- * extension, not a path outside the directories; a rename must start and end inside **the same**
- * lane (a comment file never becomes a reactions file, or the reverse); a deletion is allowed
+ * extension, not a path outside the directories; a rename git detects must start and end inside
+ * **the same** lane (a comment file never becomes a reactions file, or the reverse). That last rule
+ * is a tripwire, not a guarantee: git pairs a deletion and an addition as a rename only when the
+ * two files are at least half alike, so a deletion in one lane plus a dissimilar addition in the
+ * other is judged as two lane changes and passes — both are paths the publisher may write. What
+ * holds each lane to its own shape is its contract, which the required check `check` enforces
+ * (ADR 0008, amendment of 2026-09-26). A deletion is allowed
  * (that is how a thread empties, or a story's reactions go back to none); an added or changed file
  * must be a plain, non-executable file (mode 100644): no symlink, no submodule, no executable bit.
  *

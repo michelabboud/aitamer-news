@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { lstatSync, mkdirSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { REACTIONS_DIR, entryProblem, loadReactionFiles, main, reactionFileProblems } from './check-reactions.mjs';
+import { REACTIONS_DIR, REACTION_FILE_MAX_BYTES, entryProblem, loadReactionFiles, main, reactionFileProblems } from './check-reactions.mjs';
+import { COMMENTS_LANE } from './check-comments.mjs';
+import { REACTIONS_PER_FILE_MAX, REACTION_SLUG_MAX } from '../src/content/reaction-schema.ts';
 import { quietly, tempDir } from './test-support.mjs';
 
 /**
@@ -106,3 +108,42 @@ test('main: exit 1 and every problem listed — orphan and mismatch together', (
   assert.match(output, /grok-4-7\.json: its slug field is "elsewhere"/);
 });
 
+
+// --- the size cap ------------------------------------------------------------------------------
+
+
+/** The largest file the reactions contract allows: every limit at its maximum. */
+function largestValidFile(indent) {
+  const ids = Array.from({ length: REACTIONS_PER_FILE_MAX }, (_, i) => `r${String(i).padStart(2, '0')}`.padEnd(24, 'x')).sort();
+  const data = { version: 1, slug: 'a'.repeat(REACTION_SLUG_MAX), reactions: ids.map((id) => ({ id, n: Number.MAX_SAFE_INTEGER })) };
+  return `${JSON.stringify(data, null, indent)}\n`;
+}
+
+test('the cap never refuses a valid file: the largest one the contract allows fits, even with a four-space indent', () => {
+  assert.ok(Buffer.byteLength(largestValidFile(2)) <= REACTION_FILE_MAX_BYTES, `${Buffer.byteLength(largestValidFile(2))} bytes`);
+  assert.ok(Buffer.byteLength(largestValidFile(4)) <= REACTION_FILE_MAX_BYTES, `${Buffer.byteLength(largestValidFile(4))} bytes`);
+});
+
+test('a file over the cap is refused by size, named, and never read', () => {
+  const { postsDir, reactionsDir } = repo(POSTS, [
+    ['grok-4-7.json', `${file('grok-4-7')}${' '.repeat(REACTION_FILE_MAX_BYTES)}`],
+    ['still-a-draft.json', file('still-a-draft')],
+  ]);
+  const { files, problems } = loadReactionFiles(reactionsDir);
+  assert.deepEqual(files.map((f) => f.name), ['still-a-draft.json']);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], new RegExp(`^grok-4-7\\.json: \\d+ bytes; a reaction file is at most ${REACTION_FILE_MAX_BYTES} bytes`));
+  assert.equal(quietly(() => main([], { postsDir, reactionsDir })).result, 1);
+});
+
+test('a file exactly at the cap is read (the cap is inclusive)', () => {
+  const text = file('grok-4-7');
+  const { reactionsDir } = repo(POSTS, [['grok-4-7.json', text + ' '.repeat(REACTION_FILE_MAX_BYTES - Buffer.byteLength(text))]]);
+  const { files, problems } = loadReactionFiles(reactionsDir);
+  assert.deepEqual(problems, []);
+  assert.equal(files.length, 1);
+});
+
+test('comment files have no byte cap, by decision', () => {
+  assert.equal(COMMENTS_LANE.maxBytes, undefined);
+});

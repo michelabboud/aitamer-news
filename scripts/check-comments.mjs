@@ -21,7 +21,13 @@ export const COMMENTS_README = DATA_README;
 /** A comment file's whole name: a slug (the same shape as the posts', from `frontmatter.mjs`) and `.json`, exactly. */
 export const COMMENT_FILE_NAME = DATA_FILE_NAME;
 
-/** @type {import('./data-files.mjs').DataLane} */
+/**
+ * No byte cap, deliberately. The comment contract allows 2,000 comments of up to 2,000 characters,
+ * each up to 4 bytes in UTF-8 (12 as a JSON surrogate-pair escape): a valid file can reach tens of
+ * megabytes, so a cap that never refuses a valid file would sit so high it guards nothing. The
+ * strict schema's own limits bound the file; a thread nearing them is a moderation problem.
+ * @type {import('./data-files.mjs').DataLane}
+ */
 export const COMMENTS_LANE = Object.freeze({ dir: COMMENTS_DIR, noun: 'comment', docs: 'POST.md section 8', check: 'check:comments' });
 
 export { postSlugs };
