@@ -8,7 +8,7 @@ import test from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { basename, dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
   GRANDFATHERED_POSTS,
@@ -343,8 +343,8 @@ test('the gate checks a bot fixture post and skips a human one with the same bod
 });
 
 test('a grandfathered post is excused only for its listed findings, and only while unchanged', () => {
-  const name = 'made-on-youtube-2026-gemini-ask-studio.md';
-  const contents = readFileSync(join(SITE_ROOT, 'src/content/posts', name), 'utf8');
+  const name = 'src/content/posts/made-on-youtube-2026-gemini-ask-studio.md';
+  const contents = readFileSync(join(SITE_ROOT, name), 'utf8');
   assert.equal(createHash('sha256').update(contents).digest('hex'), GRANDFATHERED_POSTS[name].sha256, 'the pinned hash no longer matches the file');
   const known = [...GRANDFATHERED_POSTS[name].findings];
   const extra = { path: 'script[1]', element: 'script', problem: 'element <script> is not allowed' };
@@ -359,11 +359,29 @@ test('a grandfathered post is excused only for its listed findings, and only whi
   // Same bytes, but a finding the entry lists has gone (a renderer change): the entry is stale.
   assert.match(problems(applyGrandfather(name, contents, known.slice(0, 1)).failing).join(), /lists findings this file no longer has/);
   assert.deepEqual(applyGrandfather('another.md', contents, known).failing, known);
+  // G7: matched on the path from the site root, never on the base name.
+  assert.deepEqual(applyGrandfather('made-on-youtube-2026-gemini-ask-studio.md', contents, known).failing, known);
+  assert.deepEqual(applyGrandfather('src/content/posts/old/made-on-youtube-2026-gemini-ask-studio.md', contents, known).failing, known);
+});
+
+test('G7: the grandfather list is exactly its one entry (adding one must be a reviewed change here)', () => {
+  assert.deepEqual(Object.keys(GRANDFATHERED_POSTS), ['src/content/posts/made-on-youtube-2026-gemini-ask-studio.md']);
+  assert.ok(Object.isFrozen(GRANDFATHERED_POSTS));
+});
+
+test('G7: a byte-identical copy of the grandfathered post elsewhere is checked in full', async () => {
+  const name = 'made-on-youtube-2026-gemini-ask-studio.md';
+  const dir = tempDir('grandfather-copy-');
+  const copy = join(dir, name);
+  writeFileSync(copy, readFileSync(join(SITE_ROOT, 'src/content/posts', name)));
+  const [result] = await checkPostFiles([copy]);
+  assert.deepEqual(result.excused, []);
+  assert.match(problems(result.findings).join(), /element <iframe> is not allowed/);
 });
 
 test('a grandfather entry that matches no file as it stands fails the gate', () => {
   assert.deepEqual(staleGrandfatherEntries(), [], 'the entries match main today');
-  const name = Object.keys(GRANDFATHERED_POSTS)[0];
+  const name = basename(Object.keys(GRANDFATHERED_POSTS)[0]);
   const original = readFileSync(join(SITE_ROOT, 'src/content/posts', name), 'utf8');
   const fixture = (contents, kind = 'bot') => {
     const root = tempDir('grandfather-');

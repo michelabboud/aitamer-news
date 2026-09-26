@@ -36,7 +36,7 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, createWriteStream } from 'node:fs';
-import { basename, extname, join, relative, resolve } from 'node:path';
+import { basename, extname, join, relative, resolve, sep } from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readFrontmatter } from './frontmatter.mjs';
@@ -81,7 +81,7 @@ export const POST_MAX_BYTES = 512 * 1024;
  *   this post has two); whether and how to move it is Michel's call (posts MCP plan, Q4).
  */
 export const GRANDFATHERED_POSTS = Object.freeze({
-  'made-on-youtube-2026-gemini-ask-studio.md': Object.freeze({
+  'src/content/posts/made-on-youtube-2026-gemini-ask-studio.md': Object.freeze({
     sha256: '52e103385819d3511391d7847cd6d6a4fde2fba53bf09671e2aedb17c4579580',
     findings: Object.freeze([
       Object.freeze({ path: 'iframe[1]', element: 'iframe', problem: 'element <iframe> is not allowed' }),
@@ -98,11 +98,14 @@ const STALE_ENTRY = 'remove or update its GRANDFATHERED_POSTS entry in scripts/c
  * Split a post's findings into those a grandfather entry excuses and those it does not. An entry
  * that no longer describes the file exactly is itself a finding, so it cannot outlive an edit:
  * the file's hash has changed, or the file no longer has every finding the entry lists.
- * @param {string} name the file name @param {string} contents @param {Finding[]} findings
+ * Entries are keyed by the post's path from the site root (`src/content/posts/<name>`), so a file of
+ * the same name anywhere else (a subfolder, a copy elsewhere) is never excused.
+ * @param {string} path the post's path from the site root, `/`-separated
+ * @param {string} contents @param {Finding[]} findings
  * @returns {{ failing: Finding[], excused: Finding[] }}
  */
-export function applyGrandfather(name, contents, findings) {
-  const entry = Object.hasOwn(GRANDFATHERED_POSTS, name) ? GRANDFATHERED_POSTS[name] : undefined;
+export function applyGrandfather(path, contents, findings) {
+  const entry = Object.hasOwn(GRANDFATHERED_POSTS, path) ? GRANDFATHERED_POSTS[path] : undefined;
   if (!entry) return { failing: findings, excused: [] };
   if (sha256(contents) !== entry.sha256) {
     return { failing: [...findings, postFinding(`this file changed since it was grandfathered, so its exemption is void: ${STALE_ENTRY}`)], excused: [] };
@@ -126,8 +129,8 @@ export function applyGrandfather(name, contents, findings) {
 export function staleGrandfatherEntries(root = SITE_ROOT) {
   const bots = botAuthorIds(root);
   const out = [];
-  for (const [name, entry] of Object.entries(GRANDFATHERED_POSTS)) {
-    const file = join(root, POSTS_DIR, name);
+  for (const [path, entry] of Object.entries(GRANDFATHERED_POSTS)) {
+    const file = join(root, path);
     let contents;
     try {
       contents = readFileSync(file, 'utf8');
@@ -158,6 +161,11 @@ export function mergeResults(...lists) {
     seen.excused.push(...result.excused.filter((f) => !seen.excused.some((e) => findingKey(e) === findingKey(f))));
   }
   return [...byFile.values()];
+}
+
+/** A file's path from `root`, `/`-separated: the key `GRANDFATHERED_POSTS` uses. */
+export function rootPath(root, file) {
+  return relative(root, file).split(sep).join('/');
 }
 
 /** How much of the worker's standard error is kept for a crash report. */
@@ -426,13 +434,13 @@ export async function checkPostFiles(files, options = {}) {
   files.forEach((file, index) => {
     try {
       if (statSync(file).size > POST_MAX_BYTES) early.set(index, [postFinding(`the post is larger than ${POST_MAX_BYTES} bytes`)]);
-      else posts.push({ index, name: basename(file), contents: readFileSync(file, 'utf8') });
+      else posts.push({ index, name: basename(file), path: rootPath(SITE_ROOT, file), contents: readFileSync(file, 'utf8') });
     } catch (error) {
       early.set(index, [postFinding(`cannot read the post: ${error.message}`)]);
     }
   });
   const checked = await checkPostSources(posts, options);
-  const byIndex = new Map(posts.map((post, i) => [post.index, applyGrandfather(post.name, post.contents, checked[i].findings)]));
+  const byIndex = new Map(posts.map((post, i) => [post.index, applyGrandfather(post.path, post.contents, checked[i].findings)]));
   return files.map((file, index) => {
     if (early.has(index)) return { file, findings: early.get(index), excused: [] };
     const { failing, excused } = byIndex.get(index);
@@ -506,7 +514,7 @@ export async function checkAgainstBuild({ root = SITE_ROOT, options = {} } = {})
     else if (typeof entry.rendered?.html !== 'string') {
       if (gated) findings.push(postFinding('the build did not render this post (see the build log)'));
     } else if (gated) {
-      const split = applyGrandfather(basename(file), contents, checkRenderedHtml(entry.rendered.html));
+      const split = applyGrandfather(rootPath(root, file), contents, checkRenderedHtml(entry.rendered.html));
       findings.push(...split.failing);
       excused = split.excused;
     }
@@ -588,7 +596,7 @@ export async function main(argv) {
   } else if (stdin) {
     const contents = await readStdin();
     const [{ findings }] = await checkPostSources([{ name, contents }]);
-    const { failing, excused } = applyGrandfather(name, contents, findings);
+    const { failing, excused } = applyGrandfather(`${POSTS_DIR}/${name}`, contents, findings);
     results = [{ file: name, findings: failing, excused }];
     scope = 'the post on standard input';
   } else {
