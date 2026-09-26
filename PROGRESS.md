@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.23: task RB4, the privacy paragraph for reactions, behind `REACTIONS_LIVE` (off). Batch R-B (site) is built; Michel's review of the paragraph is owed before go-live.
+
 - **2026-09-26** — 0.2.22: task RB3, the reactions component, built and checked in a browser with the flag forced on locally; shipped off (`REACTIONS_LIVE` false).
 
 - **2026-09-26** — 0.2.21: task RB2, the publisher guard's second lane (`src/content/reactions/`, ADR 0008). It must be on `main` before the desk's publisher writes reactions files. Nothing changes for readers.

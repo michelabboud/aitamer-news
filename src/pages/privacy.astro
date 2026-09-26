@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { CONTACT_FORM_LIVE, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
+import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/site';
 ---
 <BaseLayout title="Privacy" description={`Privacy for ${SITE.title} (${SITE.domain}).`}>
   <p class="page-kicker">Legal</p>
@@ -68,6 +68,18 @@ import { CONTACT_FORM_LIVE, SITE, TURNSTILE_SITE_KEY, withBase } from '../lib/si
           'the contact form on the about page, which opens before comments do'
         )}, and quote the comment's id, shown next to its time.
       </p>
+      {REACTIONS_LIVE && (
+        <p>
+          Reacting to a story (the "React" button) sends the story's address and your choice to
+          comments.{SITE.domain}. The desk keeps your choice with your IP address as the same salted,
+          shortened hash it keeps for comments, for 30 days from your last change, so that one
+          visitor counts once per story; after 30 days the choice is folded into the story's
+          anonymous totals and the hash is deleted. Removing your reaction deletes it at once. The
+          totals are public and are baked into the story's page. Your browser remembers your own
+          choice in its local storage (not a cookie) for 30 days, so the button can show it; clearing
+          site data forgets it.
+        </p>
+      )}
       <p>
         {SITE.domain} is hosted on Cloudflare Pages. The host receives the ordinary details of a web request: the address of the page, the IP
         address, and the browser’s user agent. That handling is Cloudflare’s, under its own policy.

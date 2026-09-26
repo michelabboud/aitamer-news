@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.23] — 2026-09-26
+
+### Added
+- **The privacy page's reactions paragraph** (reactions plan, task RB4): what reacting sends, that the desk keeps the choice against the same salted, shortened IP hash as comments for 30 days from the last change before folding it into anonymous totals, that removing deletes at once, and that the browser remembers your own choice in local storage (not a cookie) for 30 days. It renders only while `REACTIONS_LIVE` is on, like the contact form's paragraph with `CONTACT_FORM_LIVE`; with the flag off the page is byte-for-byte unchanged. README and ARCHITECTURE say where reactions stand.
+
 ## [0.2.22] — 2026-09-26
 
 ### Added

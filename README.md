@@ -24,6 +24,8 @@ npm run build    # writes static site to dist/
 npm run preview  # preview the production build
 ```
 
+For browser checks of a build on a machine where 4321 is taken, `npx astro preview --host 127.0.0.1 --port 4391` (the port this project claims for local previews).
+
 Hero images load from `https://media.aitamer.news/` by default, so `npm run dev` and `npm run preview` show the same bytes production serves (`src/lib/media.ts`). Working offline, or previewing a draft whose hero is not uploaded yet: set `PUBLIC_MEDIA_BASE=/media-local` and drop the file under the git-ignored `public/media-local/heroes/`; the build rewrites media URLs to that base instead. A hero missing there simply shows as a broken image, same as a hero missing on R2 would.
 
 ## Project layout
@@ -134,6 +136,8 @@ PUBLIC_CONTACT_ENDPOINT=http://localhost:8787/ npm run dev   # site on http://lo
 `ALLOW_LOCAL_ORIGINS` exists only in that git-ignored file and is never deployed.
 
 The comment form on story pages posts to `https://comments.aitamer.news/`, the desk's comments Worker (it lives in the desk's private repository; the form fields and the files it reads are documented in `POST.md` section 8 and `ARCHITECTURE.md`). `PUBLIC_COMMENTS_ENDPOINT=http://localhost:8788/ npm run dev` points a local build at a local copy of that Worker.
+
+Reactions under stories (seven, one per reader, `src/components/Reactions.astro`) are built but **off** until the desk's publisher bakes real totals: `REACTIONS_LIVE` in `src/lib/site.ts` turns on the component and the privacy page's paragraph together. A choice posts to `/react` on the same Worker; the totals come from `src/content/reactions/<slug>.json` (`POST.md` section 9).
 
 ## Search
 
