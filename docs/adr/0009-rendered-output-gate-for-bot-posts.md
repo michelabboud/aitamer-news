@@ -81,7 +81,9 @@ Moving it is an editorial decision (the posts MCP plan's Q4, Michel's). Until th
 `GRANDFATHERED_POSTS`, pinned by the SHA-256 of the file **and** by the exact findings it has today
 (the two `iframe` elements). Any edit to the file, or any other finding in it, and it is gated in
 full. The entry cannot outlive an edit either: when the file's hash no longer matches, when a
-listed finding is gone, when the file is gone, or when its author is no longer a bot, the entry
+listed finding is gone, when the file is gone, or when its author's file under
+`src/content/authors/` no longer marks it `kind: bot` (the post's own `author` line is part of the
+hashed bytes, so that is the only way its author can stop being a bot), the entry
 itself is a finding and the build fails until someone removes it. Nothing may be added to that
 list for a new post. The other 22 bot posts, and both human
 posts, pass the allowlist as it stands.

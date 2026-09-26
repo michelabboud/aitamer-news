@@ -72,7 +72,7 @@ export const POST_MAX_BYTES = 512 * 1024;
  * findings listed and only while the file is byte-for-byte the one hashed here. Any edit to the
  * file, or any other finding in it (a renderer upgrade that renders it differently), and the post
  * is gated in full again. An entry that no longer matches its file exactly (changed bytes, a listed
- * finding gone, the file gone, the author no longer a bot) is itself a finding, so the build fails
+ * finding gone, the file gone, its author's file no longer marking `kind: bot`) is itself a finding, so the build fails
  * until the entry is removed: it cannot silently outlive an edit. Nothing may be added here for a
  * new post: a new bot post passes the gate or does not land. ADR 0009, "The one existing exception".
  *
@@ -122,8 +122,9 @@ export function applyGrandfather(path, contents, findings) {
 
 /**
  * Grandfather entries that match no file as it stands: the file is gone (deleted or renamed), its
- * bytes changed, or it is no longer gated (its author is not a bot any more). The gate reports each
- * one as a finding, whether or not the file is otherwise checked.
+ * bytes changed, or it is no longer gated. The post's own `author` line is covered by the hash, so
+ * the last case is its author's file under `src/content/authors/` no longer saying `kind: bot`.
+ * The gate reports each one as a finding, whether or not the file is otherwise checked.
  * @param {string} [root] @returns {{ file: string, findings: Finding[], excused: Finding[] }[]}
  */
 export function staleGrandfatherEntries(root = SITE_ROOT) {
@@ -139,7 +140,7 @@ export function staleGrandfatherEntries(root = SITE_ROOT) {
       continue;
     }
     if (sha256(contents) !== entry.sha256) out.push({ file, findings: [postFinding(`this file changed since it was grandfathered, so its exemption is void: ${STALE_ENTRY}`)], excused: [] });
-    else if (!isGated(contents, bots)) out.push({ file, findings: [postFinding(`the post is no longer bot-authored: ${STALE_ENTRY}`)], excused: [] });
+    else if (!isGated(contents, bots)) out.push({ file, findings: [postFinding(`its author is no longer marked kind: ${BOT_AUTHOR_KIND} in ${AUTHORS_DIR}: ${STALE_ENTRY}`)], excused: [] });
   }
   return out;
 }

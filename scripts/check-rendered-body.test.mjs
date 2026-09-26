@@ -394,7 +394,8 @@ test('a grandfather entry that matches no file as it stands fails the gate', () 
   assert.equal(fixture(original), '');
   assert.match(fixture(null), /the file is gone/);
   assert.match(fixture(original.replace('<iframe', '<p')), /exemption is void/);
-  assert.match(fixture(original, 'human'), /no longer bot-authored/);
+  // G8: reachable behind the hash: the post's bytes are unchanged, its author's file changed.
+  assert.match(fixture(original, 'human'), /its author is no longer marked kind: bot in src\/content\/authors/);
 });
 
 test('merged results keep each finding once per file', () => {
