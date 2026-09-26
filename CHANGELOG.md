@@ -2,6 +2,14 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.29] — 2026-09-26
+
+### Fixed
+Milestone review of reactions (no blocker; still **off**: `REACTIONS_LIVE` is false):
+- **A reaction in a story's first minutes is no longer lost.** 0.2.28 treated a 404 ("that story is not known") as permanent and dropped the choice. The comments Worker reads the list of stories through a cache, so it does not know a new story for several minutes. A 404 is now transient: the choice stays unsent and is sent again once on the next load. 400 and 403 stay permanent, and 410 still closes reactions.
+- **Reactions run only where the Worker accepts them**: `aitamer.news`, `www.aitamer.news`, and the two local development hosts (`REACTION_HOSTS`, `reactionsHostAllowed`). On any other host, such as the retired GitHub Pages copy (its workflow is disabled, but it builds from the same source) or a `pages.dev` address, the Worker's 403 carries no CORS header, so the browser hides it. The page would then resend the choice on every visit for 30 days. The script now removes the interactive component there instead, and sends nothing.
+- **The privacy page's reactions paragraph** (behind the flag): removing a reaction deletes it "as soon as the removal reaches the desk", and if it cannot reach the desk right away, the page sends it again on the next visit. It used to say "at once".
+
 ## [0.2.28] — 2026-09-26
 
 ### Fixed

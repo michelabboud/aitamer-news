@@ -14,11 +14,13 @@
  * tombstone), so nothing is lost when the reader leaves before a request goes out, or when the
  * Worker refuses quietly (a rate limit, the daily cap, offline, a timeout): the choice stays shown,
  * and the page sends it again **once per load of that story** until the desk confirms it or the
- * record expires after 30 days. A permanent refusal (400, 403, 404) drops the record instead: it
- * would only be refused again. Tapping the choice the button shows removes it, as ever. A 410
+ * record expires after 30 days. A permanent refusal (400, 403) drops the record instead: it
+ * would only be refused again. A 404 is not permanent: a story published minutes ago is not yet in
+ * the Worker's cached list of stories. Tapping the choice the button shows removes it, as ever. A 410
  * closes reactions on the page (both buttons disabled, the note says why, and takes the focus only
  * when it answers the reader's own tap — never on the on-load resend).
- * Nothing is logged.
+ * Nothing is logged. The script runs only on the hosts the Worker accepts (`REACTION_HOSTS`); on
+ * any other host (a mirror, a `pages.dev` address) it removes the interactive component instead.
  *
  * The panel is a native `popover` (light dismiss and Escape come free), positioned by the script
  * from the button that opened it because the top layer ignores the page's layout; a browser
@@ -131,6 +133,7 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
     reactionCaption,
     reactionLabel,
     reactionOutcome,
+    reactionsHostAllowed,
     reactionStorageKey,
     settledRecord,
     parseStoredReaction,
@@ -302,8 +305,8 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
       inFlight = true;
       post(sent).then((outcome) => {
         inFlight = false;
-        // ok confirms the record; a permanent refusal (400, 403, 404, 410) drops it, since it would
-        // only be refused again; 'failed' is quiet and leaves it unsent for the next load.
+        // ok confirms the record; a permanent refusal (400, 403, 410) drops it, since it would only be
+        // refused again; 'failed' (404 included) is quiet and leaves it unsent for the next load.
         const settled = settledRecord(readRecord(key), sent, outcome);
         if (settled !== undefined) writeRecord(key, settled);
         if (outcome === 'closed') {
@@ -502,5 +505,10 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
   }
 
   sweep(new Date());
-  document.querySelectorAll<HTMLElement>('.reactions[data-endpoint]').forEach(setup);
+  if (reactionsHostAllowed(location.hostname)) {
+    document.querySelectorAll<HTMLElement>('.reactions[data-endpoint]').forEach(setup);
+  } else {
+    // The Worker refuses this host, unreadably: a button here could never work, so it is not offered.
+    document.querySelectorAll<HTMLElement>('.reactions[data-endpoint]').forEach((root) => root.remove());
+  }
 </script>

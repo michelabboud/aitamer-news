@@ -16,6 +16,8 @@
  * `node:test`.
  */
 
+import { SITE } from './site-meta.ts';
+
 /** One reaction a reader can choose. */
 export interface Reaction {
   /** Stored by the desk and written in the data file. Matches {@link REACTION_ID}. Never changes once published. */
@@ -218,12 +220,15 @@ export function encodeStoredReaction(record: StoredReaction): string {
 export type ReactionOutcome = 'ok' | 'closed' | 'rejected' | 'failed';
 
 /**
- * Answers that will never change for this request: 400 (a malformed request), 403 (an origin the
- * Worker does not allow), 404 (a story the Worker does not know). Sending the same record again
- * would only be refused again, so the page drops it. 410 is permanent too, and also closes
- * reactions on the page.
+ * Answers that will never change for this request: 400 (a malformed request) and 403 (an origin the
+ * Worker does not allow). Sending the same record again would only be refused again, so the page
+ * drops it. 410 is permanent too, and also closes reactions on the page.
+ *
+ * 404 ("that story is not known") is deliberately not here: the Worker reads the list of stories
+ * from the site's `threads.json` through a cache, so for several minutes after a story is published
+ * it does not know it yet. A choice made then is kept unsent and sent again on the next load.
  */
-export const REACTION_REJECTED_STATUSES: ReadonlySet<number> = new Set([400, 403, 404]);
+export const REACTION_REJECTED_STATUSES: ReadonlySet<number> = new Set([400, 403]);
 
 /**
  * `ok` for a 2xx answer; `closed` for 410 (the story's reactions are closed); `rejected` for a
@@ -236,6 +241,20 @@ export function reactionOutcome(status: number | null): ReactionOutcome {
   if (status === REACTIONS_CLOSED_STATUS) return 'closed';
   if (REACTION_REJECTED_STATUSES.has(status)) return 'rejected';
   return status >= 200 && status < 300 ? 'ok' : 'failed';
+}
+
+/**
+ * The hosts whose pages the comments Worker accepts reactions from: the site and its www host, and
+ * the two local development hosts (which the Worker accepts only in local development). Anywhere
+ * else — the retired GitHub Pages copy, a `pages.dev` address, a mirror — the Worker's 403 carries
+ * no CORS header, so the browser hides it: the page would see "no answer", keep the choice unsent
+ * and resend it on every visit for 30 days. So the component does not run there at all.
+ */
+export const REACTION_HOSTS: ReadonlySet<string> = new Set([SITE.domain, `www.${SITE.domain}`, 'localhost', '127.0.0.1']);
+
+/** Whether a page on `hostname` (`location.hostname`) may offer reactions. Exact, case-insensitive. */
+export function reactionsHostAllowed(hostname: string): boolean {
+  return REACTION_HOSTS.has(hostname.toLowerCase());
 }
 
 /**

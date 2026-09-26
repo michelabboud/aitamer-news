@@ -9,6 +9,7 @@ import {
   encodeStoredReaction,
   expiredReactionKeys,
   reactionOutcome,
+  reactionsHostAllowed,
   settledRecord,
   nextChoice,
   reactEndpoint,
@@ -233,12 +234,13 @@ test('encodeStoredReaction round-trips through parseStoredReaction', () => {
   assert.equal(encodeStoredReaction({ r: 'love', at }), `{"r":"love","at":"${at}"}`);
 });
 
-test('reactionOutcome: 2xx is ok, 410 closes, 400/403/404 are permanent, the rest (and no answer) transient', () => {
+test('reactionOutcome: 2xx is ok, 410 closes, 400/403 are permanent, the rest (404 and no answer included) transient', () => {
   assert.equal(reactionOutcome(200), 'ok');
   assert.equal(reactionOutcome(204), 'ok');
   assert.equal(reactionOutcome(410), 'closed');
-  for (const status of [400, 403, 404]) assert.equal(reactionOutcome(status), 'rejected', String(status));
-  for (const status of [401, 405, 408, 413, 415, 429, 500, 502, 503, 0, null]) assert.equal(reactionOutcome(status), 'failed', String(status));
+  for (const status of [400, 403]) assert.equal(reactionOutcome(status), 'rejected', String(status));
+  // A story published minutes ago is unknown to the Worker's cached list: 404 must be retried.
+  for (const status of [404, 401, 405, 408, 413, 415, 429, 500, 502, 503, 0, null]) assert.equal(reactionOutcome(status), 'failed', String(status));
 });
 
 test('settledRecord: an ok confirms only the record that was sent', () => {
@@ -276,3 +278,9 @@ test('expiredReactionKeys: only this site\'s reaction records that would be forg
   assert.deepEqual(expiredReactionKeys(entries, NOW), [`${REACTION_STORAGE_PREFIX}b`, `${REACTION_STORAGE_PREFIX}c`]);
 });
 
+test('reactionsHostAllowed: the site, its www host and the local hosts only', () => {
+  for (const host of ['aitamer.news', 'www.aitamer.news', 'AITAMER.NEWS', 'localhost', '127.0.0.1']) assert.equal(reactionsHostAllowed(host), true, host);
+  for (const host of ['michelabboud.github.io', 'aitamer-news.pages.dev', 'abc123.aitamer-news.pages.dev', 'aitamer.news.evil.example', 'evilaitamer.news', 'staging.aitamer.news', '[::1]', '']) {
+    assert.equal(reactionsHostAllowed(host), false, host);
+  }
+});

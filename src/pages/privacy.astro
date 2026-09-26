@@ -82,7 +82,9 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
           visitor count once per story and enforces a ban. If your choice could not reach the desk,
           the page sends it again the next time you open that story.
           Within a day after those 30 days, the nightly clean-up folds your choice into the story's
-          anonymous totals and deletes the hash. Removing your reaction deletes it at once. A removed
+          anonymous totals and deletes the hash. Removing your reaction deletes it as soon as the removal
+          reaches the desk; if it cannot reach the desk right away, the page sends it again the next time
+          you open that story. A removed
           or folded reaction, hash included, can remain in the database's restorable backups for up
           to 30 days more. Because it
           is the same hash, for those 30 days the desk's database can tell that a comment and a

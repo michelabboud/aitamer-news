@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.29: fixes from the milestone review of reactions. A 404 is resent, because a new story is unknown to the Worker for minutes. Reactions run only on the site's own hosts. The privacy wording on removal is exact. Still off.
+
 - **2026-09-26** — 0.2.28: fixes from the focused review of the reactions fixes. A 410 on the page's own resend no longer moves focus; permanent refusals are not resent; the privacy wording is exact about what the hash does. `/_astro/` files are now cached for a year. Still off.
 
 - **2026-09-26** — 0.2.27: privacy wording from the deep reviews (backups once up front; the reactions paragraph exact). Michel's review of the reactions paragraph is still owed before go-live.
