@@ -508,7 +508,9 @@ export async function checkAgainstBuild({ root = SITE_ROOT, options = {} } = {})
   for (const file of files) {
     const contents = readFileSync(file, 'utf8');
     const entry = entries.get(file);
-    const gated = isGated(contents, bots);
+    // Gated if either reading names a bot: ours of the front matter, or the author Astro stored.
+    // A difference between the two parsers can then only add checks, never skip one.
+    const gated = isGated(contents, bots) || storedAuthorIsBot(entry, bots);
     const findings = [];
     let excused = [];
     if (!entry) findings.push(postFinding('the build stored no entry for this post'));
@@ -535,6 +537,18 @@ export async function checkAgainstBuild({ root = SITE_ROOT, options = {} } = {})
     results.get(post.file).findings.push(postFinding(`the checker's render differs from the build's (${why})`));
   });
   return [...results.values()];
+}
+
+/**
+ * Whether the author the build stored for a post (`reference('authors')`: `{ collection, id }`,
+ * or a bare id) is a bot. An entry with an author the gate cannot read counts as a bot.
+ * @param {any} entry @param {Set<string>} bots @returns {boolean}
+ */
+export function storedAuthorIsBot(entry, bots) {
+  if (!entry) return false;
+  const author = entry.data?.author;
+  const id = typeof author === 'string' ? author : author?.id;
+  return typeof id !== 'string' || bots.has(id);
 }
 
 /** @param {string} a @param {string} b @returns {number} */

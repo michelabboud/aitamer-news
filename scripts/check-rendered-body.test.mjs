@@ -32,6 +32,7 @@ import {
   mergeResults,
   postFiles,
   staleGrandfatherEntries,
+  storedAuthorIsBot,
 } from './check-rendered-body.mjs';
 import { tempDir } from './test-support.mjs';
 
@@ -445,6 +446,26 @@ test('after the build: a store that matches the checker passes; a different rend
   assert.deepEqual((await run(html)).flatMap((r) => r.findings), []);
   assert.match(problems((await run(`${html}\n`)).flatMap((r) => r.findings)).join(), /render differs from the build's \(first difference at character/);
   assert.match(problems((await run('<script>x</script>')).flatMap((r) => r.findings)).join(), /element <script> is not allowed/);
+});
+
+test('G3b: after the build, a post is gated when either our front-matter reading or the author Astro stored names a bot', async () => {
+  const bots = new Set(['desk-bot']);
+  assert.equal(storedAuthorIsBot({ data: { author: { collection: 'authors', id: 'desk-bot' } } }, bots), true);
+  assert.equal(storedAuthorIsBot({ data: { author: 'desk-bot' } }, bots), true);
+  assert.equal(storedAuthorIsBot({ data: { author: { collection: 'authors', id: 'wiz-cat' } } }, bots), false);
+  assert.equal(storedAuthorIsBot({ data: {} }, bots), true, 'an author the gate cannot read counts as a bot');
+  // The file on disk says wiz-cat, the build stored desk-bot: the stored HTML is checked anyway.
+  const root = tempDir('rendered-g3b-');
+  mkdirSync(join(root, 'node_modules/.astro'), { recursive: true });
+  mkdirSync(join(root, 'src/content/authors'), { recursive: true });
+  mkdirSync(join(root, 'src/content/posts'), { recursive: true });
+  for (const dep of ['astro', 'devalue']) symlinkSync(join(SITE_ROOT, 'node_modules', dep), join(root, 'node_modules', dep), 'dir');
+  writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: bot\nbio: b\n---\n');
+  writeFileSync(join(root, 'src/content/posts/a.md'), post('Hello.', 'wiz-cat'));
+  const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+  const entry = { id: 'a', data: { author: { collection: 'authors', id: 'desk-bot' } }, filePath: 'src/content/posts/a.md', digest: '0', rendered: { html: '<script>x</script>', metadata: {} } };
+  writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map([['a', entry]])]])));
+  assert.match(problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(), /element <script> is not allowed/);
 });
 
 test('after the build: no data store is a finding, never a pass', async () => {
