@@ -19,7 +19,7 @@ What the dependency tree already had (`package-lock.json`, 2026-09-26): no `pars
 
 - **Advisories:** none published for `parse5` or `entities` in the GitHub Advisory Database (`gh api /advisories?ecosystem=npm&affects=parse5`, and `…affects=entities`, 2026-09-26: empty). `npm audit` after the install: `found 0 vulnerabilities`.
 - **Exposure:** it parses HTML the site's own Markdown pipeline produced from a bot's post. The worst case of a parser defect is a wrong verdict (covered by the allowlist's structure: unknown means refused) or a slow check (the parse runs after a render that is already time- and memory-capped in a child process; parse5 is linear in its input).
-- **License:** MIT (both packages).
+- **License:** `parse5` is MIT; `entities` is BSD-2-Clause (permissive, notice-preserving; compatible with this repository's Apache-2.0 code licence). Both licence files ship in their packages under `node_modules/`.
 - **Maintenance:** active; repository `inikulin/parse5`, not archived, last push 2026-09-25, about 3,900 stars. Maintainers include fb55 and wooorm (unified/hast).
 - **Adoption:** the reference spec-compliant HTML parser in JavaScript; jsdom, `hast-util-from-html` (rehype), Angular and cheerio's spec mode are built on it. It passes the html5lib tree-construction tests.
 

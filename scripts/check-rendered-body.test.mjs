@@ -616,3 +616,12 @@ test('G4: every workflow that builds the site gates bot posts before the build a
   }
   assert.deepEqual(builders.sort(), ['check-posts.yml', 'deploy-github-pages.yml', 'deploy-pages.yml']);
 });
+
+test('G6: the parse5 vetting report names the licence each installed package declares', () => {
+  const report = readFileSync(join(SITE_ROOT, 'docs/reports/2026-09-26-parse5-vetting.md'), 'utf8');
+  const line = report.split('\n').find((l) => l.startsWith('- **License:**'));
+  for (const name of ['parse5', 'entities']) {
+    const { license } = JSON.parse(readFileSync(join(SITE_ROOT, 'node_modules', name, 'package.json'), 'utf8'));
+    assert.match(line, new RegExp(`\`${name}\` is ${license.replace(/[.-]/g, '\\$&')}`), `${name} is ${license}`);
+  }
+});
