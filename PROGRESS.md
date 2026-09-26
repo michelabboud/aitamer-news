@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.32: the Content-Security-Policy guard hardened before any enforcement (srcdoc refused; every load type checked; GA hosts per Google's current guidance; Vite's env loader), and two tightenings of the rendered-body gate (only compared pages count; a published post must have its page). Both reviewed clear. Node 22.18 or later.
+
 - **2026-09-26** — 0.2.31: a Content-Security-Policy in report-only mode, with every inline script allowed by its build-time hash and a guard in every workflow that builds. In the browser there were zero violations, report-only and enforced; the search worker's WebAssembly needed its own rule. The deep review is clear; four should-fixes land before enforcement.
 
 - **2026-09-26** — 0.2.30: the rendered-output gate for bot posts (posts MCP task S4). Every bot post is rendered and checked against an exact allowlist, in its place on a copy of the real page, both before and after the build. Five review rounds; clear. A CSP proposal awaits Michel.

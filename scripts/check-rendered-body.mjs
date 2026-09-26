@@ -40,7 +40,7 @@ import { basename, extname, join, relative, resolve, sep } from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readFrontmatter } from './frontmatter.mjs';
-import { SHIKI_THEME, builtPageProblems, checkRenderedHtml } from './rendered-body-allowlist.mjs';
+import { SHIKI_THEME, checkRenderedHtml, inspectBuiltPage } from './rendered-body-allowlist.mjs';
 
 export * from './rendered-body-allowlist.mjs';
 
@@ -477,6 +477,40 @@ export function gatedPostFiles(root = SITE_ROOT) {
 
 /** Where `astro build` writes the site (`outDir`, Astro's default; `astro.config.mjs` sets none). */
 export const BUILD_DIST_DIR = 'dist';
+/**
+ * Where the build records its clock: `generatedAt` in `/comments/threads.json`
+ * (`src/pages/comments/threads.json.ts`) is `BUILD_TIME` from `src/lib/site.ts`, the instant every
+ * page of that build judged "is it live" against.
+ */
+export const BUILD_CLOCK_FILE = 'comments/threads.json';
+
+/**
+ * Whether the build should have made a story page for this entry, by the rule the site's routes
+ * use: `src/pages/posts/[slug].astro` builds a page for every entry `getPostPages` returns, which is
+ * every entry `isPublished` accepts (`src/lib/site.ts`), which is `isLive(post.data, BUILD_TIME)`
+ * from `src/lib/schedule.ts` (not a draft, and `pubDate` at or before the build's clock; withdrawn
+ * posts keep their page). The rule is imported, not copied; it is TypeScript, so this needs a Node
+ * that strips types (22.18 or later, and the 24 the workflows run).
+ * @param {any} data the entry's stored data @param {Date} buildTime
+ * @returns {Promise<boolean>}
+ */
+async function publishedAtBuild(data, buildTime) {
+  const { isLive } = await import(pathToFileURL(join(SITE_ROOT, 'src/lib/schedule.ts')).href);
+  if (typeof data?.draft !== 'boolean' || !(data?.pubDate instanceof Date) || Number.isNaN(data.pubDate.valueOf())) {
+    throw new Error('its stored draft or pubDate is not readable');
+  }
+  return isLive(data, buildTime);
+}
+
+/** @param {string} root @returns {Date} the build's clock, from the file the build wrote it to */
+function readBuildClock(root) {
+  const path = join(root, BUILD_DIST_DIR, BUILD_CLOCK_FILE);
+  const { generatedAt } = JSON.parse(readFileSync(path, 'utf8'));
+  const clock = new Date(generatedAt);
+  if (typeof generatedAt !== 'string' || Number.isNaN(clock.valueOf())) throw new Error(`${BUILD_DIST_DIR}/${BUILD_CLOCK_FILE} has no valid generatedAt`);
+  return clock;
+}
+
 /** Where `astro build` leaves its content data store (Astro's `DATA_STORE_FILE` in its cache dir). */
 export const BUILD_DATA_STORE = 'node_modules/.astro/data-store.json';
 const ASTRO_DATA_STORE_MODULE = 'astro/dist/content/mutable-data-store.js';
@@ -539,24 +573,44 @@ export async function checkAgainstBuild({ root = SITE_ROOT, options = {} } = {})
     results.get(post.file).findings.push(postFinding(`the checker's render differs from the build's (${why})`));
   });
   // Every built story page: the body sits where the stand-in says, and the page parses cleanly.
-  let pagesChecked = 0;
+  // A page counts as checked only when its body's ancestor chain was really compared (a withdrawn
+  // page may have no body), and a live entry with no page at all is a finding: a routing change
+  // that dropped some story pages must not pass unnoticed.
+  let chainsCompared = 0;
+  /** @type {Date | Error | undefined} read only when a page is missing */
+  let buildClock;
   for (const [file, entry] of entries) {
     const page = join(root, BUILD_DIST_DIR, 'posts', entry.id, 'index.html');
+    const result = results.get(file);
     let text;
     try {
       text = readFileSync(page, 'utf8');
     } catch {
-      continue; // a draft or scheduled post has no page
+      if (buildClock === undefined) {
+        try {
+          buildClock = readBuildClock(root);
+        } catch (error) {
+          buildClock = error instanceof Error ? error : new Error(String(error));
+        }
+      }
+      try {
+        if (buildClock instanceof Error) throw new Error(`cannot read the build's clock from ${BUILD_DIST_DIR}/${BUILD_CLOCK_FILE}: ${buildClock.message}`);
+        if (await publishedAtBuild(entry.data, buildClock)) {
+          result.findings.push(postFinding(`${relative(root, page)}: missing, though the post was published when the site was built (${buildClock.toISOString()})`));
+        }
+      } catch (error) {
+        result.findings.push(postFinding(`${relative(root, page)} is missing, and the check cannot tell whether ${entry.id} was published when the site was built: ${error instanceof Error ? error.message : String(error)}`));
+      }
+      continue; // a draft, or a post scheduled after the build, rightly has no page
     }
-    pagesChecked += 1;
-    const problems = builtPageProblems(text, { withdrawn: Boolean(entry.data?.withdrawn) });
-    const result = results.get(file);
+    const { problems, chainCompared } = inspectBuiltPage(text, { withdrawn: Boolean(entry.data?.withdrawn) });
+    if (chainCompared) chainsCompared += 1;
     for (const problem of problems) result.findings.push(postFinding(`${relative(root, page)}: ${problem}`));
   }
-  if (pagesChecked === 0 && entries.size > 0) {
+  if (chainsCompared === 0 && entries.size > 0) {
     results.set(join(root, BUILD_DIST_DIR), {
       file: join(root, BUILD_DIST_DIR),
-      findings: [postFinding(`no built story page under ${BUILD_DIST_DIR}/posts/ to check the page chain against (run npm run build first)`)],
+      findings: [postFinding(`no built story page under ${BUILD_DIST_DIR}/posts/ had its body's place checked against the stand-in (run npm run build first; a build whose story pages are all withdrawn, with no body, checks nothing)`)],
       excused: [],
     });
   }

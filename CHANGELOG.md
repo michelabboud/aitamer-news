@@ -2,7 +2,7 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
-## [Unreleased]
+## [0.2.32] — 2026-09-26
 
 ### Fixed
 **The Content-Security-Policy, hardened before it is ever enforced** (the deep review of 0.2.31, `docs/reviews/2026-09-26-content-security-policy-review.md`; still report-only):
@@ -16,6 +16,11 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - **Checked again in Chromium** (the build served by `wrangler pages dev`, loaded as `https://aitamer.news`, with Google's collector answered locally). Home, search and contact were each loaded report-only and then enforced. There were zero violations, gtag's measurement requests went through the narrowed connect-src, and search returned 5 results.
 - The guard's first run in this task found a real build-cache problem: Astro's incremental cache does not notice a changed `PUBLIC_*` value, so story pages from an earlier build kept a local endpoint (BACKLOG).
 - **Production confirmed for 0.2.31**: `/`, `/search/` and `/pagefind/pagefind-worker.js` each carry exactly one report-only policy with 8 hashes, and `'wasm-unsafe-eval'` appears only on the last two.
+
+**Two tightenings of the rendered-body gate's post-build check** (`npm run check:bodies:build`; the S4 review's fifth round):
+- **A build where no story page had its body's place checked now fails.** A withdrawn story's page can have no body, and such a page used to count as checked, so a build of only withdrawn pages would have passed while checking nothing. Only pages whose ancestor chain was actually compared now count (`inspectBuiltPage` in `scripts/rendered-body-allowlist.mjs`).
+- **A published post with no built page is a finding.** It used to be skipped silently, so a routing change that dropped some story pages would have gone unnoticed. "Published" is the routes' own rule: `isLive` from `src/lib/schedule.ts`, used by `isPublished` and `getPostPages` in `src/lib/site.ts`. The check imports that rule rather than copying it, and judges it against the build's own clock (`generatedAt` in `dist/comments/threads.json`, which is `BUILD_TIME`). Drafts, and posts that fell due after the build ran, are still skipped. Without a readable clock, a missing page is a finding, never a pass.
+- **Node 22.18 or later** (`engines` in `package.json`): that import loads a TypeScript file directly, which Node supports from 22.18. The workflows run Node 24.
 
 ## [0.2.31] — 2026-09-26
 
