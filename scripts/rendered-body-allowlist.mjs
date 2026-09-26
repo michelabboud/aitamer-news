@@ -522,6 +522,11 @@ function elementFindings(ctx) {
  * `<html …>`, `<frameset>`) breaks that shape and is refused.
  */
 const PAGE_MAIN_ATTRS = Object.freeze([['id', 'main'], ['class', 'site-shell site-main']]);
+// The chain matches a live (non-withdrawn) story. A withdrawn story's article carries no
+// `data-pagefind-body` (the page drops it so search forgets the story), and it renders no body at
+// all, only the notice; so no body is ever parsed in that context. The attribute is inert for the
+// HTML parser either way: attributes never change how the tree is built, so the stand-in parses a
+// body exactly as it would parse in either kind of article. `builtPageProblems` accepts both.
 const PAGE_ARTICLE_ATTRS = Object.freeze([['class', 'article'], ['data-pagefind-body', '']]);
 const PAGE_BODY_DIV_ATTRS = Object.freeze([['class', 'article__body']]);
 const BODY_MARKER_ATTR = 'data-rendered-body-end';
@@ -716,13 +721,15 @@ export function checkRenderedHtml(html) {
 /**
  * Check a built story page (`dist/posts/<slug>/index.html`) against the stand-in: the ancestor
  * chain of its `div.article__body` must be exactly html > body > main > article > div, each with
- * the stand-in's attributes (html may carry `lang`), and the page must parse with no parse error. This is what keeps the
+ * the stand-in's attributes (html may carry `lang`; a withdrawn story's article has no
+ * `data-pagefind-body`), and the page must parse with no parse error. This is what keeps the
  * stand-in honest: if the layout ever wraps the body in another element, the stand-in no longer
  * models the page, and the gate says so instead of vouching for bodies it judged in the wrong place.
  * @param {string} page the built page's HTML
+ * @param {{ withdrawn?: boolean }} [options]
  * @returns {string[]} problems, empty when the page matches
  */
-export function builtPageProblems(page) {
+export function builtPageProblems(page, { withdrawn = false } = {}) {
   const problems = [];
   const document = parseDocument(page, {
     onParseError: (error) => problems.push(`the built page has a parse error (${error.code}) at line ${error.startLine}`),
@@ -737,7 +744,8 @@ export function builtPageProblems(page) {
   };
   find(document);
   if (bodies.length === 0) {
-    problems.push('the built page has no <div class="article__body">');
+    // A withdrawn story ships no body at all: nothing to place, nothing to check.
+    if (!withdrawn) problems.push('the built page has no <div class="article__body">');
     return problems;
   }
   if (bodies.length > 1) problems.push(`the built page has ${bodies.length} <div class="article__body"> elements`);
@@ -746,11 +754,12 @@ export function builtPageProblems(page) {
   const describe = (node) => `<${node.tagName}${node.attrs.map((a) => ` ${a.name}="${a.value}"`).join('')}>`;
   const [htmlEl, body, main, article, div, ...extra] = chain;
   const htmlOk = htmlEl?.tagName === 'html' && htmlEl.attrs.every((a) => a.name === 'lang');
+  const articleAttrs = withdrawn && !article?.attrs.some((a) => a.name === 'data-pagefind-body') ? PAGE_ARTICLE_ATTRS.filter(([name]) => name !== 'data-pagefind-body') : PAGE_ARTICLE_ATTRS;
   const ok =
     htmlOk &&
     hasExactly(body, 'body', []) &&
     hasExactly(main, 'main', PAGE_MAIN_ATTRS) &&
-    hasExactly(article, 'article', PAGE_ARTICLE_ATTRS) &&
+    hasExactly(article, 'article', articleAttrs) &&
     hasExactly(div, 'div', PAGE_BODY_DIV_ATTRS) &&
     extra.length === 0;
   if (!ok) {

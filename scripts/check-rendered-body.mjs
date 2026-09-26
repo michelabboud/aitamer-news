@@ -549,7 +549,7 @@ export async function checkAgainstBuild({ root = SITE_ROOT, options = {} } = {})
       continue; // a draft or scheduled post has no page
     }
     pagesChecked += 1;
-    const problems = builtPageProblems(text);
+    const problems = builtPageProblems(text, { withdrawn: Boolean(entry.data?.withdrawn) });
     const result = results.get(file);
     for (const problem of problems) result.findings.push(postFinding(`${relative(root, page)}: ${problem}`));
   }

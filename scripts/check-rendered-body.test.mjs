@@ -497,6 +497,13 @@ test('should-fix 1a: a built page whose body sits in another chain than the stan
   assert.match(builtPageProblems(builtPage('x').replace('<div class="article__body">x</div>', '')).join(), /no <div class="article__body">/);
 });
 
+test('should-fix 2: a withdrawn story page is accepted without data-pagefind-body, and without a body', () => {
+  assert.deepEqual(builtPageProblems(builtPage('<p>x</p>', { article: '<article class="article">' }), { withdrawn: true }), []);
+  assert.deepEqual(builtPageProblems(builtPage('<p>x</p>'), { withdrawn: true }), []);
+  const noBody = builtPage('x', { article: '<article class="article">' }).replace('<div class="article__body">x</div>', '<section class="notice notice--withdrawn"><h2>Withdrawn</h2></section>');
+  assert.deepEqual(builtPageProblems(noBody, { withdrawn: true }), []);
+});
+
 test('should-fix 1a: --against-build fails on a doctored built page, and on a build with no story page at all', async () => {
   const [{ html }] = await checkPostSources([{ name: 'a.md', contents: post('Hello *there*.') }]);
   const root = tempDir('rendered-1a-');
