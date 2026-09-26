@@ -10,34 +10,35 @@
  * page move optimistically for this visit only (+1 new, −1 old); the baked file catches up on a
  * later publish.
  *
+ * A choice is stored as **unsent** until the Worker answers `ok` (a removal as an unsent
+ * tombstone), so nothing is lost when the reader leaves before a request goes out, or when the
+ * Worker refuses quietly (a rate limit, the daily cap, offline, a timeout): the choice stays shown,
+ * and the page sends it again **once per load of that story** until the desk confirms it or the
+ * record expires after 30 days. Tapping the choice the button shows removes it, as ever. A 410
+ * closes reactions on the page (both buttons disabled, the note says why and takes the focus).
+ * Nothing is logged.
+ *
  * The panel is a native `popover` (light dismiss and Escape come free), positioned by the script
  * from the button that opened it because the top layer ignores the page's layout; a browser
- * without `popover` gets the same handlers with `hidden`. Keyboard: Tab to the button, Enter
- * opens, focus goes to the current choice (else the first), arrows and Home/End move (roving
- * `tabindex`), Enter or Space chooses, Escape closes and focus returns to the button, Tab leaves
- * and closes. Screen readers hear "React, menu" and "Overhyped, 12 reactions" (`menuitemradio`,
+ * without `popover` gets the same handlers with `hidden`, and without script as well the panel is
+ * not shown at all (`global.css`). Keyboard: Tab to the button, Enter opens, focus goes to the
+ * current choice (else the first), arrows and Home/End move (roving `tabindex`), Enter or Space
+ * chooses, Escape closes and focus returns to the button, Tab leaves and closes. Focus is put back
+ * only when it was inside the panel as it closed, so dismissing it by tapping the page never
+ * scrolls. Screen readers hear "React, menu" and "Overhyped, 12 reactions" (`menuitemradio`,
  * `aria-checked`).
  *
- * Answers: `ok` needs nothing more; 410 closes reactions on the page (both buttons disabled, the
- * note says why and takes the focus); every other failure, the network's included, is quiet — the choice stays on the page
- * and in storage, and the next tap tries again. Nothing is logged.
- *
- * The script mirrors the pure helpers in `src/lib/reactions.ts` (an inline script cannot import):
- * `topReactions`, `reactionCount`, `reactionLabel`, `summaryLabel`, `reactionCaption`,
- * `applyChoice`, `nextChoice` and `parseStoredReaction`. Their rules are tested there; the
- * mirror is exercised in a real browser (task RB3's close-out).
+ * The behaviour is the bundled `<script>` below: one file, cached across every story page, that
+ * imports its rules from `src/lib/reactions.ts` (tested there). Per-page values travel in `data-*`
+ * attributes on the section.
  */
 import { COMMENTS_ENDPOINT } from '../lib/site';
 import {
   REACTIONS,
   REACTIONS_CLOSED_MESSAGE,
-  REACTIONS_CLOSED_STATUS,
   REACTIONS_NO_SCRIPT_MESSAGE,
-  REACTION_MEMORY_DAYS,
-  REACTION_REQUEST_FIELDS,
   reactEndpoint,
   reactionLabel,
-  reactionStorageKey,
   reactionTotals,
   summaryLabel,
   topReactions,
@@ -57,20 +58,20 @@ const totals = reactionTotals(file);
 const top = topReactions(totals.known);
 const summary = summaryLabel(totals);
 const countOf = (id: string) => totals.known.get(id as never) ?? 0;
+const emojiOf = (id: string) => REACTIONS.find((r) => r.id === id)!.emoji;
 const panelId = `reactions-panel-${slug}`;
-
-// Everything the script needs, passed once through define:vars (JSON in the page, no import).
-const endpoint = reactEndpoint(COMMENTS_ENDPOINT);
-const set = REACTIONS.map(({ id, emoji, label }) => ({ id, emoji, label }));
-const baked = Object.fromEntries(totals.known);
+const counts = JSON.stringify(Object.fromEntries(totals.known));
 const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) => sum + n, 0);
-const storageKey = reactionStorageKey(slug);
-const memoryDays = REACTION_MEMORY_DAYS;
-const fields = REACTION_REQUEST_FIELDS;
-const closedStatus = REACTIONS_CLOSED_STATUS;
-const closedMessage = REACTIONS_CLOSED_MESSAGE;
 ---
-<section class="reactions" data-slug={slug} data-closed={closed ? '' : undefined} aria-label="Reactions">
+<section
+  class="reactions"
+  aria-label="Reactions"
+  data-slug={slug}
+  data-endpoint={closed ? undefined : reactEndpoint(COMMENTS_ENDPOINT)}
+  data-counts={counts}
+  data-unknown={String(unknownTotal)}
+  data-closed={closed ? '' : undefined}
+>
   {!closed && (
     <button type="button" class="reactions__react" popovertarget={panelId} aria-haspopup="menu" aria-expanded="false">
       <span class="reactions__own" aria-hidden="true"></span><span class="reactions__mine sr-only"></span><span class="reactions__word">React</span>
@@ -78,18 +79,18 @@ const closedMessage = REACTIONS_CLOSED_MESSAGE;
   )}
   {closed ? (
     <p class="reactions__summary reactions__summary--static" hidden={totals.total === 0}>
-      <span class="reactions__stack" aria-hidden="true">{top.map((id) => <span class="reactions__stack-emoji">{REACTIONS.find((r) => r.id === id)!.emoji}</span>)}</span>
+      <span class="reactions__stack" aria-hidden="true">{top.map((id) => <span class="reactions__stack-emoji">{emojiOf(id)}</span>)}</span>
       <span class="reactions__total" aria-hidden="true">{totals.total.toLocaleString('en-US')}</span>
       <span class="sr-only">{summary}</span>
     </p>
   ) : (
     <button type="button" class="reactions__summary" popovertarget={panelId} aria-haspopup="menu" aria-expanded="false" aria-label={summary} hidden={totals.total === 0}>
-      <span class="reactions__stack" aria-hidden="true">{top.map((id) => <span class="reactions__stack-emoji">{REACTIONS.find((r) => r.id === id)!.emoji}</span>)}</span>
+      <span class="reactions__stack" aria-hidden="true">{top.map((id) => <span class="reactions__stack-emoji">{emojiOf(id)}</span>)}</span>
       <span class="reactions__total" aria-hidden="true">{totals.total.toLocaleString('en-US')}</span>
     </button>
   )}
   {closed ? (
-    <p class="reactions__note">{closedMessage}</p>
+    <p class="reactions__note">{REACTIONS_CLOSED_MESSAGE}</p>
   ) : (
     <>
       <div id={panelId} class="reactions__panel" popover role="menu" aria-label="React to this story">
@@ -110,274 +111,388 @@ const closedMessage = REACTIONS_CLOSED_MESSAGE;
         <noscript><p class="reactions__caption">{REACTIONS_NO_SCRIPT_MESSAGE}</p></noscript>
       </div>
       <p class="reactions__note" role="status" aria-live="polite" tabindex="-1"></p>
-      <script is:inline define:vars={{ panelId, endpoint, slug, set, baked, unknownTotal, storageKey, memoryDays, fields, closedStatus, closedMessage }}>
-        (function () {
-          var panel = document.getElementById(panelId);
-          if (!panel) return;
-          var root = panel.closest('.reactions');
-          var reactButton = root.querySelector('.reactions__react');
-          var summaryButton = root.querySelector('.reactions__summary');
-          var own = root.querySelector('.reactions__own');
-          var mine = root.querySelector('.reactions__mine');
-          var word = root.querySelector('.reactions__word');
-          var stack = root.querySelector('.reactions__stack');
-          var totalText = root.querySelector('.reactions__total');
-          var caption = panel.querySelector('.reactions__caption');
-          var note = root.querySelector('.reactions__note');
-          var choices = Array.prototype.slice.call(panel.querySelectorAll('.reactions__choice'));
-          var openers = [reactButton, summaryButton];
-          var byId = {};
-          set.forEach(function (r, i) { byId[r.id] = { emoji: r.emoji, label: r.label, order: i }; });
-          var counts = {};
-          set.forEach(function (r) { counts[r.id] = baked[r.id] || 0; });
-          var DAY_MS = 24 * 60 * 60 * 1000;
-          var numberFormat = new Intl.NumberFormat('en-US');
-          var native = Object.prototype.hasOwnProperty.call(HTMLElement.prototype, 'popover');
-          var opener = reactButton;
-          var closedNow = false;
-
-          // --- mirrors of src/lib/reactions.ts ---
-          function countText(n) { return numberFormat.format(n) + (n === 1 ? ' reaction' : ' reactions'); }
-          function total() {
-            var sum = unknownTotal;
-            set.forEach(function (r) { sum += counts[r.id]; });
-            return sum;
-          }
-          function top3() {
-            return set
-              .filter(function (r) { return counts[r.id] > 0; })
-              .sort(function (a, b) { return counts[b.id] - counts[a.id] || byId[a.id].order - byId[b.id].order; })
-              .slice(0, 3)
-              .map(function (r) { return r.id; });
-          }
-          function summaryText() {
-            var t = total();
-            if (t === 0) return 'No reactions yet';
-            var labels = top3().map(function (id) { return byId[id].label; });
-            if (labels.length === 0) return countText(t);
-            var list = labels.length === 1 ? labels[0] : labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1];
-            return countText(t) + ': ' + list;
-          }
-          function readStored() {
-            var raw = null;
-            try { raw = window.localStorage.getItem(storageKey); } catch (e) { return null; }
-            if (raw === null) return null;
-            var value;
-            try { value = JSON.parse(raw); } catch (e) { return null; }
-            if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
-            if (typeof value.r !== 'string' || !Object.prototype.hasOwnProperty.call(byId, value.r) || typeof value.at !== 'string') return null;
-            var chosen = Date.parse(value.at);
-            if (isNaN(chosen)) return null;
-            var age = Date.now() - chosen;
-            if (age < 0 || age > memoryDays * DAY_MS) return null;
-            return value.r;
-          }
-          function writeStored(id) {
-            try {
-              if (id === null) window.localStorage.removeItem(storageKey);
-              else window.localStorage.setItem(storageKey, JSON.stringify({ r: id, at: new Date().toISOString() }));
-            } catch (e) { /* storage off or full: the choice still shows for this visit */ }
-          }
-
-          var choice = readStored();
-          // A remembered choice that storage no longer holds validly is forgotten there too.
-          if (choice === null) writeStored(null);
-
-          function render() {
-            if (choice) {
-              own.textContent = byId[choice].emoji;
-              mine.textContent = 'Your reaction: ';
-              word.textContent = byId[choice].label;
-            } else {
-              own.textContent = '';
-              mine.textContent = '';
-              word.textContent = 'React';
-            }
-            var t = total();
-            summaryButton.hidden = t === 0;
-            summaryButton.setAttribute('aria-label', summaryText());
-            totalText.textContent = numberFormat.format(t);
-            stack.textContent = '';
-            top3().forEach(function (id) {
-              var span = document.createElement('span');
-              span.className = 'reactions__stack-emoji';
-              span.textContent = byId[id].emoji;
-              stack.appendChild(span);
-            });
-            choices.forEach(function (button) {
-              var id = button.getAttribute('data-reaction');
-              button.setAttribute('aria-checked', id === choice ? 'true' : 'false');
-              button.setAttribute('aria-label', byId[id].label + ', ' + countText(counts[id]));
-            });
-          }
-
-          // --- the request: one in flight, the latest intent queued behind it ---
-          var inFlight = false;
-          var queued;
-          function send(id) {
-            if (inFlight) { queued = id; return; }
-            inFlight = true;
-            var body = new URLSearchParams();
-            body.set(fields.slug, slug);
-            body.set(fields.reaction, id || '');
-            fetch(endpoint, { method: 'POST', body: body, headers: { Accept: 'application/json' }, keepalive: true, credentials: 'omit' })
-              .then(function (response) {
-                if (response.status === closedStatus) closeReactions();
-              }, function () { /* offline or refused: quiet, the next tap tries again */ })
-              .then(function () {
-                inFlight = false;
-                if (queued !== undefined && !closedNow) {
-                  var next = queued;
-                  queued = undefined;
-                  send(next);
-                }
-              });
-          }
-
-          function closeReactions() {
-            var active = document.activeElement;
-            var hadFocus = !active || active === document.body || root.contains(active);
-            closedNow = true;
-            queued = undefined;
-            hide();
-            reactButton.disabled = true;
-            summaryButton.disabled = true;
-            note.textContent = closedMessage;
-            // A disabled button drops focus to the page; the note takes it, so a keyboard or
-            // screen-reader reader stays where they were and hears why.
-            if (hadFocus) note.focus();
-          }
-
-          // --- the panel ---
-          function isOpen() { return native ? panel.matches(':popover-open') : !panel.hidden; }
-          function show() { if (native) panel.showPopover(); else { panel.hidden = false; opened(); } }
-          function hide() { if (!isOpen()) return; if (native) panel.hidePopover(); else { panel.hidden = true; closed(); } }
-
-          function place() {
-            var gutter = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.5;
-            var gap = gutter * 0.75;
-            var rect = opener.getBoundingClientRect();
-            var width = panel.offsetWidth;
-            var height = panel.offsetHeight;
-            var viewWidth = document.documentElement.clientWidth;
-            var viewHeight = window.innerHeight;
-            var top = rect.bottom + gap;
-            if (top + height > viewHeight - gutter && rect.top - gap - height >= gutter) top = rect.top - gap - height;
-            top = Math.max(gutter, Math.min(top, viewHeight - height - gutter));
-            var left = Math.max(gutter, Math.min(rect.left, viewWidth - width - gutter));
-            // Without script the stylesheet centres the panel in the viewport; placed, it sits
-            // by its button instead.
-            panel.style.inset = 'auto';
-            panel.style.margin = '0';
-            panel.style.top = top + 'px';
-            panel.style.left = left + 'px';
-          }
-          var placing = 0;
-          function placeSoon() {
-            if (placing || !isOpen()) return;
-            placing = window.requestAnimationFrame(function () { placing = 0; if (isOpen()) place(); });
-          }
-
-          function focusTarget() {
-            return choices.filter(function (b) { return b.getAttribute('data-reaction') === choice; })[0] || choices[0];
-          }
-          function rove(target) {
-            choices.forEach(function (b) { b.tabIndex = b === target ? 0 : -1; });
-            target.focus();
-          }
-          function opened() {
-            openers.forEach(function (b) { b.setAttribute('aria-expanded', b === opener ? 'true' : 'false'); });
-            place();
-            panel.classList.remove('reactions__panel--placing');
-            rove(focusTarget());
-            window.addEventListener('resize', placeSoon);
-            window.addEventListener('scroll', placeSoon, true);
-          }
-          function closed() {
-            openers.forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
-            caption.textContent = '';
-            window.removeEventListener('resize', placeSoon);
-            window.removeEventListener('scroll', placeSoon, true);
-            var active = document.activeElement;
-            if (!closedNow && (!active || active === document.body || panel.contains(active))) opener.focus();
-          }
-
-          openers.forEach(function (button) {
-            button.addEventListener('click', function (event) {
-              opener = button;
-              if (!native) {
-                event.preventDefault();
-                if (isOpen()) hide(); else show();
-              }
-            });
-          });
-          if (native) {
-            panel.addEventListener('beforetoggle', function (event) {
-              if (event.newState === 'open') panel.classList.add('reactions__panel--placing');
-            });
-            panel.addEventListener('toggle', function (event) {
-              if (event.newState === 'open') opened(); else closed();
-            });
-          } else {
-            panel.hidden = true;
-            panel.removeAttribute('popover');
-            document.addEventListener('keydown', function (event) {
-              if (event.key === 'Escape' && isOpen()) { event.preventDefault(); hide(); }
-            });
-            document.addEventListener('pointerdown', function (event) {
-              if (isOpen() && !panel.contains(event.target) && openers.indexOf(event.target.closest && event.target.closest('button')) === -1) hide();
-            });
-          }
-
-          panel.addEventListener('keydown', function (event) {
-            var index = choices.indexOf(document.activeElement);
-            if (event.key === 'Tab') { hide(); return; }
-            if (index === -1) return;
-            var next = null;
-            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = choices[(index + 1) % choices.length];
-            else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = choices[(index - 1 + choices.length) % choices.length];
-            else if (event.key === 'Home') next = choices[0];
-            else if (event.key === 'End') next = choices[choices.length - 1];
-            if (next) { event.preventDefault(); rove(next); }
-          });
-
-          function showCaption(button) {
-            var id = button.getAttribute('data-reaction');
-            caption.textContent = byId[id].label + ' · ' + numberFormat.format(counts[id]);
-          }
-          choices.forEach(function (button) {
-            button.addEventListener('pointerenter', function () { showCaption(button); });
-            button.addEventListener('focus', function () { showCaption(button); });
-            button.addEventListener('pointerleave', function () { if (document.activeElement !== button) caption.textContent = ''; });
-            button.addEventListener('click', function () {
-              if (closedNow) return;
-              var tapped = button.getAttribute('data-reaction');
-              var next = choice === tapped ? null : tapped;
-              if (choice !== null) counts[choice] = Math.max(0, counts[choice] - 1);
-              if (next !== null) counts[next] += 1;
-              choice = next;
-              writeStored(choice);
-              render();
-              if (choice !== null) rise(byId[choice].emoji);
-              hide();
-              send(choice);
-            });
-          });
-
-          // One short rise-and-fade on the React button; CSS drops it under reduced motion.
-          function rise(emoji) {
-            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            var ghost = document.createElement('span');
-            ghost.className = 'reactions__rise';
-            ghost.setAttribute('aria-hidden', 'true');
-            ghost.textContent = emoji;
-            reactButton.appendChild(ghost);
-            ghost.addEventListener('animationend', function () { ghost.remove(); });
-          }
-
-          render();
-        })();
-      </script>
     </>
   )}
 </section>
+
+<script>
+  import {
+    REACTIONS,
+    REACTIONS_CLOSED_MESSAGE,
+    REACTION_REQUEST_FIELDS,
+    REACTION_REQUEST_TIMEOUT_MS,
+    REACTION_STORAGE_PREFIX,
+    applyChoice,
+    encodeStoredReaction,
+    expiredReactionKeys,
+    nextChoice,
+    reactionCaption,
+    reactionLabel,
+    reactionOutcome,
+    reactionStorageKey,
+    settledRecord,
+    parseStoredReaction,
+    summaryLabel,
+    topReactions,
+    type ReactionId,
+    type ReactionOutcome,
+    type StoredReaction,
+  } from '../lib/reactions';
+
+  const EMOJI = new Map<string, string>(REACTIONS.map((r) => [r.id, r.emoji]));
+  const LABEL = new Map<string, string>(REACTIONS.map((r) => [r.id, r.label]));
+
+  /** Storage can be off, full, or throw on access (private modes, blocked site data). */
+  function storage(): Storage | null {
+    try {
+      return window.localStorage;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Forget every expired or malformed reactions record, for any story: the 30 days are kept exactly. */
+  function sweep(now: Date) {
+    const store = storage();
+    if (!store) return;
+    try {
+      const entries: [string, string | null][] = [];
+      for (let i = 0; i < store.length; i++) {
+        const key = store.key(i);
+        if (key !== null && key.startsWith(REACTION_STORAGE_PREFIX)) entries.push([key, store.getItem(key)]);
+      }
+      for (const key of expiredReactionKeys(entries, now)) store.removeItem(key);
+    } catch {
+      /* storage unreadable: nothing to sweep */
+    }
+  }
+
+  function readRecord(key: string): StoredReaction | null {
+    try {
+      return parseStoredReaction(storage()?.getItem(key) ?? null, new Date());
+    } catch {
+      return null;
+    }
+  }
+
+  function writeRecord(key: string, record: StoredReaction | null) {
+    try {
+      const store = storage();
+      if (!store) return;
+      if (record === null) store.removeItem(key);
+      else store.setItem(key, encodeStoredReaction(record));
+    } catch {
+      /* storage off or full: the choice still shows for this visit */
+    }
+  }
+
+  function setup(root: HTMLElement) {
+    const panel = root.querySelector<HTMLElement>('.reactions__panel');
+    const reactButton = root.querySelector<HTMLButtonElement>('.reactions__react');
+    const summaryButton = root.querySelector<HTMLButtonElement>('button.reactions__summary');
+    const endpoint = root.dataset.endpoint;
+    const slug = root.dataset.slug;
+    if (!panel || !reactButton || !summaryButton || !endpoint || !slug) return;
+    const own = root.querySelector<HTMLElement>('.reactions__own')!;
+    const mine = root.querySelector<HTMLElement>('.reactions__mine')!;
+    const word = root.querySelector<HTMLElement>('.reactions__word')!;
+    const stack = root.querySelector<HTMLElement>('.reactions__stack')!;
+    const totalText = root.querySelector<HTMLElement>('.reactions__total')!;
+    const caption = panel.querySelector<HTMLElement>('.reactions__caption')!;
+    const note = root.querySelector<HTMLElement>('.reactions__note')!;
+    const choices = Array.from(panel.querySelectorAll<HTMLButtonElement>('.reactions__choice'));
+    const openers = [reactButton, summaryButton];
+    const key = reactionStorageKey(slug);
+    const numberFormat = new Intl.NumberFormat('en-US');
+    const native = Object.prototype.hasOwnProperty.call(HTMLElement.prototype, 'popover');
+
+    let baked: Record<string, number> = {};
+    try {
+      baked = JSON.parse(root.dataset.counts ?? '{}');
+    } catch {
+      baked = {};
+    }
+    const unknownTotal = Number(root.dataset.unknown) || 0;
+    let counts = new Map<string, number>(REACTIONS.map((r) => [r.id, Number(baked[r.id]) || 0]));
+
+    let record = readRecord(key);
+    let choice: ReactionId | null = record?.r ?? null;
+    let opener: HTMLButtonElement = reactButton;
+    let closedNow = false;
+    let focusWasInside = false;
+    // A tap outside the panel light-dismisses it; the close that follows must not pull focus (and
+    // the scroll) back to the button. The toggle event is queued after the pointer events, so the
+    // time of the last outside pointer press tells the two kinds of close apart.
+    let outsidePressAt = -Infinity;
+    const OUTSIDE_PRESS_WINDOW_MS = 1000;
+    document.addEventListener(
+      'pointerdown',
+      (event) => {
+        const target = event.target as Element | null;
+        if (target && !panel.contains(target) && !openers.some((b) => b.contains(target))) outsidePressAt = performance.now();
+      },
+      true,
+    );
+
+    function total() {
+      let sum = unknownTotal;
+      for (const n of counts.values()) sum += n;
+      return sum;
+    }
+    function known() {
+      return new Map([...counts].filter(([, n]) => n > 0)) as Map<ReactionId, number>;
+    }
+
+    function render() {
+      if (choice) {
+        own.textContent = EMOJI.get(choice)!;
+        mine.textContent = 'Your reaction: ';
+        word.textContent = LABEL.get(choice)!;
+      } else {
+        own.textContent = '';
+        mine.textContent = '';
+        word.textContent = 'React';
+      }
+      const t = total();
+      summaryButton.hidden = t === 0;
+      summaryButton.setAttribute('aria-label', summaryLabel({ known: known(), unknown: new Map(), total: t }));
+      totalText.textContent = numberFormat.format(t);
+      stack.replaceChildren(
+        ...topReactions(known()).map((id) => {
+          const span = document.createElement('span');
+          span.className = 'reactions__stack-emoji';
+          span.textContent = EMOJI.get(id)!;
+          return span;
+        }),
+      );
+      for (const button of choices) {
+        const id = button.dataset.reaction!;
+        button.setAttribute('aria-checked', id === choice ? 'true' : 'false');
+        button.setAttribute('aria-label', reactionLabel(id, counts.get(id) ?? 0));
+      }
+    }
+
+    // --- requests: one in flight, the latest unsent record queued behind it ---
+    let inFlight = false;
+    let queued: StoredReaction | undefined;
+
+    function post(sent: StoredReaction): Promise<ReactionOutcome> {
+      const body = new URLSearchParams();
+      body.set(REACTION_REQUEST_FIELDS.slug, slug!);
+      body.set(REACTION_REQUEST_FIELDS.reaction, sent.r ?? '');
+      const signal = typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal ? AbortSignal.timeout(REACTION_REQUEST_TIMEOUT_MS) : undefined;
+      return fetch(endpoint!, { method: 'POST', body, headers: { Accept: 'application/json' }, keepalive: true, credentials: 'omit', signal }).then(
+        (response) => reactionOutcome(response.status),
+        () => reactionOutcome(null),
+      );
+    }
+
+    function send(sent: StoredReaction) {
+      if (inFlight) {
+        queued = sent;
+        return;
+      }
+      inFlight = true;
+      post(sent).then((outcome) => {
+        inFlight = false;
+        if (outcome === 'closed') {
+          closeReactions();
+          return;
+        }
+        if (outcome === 'ok') {
+          const settled = settledRecord(readRecord(key), sent);
+          if (settled !== undefined) writeRecord(key, settled);
+        }
+        // 'failed' is quiet: the record stays unsent and goes again on the next load.
+        if (queued !== undefined && !closedNow) {
+          const next = queued;
+          queued = undefined;
+          send(next);
+        }
+      });
+    }
+
+    function closeReactions() {
+      const active = document.activeElement;
+      const hadFocus = !active || active === document.body || root.contains(active);
+      closedNow = true;
+      queued = undefined;
+      hide();
+      reactButton!.disabled = true;
+      summaryButton!.disabled = true;
+      note.textContent = REACTIONS_CLOSED_MESSAGE;
+      // A disabled button drops focus to the page; the note takes it, so a keyboard or
+      // screen-reader reader stays where they were and hears why.
+      if (hadFocus) note.focus();
+    }
+
+    // --- the panel ---
+    const isOpen = () => (native ? panel.matches(':popover-open') : !panel.hidden);
+    function show() {
+      if (native) panel!.showPopover();
+      else {
+        panel!.hidden = false;
+        opened();
+      }
+    }
+    function hide() {
+      if (!isOpen()) return;
+      focusWasInside = panel!.contains(document.activeElement);
+      if (native) panel!.hidePopover();
+      else {
+        panel!.hidden = true;
+        closed();
+      }
+    }
+
+    function place() {
+      const gutter = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.5;
+      const gap = gutter * 0.75;
+      const rect = opener.getBoundingClientRect();
+      const width = panel!.offsetWidth;
+      const height = panel!.offsetHeight;
+      const viewWidth = document.documentElement.clientWidth;
+      const viewHeight = window.innerHeight;
+      let top = rect.bottom + gap;
+      if (top + height > viewHeight - gutter && rect.top - gap - height >= gutter) top = rect.top - gap - height;
+      top = Math.max(gutter, Math.min(top, viewHeight - height - gutter));
+      const left = Math.max(gutter, Math.min(rect.left, viewWidth - width - gutter));
+      // Without script the stylesheet centres the panel in the viewport; placed, it sits by its
+      // button instead.
+      panel!.style.inset = 'auto';
+      panel!.style.margin = '0';
+      panel!.style.top = `${top}px`;
+      panel!.style.left = `${left}px`;
+    }
+    let placing = 0;
+    function placeSoon() {
+      if (placing || !isOpen()) return;
+      placing = window.requestAnimationFrame(() => {
+        placing = 0;
+        if (isOpen()) place();
+      });
+    }
+
+    function rove(target: HTMLButtonElement) {
+      for (const button of choices) button.tabIndex = button === target ? 0 : -1;
+      target.focus();
+    }
+    function opened() {
+      for (const button of openers) button.setAttribute('aria-expanded', button === opener ? 'true' : 'false');
+      place();
+      panel!.classList.remove('reactions__panel--placing');
+      rove(choices.find((b) => b.dataset.reaction === choice) ?? choices[0]);
+      window.addEventListener('resize', placeSoon);
+      window.addEventListener('scroll', placeSoon, true);
+    }
+    function closed() {
+      for (const button of openers) button.setAttribute('aria-expanded', 'false');
+      caption.textContent = '';
+      window.removeEventListener('resize', placeSoon);
+      window.removeEventListener('scroll', placeSoon, true);
+      if (closedNow || !focusWasInside || performance.now() - outsidePressAt < OUTSIDE_PRESS_WINDOW_MS) return;
+      // Focus goes back only if it was in the panel as it closed (Escape, a choice) and has not
+      // moved on since (Tab). A tap elsewhere on the page keeps focus, and the scroll, where it is.
+      const active = document.activeElement;
+      if (active && active !== document.body && !panel!.contains(active) && active !== opener) return;
+      const target = opener.hidden || opener.disabled ? reactButton! : opener;
+      if (!target.disabled) target.focus();
+    }
+
+    for (const button of openers) {
+      button.addEventListener('click', (event) => {
+        opener = button;
+        if (!native) {
+          event.preventDefault();
+          if (isOpen()) hide();
+          else show();
+        }
+      });
+    }
+    if (native) {
+      panel.addEventListener('beforetoggle', (event) => {
+        const toggle = event as ToggleEvent;
+        if (toggle.newState === 'open') panel.classList.add('reactions__panel--placing');
+        else focusWasInside = panel.contains(document.activeElement);
+      });
+      panel.addEventListener('toggle', (event) => {
+        if ((event as ToggleEvent).newState === 'open') opened();
+        else closed();
+      });
+    } else {
+      panel.hidden = true;
+      panel.removeAttribute('popover');
+      panel.classList.add('reactions__panel--scripted');
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && isOpen()) {
+          event.preventDefault();
+          hide();
+        }
+      });
+      document.addEventListener('pointerdown', (event) => {
+        const target = event.target as Element | null;
+        if (isOpen() && target && !panel.contains(target) && !openers.some((b) => b.contains(target))) hide();
+      });
+    }
+
+    panel.addEventListener('keydown', (event) => {
+      if (event.key === 'Tab') {
+        hide();
+        return;
+      }
+      const index = choices.indexOf(document.activeElement as HTMLButtonElement);
+      if (index === -1) return;
+      let next: HTMLButtonElement | null = null;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = choices[(index + 1) % choices.length];
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = choices[(index - 1 + choices.length) % choices.length];
+      else if (event.key === 'Home') next = choices[0];
+      else if (event.key === 'End') next = choices[choices.length - 1];
+      if (next) {
+        event.preventDefault();
+        rove(next);
+      }
+    });
+
+    for (const button of choices) {
+      const id = button.dataset.reaction!;
+      const showCaption = () => {
+        caption.textContent = reactionCaption(id, counts.get(id) ?? 0);
+      };
+      button.addEventListener('pointerenter', showCaption);
+      button.addEventListener('focus', showCaption);
+      button.addEventListener('pointerleave', () => {
+        if (document.activeElement !== button) caption.textContent = '';
+      });
+      button.addEventListener('click', () => {
+        if (closedNow) return;
+        const next = nextChoice(choice, id as ReactionId);
+        counts = applyChoice(counts, choice, next);
+        choice = next;
+        record = { r: next, at: new Date().toISOString(), unsent: true };
+        writeRecord(key, record);
+        render();
+        if (next !== null) rise(EMOJI.get(next)!);
+        hide();
+        send(record);
+      });
+    }
+
+    // One short rise-and-fade on the React button; CSS drops it under reduced motion.
+    function rise(emoji: string) {
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+      const ghost = document.createElement('span');
+      ghost.className = 'reactions__rise';
+      ghost.setAttribute('aria-hidden', 'true');
+      ghost.textContent = emoji;
+      reactButton!.appendChild(ghost);
+      ghost.addEventListener('animationend', () => ghost.remove());
+    }
+
+    render();
+    // A choice the desk has not confirmed goes again, once, on this load.
+    if (record?.unsent) send(record);
+  }
+
+  sweep(new Date());
+  document.querySelectorAll<HTMLElement>('.reactions[data-endpoint]').forEach(setup);
+</script>

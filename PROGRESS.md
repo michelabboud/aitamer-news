@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-26** — 0.2.26: fixes from the deep review of the reactions component (unsent choices resent, focus and scroll, the no-popover case, the expiry sweep, a bundled script). Still off.
+
 - **2026-09-26** — 0.2.25: the privacy page says retention exactly (deleted within a day after 30 days); the reactions paragraph says a comment and a reaction share the hash. From the ops-side deep review.
 
 - **2026-09-26** — 0.2.24: fixes from the deep review of RB1 and RB2 (rename-rule wording, ADR 0008 amendment, an 8 KiB cap on reactions files).

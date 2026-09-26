@@ -4,7 +4,12 @@ import {
   REACTIONS,
   REACTION_ID,
   REACTION_REQUEST_FIELDS,
+  REACTION_STORAGE_PREFIX,
   applyChoice,
+  encodeStoredReaction,
+  expiredReactionKeys,
+  reactionOutcome,
+  settledRecord,
   nextChoice,
   reactEndpoint,
   reactionCaption,
@@ -201,3 +206,61 @@ test('applyChoice: +1 new, -1 old, never below zero, input untouched', () => {
   assert.deepEqual([...applyChoice(baked, 'love', 'love')], [['love', 3], ['wow', 1]]);
   assert.deepEqual([...baked], [['love', 3], ['wow', 1]]);
 });
+
+// --- unsent records, answers, the sweep -------------------------------------------------------
+
+test('parseStoredReaction keeps an unsent choice and an unsent removal (a tombstone), and nothing looser', () => {
+  const at = NOW.toISOString();
+  assert.deepEqual(parseStoredReaction(JSON.stringify({ r: 'wow', at, unsent: true }), NOW), { r: 'wow', at, unsent: true });
+  assert.deepEqual(parseStoredReaction(JSON.stringify({ r: null, at, unsent: true }), NOW), { r: null, at, unsent: true });
+  for (const bad of [
+    { r: null, at },
+    { r: null, at, unsent: false },
+    { r: 'wow', at, unsent: 'yes' },
+    { r: 'wow', at, unsent: 1 },
+    { r: 'retired', at, unsent: true },
+    { r: null, at: new Date(NOW.getTime() - 31 * DAY_MS).toISOString(), unsent: true },
+  ]) {
+    assert.equal(parseStoredReaction(JSON.stringify(bad), NOW), null, JSON.stringify(bad));
+  }
+});
+
+test('encodeStoredReaction round-trips through parseStoredReaction', () => {
+  const at = NOW.toISOString();
+  for (const record of [{ r: 'love', at }, { r: 'love', at, unsent: true }, { r: null, at, unsent: true }] as const) {
+    assert.deepEqual(parseStoredReaction(encodeStoredReaction(record), NOW), record);
+  }
+  assert.equal(encodeStoredReaction({ r: 'love', at }), `{"r":"love","at":"${at}"}`);
+});
+
+test('reactionOutcome: 2xx is ok, 410 closes, everything else (and no answer) fails quietly', () => {
+  assert.equal(reactionOutcome(200), 'ok');
+  assert.equal(reactionOutcome(204), 'ok');
+  assert.equal(reactionOutcome(410), 'closed');
+  for (const status of [400, 403, 404, 429, 500, 503, 0, null]) assert.equal(reactionOutcome(status), 'failed', String(status));
+});
+
+test('settledRecord: an ok confirms only the record that was sent', () => {
+  const at = NOW.toISOString();
+  const later = new Date(NOW.getTime() + 1000).toISOString();
+  assert.deepEqual(settledRecord({ r: 'wow', at, unsent: true }, { r: 'wow', at, unsent: true }), { r: 'wow', at });
+  assert.equal(settledRecord({ r: null, at, unsent: true }, { r: null, at, unsent: true }), null, 'a confirmed removal deletes the key');
+  assert.equal(settledRecord({ r: 'love', at: later, unsent: true }, { r: 'wow', at, unsent: true }), undefined, 'a newer choice is still owed');
+  assert.equal(settledRecord({ r: 'wow', at: later, unsent: true }, { r: 'wow', at, unsent: true }), undefined);
+  assert.equal(settledRecord(null, { r: 'wow', at, unsent: true }), undefined, 'storage cleared meanwhile: nothing to write');
+});
+
+test('expiredReactionKeys: only this site\'s reaction records that would be forgotten', () => {
+  const fresh = JSON.stringify({ r: 'wow', at: NOW.toISOString() });
+  const old = JSON.stringify({ r: 'wow', at: new Date(NOW.getTime() - 31 * DAY_MS).toISOString() });
+  const entries: [string, string | null][] = [
+    [`${REACTION_STORAGE_PREFIX}a`, fresh],
+    [`${REACTION_STORAGE_PREFIX}b`, old],
+    [`${REACTION_STORAGE_PREFIX}c`, 'garbage'],
+    [`${REACTION_STORAGE_PREFIX}d`, JSON.stringify({ r: null, at: NOW.toISOString(), unsent: true })],
+    ['theme', old],
+    ['atn:other', 'garbage'],
+  ];
+  assert.deepEqual(expiredReactionKeys(entries, NOW), [`${REACTION_STORAGE_PREFIX}b`, `${REACTION_STORAGE_PREFIX}c`]);
+});
+

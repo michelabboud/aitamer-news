@@ -19,9 +19,11 @@ export const REACTIONS_DIR = 'src/content/reactions';
 /**
  * The largest reactions file the check accepts: 8 KiB. The largest file the contract allows —
  * 64 ids of 24 characters, each with a count of 9,007,199,254,740,991, and a 120-character slug —
- * is 5,358 bytes as the publisher writes it (two-space indent) and 6,646 bytes with a four-space
- * indent; `check-reactions.test.mjs` builds it and proves it fits. So the cap never refuses a
- * valid file, and a file past it is refused by size alone, before it is read.
+ * is 5,358 bytes as the publisher writes it (`JSON.stringify` with a two-space indent) and 6,646
+ * bytes with a four-space indent; `check-reactions.test.mjs` builds it and proves it fits. So the
+ * cap never refuses a valid file as the publisher writes it (JSON allows arbitrary whitespace, so a
+ * hand-padded file can pass the schema and still be refused here), and a file past it is refused
+ * by size alone, before it is read.
  */
 export const REACTION_FILE_MAX_BYTES = 8 * 1024;
 

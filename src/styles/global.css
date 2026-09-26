@@ -848,10 +848,9 @@ a.archive-month__name:hover { color: var(--ember-text); }
 .reactions__summary--static { margin: 0; cursor: default; border-color: var(--line); }
 .reactions__summary[hidden] { display: none; }
 .reactions__stack { display: inline-flex; align-items: center; isolation: isolate; }
-.reactions__stack-emoji { position: relative; }
 /* Overlapping by half a rem, each with a ring of the page colour so the edges read as separate. */
 .reactions__stack-emoji {
-  display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem;
+  position: relative; display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem;
   background: var(--night); border-radius: 50%; box-shadow: 0 0 0 2px var(--night);
   font-size: 1rem; line-height: 1;
 }
@@ -873,6 +872,11 @@ a.archive-month__name:hover { color: var(--ember-text); }
   box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.5);
 }
 .reactions__panel[hidden] { display: none; }
+/* A browser without popover shows a [popover] element like any other. With script, the fallback
+   hides it and marks it scripted; without script too, it must not sit over the story. */
+@supports not selector(:popover-open) {
+  .reactions__panel:not(.reactions__panel--scripted) { display: none; }
+}
 .reactions__panel--placing { visibility: hidden; }
 .reactions__choices { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 .reactions__choice {

@@ -119,7 +119,7 @@ function largestValidFile(indent) {
   return `${JSON.stringify(data, null, indent)}\n`;
 }
 
-test('the cap never refuses a valid file: the largest one the contract allows fits, even with a four-space indent', () => {
+test('the cap never refuses a valid file as the publisher writes it (JSON.stringify): the largest one the contract allows fits, even with a four-space indent', () => {
   assert.ok(Buffer.byteLength(largestValidFile(2)) <= REACTION_FILE_MAX_BYTES, `${Buffer.byteLength(largestValidFile(2))} bytes`);
   assert.ok(Buffer.byteLength(largestValidFile(4)) <= REACTION_FILE_MAX_BYTES, `${Buffer.byteLength(largestValidFile(4))} bytes`);
 });

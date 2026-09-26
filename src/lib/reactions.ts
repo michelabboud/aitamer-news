@@ -153,23 +153,39 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** The `localStorage` key a story's own choice is kept under. Never a cookie. */
 export function reactionStorageKey(slug: string): string {
-  return `atn:react:${slug}`;
+  return `${REACTION_STORAGE_PREFIX}${slug}`;
 }
 
-/** What the page stores under {@link reactionStorageKey}: the id and when it was chosen. */
+/** The prefix of every {@link reactionStorageKey}, so a page can find and sweep them all. */
+export const REACTION_STORAGE_PREFIX = 'atn:react:';
+
+/**
+ * What the page stores under {@link reactionStorageKey}.
+ *
+ * - `{ r: "wow", at }` — the reader's choice, confirmed by the desk.
+ * - `{ r: "wow", at, unsent: true }` — chosen, but the desk has not said `ok` yet (the request is
+ *   in flight, was refused quietly — a rate limit, the daily cap, offline — or the reader left the
+ *   page before it went out). The page shows it and sends it again once on the next load of that
+ *   story, until the desk answers `ok` or the record expires.
+ * - `{ r: null, at, unsent: true }` — a removal the desk has not confirmed (a tombstone). Once it
+ *   is confirmed the key is deleted: no key means no reaction.
+ */
 export interface StoredReaction {
-  /** A reaction id of the current set. */
-  readonly r: ReactionId;
-  /** When the reader chose it, as an ISO-8601 time. */
+  /** A reaction id of the current set, or `null` for a removal not yet confirmed. */
+  readonly r: ReactionId | null;
+  /** When the reader chose it (or removed it), as an ISO-8601 time. */
   readonly at: string;
+  /** Present, and `true`, until the desk answers `ok`. */
+  readonly unsent?: true;
 }
 
 /**
  * The reader's remembered choice, or `null` to forget it. Anything the page did not write is
  * forgotten rather than trusted: storage is the reader's to edit. `null` for no value, text that
- * is not JSON, a value of another shape, an id the set no longer knows, a time that does not parse,
- * a time later than `now` (a choice cannot come from the future), and a choice older than
- * {@link REACTION_MEMORY_DAYS}.
+ * is not JSON, a value of another shape, an id the set no longer knows, a removal that is not
+ * marked unsent, an `unsent` that is not `true`, a time that does not parse, a time later than
+ * `now` (a choice cannot come from the future), and a record older than
+ * {@link REACTION_MEMORY_DAYS} — the desk has forgotten it by then too.
  * @param stored the raw `localStorage` value, `null` when absent
  * @param now the current time
  */
@@ -182,14 +198,63 @@ export function parseStoredReaction(stored: string | null, now: Date): StoredRea
     return null;
   }
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
-  const { r, at } = value as Record<string, unknown>;
-  if (typeof r !== 'string' || !isKnownReaction(r) || typeof at !== 'string') return null;
+  const { r, at, unsent } = value as Record<string, unknown>;
+  if (unsent !== undefined && unsent !== true) return null;
+  if (r === null ? unsent !== true : typeof r !== 'string' || !isKnownReaction(r)) return null;
+  if (typeof at !== 'string') return null;
   const chosen = Date.parse(at);
   if (Number.isNaN(chosen)) return null;
   const age = now.getTime() - chosen;
   if (age < 0 || age > REACTION_MEMORY_DAYS * DAY_MS) return null;
-  return { r, at };
+  return unsent === true ? { r: r as ReactionId | null, at, unsent: true } : { r: r as ReactionId, at };
 }
+
+/** The stored text for a record: what {@link parseStoredReaction} reads back. */
+export function encodeStoredReaction(record: StoredReaction): string {
+  return JSON.stringify(record.unsent ? { r: record.r, at: record.at, unsent: true } : { r: record.r, at: record.at });
+}
+
+/** How the page reads the Worker's answer to one `POST /react`. */
+export type ReactionOutcome = 'ok' | 'closed' | 'failed';
+
+/**
+ * `ok` for a 2xx answer, `closed` for 410 (the story's reactions are closed), `failed` for
+ * anything else — a rate limit, the daily cap, a server error, no answer at all (pass `null`).
+ * The page is quiet about `failed`: the choice stays shown and unsent, and is sent again on the
+ * next load of the story.
+ */
+export function reactionOutcome(status: number | null): ReactionOutcome {
+  if (status === null) return 'failed';
+  if (status === REACTIONS_CLOSED_STATUS) return 'closed';
+  return status >= 200 && status < 300 ? 'ok' : 'failed';
+}
+
+/**
+ * What storage should hold after the desk answered `ok` to `sent`, given what it holds now:
+ * `undefined` to leave it alone (a newer choice was made while `sent` was in flight, so that one is
+ * still owed), `null` to delete the key (a confirmed removal), or the confirmed record.
+ */
+export function settledRecord(current: StoredReaction | null, sent: StoredReaction): StoredReaction | null | undefined {
+  if (current === null || current.r !== sent.r || current.at !== sent.at) return undefined;
+  return sent.r === null ? null : { r: sent.r, at: sent.at };
+}
+
+/**
+ * The storage keys to delete when a story page loads: every reactions record (by
+ * {@link REACTION_STORAGE_PREFIX}) that {@link parseStoredReaction} would forget — expired,
+ * malformed or unknown. So the browser keeps a choice for {@link REACTION_MEMORY_DAYS} and no
+ * longer, even for a story the reader never opens again. Other keys are never touched.
+ */
+export function expiredReactionKeys(entries: Iterable<readonly [key: string, value: string | null]>, now: Date): string[] {
+  const expired: string[] = [];
+  for (const [key, value] of entries) {
+    if (key.startsWith(REACTION_STORAGE_PREFIX) && parseStoredReaction(value, now) === null) expired.push(key);
+  }
+  return expired;
+}
+
+/** How long the page waits for the Worker before it treats a request as failed (and unsent). */
+export const REACTION_REQUEST_TIMEOUT_MS = 10_000;
 
 // --- the page's side of the contract with the comments Worker's `POST /react` ------------------
 

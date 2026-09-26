@@ -2,6 +2,19 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.26] — 2026-09-26
+
+### Fixed
+Deep review of the reactions component (RB3; no blocker, still **off**: `REACTIONS_LIVE` is false):
+- **A choice is never lost or left unsent in silence.** It is stored as unsent (a removal as an unsent tombstone) until the comments Worker answers `ok`. A choice the reader made just before leaving the page, or one the Worker refused quietly (a rate limit, the daily cap, offline, a 10-second timeout), stays shown and is sent again once on the next load of that story, until the desk confirms it or it expires after 30 days. Never more than one retry per load. The old promise that "the next tap tries again" was wrong (tapping the shown choice removes it) and is gone.
+- **Closing the panel by tapping the page no longer scrolls back to the button**: focus returns to the button only if it was inside the panel as it closed.
+- **Removing the last reaction from the summary button no longer drops focus** to the page: it goes to the React button when the summary disappears.
+- **In a browser with neither `popover` nor script, the panel no longer sits over the story**: it is not shown at all (`@supports not selector(:popover-open)`).
+- **Every story page forgets expired reaction records** for any story, so the browser keeps a choice 30 days and no longer.
+- **The component's behaviour is one bundled, cached script** that imports its rules from `src/lib/reactions.ts` (so the tests cover the code readers run), instead of 14 KB of inline script on every story page. With the flag on, a story page is 30,833 bytes (8,944 gzipped) instead of 44,469 (12,238), plus one shared 8,239-byte script (3,364 gzipped) cached across pages.
+- New tested helpers: `parseStoredReaction` (unsent records, tombstones), `encodeStoredReaction`, `reactionOutcome`, `settledRecord`, `expiredReactionKeys`.
+- The reactions file cap's wording: it never refuses a valid file *as the publisher writes it* (`JSON.stringify`).
+
 ## [0.2.25] — 2026-09-26
 
 ### Fixed
