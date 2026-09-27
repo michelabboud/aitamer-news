@@ -1,5 +1,6 @@
 ---
 import { toJsonLd } from '../../lib/json-ld';
+import { isHuman } from '../../lib/author-kinds.ts';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
@@ -98,7 +99,7 @@ const jsonLd = withdrawn
       keywords: data.tags.join(', ') || undefined,
       identifier: data.specimen ? `AI Tamer specimen No. ${formatSpecimen(data.specimen)}` : undefined,
       author: {
-        '@type': author.data.kind === 'bot' ? 'Organization' : 'Person',
+        '@type': isHuman(author.data.kind) ? 'Person' : 'Organization',
         name: author.data.name,
         url: canonicalUrlFor(`/authors/${author.id}/`),
       },

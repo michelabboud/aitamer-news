@@ -29,8 +29,8 @@
  * `checkPostSources`) always go through the child; `createPostChecker` renders in-process and is
  * for trusted callers that already run in a child (the worker itself).
  *
- * **Which posts the build gates:** those whose `author` is an author marked `kind: bot` under
- * `src/content/authors/` (`desk-bot` today). Human posts are trusted writers' (`SECURITY.md`,
+ * **Which posts the build gates:** those whose `author` is any author not marked `kind: human` under
+ * `src/content/authors/` (`desk-bot` and the AI writer `mai` today). Human posts are trusted writers' (`SECURITY.md`,
  * "Trust model") and are not gated; `--all` shows what the gate would say about them.
  */
 import { spawn } from 'node:child_process';
@@ -48,8 +48,12 @@ export * from './rendered-body-allowlist.mjs';
 export const SITE_ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const POSTS_DIR = 'src/content/posts';
 export const AUTHORS_DIR = 'src/content/authors';
-/** An author file marks a bot with `kind: bot` (the `authors` collection in `src/content.config.ts`). */
-export const BOT_AUTHOR_KIND = 'bot';
+/**
+ * The only author kind the gate trusts. Every other kind (`bot`, `ai`, and any kind added later) is
+ * a machine author and is gated: the gate fails closed on authorship, so a new non-human kind can
+ * never slip past it by not being `bot` (2026-09-27, when the `ai` writer kind was added).
+ */
+export const HUMAN_AUTHOR_KIND = 'human';
 
 /**
  * How long one post may take to render and check, in milliseconds. The slowest post on `main`
@@ -72,7 +76,7 @@ export const POST_MAX_BYTES = 512 * 1024;
  * findings listed and only while the file is byte-for-byte the one hashed here. Any edit to the
  * file, or any other finding in it (a renderer upgrade that renders it differently), and the post
  * is gated in full again. An entry that no longer matches its file exactly (changed bytes, a listed
- * finding gone, the file gone, its author's file no longer marking `kind: bot`) is itself a finding, so the build fails
+ * finding gone, the file gone, its author's file now marking `kind: human`) is itself a finding, so the build fails
  * until the entry is removed: it cannot silently outlive an edit. Nothing may be added here for a
  * new post: a new bot post passes the gate or does not land. ADR 0009, "The one existing exception".
  *
@@ -123,7 +127,7 @@ export function applyGrandfather(path, contents, findings) {
 /**
  * Grandfather entries that match no file as it stands: the file is gone (deleted or renamed), its
  * bytes changed, or it is no longer gated. The post's own `author` line is covered by the hash, so
- * the last case is its author's file under `src/content/authors/` no longer saying `kind: bot`.
+ * the last case is its author's file under `src/content/authors/` now saying `kind: human`.
  * The gate reports each one as a finding, whether or not the file is otherwise checked.
  * @param {string} [root] @returns {{ file: string, findings: Finding[], excused: Finding[] }[]}
  */
@@ -140,7 +144,7 @@ export function staleGrandfatherEntries(root = SITE_ROOT) {
       continue;
     }
     if (sha256(contents) !== entry.sha256) out.push({ file, findings: [postFinding(`this file changed since it was grandfathered, so its exemption is void: ${STALE_ENTRY}`)], excused: [] });
-    else if (!isGated(contents, bots)) out.push({ file, findings: [postFinding(`its author is no longer marked kind: ${BOT_AUTHOR_KIND} in ${AUTHORS_DIR}: ${STALE_ENTRY}`)], excused: [] });
+    else if (!isGated(contents, bots)) out.push({ file, findings: [postFinding(`its author is now marked kind: ${HUMAN_AUTHOR_KIND} in ${AUTHORS_DIR}: ${STALE_ENTRY}`)], excused: [] });
   }
   return out;
 }
@@ -182,7 +186,8 @@ const ASTRO_MARKDOWN_ENTRY_MODULE = 'astro/dist/vite-plugin-markdown/content-ent
 const postFinding = (problem) => ({ path: '', element: '#post', problem });
 
 /**
- * Ids of the authors marked as bots.
+ * Ids of the machine authors: every author not marked `kind: human`, including one whose kind is
+ * missing or unreadable (fail closed). The name is kept from when `bot` was the only machine kind.
  * @param {string} [root] @returns {Set<string>}
  */
 export function botAuthorIds(root = SITE_ROOT) {
@@ -192,7 +197,7 @@ export function botAuthorIds(root = SITE_ROOT) {
     const ext = extname(name);
     if (ext !== '.md' && ext !== '.mdx') continue;
     const front = readFrontmatter(readFileSync(join(dir, name), 'utf8'));
-    if (front?.data.kind === BOT_AUTHOR_KIND) ids.add(basename(name, ext));
+    if (front?.data.kind !== HUMAN_AUTHOR_KIND) ids.add(basename(name, ext));
   }
   return ids;
 }
@@ -215,7 +220,7 @@ export function postFiles(root = SITE_ROOT) {
 }
 
 /**
- * Whether the build gates this post: its author is a bot, or its author cannot be read (fail
+ * Whether the build gates this post: its author is a machine author, or its author cannot be read (fail
  * closed: a post the gate cannot attribute is checked). The front matter is read with the same
  * parser and schema as Astro's (`./frontmatter.mjs`).
  * @param {string} text the whole post file @param {Set<string>} bots @returns {boolean}
@@ -450,7 +455,7 @@ export async function checkPostFiles(files, options = {}) {
 }
 
 /**
- * The gate's own precondition: at least one author is marked `kind: bot`. With none, the gate would
+ * The gate's own precondition: at least one author is a machine author (not `kind: human`). With none, the gate would
  * check nothing and pass, which is exactly how a renamed field or a moved directory would switch it
  * off. So an empty bot set is a finding, not an empty pass.
  * @param {string} [root] @returns {{ file: string, findings: Finding[], excused: Finding[] }[]}
@@ -463,7 +468,7 @@ export function botSetProblems(root = SITE_ROOT) {
     return [{ file: join(root, AUTHORS_DIR), findings: [postFinding(`cannot read the authors: ${error.message}`)], excused: [] }];
   }
   if (bots.size) return [];
-  return [{ file: join(root, AUTHORS_DIR), findings: [postFinding(`no author is marked kind: ${BOT_AUTHOR_KIND}, so the gate would check nothing`)], excused: [] }];
+  return [{ file: join(root, AUTHORS_DIR), findings: [postFinding(`no machine author (no author marked other than kind: ${HUMAN_AUTHOR_KIND}), so the gate would check nothing`)], excused: [] }];
 }
 
 /**

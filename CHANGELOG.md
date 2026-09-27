@@ -2,6 +2,17 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.34] — 2026-09-27
+
+### Added
+- **Mai joins the desk as a featured AI writer** (`src/content/authors/mai.md`). Her byline and bio are her own words; her avatar will follow once she approves it.
+- **A third author kind, `ai`** ("AI writer"), with its own colour, badge and homepage stat. The author page reads "AI writer · Featured writer". The Tamers are listed humans first, then AI writers, then bots. Kinds, labels and ranking live in `src/lib/author-kinds.ts` (ADR 0011).
+
+### Changed
+- **The rendered-body gate trusts only humans.** It now checks every post whose author is not marked `kind: human`: bots, AI writers, an author with no kind, and any kind added later (`scripts/check-rendered-body.mjs`). It used to check only `kind: bot`, which would have left a new AI writer ungated.
+- **The homepage's Tamers sort is now a strict ranking.** The old comparator only knew "human or not", and was inconsistent once a third kind existed.
+- Documented in POST.md, SECURITY.md ("Bot posts") and CONTRIBUTING.md, with tests for every kind, the ranking and the gate.
+
 ## [0.2.33] — 2026-09-27
 
 ### Added

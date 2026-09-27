@@ -1,4 +1,5 @@
 import { defineCollection, reference } from 'astro:content';
+import { AUTHOR_KINDS } from './lib/author-kinds.ts';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { commentsFileSchema } from './content/comment-schema';
@@ -10,7 +11,7 @@ const authors = defineCollection({
   loader: glob({ base: './src/content/authors', pattern: '**/*.{md,mdx}' }),
   schema: z.object({
     name: z.string(),
-    kind: z.enum(['human', 'bot']),
+    kind: z.enum(AUTHOR_KINDS),
     bio: z.string(),
     avatar: z.string().optional(),
   }),

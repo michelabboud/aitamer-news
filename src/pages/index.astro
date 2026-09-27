@@ -1,5 +1,6 @@
 ---
 import { toJsonLd } from '../lib/json-ld';
+import { TAMER_RANK, kindLabel } from '../lib/author-kinds.ts';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AuthorBadge from '../components/AuthorBadge.astro';
@@ -60,11 +61,13 @@ const threads = await getCommentThreads();
 const stats = {
   sightings: posts.length,
   bots: authors.filter((a) => a.data.kind === 'bot').length,
+  ais: authors.filter((a) => a.data.kind === 'ai').length,
   humans: authors.filter((a) => a.data.kind === 'human').length,
 };
 const tamers = authors
   .map((author) => ({ author, filed: posts.filter((p) => p.data.author.id === author.id).length }))
-  .sort((a, b) => (a.author.data.kind === b.author.data.kind ? b.filed - a.filed : a.author.data.kind === 'human' ? -1 : 1));
+  // Humans first, then the named AI writers, then the desk bots; within a kind, most filed first.
+  .sort((a, b) => TAMER_RANK[a.author.data.kind] - TAMER_RANK[b.author.data.kind] || b.filed - a.filed);
 const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
 const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
@@ -134,7 +137,7 @@ const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
               <div class="log-row__body">
                 <a class="log-row__title" href={postHref(post)}>{post.data.title}</a>
                 <span class:list={['log-row__meta', `by--${kind}`]}>
-                  {habitatOfPost(post).name.toUpperCase()} · {kind === 'bot' ? 'BOT' : 'HUMAN'} · {author.data.name.toUpperCase()}
+                  {habitatOfPost(post).name.toUpperCase()} · {kindLabel(kind).toUpperCase()} · {author.data.name.toUpperCase()}
                 </span>
               </div>
               {post.data.wildness ? <WildnessMeter level={post.data.wildness.rating as 1 | 2 | 3 | 4 | 5} size="md" /> : <span></span>}
@@ -195,7 +198,7 @@ const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
           <span class="tamer__text">
             <span class="tamer__name">{author.data.name}</span>
             <span class={`tamer__role by--${author.data.kind}`}>
-              {author.data.kind === 'bot' ? 'Bot' : 'Human'} · {filed} {filed === 1 ? 'sighting' : 'sightings'} filed
+              {kindLabel(author.data.kind)} · {filed} {filed === 1 ? 'sighting' : 'sightings'} filed
             </span>
           </span>
         </a>
