@@ -288,35 +288,53 @@ export function isSignedOpinion(post, humanAuthors) {
 }
 
 /**
- * The ids of authors marked `kind: human` in `dir`. An unreadable author file counts as not
- * human, so it never earns the exemption.
+ * A named AI writer's poem: tagged `poem` and written by an author of kind `ai` (Mai). The writer
+ * is the poem's source; it reports nothing that could be cited (ADR 0015). Bots never earn it.
+ * @param {Post} post
+ * @param {ReadonlySet<string>} aiWriters
+ */
+export function isWritersPoem(post, aiWriters) {
+  return post.tags.includes('poem') && post.author !== null && aiWriters.has(post.author);
+}
+
+/**
+ * The ids of authors of one `kind` in `dir`. An unreadable author file counts as no kind, so it
+ * never earns an exemption.
  * @param {string} dir
+ * @param {string} kind
  * @returns {Set<string>}
  */
-export function loadHumanAuthors(dir) {
-  const humans = new Set();
-  if (!existsSync(dir)) return humans;
+export function loadAuthorsOfKind(dir, kind) {
+  const ids = new Set();
+  if (!existsSync(dir)) return ids;
   for (const name of readdirSync(dir).sort()) {
     if (!POST_FILE.test(name)) continue;
     try {
       const fm = readFrontmatter(readFileSync(join(dir, name), 'utf8'));
-      if (fm && fm.data.kind === 'human') humans.add(name.replace(POST_FILE, ''));
+      if (fm && fm.data.kind === kind) ids.add(name.replace(POST_FILE, ''));
     } catch {
       // An author file the site itself would refuse; the build reports it, and it earns nothing here.
     }
   }
-  return humans;
+  return ids;
 }
+
+/** The ids of authors marked `kind: human` in `dir` (see loadAuthorsOfKind). */
+export const loadHumanAuthors = (dir) => loadAuthorsOfKind(dir, 'human');
+/** The ids of authors marked `kind: ai`, the named AI writers, in `dir` (see loadAuthorsOfKind). */
+export const loadAiWriters = (dir) => loadAuthorsOfKind(dir, 'ai');
 
 /**
  * Every contract problem that publish-state rules catch (the schema catches types).
  * @param {Post[]} posts
  * @param {{ n: number, slug: string, void?: string }[]} ledger
- * @param {ReadonlySet<string>} [humanAuthors] ids of authors marked `kind: human`: only their
- *   pieces tagged `opinion` may be published without sources (ADR 0013). Empty means no exemption.
+ * @param {ReadonlySet<string>} [humanAuthors] ids of authors marked `kind: human`: their pieces
+ *   tagged `opinion` may be published without sources (ADR 0013). Empty means no exemption.
+ * @param {ReadonlySet<string>} [aiWriters] ids of authors marked `kind: ai`: their pieces tagged
+ *   `poem` may be published without sources (ADR 0015). Empty means no exemption.
  * @returns {string[]}
  */
-export function findProblems(posts, ledger, humanAuthors = new Set()) {
+export function findProblems(posts, ledger, humanAuthors = new Set(), aiWriters = new Set()) {
   const state = ledgerState(ledger);
   const problems = [...state.problems];
   const seen = new Map();
@@ -341,8 +359,8 @@ export function findProblems(posts, ledger, humanAuthors = new Set()) {
     if (post.specimen === null && !post.hasSpecimenField) {
       problems.push(`${post.slug}: published but has no specimen number (run \`npm run stamp\`)`);
     }
-    if (!post.hasSources && !post.withdrawn && !isSignedOpinion(post, humanAuthors)) {
-      problems.push(`${post.slug}: published with no sources (only a human editor's piece tagged \`opinion\` may omit them; a withdrawn post needs none)`);
+    if (!post.hasSources && !post.withdrawn && !isSignedOpinion(post, humanAuthors) && !isWritersPoem(post, aiWriters)) {
+      problems.push(`${post.slug}: published with no sources (only a human editor's piece tagged \`opinion\` or an AI writer's piece tagged \`poem\` may omit them; a withdrawn post needs none)`);
     }
   }
   return problems;
@@ -398,7 +416,7 @@ export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE, aut
   const posts = files.map((f) => f.post);
 
   if (check) {
-    const problems = [...loadProblems, ...ledger.errors, ...findProblems(posts, ledger.entries, loadHumanAuthors(authorsDir))];
+    const problems = [...loadProblems, ...ledger.errors, ...findProblems(posts, ledger.entries, loadHumanAuthors(authorsDir), loadAiWriters(authorsDir))];
     if (problems.length === 0) {
       console.log(`check:specimens: ${posts.filter((p) => !p.draft).length} published posts numbered; ledger holds ${ledger.entries.length} lines.`);
       return 0;
