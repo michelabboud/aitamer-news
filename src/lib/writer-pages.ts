@@ -47,3 +47,17 @@ export function introParagraphs(body: string | undefined): string[] {
     .map((p) => p.replace(/\s*\n\s*/g, ' ').trim())
     .filter((p) => p.length > 0);
 }
+
+/** The tag that marks a writer's poem (ADR 0015). */
+export const POEM_TAG = 'poem';
+
+/**
+ * A writer's posts split into poems and everything else, each keeping the order it came in.
+ * @returns [poems, pieces]
+ */
+export function splitPoems<T extends { data: { tags: readonly string[] } }>(posts: readonly T[]): [T[], T[]] {
+  const poems: T[] = [];
+  const pieces: T[] = [];
+  for (const post of posts) (post.data.tags.includes(POEM_TAG) ? poems : pieces).push(post);
+  return [poems, pieces];
+}

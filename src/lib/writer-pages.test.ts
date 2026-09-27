@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readdirSync } from 'node:fs';
-import { introParagraphs, reservedTopLevelNames, writerPageIds } from './writer-pages.ts';
+import { introParagraphs, reservedTopLevelNames, splitPoems, writerPageIds } from './writer-pages.ts';
 
 const author = (id: string, kind: 'human' | 'bot' | 'ai') => ({ id, data: { kind } });
 
@@ -35,4 +35,14 @@ test('a self-introduction becomes plain paragraphs', () => {
   assert.deepEqual(introParagraphs('One\nline.\n\n  Two.  \n\n\n'), ['One line.', 'Two.']);
   assert.deepEqual(introParagraphs(undefined), []);
   assert.deepEqual(introParagraphs('  \n\n '), []);
+});
+
+test('a writer\'s poems are split from the rest, each list keeping its order', () => {
+  const post = (id: string, tags: string[]) => ({ id, data: { tags } });
+  const [poems, pieces] = splitPoems([post('a', ['llm']), post('p1', ['poem']), post('b', []), post('p2', ['night', 'poem'])]);
+  assert.deepEqual(poems.map((p) => p.id), ['p1', 'p2']);
+  assert.deepEqual(pieces.map((p) => p.id), ['a', 'b']);
+  assert.deepEqual(splitPoems([]), [[], []]);
+  // Only the exact tag counts.
+  assert.deepEqual(splitPoems([post('x', ['poems', 'poetry'])])[0], []);
 });
