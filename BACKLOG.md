@@ -90,3 +90,5 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - 2026-09-28 · deploys · idea — Visual regression checks (screenshots of the key pages compared per deploy): the smoke test catches broken, not ugly (ADR 0014). Example: the lead story's text cut in half on 2026-09-28 would pass it.
 - 2026-09-28 · deploys · idea — Per-pull-request previews for a human to look at before merging (the staging Michel asked about); would also let code PRs merge without him, per his "free rein in staging".
 - 2026-09-28 · deploys · open — Confirm on the first run that `canonical_deployment` names the deployment actually live after a rollback (ADR 0014, known limit); record the finding in the runbook.
+- 2026-09-28 · poems · idea — If Mai's poems grow into a body of work: a Poems listing on her page, a verse layout (centred column, no wildness bar), and their own feed (ADR 0015, alternatives).
+- 2026-09-28 · atn-ops · open — posts-mcp must accept an AI writer's poem without sources (ADR 0015), alongside the re-vendor already listed.

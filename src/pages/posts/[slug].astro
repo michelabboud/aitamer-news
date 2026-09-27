@@ -251,12 +251,15 @@ const breadcrumbs = {
           </ul>
         )}
 
-        <div class="rating-report" data-pagefind-ignore>
-          <p>
-            Is the wildness rating wrong, or a fact out of date?{' '}
-            <a href={withBase('/about/?topic=correction#contact')}>Tell the desk, and quote the line →</a>
-          </p>
-        </div>
+        {/* Only a piece that makes claims asks for corrections: a poem (ADR 0015) has neither a rating nor sources. */}
+        {(data.wildness || (data.sources?.length ?? 0) > 0) && (
+          <div class="rating-report" data-pagefind-ignore>
+            <p>
+              {data.wildness ? 'Is the wildness rating wrong, or a fact out of date?' : 'Is a fact here out of date?'}{' '}
+              <a href={withBase('/about/?topic=correction#contact')}>Tell the desk, and quote the line →</a>
+            </p>
+          </div>
+        )}
 
         <div data-pagefind-ignore>
           {REACTIONS_LIVE && <Reactions slug={post.id} file={reactions} closed={Boolean(post.data.comments?.closed)} />}

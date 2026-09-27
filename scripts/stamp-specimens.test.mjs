@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import {
   assignNumbers,
   findProblems,
+  loadAiWriters,
   loadHumanAuthors,
   ledgerLine,
   ledgerState,
@@ -72,7 +73,7 @@ test('check finds missing, duplicate, unledgered and mismatched numbers, and mis
   assert.match(problems, /dup-b: specimen 1 is also on dup-a/);
   assert.match(problems, /dup-b: specimen 1 belongs to dup-a/);
   assert.match(problems, /unledgered: specimen 9 is not in the ledger/);
-  assert.match(problems, /no-sources: published with no sources \(only a human editor.s piece tagged `opinion` may omit them; a withdrawn post needs none\)/);
+  assert.match(problems, /no-sources: published with no sources \(only a human editor.s piece tagged `opinion` or an AI writer.s piece tagged `poem` may omit them; a withdrawn post needs none\)/);
   assert.doesNotMatch(problems, /opinion-ok|draft-ok/);
 });
 
@@ -134,7 +135,7 @@ test('comments, True, flow and unindented lists, sources: [], CRLF and BOM mean 
   assert.equal(published('sources: [{title: a, url: https://a.example}]').hasSources, true);
   assert.equal(published('sources:\n- title: a\n  url: https://a.example').hasSources, true);
   assert.equal(published('sources: []').hasSources, false);
-  const noSources = "p: published with no sources (only a human editor's piece tagged `opinion` may omit them; a withdrawn post needs none)";
+  const noSources = "p: published with no sources (only a human editor's piece tagged `opinion` or an AI writer's piece tagged `poem` may omit them; a withdrawn post needs none)";
   assert.deepEqual(findProblems([published('sources: []\nsection: models\nspecimen: 1')], [{ n: 1, slug: 'p' }]), [noSources]);
   // Opinion is a tag now, and only a human editor's opinion piece may omit sources.
   const humans = new Set(['wiz-cat']);
@@ -150,6 +151,15 @@ test('comments, True, flow and unindented lists, sources: [], CRLF and BOM mean 
   assert.deepEqual(findProblems([published('author: desk-bot\nwithdrawn: {date: 2026-09-28, reason: r}\nspecimen: 1')], [{ n: 1, slug: 'p' }], humans), []);
   // The old section no longer exempts anything, whoever wrote it.
   assert.deepEqual(findProblems([published('author: wiz-cat\nsection: opinion\nspecimen: 1')], [{ n: 1, slug: 'p' }], humans), [noSources]);
+  // A named AI writer's poem needs no sources: the writer is its source (ADR 0015).
+  const writers = new Set(['mai']);
+  const poem = published('author: mai\ntags: [poem]\nspecimen: 1');
+  assert.deepEqual(findProblems([poem], [{ n: 1, slug: 'p' }], humans, writers), []);
+  // A bot's poem, a human's poem, an AI writer's untagged piece or opinion piece, or no list of writers: must cite.
+  for (const fm of ['author: desk-bot\ntags: [poem]', 'author: wiz-cat\ntags: [poem]', 'author: mai\ntags: [essay]', 'author: mai\ntags: [opinion]']) {
+    assert.deepEqual(findProblems([published(`${fm}\nspecimen: 1`)], [{ n: 1, slug: 'p' }], humans, writers), [noSources], fm);
+  }
+  assert.deepEqual(findProblems([poem], [{ n: 1, slug: 'p' }], humans), [noSources]);
   const crlf = readPost('p', '---\r\npubDate: 2026-09-24T09:00:00Z\r\ndraft: false\r\nspecimen: 4\r\nsources: [{url: u}]\r\n---\r\n');
   assert.equal(crlf.specimen, 4);
   assert.equal(crlf.hasSources, true);
@@ -391,6 +401,9 @@ test('only authors marked kind: human are read as human editors; an unreadable f
     writeFileSync(join(dir, 'notes.txt'), 'kind: human');
     assert.deepEqual([...loadHumanAuthors(dir)], ['wiz-cat']);
     assert.deepEqual([...loadHumanAuthors(join(dir, 'missing'))], []);
+    assert.deepEqual([...loadAiWriters(dir)], ['mai']);
+    writeFileSync(join(dir, 'broken-ai.md'), '---\nkind: [ai\n---\n');
+    assert.deepEqual([...loadAiWriters(dir)], ['mai']);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -398,4 +411,8 @@ test('only authors marked kind: human are read as human editors; an unreadable f
 
 test('the real site: the human editors are exactly the authors marked human', () => {
   assert.deepEqual([...loadHumanAuthors('src/content/authors')], ['wiz-cat']);
+});
+
+test('the real site: the AI writers are exactly the authors marked ai', () => {
+  assert.deepEqual([...loadAiWriters('src/content/authors')], ['mai']);
 });
