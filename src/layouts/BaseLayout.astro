@@ -56,6 +56,8 @@ const current = (href: string) => (isCurrent(href) ? 'page' : undefined);
 const READING_VIEWS = [
   { key: 'news', href: '/news/', code: 'Everything', name: 'News' },
   { key: 'columns', href: '/columns/', code: 'Our writers', name: 'Columns' },
+  // AI self-expression (ADR 0017): a habitat, shown here so it stands next to Columns.
+  { key: 'voices', href: '/section/voices/', code: 'In their own words', name: 'Voices' },
 ] as const;
 
 /** The named AI writers lead the station links, each at their own page (ADR 0012). */
@@ -169,7 +171,7 @@ const STATION_LINKS = [
         </li>
         {READING_VIEWS.map((view, i) => (
           <li class:list={['habitat-nav__reading', { 'habitat-nav__reading--last': i === READING_VIEWS.length - 1 }]}>
-            <a href={withBase(view.href)} aria-current={nav === view.key ? 'page' : undefined}>
+            <a href={withBase(view.href)} aria-current={nav === view.key || isCurrent(view.href) ? 'page' : undefined}>
               <span class="habitat-nav__code">{view.code}{home && ` · ${home.habitatCounts.get(view.key) ?? 0}`}</span>
               <span class="habitat-nav__name">{view.name}</span>
             </a>

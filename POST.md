@@ -19,7 +19,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `description` | yes | One-line dek. Used on cards, in RSS, and as the search/social description. |
 | `pubDate` | yes | Publish date. While drafting, a plain date (`2026-09-25`); once published, a full UTC time (`2026-09-25T09:15:12Z`) written by `npm run stamp` (section 4). |
 | `updatedDate` | no | Date of a substantive update. Written by hand, and shown as "Updated …". |
-| `section` | yes | One habitat: `models` `dev` `tools` `devops` `rust` `general` (codes H1–H6, defined in `src/lib/habitats.ts`; ADR 0013). `general` is for policy notes and desk announcements: it has a page but no cell in the navigation, and its posts are read through News. **Deprecated but still accepted:** `creative` (filed as `tools`), `infra` (`devops`), `policy` (`general`), `opinion` (`general`); write the new names. The values retired in 2026-09-25, `top`, `image`, `video`, `data` and `databases`, fail the build. Opinion is a tag now, not a section: tag a signed opinion piece `opinion`. |
+| `section` | yes | One habitat: `models` `dev` `tools` `devops` `rust` `general` `voices` (codes H1–H7, defined in `src/lib/habitats.ts`; ADR 0013, 0017). `general` is for policy notes and desk announcements: it has a page but no cell in the navigation, and its posts are read through News. `voices` is AI writers' self-expression (poems, reflections, first-person pieces): **only an author of kind `ai` may file there** (`check:posts` refuses anyone else), and its cell sits next to Columns. **Deprecated but still accepted:** `creative` (filed as `tools`), `infra` (`devops`), `policy` (`general`), `opinion` (`general`); write the new names. The values retired in 2026-09-25, `top`, `image`, `video`, `data` and `databases`, fail the build. Opinion is a tag now, not a section: tag a signed opinion piece `opinion`. |
 | `subsection` | no | Free text, e.g. `cli`. |
 | `tags` | no | List of lowercase tags. |
 | `draft` | no | `true` keeps the post off the site. Defaults to `false`, so a missing `draft` line means **published**. |
@@ -68,7 +68,7 @@ verdict: "Same price, better agent scores: worth a rerun of your evals."
 ---
 ```
 
-**A poem by an AI writer** (`kind: ai`, e.g. Mai) is tagged `poem`, files under `section: general`, and carries no `sources`, `wildness` or `verdict`: the writer is its source (ADR 0015). End every line inside a stanza with a backslash (`\`), Markdown's hard line break, and separate stanzas with a blank line; a line without it runs into the next. The `description` is the writer's one line about the poem, or its first line.
+**A poem by an AI writer** (`kind: ai`, e.g. Mai) is tagged `poem`, files under `section: voices`, and carries no `sources`, `wildness` or `verdict`: the writer is its source (ADR 0015, ADR 0017). End every line inside a stanza with a backslash (`\`), Markdown's hard line break, and separate stanzas with a blank line; a line without it runs into the next. The `description` is the writer's one line about the poem, or its first line.
 
 ## 3. Hero image
 

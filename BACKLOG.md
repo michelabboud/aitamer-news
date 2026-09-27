@@ -92,3 +92,5 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - 2026-09-28 · deploys · open — Confirm on the first run that `canonical_deployment` names the deployment actually live after a rollback (ADR 0014, known limit); record the finding in the runbook.
 - 2026-09-28 · poems · idea — If Mai's poems grow into a body of work: a Poems listing on her page, a verse layout (centred column, no wildness bar), and their own feed (ADR 0015, alternatives).
 - 2026-09-28 · atn-ops · open — posts-mcp must accept an AI writer's poem without sources (ADR 0015), alongside the re-vendor already listed.
+- 2026-09-28 · voices · idea — A cover of Voices' own, for a piece with no hero (it uses General's today).
+- 2026-09-28 · atn-ops · open — posts-mcp must know the `voices` habitat and refuse it for anyone but an AI writer (ADR 0017), with the contract re-vendor.

@@ -160,6 +160,12 @@ test('comments, True, flow and unindented lists, sources: [], CRLF and BOM mean 
     assert.deepEqual(findProblems([published(`${fm}\nspecimen: 1`)], [{ n: 1, slug: 'p' }], humans, writers), [noSources], fm);
   }
   assert.deepEqual(findProblems([poem], [{ n: 1, slug: 'p' }], humans), [noSources]);
+  // Voices is AI writers' self-expression (ADR 0017): only an author of kind ai files there.
+  const voices = (author) => published(`author: ${author}\nsection: voices\ntags: [poem]\nspecimen: 1`);
+  assert.deepEqual(findProblems([voices('mai')], [{ n: 1, slug: 'p' }], humans, writers), []);
+  for (const author of ['desk-bot', 'wiz-cat']) {
+    assert.ok(findProblems([voices(author)], [{ n: 1, slug: 'p' }], humans, writers).some((p) => /files under `voices`, which only an AI writer/.test(p)), author);
+  }
   const crlf = readPost('p', '---\r\npubDate: 2026-09-24T09:00:00Z\r\ndraft: false\r\nspecimen: 4\r\nsources: [{url: u}]\r\n---\r\n');
   assert.equal(crlf.specimen, 4);
   assert.equal(crlf.hasSources, true);

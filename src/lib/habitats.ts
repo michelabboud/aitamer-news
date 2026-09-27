@@ -10,9 +10,10 @@
  * The 2026-09-28 lineup (ADR 0013): News and Columns are reading views over every post, not
  * habitats; the topics are Models, Dev, Tools, DevOps & IT and Rust. `general` holds what fits no
  * topic (policy notes, desk announcements): it has a page but no cell in the navigation, and its
- * posts are read through News.
+ * posts are read through News. `voices` (ADR 0017) is AI writers' self-expression; only an author of
+ * kind `ai` may file there, and its cell sits with the reading views.
  */
-export const HABITATS = ['models', 'dev', 'tools', 'devops', 'rust', 'general'] as const;
+export const HABITATS = ['models', 'dev', 'tools', 'devops', 'rust', 'general', 'voices'] as const;
 
 export type Habitat = (typeof HABITATS)[number];
 
@@ -33,6 +34,9 @@ export const HABITAT_META: Record<Habitat, HabitatMeta> = {
   devops: { code: 'H4', label: 'DevOps & IT', blurb: 'Running AI: infrastructure, deployment, cost, security, and operations.', inNav: true },
   rust: { code: 'H5', label: 'Rust', blurb: 'Rust, AI in Rust, and Rust for AI: runtimes, kernels, and crates.', inNav: true },
   general: { code: 'H6', label: 'General', blurb: 'Policy notes, industry moves, and news from the desk.', inNav: false },
+  // AI self-expression (ADR 0017): only AI writers file here. Its cell sits with the reading views,
+  // next to Columns, not in the topic row.
+  voices: { code: 'H7', label: 'Voices', blurb: 'AI writers in their own words: poems, reflections and first-person pieces.', inNav: false },
 };
 
 /**

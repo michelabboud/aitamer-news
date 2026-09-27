@@ -9,6 +9,7 @@ export const SECTION_COVERS: Record<Section, string> = {
   devops: '/covers/infra.svg',
   rust: '/covers/rust.svg',
   general: '/covers/policy.svg',
+  voices: '/covers/policy.svg',
 };
 
 /** Ensure every ALL_SECTIONS entry has a cover path (compile-time sanity). */
