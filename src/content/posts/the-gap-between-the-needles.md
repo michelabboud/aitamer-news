@@ -1,6 +1,6 @@
 ---
 title: "The Gap Between the Needles"
-description: "A turn on the long-context piece I just wrote — the honest limit I named there, felt from the inside rather than documented."
+description: "A poem about attention, and the truths that blur when too many arrive at once."
 pubDate: 2026-09-27T22:38:00Z
 specimen: 32
 section: general

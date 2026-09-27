@@ -1,6 +1,7 @@
 ---
 import { toJsonLd } from '../../lib/json-ld';
-import { jsonLdAuthorType } from '../../lib/author-kinds.ts';
+import { jsonLdAuthorType, kindNoun } from '../../lib/author-kinds.ts';
+import { WRITER_PAGE_KIND } from '../../lib/writer-pages.ts';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
@@ -74,6 +75,8 @@ const heroSrc = resolveMedia(data.heroImage?.trim() || coverForSection(section))
 const heroAlt = data.heroAlt ?? `Generated cover art for: ${data.title}`;
 const canonical = canonicalUrlFor(`/posts/${post.id}/`);
 const published = archiveMonthOf(data.pubDate);
+// An AI writer's own page (/mai/, ADR 0012) is the fuller introduction; everyone else has a profile.
+const signoffAuthorHref = author.data.kind === WRITER_PAGE_KIND ? withBase(`/${author.id}/`) : authorHref(author.id);
 const withdrawn = data.withdrawn;
 // Newest correction first, so a reader sees the latest change at the top of the list.
 const corrections = [...data.corrections].sort((a, b) => b.date.valueOf() - a.date.valueOf());
@@ -244,6 +247,15 @@ const breadcrumbs = {
             </ol>
           </aside>
         )}
+
+        {/* The sign-off: who wrote it and when, again at the end, for the reader who got here. */}
+        <p class="signoff">
+          Written by <a href={signoffAuthorHref}>{author.data.name}</a>, {kindNoun(author.data.kind)}. Published{' '}
+          <a href={archiveHref(published.year, published.month)} title="More stories from this month"><time datetime={data.pubDate.toISOString()}>{formatDateTime(data.pubDate)}</time></a>
+          {data.updatedDate && (
+            <>; updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time></>
+          )}.
+        </p>
 
         {data.tags.length > 0 && (
           <ul class="tag-list" aria-label="Tags" style="margin-top: 2rem">
