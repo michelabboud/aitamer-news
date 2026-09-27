@@ -46,9 +46,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules/.astro
-          key: astro-incremental-github-pages-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json') }}-${{ github.sha }}
+          key: astro-incremental-github-pages-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}-${{ github.sha }}
           restore-keys: |
-            astro-incremental-github-pages-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json') }}-
+            astro-incremental-github-pages-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}-
 
       - name: Build
         env:

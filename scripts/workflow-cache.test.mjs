@@ -19,8 +19,14 @@ const SCHEMA_ENTRY = 'src/content.config.ts';
  * covers. `!src/lib/**\/*.test.ts` only narrows; tests never feed the schema.
  */
 const FINGERPRINT =
-  "${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json') }}";
+  "${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}";
 const COVERED = [/^src\/content\.config\.ts$/, /^src\/content\/[^/]+\.ts$/, /^src\/lib\/.+\.ts$/];
+/**
+ * The author files are in the key too (2026-09-28): Astro's warm cache kept a deleted author, and the
+ * menu linked to a page the build no longer made. Posts are never deleted (they are withdrawn), and
+ * authors change rarely, so this costs almost no warm builds. `check:links` in the deploy is the net.
+ */
+const AUTHOR_FILES = "'src/content/authors/*.md'";
 /** The fingerprint's one exclusion. A schema file matching it would change without changing the key. */
 const EXCLUDED = /\.test\.ts$/;
 
@@ -141,4 +147,8 @@ test('the import scanner follows every form a module can pull code in by, and re
 test('built-ins and installed packages are external; an alias is not, so the walk refuses it', () => {
   for (const spec of ['node:fs', 'astro:content', 'astro/zod', 'js-yaml']) assert.equal(isExternal(spec), true, spec);
   for (const spec of ['@/lib/habitats', '~/content/post-schema', 'lib/habitats']) assert.equal(isExternal(spec), false, spec);
+});
+
+test('the key changes when an author file is added, edited or removed', () => {
+  assert.ok(FINGERPRINT.includes(AUTHOR_FILES), 'the fingerprint covers src/content/authors/*.md');
 });

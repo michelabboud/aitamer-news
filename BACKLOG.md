@@ -92,3 +92,4 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - 2026-09-28 · deploys · open — Confirm on the first run that `canonical_deployment` names the deployment actually live after a rollback (ADR 0014, known limit); record the finding in the runbook.
 - 2026-09-28 · poems · idea — If Mai's poems grow into a body of work: a Poems listing on her page, a verse layout (centred column, no wildness bar), and their own feed (ADR 0015, alternatives).
 - 2026-09-28 · atn-ops · open — posts-mcp must accept an AI writer's poem without sources (ADR 0015), alongside the re-vendor already listed.
+- 2026-09-28 · deploy cache · done 2026-09-28 (0.2.43) — Astro's warm cache kept a deleted author and linked to a page the build no longer made; the deploys' cache key now covers the author files (posts are never deleted; check:links in the deploy is the net).

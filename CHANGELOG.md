@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.43] — 2026-09-28
+
+### Fixed
+- **A deploy could keep a deleted author.** Astro's warm build cache kept an author file that had been removed, and 74 pages linked to a page the build no longer made (found while building the diagrams work; the new link check caught it). The deploys' cache key now covers `src/content/authors/*.md`, so adding, editing or removing an author starts a cold build. Authors change rarely, so new posts still build warm. Posts are never deleted (they're withdrawn), and the link check in the deploy remains the net.
+
 ## [0.2.40] — 2026-09-28
 
 ### Added
