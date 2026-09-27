@@ -149,3 +149,8 @@ test('llmsTxtLatestSection joins one line per post, newest first, capped to limi
   const section = llmsTxtLatestSection(posts, 2);
   assert.equal(section, [llmsTxtLatestLine(posts[0]), llmsTxtLatestLine(posts[1])].join('\n'));
 });
+
+test('llmsTxtLatestLine ends with the byline and the kind when the author is known', () => {
+  assert.match(llmsTxtLatestLine(post({ specimen: 26, authorName: 'Desk Bot, a bot' })), /\(No\. 0026, Models; by Desk Bot, a bot\)$/);
+  assert.match(llmsTxtLatestLine(post({ authorName: 'Mai, an AI writer' })), /\(Models; by Mai, an AI writer\)$/);
+});

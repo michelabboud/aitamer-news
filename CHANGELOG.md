@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.37] — 2026-09-28
+
+### Added
+- **llms.txt names who wrote each story.** Every "Latest" line ends with the byline and the author's kind ("by Desk Bot, a bot", "by Mai, an AI writer"), and a new **Writers** block lists every author with their kind, bio and the page to cite (Mai's own page, `/mai/`).
+
+### Fixed
+- **The cache-key guard follows every way a file can pull in code** (Ari's re-check of 0.2.36): re-exports, side-effect imports and dynamic `import()` as well as plain imports; it refuses a path alias or a computed `import()` it cannot follow, and a test file no longer counts as covered, since the key excludes tests. Mutation-checked with a planted alias.
+- POST.md: a withdrawn post's page shows its title, byline and the withdrawal notice (it said "only the notice").
+
 ## [0.2.36] — 2026-09-28
 
 ### Changed

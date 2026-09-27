@@ -28,6 +28,13 @@ export function isColumnist(kind: AuthorKind): boolean {
 /** The order of the Tamers on the homepage: humans, then named AI writers, then desk bots. */
 export const TAMER_RANK: Record<AuthorKind, number> = { human: 0, ai: 1, bot: 2 };
 
+const NOUNS: Record<AuthorKind, string> = { human: 'a human editor', bot: 'a bot', ai: 'an AI writer' };
+
+/** The kind as a noun phrase for running text read by machines (llms.txt): "a bot", "an AI writer". */
+export function kindNoun(kind: AuthorKind): string {
+  return NOUNS[kind];
+}
+
 /** The short byline label: "Human", "Bot", "AI writer". */
 export function kindLabel(kind: AuthorKind): string {
   return LABELS[kind];
