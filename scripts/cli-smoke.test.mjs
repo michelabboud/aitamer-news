@@ -11,7 +11,10 @@ const run = (script, args = []) =>
   execFileSync(process.execPath, [script, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
 test('due-posts runs and reports', () => {
-  assert.match(run('scripts/due-posts.mjs'), /due-posts:/);
+  // Either report is correct: which one appears depends on the clock, since a post stamped in the
+  // last window is due. A freshly stamped content branch prints slugs, so assert the shape only.
+  const out = run('scripts/due-posts.mjs');
+  assert.match(out, /^(due-posts: nothing due in the last \d+ minutes\.|([a-z0-9-]+\n)+)\n?$/);
 });
 
 test('the post checks run and pass on the repository', () => {

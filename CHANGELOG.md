@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## Unreleased
+
+### Fixed
+**The due-posts smoke test no longer depends on the clock** (`scripts/cli-smoke.test.mjs`): it expected "nothing due", so any branch with a post stamped in the last two hours failed `npm test`. It now accepts either correct report ("nothing due", or one slug per line) and still fails a crash or garbled output.
+
 ## [0.2.33] — 2026-09-27
 
 ### Added
