@@ -13,7 +13,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
   - the security and cache headers;
   - `noindex` on the preview.
   Only then does production deploy, where the same check runs on aitamer.news and production must not carry `noindex`. If that fails, production rolls back automatically to the deployment that was live before (`scripts/pages-api.mjs`, Pages API). Runbook: `docs/runbooks/deploys.md`.
-- **A burst of merges is one deploy.** A push waits `DEPLOY_SETTLE_SECONDS` (repository variable, default 600) and a newer push replaces a waiting run; a started deploy is never cancelled. The Run workflow button and the hourly scheduled publish do not wait.
+- **A burst of merges is one deploy.** A push waits `DEPLOY_SETTLE_SECONDS` (repository variable, default 60) and a newer push replaces a waiting run and restarts the wait; a started deploy is never cancelled. The Run workflow button and the hourly scheduled publish do not wait.
 - **`npm run check:links`**: every internal link on every built page leads to a file, a page or a redirect the site serves. It runs on pull requests and before every upload; external links are not checked.
 - Preview deployments (`*.pages.dev`) carry `X-Robots-Tag: noindex` (`public/_headers`); `check:csp` models that rule form, and only while it leaves the policy alone.
 

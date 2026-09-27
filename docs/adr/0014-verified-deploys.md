@@ -13,7 +13,7 @@ What was true before this decision:
 
 ## Decision
 
-1. **Deploys stay automatic, and wait for merges to settle.** A `settle` job waits `DEPLOY_SETTLE_SECONDS` (a repository variable, default 600, at most 3600) after a push; a newer push cancels an older run still waiting, so any burst of merges within the window is one deploy of the last of them. A manual run (the "Run workflow" button) and the hourly scheduled publish do not wait; the button has a `wait` input for a manual run that should. The deploy job itself is never cancelled once started: a newer run queues behind it, and GitHub keeps only the newest queued run.
+1. **Deploys stay automatic, and wait for merges to settle.** A `settle` job waits `DEPLOY_SETTLE_SECONDS` (a repository variable, default 60, at most 3600) after a push; a newer push cancels an older run still waiting and restarts the wait, so merges less than a minute apart, however many, are one deploy of the last of them. Michel set 60 s ("1 minute is more than enough"); a pause longer than the window mid-batch only means two deploys, the second following the first. A manual run (the "Run workflow" button) and the hourly scheduled publish do not wait; the button has a `wait` input for a manual run that should. The deploy job itself is never cancelled once started: a newer run queues behind it, and GitHub keeps only the newest queued run.
 2. **Every internal link is checked before upload** (`npm run check:links`, `scripts/check-dist-links.mjs`), in the deploy and on every pull request: each same-site URL in every built page must resolve to a file, a folder page or a `_redirects` source, the way Cloudflare Pages serves them. External links are not checked, on purpose: another site's outage must not block a deploy.
 3. **The build goes to a preview first.** It is uploaded with `--branch=deploy-candidate`, which Pages serves only at a `pages.dev` address, and `scripts/smoke-site.mjs` checks that preview against `dist`:
    - every page answers 200 with this build's `<title>`;
@@ -42,7 +42,7 @@ What was true before this decision:
 
 ## Consequences
 
-- **A merge goes live about 10 minutes later** (the settle time plus about 2 minutes of build and checks); `DEPLOY_SETTLE_SECONDS=0` restores immediate deploys. The hourly publish and the button are unaffected.
+- **A merge goes live about 3 minutes later** (the 1-minute settle time plus about 2 minutes of build and checks); `DEPLOY_SETTLE_SECONDS=0` restores immediate deploys. The hourly publish and the button are unaffected.
 - **Two uploads per deploy**, the preview and production, each a Pages deployment. Direct-upload deploys are not the free plan's "builds", and the files are deduplicated.
 - **Preview addresses are public** (anyone with the address can read them) and carry `noindex`. They hold nothing that production will not hold minutes later. Putting them behind Cloudflare Access would be a new Cloudflare resource, and is Michel's call.
 - **The API token needs Pages Edit** (the documented permission for rollback), which deploying already requires. The account id is never printed; `pages-api.mjs` replaces it in any Cloudflare message it shows.

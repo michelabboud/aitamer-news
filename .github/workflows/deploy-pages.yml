@@ -29,8 +29,8 @@ jobs:
       - name: Wait for more merges
         if: github.event_name == 'push' || inputs.wait
         env:
-          # Repository variable DEPLOY_SETTLE_SECONDS, 0 to 3600; 600 when unset.
-          SETTLE: ${{ vars.DEPLOY_SETTLE_SECONDS || '600' }}
+          # Repository variable DEPLOY_SETTLE_SECONDS, 0 to 3600; 60 when unset.
+          SETTLE: ${{ vars.DEPLOY_SETTLE_SECONDS || '60' }}
         run: |
           set -euo pipefail
           if ! [[ "$SETTLE" =~ ^[0-9]+$ ]] || [ "$SETTLE" -gt 3600 ]; then

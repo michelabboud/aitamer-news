@@ -6,7 +6,7 @@ The design and the reasons are in `docs/adr/0014-verified-deploys.md`; this is t
 
 `.github/workflows/deploy-pages.yml`, on every push to `main`, on the hourly scheduled publish (`scheduled-publish.yml`, only when a post is due), and on the **Run workflow** button:
 
-1. **settle** — after a push, wait `DEPLOY_SETTLE_SECONDS` (default 600). A newer push replaces a waiting run, so ten merges in ten minutes are one deploy. The button and the scheduled publish skip the wait.
+1. **settle** — after a push, wait `DEPLOY_SETTLE_SECONDS` (default 60). Each newer push replaces a waiting run and restarts the wait, so merges less than a minute apart, however many, are one deploy. The button and the scheduled publish skip the wait.
 2. **checks** — the tests, `check:posts`, the build, then `check:bodies:build`, `check:csp`, `check:dist`, `check:files` and `check:links`. Any failure: nothing is uploaded.
 3. **preview** — upload to the `deploy-candidate` branch (a `*.aitamer-news.pages.dev` address; the run's summary shows it) and smoke-test it. Failure: nothing went live.
 4. **production** — upload to `main` and smoke-test https://aitamer.news.
