@@ -27,3 +27,17 @@ BLOCKED
 The focused post-contract, listing, and cache tests passed. The full `npm test` run reported **35 passed, 7 failed**; a focused failure showed sandbox `spawnSync git EPERM`. `npm run build` stopped at `EROFS` while writing `node_modules/.vite/deps`, so I could not verify rendered pages. No repository files were changed.
 
 Next: send the two blocking findings to the implementation lane.
+
+## Focused re-check of 670fbe9..090e770 (Ari, ari-sol-deep), verbatim
+
+Verdict: CLEAR WITH FIXES. Ruling (coordinator): the medium finding is confirmed and fixed on `site/cache-guard` (the walk follows re-exports, side-effect and dynamic imports, refuses aliases and computed `import()`, and excludes tests from coverage; mutation-checked with a planted alias). The wording finding is fixed in POST.md; ADR 0013 is left as accepted (ADRs are never edited). Finding 3 stays a known gap.
+
+**CLEAR WITH FIXES**
+
+- **Finding 1 — resolved (no defect).** A withdrawn post omits the article body, description, and sources; the source-free exception is defensible. “Only its notice” is imprecise: the page still shows the title and byline ([slug].astro](/tmp/claude-1000/-home-michel-projects-aitamer-news/49512b34-1e61-40fb-a2b1-3bb811c5d22f/scratchpad/review-sections/wt/src/pages/posts/[slug].astro:150), [notice branch](/tmp/claude-1000/-home-michel-projects-aitamer-news/49512b34-1e61-40fb-a2b1-3bb811c5d22f/scratchpad/review-sections/wt/src/pages/posts/[slug].astro:170)). I do not see a remaining article claim that requires sources.
+- **Finding 2 — resolved with a new defect (medium).** Both cache keys now cover the **current** first-party schema imports ([deploy-pages.yml](/tmp/claude-1000/-home-michel-projects-aitamer-news/49512b34-1e61-40fb-a2b1-3bb811c5d22f/scratchpad/review-sections/wt/.github/workflows/deploy-pages.yml:114)). The `hashFiles` negation is valid in that argument position. The claimed import-graph guard is incomplete: it recognizes relative static imports, including `import type`, but misses re-exports, dynamic imports, and aliased imports; a relative import outside `src/lib` would be caught. Its coverage regex also accepts `.test.ts` files that the key expressly excludes ([workflow-cache.test.mjs](/tmp/claude-1000/-home-michel-projects-aitamer-news/49512b34-1e61-40fb-a2b1-3bb811c5d22f/scratchpad/review-sections/wt/scripts/workflow-cache.test.mjs:21), [scanner](/tmp/claude-1000/-home-michel-projects-aitamer-news/49512b34-1e61-40fb-a2b1-3bb811c5d22f/scratchpad/review-sections/wt/scripts/workflow-cache.test.mjs:43)). Thus the key covers today’s schema files, but the test cannot guarantee coverage after those import forms are introduced.
+- **Finding 3 — partly resolved (informational).** The coordinator’s recorded built-page check addresses the immediate pagination concern; the route tests themselves remain absent ([listing.test.ts](/tmp/claude-1000/-home-michel-projects-aitamer-news/49512b34-1e61-40fb-a2b1-3bb811c5d22f/scratchpad/review-sections/wt/src/lib/listing.test.ts:5)).
+
+The cache test passed. The specimen suite passed 23 of 24 tests; its Git-based end-to-end case hit sandbox `spawnSync git EPERM`. The named prior review was absent from this checkout, so I read its committed version at `153b93f`.
+
+Next: fix the import-graph guard before relying on its future-coverage claim.
