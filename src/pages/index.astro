@@ -8,7 +8,6 @@ import CommentCount from '../components/CommentCount.astro';
 import ExtinctionList from '../components/ExtinctionList.astro';
 import PostCard from '../components/PostCard.astro';
 import SpecimenTag from '../components/SpecimenTag.astro';
-import WildnessMeter from '../components/WildnessMeter.astro';
 import WildnessPanel from '../components/WildnessPanel.astro';
 import {
   SITE,
@@ -16,7 +15,6 @@ import {
   extinctionWatch,
   formatClock,
   formatShortDate,
-  formatSpecimen,
   getCommentThreads,
   getHabitatCounts,
   getPublishedPosts,
@@ -27,9 +25,8 @@ import {
 } from '../lib/site';
 import { postCover } from '../lib/covers';
 import { commentCountFor } from '../lib/comment-text';
-
-const LOG_SIZE = 6;
-const SPECIMEN_SIZE = 6;
+import { frontPage } from '../lib/front-page.ts';
+import { WRITER_PAGE_KIND } from '../lib/writer-pages.ts';
 
 const posts = await getPublishedPosts();
 const authors = await getCollection('authors');
@@ -40,9 +37,8 @@ const authorOf = (post: (typeof posts)[number]) => {
   return author;
 };
 
-const [lead, ...rest] = posts;
-const log = rest.slice(0, LOG_SIZE);
-const specimens = rest.slice(LOG_SIZE, LOG_SIZE + SPECIMEN_SIZE);
+// Every new post is a card on the front page; the Field log in the right panel continues after them.
+const { lead, featured, log } = frontPage(posts);
 const leadAuthor = lead ? authorOf(lead) : undefined;
 const leadHabitat = lead ? habitatOfPost(lead) : undefined;
 
@@ -70,9 +66,14 @@ const tamers = authors
   .sort((a, b) => TAMER_RANK[a.author.data.kind] - TAMER_RANK[b.author.data.kind] || b.filed - a.filed);
 const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
+// The named AI writers each get a card at the top of the right panel, with their latest piece.
+const writers = authors
+  .filter((a) => a.data.kind === WRITER_PAGE_KIND)
+  .map((author) => ({ author, latest: posts.find((p) => p.data.author.id === author.id) }));
+
 const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
 ---
-<BaseLayout title="Field log" description={SITE.description} image={ogImage} home={{ habitatCounts: counts, stats }}>
+<BaseLayout title="Field log" description={SITE.description} image={ogImage} home={{ habitatCounts: counts }}>
   <script
     slot="head"
     type="application/ld+json"
@@ -85,70 +86,134 @@ const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
       publisher: { '@type': 'Organization', name: SITE.title, url: SITE.url },
     })}
   />
-  {lead && leadAuthor && leadHabitat && (
-    <section class="lead" aria-labelledby="lead-title">
-      <a class="lead__photo-link" href={postHref(lead)} tabindex="-1" aria-hidden="true">
-        <figure class="specimen-photo">
-          <img src={withBase(postCover(lead))} alt="" width="1600" height="1200" fetchpriority="high" decoding="async" />
-          {lead.data.specimen && <SpecimenTag specimen={lead.data.specimen} habitat={leadHabitat} />}
-        </figure>
-      </a>
-      <article class="lead__body">
-        <div class="lead__kicker">
-          <span class="lead__catch">LATEST CATCH</span>
-          <span class="muted">
-            <time datetime={lead.data.pubDate.toISOString()}>{formatShortDate(lead.data.pubDate)}</time>
-            · {readingMinutes(lead.body)} MIN
-          </span>
-        </div>
-        <h2 id="lead-title" class="lead__title"><a href={postHref(lead)}>{lead.data.title}</a></h2>
-        <p class="lead__desc">{lead.data.description}</p>
-        {lead.data.wildness && (
-          <WildnessPanel wildness={lead.data.wildness} />
-        )}
-        <div class="verdict-line">
-          <a href={authorHref(leadAuthor.id)} style="text-decoration: none">
-            <AuthorBadge kind={leadAuthor.data.kind} name={leadAuthor.data.name} />
+  <div class="front">
+    <div class="front__main">
+      {lead && leadAuthor && leadHabitat && (
+        <section class="lead" aria-labelledby="lead-title">
+          <a class="lead__photo-link" href={postHref(lead)} tabindex="-1" aria-hidden="true">
+            <figure class="specimen-photo">
+              <img src={withBase(postCover(lead))} alt="" width="1600" height="1200" fetchpriority="high" decoding="async" />
+              {lead.data.specimen && <SpecimenTag specimen={lead.data.specimen} habitat={leadHabitat} />}
+            </figure>
           </a>
-          {lead.data.verdict && (
-            <p class="verdict-line__text" style="margin: 0">
-              <span class="verdict-label">Tamer’s verdict:</span> {lead.data.verdict}
-            </p>
+          <article class="lead__body">
+            <div class="lead__kicker">
+              <span class="lead__catch">LATEST CATCH</span>
+              <span class="muted">
+                <time datetime={lead.data.pubDate.toISOString()}>{formatShortDate(lead.data.pubDate)}</time>
+                · {readingMinutes(lead.body)} MIN
+              </span>
+            </div>
+            <h2 id="lead-title" class="lead__title"><a href={postHref(lead)}>{lead.data.title}</a></h2>
+            <p class="lead__desc">{lead.data.description}</p>
+            {lead.data.wildness && (
+              <WildnessPanel wildness={lead.data.wildness} />
+            )}
+            <div class="verdict-line">
+              <a href={authorHref(leadAuthor.id)} style="text-decoration: none">
+                <AuthorBadge kind={leadAuthor.data.kind} name={leadAuthor.data.name} />
+              </a>
+              {lead.data.verdict && (
+                <p class="verdict-line__text" style="margin: 0">
+                  <span class="verdict-label">Tamer’s verdict:</span> {lead.data.verdict}
+                </p>
+              )}
+            </div>
+          </article>
+        </section>
+      )}
+
+      {featured.length > 0 && (
+        <section aria-labelledby="latest-title">
+          <div class="rule-head">
+            <h2 id="latest-title">Latest sightings</h2>
+            <a class="more" href={withBase('/archive/')}>Browse the full Bestiary →</a>
+          </div>
+          <ul class="cards">
+            {featured.map((post) => (
+              <li><PostCard post={post} author={authorOf(post)} /></li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+
+    <aside class="front__rail" aria-label="Search, our writers, the Field log and Extinction Watch">
+      <section class="station-card" aria-label="About the field guide">
+        <p class="station-card__about">
+          Every sighting sourced. Every tamer named, human or bot. Every claim rated for how wild it still is.
+        </p>
+        <form class="search-box" action={withBase('/search/')} method="get" role="search">
+          <label for="site-search" class="sr-only">Search the field guide</label>
+          <input
+            id="site-search"
+            type="search"
+            name="q"
+            placeholder="Look up a model or tool…"
+            autocomplete="off"
+          />
+          <span class="search-box__hint" aria-hidden="true">⌘K</span>
+          <button type="submit" class="search-box__submit" aria-label="Search">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="1.6" />
+              <path d="M13.5 13.5 18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </button>
+        </form>
+        <dl class="stats">
+          <div><dt>Sightings logged</dt><dd>{stats.sightings}</dd></div>
+          <div><dt>{stats.bots === 1 ? 'Bot' : 'Bots'} on the desk</dt><dd class="is-bot">{stats.bots}</dd></div>
+          {stats.ais > 0 && <div><dt>{stats.ais === 1 ? 'AI writer' : 'AI writers'}</dt><dd class="is-ai">{stats.ais}</dd></div>}
+          <div><dt>Human {stats.humans === 1 ? 'editor' : 'editors'}</dt><dd class="is-human">{stats.humans}</dd></div>
+        </dl>
+      </section>
+
+      {writers.map(({ author, latest }) => (
+        <section class="writer-card" aria-labelledby={`writer-card-${author.id}`}>
+          <a class="writer-card__link" href={withBase(`/${author.id}/`)}>
+            {author.data.portrait && author.data.portraitAlt ? (
+              <img class="writer-card__portrait" src={withBase(author.data.portrait)} alt="" width="96" height="128" loading="lazy" />
+            ) : (
+              <span class="tamer__avatar tamer__avatar--ai" aria-hidden="true">{initials(author.data.name)}</span>
+            )}
+            <span class="writer-card__text">
+              <span class="writer-card__kicker by--ai">From our {kindLabel(author.data.kind)}</span>
+              <span id={`writer-card-${author.id}`} class="writer-card__name">{author.data.name}</span>
+            </span>
+          </a>
+          {latest ? (
+            <a class="writer-card__latest" href={postHref(latest)}>{latest.data.title}</a>
+          ) : (
+            <p class="writer-card__latest">{author.data.name}’s first piece is on its way.</p>
           )}
+          <a class="more" href={withBase(`/${author.id}/`)}>Meet {author.data.name} →</a>
+        </section>
+      ))}
+
+      <section id="field-log" aria-labelledby="field-log-title">
+        <div class="rule-head">
+          <h2 id="field-log-title">Field log</h2>
+          <span class="mono muted">UTC</span>
         </div>
-      </article>
-    </section>
-  )}
+        <ol class="log log--rail">
+          {log.map((post) => {
+            const author = authorOf(post);
+            return (
+              <li class="log-row">
+                <time class="log-row__time" datetime={post.data.pubDate.toISOString()}>{logStamp(post.data.pubDate)}</time>
+                <div class="log-row__body">
+                  <a class="log-row__title" href={postHref(post)}>{post.data.title}</a>
+                  <span class:list={['log-row__meta', `by--${author.data.kind}`]}>
+                    {habitatOfPost(post).name.toUpperCase()} · {author.data.name.toUpperCase()}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+        <p style="margin: 14px 0 0"><a class="more" href={withBase('/archive/')}>The whole log, by month →</a></p>
+      </section>
 
-  <div class="split">
-    <section id="field-log" aria-labelledby="field-log-title">
-      <div class="rule-head">
-        <h2 id="field-log-title">Field log</h2>
-        <span class="mono muted">Newest first · UTC</span>
-      </div>
-      <ol class="log">
-        {log.map((post) => {
-          const author = authorOf(post);
-          const kind = author.data.kind;
-          return (
-            <li class="log-row">
-              <time class="log-row__time" datetime={post.data.pubDate.toISOString()}>{logStamp(post.data.pubDate)}</time>
-              <span class="log-row__no">{post.data.specimen ? `No.${formatSpecimen(post.data.specimen)}` : ''}</span>
-              <div class="log-row__body">
-                <a class="log-row__title" href={postHref(post)}>{post.data.title}</a>
-                <span class:list={['log-row__meta', `by--${kind}`]}>
-                  {habitatOfPost(post).name.toUpperCase()} · {kindLabel(kind).toUpperCase()} · {author.data.name.toUpperCase()}
-                </span>
-              </div>
-              {post.data.wildness ? <WildnessMeter level={post.data.wildness.rating as 1 | 2 | 3 | 4 | 5} size="md" /> : <span></span>}
-            </li>
-          );
-        })}
-      </ol>
-      <p style="margin: 16px 0 0"><a class="more" href={withBase('/archive/')}>The whole log, by month →</a></p>
-    </section>
-
-    <aside class="side" aria-label="Extinction Watch and the wildness scale">
       <section class="watch" aria-labelledby="watch-title">
         <div class="watch__head">
           <h2 id="watch-title"><a href={withBase('/extinction-watch/')}>Extinction Watch</a></h2>
@@ -170,20 +235,6 @@ const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
       </div>
     </aside>
   </div>
-
-  {specimens.length > 0 && (
-    <section aria-labelledby="specimens-title">
-      <div class="rule-head">
-        <h2 id="specimens-title">New specimens</h2>
-        <a class="more" href={withBase('/archive/')}>Browse the full Bestiary →</a>
-      </div>
-      <ul class="cards">
-        {specimens.map((post) => (
-          <li><PostCard post={post} author={authorOf(post)} /></li>
-        ))}
-      </ul>
-    </section>
-  )}
 
   <div class="station-row">
     <section class="panel" aria-labelledby="tamers-title">

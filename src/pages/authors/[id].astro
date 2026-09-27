@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import { kindRole } from '../../lib/author-kinds.ts';
+import { WRITER_PAGE_KIND } from '../../lib/writer-pages.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
@@ -50,6 +51,9 @@ const cards = await Promise.all(
     <div class="author-card__text">
       <span><AuthorBadge kind={author.data.kind} name={kindRole(author.data.kind)} /></span>
       <p>{author.data.bio}</p>
+      {author.data.kind === WRITER_PAGE_KIND && (
+        <p><a class="more" href={withBase(`/${author.id}/`)}>{author.data.name}’s own page →</a></p>
+      )}
     </div>
   </div>
 

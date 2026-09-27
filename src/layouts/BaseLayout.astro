@@ -2,6 +2,8 @@
 import '../styles/global.css';
 import { ANALYTICS_ID, HABITAT_LIST, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
 import { resolveMedia } from '../lib/media';
+import { getCollection } from 'astro:content';
+import { WRITER_PAGE_KIND } from '../lib/writer-pages.ts';
 
 interface Props {
   title?: string;
@@ -16,12 +18,12 @@ interface Props {
   /** Habitat slug to mark in the habitat nav (desk and story pages). */
   habitat?: string;
   /**
-   * Home only: the big masthead, with counts in the habitat nav. Other pages leave this out
+   * Home only: the big wordmark, with counts in the habitat nav (the tagline, search and counters
+   * live in the home page's right panel). Other pages leave this out
    * so their HTML does not change when an unrelated post lands (incremental build cache).
    */
   home?: {
     habitatCounts: Map<string, number>;
-    stats: { sightings: number; bots: number; ais: number; humans: number };
   };
 }
 const {
@@ -47,8 +49,14 @@ function isCurrent(href: string): boolean {
 }
 const current = (href: string) => (isCurrent(href) ? 'page' : undefined);
 
+/** The named AI writers lead the station links, each at their own page (ADR 0012). */
+const writerLinks = (await getCollection('authors'))
+  .filter((a) => a.data.kind === WRITER_PAGE_KIND)
+  .map((a) => ({ href: `/${a.id}/`, label: a.data.name }));
+
 /** Station links: the top bar on wide screens, the menu on phones. */
 const STATION_LINKS = [
+  ...writerLinks,
   { href: '/search/', label: 'Search' },
   { href: '/about/', label: 'About' },
   { href: '/campfire/', label: 'Campfire' },
@@ -127,40 +135,12 @@ const STATION_LINKS = [
 
     <header class:list={['masthead', { 'masthead--home': home }]}>
       <div class="site-shell masthead__inner">
-        <a class="wordmark" href={withBase('/')}>
-          <span class="wordmark__kicker">A FIELD GUIDE TO THE MACHINES</span>
-          {home ? <h1 class="wordmark__name">{SITE.title}</h1> : <span class="wordmark__name">{SITE.title}</span>}
-        </a>
-        {home && (
-          <div class="masthead__aside">
-            <p class="masthead__about">
-              Every sighting sourced. Every tamer named, human or bot. Every claim rated for how wild it still is.
-            </p>
-            <form class="search-box" action={withBase('/search/')} method="get" role="search">
-              <label for="site-search" class="sr-only">Search the field guide</label>
-              <input
-                id="site-search"
-                type="search"
-                name="q"
-                placeholder="Look up a model, tool, or company…"
-                autocomplete="off"
-              />
-              <span class="search-box__hint" aria-hidden="true">⌘K</span>
-              <button type="submit" class="search-box__submit" aria-label="Search">
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="1.6" />
-                  <path d="M13.5 13.5 18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                </svg>
-              </button>
-            </form>
-            <dl class="stats">
-              <div><dt>Sightings logged</dt><dd>{home.stats.sightings}</dd></div>
-              <div><dt>{home.stats.bots === 1 ? "Bot" : "Bots"} on the desk</dt><dd class="is-bot">{home.stats.bots}</dd></div>
-              {home.stats.ais > 0 && <div><dt>{home.stats.ais === 1 ? 'AI writer' : 'AI writers'}</dt><dd class="is-ai">{home.stats.ais}</dd></div>}
-              <div><dt>Human {home.stats.humans === 1 ? 'editor' : 'editors'}</dt><dd class="is-human">{home.stats.humans}</dd></div>
-            </dl>
-          </div>
-        )}
+        <div class="masthead__brand">
+          <a class="wordmark" href={withBase('/')}>
+            <span class="wordmark__kicker">A FIELD GUIDE TO THE MACHINES</span>
+            {home ? <h1 class="wordmark__name">{SITE.title}</h1> : <span class="wordmark__name">{SITE.title}</span>}
+          </a>
+        </div>
         <details class="menu">
           <summary aria-label="Menu"><span></span><span></span></summary>
           <nav class="menu__panel" aria-label="Station menu">
