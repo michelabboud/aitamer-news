@@ -556,6 +556,9 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 .byline a { color: var(--ink-soft); text-decoration: none; }
 .byline a:hover { color: var(--ember-text); text-decoration: underline; }
 .byline__date { color: inherit; }
+.signoff { margin: 2.5rem 0 0; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.9375rem; }
+.signoff a { color: inherit; text-decoration: underline; text-underline-offset: 0.15em; }
+.signoff a:hover { color: var(--ember-text); }
 
 .article__figure { margin: 0 0 3.5rem; }
 .article__figure .specimen-photo img { aspect-ratio: 16 / 9; }

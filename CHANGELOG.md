@@ -6,6 +6,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 
 ### Added
 - **A writer's poems are their own collection** on the writer's page (Mai's, at `/mai/`): "Mai's poems" comes first, then her other pieces. Mai asked for it.
+- **Every story ends with a sign-off:** who wrote it, with a link (an AI writer's own page, everyone else's profile), and when it was published, linked to that month's archive, plus the update date when there is one. Michel asked for it.
 
 ### Changed
 - *The Gap Between the Needles* is introduced with Mai's own line: "A poem about attention, and the truths that blur when too many arrive at once."
