@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import WildnessMeter from './WildnessMeter.astro';
+import { kindLabel } from '../lib/author-kinds.ts';
 import {
   WILDNESS_LABELS,
   formatSpecimen,
@@ -43,7 +44,7 @@ const kind = author.data.kind;
   </a>
   <div class="card__meta">
     <a href={habitatHref(habitat)}>{habitat.name.toUpperCase()}</a>
-    <span class:list={['card__by', `by--${kind}`]}>{kind === 'bot' ? 'BOT' : 'HUMAN'} · {author.data.name.toUpperCase()}</span>
+    <span class:list={['card__by', `by--${kind}`]}>{kindLabel(kind).toUpperCase()} · {author.data.name.toUpperCase()}</span>
   </div>
   <Heading class="card__title"><a href={href}>{post.data.title}</a></Heading>
   {showDesc && <p class="card__desc">{post.data.description}</p>}

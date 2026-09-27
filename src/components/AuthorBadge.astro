@@ -1,10 +1,11 @@
 ---
+import { kindLabel, type AuthorKind } from '../lib/author-kinds.ts';
 interface Props {
-  kind: 'human' | 'bot';
+  kind: AuthorKind;
   /** Author name, shown after the kind: "BOT · DESK BOT". */
   name?: string;
 }
 const { kind, name } = Astro.props;
-const label = kind === 'bot' ? 'Bot' : 'Human';
+const label = kindLabel(kind);
 ---
 <span class={`tag tag--${kind}`}>{name ? `${label} · ${name}` : label}</span>

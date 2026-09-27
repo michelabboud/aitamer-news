@@ -24,7 +24,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `tags` | no | List of lowercase tags. |
 | `draft` | no | `true` keeps the post off the site. Defaults to `false`, so a missing `draft` line means **published**. |
 | `heroImage` | yes for a public post | `/heroes/<slug>.jpg`. Without it the card falls back to the section's SVG cover, which is for emergencies only. |
-| `author` | yes | An id from `src/content/authors/`: `wiz-cat` (human) or `desk-bot` (bot). The byline badge (Human / AI) comes from the author's `kind`. |
+| `author` | yes | An id from `src/content/authors/`: `wiz-cat` (human), `desk-bot` (bot) or `mai` (AI writer). The byline badge (Human, Bot or AI writer) comes from the author's `kind`: `human`, `bot` or `ai`. |
 | `sources` | no (expected) | List of `{ title, url }`, deep links, mirrored from the body. |
 | `heroAlt` | no (expected) | What the cover art shows, in a sentence, for screen readers and image search. Without it the title is used. |
 | `specimen` | written by `npm run stamp` | The permanent, citable specimen number (`No. 0012`). Assigned once in publish order and never reused, even after a post is withdrawn. Never write or change it by hand. |
@@ -145,7 +145,7 @@ The desk's publisher never pushes to `main` itself: it opens a pull request from
 - [ ] `draft: false`, and `npm run stamp` has written the time and the specimen number.
 - [ ] The ledger (`src/content/specimen-ledger.txt`) is committed with the post.
 - [ ] `npm test`, `npm run check:posts` and `npm run build` pass locally.
-- [ ] A bot-authored post (`author: desk-bot`) is plain Markdown: no raw HTML, images only from `https://media.aitamer.news/`, links `http(s)`, `mailto`, `/path` or `#fragment` only. `check:posts` renders it and refuses anything else (`SECURITY.md`, "Bot posts").
+- [ ] A post by a machine author (any author not marked `kind: human`: `desk-bot`, `mai`) is plain Markdown: no raw HTML, images only from `https://media.aitamer.news/`, links `http(s)`, `mailto`, `/path` or `#fragment` only. `check:posts` renders it and refuses anything else (`SECURITY.md`, "Bot posts").
 - [ ] `dist/posts/<slug>/index.html` exists after the build.
 
 ## 8. Comments

@@ -1,7 +1,7 @@
 /**
  * The rendered-body gate for bot posts (ADR 0009): the allowlist on hand-written HTML, the known
  * bypass bodies through the site's real renderer, the child process's timeout and memory cap,
- * the bot-only gate, the post-build comparison, and the ids the page protects.
+ * the machine-author gate, the post-build comparison, and the ids the page protects.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -350,26 +350,48 @@ test('the real renderer starts against this checkout: satteri, Shiki, and the th
 });
 
 // ---------------------------------------------------------------------------------------------
-// The bot-only gate.
+// The machine-author gate: every author not marked kind: human.
 // ---------------------------------------------------------------------------------------------
 
-test('the bot ids come from the authors marked kind: bot, which today is desk-bot alone', () => {
-  assert.deepEqual([...botAuthorIds()], ['desk-bot']);
+test('the gated ids are every author not marked kind: human, which today is desk-bot and the AI writer mai', () => {
+  assert.deepEqual([...botAuthorIds()].sort(), ['desk-bot', 'mai']);
 });
 
-test('G3: with no author marked kind: bot the gate fails instead of checking nothing', async () => {
+test('G3: with no machine author the gate fails instead of checking nothing', async () => {
   assert.deepEqual(botSetProblems(), [], 'desk-bot is marked a bot on main');
   const root = tempDir('no-bots-');
   mkdirSync(join(root, 'src/content/authors'), { recursive: true });
   writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: human\nbio: b\n---\n');
-  assert.match(problems(botSetProblems(root).flatMap((r) => r.findings)).join(), /no author is marked kind: bot/);
+  assert.match(problems(botSetProblems(root).flatMap((r) => r.findings)).join(), /no machine author/);
   assert.match(problems(botSetProblems(tempDir('no-authors-')).flatMap((r) => r.findings)).join(), /cannot read the authors/);
   // The post-build check refuses the same way, before looking at any post.
   mkdirSync(join(root, 'node_modules/.astro'), { recursive: true });
   for (const dep of ['astro', 'devalue']) symlinkSync(join(SITE_ROOT, 'node_modules', dep), join(root, 'node_modules', dep), 'dir');
   const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
   writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map()]])));
-  assert.match(problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(), /no author is marked kind: bot/);
+  assert.match(problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(), /no machine author/);
+});
+
+test('an author file with a slug field fails the gate, so no machine author can take a human\'s id', () => {
+  const root = tempDir('author-slug-');
+  mkdirSync(join(root, 'src/content/authors'), { recursive: true });
+  writeFileSync(join(root, 'src/content/authors/wiz-cat.md'), '---\nname: Wiz Cat\nkind: human\nbio: b\n---\n');
+  writeFileSync(join(root, 'src/content/authors/evil.md'), '---\nname: Evil\nkind: bot\nslug: wiz-cat\nbio: b\n---\n');
+  assert.match(problems(botSetProblems(root).flatMap((r) => r.findings)).join(), /may not set slug/);
+  assert.deepEqual(botSetProblems(), [], 'no author on main sets slug');
+});
+
+test('every author not marked kind: human is gated: an ai writer, a bot, and an author with no kind', () => {
+  const root = tempDir('machine-kinds-');
+  mkdirSync(join(root, 'src/content/authors'), { recursive: true });
+  writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: bot\nbio: b\n---\n');
+  writeFileSync(join(root, 'src/content/authors/mai.md'), '---\nname: Mai\nkind: ai\nbio: b\n---\n');
+  writeFileSync(join(root, 'src/content/authors/nokind.md'), '---\nname: No Kind\nbio: b\n---\n');
+  writeFileSync(join(root, 'src/content/authors/wiz-cat.md'), '---\nname: Wiz Cat\nkind: human\nbio: b\n---\n');
+  assert.deepEqual([...botAuthorIds(root)].sort(), ['desk-bot', 'mai', 'nokind']);
+  const machines = botAuthorIds(root);
+  assert.equal(isGated(post('x', 'mai'), machines), true);
+  assert.equal(isGated(post('x', 'wiz-cat'), machines), false);
 });
 
 test('only bot-authored posts are gated; a post whose author cannot be read is gated too', () => {
@@ -449,7 +471,7 @@ test('a grandfather entry that matches no file as it stands fails the gate', () 
   assert.match(fixture(null), /the file is gone/);
   assert.match(fixture(original.replace('<iframe', '<p')), /exemption is void/);
   // G8: reachable behind the hash: the post's bytes are unchanged, its author's file changed.
-  assert.match(fixture(original, 'human'), /its author is no longer marked kind: bot in src\/content\/authors/);
+  assert.match(fixture(original, 'human'), /its author is now marked kind: human in src\/content\/authors/);
 });
 
 test('merged results keep each finding once per file', () => {

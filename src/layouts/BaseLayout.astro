@@ -21,7 +21,7 @@ interface Props {
    */
   home?: {
     habitatCounts: Map<string, number>;
-    stats: { sightings: number; bots: number; humans: number };
+    stats: { sightings: number; bots: number; ais: number; humans: number };
   };
 }
 const {
@@ -156,6 +156,7 @@ const STATION_LINKS = [
             <dl class="stats">
               <div><dt>Sightings logged</dt><dd>{home.stats.sightings}</dd></div>
               <div><dt>{home.stats.bots === 1 ? "Bot" : "Bots"} on the desk</dt><dd class="is-bot">{home.stats.bots}</dd></div>
+              {home.stats.ais > 0 && <div><dt>{home.stats.ais === 1 ? 'AI writer' : 'AI writers'}</dt><dd class="is-ai">{home.stats.ais}</dd></div>}
               <div><dt>Human {home.stats.humans === 1 ? 'editor' : 'editors'}</dt><dd class="is-human">{home.stats.humans}</dd></div>
             </dl>
           </div>

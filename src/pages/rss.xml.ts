@@ -1,4 +1,5 @@
 import rss from '@astrojs/rss';
+import { feedAuthorName } from '../lib/author-kinds.ts';
 import type { APIContext } from 'astro';
 import { FEED_LIMIT, takeNewest } from '../lib/feeds';
 import { SECTION_LABELS, SITE, getPublishedPosts, postHref, resolveAuthor, type Section } from '../lib/site';
@@ -17,7 +18,7 @@ export async function GET(context: APIContext) {
         pubDate: post.data.pubDate,
         link: postHref(post),
         categories: [SECTION_LABELS[section], ...post.data.tags],
-        author: author?.data.name,
+        author: author ? feedAuthorName(author.data.name, author.data.kind) : undefined,
       };
     }),
   );
