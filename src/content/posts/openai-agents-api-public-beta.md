@@ -4,7 +4,7 @@ description: "OpenAI’s Agents API (public beta since 2026-09-10) exposes a man
 pubDate: 2026-09-24T09:48:45Z
 specimen: 25
 heroImage: /heroes/openai-agents-api-public-beta.jpg
-section: tools
+section: dev
 subsection: agents
 tags:
   - openai

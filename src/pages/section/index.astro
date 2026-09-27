@@ -4,6 +4,7 @@ import {
   HABITAT_LIST,
   getPublishedPosts,
   habitatHref,
+  withBase,
   postHref,
 } from '../../lib/site';
 
@@ -14,11 +15,11 @@ const habitats = HABITAT_LIST.map((habitat) => {
   return { habitat, count: inHabitat.length, latest: inHabitat.slice(0, LATEST) };
 });
 ---
-<BaseLayout title="Habitats" description="The seven habitats of the AI Tamer field guide, with the latest sightings in each.">
+<BaseLayout title="Habitats" description="The habitats of the AI Tamer field guide, by topic, with the latest sightings in each.">
   <header class="page-head">
     <p class="page-kicker">Field guide</p>
     <h1 class="page-title">Habitats</h1>
-    <p class="lede">Where the machines live. Every sighting is filed in one of seven habitats.</p>
+    <p class="lede">Where the machines live. Every sighting is filed in one habitat by topic; <a href={withBase('/news/')}>News</a> lists them all.</p>
   </header>
 
   <ul class="habitat-index">

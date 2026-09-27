@@ -12,10 +12,12 @@ import type { WildnessRating } from './wildness.ts';
 export interface HabitatView {
   /** URL slug and frontmatter value: /section/<slug>/. */
   slug: HabitatSlug;
-  /** H1–H7. */
+  /** H1–H6. */
   code: string;
   name: string;
   blurb: string;
+  /** Whether it gets a cell in the navigation row (General does not; its posts are read through News). */
+  inNav: boolean;
 }
 
 export const HABITAT_LIST: readonly HabitatView[] = HABITAT_SLUGS.map((slug) => ({
@@ -23,6 +25,7 @@ export const HABITAT_LIST: readonly HabitatView[] = HABITAT_SLUGS.map((slug) => 
   code: HABITAT_META[slug].code,
   name: HABITAT_META[slug].label,
   blurb: HABITAT_META[slug].blurb,
+  inNav: HABITAT_META[slug].inNav,
 }));
 
 export function habitatOf(section: string): HabitatView {

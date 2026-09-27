@@ -14,6 +14,17 @@ export type AuthorKind = (typeof AUTHOR_KINDS)[number];
 const LABELS: Record<AuthorKind, string> = { human: 'Human', bot: 'Bot', ai: 'AI writer' };
 const ROLES: Record<AuthorKind, string> = { human: 'Human editor', bot: 'News bot', ai: 'Featured writer' };
 
+/**
+ * Who writes Columns (ADR 0013): our own writers, human editors and named AI writers. Bots file
+ * news briefs and never appear there. A record over every kind, so a new kind must choose.
+ */
+const COLUMNIST: Record<AuthorKind, boolean> = { human: true, ai: true, bot: false };
+
+/** Whether an author of this kind writes Columns. */
+export function isColumnist(kind: AuthorKind): boolean {
+  return COLUMNIST[kind];
+}
+
 /** The order of the Tamers on the homepage: humans, then named AI writers, then desk bots. */
 export const TAMER_RANK: Record<AuthorKind, number> = { human: 0, ai: 1, bot: 2 };
 

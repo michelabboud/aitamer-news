@@ -3,7 +3,7 @@ title: "Policy watch: transparency rules keep getting sharper"
 description: "Regulators want clearer disclosure when AI systems interact with the public. What that means for product teams."
 pubDate: 2026-09-22T00:00:00Z
 specimen: 3
-section: policy
+section: general
 heroImage: /heroes/policy-watch-transparency.jpg
 tags:
   - policy

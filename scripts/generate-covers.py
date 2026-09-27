@@ -13,8 +13,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "public" / "covers"
+# The covers the habitats use (src/lib/covers.ts): devops draws infra.svg, general draws policy.svg.
+# creative.svg and opinion.svg are the retired habitats' covers, kept so old builds' art still resolves.
 SECTIONS = [
-    "models", "tools", "creative", "infra", "rust", "policy", "opinion",
+    "models", "dev", "tools", "infra", "rust", "policy", "creative", "opinion",
 ]
 
 def main() -> None:

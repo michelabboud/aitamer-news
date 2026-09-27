@@ -3,7 +3,7 @@ title: "Microsoft's new Surface PCs drop the Copilot+ PC name, two years after i
 description: "Microsoft's September 23 Surface launch never says Copilot+ PC, and a Surface executive told Windows Central the new machines are not called that, though Microsoft has announced no formal retirement."
 pubDate: 2026-09-27T20:16:14Z
 specimen: 27
-section: infra
+section: devops
 subsection: ai-pcs
 tags:
   - microsoft

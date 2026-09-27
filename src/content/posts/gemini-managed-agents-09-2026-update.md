@@ -3,7 +3,7 @@ title: "Gemini managed agents get a new Antigravity harness, a Files API and a C
 description: "Google's antigravity-preview-09-2026 brings Antigravity coding-agent tools to the Gemini API on Gemini 3.8 Flash, with new APIs to move files in and out of the sandbox and keep secrets away from the model."
 pubDate: 2026-09-27T20:16:14Z
 specimen: 28
-section: tools
+section: dev
 subsection: agents
 tags:
   - google
