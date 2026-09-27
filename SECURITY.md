@@ -79,6 +79,15 @@ frame-ancestors 'none'
 
 **Enforcing.** Set `CSP_ENFORCE = true` in `scripts/csp-headers.mjs` and update the test that pins it (`scripts/csp-headers.test.mjs`, "the report-only switch"). The header becomes `Content-Security-Policy` and gains `upgrade-insecure-requests`, which browsers ignore in report-only mode and log an error about. Do it after a clean report-only period, with a browser pass over the pages listed in the CHANGELOG entry that introduced the policy.
 
+## Diagrams: SVG from any writer
+
+Posts may show SVG diagrams, which bots and AI writers add with no person approving them (ADR 0016). Three layers keep them inert:
+1. **Shown only as images.** The rendered-body gate admits `/diagrams/<post>/<name>.svg` as an image source and nothing else, and a browser runs nothing inside an SVG shown through `<img>`.
+2. **An exact allowlist, then a rewrite.** `scripts/check-diagrams.mjs` refuses anything outside an exact allowlist (DOMPurify's SVG profile, narrowed: no links, `use`, images, `foreignObject`, script, event handlers or SMIL; CSS limited to plain rules, `@keyframes` and `@media`, `url(#id)` only; no DOCTYPE, entities, CDATA or processing instructions). The build then replaces every shipped file with the checker's own serialization, which the deploy verifies, so a parser disagreement between the checker (HTML foreign content) and a browser (XML) cannot pass hidden content.
+3. **An enforced lockdown.** `/diagrams/*` is served with `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox` and `nosniff`, enforced regardless of the site-wide report-only switch, so a diagram opened on its own runs and loads nothing. The deploy's smoke test checks it on every deploy.
+
+Report a way past any of the three as a vulnerability.
+
 ## Out of scope
 
 - Findings that need a compromised maintainer account or machine.

@@ -61,3 +61,8 @@ jobs:
       # a link to a renamed page fails its pull request, not the deploy of main.
       - name: Check every internal link leads somewhere
         run: npm run check:links
+
+      # Diagrams (ADR 0016): the build replaced every SVG with the checker's own rewrite; the files
+      # that would ship are exactly that rewrite.
+      - name: Check every shipped diagram is its checked rewrite
+        run: npm run check:diagrams:dist

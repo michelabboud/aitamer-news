@@ -30,6 +30,8 @@ const HTML_NS = parse5Html.NS.HTML;
 export const MEDIA_ORIGIN = 'https://media.aitamer.news';
 /** The prefix every image `src` must start with, byte for byte. */
 export const MEDIA_PREFIX = `${MEDIA_ORIGIN}/`;
+/** A checked diagram's path; the same pattern as `DIAGRAM_PATH` in scripts/check-diagrams.mjs (a test holds them equal). */
+export const DIAGRAM_SRC = /^\/diagrams\/([a-z0-9]+(?:-[a-z0-9]+)*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\.svg$/;
 
 /**
  * The Shiki theme the allowlist was written against: `astro.config.mjs` sets none, and Astro 7's
@@ -212,7 +214,10 @@ export function hrefProblem(value) {
  */
 export function imageSrcProblem(value) {
   if (URL_EDGE.test(value) || URL_INVISIBLE.test(value)) return 'image source contains whitespace or control characters';
-  if (!value.startsWith(MEDIA_PREFIX)) return `image source must start with ${MEDIA_PREFIX}`;
+  // A checked diagram on this site (scripts/check-diagrams.mjs, ADR 0016): exactly one post folder
+  // and one lowercase name, so the path can only ever name a file that check passed.
+  if (value.startsWith('/diagrams/')) return DIAGRAM_SRC.test(value) ? null : 'a diagram source must be /diagrams/<post-slug>/<name>.svg';
+  if (!value.startsWith(MEDIA_PREFIX)) return `image source must start with ${MEDIA_PREFIX} or be a diagram, /diagrams/<post-slug>/<name>.svg`;
   let url;
   try {
     url = new URL(value);

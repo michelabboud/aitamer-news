@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.41] — 2026-09-28
+
+### Added
+- **Diagrams and light animation in posts, from any writer, with no human gate** (ADR 0016, Michel's direction). A post shows `![…](/diagrams/<post>/<name>.svg)`. `npm run check:diagrams` (part of `check:posts`) refuses anything outside an exact SVG allowlist: DOMPurify's profile narrowed, CSS-only animation that must honour reduced motion, 200 kB and 4,000 elements at most. The build ships the checker's own rewrite of each file, and the deploy verifies it (`check:diagrams:dist`). `/diagrams/*` is served under an enforced lockdown policy, which the smoke test checks. Chromium confirms the rewrite parses as SVG with exactly the checked elements. POST.md has a Diagrams section, and SECURITY.md the three layers.
+
 ## [0.2.39] — 2026-09-28
 
 ### Added
