@@ -398,3 +398,19 @@ test('N2: a _headers rule form the guard does not model is refused, not misjudge
   // The forms the site uses stay modelled.
   assert.deepEqual(csp.unmodeledRules('/*\n  A: 1\n/search/*\n  B: 2\n/exact\n  C: 3\n/_astro/*\n  D: 4\n'), []);
 });
+
+test('a *.pages.dev preview rule is modelled as never reaching the site, unless it touches the policy', () => {
+  const previews = 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n';
+  assert.deepEqual(csp.unmodeledRules(previews), []);
+  // It attaches nothing to any path of the site.
+  assert.equal(csp.headersFor(`/*\n  A: 1\n${previews}`, '/').get('x-robots-tag'), undefined);
+  assert.equal(csp.headersFor(`/*\n  A: 1\n${previews}`, '/').get('a'), '1');
+  // One that sets or detaches the policy would give previews a different policy: refused.
+  for (const line of ['Content-Security-Policy: default-src *', 'content-security-policy-report-only: x', '! Content-Security-Policy']) {
+    assert.deepEqual(csp.unmodeledRules(`https://:project.pages.dev/*\n  ${line}\n`), ['https://:project.pages.dev/*'], line);
+  }
+  // Other hosts, the production domain included, stay refused.
+  for (const rule of ['https://aitamer.news/*', 'https://pages.dev.example.com/*', 'http://:project.pages.dev/*']) {
+    assert.deepEqual(csp.unmodeledRules(`${rule}\n  X: 1\n`), [rule], rule);
+  }
+});

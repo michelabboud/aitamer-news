@@ -77,7 +77,7 @@ Body copy in Markdown…
 
 ## Publishing
 
-A push to `main` publishes **https://aitamer.news**. `.github/workflows/deploy-pages.yml` builds with no path prefix and uploads `dist` to Cloudflare Pages. Unchanged article, section, and author pages are copied from the previous build when `node_modules/.astro` is restored. That cache is keyed on everything the content schema can import and on the lockfile, so such a change starts a cold build (Astro would otherwise keep an unchanged post's old parsed values; `scripts/workflow-cache.test.mjs`). The homepage, about page, and RSS feed are rendered every time.
+A push to `main` publishes **https://aitamer.news**, about three minutes later: `.github/workflows/deploy-pages.yml` waits for more merges to settle (`DEPLOY_SETTLE_SECONDS`), runs every check, uploads `dist` to a Cloudflare Pages preview and smoke-tests it, then deploys production, smoke-tests aitamer.news and rolls back automatically if that fails (ADR 0014; operator steps in `docs/runbooks/deploys.md`). Unchanged article, section, and author pages are copied from the previous build when `node_modules/.astro` is restored. That cache is keyed on everything the content schema can import and on the lockfile, so such a change starts a cold build (Astro would otherwise keep an unchanged post's old parsed values; `scripts/workflow-cache.test.mjs`). The homepage, about page, and RSS feed are rendered every time.
 
 The build also supports a path prefix (`ASTRO_BASE`, applied through `withBase()` in `src/lib/site.ts`) for a future base-path deployment target; nothing uses it today. A GitHub Pages copy built under that prefix until it was retired on 2026-09-25 — its workflow, `.github/workflows/deploy-github-pages.yml`, is disabled but kept in the repo.
 

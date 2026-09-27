@@ -468,7 +468,8 @@ export function overlongLines(text) {
 /**
  * The headers attached to `path` by the rules in `text`, in Cloudflare's way: every matching
  * rule in order, `! name` detaching what earlier rules attached, a repeated name joined by a comma.
- * Only the path forms this site uses: an exact path, or a prefix ending in `*`.
+ * Only the path forms this site uses: an exact path, or a prefix ending in `*`. A rule for a
+ * `*.pages.dev` preview host matches no path here: the site this models is aitamer.news.
  * @param {string} text @param {string} path
  * @returns {Map<string, string>} lower-cased header name → value
  */
@@ -479,7 +480,8 @@ export function headersFor(text, path) {
     if (!raw.trim() || raw.trimStart().startsWith('#')) continue;
     if (!/^\s/.test(raw)) {
       const rule = raw.trim();
-      matching = rule.endsWith('*') ? path.startsWith(rule.slice(0, -1)) : path === rule;
+      if (PREVIEW_HOST_RULE.test(rule)) matching = false; // a preview host's rule never reaches the site
+      else matching = rule.endsWith('*') ? path.startsWith(rule.slice(0, -1)) : path === rule;
       continue;
     }
     if (!matching) continue;
@@ -517,18 +519,40 @@ export function sourcesFor(policy, directive) {
  * URLs; `headersFor` would misjudge those, so they are refused instead.
  */
 const MODELED_RULE = /^\/[^*:\s]*\*?$/;
+/**
+ * The one absolute-URL form modeled: a rule scoped to a Cloudflare Pages preview host
+ * (`https://:project.pages.dev/*`, `https://:version.:project.pages.dev/*`), which the production
+ * domain can never match, so `headersFor` skips it. It is modeled only while it leaves the policy
+ * alone: a preview rule that set or detached a Content-Security-Policy header would make the
+ * previews' policy differ from the one checked here, and is refused like any unmodeled rule.
+ */
+export const PREVIEW_HOST_RULE = /^https:\/\/(?:[^/\s]+\.)?[^/\s.]+\.pages\.dev\/\S*$/;
+const POLICY_HEADER = /^(?:!\s*)?content-security-policy(?:-report-only)?\s*(?::|$)/i;
 
 /** @param {string} text a _headers file @returns {string[]} its rule lines this script does not model */
 export function unmodeledRules(text) {
-  return text
-    .split('\n')
-    .filter((raw) => raw.trim() && !raw.trimStart().startsWith('#') && !/^\s/.test(raw))
-    .map((raw) => raw.trim())
-    .filter((rule) => !MODELED_RULE.test(rule));
+  const out = [];
+  let rule = null;
+  let modeled = true;
+  const close = () => {
+    if (rule !== null && !modeled) out.push(rule);
+  };
+  for (const raw of text.split('\n')) {
+    if (!raw.trim() || raw.trimStart().startsWith('#')) continue;
+    if (!/^\s/.test(raw)) {
+      close();
+      rule = raw.trim();
+      modeled = MODELED_RULE.test(rule) || PREVIEW_HOST_RULE.test(rule);
+      continue;
+    }
+    if (rule !== null && PREVIEW_HOST_RULE.test(rule) && POLICY_HEADER.test(raw.trim())) modeled = false;
+  }
+  close();
+  return out;
 }
 
 /** @param {string} rule @returns {string} */
-const unmodeledFinding = (rule) => `_headers: the rule ${rule} is a form this script does not model (only /exact/paths and /prefix/*); rewrite it, or teach headersFor the form and test it`;
+const unmodeledFinding = (rule) => `_headers: the rule ${rule} is a form this script does not model (only /exact/paths, /prefix/*, and *.pages.dev preview rules that leave the policy alone); rewrite it, or teach headersFor the form and test it`;
 
 /** @param {string} value @returns {Map<string, string[]>} directive → sources */
 export function parsePolicy(value) {

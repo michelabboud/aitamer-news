@@ -22,6 +22,7 @@
     "check:bodies": "node scripts/check-rendered-body.mjs",
     "check:bodies:build": "node scripts/check-rendered-body.mjs --against-build",
     "check:files": "node scripts/check-dist-files.mjs",
+    "check:links": "node scripts/check-dist-links.mjs",
     "check:csp": "node scripts/csp-headers.mjs --check"
   },
   "dependencies": {
