@@ -14,6 +14,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - A Dev fallback cover (`public/covers/dev.svg`).
 
 ### Fixed
+- **The lead story's details span the whole column.** The wildness panel, byline and verdict sat in the headline's half beside an empty space under the photo; they now run across both, under the photo and headline.
 - **The deploys' Astro cache is keyed on the content-schema files.** Astro does not re-parse an unchanged post when the schema changes, so a cache restored across this change would have served an old `section` value and failed the live deploy. A test holds both deploy workflows to it (`scripts/workflow-cache.test.mjs`).
 
 ## [0.2.35] — 2026-09-27
