@@ -3,10 +3,17 @@ import test from 'node:test';
 import { HABITAT_LIST, daysBetween, extinctionWatch, habitatOf, wildnessTokens } from './bestiary.ts';
 
 test('every habitat has one display entry, in code order', () => {
-  assert.deepEqual(HABITAT_LIST.map((h) => h.code), ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7']);
-  assert.equal(habitatOf('creative').name, 'Creative');
-  assert.equal(habitatOf('infra').code, 'H4');
+  assert.deepEqual(HABITAT_LIST.map((h) => h.code), ['H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+  assert.equal(habitatOf('devops').name, 'DevOps & IT');
+  assert.equal(habitatOf('dev').code, 'H2');
+  // A retired value is never a habitat: parsing maps aliases before anything asks for one.
+  assert.throws(() => habitatOf('creative'), /not a habitat/);
   assert.throws(() => habitatOf('video'), /not a habitat/);
+});
+
+test('every habitat but General has a cell in the navigation row', () => {
+  assert.deepEqual(HABITAT_LIST.filter((h) => h.inNav).map((h) => h.name), ['Models', 'Dev', 'Tools', 'DevOps & IT', 'Rust']);
+  assert.deepEqual(HABITAT_LIST.filter((h) => !h.inNav).map((h) => h.slug), ['general']);
 });
 
 test('a wildness meter fills as many segments as the level, in the level colour', () => {

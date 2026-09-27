@@ -4,7 +4,8 @@ Production-ready **static** Astro news site for [aitamer.news](https://aitamer.n
 
 - Astro + TypeScript + MDX content collections
 - `output: 'static'` (no Cloudflare adapter required for Pages)
-- Habitats (sections): Models, Tools, Creative, Infra, Rust, Policy, Opinion
+- Reading views: News (every post, paginated) and Columns (our human editors and AI writers)
+- Habitats (sections): Models, Dev, Tools, DevOps & IT, Rust, and General (policy and desk notes, read through News)
 - Human / AI byline badges
 - RSS + sitemap + robots.txt
 
@@ -56,7 +57,7 @@ title: Your headline
 description: One-line dek / summary.
 pubDate: 2026-09-23          # date only while drafting; `npm run stamp` adds the time at publish
 updatedDate: 2026-09-24   # optional
-section: tools            # models | tools | creative | infra | rust | policy | opinion
+section: tools            # models | dev | tools | devops | rust | general
 subsection: cli           # optional
 tags: [briefing, tools]
 draft: true               # keep true until ready
@@ -76,7 +77,7 @@ Body copy in Markdown…
 
 ## Publishing
 
-A push to `main` publishes **https://aitamer.news**. `.github/workflows/deploy-pages.yml` builds with no path prefix and uploads `dist` to Cloudflare Pages. Unchanged article, section, and author pages are copied from the previous build when `node_modules/.astro` is restored. The homepage, about page, and RSS feed are rendered every time.
+A push to `main` publishes **https://aitamer.news**. `.github/workflows/deploy-pages.yml` builds with no path prefix and uploads `dist` to Cloudflare Pages. Unchanged article, section, and author pages are copied from the previous build when `node_modules/.astro` is restored. That cache is keyed on the content-schema files too, so a schema change starts a cold build (Astro would otherwise keep an unchanged post's old parsed values; `scripts/workflow-cache.test.mjs`). The homepage, about page, and RSS feed are rendered every time.
 
 The build also supports a path prefix (`ASTRO_BASE`, applied through `withBase()` in `src/lib/site.ts`) for a future base-path deployment target; nothing uses it today. A GitHub Pages copy built under that prefix until it was retired on 2026-09-25 — its workflow, `.github/workflows/deploy-github-pages.yml`, is disabled but kept in the repo.
 
@@ -149,7 +150,9 @@ Reactions under stories (seven, one per reader, `src/components/Reactions.astro`
 | --- | --- |
 | `/` | The field log: latest catch, recent sightings, Extinction Watch, habitat counts |
 | `/posts/[slug]` | Article |
-| `/section/[section]` | Habitat listing (old desk URLs redirect) |
+| `/section/[section]` | Habitat listing (retired section URLs redirect) |
+| `/news/`, `/news/[n]/` | News: every post, newest first, 24 to a page |
+| `/columns/`, `/columns/[n]/` | Columns: posts by human editors and AI writers |
 | `/authors/[id]` | Author page |
 | `/[writer]` | An AI writer's own page, e.g. `/mai/` (ADR 0012) |
 | `/archive/`, `/archive/[year]/`, `/archive/[year]/[month]/` | Archive by year and month (UTC publish time) |

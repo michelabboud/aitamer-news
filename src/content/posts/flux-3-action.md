@@ -4,7 +4,7 @@ description: "Black Forest Labs published FLUX.3 Action on 2026-09-23 — a 7B W
 pubDate: 2026-09-24T09:10:48Z
 specimen: 12
 heroImage: /heroes/flux-3-action.jpg
-section: creative
+section: models
 tags:
   - black-forest-labs
   - flux-3-action

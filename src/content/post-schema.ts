@@ -1,5 +1,5 @@
 import { z } from 'astro/zod';
-import { HABITATS } from '../lib/habitats.ts';
+import { FRONTMATTER_SECTIONS, normalizeSection } from '../lib/habitats.ts';
 import { SITE } from '../lib/site-meta.ts';
 import { WILDNESS_MAX, WILDNESS_MIN } from '../lib/wildness.ts';
 
@@ -102,7 +102,15 @@ export const postSchema = z
     // A plain date while drafting, a full UTC time once stamped; never a bare number (review N-minor 9, info 7).
     pubDate: strictDate(),
     updatedDate: strictDate().optional(),
-    section: z.enum(HABITATS),
+    // A habitat, or a deprecated alias kept so existing writers keep working (habitats.ts,
+    // SECTION_ALIASES); parsing always yields the habitat, so the site never sees an alias.
+    section: z
+      .enum(FRONTMATTER_SECTIONS)
+      .describe(
+        'One habitat: models, dev, tools, devops, rust or general. Deprecated but still accepted: ' +
+          'creative (filed as tools), infra (devops), policy (general), opinion (general).',
+      )
+      .transform(normalizeSection),
     subsection: z.string().optional(),
     tags: z.array(z.string().min(1).max(60)).default([]),
     draft: z.boolean().default(false),

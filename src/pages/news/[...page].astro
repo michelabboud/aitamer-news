@@ -1,0 +1,36 @@
+---
+/** News: every published post, newest first, 24 to a page (ADR 0013). /news/, /news/2/, … */
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostListing from '../../components/PostListing.astro';
+import { LISTING_PAGE_SIZE, listingTitle } from '../../lib/listing.ts';
+import { getPublishedPosts } from '../../lib/site';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = await getPublishedPosts();
+  const authors = new Map((await getCollection('authors')).map((a) => [a.id, a]));
+  const items = posts.map((post) => {
+    const author = authors.get(post.data.author.id);
+    if (!author) throw new Error(`Missing author for post ${post.id}`);
+    return { post, author };
+  });
+  return paginate(items, { pageSize: LISTING_PAGE_SIZE });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+<BaseLayout
+  title={listingTitle('News', page.currentPage)}
+  description="Every AI Tamer sighting, newest first: models, dev, tools, DevOps and Rust, from the desk and our writers."
+  nav="news"
+>
+  <PostListing
+    page={page}
+    name="News"
+    kicker={`News · ${page.total} ${page.total === 1 ? 'sighting' : 'sightings'}`}
+    heading="Every sighting, newest first"
+    lede="The whole field guide in publish order: every topic, every writer, human, AI or bot."
+    empty="Nothing is published yet."
+  />
+</BaseLayout>

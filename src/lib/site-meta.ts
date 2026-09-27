@@ -8,6 +8,6 @@ export const SITE = {
   title: 'AI Tamer',
   domain: 'aitamer.news',
   description:
-    'Short, sourced briefs on models, tools, and policy. Every story names a human or a bot.',
+    'Short, sourced briefs on models, dev, tools, DevOps and Rust. Every story names a human, an AI writer or a bot.',
   url: 'https://aitamer.news',
 } as const;

@@ -43,6 +43,7 @@ import {
 import { writeFileAtomic } from './stamp-post-times.mjs';
 
 export const POSTS_DIR = 'src/content/posts';
+export const AUTHORS_DIR = 'src/content/authors';
 export const LEDGER_FILE = 'src/content/specimen-ledger.txt';
 const POST_FILE = /\.mdx?$/;
 /** `<number> <slug>` or `<number> <slug> void: <reason>`. The slug part is `SLUG`. */
@@ -64,6 +65,8 @@ const COLLISION_REPAIR =
  * @property {number | null} specimen a valid specimen number, else null
  * @property {boolean} hasSpecimenField the frontmatter has a `specimen` key at all
  * @property {string | null} section
+ * @property {string | null} author the author id, when it is a string
+ * @property {string[]} tags the string tags, for the opinion exemption
  * @property {boolean} hasSources a non-empty `sources` list
  * @property {boolean} withdrawn
  * @property {string[]} errors problems that make the post unsafe to stamp
@@ -91,7 +94,7 @@ export function readPost(slug, text) {
   }
   if (fm === null) errors.push('post has no frontmatter');
   if (!fm) {
-    return { slug, draft: true, pubTime: null, specimen: null, hasSpecimenField: false, section: null, hasSources: false, withdrawn: false, errors };
+    return { slug, draft: true, pubTime: null, specimen: null, hasSpecimenField: false, section: null, author: null, tags: [], hasSources: false, withdrawn: false, errors };
   }
   const data = fm.data;
 
@@ -131,6 +134,8 @@ export function readPost(slug, text) {
     specimen,
     hasSpecimenField,
     section: typeof data.section === 'string' ? data.section : null,
+    author: typeof data.author === 'string' ? data.author : null,
+    tags: Array.isArray(data.tags) ? data.tags.filter((tag) => typeof tag === 'string') : [],
     hasSources: Array.isArray(data.sources) && data.sources.length > 0,
     withdrawn: data.withdrawn !== undefined && data.withdrawn !== null,
     errors,
@@ -272,12 +277,46 @@ export function withSpecimen(text, n) {
 }
 
 /**
+ * A signed opinion piece: tagged `opinion` and written by a human editor. The only kind of
+ * published post that may omit sources. Opinion was a section until 2026-09-28; it is a tag now,
+ * so the section no longer decides, and bots and AI writers always cite.
+ * @param {Post} post
+ * @param {ReadonlySet<string>} humanAuthors
+ */
+export function isSignedOpinion(post, humanAuthors) {
+  return post.tags.includes('opinion') && post.author !== null && humanAuthors.has(post.author);
+}
+
+/**
+ * The ids of authors marked `kind: human` in `dir`. An unreadable author file counts as not
+ * human, so it never earns the exemption.
+ * @param {string} dir
+ * @returns {Set<string>}
+ */
+export function loadHumanAuthors(dir) {
+  const humans = new Set();
+  if (!existsSync(dir)) return humans;
+  for (const name of readdirSync(dir).sort()) {
+    if (!POST_FILE.test(name)) continue;
+    try {
+      const fm = readFrontmatter(readFileSync(join(dir, name), 'utf8'));
+      if (fm && fm.data.kind === 'human') humans.add(name.replace(POST_FILE, ''));
+    } catch {
+      // An author file the site itself would refuse; the build reports it, and it earns nothing here.
+    }
+  }
+  return humans;
+}
+
+/**
  * Every contract problem that publish-state rules catch (the schema catches types).
  * @param {Post[]} posts
  * @param {{ n: number, slug: string, void?: string }[]} ledger
+ * @param {ReadonlySet<string>} [humanAuthors] ids of authors marked `kind: human`: only their
+ *   pieces tagged `opinion` may be published without sources (ADR 0013). Empty means no exemption.
  * @returns {string[]}
  */
-export function findProblems(posts, ledger) {
+export function findProblems(posts, ledger, humanAuthors = new Set()) {
   const state = ledgerState(ledger);
   const problems = [...state.problems];
   const seen = new Map();
@@ -302,8 +341,8 @@ export function findProblems(posts, ledger) {
     if (post.specimen === null && !post.hasSpecimenField) {
       problems.push(`${post.slug}: published but has no specimen number (run \`npm run stamp\`)`);
     }
-    if (!post.hasSources && post.section !== 'opinion' && !post.withdrawn) {
-      problems.push(`${post.slug}: published outside Opinion with no sources`);
+    if (!post.hasSources && !post.withdrawn && !isSignedOpinion(post, humanAuthors)) {
+      problems.push(`${post.slug}: published with no sources (only a human editor's piece tagged \`opinion\` may omit them)`);
     }
   }
   return problems;
@@ -349,17 +388,17 @@ function loadLedger(file) {
 
 /**
  * @param {string[]} argv
- * @param {{ postsDir?: string, ledgerFile?: string, stampPost?: typeof withSpecimen }} [options]
+ * @param {{ postsDir?: string, ledgerFile?: string, authorsDir?: string, stampPost?: typeof withSpecimen }} [options]
  *   `stampPost` is the in-memory edit, replaceable only so a test can make it fail
  */
-export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE, stampPost = withSpecimen } = {}) {
+export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE, authorsDir = AUTHORS_DIR, stampPost = withSpecimen } = {}) {
   const check = argv.includes('--check');
   const { files, problems: loadProblems } = loadPosts(postsDir);
   const ledger = loadLedger(ledgerFile);
   const posts = files.map((f) => f.post);
 
   if (check) {
-    const problems = [...loadProblems, ...ledger.errors, ...findProblems(posts, ledger.entries)];
+    const problems = [...loadProblems, ...ledger.errors, ...findProblems(posts, ledger.entries, loadHumanAuthors(authorsDir))];
     if (problems.length === 0) {
       console.log(`check:specimens: ${posts.filter((p) => !p.draft).length} published posts numbered; ledger holds ${ledger.entries.length} lines.`);
       return 0;

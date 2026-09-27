@@ -102,13 +102,16 @@ jobs:
           npm test
           npm run check:posts
 
+      # The cache holds parsed content, and Astro does not re-parse an unchanged file when the schema
+      # changes (2026-09-28: a renamed section kept its old value). So the key carries a fingerprint of
+      # the content schema, and a schema change starts from a cold cache.
       - name: Restore Astro incremental cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules/.astro
-          key: astro-incremental-cloudflare-${{ github.sha }}
+          key: astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/post-schema.ts', 'src/lib/habitats.ts', 'src/lib/author-kinds.ts') }}-${{ github.sha }}
           restore-keys: |
-            astro-incremental-cloudflare-
+            astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/post-schema.ts', 'src/lib/habitats.ts', 'src/lib/author-kinds.ts') }}-
 
       - name: Build
         run: npm run build

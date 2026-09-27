@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   assignNumbers,
   findProblems,
+  loadHumanAuthors,
   ledgerLine,
   ledgerState,
   main,
@@ -18,7 +19,7 @@ import { SLUG_MAX_LENGTH } from './slug.mjs';
 import { gitIn, quietly, tempDir } from './test-support.mjs';
 
 const post = (fields) =>
-  `---\ntitle: "T"\npubDate: ${fields.pubDate ?? '2026-09-24T09:00:00Z'}\n${fields.extra ?? ''}section: ${fields.section ?? 'models'}\ndraft: ${fields.draft ?? false}\nauthor: desk-bot\n${fields.sources === false ? '' : 'sources:\n  - url: https://example.com\n'}---\n\nBody.\n`;
+  `---\ntitle: "T"\npubDate: ${fields.pubDate ?? '2026-09-24T09:00:00Z'}\n${fields.extra ?? ''}section: ${fields.section ?? 'models'}\ndraft: ${fields.draft ?? false}\nauthor: ${fields.author ?? 'desk-bot'}\n${fields.sources === false ? '' : 'sources:\n  - url: https://example.com\n'}---\n\nBody.\n`;
 
 test('numbers go to published posts only, oldest first, ties by slug', () => {
   const posts = [
@@ -62,16 +63,16 @@ test('check finds missing, duplicate, unledgered and mismatched numbers, and mis
     readPost('dup-b', post({ extra: 'specimen: 1\n' })),
     readPost('unledgered', post({ extra: 'specimen: 9\n' })),
     readPost('no-sources', post({ extra: 'specimen: 2\n', sources: false })),
-    readPost('opinion-ok', post({ extra: 'specimen: 3\n', section: 'opinion', sources: false })),
+    readPost('opinion-ok', post({ extra: 'specimen: 3\ntags: [opinion]\n', author: 'wiz-cat', sources: false })),
     readPost('draft-ok', post({ draft: true, sources: false })),
   ];
   const ledger = [{ n: 1, slug: 'dup-a' }, { n: 2, slug: 'no-sources' }, { n: 3, slug: 'opinion-ok' }];
-  const problems = findProblems(posts, ledger).join('\n');
+  const problems = findProblems(posts, ledger, new Set(['wiz-cat'])).join('\n');
   assert.match(problems, /no-number: published but has no specimen/);
   assert.match(problems, /dup-b: specimen 1 is also on dup-a/);
   assert.match(problems, /dup-b: specimen 1 belongs to dup-a/);
   assert.match(problems, /unledgered: specimen 9 is not in the ledger/);
-  assert.match(problems, /no-sources: published outside Opinion with no sources/);
+  assert.match(problems, /no-sources: published with no sources \(only a human editor.s piece tagged `opinion` may omit them\)/);
   assert.doesNotMatch(problems, /opinion-ok|draft-ok/);
 });
 
@@ -133,10 +134,20 @@ test('comments, True, flow and unindented lists, sources: [], CRLF and BOM mean 
   assert.equal(published('sources: [{title: a, url: https://a.example}]').hasSources, true);
   assert.equal(published('sources:\n- title: a\n  url: https://a.example').hasSources, true);
   assert.equal(published('sources: []').hasSources, false);
-  assert.deepEqual(findProblems([published('sources: []\nsection: models\nspecimen: 1')], [{ n: 1, slug: 'p' }]), [
-    'p: published outside Opinion with no sources',
-  ]);
-  assert.deepEqual(findProblems([published('section: opinion   # c\nspecimen: 1')], [{ n: 1, slug: 'p' }]), []);
+  const noSources = "p: published with no sources (only a human editor's piece tagged `opinion` may omit them)";
+  assert.deepEqual(findProblems([published('sources: []\nsection: models\nspecimen: 1')], [{ n: 1, slug: 'p' }]), [noSources]);
+  // Opinion is a tag now, and only a human editor's opinion piece may omit sources.
+  const humans = new Set(['wiz-cat']);
+  const signed = published('author: wiz-cat\ntags: [launch, opinion]   # c\nspecimen: 1');
+  assert.deepEqual(signed.tags, ['launch', 'opinion']);
+  assert.deepEqual(findProblems([signed], [{ n: 1, slug: 'p' }], humans), []);
+  // The same piece by a bot or an AI writer, untagged, or with no author list, must cite.
+  for (const fm of ['author: desk-bot\ntags: [opinion]', 'author: mai\ntags: [opinion]', 'author: wiz-cat\ntags: [launch]']) {
+    assert.deepEqual(findProblems([published(`${fm}\nspecimen: 1`)], [{ n: 1, slug: 'p' }], humans), [noSources], fm);
+  }
+  assert.deepEqual(findProblems([signed], [{ n: 1, slug: 'p' }]), [noSources]);
+  // The old section no longer exempts anything, whoever wrote it.
+  assert.deepEqual(findProblems([published('author: wiz-cat\nsection: opinion\nspecimen: 1')], [{ n: 1, slug: 'p' }], humans), [noSources]);
   const crlf = readPost('p', '---\r\npubDate: 2026-09-24T09:00:00Z\r\ndraft: false\r\nspecimen: 4\r\nsources: [{url: u}]\r\n---\r\n');
   assert.equal(crlf.specimen, 4);
   assert.equal(crlf.hasSources, true);
@@ -366,4 +377,23 @@ test('end to end: two branches stamp the same number; the documented repair pass
   git(['add', '-A']);
   git(['commit', '-q', '-m', 'repair']);
   assert.equal(git(['diff', 'HEAD~1', '--', 'ledger.txt']).split('\n').filter((l) => /^-[^-]/.test(l)).length, 0, 'no ledger line removed');
+});
+
+test('only authors marked kind: human are read as human editors; an unreadable file earns nothing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'authors-'));
+  try {
+    writeFileSync(join(dir, 'wiz-cat.md'), '---\nname: Wiz Cat\nkind: human\nbio: b\n---\n');
+    writeFileSync(join(dir, 'mai.md'), '---\nname: Mai\nkind: ai\nbio: b\n---\n');
+    writeFileSync(join(dir, 'desk-bot.md'), '---\nname: Desk Bot\nkind: bot\nbio: b\n---\n');
+    writeFileSync(join(dir, 'broken.md'), '---\nkind: [human\n---\n');
+    writeFileSync(join(dir, 'notes.txt'), 'kind: human');
+    assert.deepEqual([...loadHumanAuthors(dir)], ['wiz-cat']);
+    assert.deepEqual([...loadHumanAuthors(join(dir, 'missing'))], []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the real site: the human editors are exactly the authors marked human', () => {
+  assert.deepEqual([...loadHumanAuthors('src/content/authors')], ['wiz-cat']);
 });

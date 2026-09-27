@@ -3,11 +3,12 @@ title: Welcome to AI Tamer
 description: Why aitamer.news exists — a clean desk for AI news with clear human and bot bylines.
 pubDate: 2026-09-20T00:00:00Z
 specimen: 1
-section: opinion
+section: general
 heroImage: /heroes/welcome-to-aitamer.jpg
 tags:
   - launch
   - editorial
+  - opinion
 draft: false
 author: wiz-cat
 verdict: "Explains why the site exists, how bylines mark AI or human authorship, and that drafts stay unpublished until a human hits publish."

@@ -19,7 +19,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `description` | yes | One-line dek. Used on cards, in RSS, and as the search/social description. |
 | `pubDate` | yes | Publish date. While drafting, a plain date (`2026-09-25`); once published, a full UTC time (`2026-09-25T09:15:12Z`) written by `npm run stamp` (section 4). |
 | `updatedDate` | no | Date of a substantive update. Written by hand, and shown as "Updated …". |
-| `section` | yes | One habitat: `models` `tools` `creative` `infra` `rust` `policy` `opinion` (codes H1–H7, defined in `src/lib/habitats.ts`). The retired values `top`, `image`, `video`, `data` and `databases` fail the build; use `opinion`, `creative`, `creative`, `infra` and `infra`. |
+| `section` | yes | One habitat: `models` `dev` `tools` `devops` `rust` `general` (codes H1–H6, defined in `src/lib/habitats.ts`; ADR 0013). `general` is for policy notes and desk announcements: it has a page but no cell in the navigation, and its posts are read through News. **Deprecated but still accepted:** `creative` (filed as `tools`), `infra` (`devops`), `policy` (`general`), `opinion` (`general`); write the new names. The values retired in 2026-09-25, `top`, `image`, `video`, `data` and `databases`, fail the build. Opinion is a tag now, not a section: tag a signed opinion piece `opinion`. |
 | `subsection` | no | Free text, e.g. `cli`. |
 | `tags` | no | List of lowercase tags. |
 | `draft` | no | `true` keeps the post off the site. Defaults to `false`, so a missing `draft` line means **published**. |
@@ -90,7 +90,7 @@ verdict: "Same price, better agent scores: worth a rerun of your evals."
 
 **The checks refuse a post that breaks the contract.** `npm run check:posts` runs on every pull request and every push to a branch other than `main` (`.github/workflows/check-posts.yml`), and again in the deploy. It fails and names the file when:
 
-- a published post has no time, no specimen number, a number the ledger does not hold, a number another post also carries, or (outside Opinion) no `sources`;
+- a published post has no time, no specimen number, a number the ledger does not hold, a number another post also carries, or no `sources` (only a human editor's piece tagged `opinion` may omit them; bots and AI writers always cite);
 - a post's file name is not a slug or is longer than 120 characters, a post sits in a subfolder of `src/content/posts/`, or it has a `slug:` field;
 - a post's frontmatter is not valid YAML, or `draft` or `specimen` holds something other than what the contract allows;
 - the ledger itself is inconsistent;
@@ -133,7 +133,8 @@ The desk's publisher never pushes to `main` itself: it opens a pull request from
 
 - Its own page: `/posts/<slug>/`, with the byline date linking to its month in the archive.
 - The homepage, newest first.
-- Its habitat: `/section/<section>/`. The old desk pages (`/section/top/`, `/image/`, `/video/`, `/data/`, `/databases/`) redirect to the habitat that absorbed them.
+- Its habitat: `/section/<section>/`. The retired section pages (the old desks `top`, `image`, `video`, `data`, `databases`, and the old habitats `creative`, `infra`, `policy`, `opinion`) redirect to the habitat that absorbed them.
+- News (`/news/`, every post) and, when a human editor or an AI writer wrote it, Columns (`/columns/`).
 - Its author page: `/authors/<author>/`.
 - The archive: `/archive/` → `/archive/<year>/` → `/archive/<year>/<month>/`. Months follow the UTC publish time.
 - `/rss.xml` and the sitemap.
@@ -141,7 +142,7 @@ The desk's publisher never pushes to `main` itself: it opens a pull request from
 ## 7. Checklist before merging
 
 - [ ] File name is the final slug; `heroImage` points to `/heroes/<slug>.jpg`, which exists and is a JPEG.
-- [ ] `author` exists; `section` is one of the seven habitats.
+- [ ] `author` exists; `section` is one of the six habitats (or a deprecated alias).
 - [ ] `draft: false`, and `npm run stamp` has written the time and the specimen number.
 - [ ] The ledger (`src/content/specimen-ledger.txt`) is committed with the post.
 - [ ] `npm test`, `npm run check:posts` and `npm run build` pass locally.

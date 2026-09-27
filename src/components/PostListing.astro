@@ -1,0 +1,46 @@
+---
+/**
+ * One page of a paginated listing (News, Columns): the heading, the cards, and links to the
+ * neighbouring pages. The caller's getStaticPaths does the paginating.
+ */
+import type { Page } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+import PostCard from './PostCard.astro';
+import { withTrailingSlash } from '../lib/listing.ts';
+
+interface Props {
+  page: Page<{ post: CollectionEntry<'posts'>; author: CollectionEntry<'authors'> }>;
+  /** The listing's short name, for the page links' label: "News", "Columns". */
+  name: string;
+  kicker: string;
+  heading: string;
+  lede: string;
+  empty: string;
+}
+
+const { page, name, kicker, heading, lede, empty } = Astro.props;
+// Astro's paginate gives page 1 as "/news"; every other address on the site ends in a slash.
+const prev = page.url.prev && withTrailingSlash(page.url.prev);
+const next = page.url.next && withTrailingSlash(page.url.next);
+---
+<header class="page-head">
+  <p class="page-kicker">{kicker}{page.lastPage > 1 && ` · page ${page.currentPage} of ${page.lastPage}`}</p>
+  <h1 class="page-title">{heading}</h1>
+  <p class="lede">{lede}</p>
+</header>
+{page.data.length === 0 ? (
+  <p class="empty">{empty}</p>
+) : (
+  <ul class="cards listing">
+    {page.data.map(({ post, author }, i) => (
+      <li><PostCard post={post} author={author} heading="h2" showDesc eager={page.currentPage === 1 && i < 3} /></li>
+    ))}
+  </ul>
+)}
+{page.lastPage > 1 && (
+  <nav class="pager" aria-label={`${name} pages`}>
+    {prev ? <a class="pager__link" href={prev} rel="prev">← Newer</a> : <span></span>}
+    <span class="pager__where mono muted">Page {page.currentPage} of {page.lastPage}</span>
+    {next ? <a class="pager__link" href={next} rel="next">Older →</a> : <span></span>}
+  </nav>
+)}

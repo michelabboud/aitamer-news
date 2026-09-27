@@ -242,3 +242,26 @@ test('the published JSON Schema carries comments.closed as a required boolean in
   assert.equal(comments.additionalProperties, false);
   assert.equal(schema.required.includes('comments'), false);
 });
+
+test('the 2026-09-28 sections: new names parse as themselves, the old ones parse to where they folded', () => {
+  const sectionOf = (section: string) => {
+    const result = postSchema.safeParse({ ...validPost, section });
+    assert.ok(result.success, section);
+    return result.data.section;
+  };
+  for (const section of ['models', 'dev', 'tools', 'devops', 'rust', 'general']) assert.equal(sectionOf(section), section);
+  assert.equal(sectionOf('creative'), 'tools');
+  assert.equal(sectionOf('infra'), 'devops');
+  assert.equal(sectionOf('policy'), 'general');
+  assert.equal(sectionOf('opinion'), 'general');
+  assert.equal(postSchema.safeParse({ ...validPost, section: 'news' }).success, false);
+  assert.equal(postSchema.safeParse({ ...validPost, section: 'columns' }).success, false);
+});
+
+test('the published contract still accepts every value it accepted before, and names the new ones', () => {
+  const schema = postFrontmatterJsonSchema() as { 'x-contract-version': number; properties: { section: { enum: string[] } } };
+  const accepted = schema.properties.section.enum;
+  for (const old of ['models', 'tools', 'creative', 'infra', 'rust', 'policy', 'opinion']) assert.ok(accepted.includes(old), old);
+  for (const added of ['dev', 'devops', 'general']) assert.ok(accepted.includes(added), added);
+  assert.equal(schema['x-contract-version'], 1, 'an additive change keeps version 1');
+});

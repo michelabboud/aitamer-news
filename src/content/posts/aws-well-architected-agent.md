@@ -3,7 +3,7 @@ title: "AWS ships a Well-Architected Agent API, and the Rust SDK has it on day o
 description: "AWS's Rust SDK release of September 25 carries the Well-Architected Agent, a generative AI service that reviews an AWS environment and ranks fixes for cost, security, performance and resilience."
 pubDate: 2026-09-27T20:16:14Z
 specimen: 26
-section: infra
+section: devops
 subsection: aws
 tags:
   - aws

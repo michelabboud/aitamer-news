@@ -4,12 +4,11 @@ import { resolveMedia } from './media';
 
 export const SECTION_COVERS: Record<Section, string> = {
   models: '/covers/models.svg',
+  dev: '/covers/dev.svg',
   tools: '/covers/tools.svg',
-  creative: '/covers/creative.svg',
-  infra: '/covers/infra.svg',
+  devops: '/covers/infra.svg',
   rust: '/covers/rust.svg',
-  policy: '/covers/policy.svg',
-  opinion: '/covers/opinion.svg',
+  general: '/covers/policy.svg',
 };
 
 /** Ensure every ALL_SECTIONS entry has a cover path (compile-time sanity). */

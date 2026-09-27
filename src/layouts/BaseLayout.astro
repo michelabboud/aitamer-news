@@ -17,6 +17,8 @@ interface Props {
   noindex?: boolean;
   /** Habitat slug to mark in the habitat nav (desk and story pages). */
   habitat?: string;
+  /** The reading view this page belongs to (News or Columns, ADR 0013), marked in the nav on every page of it. */
+  nav?: 'news' | 'columns';
   /**
    * Home only: the big wordmark, with counts in the habitat nav (the tagline, search and counters
    * live in the home page's right panel). Other pages leave this out
@@ -34,6 +36,7 @@ const {
   ogType = 'website',
   noindex = false,
   habitat: currentHabitat,
+  nav,
   home,
 } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.domain}`;
@@ -48,6 +51,12 @@ function isCurrent(href: string): boolean {
   return path === target;
 }
 const current = (href: string) => (isCurrent(href) ? 'page' : undefined);
+
+/** The two reading views that lead the navigation row, before the topics (ADR 0013). */
+const READING_VIEWS = [
+  { key: 'news', href: '/news/', code: 'Everything', name: 'News' },
+  { key: 'columns', href: '/columns/', code: 'Our writers', name: 'Columns' },
+] as const;
 
 /** The named AI writers lead the station links, each at their own page (ADR 0012). */
 const writerLinks = (await getCollection('authors'))
@@ -158,7 +167,15 @@ const STATION_LINKS = [
         <li class="habitat-nav__all">
           <a href={withBase('/')} aria-current={current('/')}><span class="habitat-nav__name">All</span></a>
         </li>
-        {HABITAT_LIST.map((h) => (
+        {READING_VIEWS.map((view, i) => (
+          <li class:list={['habitat-nav__reading', { 'habitat-nav__reading--last': i === READING_VIEWS.length - 1 }]}>
+            <a href={withBase(view.href)} aria-current={nav === view.key ? 'page' : undefined}>
+              <span class="habitat-nav__code">{view.code}{home && ` · ${home.habitatCounts.get(view.key) ?? 0}`}</span>
+              <span class="habitat-nav__name">{view.name}</span>
+            </a>
+          </li>
+        ))}
+        {HABITAT_LIST.filter((h) => h.inNav).map((h) => (
           <li>
             <a
               href={habitatHref(h)}
