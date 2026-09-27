@@ -165,13 +165,16 @@ function escapeMarkdownLinkText(text: string): string {
   return text.replace(/[[\]]/g, (bracket) => `\\${bracket}`);
 }
 
-/** One `llms.txt` "Latest" line: `- [title](url): description (No. 0012, Habitat)`. */
+/** One `llms.txt` "Latest" line: `- [title](url): description (No. 0012, Habitat; by Name, a bot)`. */
 export function llmsTxtLatestLine(post: FeedPost): string {
   const label =
     post.specimen !== undefined
       ? `No. ${formatSpecimen(post.specimen)}, ${post.habitatLabel}`
       : post.habitatLabel;
-  return `- [${escapeMarkdownLinkText(post.title)}](${post.url}): ${post.description} (${label})`;
+  // The byline, with the author's kind spelled out: the site's promise is that a reader, human or
+  // machine, always knows whether a person, an AI writer or a bot wrote the story.
+  const byline = post.authorName ? `; by ${post.authorName}` : '';
+  return `- [${escapeMarkdownLinkText(post.title)}](${post.url}): ${post.description} (${label}${byline})`;
 }
 
 /** The whole "Latest" section body (one line per post, newline-joined), capped to `limit`. */

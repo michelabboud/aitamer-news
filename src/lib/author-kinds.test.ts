@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { AUTHOR_KINDS, TAMER_RANK, feedAuthorName, isColumnist, isHuman, jsonLdAuthorType, kindLabel, kindRole } from './author-kinds.ts';
+import { AUTHOR_KINDS, TAMER_RANK, feedAuthorName, isColumnist, isHuman, kindNoun, jsonLdAuthorType, kindLabel, kindRole } from './author-kinds.ts';
 
 test('every kind has a label and a role, and only human is a person', () => {
   assert.deepEqual([...AUTHOR_KINDS], ['human', 'bot', 'ai']);
@@ -32,4 +32,8 @@ test('feeds name a non-human author with its kind, since a feed shows no badge',
 
 test('Columns are written by human editors and AI writers, never by bots', () => {
   assert.deepEqual(AUTHOR_KINDS.filter(isColumnist), ['human', 'ai']);
+});
+
+test('every kind reads as a noun phrase for machines, and an AI writer is never called human', () => {
+  assert.deepEqual(AUTHOR_KINDS.map(kindNoun), ['a human editor', 'a bot', 'an AI writer']);
 });
