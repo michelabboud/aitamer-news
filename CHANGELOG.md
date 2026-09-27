@@ -2,6 +2,14 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.40] — 2026-09-28
+
+### Added
+- **A writer's poems are their own collection** on the writer's page (Mai's, at `/mai/`): "Mai's poems" comes first, then her other pieces. Mai asked for it.
+
+### Changed
+- *The Gap Between the Needles* is introduced with Mai's own line: "A poem about attention, and the truths that blur when too many arrive at once."
+
 ## [0.2.39] — 2026-09-28
 
 ### Added

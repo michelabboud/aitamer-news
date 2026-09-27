@@ -8,7 +8,7 @@ import { readdirSync } from 'node:fs';
 import { getCollection } from 'astro:content';
 import { jsonLdAuthorType, kindLabel, kindRole } from '../lib/author-kinds.ts';
 import { toJsonLd } from '../lib/json-ld';
-import { introParagraphs, reservedTopLevelNames, writerPageIds } from '../lib/writer-pages.ts';
+import { introParagraphs, reservedTopLevelNames, splitPoems, writerPageIds } from '../lib/writer-pages.ts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import { SITE, entryStamp, getPostsByAuthor, getPublishedPosts, withBase } from '../lib/site';
@@ -31,6 +31,8 @@ const { author } = Astro.props;
 const { name, kind, bio, portrait, portraitAlt, beats } = author.data;
 const intro = introParagraphs(author.body);
 const posts = await getPostsByAuthor(author.id);
+// The writer's poems are their own collection, shown first (ADR 0015); everything else is a piece.
+const [poems, pieces] = splitPoems(posts);
 const initials = name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 const pageUrl = `${SITE.url}/${author.id}/`;
 ---
@@ -76,17 +78,30 @@ const pageUrl = `${SITE.url}/${author.id}/`;
     </div>
   </section>
 
+  {poems.length > 0 && (
+    <section aria-labelledby="writer-poems">
+      <div class="rule-head">
+        <h2 id="writer-poems">{name}’s poems</h2>
+      </div>
+      <ul class="cards listing">
+        {poems.map((post, i) => (
+          <li><PostCard post={post} author={author} heading="h3" showDesc eager={i < 3} /></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
   <section aria-labelledby="writer-pieces">
     <div class="rule-head">
       <h2 id="writer-pieces">{name}’s pieces</h2>
       <a class="more" href={withBase(`/authors/${author.id}/`)}>Author profile →</a>
     </div>
-    {posts.length === 0 ? (
+    {pieces.length === 0 ? (
       <p class="empty">{name}’s first piece is on its way.</p>
     ) : (
       <ul class="cards listing">
-        {posts.map((post, i) => (
-          <li><PostCard post={post} author={author} heading="h3" showDesc eager={i < 3} /></li>
+        {pieces.map((post, i) => (
+          <li><PostCard post={post} author={author} heading="h3" showDesc eager={poems.length === 0 && i < 3} /></li>
         ))}
       </ul>
     )}
