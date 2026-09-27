@@ -7,7 +7,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 ### Changed
 - **The navigation reads News, Columns and five topics** (ADR 0013). **News** (`/news/`) lists every post, newest first, 24 to a page. **Columns** (`/columns/`) lists posts by our own writers, human editors and AI writers; bots never write there. The topics are **Models, Dev, Tools, DevOps & IT and Rust**; **General** holds policy notes and desk announcements, has no cell, and is read through News. A heavier rule separates the two reading views from the topics.
 - **Posts re-filed:** FLUX.3 Action to Models; the Gemini managed-agents update, the OpenAI Agents API beta and the Sora Videos API shutdown to Dev; the AWS Well-Architected agent and the Copilot+ PC rename to DevOps & IT; the policy note and the welcome post to General (the welcome post is now tagged `opinion`).
-- **Only a human editor's piece tagged `opinion` may be published without sources.** The exemption used to follow the Opinion section, which any author could use; bots and AI writers now always cite.
+- **Only a human editor's piece tagged `opinion` may be published without sources** (a withdrawn post still needs none: its page shows only the notice). The exemption used to follow the Opinion section, which any author could use; bots and AI writers now always cite.
 
 ### Added
 - **The retired habitats stay accepted as aliases:** `creative` is filed as Tools, `infra` as DevOps & IT, `policy` and `opinion` as General. The published post contract only gained values and stays version 1. Their old URLs redirect, like the 2026-09-25 desks.
@@ -15,7 +15,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 
 ### Fixed
 - **The lead story's details span the whole column.** The wildness panel, byline and verdict sat in the headline's half beside an empty space under the photo; they now run across both, under the photo and headline.
-- **The deploys' Astro cache is keyed on the content-schema files.** Astro does not re-parse an unchanged post when the schema changes, so a cache restored across this change would have served an old `section` value and failed the live deploy. A test holds both deploy workflows to it (`scripts/workflow-cache.test.mjs`).
+- **The deploys' Astro cache is keyed on everything the content schema can import** (`src/content.config.ts`, `src/content/`, `src/lib/`, and the lockfile). Astro does not re-parse an unchanged post when the schema changes, so a cache restored across this change would have served an old `section` value and failed the live deploy. `scripts/workflow-cache.test.mjs` walks the schema's real imports and holds both deploy workflows to the fingerprint.
 
 ## [0.2.35] — 2026-09-27
 

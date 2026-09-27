@@ -342,7 +342,7 @@ export function findProblems(posts, ledger, humanAuthors = new Set()) {
       problems.push(`${post.slug}: published but has no specimen number (run \`npm run stamp\`)`);
     }
     if (!post.hasSources && !post.withdrawn && !isSignedOpinion(post, humanAuthors)) {
-      problems.push(`${post.slug}: published with no sources (only a human editor's piece tagged \`opinion\` may omit them)`);
+      problems.push(`${post.slug}: published with no sources (only a human editor's piece tagged \`opinion\` may omit them; a withdrawn post needs none)`);
     }
   }
   return problems;

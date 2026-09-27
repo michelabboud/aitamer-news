@@ -12,8 +12,8 @@ The site had seven habitats: Models, Tools, Creative, Infra, Rust, Policy and Op
 2. **"Columns", not "Opinions".** Our writers publish analysis and explainers with sources, and the site's promise is verified versus claimed; calling that work "opinion" would undercut it. Opinion becomes a tag.
 3. **Five topic habitats, plus General:** Models, Dev, Tools, DevOps & IT, Rust. Models stays: it held 11 of 29 posts. `general` holds what fits no topic (policy notes, desk announcements); it has a page but no navigation cell, and its posts are read through News.
 4. **The retired habitats stay accepted as frontmatter aliases:** `creative` → tools, `infra` → devops, `policy` → general, `opinion` → general (`SECTION_ALIASES`). Parsing maps them, so the site only ever sees a habitat. The published contract only gained values and stays version 1. Their old URLs redirect (`LEGACY_SECTIONS`, `public/_redirects`).
-5. **Only a human editor's piece tagged `opinion` may omit sources.** The exemption used to follow the Opinion section, which any author could use; now bots and AI writers always cite.
-6. **The deploys' Astro cache is keyed on the content-schema files.** Astro does not re-parse an unchanged post when the schema changes, so a cache restored across this change kept an old `section` value and failed the build.
+5. **Only a human editor's piece tagged `opinion` may omit sources**, besides a withdrawn post, whose page shows only the withdrawal notice and makes no claim. The exemption used to follow the Opinion section, which any author could use; now bots and AI writers always cite.
+6. **The deploys' Astro cache is keyed on everything the content schema can import** (`src/content.config.ts`, `src/content/`, `src/lib/`, and the lockfile). Astro does not re-parse an unchanged post when the schema changes, so a cache restored across this change kept an old `section` value and failed the build. The first cut named four files by hand and missed the comment and reaction schemas and `wildness.ts` (Ari's review, 2026-09-28); the test now walks the schema's real imports.
 
 ## Alternatives rejected
 

@@ -72,7 +72,7 @@ test('check finds missing, duplicate, unledgered and mismatched numbers, and mis
   assert.match(problems, /dup-b: specimen 1 is also on dup-a/);
   assert.match(problems, /dup-b: specimen 1 belongs to dup-a/);
   assert.match(problems, /unledgered: specimen 9 is not in the ledger/);
-  assert.match(problems, /no-sources: published with no sources \(only a human editor.s piece tagged `opinion` may omit them\)/);
+  assert.match(problems, /no-sources: published with no sources \(only a human editor.s piece tagged `opinion` may omit them; a withdrawn post needs none\)/);
   assert.doesNotMatch(problems, /opinion-ok|draft-ok/);
 });
 
@@ -134,7 +134,7 @@ test('comments, True, flow and unindented lists, sources: [], CRLF and BOM mean 
   assert.equal(published('sources: [{title: a, url: https://a.example}]').hasSources, true);
   assert.equal(published('sources:\n- title: a\n  url: https://a.example').hasSources, true);
   assert.equal(published('sources: []').hasSources, false);
-  const noSources = "p: published with no sources (only a human editor's piece tagged `opinion` may omit them)";
+  const noSources = "p: published with no sources (only a human editor's piece tagged `opinion` may omit them; a withdrawn post needs none)";
   assert.deepEqual(findProblems([published('sources: []\nsection: models\nspecimen: 1')], [{ n: 1, slug: 'p' }]), [noSources]);
   // Opinion is a tag now, and only a human editor's opinion piece may omit sources.
   const humans = new Set(['wiz-cat']);
@@ -146,6 +146,8 @@ test('comments, True, flow and unindented lists, sources: [], CRLF and BOM mean 
     assert.deepEqual(findProblems([published(`${fm}\nspecimen: 1`)], [{ n: 1, slug: 'p' }], humans), [noSources], fm);
   }
   assert.deepEqual(findProblems([signed], [{ n: 1, slug: 'p' }]), [noSources]);
+  // A withdrawn post shows only its notice, so it needs no sources, whoever wrote it.
+  assert.deepEqual(findProblems([published('author: desk-bot\nwithdrawn: {date: 2026-09-28, reason: r}\nspecimen: 1')], [{ n: 1, slug: 'p' }], humans), []);
   // The old section no longer exempts anything, whoever wrote it.
   assert.deepEqual(findProblems([published('author: wiz-cat\nsection: opinion\nspecimen: 1')], [{ n: 1, slug: 'p' }], humans), [noSources]);
   const crlf = readPost('p', '---\r\npubDate: 2026-09-24T09:00:00Z\r\ndraft: false\r\nspecimen: 4\r\nsources: [{url: u}]\r\n---\r\n');
