@@ -56,3 +56,8 @@ jobs:
       # (SECURITY.md, "Content-Security-Policy"): a change that adds one fails here, not on main.
       - name: Check the Content-Security-Policy against the build
         run: npm run check:csp
+
+      # Every internal link on every page leads to a page, a file or a redirect the site serves:
+      # a link to a renamed page fails its pull request, not the deploy of main.
+      - name: Check every internal link leads somewhere
+        run: npm run check:links
