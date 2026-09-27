@@ -27,6 +27,19 @@ export function kindRole(kind: AuthorKind): string {
   return ROLES[kind];
 }
 
+/** The schema.org type of an author in JSON-LD: only a human is a `Person` (ADR 0011). */
+export function jsonLdAuthorType(kind: AuthorKind): 'Person' | 'Organization' {
+  return isHuman(kind) ? 'Person' : 'Organization';
+}
+
+/**
+ * An author's name as machines outside the site show it (RSS, JSON Feed), where no badge appears:
+ * a non-human author carries its kind, "Mai (AI writer)", so a feed reader is told too.
+ */
+export function feedAuthorName(name: string, kind: AuthorKind): string {
+  return isHuman(kind) ? name : `${name} (${kindLabel(kind)})`;
+}
+
 /** Whether an author is a person. Everything else is a machine author, and says so. */
 export function isHuman(kind: AuthorKind): boolean {
   return kind === 'human';

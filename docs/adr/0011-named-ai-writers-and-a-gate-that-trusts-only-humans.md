@@ -23,7 +23,9 @@ The rendered-body gate (ADR 0009) checked only posts whose author was marked `ki
 
 - Any post by Mai is plain Markdown only and passes the same allowlist as a bot post. She also goes through the same fact, legal and human-publication steps (her own terms, 2026-09-27).
 - The gate's precondition is now "at least one machine author exists", not "at least one bot exists".
-- A new kind needs a label, a role and a rank in `author-kinds.ts`. The type system refuses a kind that lacks any of them.
+- A new kind needs a label, a role and a rank in `author-kinds.ts`. The type system refuses a kind that lacks any of them. The homepage counts and the CSS colour classes (`tag--`, `by--`, `tamer__avatar--`) are not forced, so a fourth kind must add those by hand.
+- Feeds (RSS, JSON Feed) name a non-human author with its kind, for example "Mai (AI writer)", because a feed shows no badge. JSON-LD uses `jsonLdAuthorType`. Both are tested.
+- An author file may not set `slug:`. Astro would take the entry's id from it, so a machine author could take a human's id and be trusted. The gate refuses such a file.
 
 ## Status
 

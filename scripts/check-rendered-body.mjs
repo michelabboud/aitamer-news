@@ -3,7 +3,7 @@
  * Render a post exactly as the site does and check the HTML against the exact allowlist in
  * `./rendered-body-allowlist.mjs` (ADR 0009, `SECURITY.md` "Bot posts").
  *
- *   node scripts/check-rendered-body.mjs                 the build gate: every post whose author is a bot
+ *   node scripts/check-rendered-body.mjs                 the build gate: every post whose author is a machine author (not kind: human)
  *   node scripts/check-rendered-body.mjs <file>...       these post files, whoever wrote them
  *   node scripts/check-rendered-body.mjs --all           every post (a report; human posts are not gated)
  *   node scripts/check-rendered-body.mjs --stdin [--name <slug>.md]   one post file on standard input
@@ -455,6 +455,25 @@ export async function checkPostFiles(files, options = {}) {
 }
 
 /**
+ * Author files that set a `slug:` field. Astro's glob loader takes an entry's id from `slug` when
+ * there is one, so `evil.md` marked `kind: bot` with `slug: wiz-cat` would share the human
+ * `wiz-cat`'s id, and the gate, which reads kinds by file name, would trust its posts. Refusing the
+ * field keeps every author's id equal to its file name (review of PR #29, finding I1).
+ * @param {string} [root] @returns {string[]} absolute paths
+ */
+export function authorFilesWithSlug(root = SITE_ROOT) {
+  const dir = join(root, AUTHORS_DIR);
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const ext = extname(name);
+    if (ext !== '.md' && ext !== '.mdx') continue;
+    const front = readFrontmatter(readFileSync(join(dir, name), 'utf8'));
+    if (front?.data && Object.hasOwn(front.data, 'slug')) out.push(join(dir, name));
+  }
+  return out.sort();
+}
+
+/**
  * The gate's own precondition: at least one author is a machine author (not `kind: human`). With none, the gate would
  * check nothing and pass, which is exactly how a renamed field or a moved directory would switch it
  * off. So an empty bot set is a finding, not an empty pass.
@@ -467,12 +486,14 @@ export function botSetProblems(root = SITE_ROOT) {
   } catch (error) {
     return [{ file: join(root, AUTHORS_DIR), findings: [postFinding(`cannot read the authors: ${error.message}`)], excused: [] }];
   }
+  const slugged = authorFilesWithSlug(root);
+  if (slugged.length) return slugged.map((file) => ({ file, findings: [postFinding('an author file may not set slug: an author\'s id must be its file name, or a machine author could take a human\'s id (ADR 0011)')], excused: [] }));
   if (bots.size) return [];
   return [{ file: join(root, AUTHORS_DIR), findings: [postFinding(`no machine author (no author marked other than kind: ${HUMAN_AUTHOR_KIND}), so the gate would check nothing`)], excused: [] }];
 }
 
 /**
- * The posts the build gates: every post whose author is a bot.
+ * The posts the build gates: every post whose author is a machine author (not `kind: human`).
  * @param {string} [root] @returns {string[]}
  */
 export function gatedPostFiles(root = SITE_ROOT) {
@@ -705,7 +726,7 @@ export async function main(argv) {
     // The gate and the full report also refuse a grandfather entry that no longer matches its file.
     if (!args.length) results = mergeResults(botProblems, results, botProblems.length ? [] : staleGrandfatherEntries());
     results = results.map((r) => ({ ...r, file: relative(process.cwd(), r.file) || r.file }));
-    scope = args.length ? `${files.length} post file(s)` : all ? `all ${files.length} posts` : `${files.length} bot-authored post(s)`;
+    scope = args.length ? `${files.length} post file(s)` : all ? `all ${files.length} posts` : `${files.length} machine-authored post(s)`;
   }
 
   const failed = results.filter((r) => r.findings.length);

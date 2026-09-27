@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { AUTHOR_KINDS, TAMER_RANK, isHuman, kindLabel, kindRole } from './author-kinds.ts';
+import { AUTHOR_KINDS, TAMER_RANK, feedAuthorName, isHuman, jsonLdAuthorType, kindLabel, kindRole } from './author-kinds.ts';
 
 test('every kind has a label and a role, and only human is a person', () => {
   assert.deepEqual([...AUTHOR_KINDS], ['human', 'bot', 'ai']);
@@ -18,4 +18,14 @@ test('the Tamers order is a strict ranking over every kind: humans, AI writers, 
   const ranked = [...AUTHOR_KINDS].sort((a, b) => TAMER_RANK[a] - TAMER_RANK[b]);
   assert.deepEqual(ranked, ['human', 'ai', 'bot']);
   assert.equal(new Set(Object.values(TAMER_RANK)).size, AUTHOR_KINDS.length);
+});
+
+test('only a human is a JSON-LD Person; an AI writer and a bot are Organizations', () => {
+  assert.deepEqual(AUTHOR_KINDS.map(jsonLdAuthorType), ['Person', 'Organization', 'Organization']);
+});
+
+test('feeds name a non-human author with its kind, since a feed shows no badge', () => {
+  assert.equal(feedAuthorName('Mai', 'ai'), 'Mai (AI writer)');
+  assert.equal(feedAuthorName('Desk Bot', 'bot'), 'Desk Bot (Bot)');
+  assert.equal(feedAuthorName('Wiz Cat', 'human'), 'Wiz Cat');
 });
