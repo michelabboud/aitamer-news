@@ -5,3 +5,10 @@
 # nothing else gets this rule.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+# Preview deployments (<id>.<project>.pages.dev, <branch>.<project>.pages.dev) stay out of search
+# results; aitamer.news never matches these, and the deploy's smoke test fails production if it ever
+# carries noindex (docs/adr/0014-verified-deploys.md).
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
+https://:version.:project.pages.dev/*
+  X-Robots-Tag: noindex

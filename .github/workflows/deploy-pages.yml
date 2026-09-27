@@ -1,19 +1,60 @@
 name: Deploy Cloudflare Pages
 
+# Every deploy is verified before and after it goes live (docs/adr/0014-verified-deploys.md):
+#   1. `settle` waits after a merge, so a burst of merges becomes one deploy of the last of them;
+#   2. `deploy` runs every check on the merged commit, uploads it as a preview first and smoke-tests
+#      the preview, then deploys production and smoke-tests aitamer.news, and rolls production back
+#      to the deployment that was live before if that last check fails.
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
-concurrency:
-  group: pages-production
-  cancel-in-progress: true
+    inputs:
+      wait:
+        description: "Wait the settle time first, as a merge does"
+        type: boolean
+        default: false
 
 jobs:
-  deploy:
+  settle:
     runs-on: ubuntu-latest
+    permissions: {}
+    # A newer run cancels an older one still waiting here: that is the whole debounce. Nothing else
+    # happens in this job, so cancelling it never interrupts a deploy.
+    concurrency:
+      group: pages-settle
+      cancel-in-progress: true
+    steps:
+      - name: Wait for more merges
+        if: github.event_name == 'push' || inputs.wait
+        env:
+          # Repository variable DEPLOY_SETTLE_SECONDS, 0 to 3600; 60 when unset.
+          SETTLE: ${{ vars.DEPLOY_SETTLE_SECONDS || '60' }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$SETTLE" =~ ^[0-9]+$ ]] || [ "$SETTLE" -gt 3600 ]; then
+            echo "::error::DEPLOY_SETTLE_SECONDS must be a whole number of seconds from 0 to 3600"
+            exit 1
+          fi
+          echo "Waiting ${SETTLE}s; a newer merge in that time replaces this run."
+          sleep "$SETTLE"
+
+  deploy:
+    needs: settle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
+    # Never cancelled once started: a deploy stopped between going live and its check, or midway
+    # through a rollback, would leave production unverified. A newer run waits here instead, and
+    # GitHub keeps only the newest waiting one.
+    concurrency:
+      group: pages-production
+      cancel-in-progress: false
+    env:
+      PAGES_PROJECT: aitamer-news
+      SITE_URL: https://aitamer.news
     steps:
       - name: Checkout
         # Pinned to a commit, like the deploy action: this job goes on to hold the Cloudflare token.
@@ -134,7 +175,34 @@ jobs:
       - name: Check the deploy fits the file budget
         run: npm run check:files
 
+      - name: Check every internal link leads somewhere
+        run: npm run check:links
+
+      - name: Record the live deployment (the rollback target)
+        id: live
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/pages-api.mjs live
+
+      - name: Deploy a preview (not live)
+        id: preview
+        # Pinned to a commit: this step receives the Cloudflare API token. Any branch other than
+        # main is a Pages preview: its own address under pages.dev, which nobody is sent to.
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.139.0"
+          command: pages deploy dist --project-name=aitamer-news --branch=deploy-candidate
+
+      - name: Smoke-test the preview
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.deployment-url }}
+        run: node scripts/smoke-site.mjs --base "$PREVIEW_URL" --expect preview
+
       - name: Deploy to Cloudflare Pages
+        id: production
         # Pinned to a commit: this step receives the Cloudflare API token.
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
@@ -142,3 +210,33 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.139.0"
           command: pages deploy dist --project-name=aitamer-news --branch=main
+
+      - name: Smoke-test production
+        run: node scripts/smoke-site.mjs --base "$SITE_URL" --expect production
+
+      - name: Roll production back
+        # Only when this run put a deployment live and the check after it failed. The job still
+        # fails, so the failure is seen; the rollback only shortens how long readers see it.
+        if: failure() && steps.production.outcome == 'success' && steps.live.outputs.deployment-id != ''
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TARGET: ${{ steps.live.outputs.deployment-id }}
+        run: |
+          node scripts/pages-api.mjs rollback "$TARGET"
+          echo "::error::production failed its check after going live and was rolled back to deployment $TARGET"
+
+      - name: Summary
+        if: always()
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.deployment-url }}
+          LIVE_BEFORE: ${{ steps.live.outputs.deployment-id }}
+          DEPLOYED: ${{ steps.production.outputs.pages-deployment-id }}
+          OUTCOME: ${{ job.status }}
+        run: |
+          {
+            echo "### Deploy of ${GITHUB_SHA::7}: ${OUTCOME}"
+            echo "- live before: ${LIVE_BEFORE:-none recorded}"
+            echo "- preview: ${PREVIEW_URL:-not deployed}"
+            echo "- production deployment: ${DEPLOYED:-not deployed}"
+          } >> "$GITHUB_STEP_SUMMARY"

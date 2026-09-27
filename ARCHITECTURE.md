@@ -30,7 +30,7 @@ Only `src/pages/` and `public/` reach the published `dist/`. Repository document
 
 | Destination | Workflow | Build settings |
 |---|---|---|
-| https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` — runs `npm test` and `check:posts`, builds, runs `check:dist`, uploads `dist/` | defaults: site `https://aitamer.news`, base `/` |
+| https://aitamer.news (Cloudflare Pages, project `aitamer-news`) | `.github/workflows/deploy-pages.yml` — waits for merges to settle, runs `npm test` and `check:posts`, builds, runs the build checks and `check:links`, uploads a preview and smoke-tests it (`scripts/smoke-site.mjs`), deploys production, smoke-tests it and rolls back through the Pages API on failure (`scripts/pages-api.mjs`; ADR 0014) | defaults: site `https://aitamer.news`, base `/` |
 | https://contact.aitamer.news/ (contact Worker `aitamer-contact`) | `.github/workflows/deploy-contact-worker.yml`, only when `workers/contact/**` changes | `workers/contact/wrangler.toml` |
 
 Both trigger on a push to `main`. Google Analytics loads only on the main domain.
