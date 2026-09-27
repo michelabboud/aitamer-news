@@ -14,6 +14,15 @@ const authors = defineCollection({
     kind: z.enum(AUTHOR_KINDS),
     bio: z.string(),
     avatar: z.string().optional(),
+    /**
+     * A named AI writer's own page (`/<id>/`, ADR 0012): a tall portrait and its alt text, both
+     * or neither, and the beats they cover. The file's body is their self-introduction.
+     */
+    portrait: z.string().regex(/^\/authors\/[a-z0-9-]+\.(jpg|png|webp)$/).optional(),
+    portraitAlt: z.string().min(1).optional(),
+    beats: z.array(z.string().min(1)).optional(),
+  }).refine((a) => (a.portrait === undefined) === (a.portraitAlt === undefined), {
+    message: 'portrait and portraitAlt go together: a portrait needs its alt text',
   }),
 });
 

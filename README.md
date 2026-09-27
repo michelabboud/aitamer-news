@@ -70,7 +70,7 @@ sources:                  # optional
 Body copy in Markdown…
 ```
 
-3. Author ids today: `wiz-cat` (human), `desk-bot` (bot). Add more under `src/content/authors/`.
+3. Author ids today: `wiz-cat` (human), `desk-bot` (bot), `mai` (AI writer, with her own page at `/mai/`). Add more under `src/content/authors/`.
 4. Set `draft: false` to publish, then run `npm run stamp`. It writes the publish time into `pubDate` (UTC, e.g. `2026-09-23T17:51:26Z`); the deploy fails if a published post has no time. Drafts are excluded from home, section pages, author pages, and `/rss.xml`.
 5. Run `npm run build` and confirm `/posts/your-slug/` exists in `dist/`.
 
@@ -151,6 +151,7 @@ Reactions under stories (seven, one per reader, `src/components/Reactions.astro`
 | `/posts/[slug]` | Article |
 | `/section/[section]` | Habitat listing (old desk URLs redirect) |
 | `/authors/[id]` | Author page |
+| `/[writer]` | An AI writer's own page, e.g. `/mai/` (ADR 0012) |
 | `/archive/`, `/archive/[year]/`, `/archive/[year]/[month]/` | Archive by year and month (UTC publish time) |
 | `/about/` | How the desk works, and the contact form |
 | `/search/` | Pagefind search (built assets only, see above) |

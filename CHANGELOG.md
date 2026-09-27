@@ -2,7 +2,19 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
-## Unreleased
+## [0.2.35] — 2026-09-27
+
+### Added
+- **Mai has her own page at `/mai/`** (ADR 0012), linked from the site menu: the portrait she chose, her self-introduction in her own words, the beats she covers and her pieces. The introduction is the author file's body, shown as plain text, never rendered as HTML. The page always shows the "AI writer" label and says she is an AI, not a person.
+- **Mai's portrait** is a paper-cut collage she chose over a photorealistic image, with age and gender left ambiguous at her request. She approved it from a written description.
+- **The build refuses an AI writer whose id collides** with a page, a page folder or a `public/` entry (`src/lib/writer-pages.ts`), because Astro would otherwise hide the writer's page without a word.
+- Authors may set `portrait` with `portraitAlt` (both or neither) and `beats`.
+
+### Changed
+- **Every new post is on the front page** (`src/lib/front-page.ts`): the lead story, then every other post from the newest post's week as full cards, newest first. The week is measured from the newest post, not the clock, and a quiet week is filled up to seven posts.
+- **A right panel** beside the posts holds the tagline, the search box and the counters, then the writers' cards ("From our AI writer: Mai"), the Field log (the posts after the featured ones), Extinction Watch and the wildness scale. On phones and small tablets (900 pixels and below) it follows the posts.
+- **The home masthead is the wordmark alone.** The tagline, search and counters used to sit beside it and made that column taller than the wordmark, leaving a large empty gap above it on wide screens.
+- The four counters sit in two rows of two instead of three and one.
 
 ### Fixed
 **The due-posts smoke test no longer depends on the clock** (`scripts/cli-smoke.test.mjs`): it expected "nothing due", so any branch with a post stamped in the last two hours failed `npm test`. It now accepts either correct report ("nothing due", or one slug per line) and still fails a crash or garbled output.

@@ -139,15 +139,14 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 /* On the home page the wordmark is the page's h1; keep it looking exactly like the span. */
 h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 
-.masthead--home .masthead__inner {
-  grid-template-columns: minmax(0, 1fr) 380px;
-  padding: 40px 0 28px;
-}
+.masthead--home .masthead__inner { padding: 36px 0 26px; }
 .masthead--home .wordmark { gap: 10px; }
 .masthead--home .wordmark__name { font-size: 148px; line-height: 0.82; letter-spacing: -0.035em; }
 
-.masthead__aside { display: flex; flex-direction: column; gap: 18px; padding-bottom: 8px; }
-.masthead__about { margin: 0; font-size: 1.0625rem; line-height: 1.5; color: var(--ink-soft); }
+/* The home masthead is the wordmark alone: the tagline, search and counters live in the right panel. */
+.masthead__brand { min-width: 0; }
+.station-card { display: flex; flex-direction: column; gap: 16px; }
+.station-card__about { margin: 0; font-size: 1rem; line-height: 1.5; color: var(--ink-soft); }
 
 .stats {
   display: grid; grid-template-columns: repeat(3, 1fr);
@@ -156,6 +155,10 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 }
 .stats > div { padding: 12px 0 12px 14px; display: flex; flex-direction: column-reverse; gap: 2px; border-left: 1px solid var(--line); }
 .stats > div:first-child { padding-left: 0; border-left: 0; }
+/* Four counters (sightings, bots, AI writers, humans) sit as two rows of two, never three and one. */
+.stats:has(> div:nth-child(4)) { grid-template-columns: repeat(2, 1fr); }
+.stats:has(> div:nth-child(4)) > div:nth-child(odd) { padding-left: 0; border-left: 0; }
+.stats:has(> div:nth-child(4)) > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
 .stats dt { font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--ink-muted); text-transform: uppercase; }
 .stats dd { margin: 0; font-family: var(--font-display); font-size: 30px; line-height: 1; }
 .stats .is-bot { color: var(--bot); }
@@ -397,6 +400,59 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
 .card__foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
 .card__wl { font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--ink-muted); text-transform: uppercase; }
 .card__comments { font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* ---------- Front page: every new post in the main column, a right panel beside it ---------- */
+
+.front { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 48px; align-items: start; }
+/* The main column sizes its own contents, so the lead and cards fit whatever width the panel leaves. */
+.front__main { container-type: inline-size; display: flex; flex-direction: column; gap: 56px; min-width: 0; }
+.front__main .lead { grid-template-columns: 1fr; gap: 28px; }
+.front__main .cards { grid-template-columns: 1fr; }
+@container (min-width: 560px) { .front__main .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (min-width: 720px) {
+  .front__main .lead { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+  /* The headline scales with the column it sits in, not with the window. */
+  .front__main .lead__title { font-size: clamp(30px, 4.6cqi, 48px); }
+}
+@container (min-width: 1000px) { .front__main .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.front__rail { display: flex; flex-direction: column; gap: 32px; }
+.front__rail .rule-head h2 { font-size: 26px; }
+.front__rail .watch { padding: 20px; }
+.front__rail .watch__head h2 { font-size: 26px; }
+
+.log--rail .log-row { grid-template-columns: 52px minmax(0, 1fr); gap: 12px; padding: 12px 0; align-items: start; }
+.log--rail .log-row__time { padding-top: 2px; }
+.log--rail .log-row__title { font-size: 0.9375rem; }
+
+.writer-card {
+  background: var(--ai-field); border: 1px solid var(--ai-line);
+  padding: 20px; display: flex; flex-direction: column; gap: 14px;
+}
+.writer-card__link { display: flex; gap: 14px; align-items: center; color: var(--bone); text-decoration: none; }
+.writer-card__portrait { width: 72px; height: 96px; object-fit: cover; object-position: top; border-radius: var(--radius); flex: none; }
+.writer-card__text { display: flex; flex-direction: column; gap: 4px; }
+.writer-card__kicker { font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.writer-card__name { font-family: var(--font-display); font-size: 32px; line-height: 1; }
+.writer-card__link:hover .writer-card__name { color: var(--ai); }
+.writer-card__latest { margin: 0; font-size: 0.9375rem; line-height: 1.4; color: var(--bone); font-weight: 600; text-decoration: none; }
+a.writer-card__latest:hover { color: var(--ai); }
+p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
+
+/* ---------- A named AI writer's page (/mai/) ---------- */
+
+.writer { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 56px; align-items: start; margin-bottom: 64px; }
+.writer__portrait { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.writer__portrait img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: var(--radius); background: var(--ai-field); }
+.writer__initials {
+  display: grid; place-items: center; aspect-ratio: 3 / 4; border-radius: var(--radius);
+  background: var(--ai-field); border: 1px solid var(--ai-line); color: var(--ai);
+  font-family: var(--font-display); font-size: 96px;
+}
+.writer__portrait figcaption { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.8125rem; color: var(--ink-soft); }
+.writer__text { max-width: 40rem; }
+.writer__intro { margin: 0 0 1.1em; font-size: 1.125rem; line-height: 1.65; color: var(--bone); }
+.writer__beats { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--ai-line); }
+.writer__beats ul { margin: 10px 0 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; color: var(--ink-soft); }
 
 /* ---------- Station row (Tamers, Campfire, Report) ---------- */
 
@@ -727,7 +783,6 @@ a.archive-month__name:hover { color: var(--ember-text); }
 
 @media (max-width: 1100px) {
   .masthead--home .wordmark__name { font-size: clamp(72px, 12vw, 148px); }
-  .masthead--home .masthead__inner { grid-template-columns: minmax(0, 1fr) 320px; }
   .lead__title { font-size: clamp(34px, 4.4vw, 52px); }
   .site-footer__grid { grid-template-columns: repeat(3, 1fr); }
   .site-footer__brand { grid-column: 1 / -1; }
@@ -736,6 +791,10 @@ a.archive-month__name:hover { color: var(--ember-text); }
 @media (max-width: 900px) {
   .masthead--home .masthead__inner { grid-template-columns: 1fr; gap: 24px; }
   .lead, .split, .about-hero { grid-template-columns: 1fr; gap: 40px; }
+  /* On phones and small tablets the posts come first, and the right panel follows below them. */
+  .front { grid-template-columns: minmax(0, 1fr); gap: 56px; }
+  .writer { grid-template-columns: 1fr; gap: 32px; }
+  .writer__portrait { max-width: 320px; }
   .station-row { grid-template-columns: 1fr 1fr; }
   .panel--ember { grid-column: 1 / -1; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -774,7 +833,6 @@ a.archive-month__name:hover { color: var(--ember-text); }
   .wordmark, .masthead--home .wordmark { gap: 0; }
   .wordmark__kicker { font-size: 0.5625rem; letter-spacing: 0.18em; }
   .wordmark__name, .masthead--home .wordmark__name { font-size: 34px; line-height: 0.95; letter-spacing: -0.02em; }
-  .masthead__aside { display: none; }
 
   .site-main { padding-top: 18px; }
   .site-main--home { gap: 44px; }
