@@ -159,6 +159,7 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 .stats dt { font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--ink-muted); text-transform: uppercase; }
 .stats dd { margin: 0; font-family: var(--font-display); font-size: 30px; line-height: 1; }
 .stats .is-bot { color: var(--bot); }
+.stats .is-ai { color: var(--ai); }
 .stats .is-human { color: var(--human); }
 
 /* Phone menu: holds the station links. Hidden on wide screens. */
@@ -243,11 +244,13 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
   text-transform: uppercase; padding: 5px 8px; border-radius: var(--radius);
 }
 .tag--bot { background: var(--bot-field); color: var(--bot); }
+.tag--ai { background: var(--ai-field); color: var(--ai); }
 .tag--human { background: var(--human-field); color: var(--human); }
 .tag--plain { background: transparent; color: var(--ink-muted); border: 1px solid var(--line-strong); font-weight: 500; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 
 .by--bot { color: var(--bot); }
+.by--ai { color: var(--ai); }
 .by--human { color: var(--human); }
 
 /* ---------- Wildness meter ---------- */
@@ -412,6 +415,7 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
   font-family: var(--font-machine); font-size: 0.75rem;
 }
 .tamer__avatar--bot { background: var(--bot-field); border: 1px solid var(--bot-line); color: var(--bot); }
+.tamer__avatar--ai { background: var(--ai-field); border: 1px solid var(--ai-line); color: var(--ai); }
 .tamer__avatar--human { background: var(--human-field); border: 1px solid var(--human-line); color: var(--human); }
 .tamer__text { display: flex; flex-direction: column; }
 .tamer__name { font-family: var(--font-display); font-size: 20px; }

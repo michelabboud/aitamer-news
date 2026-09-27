@@ -1,4 +1,5 @@
 import type { APIContext } from 'astro';
+import { feedAuthorName } from '../lib/author-kinds.ts';
 import { FEED_LIMIT, buildJsonFeed, takeNewest, type FeedPost } from '../lib/feeds';
 import {
   SECTION_LABELS,
@@ -35,7 +36,7 @@ export async function GET(_context: APIContext) {
         habitat: section,
         habitatLabel: SECTION_LABELS[section],
         tags: post.data.tags,
-        authorName: author?.data.name,
+        authorName: author ? feedAuthorName(author.data.name, author.data.kind) : undefined,
         imageUrl: absoluteHeroImageUrl(post.data.heroImage),
         specimen: post.data.specimen,
         wildness: post.data.wildness,

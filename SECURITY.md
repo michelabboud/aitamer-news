@@ -26,7 +26,7 @@ Posts are written by the desk's own bots, the posts tool and editors, all truste
 
 ## Bot posts: the rendered-body gate
 
-Bots write post bodies from untrusted web content, so a bot post gets a check a human post does not. The build renders every post whose `author` is a bot (an author file under `src/content/authors/` with `kind: bot`; `desk-bot` today) with the site's own Markdown pipeline, and checks the **rendered HTML** against an exact allowlist (`scripts/check-rendered-body.mjs`, `scripts/rendered-body-allowlist.mjs`; ADR 0009):
+Bots write post bodies from untrusted web content, so a bot post gets a check a human post does not. The build renders every post whose `author` is a machine author, meaning any author file under `src/content/authors/` not marked `kind: human`. Today that is `desk-bot` (`kind: bot`) and the AI writer `mai` (`kind: ai`); an author with a missing or unknown kind counts as a machine too, so a new kind can never slip past the gate (ADR 0011). The gate renders each such post with the site's own Markdown pipeline, and checks the **rendered HTML** against an exact allowlist (`scripts/check-rendered-body.mjs`, `scripts/rendered-body-allowlist.mjs`; ADR 0009):
 
 - only the elements Markdown produces, each with only the attributes and value shapes the site's renderer writes (Shiki's code blocks for the pinned theme, footnotes, task lists, table alignment); anything else, raw HTML included, is refused;
 - links: `http`, `https`, `mailto`, a `/path` or a `#fragment`, judged after the HTML parser decodes entities, never protocol-relative, never with a user name or password;
