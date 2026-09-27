@@ -26,3 +26,7 @@
 0023 openai-medicare-eval-agent-au
 0024 codex-cli-0-156
 0025 openai-agents-api-public-beta
+0026 aws-well-architected-agent
+0027 copilot-plus-pc-brand-retired
+0028 gemini-managed-agents-09-2026-update
+0029 qwen-audio-3-1-price-cuts
