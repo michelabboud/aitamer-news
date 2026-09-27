@@ -309,9 +309,14 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 
 /* ---------- Lead (Latest catch) ---------- */
 
-.lead {
-  display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 48px; align-items: center;
+/* The lead story: photo and headline side by side, the details (wildness, verdict) across both. */
+.lead__story {
+  display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  grid-template-areas: "photo body" "details details"; gap: 28px 48px; align-items: start;
 }
+.lead__story > .lead__photo-link { grid-area: photo; }
+.lead__story > .lead__body { grid-area: body; }
+.lead__story > .lead__details { grid-area: details; display: flex; flex-direction: column; gap: 18px; }
 .lead__photo-link { display: block; }
 .lead__body { display: flex; flex-direction: column; gap: 18px; }
 .lead__kicker { display: flex; gap: 10px; align-items: center; font-family: var(--font-machine); font-size: 0.6875rem; letter-spacing: 0.08em; }
@@ -408,11 +413,11 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
 .front { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 48px; align-items: start; }
 /* The main column sizes its own contents, so the lead and cards fit whatever width the panel leaves. */
 .front__main { container-type: inline-size; display: flex; flex-direction: column; gap: 56px; min-width: 0; }
-.front__main .lead { grid-template-columns: 1fr; gap: 28px; }
+.front__main .lead__story { grid-template-columns: 1fr; grid-template-areas: "photo" "body" "details"; gap: 24px; }
 .front__main .cards { grid-template-columns: 1fr; }
 @container (min-width: 560px) { .front__main .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container (min-width: 720px) {
-  .front__main .lead { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+  .front__main .lead__story { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "photo body" "details details"; gap: 28px 36px; }
   /* The headline scales with the column it sits in, not with the window. */
   .front__main .lead__title { font-size: clamp(30px, 4.6cqi, 48px); }
 }
@@ -800,7 +805,8 @@ a.archive-month__name:hover { color: var(--ember-text); }
 
 @media (max-width: 900px) {
   .masthead--home .masthead__inner { grid-template-columns: 1fr; gap: 24px; }
-  .lead, .split, .about-hero { grid-template-columns: 1fr; gap: 40px; }
+  .split, .about-hero { grid-template-columns: 1fr; gap: 40px; }
+  .lead__story { grid-template-columns: 1fr; grid-template-areas: "photo" "body" "details"; gap: 24px; }
   /* On phones and small tablets the posts come first, and the right panel follows below them. */
   .front { grid-template-columns: minmax(0, 1fr); gap: 56px; }
   .writer { grid-template-columns: 1fr; gap: 32px; }
@@ -847,7 +853,7 @@ a.archive-month__name:hover { color: var(--ember-text); }
 
   .site-main { padding-top: 18px; }
   .site-main--home { gap: 44px; }
-  .lead { gap: 22px; }
+  .lead__story { gap: 22px; }
   .lead__body { gap: 14px; }
   .lead__title { font-size: 30px; line-height: 1.02; }
   .lead__desc { font-size: 1rem; }

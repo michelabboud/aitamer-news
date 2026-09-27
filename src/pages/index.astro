@@ -93,34 +93,41 @@ const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
     <div class="front__main">
       {lead && leadAuthor && leadHabitat && (
         <section class="lead" aria-labelledby="lead-title">
-          <a class="lead__photo-link" href={postHref(lead)} tabindex="-1" aria-hidden="true">
-            <figure class="specimen-photo">
-              <img src={withBase(postCover(lead))} alt="" width="1600" height="1200" fetchpriority="high" decoding="async" />
-              {lead.data.specimen && <SpecimenTag specimen={lead.data.specimen} habitat={leadHabitat} />}
-            </figure>
-          </a>
-          <article class="lead__body">
-            <div class="lead__kicker">
-              <span class="lead__catch">LATEST CATCH</span>
-              <span class="muted">
-                <time datetime={lead.data.pubDate.toISOString()}>{formatShortDate(lead.data.pubDate)}</time>
-                · {readingMinutes(lead.body)} MIN
-              </span>
+          {/* One story, three parts: the photo and the headline side by side, and the details
+              (wildness, byline, verdict) across the whole column under both, so they never sit
+              squeezed into the headline's half beside an empty space under the photo. */}
+          <article class="lead__story">
+            <a class="lead__photo-link" href={postHref(lead)} tabindex="-1" aria-hidden="true">
+              <figure class="specimen-photo">
+                <img src={withBase(postCover(lead))} alt="" width="1600" height="1200" fetchpriority="high" decoding="async" />
+                {lead.data.specimen && <SpecimenTag specimen={lead.data.specimen} habitat={leadHabitat} />}
+              </figure>
+            </a>
+            <div class="lead__body">
+              <div class="lead__kicker">
+                <span class="lead__catch">LATEST CATCH</span>
+                <span class="muted">
+                  <time datetime={lead.data.pubDate.toISOString()}>{formatShortDate(lead.data.pubDate)}</time>
+                  · {readingMinutes(lead.body)} MIN
+                </span>
+              </div>
+              <h2 id="lead-title" class="lead__title"><a href={postHref(lead)}>{lead.data.title}</a></h2>
+              <p class="lead__desc">{lead.data.description}</p>
             </div>
-            <h2 id="lead-title" class="lead__title"><a href={postHref(lead)}>{lead.data.title}</a></h2>
-            <p class="lead__desc">{lead.data.description}</p>
-            {lead.data.wildness && (
-              <WildnessPanel wildness={lead.data.wildness} />
-            )}
-            <div class="verdict-line">
-              <a href={authorHref(leadAuthor.id)} style="text-decoration: none">
-                <AuthorBadge kind={leadAuthor.data.kind} name={leadAuthor.data.name} />
-              </a>
-              {lead.data.verdict && (
-                <p class="verdict-line__text" style="margin: 0">
-                  <span class="verdict-label">Tamer’s verdict:</span> {lead.data.verdict}
-                </p>
+            <div class="lead__details">
+              {lead.data.wildness && (
+                <WildnessPanel wildness={lead.data.wildness} />
               )}
+              <div class="verdict-line">
+                <a href={authorHref(leadAuthor.id)} style="text-decoration: none">
+                  <AuthorBadge kind={leadAuthor.data.kind} name={leadAuthor.data.name} />
+                </a>
+                {lead.data.verdict && (
+                  <p class="verdict-line__text" style="margin: 0">
+                    <span class="verdict-label">Tamer’s verdict:</span> {lead.data.verdict}
+                  </p>
+                )}
+              </div>
             </div>
           </article>
         </section>

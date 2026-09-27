@@ -90,7 +90,7 @@ verdict: "Same price, better agent scores: worth a rerun of your evals."
 
 **The checks refuse a post that breaks the contract.** `npm run check:posts` runs on every pull request and every push to a branch other than `main` (`.github/workflows/check-posts.yml`), and again in the deploy. It fails and names the file when:
 
-- a published post has no time, no specimen number, a number the ledger does not hold, a number another post also carries, or no `sources` (only a human editor's piece tagged `opinion` may omit them; bots and AI writers always cite);
+- a published post has no time, no specimen number, a number the ledger does not hold, a number another post also carries, or no `sources` (only a human editor's piece tagged `opinion` may omit them, and a withdrawn post, whose page shows only the notice; bots and AI writers always cite);
 - a post's file name is not a slug or is longer than 120 characters, a post sits in a subfolder of `src/content/posts/`, or it has a `slug:` field;
 - a post's frontmatter is not valid YAML, or `draft` or `specimen` holds something other than what the contract allows;
 - the ledger itself is inconsistent;

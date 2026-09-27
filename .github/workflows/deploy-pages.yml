@@ -104,14 +104,16 @@ jobs:
 
       # The cache holds parsed content, and Astro does not re-parse an unchanged file when the schema
       # changes (2026-09-28: a renamed section kept its old value). So the key carries a fingerprint of
-      # the content schema, and a schema change starts from a cold cache.
+      # everything the content schema can import (src/content.config.ts, src/content/, src/lib/) and of
+      # the lockfile, and any such change starts from a cold cache. scripts/workflow-cache.test.mjs
+      # walks the schema's real imports to keep this list whole.
       - name: Restore Astro incremental cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules/.astro
-          key: astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/post-schema.ts', 'src/lib/habitats.ts', 'src/lib/author-kinds.ts') }}-${{ github.sha }}
+          key: astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/post-schema.ts', 'src/lib/habitats.ts', 'src/lib/author-kinds.ts') }}-
+            astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json') }}-
 
       - name: Build
         run: npm run build
