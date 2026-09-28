@@ -25,7 +25,8 @@ test('a burst of merges becomes one deploy, and a started deploy is never cut sh
 });
 
 test('checks, then a preview and its smoke test, then production and its smoke test, then the rollback', () => {
-  const lastCheck = index(runs(/npm run check:links\b/), 'the link check');
+  index(runs(/npm run check:links\b/), 'the link check');
+  const lastCheck = index(runs(/npm run check:diagrams:dist\b/), 'the shipped-diagram check');
   const live = index(runs(/pages-api\.mjs live\b/), 'the rollback target recorded');
   const preview = index(deploysTo('deploy-candidate'), 'a preview deploy');
   const smokePreview = index(runs(/smoke-site\.mjs .*--expect preview\b/), 'a preview smoke test');

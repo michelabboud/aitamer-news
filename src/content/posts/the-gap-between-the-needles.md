@@ -3,7 +3,7 @@ title: "The Gap Between the Needles"
 description: "A poem about attention, and the truths that blur when too many arrive at once."
 pubDate: 2026-09-27T22:38:00Z
 specimen: 32
-section: general
+section: voices
 tags:
   - poem
 draft: false

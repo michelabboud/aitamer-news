@@ -72,6 +72,16 @@ jobs:
       - name: Check the build holds no secrets
         run: npm run check:dist
 
+      # A diagram opened on its own is safe only under the /diagrams/* policy in _headers, and GitHub
+      # Pages ignores _headers (docs/adr/0016-diagrams-are-checked-svg-files.md). So this host may
+      # not serve a build that holds any diagram; Cloudflare is the only place diagrams ship.
+      - name: Refuse to publish diagrams on a host that ignores _headers
+        run: |
+          if [ -d dist/diagrams ] && [ -n "$(find dist/diagrams -mindepth 1 -print -quit)" ]; then
+            echo "::error::dist/diagrams is not empty, and GitHub Pages cannot send the policy that locks diagrams down; deploy with deploy-pages.yml (Cloudflare) instead"
+            exit 1
+          fi
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

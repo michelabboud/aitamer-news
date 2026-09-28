@@ -191,7 +191,7 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 
 .habitat-nav {
   display: grid;
-  grid-template-columns: repeat(7, 1fr) 1.3fr;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) 1.3fr;
   border-top: 1px solid var(--bone);
   border-bottom: 1px solid var(--line);
   list-style: none; margin-block: 0; padding: 0;
@@ -210,7 +210,7 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 .habitat-nav a:hover .habitat-nav__name, .habitat-nav a[aria-current] .habitat-nav__name { color: var(--ember-text); }
 .habitat-nav a[aria-current] { box-shadow: inset 0 -2px 0 var(--ember); }
 .habitat-nav__watch a { background: var(--ember-field); border-right: 0; padding-left: 14px; }
-/* News and Columns sort by how you read, the topics by what: a heavier rule after Columns separates them. */
+/* News, Columns and Voices sort by how you read (Voices: by who is speaking), the topics by what: a heavier rule after the reading views separates them. */
 .habitat-nav__reading--last a { border-right: 1px solid var(--bone); }
 .habitat-nav__watch .habitat-nav__code, .habitat-nav__watch .habitat-nav__name { color: var(--ember-text); }
 .habitat-nav__watch a:hover .habitat-nav__name { color: var(--bone); }

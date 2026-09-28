@@ -179,6 +179,9 @@ jobs:
       - name: Check every internal link leads somewhere
         run: npm run check:links
 
+      - name: Check every shipped diagram is its checked rewrite
+        run: npm run check:diagrams:dist
+
       - name: Record the live deployment (the rollback target)
         id: live
         env:

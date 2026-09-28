@@ -17,6 +17,7 @@
  * - every file at the site root (llms.txt, the feeds, the sitemaps, robots.txt) and every same-site
  *   file the home page loads (its CSS, scripts, images) answers 200;
  * - every `_redirects` line answers its status and points at its target;
+ * - every diagram answers 200 as `image/svg+xml` under its folder's enforced lockdown (ADR 0016);
  * - an address that does not exist answers 404, not 200;
  * - the home page carries a Content-Security-Policy, and a hashed `/_astro/` file the long cache;
  * - `X-Robots-Tag: noindex` is on a preview and **not** on production: previews must stay out of
@@ -104,7 +105,14 @@ export function plan(dist, maxPages = MAX_PAGES) {
     .map((url) => sitePath(url, '/', 'https://site.invalid'))
     .filter((path) => path !== null && !path.endsWith('/'));
   const files = [...new Set([...rootFiles, ...homeFiles])].sort();
-  return { pages, files, redirects };
+  const diagramsDir = join(dist, 'diagrams');
+  const diagrams = existsSync(diagramsDir)
+    ? readdirSync(diagramsDir, { withFileTypes: true })
+        .filter((e) => e.isDirectory())
+        .flatMap((d) => readdirSync(join(diagramsDir, d.name)).filter((f) => f.endsWith('.svg')).map((f) => `/diagrams/${d.name}/${f}`))
+        .sort()
+    : [];
+  return { pages, files, redirects, diagrams };
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -190,6 +198,21 @@ export async function checkRound(base, expect, work, opts = {}) {
     else if (!landsOn || landsOn.pathname !== target.pathname) findings.push(`redirect ${rule.from}: points at ${location ?? 'nothing'}, expected ${rule.to}`);
   }
 
+  // Diagrams (ADR 0016): an SVG opened on its own is a document on this origin, so each one must
+  // arrive as an image under its folder's enforced lockdown, never as something a browser runs.
+  const diagrams = await pool(work.diagrams ?? [], concurrency, async (path) => ({ path, res: await get(path) }));
+  for (const { path, res } of diagrams) {
+    if ('error' in res) {
+      findings.push(`${path}: ${res.error}`);
+      continue;
+    }
+    const policy = res.headers.get('content-security-policy') ?? '';
+    if (res.status !== 200) findings.push(`${path}: answered ${res.status}, expected 200`);
+    else if (!/^image\/svg\+xml\b/.test(res.headers.get('content-type') ?? '')) findings.push(`${path}: served as ${res.headers.get('content-type')}, expected image/svg+xml`);
+    else if (!/default-src 'none'/.test(policy) || !/\bsandbox\b/.test(policy) || /script-src/.test(policy)) findings.push(`${path}: missing the diagrams' enforced lockdown (Content-Security-Policy: ${JSON.stringify(policy)})`);
+    else if ((res.headers.get('x-content-type-options') ?? '').toLowerCase() !== 'nosniff') findings.push(`${path}: missing X-Content-Type-Options: nosniff`);
+  }
+
   const missing = `/smoke-check-no-such-page-${Date.now().toString(36)}/`;
   const notFound = await get(missing);
   if ('error' in notFound) findings.push(`${missing}: ${notFound.error}`);
@@ -212,7 +235,7 @@ export async function checkRound(base, expect, work, opts = {}) {
     }
   }
 
-  return { checked: work.pages.length + work.files.length + work.redirects.length + 1, findings };
+  return { checked: work.pages.length + work.files.length + work.redirects.length + (work.diagrams?.length ?? 0) + 1, findings };
 }
 
 /**

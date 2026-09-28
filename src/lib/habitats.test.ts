@@ -19,10 +19,10 @@ test('every retired section folds into a real habitat', () => {
   }
 });
 
-test('habitat codes run H1–H6 in list order', () => {
+test('habitat codes run H1–H7 in list order', () => {
   assert.deepEqual(
     HABITATS.map((h) => HABITAT_META[h].code),
-    ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'],
+    ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7'],
   );
 });
 

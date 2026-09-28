@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "node scripts/decode-heroes.mjs && astro dev",
-    "build": "node scripts/decode-heroes.mjs && astro build && pagefind --site dist && node scripts/csp-headers.mjs",
+    "build": "node scripts/decode-heroes.mjs && astro build && node scripts/check-diagrams.mjs --write dist && pagefind --site dist && node scripts/csp-headers.mjs",
     "preview": "astro preview",
     "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test \"scripts/*.test.mjs\" \"src/lib/*.test.ts\" \"workers/contact/test/*.test.mjs\"",
     "stamp": "node scripts/stamp-post-times.mjs && node scripts/stamp-specimens.mjs",
@@ -18,11 +18,13 @@
     "check:specimens": "node scripts/stamp-specimens.mjs --check",
     "check:comments": "node scripts/check-comments.mjs",
     "check:reactions": "node scripts/check-reactions.mjs",
-    "check:posts": "node scripts/stamp-post-times.mjs --check && node scripts/stamp-specimens.mjs --check && node scripts/check-comments.mjs && node scripts/check-reactions.mjs && node scripts/check-authors.mjs && node scripts/check-rendered-body.mjs",
+    "check:posts": "node scripts/stamp-post-times.mjs --check && node scripts/stamp-specimens.mjs --check && node scripts/check-comments.mjs && node scripts/check-reactions.mjs && node scripts/check-authors.mjs && node scripts/check-diagrams.mjs && node scripts/check-rendered-body.mjs",
     "check:bodies": "node scripts/check-rendered-body.mjs",
     "check:bodies:build": "node scripts/check-rendered-body.mjs --against-build",
     "check:files": "node scripts/check-dist-files.mjs",
     "check:links": "node scripts/check-dist-links.mjs",
+    "check:diagrams": "node scripts/check-diagrams.mjs",
+    "check:diagrams:dist": "node scripts/check-diagrams.mjs --check-dist dist",
     "check:csp": "node scripts/csp-headers.mjs --check"
   },
   "dependencies": {
