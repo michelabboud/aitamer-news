@@ -150,10 +150,33 @@ function urlProblem(text, label) {
   return null;
 }
 
+/**
+ * Outside quoted strings, CSS may hold only printable ASCII, space, tab, line feed, carriage return and
+ * form feed: exactly CSS's own whitespace. JavaScript's `\s` and `trim()`, which this file's parse
+ * uses, also treat U+00A0, U+3000, U+FEFF and others as space, while CSS reads them as part of a
+ * name; with those refused, the parse and a browser agree on every name, selector and media query.
+ * @param {string} text @returns {string | null}
+ */
+function cssCharacterProblem(text) {
+  let quote = '';
+  for (let i = 0; i < text.length; i += 1) {
+    const c = text[i];
+    if (quote) {
+      if (c === quote) quote = '';
+    } else if (c === '"' || c === "'") quote = c;
+    else if (!/[\t\n\r\f\x20-\x7e]/.test(c)) {
+      return `CSS holds U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')} outside a quoted string; only ASCII is allowed there`;
+    }
+  }
+  return null;
+}
+
 /** @param {string} text @returns {string | null} why a CSS text is refused, or null */
 export function cssProblem(text) {
   if (DANGEROUS_VALUE.test(text)) return 'CSS contains an escape, markup, an ampersand, or a script or import form';
   if (/\/\*/.test(text)) return 'CSS comments are not allowed (they can hide what a rule says)';
+  const foreign = cssCharacterProblem(text);
+  if (foreign) return foreign;
   const url = urlProblem(text, 'CSS');
   if (url) return url;
   for (const [, name] of text.matchAll(/@([A-Za-z-]+)/g)) {
@@ -338,7 +361,7 @@ export function motionProblem(rules) {
 /** @param {string} name @param {string} value @param {string} element @returns {string | null} */
 export function attributeProblem(name, value, element) {
   // A browser ignores a sheet whose type is not CSS, and this check would still count its rules.
-  if (element === 'style' && name === 'type') return value.trim().toLowerCase() === 'text/css' ? null : '<style type> must be text/css (or left out)';
+  if (element === 'style' && name === 'type') return value.toLowerCase() === 'text/css' ? null : '<style type> must be exactly text/css (or left out)';
   if (name === 'xmlns:xlink') return value === XLINK_NS ? null : `xmlns:xlink must be ${XLINK_NS}`;
   if (name === 'href' || name === 'xlink:href') {
     if (!HREF_ELEMENTS.has(element)) return `${name} is allowed only on gradients and patterns`;
@@ -402,7 +425,7 @@ export function checkSvg(text, { verifyRewrite = true } = {}) {
   /** Every <style> text, in document order: together they are one cascade. */
   const sheets = [];
   /** @returns {string} the checked element, serialized */
-  const visit = (node, path) => {
+  const visit = (node, path, depth = 1) => {
     elements += 1;
     const name = node.tagName;
     const where = `${path}/${name}`;
@@ -443,7 +466,13 @@ export function checkSvg(text, { verifyRewrite = true } = {}) {
         findings.push(`${where}: a node this check does not know (${child.nodeName})`);
         continue;
       }
-      inner += visit(child, where);
+      // The pre-scan's view of self-closing tags can differ from parse5's (`<g fill=a/>` opens a
+      // group), so the walk bounds its own depth instead of trusting it.
+      if (depth >= MAX_DEPTH) {
+        findings.push(`${where}: elements nested more than ${MAX_DEPTH} deep`);
+        continue;
+      }
+      inner += visit(child, where, depth + 1);
     }
     if (name === 'style') {
       // The whole sheet, exactly as it ships, is what is checked.

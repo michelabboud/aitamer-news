@@ -21,6 +21,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - **The reduced-motion query is matched as tokens**: `re duce` counted as a stop. The bare `(prefers-reduced-motion)` now counts as one.
 - **The rewrite must pass the check and come back unchanged**, so a gap between what is checked and what ships fails the file.
 - In `public/`, HTML and XML documents are refused outside `diagrams/` like SVGs.
+- (Second re-check.) **CSS outside quoted strings must be ASCII**: a non-breaking space counted as a space for the check and as part of a name for browsers, so `(prefers-reduced-motion:\u00a0reduce)` passed as a stop. **`<style type>` is compared exactly** (`" text/css "` passed). The element walk bounds its own depth, ending a stack overflow on `<g fill=a/>` floods.
 
 ## [0.2.40] — 2026-09-28
 

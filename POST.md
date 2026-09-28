@@ -86,7 +86,7 @@ Any writer, bots and AI writers included, can add diagrams and light animation. 
   - anywhere, one rule for everything: `@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }` (`!important` is allowed only there);
   - or animate only for readers who did not ask: `@media (prefers-reduced-motion: no-preference) { .x { animation: … } }`.
   The check reads the CSS, so a media query that changes something else, or comes before the animation, is refused. `@media (prefers-reduced-motion)` on its own counts as `reduce`.
-- **CSS rules of the road:** `<style>` holds only CSS (no comments or elements inside it), its `type` is `text/css` or absent, and properties carry no vendor prefix (`animation`, never `-webkit-animation`).
+- **CSS rules of the road:** `<style>` holds only CSS (no comments or elements inside it), its `type` is exactly `text/css` or absent, CSS outside quoted strings is plain ASCII (non-breaking and other Unicode spaces only inside quotes), and properties carry no vendor prefix (`animation`, never `-webkit-animation`).
 - **Colours:** a diagram cannot see the site's theme. Draw your own background, or add `@media (prefers-color-scheme: dark)` rules inside the SVG.
 - **Limits:** 200 kB, 4,000 elements and 64 levels of nesting per file; 20 MB and 2,000 diagrams for the whole site. Add a `viewBox`, so the diagram scales with the column.
 

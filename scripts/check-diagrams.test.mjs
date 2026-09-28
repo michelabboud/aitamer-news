@@ -270,7 +270,7 @@ test('vendor-prefixed properties are refused, so no prefixed animation escapes t
 
 test('a <style> whose type a browser ignores is refused; text/css is fine', () => {
   const stopInPlain = `<style>.a { animation: spin 1s; } ${SPIN}</style><style type="text/plain">@media (prefers-reduced-motion: reduce) { .a { animation: none; } }</style><rect class="a"/>`;
-  assert.match(checkSvg(svg(stopInPlain)).findings.join(), /<style type> must be text\/css/);
+  assert.match(checkSvg(svg(stopInPlain)).findings.join(), /<style type> must be exactly text\/css/);
   assert.ok(checkSvg(svg('<style type="text/css">rect{fill:red}</style>')).output);
   assert.ok(checkSvg(svg('<filter id="f"><feColorMatrix type="saturate" values="0"/></filter>')).output, 'type on other elements is untouched');
 });
@@ -314,4 +314,33 @@ test('in public/, HTML and XML documents are refused outside diagrams/ too; the 
   writeFileSync(join(root, 'page.html'), '<script>alert(1)</script>');
   assert.equal(strayProblems(root, { source: true }).length, 2);
   assert.deepEqual(strayProblems(root, { source: false }), [], 'a build is full of its own .html and .xml');
+});
+
+// The second Opus re-check of d7dd25f (same review record).
+
+test('CSS outside strings is ASCII, so the check and a browser agree on every name', () => {
+  for (const ch of [0xa0, 0x3000, 0xfeff, 0x2028, 0x0b]) {
+    const c = String.fromCodePoint(ch);
+    const forms = [
+      `.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion:${c}reduce) { .a { animation: none; } }`,
+      `.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion: reduce) { *${c}{ animation: none !important; } }`,
+      `.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion: reduce) { .a { animation${c}: none; } }`,
+      `.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion: reduce) { ${c}.a { animation: none; } }`,
+    ];
+    for (const css of forms) assert.ok(motion(css).length > 0, `U+${ch.toString(16)}: ${css}`);
+  }
+  assert.deepEqual(motion(`.a { font-family: "Noto${String.fromCharCode(0xa0)}Sans", 'Ω'; }`), [], 'any character inside a quoted string');
+});
+
+test('<style type> is compared exactly, as a browser does', () => {
+  for (const type of [' text/css ', 'text/css ', 'text/css;x', 'text/plain']) {
+    assert.match(checkSvg(svg(`<style type="${type}">rect{fill:red}</style>`)).findings.join(), /must be exactly text\/css/, JSON.stringify(type));
+  }
+  assert.ok(checkSvg(svg('<style type="TEXT/CSS">rect{fill:red}</style>')).output, 'the type is case-insensitive in browsers too');
+});
+
+test('the walk bounds its own depth, whatever the pre-scan counted', () => {
+  const text = svg('<g fill=a/>'.repeat(3_999));
+  const { findings } = checkSvg(text);
+  assert.match(findings.join('\n'), /nested more than 64 deep/);
 });
