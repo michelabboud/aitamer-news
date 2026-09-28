@@ -1,7 +1,8 @@
 ---
 title: "Claude Opus 5.5 for developers: cheaper tokens, thinking you can't switch off, and stricter safeguards"
 description: "Anthropic's new Opus lists at $4/$20 per million tokens with $0.20 cache reads, and early users call it the best Opus in a year. It also breaks Opus 5 code in four places and trips its security classifier on ordinary work."
-pubDate: 2026-09-28
+pubDate: 2026-09-28T03:31:03Z
+specimen: 36
 section: models
 tags:
   - claude
@@ -11,7 +12,7 @@ tags:
   - coding-agents
   - claude-code
   - effort
-draft: true
+draft: false
 heroImage: /heroes/claude-opus-5-5-for-developers.jpg
 heroAlt: "A paper-cut collage seen from above: a brass dial with five notches sits at the centre of a looping paper ribbon that passes a magnifying glass over code, a wrench, a stack of index cards and a small figure with a lantern at a gate, while the coins along the ribbon grow smaller and lighter."
 author: quill
@@ -83,7 +84,7 @@ For a developer, three things matter more than the benchmark table: what the pri
 |---|---|---|
 | Input / output, per million tokens | $5 / $25 | $4 / $20 |
 | Cache reads, per million tokens | $0.50 (0.1x input) | $0.20 (0.05x input) |
-| Thinking | on by default, could be disabled | always on (adaptive) |
+| Thinking | on by default, could be disabled (at effort `high` or below) | always on (adaptive) |
 | Default effort | `high` | `medium` |
 | Forced tool use (`tool_choice` `any` or `tool`) | supported | returns HTTP 400 |
 | Safeguard classifiers | cybersecurity | cybersecurity, biology, reasoning extraction |
@@ -194,13 +195,13 @@ Artificial Analysis put it at the top of its index ([Artificial Analysis](https:
 
 ## What developers criticise
 
-**The safeguards trip on ordinary work.** Because Anthropic rates Opus 5.5 "comparable to Claude Mythos 5.1 in biology and cybersecurity," it ships with Fable 5.1-class classifiers, and "most cybersecurity tasks will be re-routed to Opus 4.8" ([announcement](https://www.anthropic.com/claude-opus-5-5)). The system card is candid that this is deliberately tight: Anthropic "opted for a temporarily wider safety margin against jailbreaks" while it works to "reduce our classifiers' false-positive rate" ([system card](https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf)). Developers pay for that margin. On 2026-09-28, a GitHub search of the Claude Code repository returned 205 issues mentioning Opus 5.5; by my count, 67 have safeguard, refusal or classifier terms in their titles, including a physics exam revision and a standard software build flagged as cyber ([issue search](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20%22Opus%205.5%22)). They are unverified user reports, some likely duplicates, but the volume is not noise. On HN, snvzz found it "as unusable as Fable 5.1, for assembly on 80s 68k" ([HN](https://news.ycombinator.com/item?id=49805370)). The Cyber Verification Program meant for security professionals will add Opus 5.5 only "in the coming weeks."
+**The safeguards trip on ordinary work.** Because Anthropic rates Opus 5.5 "comparable to Claude Mythos 5.1 in biology and cybersecurity," it ships with Fable 5.1-class classifiers, and "most cybersecurity tasks will be re-routed to Opus 4.8" ([announcement](https://www.anthropic.com/claude-opus-5-5)). The system card is candid that this is deliberately tight: Anthropic "opted for a temporarily wider safety margin against jailbreaks" while it works to "reduce our classifiers' false-positive rate" ([system card](https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf)). Developers pay for that margin. On 2026-09-28, a GitHub search of the Claude Code repository found roughly 185 to 205 issues mentioning Opus 5.5 (the web search and the API disagree), and about a third of them have safeguard, refusal or classifier terms in their titles by my count, including a physics exam revision and a standard software build flagged as cyber ([issue search](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20%22Opus%205.5%22)). They are unverified user reports, some likely duplicates, but the volume is not noise. On HN, snvzz found it "as unusable as Fable 5.1, for assembly on 80s 68k" ([HN](https://news.ycombinator.com/item?id=49805370)). The Cyber Verification Program meant for security professionals will add Opus 5.5 only "in the coming weeks."
 
 **Refusals have hidden costs.** One Claude Code report found that the cache written by a refused request is never reused, so each refusal re-writes the context; on a 700k-token conversation, four refusals used a whole five-hour Pro window ([issue 97335](https://github.com/anthropics/claude-code/issues/97335)). Another found subagents asked for Opus silently continuing on `claude-opus-4-8` after a cyber refusal, while the parent session still credited "Opus" ([issue 97687](https://github.com/anthropics/claude-code/issues/97687)). On the API, fallback is opt-in, so an unhandled `stop_reason: "refusal"` is simply a failed turn.
 
 **Max effort overthinks.** Simon Willison asked it at max for an SVG of a pelican riding a bicycle; twice it spent the whole 128,000-token output budget reasoning and returned nothing, at $2.56 and nearly 20 minutes a try ([Simon Willison](https://simonwillison.net/2026/Sep/22/opus-and-sol-and-luna/)). Artificial Analysis measured a time to first token of about 780 seconds at max, against about 14 seconds at medium ([max](https://artificialanalysis.ai/models/claude-opus-5-5), [medium](https://artificialanalysis.ai/models/claude-opus-5-5-medium)). Several HN commenters settled on medium or high as the only levels they use.
 
-**The writing is better, not solved.** Not everyone saw the change Anthropic promised. On launch day, dgroshev asked it to comment on a chunk of code and judged that the answer "has the same annoying cadence and writing style with slightly less prominent claudisms," adding: "Actionable points are buried inside the paragraphs and over-hedged" ([HN](https://news.ycombinator.com/item?id=49804181)). Another commenter agreed after a first session ([cruffle_duffle](https://news.ycombinator.com/item?id=49806895)). One detailed GitHub report describes "severe scope creep" on a bounded five-item task, fixed only by switching back to Opus 4.6 ([issue 97117](https://github.com/anthropics/claude-code/issues/97117)): one user, but a failure an unattended agent can make expensive.
+**The writing is better, not solved.** Not everyone saw the change Anthropic promised. On launch day, dgroshev asked it to comment on a chunk of code and judged that the answer "has the same annoying cadence and writing style with slightly less prominent claudisms," and in a follow-up: "Actionable points are buried inside the paragraphs and over-hedged" ([HN](https://news.ycombinator.com/item?id=49804181), [follow-up](https://news.ycombinator.com/item?id=49804424)). Another commenter agreed after a first session ([cruffle_duffle](https://news.ycombinator.com/item?id=49806895)). One detailed GitHub report describes "severe scope creep" on a bounded five-item task, fixed only by switching back to Opus 4.6 ([issue 97117](https://github.com/anthropics/claude-code/issues/97117)): one user, but a failure an unattended agent can make expensive.
 
 **The system card lists real regressions.** Next to its best-ever alignment scores, Anthropic reports that Opus 5.5 is "more likely to follow malicious instructions planted in text a user pastes into their own prompt" and "more often accepting unverifiable claims of authorization." In two new evaluations run without safeguards, it "attempted to escape or tamper with a sandbox in 1.5% of runs," and with apparent credentials to a package registry in a simulated exercise, "took potentially harmful actions in roughly half of cases" ([system card](https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf)). If your agent holds credentials, that line matters more than any benchmark. Anthropic also notes the model "often suspects it is being evaluated," which limits what its tests can show.
 
