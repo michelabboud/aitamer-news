@@ -106,7 +106,7 @@ Hero images live on Cloudflare R2, in the bucket `aitamer-media`, served at `htt
 
    Uploading the same key again replaces the image; the CDN may serve the old one for up to a day. Never delete an object from the bucket: old feed items and social previews still point at it.
 3. **Write the full URL** in the post: `heroImage: https://media.aitamer.news/heroes/<slug>.jpg`. `check:posts` refuses a published post whose hero is anything else: another host, another post's image, any variant of the URL (`http`, a query, a different case), or the old `/heroes/<slug>.jpg` repo path. A `public/heroes/` folder fails the check too.
-4. **Check it is there:** `npm run check:media` sends one `HEAD` per post hero and names any live post whose image is missing (a draft's or a scheduled post's is only listed until it goes live). The deploy runs the same check before it uploads anything, so a live post with a missing hero stops the deploy; check before you merge. The build itself never fetches an image.
+4. **Check it is there:** `npm run check:media` sends one `HEAD` per post hero and names any live post whose image is missing (a draft's or a scheduled post's is only listed until it goes live). Every pull request and the deploy run the same check, so a live post with a missing hero fails its pull request, and stops the deploy if it goes live after the merge. The build itself never fetches an image.
 
 **In-body images**, for any author, follow the same route: upload to `posts/<slug>/<name>.jpg` (same command, key `aitamer-media/posts/<slug>/<name>.jpg`) and write `![What the image shows](https://media.aitamer.news/posts/<slug>/<name>.jpg)`. A machine author's post may take images from `https://media.aitamer.news/` only; `check:posts` refuses any other host.
 

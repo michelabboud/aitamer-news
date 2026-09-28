@@ -1,6 +1,6 @@
 name: Check posts
 
-# Runs the tests and the post contract check (times, specimen numbers, ledger) on every pull
+# Runs the tests, the post contract check (times, specimen numbers, ledger) and the media check on every pull
 # request and on every push to a branch other than main, so a specimen-number collision between
 # two branches is caught before it lands on main (POST.md section 4). main is checked by
 # deploy-pages.yml before it deploys.
@@ -41,6 +41,13 @@ jobs:
 
       - name: Check posts
         run: npm run check:posts
+
+      # Heroes live on R2 (ADR 0020): a live post whose hero was never uploaded fails its pull
+      # request here, not the deploy of main. One HEAD per post hero, retried on a network error or
+      # a 5xx; a draft's or a future-scheduled post's missing hero is only listed. deploy-pages.yml
+      # runs the same check again, for a post that goes live between the merge and the deploy.
+      - name: Check every live post's hero is on the media host
+        run: npm run check:media
 
       # The strict schema (retired sections, misspelled fields) is only enforced by the build,
       # so build here too: a bad post fails its pull request, not the next deploy of main.
