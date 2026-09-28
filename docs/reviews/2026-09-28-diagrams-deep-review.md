@@ -9,7 +9,7 @@
 | Isolation | Blind to the implementation discussion; the brief and the commit only. Cold-read note written before probes. Single reviewer, not a dual-blind pair. |
 | Verdict | BLOCKED (4 blocking, 2 informational, 1 minor) |
 | Fixes | `7d349f1` (all seven findings); `3f642d3` (the re-check's five blockers) |
-| Status | Re-check 1 (Opus) BLOCKED on `246551b`, ruled and fixed in `3f642d3`; re-check 2 of `3f642d3` owed before merge |
+| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 owed before merge |
 
 ## Rulings (Quill, coordinator), each validated against source at the target
 
@@ -357,5 +357,158 @@ A fork can delete the step, but a fork can delete anything. The refusal is corre
 - **`strayProblems`:** case (`X.SVGZ`), `.svgz`, a directory named `diagrams` below the top level (`deep/diagrams/a.svg`), and symlinks are all flagged. A top-level `public/diagrams` symlink is flagged too.
 - **SVGs that Astro or pagefind emit themselves.** None. The main checkout's existing `dist/` holds exactly the nine pinned files outside `diagrams/`, and the source imports no `.svg`. Honest builds are unaffected.
 - **Finding 5's new refusals** do not reject honest text: `&amp;` still passes.
+
+VERDICT: BLOCKED
+
+## Re-check 2: Opus, of `d7dd25f` (base `246551b`)
+
+Verdict BLOCKED: all five earlier blockers resolved as reproduced; two new blocking findings, both confirmed here and fixed in `3a3da8e`.
+
+| # | Finding | Ruling | Fix |
+|---|---|---|---|
+| C1 | JavaScript whitespace is not CSS whitespace (U+00A0, U+3000, U+FEFF in queries, selectors, property names) | **Confirmed, blocking**, reproduced for query, universal stop, property and selector | CSS outside quoted strings is printable ASCII plus tab, LF, CR, FF |
+| C2 | `<style type=" text/css ">` trimmed by the check, not by browsers | **Confirmed, blocking**, reproduced | Compared exactly (case-insensitive, as browsers do) |
+| I | `<g fill=a/>` flood: the pre-scan counts self-closing, parse5 does not; stack overflow at 3,999 levels | Confirmed (it failed closed) | The walk bounds its own depth at 64 |
+| I | Tags inside comments counted by the pre-scan | Fails closed; kept | |
+| I | `.rss`, `.atom`, `.mml` | Not measured on Cloudflare; the build makes its own feeds, and `public/` has none | BACKLOG if a writer lane ever lands files outside posts, heroes and diagrams |
+
+### Re-check 2's report, verbatim
+
+# Second re-check (Opus, Strong tier): fixes in 3f642d3
+
+**Target:** `d7dd25f` · **Base:** `246551b` · **Date:** 2026-09-28
+**Mode:** review only. Nothing in the repository was modified. The target's `scripts/`, `.github/`, `package.json` and pinned covers were extracted read-only with `git archive d7dd25f`, into `opus-probes/new/`, with `node_modules` symlinked. The cold read is `COLD-READ-opus-2.md`, written before any probe.
+
+**Method:** as in the first report. Each payload goes through `checkSvg` at the target. The shipped rewrite is opened as a document in Chromium (`chromium_headless_shell-1243`) and Firefox (`firefox-1538`) with `reducedMotion: 'reduce'`. `matchMedia('(prefers-reduced-motion: reduce)')` was true in every run. "running" is the count of running animations. The same limit applies as before: emulation does not reach `<img>` mode.
+
+**Test suite at the target** (`node --test scripts/check-diagrams.test.mjs` in the extracted tree): **tests 22, pass 22, fail 0.**
+
+---
+
+## 1. First-report reproductions against d7dd25f (`opus-probes/probe3.mjs`)
+
+| Finding | Payload | Result at d7dd25f | Status |
+|---|---|---|---|
+| B1 | `ur<!---->l(https://…)`, `x:/<!---->*`, `x:/<g/>*`, `.<!---->a`, `ima<!---->ge(` | all refused: "`<style>` may hold only CSS text, no comments or elements" | **Resolved** |
+| B2 | `-webkit-animation` in `<style>`; in `style="…"`; `-webkit-transition` | all refused: "not a property name" | **Resolved** |
+| B3 | `<style type="text/plain">` holding the stop | refused | **Resolved as reproduced; bypassed by C2** |
+| B4 | `(prefers-reduced-motion: re duce)` | refused (no valid stop) | **Resolved as reproduced; bypassed by C1** |
+| B5 | parse5 floods | `</svg>`+39k `<div>`: refused by the pre-scan; unmatched `</q>`×3930 at depth 60: 19 ms; break-out `<div/>`×2000+`</q>`×1990: 34 ms; `<b id=i>`×3990, table nesting: refused in ≈0 ms | **Resolved.** No input under the 4,000-tag cap took more than about 115 ms (`<div/>`×3990 after a break-out) |
+| I1 (crash) | deep nesting | still reachable: C3 | Informational |
+| I2 (`.xml` SVG) | `covers/doc.xml` in `public/` | flagged in source mode | **Resolved** |
+| I3 | `@media (prefers-reduced-motion)` | now accepted; both engines running 0 | **Resolved** |
+| Controls | the POST.md example; the bare-query form | PASS; running 0 in both engines | as expected |
+
+---
+
+## BLOCKING
+
+### C1. BLOCKING: JavaScript whitespace is not CSS whitespace, so the checker and the browser read a different stop
+
+**Where:**
+- `scripts/check-diagrams.mjs:118` and `:120`: `\s` in `REDUCED_MOTION_PRELUDE` and `MOTION_OK_PRELUDE`.
+- `:278`: `prelude.trim()`.
+- `:241`: `selector.trim().replace(/\s+/g, ' ')`.
+- `:181` and `:183`: `.trim()` on the property name and the value.
+- `:222`: `skipSpace` uses `/\s/`.
+
+JavaScript's `\s` and `String.prototype.trim` treat U+00A0, U+1680, U+2000–200A, U+2028/9, U+202F, U+205F, U+3000 and U+FEFF as whitespace. CSS whitespace is only space, tab, LF, CR and FF (CSS Syntax 3, §4.2). Every other one of those code points is an ordinary identifier character in CSS.
+
+So the checker strips or collapses characters that the browser treats as part of the token:
+- the media query stops matching;
+- the stop's selector stops matching the animated element;
+- the stop's property name becomes invalid.
+
+`verifyRewrite` cannot see this, because both of its passes use the same JavaScript whitespace. `DANGEROUS_VALUE` and `NOT_XML_CHAR` do not refuse these characters.
+
+**Reproduction** (`probe3.mjs`, `probe4.mjs`). Every case uses `.a{animation:spin 1s infinite}@keyframes spin{…}`, followed by a stop that **passes `checkSvg`**:
+
+| Case | Stop as written | Chromium | Firefox |
+|---|---|---|---|
+| NBSP in the query value | `@media (prefers-reduced-motion:\u00a0reduce){.a{animation:none}}` | running 1 | running 1 |
+| NBSP before the query | `@media \u00a0(prefers-reduced-motion: reduce){…}` | running 1 | running 1 |
+| U+3000 in the query | `(prefers-reduced-motion:\u3000reduce)` | running 1 | running 1 |
+| NBSP after the stop selector | `.a\u00a0{animation:none}` (checker: `.a`; browser: class `a\u00a0`) | running 1 | running 1 |
+| NBSP after `*` in the universal stop | `*\u00a0{animation:none !important}`. The checker sets `universal = true` and waives **every** animation in the file | running 1 | running 1 |
+| U+FEFF before the selector | `\ufeff.a{animation:none}` | running 1 | running 1 |
+| NBSP inside a compound selector | `svg .a` animated, stop `svg\u00a0.a` | running 1 | running 1 |
+| NBSP after the property | `.a{animation\u00a0:none}` (the browser drops the declaration) | running 1 | not run |
+| *(refuted)* NBSP after `none` | `animation:none\u00a0` | running 0: the browser reads an unknown keyframes name, so nothing plays | |
+
+**Impact:** motion is forced on a reader who asked for reduced motion. No other layer covers that. This is the same class as B4, reached through a different character set.
+
+**Fix:**
+1. Define CSS whitespace once, as `const CSS_WS = '[ \\t\\n\\r\\f]'`, and use it in both prelude regexes, `skipSpace`, the selector normalization and the declaration trimming. Never use `\s` or `.trim()` in CSS code.
+2. Refuse, anywhere in CSS text, any character outside printable ASCII plus the CSS whitespace set, **except** inside quoted strings (so `content`/`font-family` strings stay possible). One linear regex does it: `/[^\x20-\x7e\t\n\r\f]/` applied outside quotes.
+3. Point 2 alone closes the whole class, including characters not listed here. Add one test per row above.
+
+### C2. BLOCKING: `<style type>` is compared after trimming; browsers do not trim
+
+**Where:** `:341` (`value.trim().toLowerCase() === 'text/css'`).
+
+**Reproduction** (`probe3.mjs`, case `B3_style_type_css_ws`): `<style type=" text/css ">` holding the stop passes the check. Both Chromium and Firefox ignore that sheet: **running 1** in both. `type="text/css\u00a0"` also passes the check (`opus-probes`, one-liner). It fails in the browser the same way, since browsers do not trim.
+
+**Fix:** compare without trimming, ASCII case-insensitively: `value.toLowerCase() === 'text/css'`. Better still, refuse every attribute on `<style>`; `text/css` is the default anyway. Test with surrounding spaces.
+
+---
+
+## INFORMATIONAL
+
+### C3. The pre-scan's self-closing test disagrees with parse5; the crash is still reachable, and fails closed
+
+**Where:** `:495` (`rest.endsWith('/')`) and `:405`/`:446` (the recursive `visit`).
+
+In HTML tokenization, `/` at the end of an **unquoted** attribute value is part of the value. So `<g fill=a/>` opens a `g` for parse5, while the pre-scan counts it as self-closing and never adds to the depth.
+
+**Reproduction** (`probe4.mjs` and a one-liner):
+
+| Input | Result |
+|---|---|
+| `<g fill=a/>`×60 | PASS, and nests 60 deep, correctly under the limit |
+| `<g fill=a/>`×500–3,900 | refused by `verifyRewrite`, whose rewrite quotes the value, so the second scan sees the depth |
+| `<g fill=a/>`×3,999 (44 kB) | **`RangeError: Maximum call stack size exceeded`** in the first pass's `visit` |
+
+`verifyRewrite` catches the depth disagreement, but only after a full parse and walk, and the walk crashes near 4,000 levels. It fails closed, so this is not a bypass, but the crash is an uncaught stack trace that names no file. `<g aria-label="/>">` is refused for its value.
+
+**Fix:** in the scan, treat a tag as self-closing only when the character before `>` is `/` **and** that `/` is not the end of an unquoted attribute value. It is simpler to make `visit` iterative, or to enforce `MAX_DEPTH` inside `visit` and stop descending.
+
+### C4. The pre-scan counts tags inside comments and text
+
+**Where:** `:490-499`.
+
+A comment that holds 70 `<g>` is refused as "nested more than 64 deep" (`probe4.mjs`, `comment containing tags`). Text such as `a < b` and `I <3 it` passes. This fails closed and is rare in real diagrams, so no change is needed. It is worth one line in POST.md if a writer ever hits it.
+
+### C5. Other script-capable XML names in `public/` (refuted under `file://`)
+
+`.rss`, `.atom` and `.mml` holding an XHTML-namespaced `<script>` did not run in either engine over `file://`: one engine offered a download, the other an empty document. How Cloudflare serves them, with which `Content-Type`, was not measured. They are outside the writer path, so this is recorded only.
+
+---
+
+## Question 2: the new code, other attacks refuted
+
+- **The pre-scan against parse5 on `<` inside attribute values or text, tags split by `<`, and CDATA-like text.** `<` in a value or text only adds to the scan's counts, which fails closed. `<g<g>` counts two tags where parse5 sees one. CDATA and DOCTYPE are refused earlier. The scan's regex is linear, and each tag stops at the next `<` or `>`. The only disagreement that lowers the count is C3.
+- **`verifyRewrite`.** It does not recurse (the second pass has `verifyRewrite: false`), and it caught the C3 depth disagreement. It cannot catch disagreements where both passes are wrong the same way (C1). The size exemption on the rewrite is bounded by the input: a rewrite is at most a constant factor larger (closing tags and `&quot;`-style escapes), and the second pass's own pre-scan still caps tags and depth. No abuse found.
+- **The `<style>` text-only rule with text in several nodes.** parse5 merges adjacent text, and the only ways to split it (a comment or an element) are now refused. Character references in `<style>` are decoded before `cssProblem` sees them: `&#x75;rl(` is checked as `url(` and ships as `url(`, the same. `&amp;`/`&lt;` decode to characters that `DANGEROUS_VALUE` refuses.
+- **The property-name rule.** Every prefix is refused. Uppercase is lowercased before the test, which matches CSS, where property names are ASCII case-insensitive. `--custom` is refused. The one gap is C1's trailing NBSP.
+- **`mediaKind`.** The exact-token regexes fix B4 for ASCII spaces. Extra conditions (`and`, `not`, a comma) fall to `other`, which fails closed. The gap is C1.
+- **`strayProblems` `source` flag.** `main()` passes `'public'` in source mode, and `check:posts` runs it in both deploy workflows (`deploy-pages.yml:144`, `deploy-github-pages.yml:38`). The build runs it on `dist` with SVG names only, which is right: the build makes its own HTML and XML. `.XML`, `.xhtml`, `.htm`, `.xsl`, case and depth are all flagged.
+- **Per-run limits.** They are now counted from `statSync` before any file is read, which fixes my earlier point that refused files were uncapped.
+
+## Question 3: honest diagrams
+
+These all pass:
+- the POST.md example and the bare-query form;
+- `type="text/css"`;
+- `<rect … />` with a space before the slash;
+- text with `<` followed by a space or a digit;
+- `&amp;` in text;
+- a dense 199 kB file with about 2,600 animated rules and their stops: PASS in 104 ms at the target, measured.
+
+Honest files that now fail:
+- **CSS comments were already refused**, but an **XML comment inside `<style>`** is now refused too. POST.md says so.
+- **Vendor-prefixed properties** (for example `-webkit-font-smoothing`) are refused. POST.md says so.
+- **Nesting deeper than 64**, and tags written inside comments (C4).
+
+None of these is a realistic diagram broken without notice.
 
 VERDICT: BLOCKED
