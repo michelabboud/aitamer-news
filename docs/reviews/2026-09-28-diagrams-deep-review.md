@@ -9,7 +9,7 @@
 | Isolation | Blind to the implementation discussion; the brief and the commit only. Cold-read note written before probes. Single reviewer, not a dual-blind pair. |
 | Verdict | BLOCKED (4 blocking, 2 informational, 1 minor) |
 | Fixes | `7d349f1` (all seven findings); `3f642d3` (the re-check's five blockers) |
-| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 (Opus) BLOCKED on `52ebdd3`, fixed in `d27d965`; re-check 5 (Opus) BLOCKED on `7a39184`, fixed in `86d92fb`; re-check 6 owed before merge |
+| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 (Opus) BLOCKED on `52ebdd3`, fixed in `d27d965`; re-check 5 (Opus) BLOCKED on `7a39184`, fixed in `86d92fb`; Ari's re-check BLOCKED on `d7dd25f`, new findings fixed in `8aa6f04`; re-check 6 owed before merge |
 
 ## Rulings (Quill, coordinator), each validated against source at the target
 
@@ -839,5 +839,169 @@ These fail and are new at this target:
 - **two `<style>` elements**, even when each is complete (`x_honest_two_sheets` is refused). POST.md says "at most one", so this is intended.
 
 The fix proposed for F1 refuses only unbalanced brackets and `{`/`}`/`;` inside `()`/`[]`, which honest CSS does not write.
+
+VERDICT: BLOCKED
+
+## Re-check by Ari, of `d7dd25f` (base `72d4e94`)
+
+| | |
+|---|---|
+| Reviewer | Ari, hexe `ari-sol-deep`: `gpt-6-sol` at `xhigh`, separate process, detached worktree of `d7dd25f`. Receipt: success, 6,268,415 tokens in, 46,310 out, 18 min. |
+| Isolation | Told to read the record only up to "Re-check 1" before its cold-read note. The note lists "CSS cascade across separate style elements" among its first targets, so B1 is independent corroboration of Opus's E1. Its B3 matches Opus's C1 on the same commit (both reviewers ran in parallel). |
+| Target note | Ran on `d7dd25f`, three fix commits behind the tip when it returned; every finding was re-checked against the tip (`86d92fb`) before ruling. |
+| Verdict | BLOCKED: five blocking, three informational |
+
+| # | Finding | Ruling at the tip | Fix |
+|---|---|---|---|
+| B1 | A stop assembled across separate stylesheets | Same as Opus E1; already fixed | `d27d965` |
+| B2 | Selector whitespace normalization rewrites quoted values | **Confirmed at the tip, blocking** | `8aa6f04`: normalize only outside strings |
+| B3 | JavaScript `\s` admits non-CSS whitespace | Same as Opus C1; already fixed | `3a3da8e` |
+| B4 | `--write` leaves unchecked documents in the build | **Confirmed**: not reachable through the deploy workflows (both run `check:posts` first, and the diagrams build check), but the build output alone was not safe | `8aa6f04`: `--write` runs the source check and verifies `dist/diagrams` |
+| B5 | A symlink in `diagrams/` bypasses the size budget (`/dev/zero`) | **Confirmed at the tip, blocking** | `8aa6f04`: links and devices refused, never followed; size checked before reading |
+| I1 | The pre-scan counts tags inside comments | Accepted: it fails closed, and 4,000 tags in a comment is not an honest diagram | |
+| I2 | Some valid no-motion CSS refused | Accepted: fails closed | |
+| I3 | Rendering cost unbounded | Already in BACKLOG (browser profiling) | |
+
+### Ari's report, verbatim
+
+# Focused security re-check — SVG diagrams
+
+**Target:** `d7dd25fa04891ff17b67e2ec5c66a82b64ce90dc`  
+**Base:** `72d4e9445c2afedf44cd1e6cc0d414db9fea3c4e`  
+**Mode:** review only; no repository file, package, commit, or deployment was changed. The pre-probe note is `../COLD-READ.md`.
+
+I read the prior review only through the line before **“Re-check 1”** before writing the cold-read note. I reached findings **B1, B2, and B3 below before reading the later re-check**. B4, B5, and the informational findings were established afterwards. In particular, the earlier re-check had *refuted* selector normalization as a bypass; B2 supplies a counterexample involving whitespace inside a quoted selector string.
+
+## 1. Status of the original seven findings
+
+I ran the original payloads against the `7d349f1` script loaded from its Git object into an isolated in-memory module, then against the checked-out target. Results below distinguish the exact reproduction from the broader safeguard.
+
+| # | Finding | `7d349f1` result | Status at `d7dd25f` |
+|---|---|---|---|
+| 1 | SVG in another `public/` folder | `strayProblems` refused `covers/payload.svg`. | The named `.svg`/`.svgz` path is closed. Case variants, symlinks **outside the root `diagrams/` folder**, and a `diagrams` directory at another depth are also refused. See B4 and B5 for remaining path gaps. |
+| 2 | GitHub Pages lacks the diagram headers | Refusal is after build and before artifact upload. | Closed for this workflow; see section 4. |
+| 3 | Reduced-motion decoy | Fill-only media rule and a marker inside a string were refused. | The exact decoys are closed; the guarantee is still bypassed by B1–B3. |
+| 4 | Quadratic incomplete `url(` | 16,000 `url(` tokens, 64,079 bytes: refused in **11.37 ms** in the isolated `7d349f1` run. | That path is closed. The subsequent fix added the markup pre-scan; a 195 kB stray-tag probe took **1.04 ms** here. The first re-check records a separate parse5 quadratic case still present in `7d349f1`, fixed by `3f642d3`. B5 is a different unbounded build-time path. |
+| 5 | Malformed XML rewrite | Duplicate `href`/`xlink:href` and U+0001 reference were refused. | Closed for those payloads; U+FFFE/U+FFFF are covered by the target tests. |
+| 6 | `src()`/`image()` and rendering cost | Both URL-bearing functions were refused. | Function probes closed. Extreme filter geometry and a self-referencing pattern still pass; no browser slowdown was measured, so that part remains informational. |
+| 7 | “All entities” documentation | ADR and SECURITY now say **entity declarations**; `&amp;` in a title passed. | Closed. |
+
+## 2. Findings in the current target
+
+### B1 — BLOCKING: a reduced-motion stop can be assembled across separate stylesheets
+
+**Target:** `scripts/check-diagrams.mjs:402-403,448-463`.
+
+`sheets.join('\n')` treats multiple `<style>` elements as one stylesheet. SVG gives each element its own stylesheet; malformed syntax at the end of one cannot be completed by the next ([SVG 2 styling](https://svgwg.org/svg2-draft/styling.html), [CSS Syntax](https://drafts.csswg.org/css-syntax/)). This complete diagram passed `checkSvg` with `output !== null` and no findings:
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1">
+  <style>.a{animation:spin 1s infinite}@keyframes spin{to{opacity:0}}</style>
+  <style>@media (prefers-reduced-motion:</style>
+  <style> reduce){.a{animation:none}}</style>
+  <rect class="a"/>
+</svg>
+```
+
+The checker sees one valid `@media (prefers-reduced-motion: reduce)` stop. The CSS in the second and third elements is invalid when parsed separately; Lightning CSS rejected each piece (`Unexpected token Colon`, `Unexpected token CloseParenthesis`). The shipped rewrite retains the separate `<style>` elements, and the rewrite re-check still passes because it joins them again. Under the separate-stylesheet parsing rule, the first animation remains active for a reduced-motion reader. A live browser run was unavailable in this lane, so this last step is a standards-based conclusion, not a measured browser trace.
+
+**Fix:** Parse and validate each `<style>` independently. Preserve an ordered list of rules across sheets for the cascade, and reject incomplete or invalid individual sheets before evaluating motion.
+
+### B2 — BLOCKING: selector whitespace normalization invents a matching stop
+
+**Target:** `scripts/check-diagrams.mjs:241,321-332`.
+
+`replace(/\s+/g, ' ')` rewrites spaces **inside a quoted attribute value**. The two rules below become the same string to `lastStop`, but `[class="a  b"]` and `[class="a b"]` are different exact-value selectors by [Selectors Level 4](https://drafts.csswg.org/selectors/#attribute-representation). This diagram passed `checkSvg` and its rewrite check:
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1">
+  <style>.a[class="a  b"]{animation:spin 1s infinite}
+  @keyframes spin{to{opacity:0}}
+  @media (prefers-reduced-motion: reduce){.a[class="a b"]{animation:none}}</style>
+  <rect class="a  b"/>
+</svg>
+```
+
+The rect matches the animation rule and not the stop. Lightning CSS preserved the two distinct selector values. The same normalization risks misreading strings within `:is()` and `:where()` arguments. The proof's same-selector premise therefore does not hold.
+
+**Fix:** Compare selectors without rewriting their tokens, or use a CSS selector parser to canonicalize only syntax that is genuinely equivalent. A conservative raw-string comparison may reject some honest formatting but closes this bypass.
+
+### B3 — BLOCKING: JavaScript `\s` admits non-CSS whitespace in the motion proof
+
+**Target:** `scripts/check-diagrams.mjs:118-120,184-186,289,321-332`.
+
+CSS whitespace is a restricted set of ASCII characters; U+00A0 NO-BREAK SPACE is an identifier character, not CSS whitespace ([CSS Syntax](https://drafts.csswg.org/css-syntax/#typedef-whitespace-token)). `prefers-reduced-motion` accepts the value `reduce`, not an identifier beginning with U+00A0 ([Media Queries Level 5](https://drafts.csswg.org/mediaqueries-5/#prefers-reduced-motion)). JavaScript `\s` matches U+00A0. With `const NBSP = '\u00a0'`, the checker accepted both of these complete stylesheet forms when wrapped in the normal `<svg><style>…</style><rect class="a"/></svg>`:
+
+```js
+`.a{animation:spin 1s infinite}@keyframes spin{to{opacity:0}}
+ @media (prefers-reduced-motion:${NBSP}reduce){.a{animation:none}}`
+
+`@media (prefers-reduced-motion: reduce){*{animation:none !${NBSP}important}}
+ .a{animation:spin 1s infinite}@keyframes spin{to{opacity:0}}`
+```
+
+In the first case, the checker calls the invalid media query `reduce` and counts its stop. In the second, `parseDeclarations` calls `none !<NBSP>important` important and `motionProblem` accepts a universal stop; Lightning CSS rejected that declaration with `Unexpected token Delim('!')`. Both accepted SVGs retain the non-CSS whitespace in their rewrite. The stop is ineffective under CSS parsing, so the normal animation applies to a reduced-motion reader. Browser execution of these precise files was unavailable.
+
+**Fix:** Use an explicit CSS whitespace class (`[\t\n\f\r ]`) in media-prelude and `!important` parsing, and tokenize CSS according to its grammar. Test U+00A0, U+2003, and U+2028 in both positions.
+
+### B4 — BLOCKING for standalone build artifacts: `--write` leaves unchecked documents in `dist`
+
+**Target:** `scripts/check-diagrams.mjs:554-568,608-630`; `package.json:10,21,27`.
+
+`npm run build` calls `--write dist` but does not call the source-mode check in `check:posts`. In build mode, `strayProblems` checks `.svg`/`.svgz` outside `diagrams/` but ignores `.xml`/`.html`, and it skips all of `dist/diagrams`. It also does not remove extra files there. Two temporary-output reproductions, with the real `public/` left untouched:
+
+1. Place `<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>` at `TMP/payload.xml`; `node scripts/check-diagrams.mjs --write TMP` and `--check-dist TMP` both exited **0** and left the file. Astro copies `public/` assets unchanged into a build ([Astro configuration reference](https://docs.astro.build/en/reference/configuration-reference/#publicdir)), so a standalone build of a source tree with that file would produce this artifact.
+2. Place the same SVG at `TMP/diagrams/post/x.svg`; `--write TMP` exited **0** and left it. `--check-dist TMP` correctly exited **1** (`ships, but no checked source makes it`). An Astro-generated SVG route could therefore leave an unchecked diagram in a standalone build.
+
+The **current Cloudflare and GitHub Pages workflows provide additional gates**: both run `check:posts` before build; Cloudflare then runs `check:diagrams:dist`, and GitHub Pages refuses a nonempty diagram directory. I found no SVG-producing Astro route in this target. Thus this is a real hole in the build artifact and in callers that publish `npm run build` output alone, not a demonstrated bypass of the current official deploy workflow. The source routes found here were `rss.xml.ts` and `news-sitemap.xml.ts`; generated HTML and XML cannot simply be blanket-rejected.
+
+**Fix:** Run the source document guard as part of `npm run build` or `--write`, and make `--write` verify every final `dist/diagrams` entry against checked source before returning success. For generated XML, distinguish known Astro outputs from copied public documents with a manifest or source-to-output inventory; keep the final deploy check as an independent gate.
+
+### B5 — BLOCKING: a diagram symlink bypasses size budgets and can exhaust the build
+
+**Target:** `scripts/check-diagrams.mjs:506-517,558-565,585-597`.
+
+`strayProblems` skips the whole root `diagrams/` folder, including its symlinks. `filesUnder` treats a symlink as a file; `checkAll` calls `statSync` and `readFileSync`, both of which follow it. In a temporary source tree, `diagrams/post/x.svg -> /dev/zero` produced `strayProblems(..., {source:true}) === []`; `statSync` reported **size 0** and a character device. A bounded read of that device returned **1,048,576 bytes without EOF** while its reported size stayed zero. The valid `post/x.svg` name reaches `readFileSync` after the input-budget sum has charged zero bytes. Linux `/dev/zero` yields zero bytes indefinitely ([Linux `null(4)` manual](https://man7.org/linux/man-pages/man4/null.4.html)); a whole-file read waits for end of file or exhausts memory. I did not run that deliberately unbounded read. A symlink to an ordinary external SVG was accepted by `checkAll` in a separate safe probe, confirming that this path is followed.
+
+The 200 kB per-file and 20 MB per-run limits therefore do not protect this path. A Git symlink can carry this entry into the Linux CI checkout, so this is a build-time denial of service even when the SVG content checks are otherwise correct.
+
+**Fix:** Reject symlinks within `public/diagrams` and `dist/diagrams` before following them; require regular files and enforce the byte limit on bytes actually read, not only `statSync().size`. Use a no-follow open plus descriptor checks where supported to close link-swap races.
+
+### I1 — INFORMATIONAL: the new markup pre-scan rejects inert comments
+
+**Target:** `scripts/check-diagrams.mjs:485-500`.
+
+`checkSvg` accepts and removes ordinary comments, but the pre-scan counts tag-shaped text inside them. A 16,077-byte SVG containing only `<!-- ${'<g/>'.repeat(4001)} -->` returned `more than 4000 tags`, though parse5 would produce one SVG element. This is an honest input that passed before the pre-scan and has no rendered cost. **Fix:** tokenize comments (and quoted attributes) as inert while counting markup, or count the parsed elements after a separate cheap limit on raw `<` occurrences.
+
+### I2 — INFORMATIONAL: valid no-motion CSS is refused
+
+**Target:** `scripts/check-diagrams.mjs:241,289-295,329-332`.
+
+The checker refused `@media screen and (prefers-reduced-motion: no-preference){.a{animation:spin 1s}}` even though it cannot animate for a reduced-motion reader. It also refused `animation:none 1s` (a shorthand with no animation name), and a same-selector stop written `.a, .b` after an animation selector `.a,.b`. Equivalent `:is(.a,.b)`/`:is(.a, .b)` selectors are similarly refused. These fail closed; the strict accepted forms are documented, but this affects honest writers. **Fix:** parse supported media-query conjunctions and animation shorthand values, or explicitly document the deliberately narrow grammar; a raw exact selector comparison for B2 would make the formatting constraint clearer.
+
+### I3 — INFORMATIONAL: source-size limits do not bound rendering cost
+
+**Target:** `scripts/check-diagrams.mjs:79-94,377-389`.
+
+The checker accepted a `1×1` viewBox with a filter region of `2e300` and `stdDeviation="1e300"`, and a self-referencing pattern. This is the unmeasured half of original finding 6. I did not demonstrate a slow browser render, so it is not classified as a denial of service. **Fix:** profile these cases in a browser, then set measured geometry/filter/reference budgets.
+
+## 3. Path, parser, and performance probes that did not become blockers
+
+- `strayProblems` refused `Diagrams/X.SVGZ`, `deep/diagrams/x.svg`, a symlink **outside** the root diagram folder, and `covers/payload.svg`; the pinned existing nine site SVGs pass. A regular-file symlink inside `diagrams/` can pass the content check, but B5 shows why following arbitrary targets is unsafe.
+- `@media` with extra conditions is **not** mistaken for the exact `reduce` or `no-preference` proof; it is treated as `other` and usually fails closed. Later same-selector re-animation, animation inside an exact reduce block, prefixed animation properties, transitions, and `style` attributes were refused by the target tests. A stop in a `text/plain` style element is refused.
+- `src()` and `image()` are refused in CSS. A comment or child element inside `<style>` is refused, closing the previous re-check's token-joining fetch payload. I found no script or external-resource loading payload accepted by `checkSvg` in the current target.
+- No new quadratic CSS or markup path was demonstrated below 200 kB. Measurements on this machine: 64 kB incomplete `url(`, **10.14 ms**; 147 kB / 49,000 short CSS rules, **106.90 ms**; 192 kB / 48,000 declarations, **62.71 ms**; 198 kB nested parentheses, **30.91 ms**; 195 kB stray tags, **1.04 ms**. These measurements are samples, not a proof of worst-case linear complexity. Per-run input limits are 20 MB and 2,000 files.
+
+## 4. GitHub Pages refusal
+
+The refusal step is at `.github/workflows/deploy-github-pages.yml:75-86`, after `npm run build` and before artifact upload. Its `find dist/diagrams -mindepth 1 -print -quit` expression allowed an absent/empty directory and refused both a child directory and an SVG in a temporary reproduction. The deploy job consumes only the uploaded artifact. **This step holds for a build containing a diagram.**
+
+## Checks and limits
+
+- `node --test scripts/check-diagrams.test.mjs`: exit **0**, one file-level pass in this runtime.
+- `node scripts/check-diagrams.test.mjs`: exit **0**, **22 tests passed, 0 failed**.
+- `node scripts/check-diagrams.mjs`: exit **0**, `0 diagram(s), all allowed` for the target source tree.
+- Chrome and the installed headless shell could not start under this lane's sandbox (`Failed to create a unique user data directory`, then sandbox-host `Operation not permitted`); the Playwright MCP required approval unavailable to this lane. I did not claim measured browser execution for B1–B3. Their browser effects follow the cited SVG/CSS parsing rules, supported by Lightning CSS parsing of the separate-sheet and invalid-`!important` examples. No live deploy was attempted.
+- `git status --short` showed only the pre-existing linked `node_modules` entry as untracked. All probe files and both review documents were outside the repository.
 
 VERDICT: BLOCKED
