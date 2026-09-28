@@ -80,3 +80,38 @@ test('main exits 0 when every author is known', () => {
 test('the real site: every post names a known author', () => {
   assert.deepEqual(authorProblems(), []);
 });
+
+// ---- review of PR #46, B2: no field may move an author's id ----
+
+test('review B2: an author’s id is its file name; a slug field cannot move it', async () => {
+  const { authorEntryId } = await import('../src/content/author-id.ts');
+  assert.equal(authorEntryId({ entry: 'wiz-cat.md', data: { slug: 'mai' } }), 'wiz-cat');
+  assert.equal(authorEntryId({ entry: 'hijack.md', data: { slug: 'wiz-cat' } }), 'hijack');
+  assert.equal(authorEntryId({ entry: 'mai.mdx', data: {} }), 'mai');
+  assert.equal(authorEntryId({ entry: 'team/nova.md', data: {} }), 'team/nova');
+});
+
+test('review B2: the authors collection gives its loader that id rule', async () => {
+  const { readFileSync } = await import('node:fs');
+  const config = readFileSync(new URL('../src/content.config.ts', import.meta.url), 'utf8');
+  assert.match(config, /import \{ authorEntryId \} from '\.\/content\/author-id\.ts';/);
+  assert.match(config, /const authors = defineCollection\(\{\n  loader: glob\(\{ base: '\.\/src\/content\/authors', pattern: '\*\*\/\*\.\{md,mdx\}', generateId: authorEntryId \}\),/);
+});
+
+test('review B2: two author files with one id fail the check (the build would keep only one, with a warning)', () => {
+  const { postsDir, authorsDir } = repo([['a.md', post('author: wiz-cat')]], [
+    ['wiz-cat.md', '---\nname: Wiz Cat\n---\n'],
+    ['wiz-cat.mdx', '---\nname: Wiz Cat Again\n---\n'],
+  ]);
+  const { result, output } = quietly(() => main({ postsDir, authorsDir }));
+  assert.equal(result, 1);
+  assert.match(output, /check-authors: the author id "wiz-cat" is given by more than one file \(wiz-cat\.md, wiz-cat\.mdx\); the build would keep only one/);
+});
+
+test('review B2: a nested author file is an author, with the id Astro gives it', () => {
+  const { postsDir, authorsDir } = repo([['a.md', post('author: team/nova')]], [['wiz-cat.md', '---\nname: W\n---\n']]);
+  mkdirSync(join(authorsDir, 'team'));
+  writeFileSync(join(authorsDir, 'team', 'nova.md'), '---\nname: Nova\n---\n');
+  assert.deepEqual([...authorIds(authorsDir)].sort(), ['team/nova', 'wiz-cat']);
+  assert.equal(quietly(() => main({ postsDir, authorsDir })).result, 0);
+});

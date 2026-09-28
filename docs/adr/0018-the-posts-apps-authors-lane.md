@@ -35,8 +35,15 @@ enforced here on the site and never trusting the tool.
 2. **In the lane, exactly one path, and only that rule.** One changed path,
    `src/content/authors/<id>.md`: Markdown, never `.mdx` (whose body runs code at build time),
    not nested, `<id>` the posts MCP's author id rule (`[a-z0-9]+(-[a-z0-9]+)*`, at most 64
-   characters, a subset of the site's slug rule, so Astro's id is the file name), and the id the
-   branch name ends with. Added or modified only: no delete, no rename, no copy, no type change;
+   characters, a subset of the site's slug rule), and the id the branch name ends with. The
+   entry's id in the build is the file name, and only since the deep review of 49236a3 (finding
+   B2): until then the authors collection used the glob loader's default id, which takes a
+   `slug` field from the frontmatter when there is one, and a duplicate id is only a warning (the
+   later entry wins), so an AI's file with `slug: wiz-cat` replaced a human's profile. The
+   collection now sets `generateId` to `authorEntryId` (`src/content/author-id.ts`: the file's
+   path without `.md`/`.mdx`), `npm run check:posts` fails when two author files give one id
+   (`x.md` and `x.mdx`), and the lane refuses a `slug` key anyway (decision 4). The posts
+   collection is not changed here; whether it has the same hole is its own change. Added or modified only: no delete, no rename, no copy, no type change;
    a plain file (mode `100644`). A pull request in the lane is judged by this rule **instead of**
    the publisher's, so the posts App gains nothing but this one file, and the publisher's lanes do
    not gain author files.

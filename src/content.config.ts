@@ -1,5 +1,6 @@
 import { defineCollection, reference } from 'astro:content';
 import { AUTHOR_KINDS } from './lib/author-kinds.ts';
+import { authorEntryId } from './content/author-id.ts';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { commentsFileSchema } from './content/comment-schema';
@@ -7,8 +8,12 @@ import { commentsLoader, reactionsLoader } from './content/data-file-loader';
 import { postSchema } from './content/post-schema';
 import { reactionsFileSchema } from './content/reaction-schema';
 
+/**
+ * Author profiles. The id is the file name (`authorEntryId`): Astro's default would let a `slug`
+ * field in the frontmatter claim another author's id (review of PR #46, B2).
+ */
 const authors = defineCollection({
-  loader: glob({ base: './src/content/authors', pattern: '**/*.{md,mdx}' }),
+  loader: glob({ base: './src/content/authors', pattern: '**/*.{md,mdx}', generateId: authorEntryId }),
   schema: z.object({
     name: z.string(),
     kind: z.enum(AUTHOR_KINDS),
