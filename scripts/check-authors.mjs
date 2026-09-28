@@ -9,9 +9,15 @@
  * `[ERROR] Invalid content reference` and exit 0, and the build silently drops the post, so a deploy
  * would succeed without it. The strict schema still owns every other rule about the field; this
  * check only closes that silent gap, for drafts and published posts alike.
+ *
+ * It also fails when two author files give one id (`x.md` and `x.mdx`, the only way left once the
+ * collection's id is the file name, `src/content/author-id.ts`): Astro would only warn and keep
+ * one of them (review of PR #46, B2). Author files are found as the collection's glob finds them,
+ * nested ones included.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative, sep } from 'node:path';
+import { authorEntryId } from '../src/content/author-id.ts';
 import { fileURLToPath } from 'node:url';
 import { FrontmatterError, readFrontmatter } from './frontmatter.mjs';
 import { POSTS_DIR } from './stamp-post-times.mjs';
@@ -19,16 +25,34 @@ import { POSTS_DIR } from './stamp-post-times.mjs';
 export const AUTHORS_DIR = 'src/content/authors';
 
 const POST_FILE = /\.mdx?$/;
-const AUTHOR_FILE = /^(.+)\.mdx?$/;
+const AUTHOR_FILE = /\.mdx?$/;
 
-/** The author ids that have a profile: the file names under `authorsDir`, without `.md`/`.mdx`. */
-export function authorIds(authorsDir = AUTHORS_DIR) {
-  const ids = new Set();
-  for (const name of readdirSync(authorsDir)) {
-    const match = AUTHOR_FILE.exec(name);
-    if (match) ids.add(match[1]);
+/**
+ * Every author file under `authorsDir`, as the collection's `**\/*.{md,mdx}` glob finds them,
+ * with the id the collection gives each.
+ * @returns {Map<string, string[]>} id → the files (relative, `/`-separated) that give it
+ */
+export function authorFiles(authorsDir = AUTHORS_DIR) {
+  const byId = new Map();
+  for (const entry of readdirSync(authorsDir, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile() || !AUTHOR_FILE.test(entry.name)) continue;
+    const file = relative(authorsDir, join(entry.parentPath, entry.name)).split(sep).join('/');
+    const id = authorEntryId({ entry: file });
+    byId.set(id, [...(byId.get(id) ?? []), file].sort());
   }
-  return ids;
+  return byId;
+}
+
+/** The author ids that have a profile, as the collection names them (`src/content/author-id.ts`). */
+export function authorIds(authorsDir = AUTHORS_DIR) {
+  return new Set(authorFiles(authorsDir).keys());
+}
+
+/** A problem for every id more than one author file gives: the build would keep one and warn. */
+export function duplicateAuthorIdProblems(authorsDir = AUTHORS_DIR) {
+  return [...authorFiles(authorsDir)]
+    .filter(([, files]) => files.length > 1)
+    .map(([id, files]) => `the author id "${id}" is given by more than one file (${files.join(', ')}); the build would keep only one`);
 }
 
 /**
@@ -72,7 +96,7 @@ export function main({ postsDir = POSTS_DIR, authorsDir = AUTHORS_DIR } = {}) {
     console.error(`check-authors: ${authorsDir} does not exist`);
     return 1;
   }
-  const problems = authorProblems({ postsDir, authorsDir });
+  const problems = [...duplicateAuthorIdProblems(authorsDir), ...authorProblems({ postsDir, authorsDir })];
   for (const problem of problems) console.error(`check-authors: ${problem}`);
   return problems.length === 0 ? 0 : 1;
 }

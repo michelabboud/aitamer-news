@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" role="img" aria-labelledby="t d">
+<title id="t">What a goose recipe fences in, and where the fence leaks</title>
+<desc id="d">Left: a default goose session offers many tools, including shell, file writing, subagent delegation and the extension manager. Middle: a recipe with its own extensions block and a non-empty available_tools list narrows that to the tools it names. Right: five ways the fence opens again: an empty or missing available_tools list exposes every tool of that extension; declaring sub_recipes adds the subagent extension; a with-builtin flag on the command line adds tools on top; the no-profile flag drops the recipe's extensions; and an ACP provider such as Claude Code runs tools itself without goose's allow-list.</desc>
+<style>
+.bg { fill: #fbf8f1; }
+.col { fill: #f3f7fb; stroke: #2f5680; stroke-width: 1.6; }
+.tool { fill: #ffffff; stroke: #4a6f99; stroke-width: 1.2; }
+.ok { fill: #e9f4ef; stroke: #3f7d68; stroke-width: 1.4; }
+.leak { fill: #fdeee9; stroke: #c4573f; stroke-width: 1.3; }
+.t { fill: #1f2a37; font-family: system-ui, sans-serif; font-size: 13.5px; }
+.h { fill: #1f2a37; font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; }
+.s { fill: #4b5563; font-family: system-ui, sans-serif; font-size: 12px; }
+.c { fill: #1f2a37; font-family: ui-monospace, monospace; font-size: 12px; }
+.ln { stroke: #4a6f99; stroke-width: 1.8; fill: none; }
+.ah { fill: #4a6f99; }
+@media (prefers-color-scheme: dark) {
+.bg { fill: #141a21; }
+.col { fill: #18222d; stroke: #9cc0ea; }
+.tool { fill: #202d3b; stroke: #86acd8; }
+.ok { fill: #1b3129; stroke: #7cc3a9; }
+.leak { fill: #3a241f; stroke: #f0927a; }
+.t { fill: #e6edf3; }
+.h { fill: #f2f6fa; }
+.s { fill: #aab4c0; }
+.c { fill: #e6edf3; }
+.ln { stroke: #86acd8; }
+.ah { fill: #86acd8; }
+}
+</style>
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="880" height="520" rx="10"/>
+<rect class="col" x="16" y="16" width="250" height="488" rx="12"/>
+<text class="h" x="30" y="42">Default session</text>
+<text class="s" x="30" y="62">autonomous mode, default extensions</text>
+<rect class="tool" x="30" y="76" width="222" height="34" rx="6"/>
+<text class="c" x="42" y="98">developer: shell</text>
+<rect class="tool" x="30" y="118" width="222" height="34" rx="6"/>
+<text class="c" x="42" y="140">developer: write, edit</text>
+<rect class="tool" x="30" y="160" width="222" height="34" rx="6"/>
+<text class="c" x="42" y="182">summon: delegate, load</text>
+<rect class="tool" x="30" y="202" width="222" height="34" rx="6"/>
+<text class="c" x="42" y="224">extensionmanager</text>
+<rect class="tool" x="30" y="244" width="222" height="34" rx="6"/>
+<text class="c" x="42" y="266">skills, analyze</text>
+<rect class="tool" x="30" y="286" width="222" height="34" rx="6"/>
+<text class="c" x="42" y="308">tickets: search, create</text>
+<rect class="tool" x="30" y="328" width="222" height="34" rx="6"/>
+<text class="c" x="42" y="350">tickets: delete</text>
+<rect class="tool" x="30" y="370" width="222" height="34" rx="6"/>
+<text class="c" x="42" y="392">plugin MCP servers</text>
+<text class="s" x="30" y="430">every tool here is offered</text>
+<text class="s" x="30" y="446">to the model on every turn</text>
+<path class="ln" d="M268 250 L300 250" marker-end="url(#a)"/>
+<rect class="col" x="302" y="16" width="250" height="488" rx="12"/>
+<text class="h" x="316" y="42">Recipe with a fence</text>
+<text class="s" x="316" y="62">its extensions block replaces the rest</text>
+<rect class="tool" x="316" y="76" width="222" height="150" rx="6"/>
+<text class="c" x="328" y="98">extensions:</text>
+<text class="c" x="328" y="118">- type: stdio</text>
+<text class="c" x="344" y="138">name: tickets</text>
+<text class="c" x="344" y="158">cmd: tickets-mcp</text>
+<text class="c" x="344" y="178">available_tools:</text>
+<text class="c" x="344" y="198">- search</text>
+<text class="c" x="344" y="218">- create</text>
+<rect class="ok" x="316" y="244" width="222" height="34" rx="6"/>
+<text class="c" x="328" y="266">tickets: search</text>
+<rect class="ok" x="316" y="286" width="222" height="34" rx="6"/>
+<text class="c" x="328" y="308">tickets: create</text>
+<text class="s" x="316" y="346">checked when tools are listed,</text>
+<text class="s" x="316" y="362">again before each call runs</text>
+<text class="s" x="316" y="394">run with a turn cap and a timer:</text>
+<text class="c" x="316" y="414">goose run --recipe r.yaml</text>
+<text class="c" x="332" y="432">--max-turns 20 -q</text>
+<text class="c" x="332" y="450">--output-format json</text>
+<rect class="col" x="588" y="16" width="276" height="488" rx="12"/>
+<text class="h" x="602" y="42">Where the fence opens</text>
+<rect class="leak" x="602" y="58" width="248" height="76" rx="6"/>
+<text class="t" x="614" y="80">available_tools empty or missing</text>
+<text class="s" x="614" y="100">means all tools of that extension;</text>
+<text class="s" x="614" y="118">that is the documented default</text>
+<rect class="leak" x="602" y="144" width="248" height="68" rx="6"/>
+<text class="t" x="614" y="166">sub_recipes declared</text>
+<text class="s" x="614" y="186">summon (subagents) is added</text>
+<text class="s" x="614" y="202">automatically</text>
+<rect class="leak" x="602" y="222" width="248" height="68" rx="6"/>
+<text class="t" x="614" y="244">--with-builtin developer</text>
+<text class="s" x="614" y="264">command-line extensions are added</text>
+<text class="s" x="614" y="280">on top of the recipe's list</text>
+<rect class="leak" x="602" y="300" width="248" height="68" rx="6"/>
+<text class="t" x="614" y="322">--no-profile</text>
+<text class="s" x="614" y="342">drops the recipe's extensions,</text>
+<text class="s" x="614" y="358">not just your config</text>
+<rect class="leak" x="602" y="378" width="248" height="112" rx="6"/>
+<text class="t" x="614" y="400">ACP providers</text>
+<text class="s" x="614" y="420">Claude Code, Codex and others run</text>
+<text class="s" x="614" y="436">the tools; servers are passed without</text>
+<text class="s" x="614" y="452">their allow-list, and the agent's own</text>
+<text class="s" x="614" y="468">built-in tools are not goose's to fence</text>
+</svg>

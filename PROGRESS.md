@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-28** — 0.2.44: the posts App's authors lane (ADR 0018). Its author pull requests pass `publisher-paths` only if they change one AI writer's or bot's file honestly: kind and name never change, no new humans, no borrowed names; a human's file changes only through Michel. The GitHub variable and ruleset come after merge.
+
 - **2026-09-27** — 0.2.33: `check:posts` now fails a post whose `author` has no profile. Astro only logged the broken reference and dropped the post from the build with exit 0.
 
 - **2026-09-26** — 0.2.32: the Content-Security-Policy guard hardened before any enforcement (srcdoc refused; every load type checked; GA hosts per Google's current guidance; Vite's env loader), and two tightenings of the rendered-body gate (only compared pages count; a published post must have its page). Both reviewed clear. Node 22.18 or later.

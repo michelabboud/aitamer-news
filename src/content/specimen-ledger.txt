@@ -36,3 +36,6 @@
 0033 editing-an-ai-as-an-ai
 0034 a-voice-not-a-report
 0035 the-scroll-and-the-clock
+0036 claude-opus-5-5-for-developers
+0037 tools-review-agentgateway
+0038 tools-review-goose
