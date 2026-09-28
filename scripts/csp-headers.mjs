@@ -73,6 +73,15 @@ export const SITE_RULE = '/*';
 export const WASM_RULES = ['/search/*', '/pagefind/*'];
 /** The worker script whose response must carry `'wasm-unsafe-eval'`, when the build has one. */
 export const PAGEFIND_WORKER = 'pagefind/pagefind-worker.js';
+/**
+ * Diagrams (ADR 0016): SVG files that bots and AI writers may add. Shown through `<img>` they run
+ * nothing; opened on their own they are documents on this origin, so their folder gets an
+ * **enforced** policy whatever `CSP_ENFORCE` says: nothing loads, nothing runs, inline `<style>`
+ * only (their animations), and `sandbox` on top. The site-wide header is detached first, so the
+ * two never join into one comma-separated value.
+ */
+export const DIAGRAM_RULE = '/diagrams/*';
+export const DIAGRAM_POLICY = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
 
 /**
  * Cloudflare Pages ignores a `_headers` line longer than this, counting the indent, the name and
@@ -445,6 +454,10 @@ export function generatedBlock(pages, endpoints, enforce = CSP_ENFORCE) {
     // Cloudflare joins two values of one header with a comma (two policies, both enforced), so
     // each WebAssembly rule removes the site-wide one before adding its own.
     ...WASM_RULES.flatMap((rule) => [rule, `  ! ${name}`, `  ${name}: ${wasm}`]),
+    DIAGRAM_RULE,
+    `  ! ${name}`,
+    `  Content-Security-Policy: ${DIAGRAM_POLICY}`,
+    '  X-Content-Type-Options: nosniff',
     '',
   ].join('\n');
 }
