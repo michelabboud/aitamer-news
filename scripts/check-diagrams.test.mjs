@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -377,4 +378,36 @@ test('brackets must balance, so no unclosed ( [ { swallows the stop in a browser
   }
   assert.ok(motion(`.a { animation: spin 1s; } @keyframes spin { to { opacity: [; } } ${STOP}`).length > 0, 'in a keyframe');
   assert.deepEqual(motion('rect[class~="a"]:not(.b) { stroke-width: calc(1px + 2px); fill: rgb(1, 2, 3); }'), [], 'honest brackets pass');
+});
+
+// Ari's re-check of d7dd25f (same review record): the three findings Opus had not reported.
+
+test('selectors keep the spaces inside quoted values, so two different selectors never count as one', () => {
+  const css = `.a[class="a  b"] { animation: spin 1s infinite; } ${SPIN} @media (prefers-reduced-motion: reduce) { .a[class="a b"] { animation: none; } }`;
+  assert.ok(motion(css, '<rect class="a  b"/>').length > 0);
+  assert.deepEqual(motion(`.a   .b { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion: reduce) { .a .b { animation: none; } }`), [], 'spaces between tokens still normalize');
+});
+
+test('a symbolic link or device in the diagrams folder is refused, never followed', () => {
+  const root = tempDir('links-');
+  const posts = join(root, 'posts');
+  const diagrams = join(root, 'diagrams');
+  mkdirSync(posts);
+  mkdirSync(join(diagrams, 'p'), { recursive: true });
+  writeFileSync(join(posts, 'p.md'), '---\n---\n');
+  symlinkSync('/dev/zero', join(diagrams, 'p', 'x.svg'));
+  const { findings, diagrams: ok } = checkAll(diagrams, posts);
+  assert.match(findings.join(), /p\/x\.svg: must be a regular file/);
+  assert.equal(ok.length, 0);
+  writeFileSync(join(diagrams, 'p', 'big.svg'), 'x'.repeat(MAX_BYTES + 1));
+  assert.match(checkAll(diagrams, posts).findings.join(), /big\.svg: larger than/, 'an oversized file is refused by its size');
+});
+
+test('--write fails the build when the built diagrams folder holds anything but checked rewrites', () => {
+  const dist = tempDir('dist-');
+  mkdirSync(join(dist, 'diagrams', 'post'), { recursive: true });
+  writeFileSync(join(dist, 'diagrams', 'post', 'x.svg'), '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>');
+  const run = spawnSync(process.execPath, ['scripts/check-diagrams.mjs', '--write', dist], { encoding: 'utf8' });
+  assert.equal(run.status, 1, run.stdout + run.stderr);
+  assert.match(run.stderr, /ships, but no checked source makes it/);
 });

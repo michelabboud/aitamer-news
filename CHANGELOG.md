@@ -25,6 +25,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - (Third re-check.) **A line break inside a CSS string is refused**: CSS ends the string there, so `x:"⏎;animation:…;y:"` hid a live animation from the check.
 - (Fourth re-check.) **One `<style>` per diagram**: a browser reads each sheet on its own, and a string or block spanning two sheets hid an animation, or a stop, from the joined parse.
 - (Fifth re-check.) **Brackets must balance**: an unclosed `(` or `[` makes a browser swallow the rest of the sheet, stop rule included, while the parse carried on and counted the stop.
+- (Ari's re-check.) **Selectors keep the spaces inside quoted values** (`[class="a  b"]` and `[class="a b"]` counted as one rule). **Symbolic links and devices in `diagrams/` are refused, never followed**, and an oversized file is refused by its size before reading (a link to `/dev/zero` would have hung the build). **`--write` checks `public/` and verifies the built diagrams folder**, so the build alone fails on what `check:posts` would refuse.
 
 ## [0.2.40] — 2026-09-28
 

@@ -284,7 +284,7 @@ export function parseStylesheet(text) {
   const readRule = (media, selectorCheck) => {
     const selector = readUntil('{};');
     if (selector === null || text[i] !== '{') return 'CSS rule has no { … } block';
-    const clean = selector.trim().replace(/\s+/g, ' ');
+    const clean = normalizeSelector(selector);
     if (!clean) return 'CSS rule has an empty selector';
     if (selectorCheck && !selectorCheck.test(clean)) return `CSS keyframe selector "${clean}" is not from, to or a percentage`;
     i += 1;
@@ -329,6 +329,30 @@ export function parseStylesheet(text) {
       if (problem) return fail(problem);
     }
   }
+}
+
+/**
+ * A selector with runs of whitespace outside quoted strings made one space, and nothing else
+ * changed: inside a string, `"a  b"` and `"a b"` are different values (Ari's re-check, B2).
+ * @param {string} selector @returns {string}
+ */
+function normalizeSelector(selector) {
+  let out = '';
+  let quote = '';
+  let space = false;
+  for (const c of selector.trim()) {
+    if (quote) {
+      out += c;
+      if (c === quote) quote = '';
+    } else if (/[ \t\n\r\f]/.test(c)) space = true;
+    else {
+      if (space) out += ' ';
+      space = false;
+      if (c === '"' || c === "'") quote = c;
+      out += c;
+    }
+  }
+  return out;
 }
 
 /** @param {string} prelude @returns {string} */
@@ -561,19 +585,45 @@ export function markupShapeProblem(body) {
 const escapeAttr = (v) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const escapeText = (v) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** @param {string} dir @returns {string[]} every file under dir, as paths relative to it with `/` */
+/**
+ * Every entry under dir, as paths relative to it with `/`: regular files, and everything else (a
+ * symbolic link, a device, a socket), which is never followed or read. A link inside diagrams/ to
+ * /dev/zero would otherwise pass the size budget at size 0 and never finish reading (Ari's re-check, B5).
+ * @param {string} dir @returns {{ files: string[], irregular: string[] }}
+ */
 function filesUnder(dir) {
-  if (!existsSync(dir)) return [];
-  const out = [];
+  const files = [];
+  const irregular = [];
+  if (!existsSync(dir)) return { files, irregular };
   const walk = (at) => {
     for (const entry of readdirSync(at, { withFileTypes: true })) {
       const full = join(at, entry.name);
-      if (entry.isDirectory()) walk(full);
-      else out.push(relative(dir, full).split(sep).join('/'));
+      const rel = relative(dir, full).split(sep).join('/');
+      if (entry.isSymbolicLink()) irregular.push(rel);
+      else if (entry.isDirectory()) walk(full);
+      else if (entry.isFile()) files.push(rel);
+      else irregular.push(rel);
     }
   };
   walk(dir);
-  return out.sort();
+  return { files: files.sort(), irregular: irregular.sort() };
+}
+
+/**
+ * The built diagrams folder must hold exactly the checked rewrites: nothing extra, nothing missing,
+ * nothing changed, nothing that is not a regular file.
+ * @param {string} dist @param {{ file: string, output: string }[]} diagrams @returns {string[]}
+ */
+function distProblems(dist, diagrams) {
+  const { files: shipped, irregular } = filesUnder(join(dist, 'diagrams'));
+  const expected = new Map(diagrams.map((d) => [d.file, d.output]));
+  const problems = irregular.map((f) => `${dist}/diagrams/${f}: not a regular file`);
+  for (const file of shipped) {
+    if (!expected.has(file)) problems.push(`${dist}/diagrams/${file}: ships, but no checked source makes it`);
+    else if (readFileSync(join(dist, 'diagrams', ...file.split('/')), 'utf8') !== expected.get(file)) problems.push(`${dist}/diagrams/${file}: is not this check's rewrite of its source`);
+  }
+  for (const file of expected.keys()) if (!shipped.includes(file)) problems.push(`${dist}/diagrams/${file}: missing from the build`);
+  return problems;
 }
 
 /**
@@ -640,7 +690,8 @@ export function checkAll(sourceDir = SOURCE_DIR, postsDir = POSTS_DIR) {
   const findings = [];
   const diagrams = [];
   const posts = new Set(existsSync(postsDir) ? readdirSync(postsDir).filter((f) => /\.mdx?$/.test(f)).map((f) => f.replace(/\.mdx?$/, '')) : []);
-  const files = filesUnder(sourceDir);
+  const { files, irregular } = filesUnder(sourceDir);
+  for (const f of irregular) findings.push(`${f}: must be a regular file, not a symbolic link or device`);
   // Bound the run by what it is asked to read, before reading any of it.
   if (files.length > MAX_DIAGRAMS) return { findings: [`${files.length} files under ${sourceDir}; at most ${MAX_DIAGRAMS}`], diagrams };
   const total = files.reduce((sum, f) => sum + statSync(join(sourceDir, f)).size, 0);
@@ -652,6 +703,11 @@ export function checkAll(sourceDir = SOURCE_DIR, postsDir = POSTS_DIR) {
       continue;
     }
     if (!posts.has(match[1])) findings.push(`${file}: no post is named ${match[1]}; a diagram lives in its post's folder`);
+    // A regular file's size is true, so an oversized one is refused without reading it.
+    if (statSync(join(sourceDir, file)).size > MAX_BYTES) {
+      findings.push(`${file}: larger than ${MAX_BYTES} bytes`);
+      continue;
+    }
     const { findings: problems, output } = checkSvg(readFileSync(join(sourceDir, file), 'utf8'));
     for (const p of problems) findings.push(`${file}: ${p}`);
     if (output) diagrams.push({ file, output });
@@ -664,7 +720,10 @@ function main(args) {
   if (mode !== undefined && !['--write', '--check-dist'].includes(mode)) return usage();
   if (mode && !dist) return usage();
   const { findings, diagrams } = checkAll();
-  findings.push(...strayProblems(mode ? dist : PUBLIC_DIR));
+  // The source folder is always checked, whatever the mode: a build copies public/ as it is, so
+  // `--write` must not pass what `check:posts` would refuse (Ari's re-check, B4).
+  findings.push(...strayProblems(PUBLIC_DIR, { source: true }));
+  if (mode) findings.push(...strayProblems(dist, { source: false }));
   if (findings.length) {
     for (const f of findings) console.error(`check:diagrams: ${f}`);
     console.error(`check:diagrams: ${findings.length} finding(s); docs/adr/0016-diagrams-are-checked-svg-files.md`);
@@ -676,21 +735,18 @@ function main(args) {
       mkdirSync(join(target, '..'), { recursive: true });
       writeFileSync(target, output);
     }
+    // Anything else in the folder (an extra file Astro copied or made) fails the build here too.
+    const problems = distProblems(dist, diagrams);
+    for (const p of problems) console.error(`check:diagrams: ${p}`);
+    if (problems.length) return 1;
     console.log(`check:diagrams: wrote ${diagrams.length} checked diagram(s) into ${dist}/diagrams`);
     return 0;
   }
   if (mode === '--check-dist') {
-    const shipped = filesUnder(join(dist, 'diagrams'));
-    const expected = new Map(diagrams.map((d) => [d.file, d.output]));
-    const problems = [];
-    for (const file of shipped) {
-      if (!expected.has(file)) problems.push(`${dist}/diagrams/${file}: ships, but no checked source makes it`);
-      else if (readFileSync(join(dist, 'diagrams', ...file.split('/')), 'utf8') !== expected.get(file)) problems.push(`${dist}/diagrams/${file}: is not this check's rewrite of its source`);
-    }
-    for (const file of expected.keys()) if (!shipped.includes(file)) problems.push(`${dist}/diagrams/${file}: missing from the build`);
+    const problems = distProblems(dist, diagrams);
     for (const p of problems) console.error(`check:diagrams: ${p}`);
     if (problems.length) return 1;
-    console.log(`check:diagrams: every shipped diagram (${shipped.length}) is its checked rewrite`);
+    console.log(`check:diagrams: every shipped diagram (${diagrams.length}) is its checked rewrite`);
     return 0;
   }
   console.log(`check:diagrams: ${diagrams.length} diagram(s), all allowed`);
