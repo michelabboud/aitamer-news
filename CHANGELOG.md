@@ -11,8 +11,16 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - **No SVG outside `diagrams/`** except the site's nine own files (favicon and covers), pinned by SHA-256, and no symbolic links, checked in `public/` and in the build. A file dropped in another folder skipped every check before.
 - **The retired GitHub Pages workflow refuses a build with diagrams**: that host ignores `_headers`, so it cannot lock them down.
 - **Reduced motion is proven, not searched for.** The checker parses the CSS (quotes respected) and accepts an animation only when a later same-selector rule in `@media (prefers-reduced-motion: reduce)` sets `animation: none`, a `* { animation: none !important }` stop exists there, or the animation lives in `no-preference`. `!important` elsewhere, transitions and animation in `style` attributes are refused. Before, any media-query text passed, even inside a string.
-- **Linear-time checks.** An unclosed `url(` is refused where it stands: 16,000 of them took 9.4 s, now 26 ms. Per-run limits of 20 MB and 2,000 diagrams.
+- **Linear-time checks.** An unclosed `url(` is refused where it stands: 16,000 of them took 9.4 s, now 26 ms. A one-pass scan refuses floods of tags and nesting past 64 levels before parse5 builds a tree: 39,000 stray tags took 9.9 s, now 1 ms; a dense 198 kB honest diagram takes about 0.1 s. Per-run limits of 20 MB and 2,000 files, counted before reading.
 - **The rewrite is always well-formed XML**: `href` with `xlink:href` on one element, and characters XML refuses (C0 controls, U+FFFE, U+FFFF), are refused. `src()`, `image()` and `env()` join the refused CSS functions.
+
+### Security (the Opus re-check of the fixes, five more blockers fixed before merge)
+- **A `<style>` holds only text.** A comment inside it split the CSS into pieces checked apart and shipped joined: `ur<!---->l(https://…)` shipped as a real external `url(`.
+- **No vendor-prefixed properties**: `-webkit-animation` animated with no reduced-motion stop.
+- **`<style type>` must be `text/css`**: a stop in a `text/plain` sheet was counted by the check and ignored by browsers.
+- **The reduced-motion query is matched as tokens**: `re duce` counted as a stop. The bare `(prefers-reduced-motion)` now counts as one.
+- **The rewrite must pass the check and come back unchanged**, so a gap between what is checked and what ships fails the file.
+- In `public/`, HTML and XML documents are refused outside `diagrams/` like SVGs.
 
 ## [0.2.40] — 2026-09-28
 

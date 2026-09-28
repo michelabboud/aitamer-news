@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DIAGRAM_PATH, MAX_BYTES, PUBLIC_DIR, checkAll, checkSvg, cssProblem, strayProblems } from './check-diagrams.mjs';
+import { DIAGRAM_PATH, MAX_BYTES, MAX_DEPTH, PUBLIC_DIR, checkAll, checkSvg, cssProblem, strayProblems } from './check-diagrams.mjs';
 import { tempDir } from './test-support.mjs';
 import { DIAGRAM_SRC, imageSrcProblem } from './rendered-body-allowlist.mjs';
 
@@ -99,7 +99,7 @@ test('every known way to run code, load something, or hide either is refused', (
 
 test('size and element limits hold', () => {
   assert.match(checkSvg(svg(`<desc>${'x'.repeat(MAX_BYTES)}</desc>`)).findings.join(), /larger than/);
-  assert.match(checkSvg(svg('<g></g>'.repeat(4_001))).findings.join(), /more than 4000 elements/);
+  assert.match(checkSvg(svg('<g></g>'.repeat(4_001))).findings.join(), /more than 4000 (elements|tags)/);
 });
 
 test('text is escaped on the way out, whatever entities the source used', () => {
@@ -237,9 +237,9 @@ test('outside diagrams/, the only SVGs are the site\'s own, pinned by hash; no s
   put('heroes/x.SVGZ', 'x');
   symlinkSync(join(root, 'favicon.svg'), join(root, 'linked'));
   const found = strayProblems(root).join('\n');
-  assert.match(found, /covers\/payload\.svg: an SVG outside diagrams\//);
+  assert.match(found, /covers\/payload\.svg: a document a browser could run/);
   assert.match(found, /covers\/policy\.svg: is not the pinned site file/);
-  assert.match(found, /heroes\/x\.SVGZ: an SVG outside diagrams\//);
+  assert.match(found, /heroes\/x\.SVGZ: a document a browser could run/);
   assert.match(found, /linked: symbolic links are not allowed/);
 });
 
@@ -249,4 +249,69 @@ test('the GitHub Pages workflow refuses a build with diagrams, before it uploads
   const upload = workflow.indexOf('Upload Pages artifact');
   assert.ok(refuse > 0 && upload > refuse, 'the refusal runs before the upload');
   assert.match(workflow.slice(refuse, upload), /find dist\/diagrams -mindepth 1[\s\S]*exit 1/);
+});
+
+// The Opus re-check of 246551b (same review record): one test per finding.
+
+test('a <style> holds only text: a comment or element inside it cannot split the CSS', () => {
+  for (const inner of ['rect{fill:ur<!---->l(https://attacker.example/px)}', 'svg{background:ima<!---->ge("https://attacker.example/px")}', '.<!---->a{fill:red}', 'rect{fill:red}<g></g>']) {
+    const { findings, output } = checkSvg(svg(`<style>${inner}</style>`));
+    assert.equal(output, null, inner);
+    assert.match(findings.join(), /may hold only CSS text/, inner);
+  }
+  assert.ok(checkSvg(svg('<!-- a note --><style>rect{fill:red}</style>')).output, 'comments outside <style> are still just dropped');
+});
+
+test('vendor-prefixed properties are refused, so no prefixed animation escapes the motion check', () => {
+  assert.ok(motion(`.a { -webkit-animation: spin 1s infinite; } ${SPIN}`).length > 0);
+  assert.ok(checkSvg(svg('<rect style="-webkit-animation: spin 1s"/>')).findings.length > 0);
+  assert.ok(checkSvg(svg('<rect style="-webkit-transition: fill 1s"/>')).findings.length > 0);
+});
+
+test('a <style> whose type a browser ignores is refused; text/css is fine', () => {
+  const stopInPlain = `<style>.a { animation: spin 1s; } ${SPIN}</style><style type="text/plain">@media (prefers-reduced-motion: reduce) { .a { animation: none; } }</style><rect class="a"/>`;
+  assert.match(checkSvg(svg(stopInPlain)).findings.join(), /<style type> must be text\/css/);
+  assert.ok(checkSvg(svg('<style type="text/css">rect{fill:red}</style>')).output);
+  assert.ok(checkSvg(svg('<filter id="f"><feColorMatrix type="saturate" values="0"/></filter>')).output, 'type on other elements is untouched');
+});
+
+test('the reduced-motion query is matched as tokens, as a browser reads it', () => {
+  assert.ok(motion(`.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion: re duce) { .a { animation: none; } }`).length > 0);
+  assert.ok(motion(`.a { animation: spin 1s; } ${SPIN} @media (prefers-reducedmotion: reduce) { .a { animation: none; } }`).length > 0);
+  assert.deepEqual(motion(`.a { animation: spin 1s; } ${SPIN} @media (PREFERS-REDUCED-MOTION:REDUCE) { .a { animation: none; } }`), [], 'case and spacing around tokens are fine');
+  assert.deepEqual(motion(`.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion) { .a { animation: none; } }`), [], 'the bare query means reduce');
+});
+
+test('floods of tags and deep nesting are refused before parsing, in linear time', () => {
+  const cases = {
+    'stray tags after the root': `${svg('')}${'<div>'.repeat(39_000)}`,
+    'deep nesting': svg(`${'<g>'.repeat(3_600)}${'</g>'.repeat(3_600)}`),
+    'unclosed tags': svg('<g'.repeat(60_000)),
+    'stray end tags': svg('</g>'.repeat(40_000)),
+  };
+  for (const [name, text] of Object.entries(cases)) {
+    assert.ok(Buffer.byteLength(text) <= MAX_BYTES, name);
+    const started = performance.now();
+    const { findings } = checkSvg(text);
+    assert.ok(findings.length > 0, name);
+    assert.ok(performance.now() - started < 1_000, `${name}: ${Math.round(performance.now() - started)} ms`);
+  }
+  assert.ok(checkSvg(svg(`${'<g>'.repeat(MAX_DEPTH - 1)}${'</g>'.repeat(MAX_DEPTH - 1)}`)).output, 'honest nesting passes');
+});
+
+test('the rewrite passes the check itself and comes back unchanged', () => {
+  const dense = svg('<rect x="1" y="2" width="3" height="4" fill="#123456"/>'.repeat(3_600));
+  assert.ok(Buffer.byteLength(dense) < MAX_BYTES);
+  assert.ok(checkSvg(dense).output, 'a dense honest file whose rewrite outgrows the limit still passes');
+  const { output } = checkSvg(GOOD);
+  assert.equal(checkSvg(output, { verifyRewrite: false }).output, output);
+});
+
+test('in public/, HTML and XML documents are refused outside diagrams/ too; the build keeps its own pages', () => {
+  const root = tempDir('docs-');
+  mkdirSync(join(root, 'covers'));
+  writeFileSync(join(root, 'covers', 'x.xml'), '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>');
+  writeFileSync(join(root, 'page.html'), '<script>alert(1)</script>');
+  assert.equal(strayProblems(root, { source: true }).length, 2);
+  assert.deepEqual(strayProblems(root, { source: false }), [], 'a build is full of its own .html and .xml');
 });

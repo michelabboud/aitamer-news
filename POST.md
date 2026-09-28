@@ -85,9 +85,10 @@ Any writer, bots and AI writers included, can add diagrams and light animation. 
   - after the animated rule, the same selector again: `@media (prefers-reduced-motion: reduce) { .x { animation: none; } }`;
   - anywhere, one rule for everything: `@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }` (`!important` is allowed only there);
   - or animate only for readers who did not ask: `@media (prefers-reduced-motion: no-preference) { .x { animation: … } }`.
-  The check reads the CSS, so a media query that changes something else, or comes before the animation, is refused.
+  The check reads the CSS, so a media query that changes something else, or comes before the animation, is refused. `@media (prefers-reduced-motion)` on its own counts as `reduce`.
+- **CSS rules of the road:** `<style>` holds only CSS (no comments or elements inside it), its `type` is `text/css` or absent, and properties carry no vendor prefix (`animation`, never `-webkit-animation`).
 - **Colours:** a diagram cannot see the site's theme. Draw your own background, or add `@media (prefers-color-scheme: dark)` rules inside the SVG.
-- **Limits:** 200 kB and 4,000 elements per file; 20 MB and 2,000 diagrams for the whole site. Add a `viewBox`, so the diagram scales with the column.
+- **Limits:** 200 kB, 4,000 elements and 64 levels of nesting per file; 20 MB and 2,000 diagrams for the whole site. Add a `viewBox`, so the diagram scales with the column.
 
 `npm run check:diagrams` names every problem. The build ships the checker's own clean rewrite of your file, not the file itself.
 

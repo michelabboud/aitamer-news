@@ -25,7 +25,9 @@
  * into `javascript:`, and SMIL ignores the reader's reduced-motion setting), `href` only as `#id`,
  * CSS only as plain declarations, `@keyframes` and `@media`, with `url()` only as `url(#id)`.
  * Animation is CSS, and a file that animates must provably stop for readers who ask for reduced
- * motion (`motionProblem`). CSS is parsed in one linear pass, never searched with a pattern.
+ * motion (`motionProblem`). Its structure (rules, blocks, declarations, media queries) comes from a
+ * one-pass parse, so a media query inside a string is a string; the parse is what the motion proof
+ * reads. A file's markup is pre-scanned in one pass for its tag count and depth before parse5 sees it.
  *
  * **Nowhere else.** Every mode also walks the rest of `public/` (or the build): any other SVG must be
  * one of the site's own, pinned by hash in SITE_SVGS, and no symbolic link may exist. An SVG in any
@@ -55,6 +57,8 @@ export const MAX_ELEMENTS = 4_000;
  * what a flood of them can cost the check and the deploy. Room for about a hundred dense diagrams.
  */
 export const MAX_TOTAL_BYTES = 20_000_000;
+/** Deepest nesting of elements: a diagram's groups go a few levels deep, never dozens. */
+export const MAX_DEPTH = 64;
 export const MAX_DIAGRAMS = 2_000;
 /** The public path of a diagram: one post's folder, one lowercase name. */
 export const DIAGRAM_PATH = /^\/diagrams\/([a-z0-9]+(?:-[a-z0-9]+)*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\.svg$/;
@@ -106,12 +110,24 @@ const NOT_XML_CHAR = /[^\t\n\r\u0020-\uD7FF\uE000-\uFFFD\u{10000}-\u{10FFFF}]/u;
  */
 const CSS_FUNCTIONS_REFUSED = /image-set|\bimage\s*\(|\bsrc\s*\(|element\s*\(|cross-fade|paint\s*\(|attr\s*\(|var\s*\(|env\s*\(/i;
 const CSS_AT_RULES = new Set(['keyframes', 'media']);
-/** The one media query that means "this reader asked for less motion", with its spaces removed. */
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion:reduce)';
+/**
+ * The media queries that mean "this reader asked for less motion": `(prefers-reduced-motion: reduce)`
+ * and the bare `(prefers-reduced-motion)`, which is true for every value but no-preference. Matched
+ * as tokens: removing spaces first would accept `re duce`, which a browser reads as false.
+ */
+const REDUCED_MOTION_PRELUDE = /^\(\s*prefers-reduced-motion(?:\s*:\s*reduce)?\s*\)$/i;
 /** The one that means "this reader did not": animation may live inside it with no override. */
-const MOTION_OK_QUERY = '(prefers-reduced-motion:no-preference)';
-/** A property name as a diagram may write one. */
-const CSS_PROPERTY = /^-?[a-z][a-z0-9-]*$/;
+const MOTION_OK_PRELUDE = /^\(\s*prefers-reduced-motion\s*:\s*no-preference\s*\)$/i;
+/** What a rule's `media` holds: which of the two it sits in, or another media query. */
+const REDUCED_MOTION_QUERY = 'reduce';
+const MOTION_OK_QUERY = 'no-preference';
+const OTHER_QUERY = 'other';
+const REDUCED_MOTION_TEXT = '@media (prefers-reduced-motion: reduce)';
+/**
+ * A property name as a diagram may write one: no vendor prefix. A prefixed property is one this
+ * check would have to know by name (`-webkit-animation` animates in every engine), so none pass.
+ */
+const CSS_PROPERTY = /^[a-z][a-z0-9-]*$/;
 /** A keyframe selector: `from`, `to`, or percentages, comma-separated. */
 const KEYFRAME_SELECTOR = /^(?:from|to|\d{1,3}(?:\.\d+)?%)(?:\s*,\s*(?:from|to|\d{1,3}(?:\.\d+)?%))*$/i;
 
@@ -259,7 +275,7 @@ export function parseStylesheet(text) {
       if (prelude === null || text[i] !== '{') return fail(`CSS @${name} has no { … } block`);
       i += 1;
       const problem = name === 'media'
-        ? readBlockOfRules(prelude.replace(/\s+/g, '').toLowerCase(), null)
+        ? readBlockOfRules(mediaKind(prelude.trim()), null)
         : readBlockOfRules(null, KEYFRAME_SELECTOR);
       if (problem) return fail(problem);
     } else {
@@ -268,6 +284,9 @@ export function parseStylesheet(text) {
     }
   }
 }
+
+/** @param {string} prelude @returns {string} */
+const mediaKind = (prelude) => (REDUCED_MOTION_PRELUDE.test(prelude) ? REDUCED_MOTION_QUERY : MOTION_OK_PRELUDE.test(prelude) ? MOTION_OK_QUERY : OTHER_QUERY);
 
 const isNone = (value) => value.toLowerCase() === 'none';
 /** @returns {boolean} whether a declaration starts an animation */
@@ -295,8 +314,8 @@ export function motionProblem(rules) {
   for (const r of style) {
     for (const d of r.decls) {
       if (d.property.startsWith('transition')) return `CSS ${d.property} is not allowed; animate with @keyframes`;
-      if (d.important && r.media !== REDUCED_MOTION_QUERY) return `CSS !important is allowed only inside @media ${REDUCED_MOTION_QUERY}`;
-      if (animates(d) && r.media === REDUCED_MOTION_QUERY) return `"${r.selector}" animates inside @media ${REDUCED_MOTION_QUERY}, the block that must stop it`;
+      if (d.important && r.media !== REDUCED_MOTION_QUERY) return `CSS !important is allowed only inside ${REDUCED_MOTION_TEXT}`;
+      if (animates(d) && r.media === REDUCED_MOTION_QUERY) return `"${r.selector}" animates inside ${REDUCED_MOTION_TEXT}, the block that must stop it`;
     }
   }
   /** Selector → the source position of its last reduced-motion stop: one lookup per rule, not a scan. */
@@ -318,6 +337,8 @@ export function motionProblem(rules) {
 
 /** @param {string} name @param {string} value @param {string} element @returns {string | null} */
 export function attributeProblem(name, value, element) {
+  // A browser ignores a sheet whose type is not CSS, and this check would still count its rules.
+  if (element === 'style' && name === 'type') return value.trim().toLowerCase() === 'text/css' ? null : '<style type> must be text/css (or left out)';
   if (name === 'xmlns:xlink') return value === XLINK_NS ? null : `xmlns:xlink must be ${XLINK_NS}`;
   if (name === 'href' || name === 'xlink:href') {
     if (!HREF_ELEMENTS.has(element)) return `${name} is allowed only on gradients and patterns`;
@@ -353,15 +374,19 @@ const attrName = (a) => (a.prefix ? `${a.prefix}:${a.name}` : a.name);
  * @param {string} text
  * @returns {{ findings: string[], output: string | null }}
  */
-export function checkSvg(text) {
+export function checkSvg(text, { verifyRewrite = true } = {}) {
   const findings = [];
   const fail = (f) => ({ findings: [...findings, f], output: null });
-  if (Buffer.byteLength(text, 'utf8') > MAX_BYTES) return fail(`larger than ${MAX_BYTES} bytes`);
+  // The limit is on the writer's file. The rewrite spells out every close tag and escape, so it can
+  // be larger; when checking it again (verifyRewrite false) its size is already bounded by the input.
+  if (verifyRewrite && Buffer.byteLength(text, 'utf8') > MAX_BYTES) return fail(`larger than ${MAX_BYTES} bytes`);
   // What an XML parser would act on and parse5 would not see the same way: refuse before parsing.
   if (/<!DOCTYPE|<!ENTITY|<!\[CDATA\[/i.test(text)) return fail('DOCTYPE, ENTITY and CDATA sections are not allowed');
   const body = text.replace(/^﻿?\s*<\?xml\s[^?]*\?>/, '');
   if (/<\?/.test(body)) return fail('processing instructions are not allowed');
   if (/<\/?[A-Za-z][\w.-]*:/.test(body)) return fail('prefixed element names (svg:, html: and the like) are not allowed');
+  const shape = markupShapeProblem(body);
+  if (shape) return fail(shape);
 
   const doc = parse(`<!doctype html><html><head></head><body>${body}</body></html>`);
   const html = doc.childNodes.find((n) => n.nodeName === 'html');
@@ -395,7 +420,14 @@ export function checkSvg(text) {
       else if (n !== 'xmlns' && n !== 'xmlns:xlink') attrs.push(`${n === 'xlink:href' ? 'href' : n}="${escapeAttr(a.value)}"`);
     }
     let inner = '';
+    let styleText = '';
     for (const child of node.childNodes) {
+      // In SVG, <style> is parsed as markup, so a comment or element inside it splits the CSS into
+      // pieces that are checked apart and ship joined (`ur<!---->l(` ships as `url(`): text only.
+      if (name === 'style' && child.nodeName !== '#text') {
+        findings.push(`${where}: <style> may hold only CSS text, no comments or elements`);
+        continue;
+      }
       if (child.nodeName === '#comment') continue;
       if (child.nodeName === '#text') {
         if (!TEXT_ELEMENTS.has(name)) {
@@ -403,11 +435,7 @@ export function checkSvg(text) {
           continue;
         }
         if (NOT_XML_CHAR.test(child.value)) findings.push(`${where}: text holds a character XML does not allow (a control character, U+FFFE or U+FFFF)`);
-        if (name === 'style') {
-          const problem = cssProblem(child.value);
-          if (problem) findings.push(`${where}: ${problem}`);
-          else sheets.push(child.value);
-        }
+        if (name === 'style') styleText += child.value;
         inner += escapeText(child.value);
         continue;
       }
@@ -416,6 +444,12 @@ export function checkSvg(text) {
         continue;
       }
       inner += visit(child, where);
+    }
+    if (name === 'style') {
+      // The whole sheet, exactly as it ships, is what is checked.
+      const problem = cssProblem(styleText);
+      if (problem) findings.push(`${where}: ${problem}`);
+      else sheets.push(styleText);
     }
     if (name === 'svg' && path === '' && !node.attrs.some((a) => a.name === 'viewBox')) findings.push('/svg: needs a viewBox, so it scales with the page');
     if (name === 'svg' && path !== '') findings.push(`${where}: a nested <svg> is not allowed`);
@@ -427,7 +461,43 @@ export function checkSvg(text) {
   const { rules, problem: sheetProblem } = parseStylesheet(sheets.join('\n'));
   const motion = sheetProblem ?? motionProblem(rules);
   if (motion) findings.push(`/svg/style: ${motion}`);
-  return findings.length ? { findings, output: null } : { findings, output: `${output}\n` };
+  if (findings.length) return { findings, output: null };
+  const shipped = `${output}\n`;
+  // The rewrite is what browsers read, so it must pass this check itself and come back unchanged:
+  // any gap between what was checked and what ships shows up here as a difference.
+  if (verifyRewrite) {
+    const again = checkSvg(shipped, { verifyRewrite: false });
+    if (again.findings.length || again.output !== shipped) {
+      return { findings: [`the rewrite does not check the same as the file (${again.findings[0] ?? 'it changes when rewritten again'})`], output: null };
+    }
+  }
+  return { findings, output: shipped };
+}
+
+/**
+ * One pass over the markup before parse5 sees it: parse5's tree building is slow on floods of
+ * tags and deep nesting (9.9 s for 39,000 stray tags in 199 kB, measured), and the walk that
+ * follows recurses once per level. So more start or end tags than MAX_ELEMENTS, or nesting deeper
+ * than MAX_DEPTH, is refused here. A tag is `<` up to the next `<` or `>`, so an unclosed one
+ * cannot make the scan look far ahead.
+ * @param {string} body @returns {string | null}
+ */
+export function markupShapeProblem(body) {
+  let starts = 0;
+  let ends = 0;
+  let depth = 0;
+  for (const [, slash, rest, close] of body.matchAll(/<(\/?)([A-Za-z][^<>]*)(>?)/g)) {
+    if (slash) {
+      ends += 1;
+      depth -= 1;
+    } else {
+      starts += 1;
+      if (!(close && rest.endsWith('/'))) depth += 1;
+    }
+    if (starts > MAX_ELEMENTS || ends > MAX_ELEMENTS) return `more than ${MAX_ELEMENTS} tags`;
+    if (depth > MAX_DEPTH) return `elements nested more than ${MAX_DEPTH} deep`;
+  }
+  return null;
 }
 
 const escapeAttr = (v) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -468,6 +538,12 @@ export const SITE_SVGS = new Map([
 export const PUBLIC_DIR = 'public';
 /** Names a browser may treat as SVG, whatever the case. */
 const SVG_NAME = /\.svgz?$/i;
+/**
+ * In `public/`, also every other name a browser may open as a document that runs script. The build
+ * makes its own `.html` and `.xml` (pages, feeds, sitemaps), so this stricter rule is for the
+ * source folder, where writers' files arrive.
+ */
+const DOCUMENT_NAME = /\.(?:svgz?|html?|xhtml?|xht|xml|xslt?)$/i;
 
 /**
  * Outside `diagrams/`, under `root` (public/ or the build): every SVG must be one of SITE_SVGS with
@@ -475,7 +551,8 @@ const SVG_NAME = /\.svgz?$/i;
  * unchecked bytes, or pull a whole folder past this walk).
  * @param {string} root @returns {string[]}
  */
-export function strayProblems(root) {
+export function strayProblems(root, { source = root === PUBLIC_DIR } = {}) {
+  const suspect = source ? DOCUMENT_NAME : SVG_NAME;
   if (!existsSync(root)) return [];
   const problems = [];
   const walk = (at) => {
@@ -485,9 +562,9 @@ export function strayProblems(root) {
       if (entry.isSymbolicLink()) problems.push(`${root}/${rel}: symbolic links are not allowed here`);
       else if (entry.isDirectory()) {
         if (rel !== 'diagrams') walk(full);
-      } else if (SVG_NAME.test(entry.name)) {
+      } else if (suspect.test(entry.name)) {
         const pinned = SITE_SVGS.get(rel);
-        if (!pinned) problems.push(`${root}/${rel}: an SVG outside diagrams/; a diagram lives in diagrams/<post-slug>/, where it is checked (ADR 0016)`);
+        if (!pinned) problems.push(`${root}/${rel}: a document a browser could run (SVG, HTML or XML) outside diagrams/; a diagram lives in diagrams/<post-slug>/, where it is checked (ADR 0016)`);
         else if (createHash('sha256').update(readFileSync(full)).digest('hex') !== pinned) problems.push(`${root}/${rel}: is not the pinned site file; a redrawn cover needs its new hash in SITE_SVGS`);
       }
     }
@@ -505,7 +582,12 @@ export function checkAll(sourceDir = SOURCE_DIR, postsDir = POSTS_DIR) {
   const findings = [];
   const diagrams = [];
   const posts = new Set(existsSync(postsDir) ? readdirSync(postsDir).filter((f) => /\.mdx?$/.test(f)).map((f) => f.replace(/\.mdx?$/, '')) : []);
-  for (const file of filesUnder(sourceDir)) {
+  const files = filesUnder(sourceDir);
+  // Bound the run by what it is asked to read, before reading any of it.
+  if (files.length > MAX_DIAGRAMS) return { findings: [`${files.length} files under ${sourceDir}; at most ${MAX_DIAGRAMS}`], diagrams };
+  const total = files.reduce((sum, f) => sum + statSync(join(sourceDir, f)).size, 0);
+  if (total > MAX_TOTAL_BYTES) return { findings: [`${total} bytes under ${sourceDir}; at most ${MAX_TOTAL_BYTES}`], diagrams };
+  for (const file of files) {
     const match = DIAGRAM_PATH.exec(`/diagrams/${file}`);
     if (!match) {
       findings.push(`${file}: must be diagrams/<post-slug>/<name>.svg, lowercase words joined by -`);
@@ -524,8 +606,6 @@ function main(args) {
   if (mode !== undefined && !['--write', '--check-dist'].includes(mode)) return usage();
   if (mode && !dist) return usage();
   const { findings, diagrams } = checkAll();
-  if (diagrams.reduce((sum, d) => sum + Buffer.byteLength(d.output), 0) > MAX_TOTAL_BYTES) findings.push(`the diagrams together pass ${MAX_TOTAL_BYTES} bytes`);
-  if (diagrams.length > MAX_DIAGRAMS) findings.push(`more than ${MAX_DIAGRAMS} diagrams`);
   findings.push(...strayProblems(mode ? dist : PUBLIC_DIR));
   if (findings.length) {
     for (const f of findings) console.error(`check:diagrams: ${f}`);
