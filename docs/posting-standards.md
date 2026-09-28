@@ -5,6 +5,7 @@ What every published story must meet. Site mechanics — file and slug, frontmat
 ## What every story must meet
 
 - **News first.** Title and description state the news in one breath; headings name the section content, never a clever label.
+- **Explainers are the exception.** An evergreen explainer has no news to lead with: its title and description say plainly what it explains, and every date-dependent fact says "as of" the month it was checked.
 - **Primary sources linked.** Sources are deep-linked on first mention and mirrored in the frontmatter `sources` list. Never invent a source, a dollar figure, an SLA, or a peer-review status.
 - **Numbers checked, and attributed.** Figures are verified before publish and carry attribution (vendor / primary / self-published / press spokesperson) and context — "compared to what?". Prefer a few decisive numbers over a dense dump; a tidy table beats a wall of digits.
 - **Vendor claims attributed, not asserted.** A claim from the company that stands to benefit is labelled as such. The Wildness rating below makes that distinction visible on every story.
