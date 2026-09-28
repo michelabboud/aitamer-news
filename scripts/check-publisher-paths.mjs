@@ -58,8 +58,8 @@
  *     an unknown kind, changes only through the maintainer, whatever changed) and at the head for
  *     an added one (a new human is the maintainer's to add); a modified file keeps its `kind` and
  *     its `name` (no AI or bot renames itself, or passes as a person); an added file's name may
- *     not be another author's at the head or on main (compared after NFKC, trimming, collapsing
- *     spaces and case folding), and its path must not be on main already.
+ *     not be another author's at the head or on main (compared by `comparableName`: NFKC and full
+ *     Unicode case folding), and its path must not be on main already.
  * Every file the lane judges is read by `readAuthorFile`, which refuses before any judgement a
  * form the site's reader and Astro's could read differently (the two cut the frontmatter block
  * differently, and YAML merge keys can hide a value from one of them; review of PR #46, B1): only
@@ -227,9 +227,21 @@ export function authorPathProblems({ changes, modes, headRef }) {
   return problems;
 }
 
-/** @param {unknown} name @returns {string | null} the name as compared for clashes, or null when it is not a string */
+/**
+ * The name as compared for clashes, or null when it is not a string. Unicode caseless matching
+ * without a new dependency (Ari's review of 49236a3, finding 3: `toLowerCase` alone left
+ * `STRASSE` and `Straße` apart). Exactly: NFKC (ligatures, full-width and compatibility letters
+ * such as `ﬀ`, `Ｗ`, `ſ`, `K`), then lower, upper and lower case again (the round trip applies
+ * Unicode's full, multi-code-point case mappings, so `ß` and `ẞ` become `ss`, `ŉ` becomes `ʼn`),
+ * then every final sigma `ς` becomes `σ`, then NFKC again, trimming, and runs of white space made
+ * one space. This folds at least as much as Unicode's NFKC_Casefold (dotless `ı` also meets `i`),
+ * which for a clash rule errs toward refusing.
+ * @param {unknown} name @returns {string | null}
+ */
 export function comparableName(name) {
-  return typeof name === 'string' ? name.normalize('NFKC').trim().replace(/\s+/gu, ' ').toLowerCase() : null;
+  if (typeof name !== 'string') return null;
+  const folded = name.normalize('NFKC').toLowerCase().toUpperCase().toLowerCase().replaceAll('ς', 'σ');
+  return folded.normalize('NFKC').trim().replace(/\s+/gu, ' ');
 }
 
 /**

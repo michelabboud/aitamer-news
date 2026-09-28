@@ -63,8 +63,11 @@ enforced here on the site and never trusting the tool.
      2026-09-28, which narrowed the first draft that let the App edit a human's prose);
    - a modified author keeps its `kind` and its `name` (no AI writer or bot renames itself, or
      passes as a person);
-   - an added author's name may not be another author's, compared after Unicode NFKC, trimming,
-     collapsing whitespace and case folding (`Ｗｉｚ  Ｃａｔ` is `wiz cat`).
+   - an added author's name may not be another author's, compared after NFKC, full Unicode case
+     mapping (lower, upper, lower: `Straße`, `STRASSE` and `STRAẞE` meet; Ari's review, finding
+     3, where plain lowercasing let them pass), final sigma folded, trimming and collapsing white
+     space (`Ｗｉｚ  Ｃａｔ` is `wiz cat`). This folds at least as much as Unicode's
+     NFKC_Casefold (`comparableName` says exactly what).
    The name-clash set covers every author file the collection's glob finds, nested ones included
    (the first draft skipped nested files; review, M3). Anything that cannot be read (a file over
    the cap, another author's file that neither reader can parse) fails.

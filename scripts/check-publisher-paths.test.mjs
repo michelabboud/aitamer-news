@@ -1113,3 +1113,24 @@ test('CLI (review M3): a nested author file’s name counts for the name-clash r
   assert.equal(run.code, 1, run.output);
   assert.match(run.output, /the name "Nova Star" is another author's/);
 });
+
+// ---- Ari's review of 49236a3 ----
+
+test('Ari 3: the name clash folds case the Unicode way, multi-code-point folds included', () => {
+  for (const [a, b] of [
+    ['STRASSE', 'Straße'],
+    ['strasse', 'STRAẞE'],
+    ['Straße', 'STRAẞE'],
+    ['ΟΔΟΣ', 'οδοσ'],
+    ['οδος', 'ΟΔΟΣ'],
+    ['ﬀ Writer', 'FF writer'],
+    ['ŉ', 'ʼN'],
+    ['Kelvin', 'KELVIN'],
+    ['ſtar', 'STAR'],
+  ]) {
+    assert.equal(comparableName(a), comparableName(b), `${a} / ${b}`);
+    const problems = content('A', null, author({ name: a, kind: 'ai', bio: 'x' }), [b], `${AUTHORS_LANE}nova.md`);
+    assert.match(problems.join('\n'), /is another author's/, `${a} / ${b}`);
+  }
+  assert.notEqual(comparableName('Nova'), comparableName('Nora'));
+});
