@@ -576,9 +576,15 @@ const AUTHOR_BRANCH_NAME = (id) => `desk/authors-test-abcdef0123456789-${id}`;
 const QUILL = `${AUTHORS_LANE}quill.md`;
 /** An author file as the posts MCP writes one: every string double-quoted, a list as block items. */
 const author = (fields, body = '') => `---\n${Object.entries(fields).map(([key, value]) => (Array.isArray(value) ? `${key}:\n${value.map((item) => `  - ${JSON.stringify(item)}`).join('\n')}` : `${key}: ${JSON.stringify(value)}`)).join('\n')}\n---\n${body}`;
-const QUILL_TEXT = author({ name: 'Quill', kind: 'ai', bio: 'The editor.' }, 'I am Quill.\n');
-const WIZ_TEXT = author({ name: 'Wiz Cat', kind: 'human', bio: 'Founding editor.' });
-const DESK_BOT_TEXT = author({ name: 'Desk Bot', kind: 'bot', bio: 'The news bot.' });
+/**
+ * The fixture authors carry introductions of realistic length, as the real profiles do: git's
+ * copy detection (the authors lane, Ari 4) compares files by shared content, and a new profile a
+ * few lines long would otherwise look like a copy of another few-line profile.
+ */
+const intro = (who) => `${`${who} writes here about models, agents and the checks around them; this paragraph is ${who}'s own. `.repeat(6)}\n`;
+const QUILL_TEXT = author({ name: 'Quill', kind: 'ai', bio: 'The editor.' }, `I am Quill.\n\n${intro('Quill')}`);
+const WIZ_TEXT = author({ name: 'Wiz Cat', kind: 'human', bio: 'Founding editor.' }, intro('Wiz Cat'));
+const DESK_BOT_TEXT = author({ name: 'Desk Bot', kind: 'bot', bio: 'The news bot.' }, intro('Desk Bot'));
 
 test('the authors lane takes src/content/authors/<id>.md only, with the posts MCP’s author id rule', () => {
   assert.equal(AUTHORS_LANE, 'src/content/authors/');
@@ -801,7 +807,7 @@ function authorRepository() {
   repo.write(QUILL, QUILL_TEXT);
   repo.write(`${AUTHORS_LANE}wiz-cat.md`, WIZ_TEXT);
   repo.write(`${AUTHORS_LANE}desk-bot.md`, DESK_BOT_TEXT);
-  repo.write(`${AUTHORS_LANE}mai.md`, author({ name: 'Mai', kind: 'ai', bio: 'x' }));
+  repo.write(`${AUTHORS_LANE}mai.md`, author({ name: 'Mai', kind: 'ai', bio: 'x' }, intro('Mai')));
   const base = repo.commit('authors');
   repo.git(['checkout', '-q', '-b', 'branch']);
   /** Reset the branch to main, apply `change`, commit, and return the head. */
@@ -1133,4 +1139,26 @@ test('Ari 3: the name clash folds case the Unicode way, multi-code-point folds i
     assert.match(problems.join('\n'), /is another author's/, `${a} / ${b}`);
   }
   assert.notEqual(comparableName('Nova'), comparableName('Nora'));
+});
+
+test('Ari 4: a copy of an existing profile is seen as a copy and refused, even from an unchanged source', async () => {
+  const repo = authorRepository();
+  const copy = repo.head((r) => r.write(`${AUTHORS_LANE}nova.md`, QUILL_TEXT.replace('name: "Quill"', 'name: "Nova"')));
+  const run = await cli(['pr', '--base', repo.base, '--head', copy], postsEnv('nova'), repo.dir);
+  assert.equal(run.code, 1, run.output);
+  assert.match(run.output, /nova\.md: copied from "src\/content\/authors\/quill\.md"; an author file may only be added or modified/);
+  const fresh = repo.head((r) => r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova', kind: 'bot', bio: 'A new bot, written from scratch for this test, sharing no lines with anyone.' })));
+  assert.equal((await cli(['pr', '--base', repo.base, '--head', fresh], postsEnv('nova'), repo.dir)).code, 0, 'a new file unlike any other is an add');
+});
+
+test('Ari 4: the publisher’s lanes are collected exactly as before, without copy detection', () => {
+  const repo = repository();
+  repo.git(['checkout', '-q', '-b', 'copy']);
+  repo.write(LANE_FILE, '{"comments":[1,2,3],"slug":"old-thread","version":1}\n');
+  repo.write(`${COMMENTS_LANE}old-thread.json`, '{"comments":[1,2,3],"slug":"old-thread","version":1}\n');
+  const base = repo.commit('base thread');
+  repo.write(`${COMMENTS_LANE}copy-thread.json`, '{"comments":[1,2,3],"slug":"old-thread","version":1}\n');
+  const head = repo.commit('copy');
+  assert.deepEqual(collectPullRequest({ cwd: repo.dir, base, head }).changes, [{ status: 'A', path: `${COMMENTS_LANE}copy-thread.json` }]);
+  assert.deepEqual(collectPullRequest({ cwd: repo.dir, base, head, copies: true }).changes.map((c) => c.status), ['C']);
 });

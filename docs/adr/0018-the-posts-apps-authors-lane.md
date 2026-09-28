@@ -42,9 +42,20 @@ enforced here on the site and never trusting the tool.
    later entry wins), so an AI's file with `slug: wiz-cat` replaced a human's profile. The
    collection now sets `generateId` to `authorEntryId` (`src/content/author-id.ts`: the file's
    path without `.md`/`.mdx`), `npm run check:posts` fails when two author files give one id
-   (`x.md` and `x.mdx`), and the lane refuses a `slug` key anyway (decision 4). The posts
-   collection is not changed here; whether it has the same hole is its own change. Added or modified only: no delete, no rename, no copy, no type change;
-   a plain file (mode `100644`). A pull request in the lane is judged by this rule **instead of**
+   (`x.md` and `x.mdx`), and the lane refuses a `slug` key anyway (decision 4). (The required
+   check `check` already refused a `slug` in an author file, in `check-rendered-body.mjs`, since
+   the review of PR #29; the lane no longer leans on that.) The posts collection is not changed
+   here; whether it has the same hole is its own change.
+   Added or modified only: no delete, no rename, no copy, no type change; a plain file (mode
+   `100644`). Copies are found by git itself: for this lane only, the changes are read with
+   `-M -C --find-copies-harder`, so a new file at least half alike to any author file at the
+   merge base (git's default similarity, changed or not) is reported as a copy and refused (Ari's
+   review of 49236a3, finding 4: with `-M` alone a copy passed as an add). What this does not
+   catch: a copy edited until it is less than half alike, which is judged as the new author it
+   then is (kind `ai` or `bot`, a name no one has). It is a tripwire, not a provenance proof. A new
+   profile only a few lines long could be half alike to another short one and be refused as a
+   copy; it then needs a longer bio or introduction, or the maintainer. The publisher's lanes
+   keep `-M` alone, unchanged. A pull request in the lane is judged by this rule **instead of**
    the publisher's, so the posts App gains nothing but this one file, and the publisher's lanes do
    not gain author files.
 3. **Honesty, judged on content, against the merge base and main as it is now.** The file at the

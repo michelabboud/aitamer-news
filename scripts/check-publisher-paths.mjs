@@ -569,10 +569,14 @@ function requireCommit(cwd, id) {
 
 /**
  * The changes from `from` to `to` and the modes of `to`'s tree, read from the clone at `cwd`.
- * @param {string} cwd @param {string} from @param {string} to
+ * With `copies`, git also reports a file that copies another (`C`), even an unchanged one
+ * (`-C --find-copies-harder`), at git's default similarity of half; the authors lane refuses
+ * copies (Ari's review, finding 4). The publisher's lanes keep `-M` alone, exactly as before.
+ * @param {string} cwd @param {string} from @param {string} to @param {{ copies?: boolean }} [options]
  */
-function collect(cwd, from, to) {
-  const changes = parseNameStatus(git(cwd, ['diff', '--name-status', '-z', '-M', '--no-relative', from, to, '--']));
+function collect(cwd, from, to, { copies = false } = {}) {
+  const detection = copies ? ['-M', '-C', '--find-copies-harder'] : ['-M'];
+  const changes = parseNameStatus(git(cwd, ['diff', '--name-status', '-z', ...detection, '--no-relative', from, to, '--']));
   const modes = parseHeadModes(git(cwd, ['ls-tree', '-r', '-z', '--full-tree', to]));
   return { changes, modes };
 }
@@ -580,14 +584,14 @@ function collect(cwd, from, to) {
 /**
  * A pull request's changes: from the merge base of `base` and `head` to `head`, as GitHub shows
  * them, so commits that landed on main after the branch was cut are not counted as the branch's.
- * @param {{ cwd: string, base: string, head: string }} input
+ * @param {{ cwd: string, base: string, head: string, copies?: boolean }} input `copies`: report copies (the authors lane)
  */
-export function collectPullRequest({ cwd, base, head }) {
+export function collectPullRequest({ cwd, base, head, copies = false }) {
   const baseId = requireCommit(cwd, objectId('--base', base));
   const headId = requireCommit(cwd, objectId('--head', head));
   const mergeBase = git(cwd, ['merge-base', baseId, headId]).trim();
   if (!OBJECT_ID.test(mergeBase)) throw new UnjudgeableError(`the base and head have no merge base (${JSON.stringify(mergeBase)})`);
-  return { ...collect(cwd, mergeBase, headId), mergeBase, head: headId, base: baseId };
+  return { ...collect(cwd, mergeBase, headId, { copies }), mergeBase, head: headId, base: baseId };
 }
 
 /**
@@ -753,7 +757,7 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   let problems;
   try {
     collected = mode === 'pr'
-      ? collectPullRequest({ cwd, base: options.base, head: options.head })
+      ? collectPullRequest({ cwd, base: options.base, head: options.head, copies: lane.applies })
       : collectPush({ cwd, before: options.before, after: options.after });
     problems = lane.applies
       ? authorsLaneProblems({ cwd, collected, headRef: env.PR_HEAD_REF, readers: await loadFrontmatterReaders() })
