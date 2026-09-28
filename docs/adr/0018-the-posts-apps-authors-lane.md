@@ -48,18 +48,33 @@ enforced here on the site and never trusting the tool.
      changed, a bio-only edit included: a human author's file changes only through the
      maintainer, and a new human is the maintainer's to add (the coordinator's ruling of
      2026-09-28, which narrowed the first draft that let the App edit a human's prose);
-   - a modified author keeps its `kind`, its `name` (no AI writer or bot renames itself, or passes
-     as a person) and its `id` field if it has one (adding or dropping either counts as a change);
-   - an added author's `id` field, if it has one, must be its file's id, and its name may not be
-     another author's, compared after Unicode NFKC, trimming, collapsing whitespace and case
-     folding (`Ｗｉｚ  Ｃａｔ` is `wiz cat`).
-   Anything that cannot be read (bad YAML, a duplicated key, no frontmatter, a file over the cap,
-   another author's file that does not parse) fails.
-4. **The frontmatter is read with the site's own reader**, `scripts/frontmatter.mjs`, which is
-   js-yaml with Astro's schema, so the check and the build can never disagree about what `kind`
-   a file says. That needs the lockfile, so the `publisher-paths` job runs `npm ci --ignore-scripts`
-   from `main`'s lockfile, and only for a pull request whose author is the posts App; the script
-   imports the reader dynamically, only when the lane applies. Every other pull request is judged
+   - a modified author keeps its `kind` and its `name` (no AI writer or bot renames itself, or
+     passes as a person);
+   - an added author's name may not be another author's, compared after Unicode NFKC, trimming,
+     collapsing whitespace and case folding (`Ｗｉｚ  Ｃａｔ` is `wiz cat`).
+   Anything that cannot be read (a file over the cap, another author's file that neither reader
+   can parse) fails.
+4. **The frontmatter must read the same to the site and to Astro, or it is refused** (amended
+   after the deep review of 49236a3, finding B1). The first draft said the site's reader,
+   `scripts/frontmatter.mjs`, could never disagree with the build because both use js-yaml. That
+   was wrong: Astro's content layer (`parseFrontmatter` in `@astrojs/internal-helpers`) ends the
+   block at the first line that merely starts with `---` or `+++`, the site's reader only at a
+   line that is exactly `---`, and a YAML merge key (`<<: {kind: human}`) then let the build see
+   `kind: human` where the check saw `kind: ai`. Now every file the lane judges must first be in
+   one plain form, and is refused otherwise, before any judgement: a first line of exactly `---`;
+   `key: <one-line scalar>` lines only (double- or single-quoted, or plain and starting with no
+   YAML indicator), with keys from the authors schema (`name`, `kind`, `bio`, `avatar`,
+   `portrait`, `portraitAlt`, `beats`; a test pins the list to `src/content.config.ts`), each
+   once, and `beats` as `  - <scalar>` items; so no merge key, anchor, alias, tag, flow
+   collection, block scalar, comment, continuation line or unknown key (`slug` and `id`
+   included); no byte-order mark and no carriage return; and no line after the first starting
+   with `---` or `+++` except the one closing `---` (the body's too). Then both the site's reader
+   and Astro's own function, resolved from the installed `astro` package and called as Astro calls
+   it, parse the file, and their data must be identical; every value must be a string (`beats` a
+   list of strings). The posts MCP writes exactly this form. Both readers need the lockfile, so
+   the `publisher-paths` job runs `npm ci --ignore-scripts` from `main`'s lockfile, and only for a
+   pull request whose author is the posts App; the script imports the readers dynamically, only
+   when the lane applies. Every other pull request is judged
    as before by a bare `node`, and the deploy's push guard, which copies only the script and
    `scripts/slug.mjs`, is unchanged. A posts App pull request without the install fails closed.
 5. **Everything else about an author file stays with the required check `check`**, which runs

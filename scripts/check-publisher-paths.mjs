@@ -55,15 +55,19 @@
  *     read with `git cat-file`, never checked out or run): the lane touches only `kind: ai` and
  *     `kind: bot` files, judged at the merge base for a modified file (a human's file, or one of
  *     an unknown kind, changes only through the maintainer, whatever changed) and at the head for
- *     an added one (a new human is the maintainer's to add); a modified file keeps its `kind`, its
- *     `name` (no AI or bot renames itself, or passes as a person) and its `id` field if it has
- *     one; an added file's `id` field, if it has one, is its file's id, and its name may not be
- *     another author's (compared after NFKC, trimming, collapsing spaces and case folding).
- * The frontmatter is read with the site's own reader, `scripts/frontmatter.mjs` (js-yaml, the
- * parser Astro uses), imported only when this lane applies, so the publisher's lanes and the
- * `push` mode still run with a bare `node`; the workflow installs the lockfile (`npm ci
- * --ignore-scripts`, from main) only for a pull request whose author is the posts App. A missing
- * parser fails the check. Everything else about an author file (its schema, a writer page's name
+ *     an added one (a new human is the maintainer's to add); a modified file keeps its `kind` and
+ *     its `name` (no AI or bot renames itself, or passes as a person); an added file's name may
+ *     not be another author's (compared after NFKC, trimming, collapsing spaces and case folding).
+ * Every file the lane judges is read by `readAuthorFile`, which refuses before any judgement a
+ * form the site's reader and Astro's could read differently (the two cut the frontmatter block
+ * differently, and YAML merge keys can hide a value from one of them; review of PR #46, B1): only
+ * `key: <one-line scalar>` lines with the authors schema's keys, once each, and `beats` as `  - `
+ * items; no BOM, no CR, no other line starting with `---` or `+++`. Then it parses the file with
+ * both the site's reader (`scripts/frontmatter.mjs`) and Astro's own (`parseFrontmatter` from the
+ * installed astro's `@astrojs/internal-helpers`) and requires the same data. Both are imported
+ * only when this lane applies, so the publisher's lanes and the `push` mode still run with a bare
+ * `node`; the workflow installs the lockfile (`npm ci --ignore-scripts`, from main) only for a
+ * pull request whose author is the posts App. A missing reader fails the check. Everything else about an author file (its schema, a writer page's name
  * clash) stays with the required check `check`, which builds the site.
  *
  * `.github/workflows/check-publisher-pr.yml` runs the `pr` mode from main's own copy of this file
@@ -72,7 +76,8 @@
  * Exit 0 when the change passes, 1 when it does not (or cannot be judged), 2 on bad usage.
  */
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { SLUG } from './slug.mjs';
 
@@ -226,28 +231,141 @@ export function comparableName(name) {
 }
 
 /**
+ * The top-level keys an author file may have in the lane: the `authors` collection's schema in
+ * `src/content.config.ts`, and nothing else (a test pins the two together). An unknown key is
+ * refused because Astro gives some meaning (`slug` moves the entry's id; review of PR #46, B2)
+ * and the lane cannot vouch for what it does not know.
+ */
+export const AUTHOR_KEYS = Object.freeze(['name', 'kind', 'bio', 'avatar', 'portrait', 'portraitAlt', 'beats']);
+/** The one key whose value is a list (of strings); every other key's value is a string. */
+const AUTHOR_LIST_KEY = 'beats';
+/** The fence both readers agree on, when it is the only line of its kind: exactly `---`. */
+const FENCE_LINE = '---';
+/** A line Astro's reader may take as a fence: anything starting with `---` or `+++`. */
+const FENCE_LIKE = /^(?:---|\+\+\+)/;
+/** `key: value` or `key:` at column 0, the key a plain word. */
+const KEY_LINE = /^([A-Za-z][A-Za-z0-9]*):(?: (.*))?$/;
+/** A list item under the list key: two spaces, a dash, a space, the value. */
+const ITEM_LINE = /^  - (.*)$/;
+/** One-line scalars: double-quoted, single-quoted, or plain and starting with none of YAML's indicators. */
+const DOUBLE_QUOTED = /^"(?:[^"\\]|\\.)*"$/;
+const SINGLE_QUOTED = /^'(?:[^']|'')*'$/;
+const PLAIN_START = /^[^\s&*!|>'"%@`{}[\],#?:\-]/;
+
+/** @param {string} value @returns {boolean} whether `value` is a one-line scalar the lane reads: no anchor, alias, tag, flow collection or block scalar */
+function isPlainScalarText(value) {
+  return DOUBLE_QUOTED.test(value) || SINGLE_QUOTED.test(value) || (PLAIN_START.test(value) && !/\s$/.test(value));
+}
+
+/**
+ * Read an author file the way both the site's scripts and Astro read it, and only when they must
+ * agree (review of PR #46, B1: the two readers cut the block differently, and YAML merge keys let
+ * each see a different `kind` or `name`). Refused before any judgement: a byte-order mark or a
+ * carriage return anywhere; a first line that is not exactly `---`; a first later line starting
+ * with `---` or `+++` that is not exactly `---`, or any other such line after it; a YAML line that
+ * is not `key: <one-line scalar>`, `beats:` or `  - <one-line scalar>` under it (so no merge key,
+ * anchor, alias, tag, flow collection, block scalar, comment or continuation line); a key outside
+ * `AUTHOR_KEYS`; a key twice. Then both readers parse the file and must return the same data, and
+ * every value must be a string (the list key: a list of strings). Pure: the readers are passed in.
+ * @param {string} text the whole file
+ * @param {{ site: (text: string) => ({ data: Record<string, unknown> } | null), astro: (text: string) => Record<string, unknown> }} readers
+ * @returns {{ data: Record<string, unknown> } | { problem: string }}
+ */
+export function readAuthorFile(text, readers) {
+  if (text.includes('\uFEFF')) return { problem: 'it has a byte-order mark' };
+  if (text.includes('\r')) return { problem: 'it has a carriage return; author files use LF line ends' };
+  const lines = text.split('\n');
+  if (lines[0] !== FENCE_LINE) return { problem: 'its first line is not exactly ---' };
+  const close = lines.findIndex((line, index) => index > 0 && FENCE_LIKE.test(line));
+  if (close === -1 || lines[close] !== FENCE_LINE) {
+    return { problem: `its frontmatter does not end at a line that is exactly ---${close === -1 ? '' : ` (line ${close + 1} starts like a fence)`}` };
+  }
+  const extra = lines.findIndex((line, index) => index > close && FENCE_LIKE.test(line));
+  if (extra !== -1) return { problem: `line ${extra + 1} starts with --- or +++, which a reader could take for a fence` };
+  const seen = new Set();
+  let inList = false;
+  for (let index = 1; index < close; index += 1) {
+    const line = lines[index];
+    const where = `line ${index + 1}`;
+    if (line === '') continue;
+    const item = ITEM_LINE.exec(line);
+    if (item) {
+      if (!inList) return { problem: `${where}: a list item outside ${AUTHOR_LIST_KEY}` };
+      if (!isPlainScalarText(item[1])) return { problem: `${where}: not a one-line value (no anchor, alias, tag, flow collection or block scalar)` };
+      continue;
+    }
+    const entry = KEY_LINE.exec(line);
+    if (!entry) return { problem: `${where}: not a \`key: value\` line the lane reads (no merge key, anchor, alias, tag, comment or continuation)` };
+    const [, key, value] = entry;
+    if (!AUTHOR_KEYS.includes(key)) return { problem: `${where}: the key ${JSON.stringify(key)} is not in the authors schema (${AUTHOR_KEYS.join(', ')})` };
+    if (seen.has(key)) return { problem: `${where}: the key ${JSON.stringify(key)} is written twice` };
+    seen.add(key);
+    inList = key === AUTHOR_LIST_KEY && value === undefined;
+    if (!inList && (value === undefined || !isPlainScalarText(value))) {
+      return { problem: `${where}: the value of ${key} is not a one-line value (no anchor, alias, tag, flow collection or block scalar)` };
+    }
+  }
+  let site;
+  let astro;
+  try {
+    site = readers.site(text)?.data;
+  } catch (error) {
+    return { problem: `the site's reader cannot read it: ${error.message.split('\n')[0]}` };
+  }
+  try {
+    astro = readers.astro(text);
+  } catch (error) {
+    return { problem: `Astro's reader cannot read it: ${error.message.split('\n')[0]}` };
+  }
+  if (!site) return { problem: 'the site\'s reader finds no frontmatter' };
+  if (!isDeepStrictEqual(site, astro)) return { problem: 'the site\'s reader and Astro\'s read different data from it' };
+  for (const [key, value] of Object.entries(site)) {
+    const ok = key === AUTHOR_LIST_KEY
+      ? Array.isArray(value) && value.length > 0 && value.every((entry) => typeof entry === 'string')
+      : typeof value === 'string';
+    if (!ok) return { problem: `the value of ${key} is not ${key === AUTHOR_LIST_KEY ? 'a list of strings' : 'a string'}` };
+  }
+  return { data: site };
+}
+
+/**
+ * The names an author file gives, read leniently for the name-clash rule: whatever either reader
+ * finds (a file the lane does not change may be in any form the maintainer wrote). Pure.
+ * @param {string} text @param {Parameters<typeof readAuthorFile>[1]} readers
+ * @returns {string[] | null} null when neither reader can read it
+ */
+export function namesIn(text, readers) {
+  const names = [];
+  let read = false;
+  try {
+    const data = readers.site(text)?.data;
+    read = true;
+    if (typeof data?.name === 'string') names.push(data.name);
+  } catch { /* the other reader may still read it */ }
+  try {
+    const data = readers.astro(text);
+    read = true;
+    if (typeof data?.name === 'string') names.push(data.name);
+  } catch { /* judged below */ }
+  return read ? names : null;
+}
+
+/**
  * The honesty problems with one authors-lane change. Pure: the caller reads the files and passes
- * the frontmatter reader in (`scripts/frontmatter.mjs`'s `readFrontmatter`).
+ * both frontmatter readers in (`loadFrontmatterReaders`); every file is read by `readAuthorFile`.
  * @param {{
  *   status: 'A' | 'M', path: string,
  *   baseText: string | null, headText: string,
  *   otherNames: string[],
- *   readFrontmatter: (text: string) => { data: Record<string, unknown> } | null,
+ *   readers: Parameters<typeof readAuthorFile>[1],
  * }} input `baseText` is the file at the merge base (null when added); `otherNames` are the names
  *   of every other author at the head
  * @returns {string[]}
  */
-export function authorContentProblems({ status, path, baseText, headText, otherNames, readFrontmatter }) {
-  const id = authorIdOf(path);
+export function authorContentProblems({ status, path, baseText, headText, otherNames, readers }) {
   const read = (text, when) => {
-    let frontmatter;
-    try {
-      frontmatter = readFrontmatter(text);
-    } catch (error) {
-      return { problem: `${path}: the file ${when} cannot be read: ${error.message}` };
-    }
-    if (frontmatter === null) return { problem: `${path}: the file ${when} has no frontmatter` };
-    return { data: frontmatter.data };
+    const result = readAuthorFile(text, readers);
+    return 'problem' in result ? { problem: `${path}: the file ${when} is refused: ${result.problem}` } : result;
   };
   const head = read(headText, 'at the head');
   if (head.problem) return [head.problem];
@@ -262,8 +380,7 @@ export function authorContentProblems({ status, path, baseText, headText, otherN
     if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (before.kind))) {
       return [`${path}: an author of kind ${JSON.stringify(before.kind)}; the authors lane changes only ${kinds} files (a human's file changes only through the maintainer)`];
     }
-    const same = (key) => Object.hasOwn(before, key) === Object.hasOwn(after, key) && isDeepStrictEqual(before[key], after[key]);
-    if (!same('id')) problems.push(`${path}: its id field changed (${JSON.stringify(before.id)} to ${JSON.stringify(after.id)}); an author's id never changes`);
+    const same = (key) => isDeepStrictEqual(before[key], after[key]);
     if (!same('kind')) problems.push(`${path}: its kind changed (${JSON.stringify(before.kind)} to ${JSON.stringify(after.kind)}); an author's kind never changes in the authors lane`);
     if (!same('name')) {
       problems.push(`${path}: its name changed (${JSON.stringify(before.name)} to ${JSON.stringify(after.name)}); an author of kind ${JSON.stringify(before.kind)} keeps its name`);
@@ -271,9 +388,6 @@ export function authorContentProblems({ status, path, baseText, headText, otherN
   } else {
     if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (after.kind))) {
       problems.push(`${path}: a new author of kind ${JSON.stringify(after.kind)}; the authors lane adds only ${kinds} (a new human is the maintainer's to add)`);
-    }
-    if (Object.hasOwn(after, 'id') && after.id !== id) {
-      problems.push(`${path}: its id field ${JSON.stringify(after.id)} is not its file's id ${JSON.stringify(id)}`);
     }
     const name = comparableName(after.name);
     if (name !== null && otherNames.some((other) => comparableName(other) === name)) {
@@ -466,10 +580,10 @@ function authorFileAt(cwd, commit, path) {
 /**
  * Every problem with a pull request in the posts App's authors lane: the paths first, then (only
  * when they pass) the honesty rules on the file's content.
- * @param {{ cwd: string, collected: ReturnType<typeof collectPullRequest>, headRef: string, readFrontmatter: Function }} input
+ * @param {{ cwd: string, collected: ReturnType<typeof collectPullRequest>, headRef: string, readers: Parameters<typeof readAuthorFile>[1] }} input
  * @returns {string[]}
  */
-export function authorsLaneProblems({ cwd, collected, headRef, readFrontmatter }) {
+export function authorsLaneProblems({ cwd, collected, headRef, readers }) {
   const { changes, modes, mergeBase, head } = collected;
   const pathProblems = authorPathProblems({ changes, modes, headRef });
   if (pathProblems.length > 0) return pathProblems;
@@ -478,14 +592,9 @@ export function authorsLaneProblems({ cwd, collected, headRef, readFrontmatter }
   const others = status === 'A' ? [...modes.keys()].filter((p) => p !== path && ANY_AUTHOR_FILE.test(p)).sort() : [];
   const otherNames = [];
   for (const other of others) {
-    let frontmatter;
-    try {
-      frontmatter = readFrontmatter(authorFileAt(cwd, head, other));
-    } catch (error) {
-      if (error instanceof UnjudgeableError) throw error;
-      throw new UnjudgeableError(`${other}: another author's file cannot be read, so the names cannot be compared: ${error.message}`);
-    }
-    if (frontmatter !== null && typeof frontmatter.data.name === 'string') otherNames.push(frontmatter.data.name);
+    const names = namesIn(authorFileAt(cwd, head, other), readers);
+    if (names === null) throw new UnjudgeableError(`${other}: another author's file cannot be read, so the names cannot be compared`);
+    otherNames.push(...names);
   }
   return authorContentProblems({
     status,
@@ -493,16 +602,27 @@ export function authorsLaneProblems({ cwd, collected, headRef, readFrontmatter }
     baseText: status === 'M' ? authorFileAt(cwd, mergeBase, path) : null,
     headText: authorFileAt(cwd, head, path),
     otherNames,
-    readFrontmatter,
+    readers,
   });
 }
 
-/** The site's frontmatter reader, loaded only for the authors lane (it needs js-yaml, from `npm ci`). */
-async function loadFrontmatterReader() {
+/**
+ * The two frontmatter readers the authors lane requires to agree, loaded only for that lane (both
+ * need the lockfile, from `npm ci`): the site's own (`scripts/frontmatter.mjs`) and Astro's
+ * content layer's (`parseFrontmatter` from `@astrojs/internal-helpers/frontmatter`, resolved from
+ * the installed `astro` package so it is the very copy the build uses, called as Astro's
+ * `safeParseFrontmatter` calls it).
+ * @returns {Promise<Parameters<typeof readAuthorFile>[1]>}
+ */
+export async function loadFrontmatterReaders() {
   try {
-    return (await import('./frontmatter.mjs')).readFrontmatter;
+    const site = (await import('./frontmatter.mjs')).readFrontmatter;
+    const astroPackage = createRequire(import.meta.url).resolve('astro/package.json');
+    const helpers = createRequire(astroPackage).resolve('@astrojs/internal-helpers/frontmatter');
+    const { parseFrontmatter } = await import(pathToFileURL(helpers).href);
+    return { site, astro: (text) => parseFrontmatter(text, { frontmatter: 'empty-with-spaces' }).frontmatter };
   } catch (error) {
-    throw new UnjudgeableError(`the site's frontmatter reader cannot be loaded (is the lockfile installed?): ${error.message.split('\n')[0]}`);
+    throw new UnjudgeableError(`the frontmatter readers cannot be loaded (is the lockfile installed?): ${error.message.split('\n')[0]}`);
   }
 }
 
@@ -598,7 +718,7 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
       ? collectPullRequest({ cwd, base: options.base, head: options.head })
       : collectPush({ cwd, before: options.before, after: options.after });
     problems = lane.applies
-      ? authorsLaneProblems({ cwd, collected, headRef: env.PR_HEAD_REF, readFrontmatter: await loadFrontmatterReader() })
+      ? authorsLaneProblems({ cwd, collected, headRef: env.PR_HEAD_REF, readers: await loadFrontmatterReaders() })
       : changeProblems(collected);
   } catch (error) {
     if (!(error instanceof UnjudgeableError)) throw error;

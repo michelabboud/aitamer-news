@@ -19,18 +19,17 @@ name: Publisher paths
 # desk/authors-<desk>-<16 hex>-<id> branch, may change exactly one src/content/authors/<id>.md,
 # added or modified, and only an AI writer's or a bot's (kind at the merge base when modified, at
 # the head when added; a human's file changes only through the maintainer), and only honestly: a
-# modified author keeps its kind, name and id field, and an added author takes no other author's
-# name. The posts App gains nothing else, and
+# modified author keeps its kind and name, and an added author takes no other author's name. The posts App gains nothing else, and
 # the publisher's lanes do not gain author files. The rules and why: the script's header.
 #
 # pull_request_target: the workflow, and the script it runs, always come from main — never from
 # the pull request. Nothing from the pull request's head is checked out or executed. For every pull
 # request but the posts App's, no dependency is installed (the script needs only node's built-ins).
 # For the posts App's, main's lockfile is installed with `npm ci --ignore-scripts` (no install
-# script runs), because the authors lane reads the author file's frontmatter with the site's own
-# reader, scripts/frontmatter.mjs, which uses js-yaml: the parser Astro builds the site with, so
-# the check and the build can never read a different `kind`. The file itself is read from the
-# fetched objects, never checked out. The verdict is pinned to the
+# script runs), because the authors lane reads the author file's frontmatter with both the site's
+# own reader (scripts/frontmatter.mjs, js-yaml) and Astro's (@astrojs/internal-helpers), after
+# refusing every form the two could read differently, and requires them to agree. The file itself
+# is read from the fetched objects, never checked out. The verdict is pinned to the
 # event's head commit: the job fetches refs/pull/<n>/head, fails if it is not that commit (the
 # branch moved; the `synchronize` run for the new head judges it), and reads the changes from
 # `git diff --name-status -M <merge base> <head>` and the modes from `git ls-tree -r <head>` on

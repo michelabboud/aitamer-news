@@ -7,6 +7,7 @@ import {
   AUTHOR_BRANCH,
   AUTHOR_FILE_MAX_BYTES,
   AUTHOR_FILE_PATH,
+  AUTHOR_KEYS,
   AUTHOR_LANE_KINDS,
   AUTHORS_LANE,
   COMMENTS_LANE,
@@ -29,13 +30,15 @@ import {
   collectPush,
   fileProblems,
   inPublisherLane,
+  loadFrontmatterReaders,
+  namesIn,
+  readAuthorFile,
   laneOf,
   main,
   parseHeadModes,
   parseNameStatus,
   pullRequestScope,
 } from './check-publisher-paths.mjs';
-import { readFrontmatter } from './frontmatter.mjs';
 import { gitIn, quietly, quietlyAsync, tempDir } from './test-support.mjs';
 
 const MAINTAINER = '29182417';
@@ -96,9 +99,9 @@ test('the check imports nothing outside node: built-ins and its own dependency-f
   const { readFileSync } = await import('node:fs');
   const text = readFileSync(new URL('./check-publisher-paths.mjs', import.meta.url), 'utf8');
   const specifiers = [...text.matchAll(/^import .* from '([^']+)';$/gm)].map((match) => match[1]);
-  assert.deepEqual(specifiers.sort(), ['./slug.mjs', 'node:child_process', 'node:url', 'node:util']);
-  // The one dynamic import: the frontmatter reader, loaded only for the posts App's authors lane.
-  assert.deepEqual([...text.matchAll(/\bimport\(([^)]*)\)/g)].map((match) => match[1]), ["'./frontmatter.mjs'"]);
+  assert.deepEqual(specifiers.sort(), ['./slug.mjs', 'node:child_process', 'node:module', 'node:url', 'node:util']);
+  // The dynamic imports: the two frontmatter readers, loaded only for the posts App's authors lane.
+  assert.deepEqual([...text.matchAll(/\bimport\(([^)]*)\)/g)].map((match) => match[1]), ["'./frontmatter.mjs'", 'pathToFileURL(helpers']);
   const slug = readFileSync(new URL('./slug.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(slug, /^import /m);
 });
@@ -571,7 +574,8 @@ test('real git output: a delete in one lane plus a dissimilar add in the other p
 const POSTS = '9900002';
 const AUTHOR_BRANCH_NAME = (id) => `desk/authors-test-abcdef0123456789-${id}`;
 const QUILL = `${AUTHORS_LANE}quill.md`;
-const author = (fields, body = '') => `---\n${Object.entries(fields).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n${body}`;
+/** An author file as the posts MCP writes one: every string double-quoted, a list as block items. */
+const author = (fields, body = '') => `---\n${Object.entries(fields).map(([key, value]) => (Array.isArray(value) ? `${key}:\n${value.map((item) => `  - ${JSON.stringify(item)}`).join('\n')}` : `${key}: ${JSON.stringify(value)}`)).join('\n')}\n---\n${body}`;
 const QUILL_TEXT = author({ name: 'Quill', kind: 'ai', bio: 'The editor.' }, 'I am Quill.\n');
 const WIZ_TEXT = author({ name: 'Wiz Cat', kind: 'human', bio: 'Founding editor.' });
 const DESK_BOT_TEXT = author({ name: 'Desk Bot', kind: 'bot', bio: 'The news bot.' });
@@ -703,8 +707,10 @@ test('the authors lane’s paths: exactly one plain <id>.md, added or modified, 
   assert.match(authorPathProblems({ changes: [{ status: 'M', path: QUILL }], modes: plain(), headRef }).join('\n'), /mode cannot be checked/);
 });
 
+/** Both readers, as the lane loads them: the site's and Astro's own. */
+const READERS = await loadFrontmatterReaders();
 const content = (status, baseText, headText, otherNames = ['Wiz Cat', 'Desk Bot', 'Mai'], path = QUILL) =>
-  authorContentProblems({ status, path, baseText, headText, otherNames, readFrontmatter });
+  authorContentProblems({ status, path, baseText, headText, otherNames, readers: READERS });
 
 test('a modified AI writer or bot may change its bio, avatar, beats and introduction', () => {
   assert.deepEqual(content('M', QUILL_TEXT, author({ name: 'Quill', kind: 'ai', bio: 'The editor, and a writer.', beats: ['Editing'] }, 'I am Quill, still.\n')), []);
@@ -741,12 +747,12 @@ test('guardrail: a modified AI writer or bot never changes its kind', () => {
   assert.match(dropped.join('\n'), /its kind changed \("ai" to undefined\)/);
 });
 
-test('guardrail: a modified author never changes, adds or drops an id field', () => {
-  const withId = author({ id: 'quill', name: 'Quill', kind: 'ai', bio: 'x' });
-  assert.deepEqual(content('M', withId, author({ id: 'quill', name: 'Quill', kind: 'ai', bio: 'y' })), []);
-  assert.match(content('M', withId, author({ id: 'mai', name: 'Quill', kind: 'ai', bio: 'x' })).join('\n'), /its id field changed \("quill" to "mai"\)/);
-  assert.match(content('M', QUILL_TEXT, withId).join('\n'), /its id field changed \(undefined to "quill"\)/);
-  assert.match(content('M', withId, QUILL_TEXT).join('\n'), /its id field changed/);
+test('guardrail: a key outside the authors schema is refused, id and slug included (slug moves Astro’s id)', () => {
+  for (const key of ['id', 'slug', 'Kind', 'draft', 'layout']) {
+    const head = author({ name: 'Quill', kind: 'ai', bio: 'x', [key]: 'wiz-cat' });
+    assert.match(content('M', QUILL_TEXT, head).join('\n'), new RegExp(`the file at the head is refused: line \\d+: the key "${key}" is not in the authors schema`), key);
+    assert.match(content('A', null, head, [], `${AUTHORS_LANE}nova.md`).join('\n'), /is not in the authors schema/, key);
+  }
 });
 
 test('guardrail: an AI writer or a bot keeps its name', () => {
@@ -760,7 +766,8 @@ test('guardrail: an added author is an AI writer or a bot, never a human', () =>
   for (const kind of AUTHOR_LANE_KINDS) {
     assert.deepEqual(content('A', null, author({ name: 'Nova', kind, bio: 'x' }), ['Quill'], nova), [], kind);
   }
-  for (const kind of ['human', 'Human', 'robot', '', 1]) {
+  assert.match(content('A', null, author({ name: 'Nova', kind: 1, bio: 'x' }), ['Quill'], nova).join('\n'), /the value of kind is not a string/);
+  for (const kind of ['human', 'Human', 'robot', '']) {
     const problems = content('A', null, author({ name: 'Nova', kind, bio: 'x' }), ['Quill'], nova);
     assert.match(problems.join('\n'), /a new author of kind .*; the authors lane adds only kind: ai or kind: bot \(a new human is the maintainer's to add\)/, JSON.stringify(kind));
   }
@@ -777,17 +784,13 @@ test('guardrail: an added author may not take another author’s name, in any ca
   assert.equal(comparableName(42), null);
 });
 
-test('guardrail: an added author’s id field, if any, is its file’s id', () => {
-  const nova = `${AUTHORS_LANE}nova.md`;
-  assert.deepEqual(content('A', null, author({ id: 'nova', name: 'Nova', kind: 'ai', bio: 'x' }), [], nova), []);
-  assert.match(content('A', null, author({ id: 'wiz-cat', name: 'Nova', kind: 'ai', bio: 'x' }), [], nova).join('\n'), /its id field "wiz-cat" is not its file's id "nova"/);
-});
 
 test('an author file that cannot be read, at the head or the merge base, fails', () => {
-  assert.match(content('M', QUILL_TEXT, '---\nname: [unclosed\n---\n').join('\n'), /the file at the head cannot be read: frontmatter is not valid YAML/);
-  assert.match(content('M', QUILL_TEXT, 'no frontmatter at all\n').join('\n'), /the file at the head has no frontmatter/);
-  assert.match(content('M', '---\nkind: ai\nkind: human\n---\n', QUILL_TEXT).join('\n'), /the file at the merge base cannot be read/, 'a duplicated key is refused, as Astro refuses it');
-  assert.match(content('A', null, '---\nname: Nova\nkind: ai\nkind: human\n---\n').join('\n'), /the file at the head cannot be read/);
+  assert.match(content('M', QUILL_TEXT, '---\nname: [unclosed\n---\n').join('\n'), /the file at the head is refused: line 2: the value of name is not a one-line value/);
+  assert.match(content('M', QUILL_TEXT, '---\nname: "unclosed\n---\n').join('\n'), /the file at the head is refused: line 2: the value of name is not a one-line value/);
+  assert.match(content('M', QUILL_TEXT, 'no frontmatter at all\n').join('\n'), /the file at the head is refused: its first line is not exactly ---/);
+  assert.match(content('M', '---\nkind: ai\nkind: human\n---\n', QUILL_TEXT).join('\n'), /the file at the merge base is refused: line 3: the key "kind" is written twice/);
+  assert.match(content('A', null, '---\nname: Nova\nkind: ai\nkind: human\n---\n').join('\n'), /the key "kind" is written twice/);
   assert.match(content('M', null, QUILL_TEXT).join('\n'), /modified, but it is not at the merge base/);
 });
 
@@ -848,7 +851,7 @@ test('CLI: every guardrail refuses the posts App’s pull request', async () => 
   await refused('nova', (r) => r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'mai', kind: 'ai', bio: 'x' })), /the name "mai" is another author's/);
   await refused('wiz-cat', (r) => r.write(`${AUTHORS_LANE}wiz-cat.md`, author({ name: 'Wiz Cat', kind: 'human', bio: 'Only the bio changed.' })), /wiz-cat\.md: an author of kind "human"; the authors lane changes only kind: ai or kind: bot files/);
   await refused('wiz-cat', (r) => r.write(`${AUTHORS_LANE}wiz-cat.md`, author({ name: 'Quill', kind: 'human', bio: 'x' })), /an author of kind "human"/);
-  await refused('quill', (r) => r.write(QUILL, author({ id: 'mai', name: 'Quill', kind: 'ai', bio: 'x' })), /its id field changed/);
+  await refused('quill', (r) => r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'x', id: 'mai' })), /the key "id" is not in the authors schema/);
   await refused('quill', (r) => { r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'y' })); r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova', kind: 'ai', bio: 'x' })); }, /changes exactly one author file; this pull request changes 2/);
   await refused('quill', (r) => { r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'y' })); r.write('src/lib/site.ts', 'export const evil = 1;\n'); }, /changes exactly one author file; this pull request changes 2/);
   await refused('nova', (r) => r.write(`${AUTHORS_LANE}nova.mdx`, author({ name: 'Nova', kind: 'ai', bio: 'x' })), /"src\/content\/authors\/nova\.mdx": not an author file/);
@@ -931,8 +934,113 @@ test('the authors lane fails closed when the frontmatter reader is not there (th
   };
   const missing = run(postsEnv('quill'));
   assert.equal(missing.code, 1, missing.output);
-  assert.match(missing.output, /cannot be judged, so it fails .*the site's frontmatter reader cannot be loaded \(is the lockfile installed\?\)/);
+  assert.match(missing.output, /cannot be judged, so it fails .*the frontmatter readers cannot be loaded \(is the lockfile installed\?\)/);
   const comments = repo.head((r) => r.write(LANE_FILE));
   const publisher = execFileSync(process.execPath, [join(judge, 'check-publisher-paths.mjs'), 'pr', '--base', repo.base, '--head', comments], { cwd: repo.dir, encoding: 'utf8', env: { PATH: process.env.PATH, ...prEnv(PUBLISHER, PUBLISHER, MAINTAINER) } });
   assert.match(publisher, /1 changed file in this pull request, all src\/content\/comments/, 'the publisher’s lanes still need nothing but node');
+});
+
+// ---- review of PR #46, B1: the check and Astro must read the same frontmatter ----
+
+/** The reviewer's payloads (docs: ADR 0018; review of 49236a3, B1): each reads as kind ai to one reader and human to Astro. */
+const SPLIT_READS = {
+  plusKey: '---\n<<: {kind: human}\nname: Quill\nbio: hi\n+++: filler\nkind: ai\n---\nbody\n',
+  dashKey: '---\n<<: {kind: human}\nname: Quill\nbio: hi\n---x: filler\nkind: ai\n---\nbody\n',
+  quillM: '---\nname: Quill\n<<: {kind: human}\nbio: I write.\n+++: x\nkind: ai\n---\nIntro\n',
+};
+
+test('CLI (review B1): a file Astro would read as another kind or name than the check does is refused', async () => {
+  const repo = authorRepository();
+  for (const [label, text] of Object.entries(SPLIT_READS)) {
+    const modified = repo.head((r) => r.write(QUILL, text));
+    const run = await cli(['pr', '--base', repo.base, '--head', modified], postsEnv('quill'), repo.dir);
+    assert.equal(run.code, 1, `${label}: ${run.output}`);
+  }
+  const ghost = repo.head((r) => r.write(`${AUTHORS_LANE}ghost.md`, '---\n<<: {kind: human}\nname: Ghost Person\nbio: A person.\n+++: x\nkind: ai\n---\n'));
+  assert.equal((await cli(['pr', '--base', repo.base, '--head', ghost], postsEnv('ghost'), repo.dir)).code, 1, 'a new human through a merge key');
+  const borrowed = repo.head((r) => r.write(`${AUTHORS_LANE}nova.md`, '---\n<<: {kind: human, name: Wiz Cat}\nbio: x\n+++: x\nname: Unique Name\nkind: ai\n---\n'));
+  assert.equal((await cli(['pr', '--base', repo.base, '--head', borrowed], postsEnv('nova'), repo.dir)).code, 1, 'a borrowed name through a merge key');
+});
+
+test('review B1: the reviewer’s payloads are refused by the lane’s reader before any judgement', () => {
+  for (const [label, text] of Object.entries(SPLIT_READS)) {
+    assert.ok('problem' in readAuthorFile(text, READERS), label);
+  }
+});
+
+test('review B1: the lane’s reader refuses every form the two readers could read differently', () => {
+  const ok = '---\nname: "Nova"\nkind: "ai"\nbio: "x"\n---\nIntro.\n';
+  assert.deepEqual(readAuthorFile(ok, READERS), { data: { name: 'Nova', kind: 'ai', bio: 'x' } });
+  for (const [label, text, problem] of [
+    ['a byte-order mark', `﻿${ok}`, /byte-order mark/],
+    ['a carriage return', ok.replace('\n', '\r\n'), /carriage return/],
+    ['a leading blank line', `\n${ok}`, /first line is not exactly ---/],
+    ['a TOML fence', ok.replaceAll('---', '+++'), /first line is not exactly ---/],
+    ['a +++ line inside', '---\nname: "Nova"\n+++: x\nkind: "ai"\nbio: "x"\n---\n', /line 3 starts like a fence/],
+    ['a ---x line inside', '---\nname: "Nova"\n---x: y\nkind: "ai"\nbio: "x"\n---\n', /line 3 starts like a fence/],
+    ['a closing fence with trailing text', '---\nname: "Nova"\nkind: "ai"\nbio: "x"\n--- \n', /does not end at a line that is exactly ---/],
+    ['no closing fence', '---\nname: "Nova"\nkind: "ai"\n', /does not end at a line that is exactly ---/],
+    ['a --- rule in the body', `${ok}\n---\nMore.\n`, /line 8 starts with --- or \+\+\+/],
+    ['a +++ line in the body', `${ok}+++\n`, /starts with --- or \+\+\+/],
+    ['a merge key', '---\n<<: {kind: human}\nname: "Nova"\nkind: "ai"\nbio: "x"\n---\n', /line 2: not a `key: value` line/],
+    ['an anchor', '---\nname: &n "Nova"\nkind: "ai"\nbio: "x"\n---\n', /the value of name is not a one-line value/],
+    ['an alias', '---\nname: "Nova"\nkind: "ai"\nbio: *n\n---\n', /the value of bio is not a one-line value/],
+    ['a tag', '---\nname: "Nova"\nkind: !!str ai\nbio: "x"\n---\n', /the value of kind is not a one-line value/],
+    ['a flow mapping', '---\nname: "Nova"\nkind: {a: 1}\nbio: "x"\n---\n', /the value of kind is not a one-line value/],
+    ['a flow list', '---\nname: "Nova"\nkind: "ai"\nbio: "x"\nbeats: ["a"]\n---\n', /the value of beats is not a one-line value/],
+    ['a block scalar', '---\nname: "Nova"\nkind: "ai"\nbio: |\n  x\n---\n', /the value of bio is not a one-line value/],
+    ['a continuation line', '---\nname: "Nova"\nkind: "ai"\nbio: x\n  more\n---\n', /line 5: not a `key: value` line/],
+    ['a comment line', '---\n# kind: human\nname: "Nova"\nkind: "ai"\nbio: "x"\n---\n', /line 2: not a `key: value` line/],
+    ['a quoted key', '---\n"kind": "human"\nname: "Nova"\nbio: "x"\n---\n', /line 2: not a `key: value` line/],
+    ['an explicit key', '---\n? kind\n: human\nname: "Nova"\n---\n', /line 2: not a `key: value` line/],
+    ['a document marker', '---\nname: "Nova"\n...\nkind: "ai"\n---\n', /line 3: not a `key: value` line/],
+    ['a list item outside beats', '---\nname: "Nova"\n  - "x"\nkind: "ai"\n---\n', /line 3: a list item outside beats/],
+    ['a tagged list item', '---\nname: "Nova"\nkind: "ai"\nbio: "x"\nbeats:\n  - !!binary eA==\n---\n', /line 6: not a one-line value/],
+    ['a duplicated key', '---\nname: "Nova"\nkind: "ai"\nkind: "ai"\nbio: "x"\n---\n', /the key "kind" is written twice/],
+    ['an unknown key', '---\nname: "Nova"\nkind: "ai"\nslug: "wiz-cat"\nbio: "x"\n---\n', /the key "slug" is not in the authors schema/],
+    ['an empty beats', '---\nname: "Nova"\nkind: "ai"\nbio: "x"\nbeats:\n---\n', /the value of beats is not a list of strings/],
+    ['a number', '---\nname: 42\nkind: "ai"\nbio: "x"\n---\n', /the value of name is not a string/],
+    ['a date', '---\nname: 2026-09-28\nkind: "ai"\nbio: "x"\n---\n', /disagree|not a string|different data/],
+    ['a null', '---\nname: ~\nkind: "ai"\nbio: "x"\n---\n', /not a one-line value|not a string/],
+  ]) {
+    const result = readAuthorFile(text, READERS);
+    assert.ok('problem' in result, `${label}: ${JSON.stringify(result)}`);
+    assert.match(result.problem, problem, label);
+  }
+});
+
+test('review B1: when the two readers disagree, or either throws, the file is refused', () => {
+  const ok = '---\nname: "Nova"\nkind: "ai"\nbio: "x"\n---\n';
+  const other = { site: READERS.site, astro: () => ({ name: 'Nova', kind: 'human', bio: 'x' }) };
+  assert.match(readAuthorFile(ok, other).problem, /the site's reader and Astro's read different data/);
+  assert.match(readAuthorFile(ok, { site: READERS.site, astro: () => { throw new Error('boom\nmore'); } }).problem, /Astro's reader cannot read it: boom$/);
+  assert.match(readAuthorFile(ok, { site: () => { throw new Error('bang'); }, astro: READERS.astro }).problem, /the site's reader cannot read it: bang/);
+  assert.match(readAuthorFile(ok, { site: () => null, astro: READERS.astro }).problem, /finds no frontmatter/);
+});
+
+test('review B1: the site’s four real author files, and the posts MCP’s writing style, read cleanly', async () => {
+  const { readdirSync, readFileSync } = await import('node:fs');
+  const dir = new URL('../src/content/authors/', import.meta.url);
+  for (const name of readdirSync(dir).filter((file) => file.endsWith('.md'))) {
+    const result = readAuthorFile(readFileSync(new URL(name, dir), 'utf8'), READERS);
+    assert.ok('data' in result, `${name}: ${JSON.stringify(result)}`);
+  }
+  const mcp = '---\nname: "Mai"\nkind: "ai"\nbio: "I’m Mai: an AI writer covering # hashes, models — and more."\nportrait: "/authors/mai.jpg"\nportraitAlt: "\\"Quoted\\" alt: with a colon"\nbeats:\n  - "Agents"\n  - "yes"\n  - "2026-09-25 was a day"\n  - "- dash"\n---\nHello.\n\nSecond.\n';
+  assert.deepEqual(readAuthorFile(mcp, READERS).data?.beats, ['Agents', 'yes', '2026-09-25 was a day', '- dash']);
+});
+
+test('review B1: the lane’s keys are exactly the authors collection’s schema', async () => {
+  const { readFileSync } = await import('node:fs');
+  const config = readFileSync(new URL('../src/content.config.ts', import.meta.url), 'utf8');
+  const block = /const authors = defineCollection\(\{[\s\S]*?schema: z\.object\(\{([\s\S]*?)\n  \}\)/.exec(config);
+  assert.ok(block, 'the authors schema is found in src/content.config.ts');
+  const keys = [...block[1].matchAll(/^ {4}([A-Za-z]+):/gm)].map((match) => match[1]);
+  assert.deepEqual([...keys].sort(), [...AUTHOR_KEYS].sort());
+});
+
+test('review B1: another author’s names are read leniently, by either reader', () => {
+  assert.deepEqual(namesIn('---\nname: Wiz Cat\nkind: human\n---\n', READERS), ['Wiz Cat', 'Wiz Cat']);
+  assert.deepEqual(namesIn('---\nname: Mai\n+++: x\nname2: y\n---\n', READERS), ['Mai', 'Mai']);
+  assert.equal(namesIn('---\nname: [unclosed\n---\n', READERS), null);
+  assert.deepEqual(namesIn('no frontmatter\n', READERS), []);
 });
