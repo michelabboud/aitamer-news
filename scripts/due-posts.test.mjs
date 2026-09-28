@@ -27,7 +27,7 @@ test('frontmatter is read as YAML: True is a draft, a comment does not hide the 
   );
   assert.deepEqual(fullIsoPubDate(post('pubDate: "2026-09-26T08:00:00Z"')), new Date('2026-09-26T08:00:00Z'));
   assert.equal(fullIsoPubDate(post('pubDate: "2026-09-26"   # date only')), null);
-  assert.equal(fullIsoPubDate(`\uFEFF${post('pubDate: 2026-09-26T08:00:00Z')}`).toISOString(), '2026-09-26T08:00:00.000Z');
+  assert.throws(() => fullIsoPubDate(`\uFEFF${post('pubDate: 2026-09-26T08:00:00Z')}`), /byte-order mark/, 'refused since the review of PR #46 (B1)');
   assert.throws(() => fullIsoPubDate(post('title: "unclosed\npubDate: 2026-09-26T08:00:00Z')), /not valid YAML/);
 });
 
