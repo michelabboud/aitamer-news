@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 370" role="img" aria-labelledby="t d">
+<title id="t">GraphRAG</title>
+<desc id="d">A question goes two ways: a vector search finds passages that sound like it, and a graph traversal follows subsidiaries to a vendor to an incident. Both results merge into the context given to the model.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="370" rx="12"/>
+<text class="th" x="24" y="30" text-anchor="start">GraphRAG: similar text and connected entities, merged</text>
+<rect class="box" x="24" y="150" width="150" height="60" rx="8"/>
+<text class="t" x="99.0" y="169.0" text-anchor="middle">Question</text>
+<text class="ts" x="99.0" y="185.0" text-anchor="middle">"EU vendors with</text>
+<text class="ts" x="99.0" y="201.0" text-anchor="middle">incidents this year?"</text>
+<rect class="boxb" x="250" y="60" width="220" height="70" rx="8"/>
+<text class="t" x="360.0" y="84.0" text-anchor="middle">Vector search</text>
+<text class="ts" x="360.0" y="100.0" text-anchor="middle">chunks that sound like</text>
+<text class="ts" x="360.0" y="116.0" text-anchor="middle">the question</text>
+<rect class="boxs" x="250" y="170" width="220" height="160" rx="8"/>
+<text class="t" x="360" y="192" text-anchor="middle">Graph traversal</text>
+<path class="lnc" d="M300 228 L410 250"/>
+<path class="lnc" d="M300 290 L410 250"/>
+<path class="lnc" d="M410 250 L410 300"/>
+<circle class="dc" cx="300" cy="228" r="7"/>
+<text class="ts" x="300" y="216" text-anchor="middle">Subsidiary DE</text>
+<circle class="dc" cx="410" cy="250" r="7"/>
+<text class="ts" x="410" y="238" text-anchor="middle">Vendor X</text>
+<circle class="dc" cx="410" cy="300" r="7"/>
+<text class="ts" x="410" y="322" text-anchor="middle">Incident</text>
+<circle class="dc" cx="300" cy="290" r="7"/>
+<text class="ts" x="300" y="312" text-anchor="middle">Subsidiary FR</text>
+<path class="ln" d="M176 170L246 100" marker-end="url(#ah)"/>
+<path class="ln" d="M176 190L246 240" marker-end="url(#ah)"/>
+<rect class="boxc" x="560" y="150" width="216" height="70" rx="8"/>
+<text class="t" x="668.0" y="174.0" text-anchor="middle">Merged context</text>
+<text class="ts" x="668.0" y="190.0" text-anchor="middle">passages + entity paths</text>
+<text class="ts" x="668.0" y="206.0" text-anchor="middle">(or community summaries)</text>
+<path class="ln" d="M472 100L556 170" marker-end="url(#ah)"/>
+<path class="ln" d="M472 245L556 200" marker-end="url(#ah)"/>
+<text class="ts" x="24" y="350" text-anchor="start">Built offline by an LLM pass that extracts entities and relations; that extraction is the expensive part.</text>
+</svg>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 356" role="img" aria-labelledby="t d">
+<title id="t">Distance metrics</title>
+<desc id="d">Cosine similarity compares the angle between two vectors, dot product combines angle and length, and Euclidean distance measures the gap between their tips; on unit-length vectors all three give the same ranking.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="356" rx="12"/>
+<text class="th" x="24" y="34" text-anchor="start">Three ways to measure "close"</text>
+<rect class="panel" x="24" y="50" width="232" height="230" rx="10"/>
+<path class="lnb" d="M64 240L214 180" marker-end="url(#ah)"/>
+<path class="lnc" d="M64 240L174 100" marker-end="url(#ahc)"/>
+<path class="ln" d="M124 216 A 64 64 0 0 0 105 189"/>
+<text class="th" x="140" y="76" text-anchor="middle">Cosine</text>
+<text class="ts" x="140" y="270" text-anchor="middle">angle between the arrows</text>
+<text class="ts" x="140" y="300" text-anchor="middle">ignores length</text>
+<rect class="panel" x="284" y="50" width="232" height="230" rx="10"/>
+<path class="lnb" d="M324 240L474 180" marker-end="url(#ah)"/>
+<path class="lnc" d="M324 240L434 100" marker-end="url(#ahc)"/>
+<path class="lnf" d="M434 100 L457 187"/>
+<path class="ln" d="M324 240 L457 187"/>
+<text class="th" x="400" y="76" text-anchor="middle">Dot product</text>
+<text class="ts" x="400" y="270" text-anchor="middle">angle and length together</text>
+<text class="ts" x="400" y="300" text-anchor="middle">equals cosine on unit vectors</text>
+<rect class="panel" x="544" y="50" width="232" height="230" rx="10"/>
+<path class="lnb" d="M584 240L734 180" marker-end="url(#ah)"/>
+<path class="lnc" d="M584 240L694 100" marker-end="url(#ahc)"/>
+<path class="ln" d="M734 180L694 100" stroke-dasharray="4 3"/>
+<text class="th" x="660" y="76" text-anchor="middle">Euclidean (L2)</text>
+<text class="ts" x="660" y="270" text-anchor="middle">straight-line gap between tips</text>
+<text class="ts" x="660" y="300" text-anchor="middle">same ranking as cosine on unit vectors</text>
+<text class="ts" x="24" y="336" text-anchor="start">Normalise to unit length and all three rank neighbours the same way. Use the metric the model was trained with.</text>
+</svg>

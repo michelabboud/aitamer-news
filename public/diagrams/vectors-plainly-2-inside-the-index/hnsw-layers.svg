@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" role="img" aria-labelledby="t d">
+<title id="t">HNSW search</title>
+<desc id="d">A search enters the sparse top layer of a layered graph, takes long greedy hops toward the query, drops to denser layers when it stops improving, and finishes with short hops in the bottom layer, which holds every vector.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+
+@keyframes draw { 0% { stroke-dashoffset: 100; } 70% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
+.walk { stroke-dasharray: 100; stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: no-preference) {
+.walk { animation: draw 5s ease-in-out infinite; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="460" rx="12"/>
+<text class="th" x="24" y="30" text-anchor="start">HNSW: greedy search through layers of a proximity graph</text>
+<path class="panel" d="M80 70 L760 70 L720 160 L40 160 Z"/>
+<text class="ts" x="48" y="176" text-anchor="start">Layer 2: few nodes, long links</text>
+<path class="lnf" d="M126 98L209 94"/>
+<path class="lnf" d="M209 94L284 108"/>
+<path class="lnf" d="M284 108L354 115"/>
+<path class="lnf" d="M354 115L431 112"/>
+<path class="lnf" d="M431 112L509 95"/>
+<path class="lnf" d="M509 95L593 131"/>
+<path class="lnf" d="M593 131L665 101"/>
+<circle class="dg" cx="126" cy="98" r="4"/>
+<circle class="dg" cx="209" cy="94" r="4"/>
+<circle class="dg" cx="284" cy="108" r="4"/>
+<circle class="dg" cx="354" cy="115" r="4"/>
+<circle class="dg" cx="431" cy="112" r="4"/>
+<circle class="dg" cx="509" cy="95" r="4"/>
+<circle class="dg" cx="593" cy="131" r="4"/>
+<circle class="dg" cx="665" cy="101" r="4"/>
+<path class="panel" d="M80 190 L760 190 L720 280 L40 280 Z"/>
+<text class="ts" x="48" y="296" text-anchor="start">Layer 1: more nodes</text>
+<path class="lnf" d="M109 257L143 230"/>
+<path class="lnf" d="M143 230L184 212"/>
+<path class="lnf" d="M184 212L216 224"/>
+<path class="lnf" d="M216 224L239 216"/>
+<path class="lnf" d="M239 216L276 251"/>
+<path class="lnf" d="M276 251L309 239"/>
+<path class="lnf" d="M309 239L351 229"/>
+<path class="lnf" d="M351 229L384 213"/>
+<path class="lnf" d="M384 213L410 220"/>
+<path class="lnf" d="M410 220L455 231"/>
+<path class="lnf" d="M455 231L483 239"/>
+<path class="lnf" d="M483 239L520 225"/>
+<path class="lnf" d="M520 225L560 245"/>
+<path class="lnf" d="M560 245L585 239"/>
+<path class="lnf" d="M585 239L624 254"/>
+<path class="lnf" d="M624 254L662 224"/>
+<path class="lnf" d="M662 224L700 216"/>
+<circle class="dg" cx="109" cy="257" r="4"/>
+<circle class="dg" cx="143" cy="230" r="4"/>
+<circle class="dg" cx="184" cy="212" r="4"/>
+<circle class="dg" cx="216" cy="224" r="4"/>
+<circle class="dg" cx="239" cy="216" r="4"/>
+<circle class="dg" cx="276" cy="251" r="4"/>
+<circle class="dg" cx="309" cy="239" r="4"/>
+<circle class="dg" cx="351" cy="229" r="4"/>
+<circle class="dg" cx="384" cy="213" r="4"/>
+<circle class="dg" cx="410" cy="220" r="4"/>
+<circle class="dg" cx="455" cy="231" r="4"/>
+<circle class="dg" cx="483" cy="239" r="4"/>
+<circle class="dg" cx="520" cy="225" r="4"/>
+<circle class="dg" cx="560" cy="245" r="4"/>
+<circle class="dg" cx="585" cy="239" r="4"/>
+<circle class="dg" cx="624" cy="254" r="4"/>
+<circle class="dg" cx="662" cy="224" r="4"/>
+<circle class="dg" cx="700" cy="216" r="4"/>
+<path class="panel" d="M80 310 L760 310 L720 400 L40 400 Z"/>
+<text class="ts" x="48" y="418" text-anchor="start">Layer 0: every vector, short links</text>
+<path class="lnf" d="M96 368L106 354"/>
+<path class="lnf" d="M106 354L118 363"/>
+<path class="lnf" d="M118 363L144 359"/>
+<path class="lnf" d="M144 359L159 346"/>
+<path class="lnf" d="M159 346L171 360"/>
+<path class="lnf" d="M171 360L183 353"/>
+<path class="lnf" d="M183 353L201 377"/>
+<path class="lnf" d="M201 377L209 363"/>
+<path class="lnf" d="M209 363L217 365"/>
+<path class="lnf" d="M217 365L240 380"/>
+<path class="lnf" d="M240 380L257 344"/>
+<path class="lnf" d="M257 344L264 363"/>
+<path class="lnf" d="M264 363L273 353"/>
+<path class="lnf" d="M273 353L289 336"/>
+<path class="lnf" d="M289 336L301 368"/>
+<path class="lnf" d="M301 368L317 342"/>
+<path class="lnf" d="M317 342L335 374"/>
+<path class="lnf" d="M335 374L344 352"/>
+<path class="lnf" d="M344 352L366 374"/>
+<path class="lnf" d="M366 374L384 373"/>
+<path class="lnf" d="M384 373L389 351"/>
+<path class="lnf" d="M389 351L405 374"/>
+<path class="lnf" d="M405 374L428 338"/>
+<path class="lnf" d="M428 338L430 342"/>
+<path class="lnf" d="M430 342L445 354"/>
+<path class="lnf" d="M445 354L465 343"/>
+<path class="lnf" d="M465 343L470 351"/>
+<path class="lnf" d="M470 351L489 358"/>
+<path class="lnf" d="M489 358L513 365"/>
+<path class="lnf" d="M513 365L520 361"/>
+<path class="lnf" d="M520 361L537 333"/>
+<path class="lnf" d="M537 333L554 369"/>
+<path class="lnf" d="M554 369L568 370"/>
+<path class="lnf" d="M568 370L574 350"/>
+<path class="lnf" d="M574 350L584 362"/>
+<path class="lnf" d="M584 362L597 333"/>
+<path class="lnf" d="M597 333L614 338"/>
+<path class="lnf" d="M614 338L630 333"/>
+<path class="lnf" d="M630 333L639 338"/>
+<path class="lnf" d="M639 338L654 348"/>
+<path class="lnf" d="M654 348L667 374"/>
+<path class="lnf" d="M667 374L691 337"/>
+<path class="lnf" d="M691 337L699 347"/>
+<circle class="dg" cx="96" cy="368" r="4"/>
+<circle class="dg" cx="106" cy="354" r="4"/>
+<circle class="dg" cx="118" cy="363" r="4"/>
+<circle class="dg" cx="144" cy="359" r="4"/>
+<circle class="dg" cx="159" cy="346" r="4"/>
+<circle class="dg" cx="171" cy="360" r="4"/>
+<circle class="dg" cx="183" cy="353" r="4"/>
+<circle class="dg" cx="201" cy="377" r="4"/>
+<circle class="dg" cx="209" cy="363" r="4"/>
+<circle class="dg" cx="217" cy="365" r="4"/>
+<circle class="dg" cx="240" cy="380" r="4"/>
+<circle class="dg" cx="257" cy="344" r="4"/>
+<circle class="dg" cx="264" cy="363" r="4"/>
+<circle class="dg" cx="273" cy="353" r="4"/>
+<circle class="dg" cx="289" cy="336" r="4"/>
+<circle class="dg" cx="301" cy="368" r="4"/>
+<circle class="dg" cx="317" cy="342" r="4"/>
+<circle class="dg" cx="335" cy="374" r="4"/>
+<circle class="dg" cx="344" cy="352" r="4"/>
+<circle class="dg" cx="366" cy="374" r="4"/>
+<circle class="dg" cx="384" cy="373" r="4"/>
+<circle class="dg" cx="389" cy="351" r="4"/>
+<circle class="dg" cx="405" cy="374" r="4"/>
+<circle class="dg" cx="428" cy="338" r="4"/>
+<circle class="dg" cx="430" cy="342" r="4"/>
+<circle class="dg" cx="445" cy="354" r="4"/>
+<circle class="dg" cx="465" cy="343" r="4"/>
+<circle class="dg" cx="470" cy="351" r="4"/>
+<circle class="dg" cx="489" cy="358" r="4"/>
+<circle class="dg" cx="513" cy="365" r="4"/>
+<circle class="dg" cx="520" cy="361" r="4"/>
+<circle class="dg" cx="537" cy="333" r="4"/>
+<circle class="dg" cx="554" cy="369" r="4"/>
+<circle class="dg" cx="568" cy="370" r="4"/>
+<circle class="dg" cx="574" cy="350" r="4"/>
+<circle class="dg" cx="584" cy="362" r="4"/>
+<circle class="dg" cx="597" cy="333" r="4"/>
+<circle class="dg" cx="614" cy="338" r="4"/>
+<circle class="dg" cx="630" cy="333" r="4"/>
+<circle class="dg" cx="639" cy="338" r="4"/>
+<circle class="dg" cx="654" cy="348" r="4"/>
+<circle class="dg" cx="667" cy="374" r="4"/>
+<circle class="dg" cx="691" cy="337" r="4"/>
+<circle class="dg" cx="699" cy="347" r="4"/>
+<path class="lnc walk" d="M126 98 L354 115 L593 131 L585 239 L624 254 L630 333 L614 338 L597 333 L584 362 L574 350 L568 370" pathLength="100"/>
+<circle class="db" cx="126" cy="98" r="7"/>
+<text class="ts" x="120" y="86" text-anchor="start">entry point</text>
+<circle class="dc" cx="568" cy="370" r="7"/>
+<text class="tc" x="568" y="394" text-anchor="middle">nearest to query</text>
+<text class="ts" x="24" y="440" text-anchor="start">Each layer keeps a random, shrinking subset of nodes; search starts at the top and descends when it stops improving.</text>
+</svg>

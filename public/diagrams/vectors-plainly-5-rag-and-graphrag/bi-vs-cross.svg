@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 292" role="img" aria-labelledby="t d">
+<title id="t">Bi-encoder and cross-encoder</title>
+<desc id="d">A bi-encoder embeds the query and each document separately and compares them with cosine similarity, which is fast because documents are encoded in advance. A cross-encoder reads the query and one document together and outputs a relevance score, which is more accurate but costs one model call per candidate.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="292" rx="12"/>
+<text class="th" x="24" y="30" text-anchor="start">Ranking vs re-ranking: two kinds of model</text>
+<text class="t" x="24" y="60" text-anchor="start">Bi-encoder (retrieval)</text>
+<rect class="box" x="24" y="74" width="110" height="36" rx="8"/>
+<text class="t" x="79.0" y="97.0" text-anchor="middle">query</text>
+<rect class="box" x="24" y="150" width="110" height="36" rx="8"/>
+<text class="t" x="79.0" y="173.0" text-anchor="middle">document</text>
+<rect class="boxb" x="170" y="74" width="110" height="36" rx="8"/>
+<text class="t" x="225.0" y="97.0" text-anchor="middle">encoder</text>
+<rect class="boxb" x="170" y="150" width="110" height="36" rx="8"/>
+<text class="t" x="225.0" y="173.0" text-anchor="middle">encoder</text>
+<path class="ln" d="M136 92L166 92" marker-end="url(#ah)"/>
+<path class="ln" d="M136 168L166 168" marker-end="url(#ah)"/>
+<rect class="boxc" x="316" y="110" width="80" height="40" rx="8"/>
+<text class="t" x="356.0" y="135.0" text-anchor="middle">cosine</text>
+<path class="ln" d="M282 92L314 124" marker-end="url(#ah)"/>
+<path class="ln" d="M282 168L314 138" marker-end="url(#ah)"/>
+<text class="ts" x="24" y="214" text-anchor="start">Documents are encoded once, ahead of time.</text>
+<text class="ts" x="24" y="232" text-anchor="start">Fast enough for millions; an approximation.</text>
+<text class="t" x="440" y="60" text-anchor="start">Cross-encoder (re-ranking)</text>
+<rect class="box" x="440" y="90" width="150" height="60" rx="8"/>
+<text class="t" x="515.0" y="116.0" text-anchor="middle">query +</text>
+<text class="t" x="515.0" y="134.0" text-anchor="middle">document</text>
+<rect class="boxs" x="620" y="90" width="90" height="60" rx="8"/>
+<text class="t" x="665.0" y="125.0" text-anchor="middle">model</text>
+<rect class="boxc" x="730" y="100" width="50" height="40" rx="8"/>
+<text class="tm" x="755.0" y="125.0" text-anchor="middle">0.91</text>
+<path class="ln" d="M592 120L616 120" marker-end="url(#ah)"/>
+<path class="ln" d="M712 120L728 120" marker-end="url(#ah)"/>
+<text class="ts" x="440" y="214" text-anchor="start">Reads both together, so it sees how words</text>
+<text class="ts" x="440" y="232" text-anchor="start">interact. One model call per candidate.</text>
+<text class="ts" x="24" y="272" text-anchor="start">Cast a wide net with the bi-encoder (top 50 to 100), then let the cross-encoder pick the best few.</text>
+</svg>

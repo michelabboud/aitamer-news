@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 226" role="img" aria-labelledby="t d">
+<title id="t">Pre- and post-filtering</title>
+<desc id="d">With post-filtering, an approximate search returns 40 candidates and a filter matching 10 percent of rows leaves about 4, fewer than the 10 asked for. Filtering inside the search, or iterating, returns the full 10.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="226" rx="12"/>
+<text class="th" x="24" y="30" text-anchor="start">Filtering: when the filter runs changes what you get back</text>
+<text class="t" x="24" y="60" text-anchor="start">Post-filter (search, then discard)</text>
+<rect class="box" x="24" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="42" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="60" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="78" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="96" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="114" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="132" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="150" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="168" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="186" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="204" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="222" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="240" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="258" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="276" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="294" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="312" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="330" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="348" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="366" y="74" width="14" height="14" rx="3"/>
+<rect class="box" x="24" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="42" y="92" width="14" height="14" rx="3"/>
+<rect class="boxc" x="60" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="78" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="96" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="114" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="132" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="150" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="168" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="186" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="204" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="222" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="240" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="258" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="276" y="92" width="14" height="14" rx="3"/>
+<rect class="boxc" x="294" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="312" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="330" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="348" y="92" width="14" height="14" rx="3"/>
+<rect class="box" x="366" y="92" width="14" height="14" rx="3"/>
+<text class="ts" x="24" y="132" text-anchor="start">ef_search = 40 candidates; filter matches 10% of rows</text>
+<text class="tc" x="24" y="150" text-anchor="start">about 4 survive, though you asked for 10</text>
+<text class="t" x="420" y="60" text-anchor="start">Filter inside the search (or iterate)</text>
+<rect class="boxc" x="420" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="438" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="456" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="474" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="492" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="510" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="528" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="546" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="564" y="74" width="14" height="14" rx="3"/>
+<rect class="boxc" x="582" y="74" width="14" height="14" rx="3"/>
+<text class="ts" x="420" y="112" text-anchor="start">the graph walk only counts matching nodes,</text>
+<text class="ts" x="420" y="130" text-anchor="start">or keeps scanning until it has 10</text>
+<text class="ts" x="24" y="190" text-anchor="start">pgvector: iterative index scans (0.8.0+). Qdrant: payload-aware HNSW edges.</text>
+<text class="ts" x="24" y="208" text-anchor="start">Research: ACORN, Filtered-DiskANN. Very selective filters often suit an exact scan instead.</text>
+</svg>

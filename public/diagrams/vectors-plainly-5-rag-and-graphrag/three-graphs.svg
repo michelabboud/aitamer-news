@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 330" role="img" aria-labelledby="t d">
+<title id="t">Three meanings of graph</title>
+<desc id="d">Left: an HNSW index is a graph whose edges only mean two vectors are close. Middle: a knowledge graph beside the vector store, whose edges are facts between entities. Right: one engine that stores both vectors and graph edges.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="330" rx="12"/>
+<text class="th" x="24" y="30" text-anchor="start">Three different things called "graph"</text>
+<rect class="panel" x="24" y="46" width="240" height="240" rx="10"/>
+<text class="t" x="144" y="72" text-anchor="middle">The index is a graph</text>
+<text class="ts" x="144" y="252" text-anchor="middle">HNSW links near vectors.</text>
+<text class="ts" x="144" y="270" text-anchor="middle">Edges mean "close", nothing else.</text>
+<path class="lnf" d="M124 138 L156 135"/>
+<path class="lnf" d="M124 138 L91 133"/>
+<path class="lnf" d="M90 192 L108 205"/>
+<path class="lnf" d="M90 192 L138 202"/>
+<path class="lnf" d="M165 161 L166 170"/>
+<path class="lnf" d="M165 161 L156 135"/>
+<path class="lnf" d="M103 111 L81 102"/>
+<path class="lnf" d="M103 111 L91 133"/>
+<path class="lnf" d="M81 102 L103 111"/>
+<path class="lnf" d="M81 102 L79 128"/>
+<path class="lnf" d="M166 170 L165 161"/>
+<path class="lnf" d="M166 170 L197 168"/>
+<path class="lnf" d="M138 202 L108 205"/>
+<path class="lnf" d="M138 202 L166 170"/>
+<path class="lnf" d="M79 128 L91 133"/>
+<path class="lnf" d="M79 128 L81 102"/>
+<path class="lnf" d="M197 168 L166 170"/>
+<path class="lnf" d="M197 168 L165 161"/>
+<path class="lnf" d="M156 135 L165 161"/>
+<path class="lnf" d="M156 135 L124 138"/>
+<path class="lnf" d="M108 205 L90 192"/>
+<path class="lnf" d="M108 205 L138 202"/>
+<path class="lnf" d="M91 133 L79 128"/>
+<path class="lnf" d="M91 133 L103 111"/>
+<circle class="dg" cx="124" cy="138" r="4"/>
+<circle class="dg" cx="90" cy="192" r="4"/>
+<circle class="dg" cx="165" cy="161" r="4"/>
+<circle class="dg" cx="103" cy="111" r="4"/>
+<circle class="dg" cx="81" cy="102" r="4"/>
+<circle class="dg" cx="166" cy="170" r="4"/>
+<circle class="dg" cx="138" cy="202" r="4"/>
+<circle class="dg" cx="79" cy="128" r="4"/>
+<circle class="dg" cx="197" cy="168" r="4"/>
+<circle class="dg" cx="156" cy="135" r="4"/>
+<circle class="dg" cx="108" cy="205" r="4"/>
+<circle class="dg" cx="91" cy="133" r="4"/>
+<rect class="panel" x="280" y="46" width="240" height="240" rx="10"/>
+<text class="t" x="400" y="72" text-anchor="middle">A knowledge graph beside it</text>
+<text class="ts" x="400" y="252" text-anchor="middle">Entities and relations in</text>
+<text class="ts" x="400" y="270" text-anchor="middle">a graph store; edges mean facts.</text>
+<path class="lnc" d="M340 120 L460 120" marker-end="url(#ahc)"/>
+<path class="lnc" d="M460 120 L400 200" marker-end="url(#ahc)"/>
+<text class="ts" x="400" y="110" text-anchor="middle">uses</text>
+<text class="ts" x="456" y="168" text-anchor="start">had</text>
+<circle class="dc" cx="340" cy="120" r="8"/>
+<text class="ts" x="340" y="144" text-anchor="middle">Acme</text>
+<circle class="dc" cx="460" cy="120" r="8"/>
+<text class="ts" x="460" y="106" text-anchor="middle">Vendor X</text>
+<circle class="dc" cx="400" cy="200" r="8"/>
+<text class="ts" x="400" y="224" text-anchor="middle">Incident</text>
+<rect class="panel" x="536" y="46" width="240" height="240" rx="10"/>
+<text class="t" x="656" y="72" text-anchor="middle">One engine, both</text>
+<text class="ts" x="656" y="252" text-anchor="middle">Vectors and edges in one</text>
+<text class="ts" x="656" y="270" text-anchor="middle">store and one query language.</text>
+<path class="lnc" d="M596 120 L716 120 L656 200 Z"/>
+<circle class="dc" cx="596" cy="120" r="8"/>
+<rect class="boxb" x="580" y="132" width="32" height="10" rx="2"/>
+<circle class="dc" cx="716" cy="120" r="8"/>
+<rect class="boxb" x="700" y="132" width="32" height="10" rx="2"/>
+<circle class="dc" cx="656" cy="200" r="8"/>
+<rect class="boxb" x="640" y="212" width="32" height="10" rx="2"/>
+<text class="ts" x="656" y="236" text-anchor="middle">each node also carries a vector</text>
+<text class="ts" x="24" y="312" text-anchor="start">Most teams compose: a vector database for similarity, a graph database once multi-hop questions appear.</text>
+</svg>
