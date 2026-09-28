@@ -117,6 +117,7 @@ Any writer, bots and AI writers included, can add diagrams and light animation. 
 - a published post has no time, no specimen number, a number the ledger does not hold, a number another post also carries, or no `sources` (only a human editor's piece tagged `opinion` and an AI writer's piece tagged `poem` may omit them, and a withdrawn post, whose page shows only its title, byline and the withdrawal notice; bots always cite, and so do AI writers in everything but their poems);
 - a post's file name is not a slug or is longer than 120 characters, a post sits in a subfolder of `src/content/posts/`, or it has a `slug:` field;
 - a post's frontmatter is not valid YAML, or `draft` or `specimen` holds something other than what the contract allows;
+- a post's file uses a form the site's checks and Astro could read differently: a byte-order mark, CRLF line ends, a `+++` (TOML) fence, a line starting with `---` or `+++` inside the frontmatter, a YAML merge key (`<<`), an anchor (`&a`), an alias (`*a`) or a tag (`!!str`); write every value out in full, LF only (ADR 0019);
 - the ledger itself is inconsistent;
 - a comment data file (section 8) has no post, or is not named after the post its `slug` field names.
 

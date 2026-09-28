@@ -88,7 +88,9 @@ enforced here on the site and never trusting the tool.
    list of strings). The posts MCP writes exactly this form. Both readers need the lockfile, so
    the `publisher-paths` job runs `npm ci --ignore-scripts` from `main`'s lockfile, and only for a
    pull request whose author is the posts App; the script imports the readers dynamically, only
-   when the lane applies. Every other pull request is judged
+   when the lane applies. The same disagreement was live for posts; ADR 0019 closes it site-wide
+   in `scripts/frontmatter.mjs` (which now itself refuses the forms the two could read
+   differently and compares with Astro), and this lane keeps its stricter plain form on top. Every other pull request is judged
    as before by a bare `node`, and the deploy's push guard, which copies only the script and
    `scripts/slug.mjs`, is unchanged. A posts App pull request without the install fails closed.
 5. **Everything else about an author file stays with the required check `check`**, which runs

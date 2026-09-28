@@ -1041,7 +1041,7 @@ test('review B1: the lane’s keys are exactly the authors collection’s schema
 
 test('review B1: another author’s names are read leniently, by either reader', () => {
   assert.deepEqual(namesIn('---\nname: Wiz Cat\nkind: human\n---\n', READERS), ['Wiz Cat', 'Wiz Cat']);
-  assert.deepEqual(namesIn('---\nname: Mai\n+++: x\nname2: y\n---\n', READERS), ['Mai', 'Mai']);
+  assert.deepEqual(namesIn('---\nname: Mai\n+++: x\nname2: y\n---\n', READERS), ['Mai'], 'the site reader refuses it; Astro still reads the name');
   assert.equal(namesIn('---\nname: [unclosed\n---\n', READERS), null);
   assert.deepEqual(namesIn('no frontmatter\n', READERS), []);
 });
