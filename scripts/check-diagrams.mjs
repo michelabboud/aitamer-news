@@ -161,10 +161,17 @@ function urlProblem(text, label) {
  * exactly when a string holds no backslash (refused by DANGEROUS_VALUE) and no line break, which in
  * CSS ends the string and turns the rest of the line back into live CSS. So a line break inside a
  * string is refused here, before either parser runs, and the three readers stay in step with a browser.
+ *
+ * **Blocks.** In CSS an open `(`, `[` or `{` swallows everything up to its own closing bracket, `}`
+ * included, while the parsers here track only some of them. So brackets must balance and nest
+ * properly, and `{`, `}` or `;` inside an open `(` or `[` is refused: a stopping point for the
+ * parsers is then a stopping point for a browser.
  * @param {string} text @returns {string | null}
  */
 function cssCharacterProblem(text) {
   let quote = '';
+  /** Open `(`, `[` and `{`, innermost last. */
+  const open = [];
   for (let i = 0; i < text.length; i += 1) {
     const c = text[i];
     if (quote) {
@@ -173,8 +180,17 @@ function cssCharacterProblem(text) {
     } else if (c === '"' || c === "'") quote = c;
     else if (!/[\t\n\r\f\x20-\x7e]/.test(c)) {
       return `CSS holds U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')} outside a quoted string; only ASCII is allowed there`;
-    }
+    } else if (c === '(' || c === '[' || c === '{') {
+      if (c === '{' && open.length && open.at(-1) !== '{') return `CSS has { inside an open ${open.at(-1)}`;
+      open.push(c);
+    } else if (c === ')' || c === ']' || c === '}') {
+      const want = { ')': '(', ']': '[', '}': '{' }[c];
+      if (open.at(-1) !== want) return `CSS has a ${c} that closes nothing, or closes the wrong bracket`;
+      open.pop();
+    } else if (c === ';' && open.length && open.at(-1) !== '{') return `CSS has ; inside an open ${open.at(-1)}`;
   }
+  if (quote) return 'CSS has a string with no closing quote';
+  if (open.length) return `CSS leaves ${open.length} bracket(s) open at its end, the innermost a ${open.at(-1)}`;
   return null;
 }
 

@@ -196,7 +196,7 @@ test('an unclosed url( is refused in linear time, far inside the per-file limit'
   const started = performance.now();
   const { findings } = checkSvg(text);
   const took = performance.now() - started;
-  assert.match(findings.join(), /url\( with no closing \)/);
+  assert.match(findings.join(), /url\( with no closing \)|open at its end/);
   // Before the fix this took 3.6 s to 9.4 s; linear work is a few tens of milliseconds.
   assert.ok(took < 1_000, `took ${Math.round(took)} ms`);
   const attr = svg(`<rect fill="${'url('.repeat(16_000)}"/>`);
@@ -366,4 +366,15 @@ test('a diagram has at most one <style>, so nothing can span two stylesheets', (
     two('.a{fill:red}', '.b{fill:blue}'),
   ]) assert.match(checkSvg(text).findings.join(), /at most one/);
   assert.ok(checkSvg(GOOD).output, 'one sheet is fine');
+});
+
+// The fifth Opus re-check of 7a39184 (same review record).
+
+test('brackets must balance, so no unclosed ( [ { swallows the stop in a browser', () => {
+  const STOP = '@media (prefers-reduced-motion: reduce) { .a { animation: none; } }';
+  for (const f of ['.z{x:[}', '.z[{x:y}', '.z({x:y}', '@media (x{}', '@media [x{}', '.z{x:(;y:1)}', '.z{x:1)}']) {
+    assert.ok(motion(`.a { animation: spin 1s; } ${SPIN} ${f} ${STOP}`).length > 0, f);
+  }
+  assert.ok(motion(`.a { animation: spin 1s; } @keyframes spin { to { opacity: [; } } ${STOP}`).length > 0, 'in a keyframe');
+  assert.deepEqual(motion('rect[class~="a"]:not(.b) { stroke-width: calc(1px + 2px); fill: rgb(1, 2, 3); }'), [], 'honest brackets pass');
 });
