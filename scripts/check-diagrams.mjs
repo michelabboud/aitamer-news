@@ -41,7 +41,7 @@
  * script, with every name and value escaped, so what a browser parses is what was checked.
  */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'parse5';
@@ -730,6 +730,13 @@ function main(args) {
     return 1;
   }
   if (mode === '--write') {
+    // Nothing is written through a link or into a non-regular file: the folder is checked first.
+    const unsafe = filesUnder(join(dist, 'diagrams')).irregular;
+    if (existsSync(join(dist, 'diagrams')) && !lstatSync(join(dist, 'diagrams')).isDirectory()) unsafe.push('.');
+    if (unsafe.length) {
+      for (const f of unsafe) console.error(`check:diagrams: ${dist}/diagrams/${f}: not a regular file or folder; nothing written`);
+      return 1;
+    }
     for (const { file, output } of diagrams) {
       const target = join(dist, 'diagrams', ...file.split('/'));
       mkdirSync(join(target, '..'), { recursive: true });

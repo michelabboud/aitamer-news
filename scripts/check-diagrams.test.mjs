@@ -411,3 +411,13 @@ test('--write fails the build when the built diagrams folder holds anything but 
   assert.equal(run.status, 1, run.stdout + run.stderr);
   assert.match(run.stderr, /ships, but no checked source makes it/);
 });
+
+test('--write refuses to write through a link in the built diagrams folder, before writing anything', () => {
+  const dist = tempDir('dist-link-');
+  const outside = tempDir('outside-');
+  mkdirSync(join(dist, 'diagrams'), { recursive: true });
+  symlinkSync(outside, join(dist, 'diagrams', 'post'));
+  const run = spawnSync(process.execPath, ['scripts/check-diagrams.mjs', '--write', dist], { encoding: 'utf8' });
+  assert.equal(run.status, 1, run.stdout + run.stderr);
+  assert.match(run.stderr, /not a regular file or folder; nothing written/);
+});
