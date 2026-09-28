@@ -9,7 +9,7 @@
 | Isolation | Blind to the implementation discussion; the brief and the commit only. Cold-read note written before probes. Single reviewer, not a dual-blind pair. |
 | Verdict | BLOCKED (4 blocking, 2 informational, 1 minor) |
 | Fixes | `7d349f1` (all seven findings); `3f642d3` (the re-check's five blockers) |
-| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 (Opus) BLOCKED on `52ebdd3`, fixed in `d27d965`; re-check 5 owed before merge |
+| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 (Opus) BLOCKED on `52ebdd3`, fixed in `d27d965`; re-check 5 (Opus) BLOCKED on `7a39184`, fixed in `86d92fb`; re-check 6 owed before merge |
 
 ## Rulings (Quill, coordinator), each validated against source at the target
 
@@ -733,5 +733,111 @@ These fail and are new at this target:
 - **a multi-line string**, e.g. a `content` or `font-family` string broken across lines. The message says to keep strings on one line. No diagram needs one.
 
 After fix 1 for E1, a diagram whose rule is split across two `<style>` elements would fail too. No honest tool writes that.
+
+VERDICT: BLOCKED
+
+## Re-check 5: Opus, of `7a39184` (base `52ebdd3`)
+
+Verdict BLOCKED: every earlier reproduction resolved; other routes for CSS (a `<style>` inside a group or `<text>`, `style` attributes, presentation attributes) hold. One new blocking finding, confirmed and fixed in `86d92fb`. The reviewer: "With that fix, I know of no remaining way for the checker's reading to differ from a browser's."
+
+| # | Finding | Ruling | Fix |
+|---|---|---|---|
+| F1 | An unclosed `(` or `[` swallows the rest of the sheet in a browser, the stop included; the parse kept going | **Confirmed, blocking**, all six fragments reproduced | Brackets balance and nest; `{`, `}`, `;` refused inside an open `(` or `[`; ADR 0016's invariant is now "strings and blocks" |
+
+### Re-check 5's report, verbatim
+
+# Fifth re-check (Opus, Strong tier): fix in d27d965
+
+**Target:** `7a39184` · **Base:** `52ebdd3` · **Date:** 2026-09-28
+**Mode:** review only. Nothing in the repository was modified. The target's `scripts/`, `.github/`, `package.json` and pinned covers were extracted read-only with `git archive 7a39184` into `opus-probes/new5/`. The cold read is `COLD-READ-opus-5.md`, written before any probe.
+
+**Method:** as before. Each payload goes through `checkSvg` at the target. The shipped rewrite is opened as a document in Chromium (`chromium_headless_shell-1243`) and Firefox (`firefox-1538`) with `reducedMotion: 'reduce'`, and the running animations are counted. `matchMedia` confirmed reduce in every run. The `<img>` emulation limit is unchanged.
+
+**Test suite at the target:** `node --test scripts/check-diagrams.test.mjs` gives **tests 27, pass 27, fail 0.**
+
+---
+
+## 1. Reports 1–4 against 7a39184 (`opus-probes/probe7.mjs`)
+
+| Report | Cases | Result |
+|---|---|---|
+| Controls | the POST.md example; the bare-query form; `TEXT/CSS`; a quoted non-ASCII font name | PASS; running 0 in both engines |
+| 1 | original finding 3; B1 (×5); B2 (×2); B3; B4 | all refused |
+| 2 | C1 (×8); C2 (×2) | all refused |
+| 3 | D1: LF, single quote and CR variants; a line break in a `style` attribute and in an attribute selector | all refused |
+| 4 | E1: a string across sheets; a block across sheets; `@media` across sheets | all refused: "2 `<style>` elements; a diagram has at most one" |
+| 4 | the report-4 token probes: `url(#a"b)`, `url("#a)")`, CDO/CDC, EOF in a string | refused |
+| 4 | the report-4 token probes: attribute-selector quotes, NUL, U+FFFD, `NONE` | pass and harmless (running 0) |
+
+**All earlier reproductions are resolved.**
+
+---
+
+## BLOCKING
+
+### F1. BLOCKING: `[` and `(` are blocks in CSS, and the checker's readers do not nest them, so an open bracket swallows the stop for a browser only
+
+**Where:** `scripts/check-diagrams.mjs`:
+- `:255-263`: `parseStylesheet.readUntil` tracks quotes only. It is used for the selector, the `@media` prelude and the rule body.
+- `:200-225`: `parseDeclarations` tracks quotes and `()`, but not `[]`.
+- `:166`: `cssCharacterProblem` tracks quotes only.
+
+In CSS Syntax 3, `(`, `[` and `{` each open a simple block that consumes every token, including `}`, `{` and `;`, up to **its own** closing token, and EOF closes it. The checker ends a selector, a prelude or a rule body at the first `{`, `}` or `;`, whatever is open. So one unbalanced `[` (or a `(` outside a declaration value) makes a browser read the rest of the sheet as the inside of a block, while the checker keeps parsing rules, **including the reduced-motion stop**. `verifyRewrite` does not see it: the rewrite keeps the text as it is (for the first row, the shipped `<style>` is `….z{x:[}@media (prefers-reduced-motion: reduce){.a{animation:none}}`).
+
+**Reproduction** (`probe7.mjs`). Every row is `.a{animation:spin 1s infinite}@keyframes spin{to{opacity:0}}`, then the fragment, then `@media (prefers-reduced-motion: reduce){.a{animation:none}}`. **All pass `checkSvg`**:
+
+| Fragment before the stop | Where the bracket sits | Chromium | Firefox |
+|---|---|---|---|
+| `.z{x:[}` | a declaration value | **running 1** | **running 1** |
+| `.z[{x:y}` | a selector | **running 1** | **running 1** |
+| `.z({x:y}` | a selector | **running 1** | **running 1** |
+| `@media (x{}` | a media prelude | **running 1** | **running 1** |
+| `@media [x{}` | a media prelude | **running 1** | **running 1** |
+| `@keyframes spin{to{opacity:[}}` (in place of the keyframes) | a keyframe value | **running 1** | **running 1** |
+
+Refuted in the same family:
+- `.a{x:(]}`: refused, because `parseDeclarations` counts `(`.
+- `style="x:[;animation:…]"`: the checker splits where a browser merges, so it sees the animation and refuses the attribute, which fails closed.
+
+**Impact:** motion is forced on a reader who asked for reduced motion. This is the same class as B1, D1 and E1: the checker's structure differs from a browser's.
+
+**Fix:** make bracket structure part of the invariant, in the one function that runs before both parsers.
+1. In `cssCharacterProblem`, outside quotes, keep a stack of `(` `[` `{`.
+2. Refuse a closer that does not match the top of the stack, and refuse anything left open at the end.
+3. Refuse `{`, `}` and `;` while a `(` or `[` is open.
+
+With (1)–(3), every `{`, `}` and `;` the readers stop at is also a structural token for a browser, so "stop at the first `{}`;`" becomes exact, just as refusing line breaks made "quote to the next quote" exact. None of this is needed by honest CSS: `rect[class~="a"]`, `:not(.b)`, `calc(1px + 2px)` and `rgb(1 2 3)` all pass today and would still pass. Add the six rows as tests, and extend the ADR's invariant to say "strings **and blocks**".
+
+Structurally, this is the fourth time a reader of CSS in the checker has disagreed with a CSS tokenizer (quotes, line breaks, sheets, blocks). With (1)–(3) I know of no remaining token-level gap, because strings, comments, escapes, url tokens and blocks are then all pinned. But the coordinator's ADR condition ("a change that loosens a refusal must first bring in a tokenizer that follows the specification") should now name brackets too.
+
+---
+
+## 2. Other routes by which CSS reaches a browser (refuted)
+
+| Route | Probe | Result |
+|---|---|---|
+| `<style>` inside `<g>` | the honest sheet with its stop | PASS; running 0. It is counted by the one-`<style>` rule, and browsers apply it the same as at the root |
+| `<style>` inside `<text>` | same | PASS; running 0 |
+| A second `<style>` anywhere | the report-4 payloads | refused |
+| `style` attribute against the sheet | `style="fill:red!important"` on the animated element, with the sheet's stop | PASS; running 0. `!important` in an attribute cannot start motion, and `animation*`/`transition*` there are refused, prefixed forms included |
+| `style` attribute with brackets | `x:[;animation:…]` | refused (fails closed) |
+| Presentation attributes | — | none can start or re-enable animation (SVG 2's presentation attributes have no `animation*`/`transition*`); their values pass `urlProblem` and `DANGEROUS_VALUE`. The CSS parse is not involved |
+| Line breaks in attributes | — | XML attribute normalization turns them into spaces, and D1's refusal covers the `style` attribute anyway |
+
+## 3. Honest diagrams
+
+These pass:
+- attribute selectors with quotes;
+- `:not()`;
+- `calc()`;
+- `rgb()`;
+- a quoted non-ASCII font name;
+- `<style>` inside a group;
+- `TEXT/CSS`.
+
+These fail and are new at this target:
+- **two `<style>` elements**, even when each is complete (`x_honest_two_sheets` is refused). POST.md says "at most one", so this is intended.
+
+The fix proposed for F1 refuses only unbalanced brackets and `{`/`}`/`;` inside `()`/`[]`, which honest CSS does not write.
 
 VERDICT: BLOCKED
