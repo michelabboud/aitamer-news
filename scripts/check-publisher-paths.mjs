@@ -234,14 +234,21 @@ export function authorPathProblems({ changes, modes, headRef }) {
  * such as `ﬀ`, `Ｗ`, `ſ`, `K`), then lower, upper and lower case again (the round trip applies
  * Unicode's full, multi-code-point case mappings, so `ß` and `ẞ` become `ss`, `ŉ` becomes `ʼn`),
  * then every final sigma `ς` becomes `σ`, then NFKC again, trimming, and runs of white space made
- * one space. This folds at least as much as Unicode's NFKC_Casefold (dotless `ı` also meets `i`),
- * which for a clash rule errs toward refusing.
+ * one space. Every default-ignorable code point (zero-width joiner and non-joiner, variation
+ * selectors, soft hyphen, bidi marks…) is removed first and again after the folds, as NFKC_Casefold
+ * maps them to nothing (Ari's re-check of 8dbcce5, B1: `No\u200Dva` passed as new beside `Nova`).
+ * This folds at least as much as Unicode's NFKC_Casefold (dotless `ı` also meets `i`), which for a
+ * clash rule errs toward refusing.
  * @param {unknown} name @returns {string | null}
  */
+/** Unicode's Default_Ignorable_Code_Point: characters that render as nothing. */
+const DEFAULT_IGNORABLE = /\p{Default_Ignorable_Code_Point}/gu;
+
 export function comparableName(name) {
   if (typeof name !== 'string') return null;
-  const folded = name.normalize('NFKC').toLowerCase().toUpperCase().toLowerCase().replaceAll('ς', 'σ');
-  return folded.normalize('NFKC').trim().replace(/\s+/gu, ' ');
+  const visible = name.replace(DEFAULT_IGNORABLE, '');
+  const folded = visible.normalize('NFKC').toLowerCase().toUpperCase().toLowerCase().replaceAll('ς', 'σ');
+  return folded.normalize('NFKC').replace(DEFAULT_IGNORABLE, '').trim().replace(/\s+/gu, ' ');
 }
 
 /**
@@ -266,9 +273,17 @@ const DOUBLE_QUOTED = /^"(?:[^"\\]|\\.)*"$/;
 const SINGLE_QUOTED = /^'(?:[^']|'')*'$/;
 const PLAIN_START = /^[^\s&*!|>'"%@`{}[\],#?:\-]/;
 
-/** @param {string} value @returns {boolean} whether `value` is a one-line scalar the lane reads: no anchor, alias, tag, flow collection or block scalar */
+/**
+ * A YAML comment inside a plain scalar: white space then `#` ends the value and starts a comment
+ * (Ari's re-check of 8dbcce5, B2: `name: Nova # note` read as `Nova` in both readers, so hidden
+ * text sat beside the fields the honesty rule judges). A `#` with no space before it is literal.
+ */
+const PLAIN_COMMENT = /\s#/;
+
+/** @param {string} value @returns {boolean} whether `value` is a one-line scalar the lane reads: no anchor, alias, tag, flow collection, block scalar or comment */
 function isPlainScalarText(value) {
-  return DOUBLE_QUOTED.test(value) || SINGLE_QUOTED.test(value) || (PLAIN_START.test(value) && !/\s$/.test(value));
+  return DOUBLE_QUOTED.test(value) || SINGLE_QUOTED.test(value)
+    || (PLAIN_START.test(value) && !/\s$/.test(value) && !PLAIN_COMMENT.test(value));
 }
 
 /**
@@ -305,7 +320,7 @@ export function readAuthorFile(text, readers) {
     const item = ITEM_LINE.exec(line);
     if (item) {
       if (!inList) return { problem: `${where}: a list item outside ${AUTHOR_LIST_KEY}` };
-      if (!isPlainScalarText(item[1])) return { problem: `${where}: not a one-line value (no anchor, alias, tag, flow collection or block scalar)` };
+      if (!isPlainScalarText(item[1])) return { problem: `${where}: not a one-line value (no anchor, alias, tag, flow collection, block scalar or comment)` };
       continue;
     }
     const entry = KEY_LINE.exec(line);
@@ -316,7 +331,7 @@ export function readAuthorFile(text, readers) {
     seen.add(key);
     inList = key === AUTHOR_LIST_KEY && value === undefined;
     if (!inList && (value === undefined || !isPlainScalarText(value))) {
-      return { problem: `${where}: the value of ${key} is not a one-line value (no anchor, alias, tag, flow collection or block scalar)` };
+      return { problem: `${where}: the value of ${key} is not a one-line value (no anchor, alias, tag, flow collection, block scalar or comment)` };
     }
   }
   let site;

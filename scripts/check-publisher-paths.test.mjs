@@ -779,7 +779,7 @@ test('guardrail: an added author is an AI writer or a bot, never a human', () =>
     assert.match(problems.join('\n'), /a new author of kind .*; the authors lane adds only kind: ai or kind: bot \(a new human is the maintainer's to add\)/, JSON.stringify(kind));
   }
   assert.match(content('A', null, author({ name: 'Nova', bio: 'x' }), ['Quill'], nova).join('\n'), /a new author of kind undefined/);
-  assert.match(content('A', null, '---\nname: Nova\nkind: human # an AI\nbio: x\n---\n', ['Quill'], nova).join('\n'), /a new author of kind "human"/, 'parsed as Astro parses it');
+  assert.match(content('A', null, '---\nname: Nova\nkind: human # an AI\nbio: x\n---\n', ['Quill'], nova).join('\n'), /the value of kind is not a one-line value \(no anchor, alias, tag, flow collection, block scalar or comment\)/, 'a comment beside kind is refused, not read past');
 });
 
 test('guardrail: an added author may not take another author’s name, in any case, spacing or width', () => {
@@ -1180,4 +1180,27 @@ test('Ari 5: another author with no frontmatter or no string name makes the clas
     assert.equal(run.code, 1, `${label}: ${run.output}`);
     assert.match(run.output, /cannot be judged.*broken\.md: another author's file has no name either reader can read, so the names cannot be compared/, label);
   }
+});
+
+test('Ari re-check B1: invisible characters do not make a name new', () => {
+  for (const hidden of ['\u200D', '\u200C', '\u200B', '\uFE0F', '\u00AD', '\u2060', '\u200E']) {
+    const name = `No${hidden}va`;
+    assert.equal(comparableName(name), 'nova', JSON.stringify(name));
+    const problems = content('A', null, author({ name, kind: 'ai', bio: 'x' }), ['Nova'], `${AUTHORS_LANE}nova2.md`);
+    assert.match(problems.join('\n'), /is another author's/, JSON.stringify(name));
+  }
+  assert.notEqual(comparableName('No va'), comparableName('Nova'));
+});
+
+test('Ari re-check B2: a YAML comment after a plain value is refused; a literal # is not', () => {
+  for (const [label, text, problem] of [
+    ['a comment after name', '---\nname: Nova # hidden note\nkind: ai\nbio: x\n---\n', /the value of name is not a one-line value/],
+    ['a comment after kind', '---\nname: Nova\nkind: ai # human\nbio: x\n---\n', /the value of kind is not a one-line value/],
+    ['a tab before the comment', '---\nname: Nova\nkind: ai\nbio: x\t# note\n---\n', /the value of bio is not a one-line value/],
+    ['a comment after a list item', '---\nname: Nova\nkind: ai\nbio: x\nbeats:\n  - reporting # hidden note\n---\n', /line 6: not a one-line value/],
+    ['a comment after a quoted value', '---\nname: "Nova" # note\nkind: ai\nbio: x\n---\n', /the value of name is not a one-line value/],
+  ]) {
+    assert.match(readAuthorFile(text, READERS).problem ?? '', problem, label);
+  }
+  assert.deepEqual(readAuthorFile('---\nname: C#Writer\nkind: ai\nbio: "a # in quotes"\n---\n', READERS), { data: { name: 'C#Writer', kind: 'ai', bio: 'a # in quotes' } });
 });
