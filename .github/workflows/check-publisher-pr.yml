@@ -13,9 +13,23 @@ name: Publisher paths
 # head). Keying on the author alone would let the publisher push into someone else's pull request
 # (Dependabot's, say) and pass. MAINTAINER_ID unset, empty or not a number: nobody is exempt.
 #
+# The posts App's authors lane (ADR 0018): a pull request whose author and this event's sender are
+# both the posts App, by numeric id with the repository variable POSTS_ACTOR_ID (unset, empty or
+# not a number: nobody gets the lane), on an `opened` or `synchronize` event from a
+# desk/authors-<desk>-<16 hex>-<id> branch, may change exactly one src/content/authors/<id>.md,
+# added or modified, and only honestly: a modified author keeps its kind (and its id field), an AI
+# writer or a bot keeps its name, an added author is `kind: ai` or `kind: bot`, never a human, and
+# no added or renamed author takes another author's name. The posts App gains nothing else, and
+# the publisher's lanes do not gain author files. The rules and why: the script's header.
+#
 # pull_request_target: the workflow, and the script it runs, always come from main — never from
-# the pull request. Nothing from the pull request's head is checked out or executed, and no
-# dependency is installed (the script needs only node's built-ins). The verdict is pinned to the
+# the pull request. Nothing from the pull request's head is checked out or executed. For every pull
+# request but the posts App's, no dependency is installed (the script needs only node's built-ins).
+# For the posts App's, main's lockfile is installed with `npm ci --ignore-scripts` (no install
+# script runs), because the authors lane reads the author file's frontmatter with the site's own
+# reader, scripts/frontmatter.mjs, which uses js-yaml: the parser Astro builds the site with, so
+# the check and the build can never read a different `kind`. The file itself is read from the
+# fetched objects, never checked out. The verdict is pinned to the
 # event's head commit: the job fetches refs/pull/<n>/head, fails if it is not that commit (the
 # branch moved; the `synchronize` run for the new head judges it), and reads the changes from
 # `git diff --name-status -M <merge base> <head>` and the modes from `git ls-tree -r <head>` on
@@ -74,12 +88,29 @@ jobs:
             exit 1
           fi
 
+      - name: Install main's lockfile, for the posts App's pull requests only (no install scripts)
+        # The authors lane reads frontmatter with js-yaml. Whether the lane applies is decided by the
+        # script, not here: this only avoids installing anything for every other pull request. A
+        # posts App pull request that gets no install fails closed (the reader cannot be loaded).
+        env:
+          PR_AUTHOR_ID: ${{ github.event.pull_request.user.id }}
+          POSTS_ACTOR_ID: ${{ vars.POSTS_ACTOR_ID }}
+        run: |
+          set -euo pipefail
+          if [[ "$POSTS_ACTOR_ID" =~ ^[[:space:]]*([1-9][0-9]*)[[:space:]]*$ ]] && [ "$PR_AUTHOR_ID" = "${BASH_REMATCH[1]}" ]; then
+            npm ci --ignore-scripts --no-audit --no-fund
+          else
+            echo "Not a posts App pull request; nothing to install."
+          fi
+
       - name: Check the changed paths
         env:
           PR_ACTION: ${{ github.event.action }}
           PR_AUTHOR_ID: ${{ github.event.pull_request.user.id }}
           EVENT_SENDER_ID: ${{ github.event.sender.id }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          POSTS_ACTOR_ID: ${{ vars.POSTS_ACTOR_ID }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/check-publisher-paths.mjs pr --base "$BASE_SHA" --head "$HEAD_SHA"

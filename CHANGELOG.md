@@ -2,7 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
-## [0.2.43] — 2026-09-28
+## [0.2.44] — 2026-09-28
+
+### Security
+- **The posts App may propose author changes, and only honest ones** (ADR 0018, Michel's approval of 2026-09-28). The required check `publisher-paths` has a third lane, for the posts App only: as author and sender of an `opened` or `synchronize` event (numeric id, the new repository variable `POSTS_ACTOR_ID`), from a `desk/authors-<desk>-<digest>-<id>` branch, a pull request may change exactly one `src/content/authors/<id>.md`, added or modified, a plain file, with the id its branch names. It is judged on content, read from git objects with the site's own frontmatter reader: a modified author keeps its `kind` and `id`, an AI writer or bot keeps its name, a new author is `ai` or `bot` and never `human`, and no author takes another's name. `.mdx`, a second file, a delete, a rename, the wrong branch, another sender or an `edited` event are refused. The job installs `main`'s lockfile, with no install scripts, only for the posts App's pull requests; every other pull request is judged with a bare `node` as before, and the publisher's lanes are unchanged. Nothing changes on GitHub until the variable and the App's branch ruleset are set (after merge).
+
 
 ### Fixed
 - **A deploy could keep a deleted author.** Astro's warm build cache kept an author file that had been removed, and 74 pages linked to a page the build no longer made (found while building the diagrams work; the new link check caught it). The deploys' cache key now covers `src/content/authors/*.md`, so adding, editing or removing an author starts a cold build. Authors change rarely, so new posts still build warm. Posts are never deleted (they're withdrawn), and the link check in the deploy remains the net.

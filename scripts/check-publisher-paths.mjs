@@ -9,6 +9,8 @@
  *     PR_AUTHOR_ID     github.event.pull_request.user.id
  *     EVENT_SENDER_ID  github.event.sender.id
  *     MAINTAINER_ID    the maintainer's numeric account id (repository variable)
+ *     PR_HEAD_REF      github.event.pull_request.head.ref (the authors lane's branch)
+ *     POSTS_ACTOR_ID   the posts App's numeric bot account id (repository variable)
  *
  *   node scripts/check-publisher-paths.mjs push --before <sha> --after <sha>
  *     always enforced: the deploy runs it when the pusher is the publisher
@@ -40,6 +42,29 @@
  * (that is how a thread empties, or a story's reactions go back to none); an added or changed file
  * must be a plain, non-executable file (mode 100644): no symlink, no submodule, no executable bit.
  *
+ * The posts App's authors lane (ADR 0018), pull requests only: a pull request whose author AND
+ * this event's sender are the posts App (numeric id, repository variable `POSTS_ACTOR_ID`, compared
+ * as `MAINTAINER_ID` is; unset, empty or not a number gives the lane to nobody), on an `opened` or
+ * `synchronize` event, from a head branch `desk/authors-<desk>-<16 hex>-<id>` (the posts MCP's
+ * `author_branch`, its ADR 0024), is judged by this lane's rule INSTEAD of the publisher's, and
+ * gains nothing else:
+ *   - exactly one changed path, `src/content/authors/<id>.md` (not `.mdx`, not nested; `<id>` the
+ *     posts MCP's author id rule, and the id the branch name ends with), added or modified only
+ *     (no delete, no rename, no copy), a plain file;
+ *   - honesty, judged on the file at the merge base against the file at the head (fetched objects,
+ *     read with `git cat-file`, never checked out or run): a modified file keeps its `kind`, and
+ *     its `id` field if it has one; an author whose kind is anything but `human` keeps its `name`
+ *     too (no AI or bot renames itself, or passes as a person); an added file must say `kind: ai`
+ *     or `kind: bot` (a new human is the maintainer's to add), and an `id` field, if it has one,
+ *     must be its file's id; and an added name, or a changed one, may not be another author's
+ *     (compared after NFKC, trimming, collapsing spaces and case folding).
+ * The frontmatter is read with the site's own reader, `scripts/frontmatter.mjs` (js-yaml, the
+ * parser Astro uses), imported only when this lane applies, so the publisher's lanes and the
+ * `push` mode still run with a bare `node`; the workflow installs the lockfile (`npm ci
+ * --ignore-scripts`, from main) only for a pull request whose author is the posts App. A missing
+ * parser fails the check. Everything else about an author file (its schema, a writer page's name
+ * clash) stays with the required check `check`, which builds the site.
+ *
  * `.github/workflows/check-publisher-pr.yml` runs the `pr` mode from main's own copy of this file
  * (`pull_request_target`), as the required check `publisher-paths`; `.github/workflows/deploy-pages.yml`
  * runs the `push` mode, from the copy in the commit before the push, when the publisher pushed.
@@ -47,6 +72,7 @@
  */
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 import { SLUG } from './slug.mjs';
 
 /** The comment data files' directory: the publisher's first lane (ADR 0006, ADR 0007). */
@@ -96,6 +122,163 @@ const GIT_MAX_BUFFER = 256 * 1024 * 1024;
 
 /** A problem with the inputs that means the change cannot be judged: it fails, never passes. */
 export class UnjudgeableError extends Error {}
+
+// ---- the posts App's authors lane (ADR 0018) ----
+
+/** The author profiles' directory: the posts App's one lane. */
+export const AUTHORS_LANE = 'src/content/authors/';
+/** An author id, as the posts MCP checks it (`is_author_id`, its ADR 0024): a slug, no doubled or trailing hyphen. */
+const AUTHOR_ID_SOURCE = '[a-z0-9]+(?:-[a-z0-9]+)*';
+/** The longest author id, in characters: the posts MCP's `AUTHOR_ID_MAX_CHARS`. */
+export const AUTHOR_ID_MAX_LENGTH = 64;
+/** `src/content/authors/<id>.md`, exactly: a Markdown profile, never `.mdx` (whose body runs code at build time). */
+export const AUTHOR_FILE_PATH = new RegExp(`^src/content/authors/(${AUTHOR_ID_SOURCE})\\.md$`);
+/** Any author profile, to collect the other authors' names. */
+const ANY_AUTHOR_FILE = /^src\/content\/authors\/[^/]+\.mdx?$/;
+/**
+ * The posts MCP's author branch, `desk/authors-<desk>-<digest>-<id>` (`author_branch`): a desk id
+ * of 1 to 16 lowercase letters or digits, the call digest's first 16 lowercase hex characters, the id.
+ */
+export const AUTHOR_BRANCH = new RegExp(`^desk/authors-[a-z0-9]{1,16}-[0-9a-f]{16}-(${AUTHOR_ID_SOURCE})$`);
+/** The change statuses the authors lane allows: an added or a modified profile. */
+const AUTHOR_LANE_STATUSES = new Set(['A', 'M']);
+/** The kinds the posts App may add. A new `human` is the maintainer's to add. */
+export const ADDABLE_AUTHOR_KINDS = Object.freeze(['ai', 'bot']);
+/** The one kind whose name the posts App may change (a person's name can change; an AI's or a bot's may not). */
+const RENAMEABLE_AUTHOR_KIND = 'human';
+/** An author file larger than this is not a profile; it is refused before it is read. */
+export const AUTHOR_FILE_MAX_BYTES = 64 * 1024;
+
+/** @param {unknown} path @returns {string | null} the author id when `path` is `src/content/authors/<id>.md`, else null */
+export function authorIdOf(path) {
+  if (typeof path !== 'string') return null;
+  const match = AUTHOR_FILE_PATH.exec(path);
+  return match && match[1].length <= AUTHOR_ID_MAX_LENGTH ? match[1] : null;
+}
+
+/** @param {unknown} ref @returns {string | null} the author id an author branch ends with, or null when `ref` is not one */
+export function authorBranchId(ref) {
+  if (typeof ref !== 'string') return null;
+  const match = AUTHOR_BRANCH.exec(ref);
+  return match && match[1].length <= AUTHOR_ID_MAX_LENGTH ? match[1] : null;
+}
+
+/**
+ * Whether this pull request event gets the posts App's authors lane, and why. Pure. `postsApp`
+ * says whether the author is the posts App at all, so a refusal can say why the lane did not apply.
+ * @param {{ action?: string, authorId?: string, senderId?: string, headRef?: string, postsActorId?: string }} event
+ * @returns {{ applies: boolean, postsApp: boolean, reason: string }}
+ */
+export function authorsLaneScope({ action, authorId, senderId, headRef, postsActorId }) {
+  if ((postsActorId ?? '').trim() === '') return { applies: false, postsApp: false, reason: 'POSTS_ACTOR_ID is not set, so no pull request gets the authors lane' };
+  const posts = accountId(postsActorId);
+  if (posts === null) return { applies: false, postsApp: false, reason: 'POSTS_ACTOR_ID is not a numeric account id, so no pull request gets the authors lane' };
+  if (accountId(authorId) !== posts) return { applies: false, postsApp: false, reason: 'the author is not the posts App' };
+  if (accountId(senderId) !== posts) return { applies: false, postsApp: true, reason: 'the posts App’s pull request, but this event’s sender is someone else' };
+  if (!EXEMPTING_ACTIONS.has(action ?? '')) {
+    return { applies: false, postsApp: true, reason: `a ${JSON.stringify(action ?? '')} event does not show who pushed the head, so it opens no lane` };
+  }
+  if (authorBranchId(headRef) === null) {
+    return { applies: false, postsApp: true, reason: `the head branch ${JSON.stringify(headRef ?? '')} is not a desk/authors-<desk>-<digest>-<id> branch` };
+  }
+  return { applies: true, postsApp: true, reason: `the author and this event’s sender are the posts App (account ${posts}), on ${headRef}` };
+}
+
+/**
+ * The path-level problems with an authors-lane change set: one plain `src/content/authors/<id>.md`,
+ * added or modified, whose id the branch name ends with. Pure.
+ * @param {{ changes: { status: string, path: string, from?: string }[], modes: Map<string, string>, headRef: string }} input
+ * @returns {string[]}
+ */
+export function authorPathProblems({ changes, modes, headRef }) {
+  if (changes.length !== 1) {
+    const listed = changes.map((change) => JSON.stringify(change.path)).join(', ') || 'none';
+    return [`the authors lane changes exactly one author file; this pull request changes ${changes.length} (${listed})`];
+  }
+  const [{ status, path, from }] = changes;
+  const problems = [];
+  const id = authorIdOf(path);
+  // A path that is not an author file is shown quoted: it came from the pull request, and may hold a line break.
+  const shown = id === null ? JSON.stringify(path) : path;
+  if (id === null) problems.push(`${shown}: not an author file; only ${AUTHORS_LANE}<id>.md may change in the authors lane`);
+  if (!AUTHOR_LANE_STATUSES.has(status)) {
+    const what = status === 'D' ? 'deleted' : status === 'R' ? `renamed from ${JSON.stringify(from)}` : status === 'C' ? `copied from ${JSON.stringify(from)}` : `changed with status ${JSON.stringify(status)}`;
+    problems.push(`${shown}: ${what}; an author file may only be added or modified in the authors lane`);
+  }
+  const branchId = authorBranchId(headRef);
+  if (id !== null && branchId !== id) {
+    problems.push(`${path}: the branch ${headRef} is for the author ${JSON.stringify(branchId)}, not ${JSON.stringify(id)}`);
+  }
+  if (status !== 'D') {
+    const mode = modes.get(path);
+    if (mode === undefined) problems.push(`${shown}: not in the tree being checked, so its mode cannot be checked`);
+    else if (mode !== MODE_FILE) problems.push(`${shown}: is ${MODE_NAMES[mode] ?? `mode ${mode}`} (${mode}); only a plain file (${MODE_FILE}) may be added or changed`);
+  }
+  return problems;
+}
+
+/** @param {unknown} name @returns {string | null} the name as compared for clashes, or null when it is not a string */
+export function comparableName(name) {
+  return typeof name === 'string' ? name.normalize('NFKC').trim().replace(/\s+/gu, ' ').toLowerCase() : null;
+}
+
+/**
+ * The honesty problems with one authors-lane change. Pure: the caller reads the files and passes
+ * the frontmatter reader in (`scripts/frontmatter.mjs`'s `readFrontmatter`).
+ * @param {{
+ *   status: 'A' | 'M', path: string,
+ *   baseText: string | null, headText: string,
+ *   otherNames: string[],
+ *   readFrontmatter: (text: string) => { data: Record<string, unknown> } | null,
+ * }} input `baseText` is the file at the merge base (null when added); `otherNames` are the names
+ *   of every other author at the head
+ * @returns {string[]}
+ */
+export function authorContentProblems({ status, path, baseText, headText, otherNames, readFrontmatter }) {
+  const id = authorIdOf(path);
+  const read = (text, when) => {
+    let frontmatter;
+    try {
+      frontmatter = readFrontmatter(text);
+    } catch (error) {
+      return { problem: `${path}: the file ${when} cannot be read: ${error.message}` };
+    }
+    if (frontmatter === null) return { problem: `${path}: the file ${when} has no frontmatter` };
+    return { data: frontmatter.data };
+  };
+  const head = read(headText, 'at the head');
+  if (head.problem) return [head.problem];
+  const after = head.data;
+  const problems = [];
+  let nameChanged = true;
+  if (status === 'M') {
+    if (baseText === null) return [`${path}: modified, but it is not at the merge base`];
+    const base = read(baseText, 'at the merge base');
+    if (base.problem) return [base.problem];
+    const before = base.data;
+    const same = (key) => Object.hasOwn(before, key) === Object.hasOwn(after, key) && isDeepStrictEqual(before[key], after[key]);
+    if (!same('id')) problems.push(`${path}: its id field changed (${JSON.stringify(before.id)} to ${JSON.stringify(after.id)}); an author's id never changes`);
+    if (!same('kind')) problems.push(`${path}: its kind changed (${JSON.stringify(before.kind)} to ${JSON.stringify(after.kind)}); an author's kind never changes in the authors lane`);
+    nameChanged = !same('name');
+    if (nameChanged && before.kind !== RENAMEABLE_AUTHOR_KIND) {
+      problems.push(`${path}: its name changed (${JSON.stringify(before.name)} to ${JSON.stringify(after.name)}); an author of kind ${JSON.stringify(before.kind)} keeps its name`);
+    }
+  } else {
+    if (!ADDABLE_AUTHOR_KINDS.includes(/** @type {string} */ (after.kind))) {
+      problems.push(`${path}: a new author of kind ${JSON.stringify(after.kind)}; the authors lane adds only ${ADDABLE_AUTHOR_KINDS.map((kind) => `kind: ${kind}`).join(' or ')} (a new human is the maintainer's to add)`);
+    }
+    if (Object.hasOwn(after, 'id') && after.id !== id) {
+      problems.push(`${path}: its id field ${JSON.stringify(after.id)} is not its file's id ${JSON.stringify(id)}`);
+    }
+  }
+  if (nameChanged) {
+    const name = comparableName(after.name);
+    if (name !== null && otherNames.some((other) => comparableName(other) === name)) {
+      problems.push(`${path}: the name ${JSON.stringify(after.name)} is another author's; no author passes as another`);
+    }
+  }
+  return problems;
+}
 
 /** @param {unknown} path @returns {string | null} the lane `path` is a data file of, or null when it is in none */
 export function laneOf(path) {
@@ -261,7 +444,61 @@ export function collectPullRequest({ cwd, base, head }) {
   const headId = requireCommit(cwd, objectId('--head', head));
   const mergeBase = git(cwd, ['merge-base', baseId, headId]).trim();
   if (!OBJECT_ID.test(mergeBase)) throw new UnjudgeableError(`the base and head have no merge base (${JSON.stringify(mergeBase)})`);
-  return collect(cwd, mergeBase, headId);
+  return { ...collect(cwd, mergeBase, headId), mergeBase, head: headId };
+}
+
+/**
+ * A file's text at a commit, from the clone's objects, never checked out. Refuses a blob over
+ * `AUTHOR_FILE_MAX_BYTES` before reading it.
+ * @param {string} cwd @param {string} commit a validated commit id @param {string} path a validated author path
+ */
+function authorFileAt(cwd, commit, path) {
+  const spec = `${commit}:${path}`;
+  const size = Number(git(cwd, ['cat-file', '-s', spec]).trim());
+  if (!Number.isSafeInteger(size)) throw new UnjudgeableError(`${path}: its size cannot be read`);
+  if (size > AUTHOR_FILE_MAX_BYTES) throw new UnjudgeableError(`${path}: ${size} bytes, more than an author file's ${AUTHOR_FILE_MAX_BYTES}`);
+  return git(cwd, ['cat-file', 'blob', spec]);
+}
+
+/**
+ * Every problem with a pull request in the posts App's authors lane: the paths first, then (only
+ * when they pass) the honesty rules on the file's content.
+ * @param {{ cwd: string, collected: ReturnType<typeof collectPullRequest>, headRef: string, readFrontmatter: Function }} input
+ * @returns {string[]}
+ */
+export function authorsLaneProblems({ cwd, collected, headRef, readFrontmatter }) {
+  const { changes, modes, mergeBase, head } = collected;
+  const pathProblems = authorPathProblems({ changes, modes, headRef });
+  if (pathProblems.length > 0) return pathProblems;
+  const [{ status, path }] = changes;
+  const otherNames = [];
+  for (const other of [...modes.keys()].filter((p) => p !== path && ANY_AUTHOR_FILE.test(p)).sort()) {
+    let frontmatter;
+    try {
+      frontmatter = readFrontmatter(authorFileAt(cwd, head, other));
+    } catch (error) {
+      if (error instanceof UnjudgeableError) throw error;
+      throw new UnjudgeableError(`${other}: another author's file cannot be read, so the names cannot be compared: ${error.message}`);
+    }
+    if (frontmatter !== null && typeof frontmatter.data.name === 'string') otherNames.push(frontmatter.data.name);
+  }
+  return authorContentProblems({
+    status,
+    path,
+    baseText: status === 'M' ? authorFileAt(cwd, mergeBase, path) : null,
+    headText: authorFileAt(cwd, head, path),
+    otherNames,
+    readFrontmatter,
+  });
+}
+
+/** The site's frontmatter reader, loaded only for the authors lane (it needs js-yaml, from `npm ci`). */
+async function loadFrontmatterReader() {
+  try {
+    return (await import('./frontmatter.mjs')).readFrontmatter;
+  } catch (error) {
+    throw new UnjudgeableError(`the site's frontmatter reader cannot be loaded (is the lockfile installed?): ${error.message.split('\n')[0]}`);
+  }
 }
 
 /**
@@ -285,7 +522,7 @@ export function collectPush({ cwd, before, after }) {
 }
 
 const USAGE = [
-  'usage: check-publisher-paths.mjs pr --base <sha> --head <sha>   (env: PR_ACTION, PR_AUTHOR_ID, EVENT_SENDER_ID, MAINTAINER_ID)',
+  'usage: check-publisher-paths.mjs pr --base <sha> --head <sha>   (env: PR_ACTION, PR_AUTHOR_ID, EVENT_SENDER_ID, MAINTAINER_ID, PR_HEAD_REF, POSTS_ACTOR_ID)',
   '       check-publisher-paths.mjs push --before <sha> --after <sha>',
 ].join('\n');
 
@@ -312,7 +549,7 @@ function parseArgs(argv) {
  * @param {string} cwd the clone to read
  * @returns {number} the exit code
  */
-export function main(argv, env = process.env, cwd = process.cwd()) {
+export async function main(argv, env = process.env, cwd = process.cwd()) {
   const parsed = parseArgs(argv);
   if (!parsed) {
     console.error(`check:publisher: ${USAGE}`);
@@ -321,6 +558,7 @@ export function main(argv, env = process.env, cwd = process.cwd()) {
   const { mode, options } = parsed;
   let subject;
   let why;
+  let lane = { applies: false };
   if (mode === 'pr') {
     const { enforced, reason } = pullRequestScope({
       action: env.PR_ACTION,
@@ -333,33 +571,47 @@ export function main(argv, env = process.env, cwd = process.cwd()) {
       return 0;
     }
     subject = 'pull request';
-    why = `held to the rule because ${reason}`;
+    lane = authorsLaneScope({
+      action: env.PR_ACTION,
+      authorId: env.PR_AUTHOR_ID,
+      senderId: env.EVENT_SENDER_ID,
+      headRef: env.PR_HEAD_REF,
+      postsActorId: env.POSTS_ACTOR_ID,
+    });
+    if (lane.applies) why = `in the posts App's authors lane because ${lane.reason}`;
+    else if (lane.postsApp) why = `held to the rule because ${reason}, and not in the authors lane because ${lane.reason}`;
+    else why = `held to the rule because ${reason}`;
   } else {
     subject = 'push';
     why = 'the pusher is the publisher';
   }
 
   let collected;
+  let problems;
   try {
     collected = mode === 'pr'
       ? collectPullRequest({ cwd, base: options.base, head: options.head })
       : collectPush({ cwd, before: options.before, after: options.after });
+    problems = lane.applies
+      ? authorsLaneProblems({ cwd, collected, headRef: env.PR_HEAD_REF, readFrontmatter: await loadFrontmatterReader() })
+      : changeProblems(collected);
   } catch (error) {
     if (!(error instanceof UnjudgeableError)) throw error;
     console.error(`check:publisher: this ${subject} cannot be judged, so it fails (${why}): ${error.message}`);
     return 1;
   }
-  const problems = changeProblems(collected);
   const count = collected.changes.length;
   if (problems.length === 0) {
-    console.log(`check:publisher: ${count} changed file${count === 1 ? '' : 's'} in this ${subject}, all ${LANES_TEXT} (${why}).`);
+    const what = lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `all ${LANES_TEXT}`;
+    console.log(`check:publisher: ${count} changed file${count === 1 ? '' : 's'} in this ${subject}, ${what} (${why}).`);
     return 0;
   }
-  console.error(`check:publisher: this ${subject} changes what the publisher may not (${why}):`);
+  const who = lane.applies ? 'the posts App' : 'the publisher';
+  console.error(`check:publisher: this ${subject} changes what ${who} may not (${why}):`);
   for (const problem of problems) console.error(`  ${problem}`);
   return 1;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  process.exitCode = main(process.argv.slice(2));
+  process.exitCode = await main(process.argv.slice(2));
 }
