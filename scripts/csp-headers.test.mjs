@@ -4,6 +4,8 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
   CSP_ENFORCE,
+  DIAGRAM_POLICY,
+  DIAGRAM_RULE,
   COMMENTS_ENDPOINT_DEFAULT,
   CONTACT_ENDPOINT_DEFAULT,
   GENERATED_MARKER,
@@ -150,7 +152,8 @@ test('the report-only switch names the header, and the shipped value is report-o
 
   const reportOnly = built(SITE, false).text();
   assert.match(reportOnly, /^ {2}Content-Security-Policy-Report-Only: /m);
-  assert.doesNotMatch(reportOnly, /^ {2}Content-Security-Policy: /m);
+  // The only enforced policy in a report-only build is the diagrams' own lockdown (ADR 0016).
+  assert.deepEqual(reportOnly.match(/^ {2}Content-Security-Policy: .*$/gm), [`  Content-Security-Policy: ${DIAGRAM_POLICY}`]);
   // Browsers ignore upgrade-insecure-requests in a report-only policy, and log an error saying so.
   assert.doesNotMatch(reportOnly, /upgrade-insecure-requests/);
 
@@ -413,4 +416,21 @@ test('a *.pages.dev preview rule is modelled as never reaching the site, unless 
   for (const rule of ['https://aitamer.news/*', 'https://pages.dev.example.com/*', 'http://:project.pages.dev/*']) {
     assert.deepEqual(csp.unmodeledRules(`${rule}\n  X: 1\n`), [rule], rule);
   }
+});
+
+test('diagrams get an enforced lockdown whatever the site-wide switch says, with the site header detached', () => {
+  for (const enforce of [false, true]) {
+    const text = built(SITE, enforce).text();
+    const name = cspHeaderName(enforce);
+    const headers = csp.headersFor(text, '/diagrams/some-post/chart.svg');
+    assert.equal(headers.get('content-security-policy'), DIAGRAM_POLICY, `enforce=${enforce}`);
+    assert.equal(headers.get('x-content-type-options'), 'nosniff');
+    if (!enforce) assert.equal(headers.get(name.toLowerCase()), undefined, 'the report-only site policy is detached');
+    assert.match(DIAGRAM_POLICY, /default-src 'none'/);
+    assert.match(DIAGRAM_POLICY, /sandbox/);
+    assert.doesNotMatch(DIAGRAM_POLICY, /script-src|unsafe-eval/);
+    // A page elsewhere keeps the site policy.
+    assert.notEqual(csp.headersFor(text, '/posts/x/').get(name.toLowerCase()), undefined);
+  }
+  assert.equal(DIAGRAM_RULE, '/diagrams/*');
 });

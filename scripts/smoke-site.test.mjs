@@ -22,6 +22,7 @@ function fixtureDist() {
     'rss.xml': '<rss/>',
     '_headers': '/*\n  X: 1\n',
     '_redirects': '# retired\n/section/old/ /section/new/ 301\n',
+    'diagrams/news/flow.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>\n',
   };
   for (const [path, body] of Object.entries(files)) {
     mkdirSync(dirname(join(dist, path)), { recursive: true });
@@ -56,7 +57,11 @@ async function host({ fault = null, flakyFirst = 0, robots = null } = {}) {
     } else if (path === '/') html(200, page('Home'));
     else if (path === '/news/' && fault !== 'missing-page') html(200, page(fault === 'stale' ? 'Old news' : 'News'));
     else if (path === '/_astro/a.1b2c.css') res.writeHead(200, { 'cache-control': fault === 'no-cache' ? 'no-cache' : 'public, max-age=31536000, immutable' }).end('body{}');
-    else if (['/heroes/h.jpg', '/llms.txt', '/rss.xml'].includes(path) && !(fault === 'missing-file' && path === '/llms.txt')) res.writeHead(200).end('x');
+    else if (path === '/diagrams/news/flow.svg') {
+      const headers = { 'content-type': fault === 'diagram-as-html' ? 'text/html' : 'image/svg+xml', 'x-content-type-options': 'nosniff' };
+      if (fault !== 'diagram-no-lockdown') headers['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
+      res.writeHead(200, headers).end('<svg/>');
+    } else if (['/heroes/h.jpg', '/llms.txt', '/rss.xml'].includes(path) && !(fault === 'missing-file' && path === '/llms.txt')) res.writeHead(200).end('x');
     else if (fault === 'soft-404') html(200, page('Home'));
     else html(404, page('Not found'));
   });
@@ -81,6 +86,7 @@ test('the plan: every page but 404 and redirected fallbacks, root files and the 
   assert.deepEqual(work.pages, [{ path: '/', title: 'Home' }, { path: '/news/', title: 'News' }]);
   assert.deepEqual(work.files, ['/_astro/a.1b2c.css', '/heroes/h.jpg', '/llms.txt', '/rss.xml']);
   assert.deepEqual(work.redirects, [{ from: '/section/old/', to: '/section/new/', status: 301 }]);
+  assert.deepEqual(work.diagrams, ['/diagrams/news/flow.svg']);
   // Key pages come first and the cap never drops them; the cap trims the rest.
   const dist = fixtureDist();
   mkdirSync(join(dist, 'posts', 'a'), { recursive: true });
@@ -107,6 +113,8 @@ test('each way a deployment can be wrong is a finding', async () => {
     ['soft-404', 'production', /does not exist answered 200, expected 404/],
     ['no-csp', 'production', /no Content-Security-Policy/],
     ['no-cache', 'production', /missing the long cache/],
+    ['diagram-no-lockdown', 'production', /\/diagrams\/news\/flow\.svg: missing the diagrams' enforced lockdown/],
+    ['diagram-as-html', 'production', /\/diagrams\/news\/flow\.svg: served as text\/html/],
   ];
   for (const [fault, expect, pattern] of cases) {
     const result = await run(expect, { fault });
