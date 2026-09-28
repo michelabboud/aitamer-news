@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" role="img" aria-labelledby="t d">
+<title id="t">The goose agent loop</title>
+<desc id="d">A circular loop with six steps. You make a request. goose sends it to the model with the list of available tools. The model answers with a tool call. goose checks the call against the permission mode and the recipe's tool allow-list and runs it through an extension. The result goes back to the model, and old context is summarised or trimmed. The loop repeats until the model gives a final answer or the turn limit is reached.</desc>
+<style>
+.bg { fill: #fbf8f1; }
+.ring { fill: none; stroke: #9aa7b6; stroke-width: 2; stroke-dasharray: 6 6; }
+.box { fill: #e8eff7; stroke: #4a6f99; stroke-width: 1.5; }
+.chk { fill: #fdeee9; stroke: #c4573f; stroke-width: 1.5; }
+.end { fill: #e9f4ef; stroke: #3f7d68; stroke-width: 1.5; }
+.t { fill: #1f2a37; font-family: system-ui, sans-serif; font-size: 14px; font-weight: 600; }
+.s { fill: #4b5563; font-family: system-ui, sans-serif; font-size: 12.5px; }
+.n { fill: #2f5680; font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; }
+.dot { fill: #c4573f; }
+@media (prefers-color-scheme: dark) {
+.bg { fill: #141a21; }
+.ring { stroke: #5b6775; }
+.box { fill: #1d2a38; stroke: #86acd8; }
+.chk { fill: #3a241f; stroke: #f0927a; }
+.end { fill: #1b3129; stroke: #7cc3a9; }
+.t { fill: #e6edf3; }
+.s { fill: #aab4c0; }
+.n { fill: #9cc0ea; }
+.dot { fill: #f0927a; }
+}
+.spin { transform-origin: 440px 260px; animation: spin 12s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+</style>
+<rect class="bg" x="0" y="0" width="880" height="520" rx="10"/>
+<circle class="ring" cx="440" cy="260" r="175"/>
+<rect class="box" x="330" y="40" width="220" height="62" rx="8"/>
+<text class="n" x="344" y="64">1</text>
+<text class="t" x="362" y="64">You ask</text>
+<text class="s" x="344" y="86">chat, headless prompt or recipe</text>
+<rect class="box" x="580" y="130" width="280" height="62" rx="8"/>
+<text class="n" x="594" y="154">2</text>
+<text class="t" x="612" y="154">Model gets request and tools</text>
+<text class="s" x="594" y="176">only tools that are loaded and allowed</text>
+<rect class="box" x="580" y="318" width="280" height="62" rx="8"/>
+<text class="n" x="594" y="342">3</text>
+<text class="t" x="612" y="342">Model asks for a tool call</text>
+<text class="s" x="594" y="364">JSON: tool name and arguments</text>
+<rect class="chk" x="300" y="408" width="280" height="80" rx="8"/>
+<text class="n" x="314" y="432">4</text>
+<text class="t" x="332" y="432">goose checks, then runs it</text>
+<text class="s" x="314" y="454">permission mode, per-tool rules,</text>
+<text class="s" x="314" y="472">allow-list; extension executes</text>
+<rect class="box" x="50" y="318" width="250" height="62" rx="8"/>
+<text class="n" x="64" y="342">5</text>
+<text class="t" x="82" y="342">Result back to the model</text>
+<text class="s" x="64" y="364">errors too; old context trimmed</text>
+<rect class="end" x="50" y="130" width="250" height="62" rx="8"/>
+<text class="n" x="64" y="154">6</text>
+<text class="t" x="82" y="154">Repeat or answer</text>
+<text class="s" x="64" y="176">stops at --max-turns (default 1000)</text>
+<g class="spin">
+<circle class="dot" cx="440" cy="85" r="9"/>
+</g>
+</svg>
