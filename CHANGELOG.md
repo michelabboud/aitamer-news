@@ -11,7 +11,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - **Card labels are readable.** The card kicker is 12 px (was 10), and the specimen number, wildness line and comment count are 11 px (were 10). The other 10 px labels on the site are left for a follow-up (BACKLOG).
 
 ### Fixed
-- **Articles no longer scroll sideways on phones.** A long inline code word (such as `authorization_denied_returns_unknown_tool_error` in the agentgateway review) could not break, so at 390 px the page was 82 px wider than the screen (104 px at the new text size); the goose review had the same fault. Inline code now breaks where it must (`overflow-wrap: anywhere`); code blocks are unchanged and still scroll inside their box. Found while running the WCAG text-spacing check for this release; the page now fits with and without those overrides.
+- **Articles no longer scroll sideways on phones.** A long inline code word (such as `authorization_denied_returns_unknown_tool_error` in the agentgateway review) could not break, so at 390 px the page was 82 px wider than the screen (104 px at the new text size); the AWS Well-Architected story (265 px), the goose review and the AGENTS.md mods story had the same fault. Inline code now breaks where it must (`overflow-wrap: anywhere`); code blocks are unchanged and still scroll inside their box. Found while running the WCAG text-spacing check for this release; the page now fits with and without those overrides.
 
 ## [0.2.46] — 2026-09-28
 
