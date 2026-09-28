@@ -39,3 +39,9 @@
 0036 claude-opus-5-5-for-developers
 0037 tools-review-agentgateway
 0038 tools-review-goose
+0039 vectors-plainly-1-what-a-vector-database-is
+0040 vectors-plainly-2-inside-the-index
+0041 vectors-plainly-3-multi-tenancy
+0042 vectors-plainly-4-retrieval-quality
+0043 vectors-plainly-5-rag-and-graphrag
+0044 vectors-plainly-6-production

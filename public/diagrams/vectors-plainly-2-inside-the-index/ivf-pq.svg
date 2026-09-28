@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" role="img" aria-labelledby="t d">
+<title id="t">IVF and product quantization</title>
+<desc id="d">Left: vectors are grouped into cells around centroids, and a query searches only the two nearest cells. Right: product quantization splits a 768-dimension vector into 8 pieces and replaces each with a one-byte code, shrinking 3,072 bytes to 8.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="380" rx="12"/>
+<text class="th" x="24" y="30" text-anchor="start">IVF: search only the nearest cells</text>
+<rect class="panel" x="24" y="44" width="360" height="300" rx="10"/>
+<path class="lnf" d="M24 180 L160 160 L190 44"/>
+<path class="lnf" d="M160 160 L240 170 L300 44"/>
+<path class="lnf" d="M240 170 L300 250 L384 250"/>
+<path class="lnf" d="M160 160 L150 280 L24 290"/>
+<path class="lnf" d="M240 170 L200 280 L150 280"/>
+<path class="lnf" d="M200 280 L230 344"/>
+<path class="lnf" d="M300 250 L230 344"/>
+<circle class="dg" cx="102" cy="119" r="3"/>
+<circle class="dg" cx="141" cy="90" r="3"/>
+<circle class="dg" cx="119" cy="120" r="3"/>
+<circle class="dg" cx="132" cy="122" r="3"/>
+<circle class="dg" cx="146" cy="86" r="3"/>
+<circle class="dg" cx="73" cy="135" r="3"/>
+<circle class="dg" cx="132" cy="98" r="3"/>
+<path class="ln" d="M104 104L116 116M116 104L104 116"/>
+<circle class="db" cx="282" cy="86" r="3"/>
+<circle class="db" cx="236" cy="117" r="3"/>
+<circle class="db" cx="272" cy="106" r="3"/>
+<circle class="db" cx="282" cy="102" r="3"/>
+<circle class="db" cx="262" cy="112" r="3"/>
+<circle class="db" cx="231" cy="86" r="3"/>
+<circle class="db" cx="231" cy="127" r="3"/>
+<path class="ln" d="M244 94L256 106M256 94L244 106"/>
+<circle class="dg" cx="358" cy="196" r="3"/>
+<circle class="dg" cx="293" cy="214" r="3"/>
+<circle class="dg" cx="300" cy="182" r="3"/>
+<circle class="dg" cx="367" cy="174" r="3"/>
+<circle class="dg" cx="330" cy="221" r="3"/>
+<circle class="dg" cx="295" cy="224" r="3"/>
+<circle class="dg" cx="326" cy="202" r="3"/>
+<path class="ln" d="M324 194L336 206M336 194L324 206"/>
+<circle class="dg" cx="128" cy="268" r="3"/>
+<circle class="dg" cx="101" cy="267" r="3"/>
+<circle class="dg" cx="106" cy="247" r="3"/>
+<circle class="dg" cx="125" cy="250" r="3"/>
+<circle class="dg" cx="69" cy="278" r="3"/>
+<circle class="dg" cx="98" cy="228" r="3"/>
+<circle class="dg" cx="56" cy="230" r="3"/>
+<path class="ln" d="M84 244L96 256M96 244L84 256"/>
+<circle class="db" cx="235" cy="205" r="3"/>
+<circle class="db" cx="205" cy="235" r="3"/>
+<circle class="db" cx="227" cy="241" r="3"/>
+<circle class="db" cx="210" cy="218" r="3"/>
+<circle class="db" cx="236" cy="245" r="3"/>
+<circle class="db" cx="221" cy="228" r="3"/>
+<circle class="db" cx="216" cy="226" r="3"/>
+<path class="ln" d="M204 214L216 226M216 214L204 226"/>
+<circle class="dg" cx="316" cy="298" r="3"/>
+<circle class="dg" cx="316" cy="286" r="3"/>
+<circle class="dg" cx="285" cy="315" r="3"/>
+<circle class="dg" cx="245" cy="326" r="3"/>
+<circle class="dg" cx="277" cy="310" r="3"/>
+<circle class="dg" cx="262" cy="316" r="3"/>
+<circle class="dg" cx="283" cy="306" r="3"/>
+<path class="ln" d="M274 294L286 306M286 294L274 306"/>
+<circle class="dg" cx="175" cy="328" r="3"/>
+<circle class="dg" cx="115" cy="337" r="3"/>
+<circle class="dg" cx="129" cy="332" r="3"/>
+<circle class="dg" cx="175" cy="309" r="3"/>
+<circle class="dg" cx="138" cy="299" r="3"/>
+<circle class="dg" cx="110" cy="322" r="3"/>
+<circle class="dg" cx="163" cy="297" r="3"/>
+<path class="ln" d="M134 314L146 326M146 314L134 326"/>
+<circle class="dc" cx="225" cy="170" r="7"/>
+<text class="ts" x="225" y="364" text-anchor="middle">query probes the 2 nearest centroids (nprobe = 2)</text>
+<text class="th" x="420" y="30" text-anchor="start">PQ: compress each vector to a few bytes</text>
+<text class="tm" x="420" y="62" text-anchor="start">768 floats x 4 bytes = 3,072 bytes</text>
+<rect class="boxb" x="420" y="74" width="42" height="34" rx="4"/>
+<text class="ts" x="441" y="96" text-anchor="middle">96d</text>
+<rect class="boxs" x="464" y="74" width="42" height="34" rx="4"/>
+<text class="ts" x="485" y="96" text-anchor="middle">96d</text>
+<rect class="boxb" x="508" y="74" width="42" height="34" rx="4"/>
+<text class="ts" x="529" y="96" text-anchor="middle">96d</text>
+<rect class="boxs" x="552" y="74" width="42" height="34" rx="4"/>
+<text class="ts" x="573" y="96" text-anchor="middle">96d</text>
+<rect class="boxb" x="596" y="74" width="42" height="34" rx="4"/>
+<text class="ts" x="617" y="96" text-anchor="middle">96d</text>
+<rect class="boxs" x="640" y="74" width="42" height="34" rx="4"/>
+<text class="ts" x="661" y="96" text-anchor="middle">96d</text>
+<rect class="boxb" x="684" y="74" width="42" height="34" rx="4"/>
+<text class="ts" x="705" y="96" text-anchor="middle">96d</text>
+<rect class="boxs" x="728" y="74" width="42" height="34" rx="4"/>
+<text class="ts" x="749" y="96" text-anchor="middle">96d</text>
+<text class="ts" x="420" y="130" text-anchor="start">split into 8 sub-vectors of 96 dimensions</text>
+<path class="ln" d="M441 140L441 176" marker-end="url(#ah)"/>
+<path class="ln" d="M485 140L485 176" marker-end="url(#ah)"/>
+<path class="ln" d="M529 140L529 176" marker-end="url(#ah)"/>
+<path class="ln" d="M573 140L573 176" marker-end="url(#ah)"/>
+<path class="ln" d="M617 140L617 176" marker-end="url(#ah)"/>
+<path class="ln" d="M661 140L661 176" marker-end="url(#ah)"/>
+<path class="ln" d="M705 140L705 176" marker-end="url(#ah)"/>
+<path class="ln" d="M749 140L749 176" marker-end="url(#ah)"/>
+<rect class="boxc" x="420" y="180" width="42" height="34" rx="4"/>
+<text class="tm" x="441" y="202" text-anchor="middle">17</text>
+<rect class="boxc" x="464" y="180" width="42" height="34" rx="4"/>
+<text class="tm" x="485" y="202" text-anchor="middle">203</text>
+<rect class="boxc" x="508" y="180" width="42" height="34" rx="4"/>
+<text class="tm" x="529" y="202" text-anchor="middle">4</text>
+<rect class="boxc" x="552" y="180" width="42" height="34" rx="4"/>
+<text class="tm" x="573" y="202" text-anchor="middle">88</text>
+<rect class="boxc" x="596" y="180" width="42" height="34" rx="4"/>
+<text class="tm" x="617" y="202" text-anchor="middle">250</text>
+<rect class="boxc" x="640" y="180" width="42" height="34" rx="4"/>
+<text class="tm" x="661" y="202" text-anchor="middle">61</text>
+<rect class="boxc" x="684" y="180" width="42" height="34" rx="4"/>
+<text class="tm" x="705" y="202" text-anchor="middle">142</text>
+<rect class="boxc" x="728" y="180" width="42" height="34" rx="4"/>
+<text class="tm" x="749" y="202" text-anchor="middle">9</text>
+<text class="ts" x="420" y="236" text-anchor="start">each replaced by the id of its nearest of 256</text>
+<text class="ts" x="420" y="254" text-anchor="start">learned centroids: 8 codes x 1 byte = 8 bytes</text>
+<text class="t" x="420" y="290" text-anchor="start">Distances are then estimated from small</text>
+<text class="t" x="420" y="310" text-anchor="start">lookup tables, not the original floats.</text>
+<text class="tc" x="420" y="340" text-anchor="start">Smaller and faster; recall drops a little.</text>
+</svg>

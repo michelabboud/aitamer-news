@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" role="img" aria-labelledby="t d">
+<title id="t">Security layers</title>
+<desc id="d">Five nested layers of protection for a vector store: transport and storage encryption, identity scoped to a tenant, filters enforced below the application, careful handling of vectors as sensitive data including erasure, and audit logs of queries and deletes.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="350" rx="12"/>
+<text class="th" x="24" y="30" text-anchor="start">Defence in layers for a vector store</text>
+<rect class="box" x="24" y="50" width="752" height="50" rx="8"/>
+<text class="t" x="40" y="72" text-anchor="start">Transport and storage</text>
+<text class="ts" x="40" y="90" text-anchor="start">TLS in transit; encryption at rest; bring-your-own-key where regulated</text>
+<rect class="boxb" x="42" y="108" width="716" height="50" rx="8"/>
+<text class="t" x="58" y="130" text-anchor="start">Identity and scope</text>
+<text class="ts" x="58" y="148" text-anchor="start">keys or tokens bound to a namespace or tenant, not the whole index</text>
+<rect class="boxs" x="60" y="166" width="680" height="50" rx="8"/>
+<text class="t" x="76" y="188" text-anchor="start">Enforced filters</text>
+<text class="ts" x="76" y="206" text-anchor="start">a proxy or database policy adds the tenant filter; the app cannot omit it</text>
+<rect class="boxc" x="78" y="224" width="644" height="50" rx="8"/>
+<text class="t" x="94" y="246" text-anchor="start">Data handling</text>
+<text class="ts" x="94" y="264" text-anchor="start">treat vectors as sensitive (inversion attacks); erase vector + payload + backups</text>
+<rect class="box" x="96" y="282" width="608" height="50" rx="8"/>
+<text class="t" x="112" y="304" text-anchor="start">Audit</text>
+<text class="ts" x="112" y="322" text-anchor="start">log queries and deletes; the query text itself can be sensitive</text>
+</svg>

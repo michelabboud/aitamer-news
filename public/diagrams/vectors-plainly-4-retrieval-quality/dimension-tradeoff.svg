@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 376" role="img" aria-labelledby="t d">
+<title id="t">Dimension trade-off</title>
+<desc id="d">A schematic chart: storage and per-query compute rise in a straight line with the number of dimensions, while retrieval quality rises quickly and then flattens, so the smallest dimension that meets your quality bar is usually the best buy.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="376" rx="12"/>
+<text class="th" x="24" y="30" text-anchor="start">Dimensions: cost grows in a straight line, quality levels off</text>
+<path class="ln" d="M70 290L720 290" marker-end="url(#ah)"/>
+<path class="ln" d="M70 290L70 50" marker-end="url(#ah)"/>
+<path class="ln" d="M123 290 L123 296"/>
+<text class="ts" x="123" y="312" text-anchor="middle">256</text>
+<path class="ln" d="M177 290 L177 296"/>
+<text class="ts" x="177" y="312" text-anchor="middle">512</text>
+<path class="ln" d="M230 290 L230 296"/>
+<text class="ts" x="230" y="312" text-anchor="middle">768</text>
+<path class="ln" d="M283 290 L283 296"/>
+<text class="ts" x="283" y="312" text-anchor="middle">1024</text>
+<path class="ln" d="M390 290 L390 296"/>
+<text class="ts" x="390" y="312" text-anchor="middle">1536</text>
+<path class="ln" d="M710 290 L710 296"/>
+<text class="ts" x="710" y="312" text-anchor="middle">3072</text>
+<text class="ts" x="390.0" y="334" text-anchor="middle">dimensions per vector</text>
+<path class="lnb" d="M70 290 L710 70"/>
+<text class="ts" x="700" y="64" text-anchor="end">storage and compute per query</text>
+<path class="lnc" d="M70.0 270.0 L76.4 259.2 L82.8 249.1 L89.2 239.8 L95.6 231.1 L102.0 223.1 L108.4 215.6 L114.8 208.7 L121.2 202.3 L127.6 196.4 L134.0 190.9 L140.4 185.7 L146.8 181.0 L153.2 176.6 L159.6 172.5 L166.0 168.7 L172.4 165.2 L178.8 161.9 L185.2 158.9 L191.6 156.1 L198.0 153.5 L204.4 151.1 L210.8 148.8 L217.2 146.7 L223.6 144.8 L230.0 143.0 L236.4 141.3 L242.8 139.8 L249.2 138.4 L255.6 137.0 L262.0 135.8 L268.4 134.7 L274.8 133.6 L281.2 132.6 L287.6 131.7 L294.0 130.9 L300.4 130.1 L306.8 129.4 L313.2 128.7 L319.6 128.0 L326.0 127.5 L332.4 126.9 L338.8 126.4 L345.2 126.0 L351.6 125.5 L358.0 125.1 L364.4 124.8 L370.8 124.4 L377.2 124.1 L383.6 123.8 L390.0 123.5 L396.4 123.3 L402.8 123.0 L409.2 122.8 L415.6 122.6 L422.0 122.4 L428.4 122.2 L434.8 122.1 L441.2 121.9 L447.6 121.8 L454.0 121.7 L460.4 121.5 L466.8 121.4 L473.2 121.3 L479.6 121.2 L486.0 121.1 L492.4 121.1 L498.8 121.0 L505.2 120.9 L511.6 120.8 L518.0 120.8 L524.4 120.7 L530.8 120.7 L537.2 120.6 L543.6 120.6 L550.0 120.5 L556.4 120.5 L562.8 120.5 L569.2 120.4 L575.6 120.4 L582.0 120.4 L588.4 120.3 L594.8 120.3 L601.2 120.3 L607.6 120.3 L614.0 120.3 L620.4 120.2 L626.8 120.2 L633.2 120.2 L639.6 120.2 L646.0 120.2 L652.4 120.2 L658.8 120.2 L665.2 120.1 L671.6 120.1 L678.0 120.1 L684.4 120.1 L690.8 120.1 L697.2 120.1 L703.6 120.1 L710.0 120.1"/>
+<text class="tc" x="700" y="104" text-anchor="end">retrieval quality</text>
+<text class="ts" x="24" y="358" text-anchor="start">Schematic, not measured. Matryoshka-trained models let you truncate one stored vector instead of choosing once.</text>
+</svg>
