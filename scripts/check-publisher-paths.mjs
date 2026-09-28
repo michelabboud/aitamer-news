@@ -141,8 +141,8 @@ const AUTHOR_ID_SOURCE = '[a-z0-9]+(?:-[a-z0-9]+)*';
 export const AUTHOR_ID_MAX_LENGTH = 64;
 /** `src/content/authors/<id>.md`, exactly: a Markdown profile, never `.mdx` (whose body runs code at build time). */
 export const AUTHOR_FILE_PATH = new RegExp(`^src/content/authors/(${AUTHOR_ID_SOURCE})\\.md$`);
-/** Any author profile, to collect the other authors' names. */
-const ANY_AUTHOR_FILE = /^src\/content\/authors\/[^/]+\.mdx?$/;
+/** Any author profile, nested ones included (the collection's glob is `**\/*.{md,mdx}`), to collect the other authors' names. */
+const ANY_AUTHOR_FILE = /^src\/content\/authors\/.+\.mdx?$/;
 /**
  * The posts MCP's author branch, `desk/authors-<desk>-<digest>-<id>` (`author_branch`): a desk id
  * of 1 to 16 lowercase letters or digits, the call digest's first 16 lowercase hex characters, the id.

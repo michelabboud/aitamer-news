@@ -1100,3 +1100,16 @@ test('CLI (review B3): when main has moved on elsewhere, an honest branch still 
   const run = await cli(['pr', '--base', moved, '--head', pr], postsEnv('quill'), repo.dir);
   assert.equal(run.code, 0, run.output);
 });
+
+test('CLI (review M3): a nested author file’s name counts for the name-clash rule', async () => {
+  const repo = authorRepository();
+  repo.git(['checkout', '-q', 'main']);
+  repo.write(`${AUTHORS_LANE}team/nova-star.md`, author({ name: 'Nova Star', kind: 'human', bio: 'A person.' }));
+  const base = repo.commit('the maintainer adds a nested author');
+  repo.git(['checkout', '-q', '-B', 'nested', base]);
+  repo.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova Star', kind: 'ai', bio: 'x' }));
+  const head = repo.commit('nova');
+  const run = await cli(['pr', '--base', base, '--head', head], postsEnv('nova'), repo.dir);
+  assert.equal(run.code, 1, run.output);
+  assert.match(run.output, /the name "Nova Star" is another author's/);
+});

@@ -22,8 +22,12 @@ import yaml from 'js-yaml';
 export { SLUG, SLUG_MAX_LENGTH } from './slug.mjs';
 
 /**
- * The frontmatter fence. Like Astro's: an optional byte-order mark or leading blank lines, then
- * `---`, the YAML, and a closing `---` on its own line. LF or CRLF.
+ * The frontmatter fence: an optional byte-order mark or leading blank lines, then `---`, the YAML,
+ * and a closing `---` on its own line. LF or CRLF. NOT exactly Astro's: Astro's content layer
+ * (`@astrojs/internal-helpers/frontmatter`) also takes `+++` (TOML) fences, and ends the block at
+ * the first line that merely starts with `---` or `+++`. For ordinary files the two agree; where
+ * they must agree on untrusted input (the posts App's authors lane), the check refuses any file
+ * on which they could differ and parses with both (deep review of PR #46, B1).
  */
 const FENCE = /^(\uFEFF?(?:[ \t]*\r?\n)*---[ \t]*\r?\n)([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
 

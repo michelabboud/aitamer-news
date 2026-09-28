@@ -65,8 +65,9 @@ enforced here on the site and never trusting the tool.
      passes as a person);
    - an added author's name may not be another author's, compared after Unicode NFKC, trimming,
      collapsing whitespace and case folding (`Ｗｉｚ  Ｃａｔ` is `wiz cat`).
-   Anything that cannot be read (a file over the cap, another author's file that neither reader
-   can parse) fails.
+   The name-clash set covers every author file the collection's glob finds, nested ones included
+   (the first draft skipped nested files; review, M3). Anything that cannot be read (a file over
+   the cap, another author's file that neither reader can parse) fails.
 4. **The frontmatter must read the same to the site and to Astro, or it is refused** (amended
    after the deep review of 49236a3, finding B1). The first draft said the site's reader,
    `scripts/frontmatter.mjs`, could never disagree with the build because both use js-yaml. That
@@ -134,7 +135,9 @@ enforced here on the site and never trusting the tool.
   `docs/reports/2026-09-25-yaml-vetting.md`) parses untrusted YAML inside the privileged
   `pull_request_target` job, whose token can only read contents. Before, nothing from the
   lockfile ran there. js-yaml 4's default schema constructs no functions or classes; the install
-  runs no scripts.
+  runs no scripts. Astro's `@astrojs/internal-helpers/frontmatter` (the copy the installed
+  `astro` resolves) runs there too, on files already held to the plain form; it also imports
+  `smol-toml`, which the lane never reaches (a `+++` fence is refused first).
 - The posts MCP's `author_update` on a human author's file (which the MCP allows a human caller)
   opens a pull request that this check refuses; a human's profile changes only by the maintainer
   editing it directly. Until the MCP refuses human targets up front with that reason, such a call
