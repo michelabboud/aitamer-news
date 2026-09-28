@@ -9,7 +9,7 @@
 | Isolation | Blind to the implementation discussion; the brief and the commit only. Cold-read note written before probes. Single reviewer, not a dual-blind pair. |
 | Verdict | BLOCKED (4 blocking, 2 informational, 1 minor) |
 | Fixes | `7d349f1` (all seven findings); `3f642d3` (the re-check's five blockers) |
-| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 owed before merge |
+| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 owed before merge |
 
 ## Rulings (Quill, coordinator), each validated against source at the target
 
@@ -510,5 +510,119 @@ Honest files that now fail:
 - **Nesting deeper than 64**, and tags written inside comments (C4).
 
 None of these is a realistic diagram broken without notice.
+
+VERDICT: BLOCKED
+
+## Re-check 3: Opus, of `4b76e32` (base `d7dd25f`)
+
+Verdict BLOCKED: every earlier reproduction resolved (browsers included); one new blocking finding, confirmed and fixed in `8ef160a`.
+
+| # | Finding | Ruling | Fix |
+|---|---|---|---|
+| D1 | A line break inside a CSS string ends it in CSS, not in the checker, hiding a declaration | **Confirmed, blocking**, reproduced with LF and CR in both quote kinds | Refused once, before both parsers. The reviewer recommended one spec-following tokenizer plus an ADR; I chose the invariant instead (no backslash, no comment, no in-string line break makes "quote to next quote" exactly CSS's string rule) and recorded it in ADR 0016, with the rule that loosening it requires the tokenizer first. |
+| I | An unquoted non-ASCII `font-family` fails | Accepted: the message says to quote it | |
+| I | The child combinator `>` is refused | Accepted for now; BACKLOG idea | |
+
+### Re-check 3's report, verbatim
+
+# Third re-check (Opus, Strong tier): fixes in 3a3da8e
+
+**Target:** `4b76e32` · **Base:** `d7dd25f` · **Date:** 2026-09-28
+**Mode:** review only. Nothing in the repository was modified. The target's `scripts/`, `.github/`, `package.json` and pinned covers were extracted read-only with `git archive 4b76e32` into `opus-probes/new3/`. The cold read is `COLD-READ-opus-3.md`, written before any probe.
+
+**Method:** as before. Each payload goes through `checkSvg` at the target. The shipped rewrite is opened as a document in Chromium (`chromium_headless_shell-1243`) and Firefox (`firefox-1538`) with `reducedMotion: 'reduce'`. `matchMedia` confirmed reduce in every run. The limit is unchanged: emulation does not reach `<img>` mode.
+
+**Test suite at the target:** `node --test scripts/check-diagrams.test.mjs` gives **tests 25, pass 25, fail 0.**
+
+---
+
+## 1. Every earlier reproduction against 4b76e32 (`opus-probes/probe5.mjs`)
+
+| Report | Cases | Result |
+|---|---|---|
+| Controls | the POST.md example; the bare `(prefers-reduced-motion)` form | PASS; running 0 in both engines |
+| Control | no stop | refused |
+| 1 · original finding 3 | fill-only stop | refused |
+| 1 · B1 | comment or element splits: `url(`, `/*`, selector, `image(` | all refused (`<style>` text only) |
+| 1 · B2 | `-webkit-animation` in a sheet and in `style="…"` | refused |
+| 1 · B3 | `<style type="text/plain">` | refused |
+| 1 · B4 | `re duce` | refused |
+| 1 · B5 | parse5 floods | refused by the pre-scan (unchanged since `d7dd25f`); `</q>`×3,900 at depth 60: 28 ms |
+| 2 · C1 | NBSP / U+3000 / U+FEFF in a query, selector, universal stop, compound selector or property | all refused: "CSS holds U+… outside a quoted string" |
+| 2 · C2 | `type=" text/css "`, `type="text/css "` | refused ("must be exactly text/css") |
+| 2 · C3 | `<g fill=a/>`×3,999 | **refused with a finding in 46 ms; no crash.** The walk's own bound holds. `<g fill=a/>`×63 (64 levels with the root) passes, which is correct |
+
+**Every earlier finding is resolved.**
+
+---
+
+## BLOCKING
+
+### D1. BLOCKING: a newline ends a CSS string, but the checker's strings run to the next quote
+
+**Where:** `scripts/check-diagrams.mjs`. There are three quote trackers, and all three share the flaw:
+- `:160-172` (`cssCharacterProblem`, the new ASCII rule)
+- `:193-216` (`parseDeclarations`)
+- `:248-254` (`parseStylesheet.readUntil`)
+
+All three close a string only at the matching quote. CSS Syntax 3, §4.3.5 ("consume a string token") says: *newline: this is a parse error. Reconsume the current input code point, create a `<bad-string-token>`, and return it.* Tokenizing then continues **on the next line as ordinary CSS**. A CSS newline is LF, CR or FF, and the rewrite keeps LF (and CR, which XML turns into LF) inside `<style>` text.
+
+So text after a newline inside an "open string" is live CSS to a browser, and a string to every check that reads the parse:
+- the motion proof;
+- the property-name rule (vendor prefixes);
+- the ASCII rule;
+- the `!important` rule;
+- the transition rule.
+
+Only the raw regexes still see it: `DANGEROUS_VALUE`, `url(`, `@`-names, CSS comments, and the refused functions.
+
+**Reproduction** (`probe5.mjs`). Each case passes `checkSvg`:
+
+| Case | `<style>` text | Chromium | Firefox |
+|---|---|---|---|
+| double quote, LF | `@keyframes spin{to{opacity:0}}.a{x:"`⏎`;animation:spin 1s infinite;y:"}` | **running 1** | **running 1** |
+| single quote, LF | same with `'` | **running 1** | **running 1** |
+| CR | `.a{x:"`␍`;animation:spin 1s infinite;y:"}` | **running 1** | **running 1** |
+
+The checker reads one declaration, `x`, whose value is a string. It sees no animation and asks for no stop. The browser drops `x` (bad string) and applies `animation:spin 1s infinite`. The trailing `y:"}` is a string that runs to the end of the file, which is legal in CSS, and the block closes at the end of the sheet. The animation plays for a reader who asked for reduced motion, and **no stop exists at all**.
+
+The same newline trick carries anything the parse-level checks would refuse: `-webkit-animation`, `transition`, and non-ASCII names. `!important` is the exception: `parseDeclarations` refuses any `!` in a value, strings included. It also re-opens C1: an NBSP placed after the newline is "inside a string" to the ASCII rule.
+
+**Not affected** (refuted in the same probe):
+- **the `style` attribute**: XML attribute-value normalization turns LF into a space, so the string never breaks (running 0 in both engines);
+- **`url(…)` after the newline**: `urlProblem` ignores quotes, so it is still refused;
+- **a newline in an attribute-selector value**: the selector then differs from its stop, which fails closed.
+
+**Fix:** make all three trackers agree with CSS by refusing LF, CR and FF inside a quoted string (`if (quote && /[\n\r\f]/.test(c)) return 'CSS string spans a line'`). A diagram never needs a multi-line string. Doing it once, in `cssCharacterProblem`, is enough, because `cssProblem` runs before either parser sees the text. Test with LF, CR and single quotes.
+
+The deeper remedy is a single tokenizer, following CSS Syntax 3, shared by the character rule and the parse, so the three cannot drift. Given this is the third quote-model disagreement across the reviews, that is worth recording as an ADR-level choice, but refusing newlines closes this one.
+
+---
+
+## 2. The other attacks the coordinator asked for (refuted)
+
+- **Unterminated strings at the end of the sheet.** Refused ("CSS has a string with no closing quote" / "no { … } block"). A browser would accept it, but that only fails closed.
+- **A quote inside `url()`.** `url("#a")` passes, correctly, and both engines agree. `urlProblem` is quote-blind by design, which is why a URL after the newline is still refused.
+- **An attribute selector's value.** `.a[x="…"]` with a newline gives a selector string different from its stop, which fails closed. Without a newline, the quote model agrees with CSS.
+- **Non-ASCII inside strings reaching a name.** Only through D1. Otherwise a string stays a string: `font-family:"Noto Sans"` passes and does nothing harmful (running 0).
+- **The exact `type` compare.** `TEXT/CSS` passes and both engines apply it. Spaces and NBSP are refused. `toLowerCase` has no Unicode mapping onto `t`, `e`, `x`, `c` or `s` (unlike the Kelvin sign onto `k`), so no non-ASCII look-alike can pass.
+- **The walk's depth bound.** Holds at 3,999 (above). Children past depth 64 are skipped with a finding, so nothing recurses further.
+- **Cost of the ASCII scan.** Linear: a 199 kB sheet of 33k rules passes in 183 ms, including the rewrite re-check.
+
+## 3. Honest diagrams
+
+These pass:
+- a multi-line sheet with indentation;
+- CRLF line ends;
+- a quoted CJK `font-family` (`"源ノ角ゴシック"`);
+- NBSP in `<text>`;
+- `TEXT/CSS`.
+
+These fail and are new at this target:
+- **An unquoted non-ASCII `font-family` name** (`font-family:源ノ角ゴシック`) is refused: "CSS holds U+6E90 outside a quoted string". The message says what to do (quote it), and POST.md's CSS rules mention ASCII. This is acceptable.
+- The D1 fix would refuse a multi-line string, which no diagram needs.
+
+Not new, but noted for honesty:
+- The child combinator `g>rect` is refused by `DANGEROUS_VALUE`, because `>` is on its markup list. That has been true since the first commit. It is a writer surprise, not a risk, and `g rect` works.
 
 VERDICT: BLOCKED
