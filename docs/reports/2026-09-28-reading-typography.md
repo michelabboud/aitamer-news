@@ -294,6 +294,18 @@ No font changes. `BaseLayout.astro` keeps its Google Fonts URL as it is.
 
 ---
 
+## 7a. Decision addendum (2026-09-28): headlines move to Newsreader
+
+After 0.2.47 was built, Michel looked at the site and found the headline letters dense: "the characters are dense, almost touch each other; not very sure about the font". Three headline treatments were compared in the browser, with screenshots of the home cards and the agentgateway review's title at 1280 and 390 px, and measured on a canvas with the real fonts (1,570 letter pairs from the 36 home-page card titles, plus the article title). "Touching" means less than half a pixel of clear space between the ink of two neighbouring letters.
+
+| Treatment | Card 28 px: mean gap / touching | Article title 52 px: mean gap / touching | Thinnest stroke, card |
+|---|---|---|---|
+| A: Gloock as built (card 0, article −0.015em) | −0.06 px / 74% | −1.44 px / 86% | 0.35 px |
+| B: Gloock +0.01em cards, +0.005em larger | +0.21 px / 59% | −0.40 px / 62% | 0.35 px |
+| C: Newsreader, 600 cards, 500 larger, optical sizing | +0.83 px / 23% | +0.02 px / 45% | 1.19 px |
+
+**Michel chose C on 2026-09-28.** This reverses the recommendation in §2.3, which kept Gloock and ranked Newsreader second: the measurements show that Gloock's tight fit and 12.8:1 stroke contrast are the problem at headline sizes, and that spacing (B) cannot fix them. As built: `--font-headline` for every headline, weights 600 (cards, lead) and 500 (the rest), letter-spacing 0, card titles 29 px (27 px three across), which wrap as Gloock did at 28/26: identically at 1280 px, within one title on `/news/` at narrower widths, and three more four-line titles on the home page at 820 px. Gloock stays for the wordmark and the brand marks. The record of the decision is ADR 0021.
+
 ## 8. Limits of this report
 
 - I did not render the site. All pixel figures are computed from the CSS and the font files, not measured in a browser.
