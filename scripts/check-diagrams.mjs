@@ -24,7 +24,12 @@
  * `foreignObject`, no `script`, no SMIL animation at all (`animate` and `set` can turn a link
  * into `javascript:`, and SMIL ignores the reader's reduced-motion setting), `href` only as `#id`,
  * CSS only as plain declarations, `@keyframes` and `@media`, with `url()` only as `url(#id)`.
- * Animation is CSS, and a file that animates must stop for readers who ask for reduced motion.
+ * Animation is CSS, and a file that animates must provably stop for readers who ask for reduced
+ * motion (`motionProblem`). CSS is parsed in one linear pass, never searched with a pattern.
+ *
+ * **Nowhere else.** Every mode also walks the rest of `public/` (or the build): any other SVG must be
+ * one of the site's own, pinned by hash in SITE_SVGS, and no symbolic link may exist. An SVG in any
+ * other folder would miss both this check and the `/diagrams/*` lockdown.
  *
  * **The parse, and why the rewrite ships.** parse5 (already the CSP and rendered-body gates' parser)
  * reads the file as HTML foreign content, which is not how a browser reads an `.svg` file: that is
@@ -33,6 +38,7 @@
  * and the file that ships is never the writer's bytes: it is written from the checked tree by this
  * script, with every name and value escaped, so what a browser parses is what was checked.
  */
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,6 +50,12 @@ export const POSTS_DIR = 'src/content/posts';
 export const MAX_BYTES = 200_000;
 /** Most elements in one diagram, so no file can make the build or a reader's browser crawl. */
 export const MAX_ELEMENTS = 4_000;
+/**
+ * All diagrams together, and how many, per run: each file's limit bounds one file, and these bound
+ * what a flood of them can cost the check and the deploy. Room for about a hundred dense diagrams.
+ */
+export const MAX_TOTAL_BYTES = 20_000_000;
+export const MAX_DIAGRAMS = 2_000;
 /** The public path of a diagram: one post's folder, one lowercase name. */
 export const DIAGRAM_PATH = /^\/diagrams\/([a-z0-9]+(?:-[a-z0-9]+)*)\/([a-z0-9]+(?:-[a-z0-9]+)*)\.svg$/;
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -82,21 +94,225 @@ const FRAGMENT = /^#[A-Za-z][\w.-]{0,63}$/;
 const ID = /^[A-Za-z][\w.-]{0,63}$/;
 /** Anything a value might use to reach outside the file, or to hide that it does. */
 const DANGEROUS_VALUE = /javascript:|vbscript:|data:|\\|&|<|>|expression\s*\(|@import|behavior\s*:|-moz-binding/i;
-/** The only `url(…)` a value may hold: a reference to something inside this file. */
-const URL_CALL = /url\(\s*(['"]?)([^)'"]*)\1\s*\)/gi;
+/**
+ * A character XML 1.0 does not allow in a document (a C0 control, U+FFFE, U+FFFF, a lone surrogate).
+ * The rewrite would write it out as it is, and an XML parser refuses the whole file.
+ */
+const NOT_XML_CHAR = /[^\t\n\r\u0020-\uD7FF\uE000-\uFFFD\u{10000}-\u{10FFFF}]/u;
+/**
+ * CSS functions that can name something outside the file, or compute a value this check cannot
+ * see. `src()` and the url form of `image()` are in the specifications and not yet in browsers;
+ * they are refused now so that a browser update cannot open a hole.
+ */
+const CSS_FUNCTIONS_REFUSED = /image-set|\bimage\s*\(|\bsrc\s*\(|element\s*\(|cross-fade|paint\s*\(|attr\s*\(|var\s*\(|env\s*\(/i;
 const CSS_AT_RULES = new Set(['keyframes', 'media']);
-const REDUCED_MOTION = /@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/i;
+/** The one media query that means "this reader asked for less motion", with its spaces removed. */
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion:reduce)';
+/** The one that means "this reader did not": animation may live inside it with no override. */
+const MOTION_OK_QUERY = '(prefers-reduced-motion:no-preference)';
+/** A property name as a diagram may write one. */
+const CSS_PROPERTY = /^-?[a-z][a-z0-9-]*$/;
+/** A keyframe selector: `from`, `to`, or percentages, comma-separated. */
+const KEYFRAME_SELECTOR = /^(?:from|to|\d{1,3}(?:\.\d+)?%)(?:\s*,\s*(?:from|to|\d{1,3}(?:\.\d+)?%))*$/i;
+
+/**
+ * Every `url(…)` in a text must be `url(#id)`. One pass: each `url(` is matched to the first `)`
+ * after it, so a malformed or unclosed one is refused where it stands instead of being searched
+ * for again from every later position (the quadratic case the review measured).
+ * @param {string} text @param {string} label @returns {string | null}
+ */
+function urlProblem(text, label) {
+  const open = /url\s*\(/gi;
+  for (let m = open.exec(text); m; m = open.exec(text)) {
+    const close = text.indexOf(')', open.lastIndex);
+    if (close < 0) return `${label} has a url( with no closing )`;
+    let inside = text.slice(open.lastIndex, close).trim();
+    if (/^(['"]).*\1$/s.test(inside)) inside = inside.slice(1, -1).trim();
+    if (!FRAGMENT.test(inside)) return `${label} has url(${inside}); only url(#id), a reference inside the file, is allowed`;
+    open.lastIndex = close + 1;
+  }
+  return null;
+}
 
 /** @param {string} text @returns {string | null} why a CSS text is refused, or null */
 export function cssProblem(text) {
   if (DANGEROUS_VALUE.test(text)) return 'CSS contains an escape, markup, an ampersand, or a script or import form';
   if (/\/\*/.test(text)) return 'CSS comments are not allowed (they can hide what a rule says)';
-  for (const [, , inside] of text.matchAll(URL_CALL)) if (!FRAGMENT.test(inside.trim())) return `CSS url(${inside}) points outside the file; only url(#id) is allowed`;
-  if (/url\s*\(/i.test(text.replace(URL_CALL, ''))) return 'CSS has a url( this check cannot read';
+  const url = urlProblem(text, 'CSS');
+  if (url) return url;
   for (const [, name] of text.matchAll(/@([A-Za-z-]+)/g)) {
     if (!CSS_AT_RULES.has(name.toLowerCase())) return `CSS @${name} is not allowed (only @keyframes and @media)`;
   }
-  if (/image-set|element\s*\(|cross-fade|paint\s*\(|attr\s*\(|var\s*\(/i.test(text)) return 'CSS uses a function that can reach outside plain drawing';
+  if (CSS_FUNCTIONS_REFUSED.test(text)) return 'CSS uses a function that can reach outside plain drawing';
+  return null;
+}
+
+/**
+ * Declarations, split on `;` outside quotes and parentheses.
+ * @param {string} text @returns {{ decls: { property: string, value: string, important: boolean }[], problem: string | null }}
+ */
+export function parseDeclarations(text) {
+  const decls = [];
+  let start = 0;
+  let depth = 0;
+  let quote = '';
+  const take = (end) => {
+    const part = text.slice(start, end).trim();
+    start = end + 1;
+    if (!part) return null;
+    const colon = part.indexOf(':');
+    if (colon < 1) return `CSS declaration "${part}" is not property: value`;
+    const property = part.slice(0, colon).trim().toLowerCase();
+    if (!CSS_PROPERTY.test(property)) return `CSS property "${property}" is not a property name`;
+    let value = part.slice(colon + 1).trim();
+    const important = /!\s*important$/i.test(value);
+    if (important) value = value.replace(/!\s*important$/i, '').trim();
+    if (value.includes('!')) return `CSS value "${value}" has a stray !`;
+    decls.push({ property, value, important });
+    return null;
+  };
+  for (let i = 0; i < text.length; i += 1) {
+    const c = text[i];
+    if (quote) {
+      if (c === quote) quote = '';
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === '(') depth += 1;
+    else if (c === ')') depth -= 1;
+    else if (c === ';' && depth === 0) {
+      const problem = take(i);
+      if (problem) return { decls, problem };
+    }
+    if (depth < 0) return { decls, problem: 'CSS has a ) with no (' };
+  }
+  if (quote) return { decls, problem: 'CSS has a string with no closing quote' };
+  if (depth !== 0) return { decls, problem: 'CSS has a ( with no )' };
+  const problem = take(text.length);
+  return { decls, problem };
+}
+
+/**
+ * A diagram's stylesheet, read into the small grammar it may use: plain rules, `@keyframes` and
+ * `@media` holding plain rules. One pass over the text, quotes respected, so a media query written
+ * inside a string is a string, not a media query. `index` is each rule's place in source order.
+ * @param {string} text
+ * @returns {{ rules: { selector: string, media: string | null, decls: ReturnType<typeof parseDeclarations>['decls'], index: number }[], problem: string | null }}
+ */
+export function parseStylesheet(text) {
+  const rules = [];
+  let i = 0;
+  const n = text.length;
+  const fail = (problem) => ({ rules, problem });
+  const skipSpace = () => {
+    while (i < n && /\s/.test(text[i])) i += 1;
+  };
+  /** Up to (not including) the first of `stops` outside quotes; null when the text ends first. */
+  const readUntil = (stops) => {
+    const from = i;
+    let quote = '';
+    for (; i < n; i += 1) {
+      const c = text[i];
+      if (quote) {
+        if (c === quote) quote = '';
+      } else if (c === '"' || c === "'") quote = c;
+      else if (stops.includes(c)) return text.slice(from, i);
+    }
+    return null;
+  };
+  /** `selector { declarations }` at i; the selector must not be empty. */
+  const readRule = (media, selectorCheck) => {
+    const selector = readUntil('{};');
+    if (selector === null || text[i] !== '{') return 'CSS rule has no { … } block';
+    const clean = selector.trim().replace(/\s+/g, ' ');
+    if (!clean) return 'CSS rule has an empty selector';
+    if (selectorCheck && !selectorCheck.test(clean)) return `CSS keyframe selector "${clean}" is not from, to or a percentage`;
+    i += 1;
+    const body = readUntil('{}');
+    if (body === null || text[i] !== '}') return `CSS rule "${clean}" does not close, or holds a block inside`;
+    i += 1;
+    const { decls, problem } = parseDeclarations(body);
+    if (problem) return problem;
+    rules.push({ selector: clean, media, decls, index: rules.length, keyframe: Boolean(selectorCheck) });
+    return null;
+  };
+  /** Plain rules until the `}` that closes an at-rule's block. */
+  const readBlockOfRules = (media, selectorCheck) => {
+    for (;;) {
+      skipSpace();
+      if (i >= n) return 'CSS @ block does not close';
+      if (text[i] === '}') {
+        i += 1;
+        return null;
+      }
+      if (text[i] === '@') return 'CSS at-rules may not be nested';
+      const problem = readRule(media, selectorCheck);
+      if (problem) return problem;
+    }
+  };
+  for (;;) {
+    skipSpace();
+    if (i >= n) return { rules, problem: null };
+    if (text[i] === '@') {
+      const name = /^@([A-Za-z-]+)/.exec(text.slice(i, i + 32))?.[1]?.toLowerCase();
+      if (!name || !CSS_AT_RULES.has(name)) return fail(`CSS @${name ?? ''} is not allowed (only @keyframes and @media)`);
+      i += name.length + 1;
+      const prelude = readUntil('{};');
+      if (prelude === null || text[i] !== '{') return fail(`CSS @${name} has no { … } block`);
+      i += 1;
+      const problem = name === 'media'
+        ? readBlockOfRules(prelude.replace(/\s+/g, '').toLowerCase(), null)
+        : readBlockOfRules(null, KEYFRAME_SELECTOR);
+      if (problem) return fail(problem);
+    } else {
+      const problem = readRule(null, null);
+      if (problem) return fail(problem);
+    }
+  }
+}
+
+const isNone = (value) => value.toLowerCase() === 'none';
+/** @returns {boolean} whether a declaration starts an animation */
+const animates = (d) => (d.property === 'animation' || d.property === 'animation-name') && !isNone(d.value);
+/** @returns {boolean} whether a declaration removes every animation from what it matches */
+const stopsAnimation = (d) => (d.property === 'animation' || d.property === 'animation-name') && isNone(d.value);
+
+/**
+ * A diagram that animates must provably stop for a reader who asked for reduced motion
+ * (ADR 0016). Proof is one of two shapes, and nothing weaker:
+ *
+ *   - the animation is declared inside `@media (prefers-reduced-motion: no-preference)`, so it
+ *     never applies to that reader; or
+ *   - `@media (prefers-reduced-motion: reduce)` holds, later in the source, a rule with the same
+ *     selector setting `animation: none` (or `animation-name: none`): same selector, same
+ *     specificity, later wins; or it holds `* { animation: none !important }`, which wins over
+ *     every declaration, because `!important` is refused everywhere else.
+ *
+ * Transitions are refused outright: a diagram shown as an image is never hovered, so a transition
+ * does nothing there but move on the file's own page.
+ * @param {ReturnType<typeof parseStylesheet>['rules']} rules @returns {string | null}
+ */
+export function motionProblem(rules) {
+  const style = rules.filter((r) => !r.keyframe);
+  for (const r of style) {
+    for (const d of r.decls) {
+      if (d.property.startsWith('transition')) return `CSS ${d.property} is not allowed; animate with @keyframes`;
+      if (d.important && r.media !== REDUCED_MOTION_QUERY) return `CSS !important is allowed only inside @media ${REDUCED_MOTION_QUERY}`;
+      if (animates(d) && r.media === REDUCED_MOTION_QUERY) return `"${r.selector}" animates inside @media ${REDUCED_MOTION_QUERY}, the block that must stop it`;
+    }
+  }
+  /** Selector → the source position of its last reduced-motion stop: one lookup per rule, not a scan. */
+  const lastStop = new Map();
+  let universal = false;
+  for (const r of style) {
+    if (r.media !== REDUCED_MOTION_QUERY || !r.decls.some(stopsAnimation)) continue;
+    lastStop.set(r.selector, r.index);
+    if (r.selector === '*' && r.decls.some((d) => stopsAnimation(d) && d.important)) universal = true;
+  }
+  for (const r of style) {
+    if (r.media === MOTION_OK_QUERY || !r.decls.some(animates) || universal) continue;
+    if (!(lastStop.get(r.selector) > r.index)) {
+      return `"${r.selector}" animates, and no later rule for "${r.selector}" in @media (prefers-reduced-motion: reduce) sets animation: none`;
+    }
+  }
   return null;
 }
 
@@ -110,11 +326,23 @@ export function attributeProblem(name, value, element) {
   if (!ATTRIBUTES.has(name)) return `attribute ${name} is not allowed`;
   if (name === 'xmlns') return value === SVG_NS ? null : `xmlns must be ${SVG_NS}`;
   if (name === 'id') return ID.test(value) ? null : `id "${value}" must start with a letter and use letters, digits, _ . -`;
-  if (name === 'style') return cssProblem(value);
-  if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value)) return `${name} holds a control character`;
+  if (NOT_XML_CHAR.test(value) || /\u007f/.test(value)) return `${name} holds a control character`;
+  if (name === 'style') return styleAttributeProblem(value);
   if (DANGEROUS_VALUE.test(value)) return `${name} holds an escape, markup or a script form`;
-  for (const [, , inside] of value.matchAll(URL_CALL)) if (!FRAGMENT.test(inside.trim())) return `${name} has url(${inside}); only url(#id) is allowed`;
-  if (/url\s*\(/i.test(value.replace(URL_CALL, ''))) return `${name} has a url( this check cannot read`;
+  return urlProblem(value, name);
+}
+
+/** A `style` attribute: plain declarations, and never motion, which only a stylesheet can stop. */
+function styleAttributeProblem(value) {
+  const problem = cssProblem(value);
+  if (problem) return problem;
+  const { decls, problem: parsed } = parseDeclarations(value);
+  if (parsed) return parsed;
+  for (const d of decls) {
+    if (d.property.startsWith('animation') || d.property.startsWith('transition')) {
+      return `style="${d.property}: …" is not allowed; animate in <style>, where reduced motion can stop it`;
+    }
+  }
   return null;
 }
 
@@ -146,8 +374,8 @@ export function checkSvg(text) {
   }
 
   let elements = 0;
-  let hasKeyframes = false;
-  let hasReducedMotion = false;
+  /** Every <style> text, in document order: together they are one cascade. */
+  const sheets = [];
   /** @returns {string} the checked element, serialized */
   const visit = (node, path) => {
     elements += 1;
@@ -156,6 +384,9 @@ export function checkSvg(text) {
     if (node.namespaceURI !== SVG_NS) findings.push(`${where}: not an SVG element`);
     else if (!ELEMENTS.has(name)) findings.push(`${where}: element <${name}> is not allowed`);
     const attrs = [];
+    const names = new Set(node.attrs.map(attrName));
+    // xlink:href ships as href, so both on one element would ship as the same attribute twice.
+    if (names.has('href') && names.has('xlink:href')) findings.push(`${where}: href and xlink:href together; use one`);
     for (const a of node.attrs) {
       const n = attrName(a);
       const problem = attributeProblem(n, a.value, name);
@@ -163,7 +394,6 @@ export function checkSvg(text) {
       // Namespace declarations are the rewrite's to write; xlink:href ships as SVG 2's plain href.
       else if (n !== 'xmlns' && n !== 'xmlns:xlink') attrs.push(`${n === 'xlink:href' ? 'href' : n}="${escapeAttr(a.value)}"`);
     }
-    if (/animation/i.test(node.attrs.find((a) => a.name === 'style')?.value ?? '')) hasKeyframes = true;
     let inner = '';
     for (const child of node.childNodes) {
       if (child.nodeName === '#comment') continue;
@@ -172,11 +402,11 @@ export function checkSvg(text) {
           if (child.value.trim()) findings.push(`${where}: text is allowed only in title, desc, text, tspan and style`);
           continue;
         }
+        if (NOT_XML_CHAR.test(child.value)) findings.push(`${where}: text holds a character XML does not allow (a control character, U+FFFE or U+FFFF)`);
         if (name === 'style') {
           const problem = cssProblem(child.value);
           if (problem) findings.push(`${where}: ${problem}`);
-          if (/@keyframes/i.test(child.value) || /\banimation\s*:/i.test(child.value)) hasKeyframes = true;
-          if (REDUCED_MOTION.test(child.value)) hasReducedMotion = true;
+          else sheets.push(child.value);
         }
         inner += escapeText(child.value);
         continue;
@@ -194,9 +424,9 @@ export function checkSvg(text) {
   };
   const output = visit(roots[0], '');
   if (elements > MAX_ELEMENTS) findings.push(`more than ${MAX_ELEMENTS} elements`);
-  if (hasKeyframes && !hasReducedMotion) {
-    findings.push('it animates, so its <style> must stop the animation in @media (prefers-reduced-motion: reduce)');
-  }
+  const { rules, problem: sheetProblem } = parseStylesheet(sheets.join('\n'));
+  const motion = sheetProblem ?? motionProblem(rules);
+  if (motion) findings.push(`/svg/style: ${motion}`);
   return findings.length ? { findings, output: null } : { findings, output: `${output}\n` };
 }
 
@@ -216,6 +446,54 @@ function filesUnder(dir) {
   };
   walk(dir);
   return out.sort();
+}
+
+/**
+ * The SVG files the site itself ships outside `diagrams/`, pinned by content. An SVG opened on its
+ * own is a document that can run script, and only `/diagrams/*` gets the enforced lockdown policy,
+ * so this is the one other way an SVG may reach the site: named here, byte for byte. A cover that is
+ * redrawn (`scripts/generate-covers.py`) gets its new hash here in the same change, by the maintainer.
+ */
+export const SITE_SVGS = new Map([
+  ['favicon.svg', '467e6918602a794c76e4c60406b2b228775605fa387ad947575c21d5750e1ce6'],
+  ['covers/creative.svg', 'c8820fb32ca753ae872c2725d49e5a6bafea3e47683724d292438a6b9690ce5d'],
+  ['covers/dev.svg', '3761f938d5a994f5eb80f402e136c58fe5e816bd6c37b54479bc31c22e3a8bc6'],
+  ['covers/infra.svg', 'b4feafc3c35fd3f685b29ec21491a1716748c8c9ac44beaac9ac99fbda980ccc'],
+  ['covers/models.svg', 'e7c6cb4606b5f1cef32558ce2c0f2799cb721a0dde291ec18dfdba37ad78f8a4'],
+  ['covers/opinion.svg', '7314fc25e4f709a98acc836adaf46be46edc2d5051c7f6b0d6c750f04192f484'],
+  ['covers/policy.svg', '7e711efd085e46ac714cf74ef1caf54749b674fe4cf042ad9bc9ae233d3dda06'],
+  ['covers/rust.svg', 'f0bb92cd4832ddb4aa2c184bed9f210ddc87ea2edc6188a4e17fe9aefe45851b'],
+  ['covers/tools.svg', '2ee6a9b44d6e990ae70a4cb8e98fafbbc7ebcf86974fd09e5b3b066e40038351'],
+]);
+export const PUBLIC_DIR = 'public';
+/** Names a browser may treat as SVG, whatever the case. */
+const SVG_NAME = /\.svgz?$/i;
+
+/**
+ * Outside `diagrams/`, under `root` (public/ or the build): every SVG must be one of SITE_SVGS with
+ * its pinned hash, and no symbolic link may exist at all (it can make a checked name serve
+ * unchecked bytes, or pull a whole folder past this walk).
+ * @param {string} root @returns {string[]}
+ */
+export function strayProblems(root) {
+  if (!existsSync(root)) return [];
+  const problems = [];
+  const walk = (at) => {
+    for (const entry of readdirSync(at, { withFileTypes: true })) {
+      const full = join(at, entry.name);
+      const rel = relative(root, full).split(sep).join('/');
+      if (entry.isSymbolicLink()) problems.push(`${root}/${rel}: symbolic links are not allowed here`);
+      else if (entry.isDirectory()) {
+        if (rel !== 'diagrams') walk(full);
+      } else if (SVG_NAME.test(entry.name)) {
+        const pinned = SITE_SVGS.get(rel);
+        if (!pinned) problems.push(`${root}/${rel}: an SVG outside diagrams/; a diagram lives in diagrams/<post-slug>/, where it is checked (ADR 0016)`);
+        else if (createHash('sha256').update(readFileSync(full)).digest('hex') !== pinned) problems.push(`${root}/${rel}: is not the pinned site file; a redrawn cover needs its new hash in SITE_SVGS`);
+      }
+    }
+  };
+  walk(root);
+  return problems;
 }
 
 /**
@@ -246,6 +524,9 @@ function main(args) {
   if (mode !== undefined && !['--write', '--check-dist'].includes(mode)) return usage();
   if (mode && !dist) return usage();
   const { findings, diagrams } = checkAll();
+  if (diagrams.reduce((sum, d) => sum + Buffer.byteLength(d.output), 0) > MAX_TOTAL_BYTES) findings.push(`the diagrams together pass ${MAX_TOTAL_BYTES} bytes`);
+  if (diagrams.length > MAX_DIAGRAMS) findings.push(`more than ${MAX_DIAGRAMS} diagrams`);
+  findings.push(...strayProblems(mode ? dist : PUBLIC_DIR));
   if (findings.length) {
     for (const f of findings) console.error(`check:diagrams: ${f}`);
     console.error(`check:diagrams: ${findings.length} finding(s); docs/adr/0016-diagrams-are-checked-svg-files.md`);

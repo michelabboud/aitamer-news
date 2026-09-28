@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DIAGRAM_PATH, MAX_BYTES, checkAll, checkSvg, cssProblem } from './check-diagrams.mjs';
+import { DIAGRAM_PATH, MAX_BYTES, PUBLIC_DIR, checkAll, checkSvg, cssProblem, strayProblems } from './check-diagrams.mjs';
 import { tempDir } from './test-support.mjs';
 import { DIAGRAM_SRC, imageSrcProblem } from './rendered-body-allowlist.mjs';
 
@@ -154,4 +154,99 @@ test('the body gate admits exactly the diagram paths this check owns', () => {
     assert.notEqual(imageSrcProblem(bad), null, bad);
   }
   assert.equal(imageSrcProblem('https://media.aitamer.news/x.jpg'), null, 'media images still pass');
+});
+
+// Deep review of 72d4e94 (docs/reviews/2026-09-28-diagrams-deep-review.md): one test per finding.
+
+const motion = (css, body = '<rect class="a" width="1" height="1"/>') => checkSvg(svg(`<style>${css}</style>${body}`)).findings;
+const SPIN = '@keyframes spin { to { opacity: 0; } }';
+
+test('reduced motion: the two proofs that stop an animation pass', () => {
+  assert.deepEqual(motion(`.a { animation: spin 1s infinite; } ${SPIN} @media (prefers-reduced-motion: reduce) { .a { animation: none; } }`), []);
+  assert.deepEqual(motion(`.a { animation-name: spin; animation-duration: 1s; } ${SPIN} @media (prefers-reduced-motion: reduce) { .a { animation-name: none; } }`), []);
+  assert.deepEqual(motion(`@media (prefers-reduced-motion: reduce) { * { animation: none !important; } } .a { animation: spin 1s; } ${SPIN}`), [], 'the universal !important stop wins from anywhere');
+  assert.deepEqual(motion(`${SPIN} @media (prefers-reduced-motion: no-preference) { .a { animation: spin 1s infinite; } }`), [], 'animation only for readers who did not ask for less');
+  assert.deepEqual(motion(`.a { fill: red; } ${SPIN}`), [], 'keyframes nobody uses are not motion');
+});
+
+test('reduced motion: a media query that does not stop the animation is refused', () => {
+  const refused = {
+    'the review\'s probe: the block changes only fill': `.a{animation:spin 1ms infinite}${SPIN}@media (prefers-reduced-motion: reduce){.a{fill:red}}`,
+    'the media query hidden in a string': `.a { animation: spin 1s; font-family: "@media (prefers-reduced-motion: reduce) { .a { animation: none } }"; } ${SPIN}`,
+    'the stop comes before the animation': `@media (prefers-reduced-motion: reduce) { .a { animation: none; } } .a { animation: spin 1s; } ${SPIN}`,
+    'the stop names another selector': `.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion: reduce) { .b { animation: none; } }`,
+    'a universal stop without !important': `.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion: reduce) { * { animation: none; } }`,
+    '!important outside the reduced-motion block': `.a { animation: spin 1s !important; } ${SPIN} @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }`,
+    'animation inside the reduced-motion block': `${SPIN} @media (prefers-reduced-motion: reduce) { .a { animation: spin 1s; } }`,
+    'a second animated rule after the stop': `.a { animation: spin 1s; } ${SPIN} @media (prefers-reduced-motion: reduce) { .a { animation: none; } } .a { animation: spin 2s; }`,
+    'a transition': `.a { transition: opacity 1s; }`,
+    'nested at-rules': `@media (min-width: 1px) { @media (prefers-reduced-motion: reduce) { .a { animation: none } } }`,
+    'a keyframe block with a plain selector': `@keyframes spin { .a { opacity: 0; } }`,
+    'an unclosed rule': `.a { animation: spin 1s;`,
+  };
+  for (const [name, css] of Object.entries(refused)) assert.ok(motion(css).length > 0, name);
+  for (const style of ['animation: spin 1s', 'animation-name: spin', 'transition: fill 1s']) {
+    assert.match(checkSvg(svg(`<rect style="${style}"/>`)).findings.join(), /not allowed; animate in <style>/, style);
+  }
+});
+
+test('an unclosed url( is refused in linear time, far inside the per-file limit', () => {
+  const text = svg(`<style>${'url('.repeat(16_000)}</style>`);
+  assert.ok(Buffer.byteLength(text) < MAX_BYTES);
+  const started = performance.now();
+  const { findings } = checkSvg(text);
+  const took = performance.now() - started;
+  assert.match(findings.join(), /url\( with no closing \)/);
+  // Before the fix this took 3.6 s to 9.4 s; linear work is a few tens of milliseconds.
+  assert.ok(took < 1_000, `took ${Math.round(took)} ms`);
+  const attr = svg(`<rect fill="${'url('.repeat(16_000)}"/>`);
+  const again = performance.now();
+  assert.ok(checkSvg(attr).findings.length > 0);
+  assert.ok(performance.now() - again < 1_000);
+});
+
+test('the rewrite is always well-formed XML: no repeated href, no character XML refuses', () => {
+  const xlink = 'xmlns:xlink="http://www.w3.org/1999/xlink"';
+  assert.match(checkSvg(svg(`<linearGradient ${xlink} href="#a" xlink:href="#b"/>`)).findings.join(), /href and xlink:href together/);
+  for (const ch of ['&#x1;', '\u0001', '\uFFFE', '\uFFFF']) {
+    assert.equal(checkSvg(svg(`<title>x${ch}y</title>`)).output, null, JSON.stringify(ch));
+  }
+  assert.equal(checkSvg(svg('<rect class="a\uFFFEb"/>')).output, null, 'in attribute values too');
+  assert.notEqual(checkSvg(svg('<title>A &amp; B — ✓ 𝑥</title>')).output, null, 'ordinary and astral characters still pass');
+});
+
+test('CSS functions that can name a resource are refused before any browser ships them', () => {
+  for (const css of ['svg{background-image:src("https://attacker.example/pixel")}', 'svg{background-image:image("https://attacker.example/pixel")}', 'svg{width:env(safe-area-inset-top)}']) {
+    assert.match(cssProblem(css), /function that can reach outside/, css);
+  }
+  assert.equal(cssProblem('.a { fill: rgb(1, 2, 3); transform: rotate(45deg) translate(1px, 2px); }'), null);
+});
+
+test('outside diagrams/, the only SVGs are the site\'s own, pinned by hash; no symbolic links', () => {
+  assert.deepEqual(strayProblems(PUBLIC_DIR), [], 'the real public/ folder is clean');
+  const root = tempDir('strays-');
+  const put = (path, text) => {
+    mkdirSync(join(root, path, '..'), { recursive: true });
+    writeFileSync(join(root, path), text);
+  };
+  put('favicon.svg', readFileSync(join(PUBLIC_DIR, 'favicon.svg')));
+  put('diagrams/some-post/x.svg', '<svg onload="alert(1)"/>');
+  assert.deepEqual(strayProblems(root), [], 'the pinned favicon passes; diagrams/ is the diagram check\'s');
+  put('covers/payload.svg', '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(document.domain)"></svg>');
+  put('covers/policy.svg', '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"></svg>');
+  put('heroes/x.SVGZ', 'x');
+  symlinkSync(join(root, 'favicon.svg'), join(root, 'linked'));
+  const found = strayProblems(root).join('\n');
+  assert.match(found, /covers\/payload\.svg: an SVG outside diagrams\//);
+  assert.match(found, /covers\/policy\.svg: is not the pinned site file/);
+  assert.match(found, /heroes\/x\.SVGZ: an SVG outside diagrams\//);
+  assert.match(found, /linked: symbolic links are not allowed/);
+});
+
+test('the GitHub Pages workflow refuses a build with diagrams, before it uploads anything', () => {
+  const workflow = readFileSync('.github/workflows/deploy-github-pages.yml', 'utf8');
+  const refuse = workflow.indexOf('Refuse to publish diagrams on a host that ignores _headers');
+  const upload = workflow.indexOf('Upload Pages artifact');
+  assert.ok(refuse > 0 && upload > refuse, 'the refusal runs before the upload');
+  assert.match(workflow.slice(refuse, upload), /find dist\/diagrams -mindepth 1[\s\S]*exit 1/);
 });

@@ -81,10 +81,13 @@ Any writer, bots and AI writers included, can add diagrams and light animation. 
   - `href` only as `#id`, and `url()` only as `url(#id)`;
   - CSS as plain rules, `@keyframes` and `@media`.
 - **What it may not use:** links, `use`, embedded images, `foreignObject`, scripts, event handlers, SMIL animation (`animate`, `set`, `animateTransform`), external fonts, CSS comments or escapes. Nothing in a diagram can load or run anything.
-- **Animation is CSS**, and a file that animates must stop for readers who ask for less motion:
-  `@media (prefers-reduced-motion: reduce) { .x { animation: none; } }`
+- **Animation is CSS in `<style>`**, never in a `style="…"` attribute, and never a `transition`. A file that animates must provably stop for readers who ask for less motion, in one of three ways:
+  - after the animated rule, the same selector again: `@media (prefers-reduced-motion: reduce) { .x { animation: none; } }`;
+  - anywhere, one rule for everything: `@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }` (`!important` is allowed only there);
+  - or animate only for readers who did not ask: `@media (prefers-reduced-motion: no-preference) { .x { animation: … } }`.
+  The check reads the CSS, so a media query that changes something else, or comes before the animation, is refused.
 - **Colours:** a diagram cannot see the site's theme. Draw your own background, or add `@media (prefers-color-scheme: dark)` rules inside the SVG.
-- **Limits:** 200 kB and 4,000 elements. Add a `viewBox`, so the diagram scales with the column.
+- **Limits:** 200 kB and 4,000 elements per file; 20 MB and 2,000 diagrams for the whole site. Add a `viewBox`, so the diagram scales with the column.
 
 `npm run check:diagrams` names every problem. The build ships the checker's own clean rewrite of your file, not the file itself.
 
