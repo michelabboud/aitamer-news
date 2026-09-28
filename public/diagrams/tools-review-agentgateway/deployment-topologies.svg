@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 470" role="img" aria-labelledby="t d">
+<title id="t">Two ways to run agentgateway</title>
+<desc id="d">Left: standalone, one binary on a host reading a watched YAML file, with an optional SQLite or PostgreSQL database for budgets and UI logs, stdio MCP servers started as child processes, and an admin interface on localhost port 15000. Right: Kubernetes, where a controller watches Gateway API resources and agentgateway policy and backend resources and pushes configuration over xDS to proxy pods installed by Helm.</desc>
+<style>
+.bg { fill: #fbf8f1; }
+.panel { fill: #f3f7fb; stroke: #2f5680; stroke-width: 1.6; }
+.box { fill: #ffffff; stroke: #4a6f99; stroke-width: 1.3; }
+.warn { fill: #fdeee9; stroke: #c4573f; stroke-width: 1.3; }
+.cfg { fill: #e9f4ef; stroke: #3f7d68; stroke-width: 1.3; }
+.t { fill: #1f2a37; font-family: system-ui, sans-serif; font-size: 14px; }
+.h { fill: #1f2a37; font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; }
+.s { fill: #4b5563; font-family: system-ui, sans-serif; font-size: 12.5px; }
+.ln { stroke: #4a6f99; stroke-width: 1.6; fill: none; }
+.lg { stroke: #3f7d68; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.ah { fill: #4a6f99; }
+.ag { fill: #3f7d68; }
+@media (prefers-color-scheme: dark) {
+.bg { fill: #141a21; }
+.panel { fill: #18222d; stroke: #9cc0ea; }
+.box { fill: #202d3b; stroke: #86acd8; }
+.warn { fill: #3a241f; stroke: #f0927a; }
+.cfg { fill: #1b3129; stroke: #7cc3a9; }
+.t { fill: #e6edf3; }
+.h { fill: #f2f6fa; }
+.s { fill: #aab4c0; }
+.ln { stroke: #86acd8; }
+.lg { stroke: #7cc3a9; }
+.ah { fill: #86acd8; }
+.ag { fill: #7cc3a9; }
+}
+</style>
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
+<marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ag" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="880" height="470" rx="10"/>
+<rect class="panel" x="16" y="16" width="410" height="438" rx="12"/>
+<text class="h" x="32" y="44">Standalone: a binary and a file</text>
+<rect class="cfg" x="36" y="62" width="170" height="58" rx="8"/>
+<text class="t" x="48" y="86">config.yaml</text>
+<text class="s" x="48" y="106">watched, hot reload</text>
+<rect class="cfg" x="236" y="62" width="170" height="58" rx="8"/>
+<text class="t" x="248" y="86">SQLite or Postgres</text>
+<text class="s" x="248" y="106">budgets, UI logs</text>
+<rect class="box" x="36" y="150" width="370" height="70" rx="8"/>
+<text class="t" x="48" y="176">agentgateway process</text>
+<text class="s" x="48" y="196">LLM, MCP and HTTP listeners on the ports you set;</text>
+<text class="s" x="48" y="212">in 1.5 they bind every interface</text>
+<rect class="box" x="36" y="250" width="170" height="58" rx="8"/>
+<text class="t" x="48" y="274">stdio MCP servers</text>
+<text class="s" x="48" y="294">unsandboxed children</text>
+<rect class="box" x="236" y="250" width="170" height="58" rx="8"/>
+<text class="t" x="248" y="274">remote backends</text>
+<text class="s" x="248" y="294">LLM APIs, HTTP MCP</text>
+<rect class="warn" x="36" y="338" width="370" height="96" rx="8"/>
+<text class="t" x="48" y="362">Admin interface, localhost:15000</text>
+<text class="s" x="48" y="382">UI, config API, no authentication at all;</text>
+<text class="s" x="48" y="400">in the default file storage mode, UI edits are</text>
+<text class="s" x="48" y="418">written back into config.yaml</text>
+<path class="lg" d="M121 120 L121 148" marker-end="url(#g)"/>
+<path class="lg" d="M321 120 L321 148" marker-end="url(#g)"/>
+<path class="ln" d="M121 220 L121 248" marker-end="url(#a)"/>
+<path class="ln" d="M321 220 L321 248" marker-end="url(#a)"/>
+<path class="ln" d="M221 220 L221 336" marker-end="url(#a)"/>
+<rect class="panel" x="454" y="16" width="410" height="438" rx="12"/>
+<text class="h" x="470" y="44">Kubernetes: controller plus proxies</text>
+<rect class="cfg" x="474" y="62" width="370" height="76" rx="8"/>
+<text class="t" x="486" y="86">Gateway API and agentgateway resources</text>
+<text class="s" x="486" y="106">Gateway, HTTPRoute, AgentgatewayPolicy,</text>
+<text class="s" x="486" y="124">AgentgatewayBackend</text>
+<rect class="box" x="474" y="168" width="370" height="58" rx="8"/>
+<text class="t" x="486" y="192">agentgateway controller</text>
+<text class="s" x="486" y="212">translates resources, serves xDS</text>
+<rect class="box" x="474" y="256" width="175" height="70" rx="8"/>
+<text class="t" x="486" y="280">proxy pod</text>
+<text class="s" x="486" y="300">same Rust data plane</text>
+<rect class="box" x="669" y="256" width="175" height="70" rx="8"/>
+<text class="t" x="681" y="280">proxy pod</text>
+<text class="s" x="681" y="300">scaled out</text>
+<rect class="warn" x="474" y="356" width="370" height="78" rx="8"/>
+<text class="t" x="486" y="380">Images and Helm charts</text>
+<text class="s" x="486" y="400">the proxy image has no shell or Node.js,</text>
+<text class="s" x="486" y="418">so npx-style stdio targets fail there</text>
+<path class="lg" d="M659 138 L659 166" marker-end="url(#g)"/>
+<path class="lg" d="M600 226 L561 254" marker-end="url(#g)"/>
+<path class="lg" d="M718 226 L756 254" marker-end="url(#g)"/>
+</svg>
