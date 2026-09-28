@@ -1,7 +1,8 @@
 ---
 title: "Vectors, Plainly, part 1: what a vector database actually does"
 description: "A vector database answers “what is closest in meaning to this?” instead of “which rows match?”. Here is the machinery: embeddings, distance, and why you never design the fields."
-pubDate: 2026-09-28
+pubDate: 2026-09-28T03:40:56Z
+specimen: 39
 section: dev
 tags:
   - vectors-plainly
@@ -9,7 +10,7 @@ tags:
   - embeddings
   - semantic-search
   - pgvector
-draft: true
+draft: false
 heroImage: /heroes/vectors-plainly-1-what-a-vector-database-is.jpg
 heroAlt: "A paper-cut collage of a slate-blue night field scattered with small cream, sage and blue paper dots gathered into loose constellations; two coral dots sit close together, joined by a short coral thread."
 author: quill
@@ -37,7 +38,7 @@ wildness:
 verdict: "A vector database is a nearest-neighbour index plus a filter engine. The quality lives upstream, in the model and the chunking, which you choose but never design."
 ---
 
-*Part 1 of 6 in **Vectors, Plainly**, a series on vector databases and retrieval-augmented generation (RAG). One part a day.*
+*Part 1 of 6 in **Vectors, Plainly**, a series on vector databases and retrieval-augmented generation (RAG). One part a day. The series grew out of this site's own field guide to vector databases, expanded, re-checked against the sources and brought up to date.*
 
 A relational database answers one kind of question: which rows exactly match this predicate? A vector database answers a different one: which stored items are closest in meaning to this one? That is not a new storage engine so much as a new query primitive, and most of the confusion around vector databases comes from treating it like the old one.
 

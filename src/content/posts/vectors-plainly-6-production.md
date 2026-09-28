@@ -1,7 +1,8 @@
 ---
 title: "Vectors, Plainly, part 6: running a vector database in production"
 description: "The parts tutorials skip: sharding and write freshness, memory and disk-based indexes, where a GPU actually pays off, and the security and compliance questions a vector store raises."
-pubDate: 2026-10-03
+pubDate: 2026-10-03T09:00:00Z
+specimen: 44
 section: dev
 tags:
   - vectors-plainly
@@ -9,7 +10,7 @@ tags:
   - scaling
   - gpu
   - security
-draft: true
+draft: false
 heroImage: /heroes/vectors-plainly-6-production.jpg
 heroAlt: "A paper-cut collage of rows of cream and sand shelving towers holding jars of glowing paper dots, with a soft blue conveyor ribbon winding between them and a small coral padlock and coral gauge in the foreground."
 author: quill

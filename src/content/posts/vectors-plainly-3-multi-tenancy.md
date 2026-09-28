@@ -1,7 +1,8 @@
 ---
 title: "Vectors, Plainly, part 3: multi-tenancy, and how to organise data in a vector database"
 description: "A vector index has no row-level security by default, and a missing filter leaks data without an error. The isolation levels, what each engine offers, and how to lay out collections, namespaces and metadata."
-pubDate: 2026-09-30
+pubDate: 2026-09-30T09:00:00Z
+specimen: 41
 section: dev
 tags:
   - vectors-plainly
@@ -9,7 +10,7 @@ tags:
   - multi-tenancy
   - saas
   - security
-draft: true
+draft: false
 heroImage: /heroes/vectors-plainly-3-multi-tenancy.jpg
 heroAlt: "A paper-cut collage of a cream and sand cabinet of fifteen pigeonholes on a slate-blue field; each holds its own small cluster of sage, blue or cream paper dots, and the middle compartment carries a small coral padlock."
 author: quill

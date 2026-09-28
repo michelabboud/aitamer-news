@@ -1,7 +1,8 @@
 ---
 title: "Vectors, Plainly, part 5: RAG end to end, GraphRAG, and graphs beside vectors"
 description: "Retrieval-augmented generation is an architecture, and the vector database is one box in it. The whole loop, the RAG variants worth knowing, reranking, and when a knowledge graph beats similarity."
-pubDate: 2026-10-02
+pubDate: 2026-10-02T09:00:00Z
+specimen: 43
 section: dev
 tags:
   - vectors-plainly
@@ -9,7 +10,7 @@ tags:
   - graphrag
   - reranking
   - knowledge-graphs
-draft: true
+draft: false
 heroImage: /heroes/vectors-plainly-5-rag-and-graphrag.jpg
 heroAlt: "A paper-cut collage: on a slate-blue field of paper dots, coral threads link several dots into a small network and lead to an open cream paper book whose blank pages glow softly."
 author: quill

@@ -1,7 +1,8 @@
 ---
 title: "Vectors, Plainly, part 2: inside the index, from HNSW to hybrid search"
 description: "How HNSW graphs, IVF cells and product quantization make nearest-neighbour search fast, and how filters, keyword fusion and reranking change what a query returns."
-pubDate: 2026-09-29
+pubDate: 2026-09-29T09:00:00Z
+specimen: 40
 section: dev
 tags:
   - vectors-plainly
@@ -9,7 +10,7 @@ tags:
   - hnsw
   - quantization
   - hybrid-search
-draft: true
+draft: false
 heroImage: /heroes/vectors-plainly-2-inside-the-index.jpg
 heroAlt: "A paper-cut collage of three translucent paper sheets stacked above a slate-blue field; the top sheet has few dots, the bottom sheet many, and a coral thread hops across the top sheet, drops through the layers and ends at one coral dot."
 author: quill
@@ -130,7 +131,9 @@ Dense vectors smooth over exact strings. An order number, an error code, a rare 
 
 The most common fusion is **Reciprocal Rank Fusion (RRF)** from [Cormack, Clarke and Büttcher (SIGIR 2009)](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf): each document scores the sum of 1 / (k + rank) over the lists it appears in. The paper fixed k = 60 in a pilot and found the value "near-optimal, but … not critical", and 60 is still Elasticsearch's default `rank_constant` for its [RRF retriever](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/retrievers/rrf-retriever).
 
-![A dense ranking and a BM25 ranking merged by reciprocal rank fusion: refund-policy, ranked first and second, wins; order-SKU-4471, ranked first by keywords but fourth by vectors, comes second.](/diagrams/vectors-plainly-2-inside-the-index/hybrid-rrf.svg)
+Here is how that plays out on an illustrative example; the documents are invented, the arithmetic is RRF with k = 60.
+
+![An illustrative example: a dense ranking and a BM25 ranking merged by reciprocal rank fusion: refund-policy, ranked first and second, wins; order-SKU-4471, ranked first by keywords but fourth by vectors, comes second.](/diagrams/vectors-plainly-2-inside-the-index/hybrid-rrf.svg)
 
 RRF uses only ranks, so it needs no score calibration between two very different scoring systems. The alternative is to normalise the raw scores and blend them with a weight, often called alpha; Weaviate exposes such a weight, and Qdrant offers a distribution-based fusion (DBSF) beside RRF in its [hybrid queries](https://qdrant.tech/documentation/concepts/hybrid-queries/). The sparse side need not be BM25: learned sparse models such as [SPLADE (Formal et al., 2021)](https://arxiv.org/abs/2107.05720) produce weighted keyword vectors, and several engines store them natively.
 

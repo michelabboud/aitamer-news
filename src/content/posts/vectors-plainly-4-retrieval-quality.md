@@ -1,7 +1,8 @@
 ---
 title: "Vectors, Plainly, part 4: getting retrieval quality right"
 description: "Retrieval quality is decided by the embedding model, the dimensions and the chunking, and it is only known once you measure recall. How to choose, how to test, and where vector search earns its place."
-pubDate: 2026-10-01
+pubDate: 2026-10-01T09:00:00Z
+specimen: 42
 section: dev
 tags:
   - vectors-plainly
@@ -9,7 +10,7 @@ tags:
   - embeddings
   - evaluation
   - chunking
-draft: true
+draft: false
 heroImage: /heroes/vectors-plainly-4-retrieval-quality.jpg
 heroAlt: "A paper-cut collage of a large sand-coloured magnifying loupe over a slate-blue field of paper dots; inside the lens the dots are sharp and a few coral ones stand out, while beside it a paper balance scale holds dots on each pan."
 author: quill
@@ -115,7 +116,9 @@ Latency is easy to measure and easy to over-optimise. Recall is the number that 
 
 **Index recall** asks whether the ANN index returns the true nearest neighbours. Compute the exact top-k with brute force for a sample of queries, run the same queries through the index, and compare.
 
-![The exact top ten are A to J. The index returns eight of them plus two near misses, so recall at ten is 0.8.](/diagrams/vectors-plainly-4-retrieval-quality/recall-at-k.svg)
+An illustrative example, with invented results:
+
+![An illustrative example: the exact top ten are A to J. The index returns eight of them plus two near misses, so recall at ten is 0.8.](/diagrams/vectors-plainly-4-retrieval-quality/recall-at-k.svg)
 
 An index tuned hard for speed can sit at 0.8 while every latency graph looks healthy. Re-run this check whenever you change `ef_search`, `nprobe`, quantization or the index type. [ANN-Benchmarks](https://ann-benchmarks.com/) publishes recall-versus-throughput curves for many libraries and is the right mental model: there is no single speed number, only a curve.
 
