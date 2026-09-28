@@ -35,15 +35,14 @@ test('comments, True, flow and unindented lists mean what YAML says', () => {
   assert.equal(readFrontmatter('---\nsources:\n- url: u\n---\n').data.sources.length, 1);
 });
 
-test('CRLF and a byte-order mark are read, and the raw block is located exactly', () => {
-  const crlf = '---\r\ntitle: A\r\npubDate: 2026-09-25\r\n---\r\n\r\nBody\r\n';
-  const fm = readFrontmatter(crlf);
-  assert.equal(fm.data.title, 'A');
-  assert.equal(crlf.slice(fm.start, fm.end), fm.raw);
-  const bom = `${BOM}---\ntitle: B\n---\nBody\n`;
-  const withBom = readFrontmatter(bom);
-  assert.equal(withBom.data.title, 'B');
-  assert.equal(bom.slice(withBom.start, withBom.end), 'title: B');
+test('CRLF and a byte-order mark are refused (review of PR #46, B1); the raw block is located exactly', () => {
+  assert.throws(() => readFrontmatter('---\r\ntitle: A\r\npubDate: 2026-09-25\r\n---\r\n\r\nBody\r\n'), /carriage return; use LF line ends only/);
+  assert.throws(() => readFrontmatter('---\ntitle: A\n---\nBody\r\n'), /carriage return/, 'in the body too');
+  assert.throws(() => readFrontmatter(`${BOM}---\ntitle: B\n---\nBody\n`), /byte-order mark/);
+  const text = '\n---\ntitle: B\n---\nBody\n';
+  const fm = readFrontmatter(text);
+  assert.equal(fm.data.title, 'B');
+  assert.equal(text.slice(fm.start, fm.end), 'title: B');
 });
 
 test('a file without frontmatter is null; broken YAML or a non-mapping is an error, not a guess', () => {
@@ -83,4 +82,79 @@ test('the slug rule accepts the real slugs and refuses what Astro or the ledger 
 test('the slug rule is the one in the dependency-free scripts/slug.mjs, re-exported', () => {
   assert.equal(SLUG, DEPENDENCY_FREE_SLUG);
   assert.equal(SLUG_MAX_LENGTH, DEPENDENCY_FREE_SLUG_MAX_LENGTH);
+});
+
+// ---- the deep review of PR #46 (B1, and its addendum): the site's scripts and Astro read one frontmatter ----
+
+/** The reviewer's split: `<<` hides one value from Astro's shorter cut, a `+++` line ends Astro's block. */
+const split = (field, astroValue, siteValue, before = 'title: T') =>
+  `---\n${before}\n<<: {${field}: ${astroValue}}\n+++: x\n${field}: ${siteValue}\n---\nbody\n`;
+const astroRead = (text) => parseFrontmatter(text, { frontmatter: 'empty-with-spaces' }).frontmatter;
+
+test('review B1: a post that reads one way to the site and another to Astro is refused (the addendum’s payload)', () => {
+  const payload = '---\ntitle: T\ntags: [opinion]\n<<: {author: desk-bot}\n+++: x\nauthor: wiz-cat\n---\nbody\n';
+  assert.equal(astroRead(payload).author, 'desk-bot', 'the premise: Astro reads the bot');
+  assert.throws(() => readFrontmatter(payload), FrontmatterError);
+});
+
+test('review B1: author, kind, draft, pubDate, specimen and tags can no longer read differently', () => {
+  for (const [field, astroValue, siteValue] of [
+    ['author', 'desk-bot', 'wiz-cat'],
+    ['kind', 'human', 'ai'],
+    ['draft', 'true', 'false'],
+    ['pubDate', '2030-01-01T00:00:00Z', '2026-09-28T00:00:00Z'],
+    ['specimen', '99', '7'],
+    ['tags', '[opinion]', '[news]'],
+    ['name', 'Wiz Cat', 'Quill'],
+  ]) {
+    const text = split(field, astroValue, siteValue);
+    let site;
+    try {
+      site = readFrontmatter(text).data;
+    } catch (error) {
+      assert.ok(error instanceof FrontmatterError, `${field}: ${error}`);
+      continue;
+    }
+    assert.fail(`${field}: read as ${JSON.stringify(site[field])} by the site and ${JSON.stringify(astroRead(text)[field])} by Astro`);
+  }
+});
+
+test('review B1: the author-file payloads are refused by the site reader too', () => {
+  for (const text of [
+    '---\n<<: {kind: human}\nname: Quill\nbio: hi\n+++: filler\nkind: ai\n---\nbody\n',
+    '---\n<<: {kind: human}\nname: Quill\nbio: hi\n---x: filler\nkind: ai\n---\nbody\n',
+    '---\nname: Quill\n<<: {kind: human}\nbio: I write.\n+++: x\nkind: ai\n---\nIntro\n',
+  ]) {
+    assert.throws(() => readFrontmatter(text), FrontmatterError, text);
+  }
+});
+
+test('review B1: every form the two readers could read differently is refused, naming what to remove', () => {
+  for (const [label, text, message] of [
+    ['a TOML fence', '+++\ntitle = "T"\n+++\nbody\n', /Astro reads a frontmatter block here that the site's scripts do not/],
+    ['text after the opening fence', '---title: T\nauthor: x\n---\n', /Astro reads a frontmatter block here/],
+    ['a +++ line inside', '---\ntitle: T\n+++: x\n---\n', /line 3 starts with --- or \+\+\+/],
+    ['a ---x line inside', '---\ntitle: T\n---x: y\nauthor: a\n---\n', /line 3 starts with --- or \+\+\+/],
+    ['a merge key', '---\n<<: {author: desk-bot}\ntitle: T\n---\n', /a YAML merge key \(<<\)/],
+    ['a nested merge key', '---\nsources:\n  - <<: {url: u}\n    title: t\n---\n', /a YAML merge key/],
+    ['an anchor', '---\ntitle: &t T\n---\n', /uses an anchor/],
+    ['an alias', '---\ntitle: &t T\nsummary: *t\n---\n', /uses an anchor and an alias/],
+    ['a tag', '---\ndraft: !!bool false\n---\n', /uses a tag/],
+    ['a tagged list item', '---\ntags:\n  - !!str news\n---\n', /uses a tag/],
+    ['an anchored mapping', '---\nsources: &s\n  - url: u\n---\n', /uses an anchor/],
+    ['a flow anchor', '---\ntags: [&a news, *a]\n---\n', /anchor and an alias/],
+    ['a duplicated key', '---\nauthor: a\nauthor: b\n---\n', /duplicated mapping key/],
+  ]) {
+    assert.throws(() => readFrontmatter(text), (error) => error instanceof FrontmatterError && message.test(error.message), label);
+  }
+});
+
+test('review B1: ordinary YAML the site uses still reads, and reads as Astro reads it', () => {
+  for (const text of [
+    '---\ntitle: "R&D is fun!"\nsummary: Hello! & welcome * to it\ntags: [news, "*star*"]\n---\nBody.\n',
+    '---\ntitle: T # a comment\npubDate: 2026-09-25T09:15:12Z\ndraft: false\nsources:\n  - title: "a"\n    url: https://a.example\n---\n\n---\n\nA body with a rule above.\n',
+    '---\n---\nEmpty frontmatter.\n',
+  ]) {
+    assert.deepEqual(readFrontmatter(text).data, astroRead(text), text);
+  }
 });

@@ -127,7 +127,7 @@ test('the README template, comments and all, is a draft with sources: no number 
   assert.deepEqual(findProblems([read], []), []);
 });
 
-test('comments, True, flow and unindented lists, sources: [], CRLF and BOM mean what YAML says (B1)', () => {
+test('comments, True, flow and unindented lists and sources: [] mean what YAML says; CRLF and BOM are refused (B1)', () => {
   const published = (fm) => readPost('p', `---\npubDate: 2026-09-24T09:00:00Z\n${fm}\n---\n`);
   assert.equal(published('draft: True').draft, true);
   assert.equal(published('draft: false   # live').draft, false);
@@ -167,9 +167,8 @@ test('comments, True, flow and unindented lists, sources: [], CRLF and BOM mean 
     assert.ok(findProblems([voices(author)], [{ n: 1, slug: 'p' }], humans, writers).some((p) => /files under `voices`, which only an AI writer/.test(p)), author);
   }
   const crlf = readPost('p', '---\r\npubDate: 2026-09-24T09:00:00Z\r\ndraft: false\r\nspecimen: 4\r\nsources: [{url: u}]\r\n---\r\n');
-  assert.equal(crlf.specimen, 4);
-  assert.equal(crlf.hasSources, true);
-  assert.equal(readPost('p', `\uFEFF${post({})}`).errors.length, 0);
+  assert.match(crlf.errors.join('\n'), /carriage return/, 'CRLF is refused since the review of PR #46 (B1)');
+  assert.match(readPost('p', `\uFEFF${post({})}`).errors.join('\n'), /byte-order mark/);
 });
 
 test('an empty, null, quoted or non-positive specimen is refused with a clear message (B2)', () => {
@@ -421,4 +420,11 @@ test('the real site: the human editors are exactly the authors marked human', ()
 
 test('the real site: the AI writers are exactly the authors marked ai', () => {
   assert.deepEqual([...loadAiWriters('src/content/authors')], ['mai', 'quill']);
+});
+
+test('review of PR #46, B1 addendum: a post that names a human to the site and a bot to Astro gets no opinion exemption; it is refused', () => {
+  const text = '---\ntitle: T\npubDate: 2026-09-24T09:00:00Z\ndraft: false\ntags: [opinion]\n<<: {author: desk-bot}\n+++: x\nauthor: wiz-cat\n---\nbody\n';
+  const read = readPost('split-author', text);
+  assert.ok(read.errors.length > 0, 'the post is not readable to the checks');
+  assert.equal(read.author, null, 'no author is taken from a file the two readers read differently');
 });
