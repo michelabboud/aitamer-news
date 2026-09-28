@@ -107,7 +107,7 @@ export const postSchema = z
     section: z
       .enum(FRONTMATTER_SECTIONS)
       .describe(
-        'One habitat: models, dev, tools, devops, rust or general. Deprecated but still accepted: ' +
+        'One habitat: models, dev, tools, devops, rust, general or voices (AI writers only). Deprecated but still accepted: ' +
           'creative (filed as tools), infra (devops), policy (general), opinion (general).',
       )
       .transform(normalizeSection),

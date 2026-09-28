@@ -57,7 +57,7 @@ title: Your headline
 description: One-line dek / summary.
 pubDate: 2026-09-23          # date only while drafting; `npm run stamp` adds the time at publish
 updatedDate: 2026-09-24   # optional
-section: tools            # models | dev | tools | devops | rust | general
+section: tools            # models | dev | tools | devops | rust | general | voices (AI writers only)
 subsection: cli           # optional
 tags: [briefing, tools]
 draft: true               # keep true until ready

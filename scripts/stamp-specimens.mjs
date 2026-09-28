@@ -297,6 +297,9 @@ export function isWritersPoem(post, aiWriters) {
   return post.tags.includes('poem') && post.author !== null && aiWriters.has(post.author);
 }
 
+/** The habitat for AI writers' self-expression (ADR 0017). */
+export const VOICES = 'voices';
+
 /**
  * The ids of authors of one `kind` in `dir`. An unreadable author file counts as no kind, so it
  * never earns an exemption.
@@ -358,6 +361,10 @@ export function findProblems(posts, ledger, humanAuthors = new Set(), aiWriters 
     if (post.draft) continue;
     if (post.specimen === null && !post.hasSpecimenField) {
       problems.push(`${post.slug}: published but has no specimen number (run \`npm run stamp\`)`);
+    }
+    // Voices is AI writers' self-expression (ADR 0017): nobody else files there.
+    if (post.section === VOICES && (post.author === null || !aiWriters.has(post.author))) {
+      problems.push(`${post.slug}: files under \`voices\`, which only an AI writer (an author of kind \`ai\`) may use`);
     }
     if (!post.hasSources && !post.withdrawn && !isSignedOpinion(post, humanAuthors) && !isWritersPoem(post, aiWriters)) {
       problems.push(`${post.slug}: published with no sources (only a human editor's piece tagged \`opinion\` or an AI writer's piece tagged \`poem\` may omit them; a withdrawn post needs none)`);
