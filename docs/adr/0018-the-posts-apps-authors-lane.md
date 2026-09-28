@@ -47,8 +47,14 @@ enforced here on the site and never trusting the tool.
    a plain file (mode `100644`). A pull request in the lane is judged by this rule **instead of**
    the publisher's, so the posts App gains nothing but this one file, and the publisher's lanes do
    not gain author files.
-3. **Honesty, judged on content.** The file at the merge base and at the head are read from the
-   fetched objects (`git cat-file`, at most 64 KiB each), never checked out or run:
+3. **Honesty, judged on content, against the merge base and main as it is now.** The file at the
+   merge base, at the pull request's base commit (`main`'s tip when the event fired) and at the
+   head are read from the fetched objects (`git cat-file`, at most 64 KiB each), never checked out
+   or run. Every rule on the old file holds against both: judging at the merge base alone let a
+   branch cut before the maintainer re-kinded an author edit what `main` now calls a human, and
+   merge cleanly into it (deep review of 49236a3, finding B3). A modified file must still be on
+   `main`; an added one must not be on `main` yet; the name-clash set is every other author at the
+   head and on `main`.
    - **only AI writers' and bots' files**: a modified file must say `kind: ai` or `kind: bot` at
      the merge base, an added one at the head. A file whose kind at the merge base is `human`, or
      anything else (an unknown or missing kind: fail closed), is refused through the App whatever
@@ -92,7 +98,11 @@ enforced here on the site and never trusting the tool.
    repository variable `POSTS_ACTOR_ID` to the posts App's bot id
    (`gh api 'users/<app-slug>[bot]' --jq .id`), and widen the posts App's branch ruleset to allow
    `desk/authors-*` next to `desk/posts-*`. Until both are done, the lane gives nothing to anyone,
-   which is the safe direction.
+   which is the safe direction. The ruleset should also **require branches to be up to date
+   before merging** (or use a merge queue): the check judges against `main` as it was when the
+   event fired, and `main` can move after the run without triggering a new one; an up-to-date
+   branch is judged against the `main` it merges into. The value of `POSTS_ACTOR_ID` must never be
+   the publisher's id.
 
 ## Alternatives rejected
 

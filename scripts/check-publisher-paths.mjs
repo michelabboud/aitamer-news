@@ -51,13 +51,15 @@
  *   - exactly one changed path, `src/content/authors/<id>.md` (not `.mdx`, not nested; `<id>` the
  *     posts MCP's author id rule, and the id the branch name ends with), added or modified only
  *     (no delete, no rename, no copy), a plain file;
- *   - honesty, judged on the file at the merge base against the file at the head (fetched objects,
- *     read with `git cat-file`, never checked out or run): the lane touches only `kind: ai` and
- *     `kind: bot` files, judged at the merge base for a modified file (a human's file, or one of
+ *   - honesty, judged on the file at the merge base AND on main as it is now (the event's base
+ *     commit) against the file at the head, so a stale branch is judged on today's facts (review
+ *     of PR #46, B3) (fetched objects, read with `git cat-file`, never checked out or run): the
+ *     lane touches only `kind: ai` and `kind: bot` files, judged at both for a modified file (a human's file, or one of
  *     an unknown kind, changes only through the maintainer, whatever changed) and at the head for
  *     an added one (a new human is the maintainer's to add); a modified file keeps its `kind` and
  *     its `name` (no AI or bot renames itself, or passes as a person); an added file's name may
- *     not be another author's (compared after NFKC, trimming, collapsing spaces and case folding).
+ *     not be another author's at the head or on main (compared after NFKC, trimming, collapsing
+ *     spaces and case folding), and its path must not be on main already.
  * Every file the lane judges is read by `readAuthorFile`, which refuses before any judgement a
  * form the site's reader and Astro's could read differently (the two cut the frontmatter block
  * differently, and YAML merge keys can hide a value from one of them; review of PR #46, B1): only
@@ -353,16 +355,20 @@ export function namesIn(text, readers) {
 /**
  * The honesty problems with one authors-lane change. Pure: the caller reads the files and passes
  * both frontmatter readers in (`loadFrontmatterReaders`); every file is read by `readAuthorFile`.
+ * A modified file is judged against the file at the merge base AND at main as it is now (the
+ * pull request's base commit): a branch cut before the maintainer re-kinded or renamed an author
+ * would otherwise be judged on stale facts, and merge into them (review of PR #46, B3).
  * @param {{
  *   status: 'A' | 'M', path: string,
- *   baseText: string | null, headText: string,
+ *   baseText: string | null, mainText: string | null, headText: string,
  *   otherNames: string[],
  *   readers: Parameters<typeof readAuthorFile>[1],
- * }} input `baseText` is the file at the merge base (null when added); `otherNames` are the names
- *   of every other author at the head
+ * }} input `baseText` is the file at the merge base and `mainText` at the pull request's base
+ *   commit (null where it is absent); `otherNames` are the names of every other author at the head
+ *   and at the base commit
  * @returns {string[]}
  */
-export function authorContentProblems({ status, path, baseText, headText, otherNames, readers }) {
+export function authorContentProblems({ status, path, baseText, mainText, headText, otherNames, readers }) {
   const read = (text, when) => {
     const result = readAuthorFile(text, readers);
     return 'problem' in result ? { problem: `${path}: the file ${when} is refused: ${result.problem}` } : result;
@@ -370,29 +376,37 @@ export function authorContentProblems({ status, path, baseText, headText, otherN
   const head = read(headText, 'at the head');
   if (head.problem) return [head.problem];
   const after = head.data;
-  const problems = [];
   const kinds = AUTHOR_LANE_KINDS.map((kind) => `kind: ${kind}`).join(' or ');
   if (status === 'M') {
-    if (baseText === null) return [`${path}: modified, but it is not at the merge base`];
-    const base = read(baseText, 'at the merge base');
-    if (base.problem) return [base.problem];
-    const before = base.data;
-    if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (before.kind))) {
-      return [`${path}: an author of kind ${JSON.stringify(before.kind)}; the authors lane changes only ${kinds} files (a human's file changes only through the maintainer)`];
+    const problems = [];
+    for (const [text, where, missing] of [
+      [baseText, 'at the merge base', 'modified, but it is not at the merge base'],
+      [mainText, 'on main now', 'modified, but it is not on main now'],
+    ]) {
+      if (text === null) return [`${path}: ${missing}`];
+      const base = read(text, where);
+      if (base.problem) return [base.problem];
+      const before = base.data;
+      if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (before.kind))) {
+        return [`${path}: ${where}, an author of kind ${JSON.stringify(before.kind)}; the authors lane changes only ${kinds} files (a human's file changes only through the maintainer)`];
+      }
+      if (!isDeepStrictEqual(before.kind, after.kind)) {
+        problems.push(`${path}: ${where}, its kind is ${JSON.stringify(before.kind)}, and the head's is ${JSON.stringify(after.kind)}; an author's kind never changes in the authors lane`);
+      }
+      if (!isDeepStrictEqual(before.name, after.name)) {
+        problems.push(`${path}: ${where}, its name is ${JSON.stringify(before.name)}, and the head's is ${JSON.stringify(after.name)}; an author of kind ${JSON.stringify(before.kind)} keeps its name`);
+      }
     }
-    const same = (key) => isDeepStrictEqual(before[key], after[key]);
-    if (!same('kind')) problems.push(`${path}: its kind changed (${JSON.stringify(before.kind)} to ${JSON.stringify(after.kind)}); an author's kind never changes in the authors lane`);
-    if (!same('name')) {
-      problems.push(`${path}: its name changed (${JSON.stringify(before.name)} to ${JSON.stringify(after.name)}); an author of kind ${JSON.stringify(before.kind)} keeps its name`);
-    }
-  } else {
-    if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (after.kind))) {
-      problems.push(`${path}: a new author of kind ${JSON.stringify(after.kind)}; the authors lane adds only ${kinds} (a new human is the maintainer's to add)`);
-    }
-    const name = comparableName(after.name);
-    if (name !== null && otherNames.some((other) => comparableName(other) === name)) {
-      problems.push(`${path}: the name ${JSON.stringify(after.name)} is another author's; no author passes as another`);
-    }
+    return problems;
+  }
+  if (mainText !== null) return [`${path}: added, but main has it now; the change would replace that author`];
+  const problems = [];
+  if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (after.kind))) {
+    problems.push(`${path}: a new author of kind ${JSON.stringify(after.kind)}; the authors lane adds only ${kinds} (a new human is the maintainer's to add)`);
+  }
+  const name = comparableName(after.name);
+  if (name !== null && otherNames.some((other) => comparableName(other) === name)) {
+    problems.push(`${path}: the name ${JSON.stringify(after.name)} is another author's; no author passes as another`);
   }
   return problems;
 }
@@ -561,7 +575,7 @@ export function collectPullRequest({ cwd, base, head }) {
   const headId = requireCommit(cwd, objectId('--head', head));
   const mergeBase = git(cwd, ['merge-base', baseId, headId]).trim();
   if (!OBJECT_ID.test(mergeBase)) throw new UnjudgeableError(`the base and head have no merge base (${JSON.stringify(mergeBase)})`);
-  return { ...collect(cwd, mergeBase, headId), mergeBase, head: headId };
+  return { ...collect(cwd, mergeBase, headId), mergeBase, head: headId, base: baseId };
 }
 
 /**
@@ -577,6 +591,12 @@ function authorFileAt(cwd, commit, path) {
   return git(cwd, ['cat-file', 'blob', spec]);
 }
 
+/** `authorFileAt`, or null when the commit's tree has no such file. */
+function authorFileAtOrNull(cwd, commit, path) {
+  const entry = git(cwd, ['ls-tree', '-z', '--full-tree', commit, '--', path]);
+  return entry === '' ? null : authorFileAt(cwd, commit, path);
+}
+
 /**
  * Every problem with a pull request in the posts App's authors lane: the paths first, then (only
  * when they pass) the honesty rules on the file's content.
@@ -584,22 +604,28 @@ function authorFileAt(cwd, commit, path) {
  * @returns {string[]}
  */
 export function authorsLaneProblems({ cwd, collected, headRef, readers }) {
-  const { changes, modes, mergeBase, head } = collected;
+  const { changes, modes, mergeBase, head, base } = collected;
   const pathProblems = authorPathProblems({ changes, modes, headRef });
   if (pathProblems.length > 0) return pathProblems;
   const [{ status, path }] = changes;
-  // Only an added author's name can clash: a modified one keeps its name.
-  const others = status === 'A' ? [...modes.keys()].filter((p) => p !== path && ANY_AUTHOR_FILE.test(p)).sort() : [];
+  // Only an added author's name can clash (a modified one keeps its name): every other author at
+  // the head and on main now, so an author main added after the branch was cut counts too.
   const otherNames = [];
-  for (const other of others) {
-    const names = namesIn(authorFileAt(cwd, head, other), readers);
-    if (names === null) throw new UnjudgeableError(`${other}: another author's file cannot be read, so the names cannot be compared`);
-    otherNames.push(...names);
+  if (status === 'A') {
+    const baseModes = parseHeadModes(git(cwd, ['ls-tree', '-r', '-z', '--full-tree', base]));
+    for (const [commit, tree] of [[head, modes], [base, baseModes]]) {
+      for (const other of [...tree.keys()].filter((p) => p !== path && ANY_AUTHOR_FILE.test(p)).sort()) {
+        const names = namesIn(authorFileAt(cwd, commit, other), readers);
+        if (names === null) throw new UnjudgeableError(`${other}: another author's file cannot be read, so the names cannot be compared`);
+        otherNames.push(...names);
+      }
+    }
   }
   return authorContentProblems({
     status,
     path,
     baseText: status === 'M' ? authorFileAt(cwd, mergeBase, path) : null,
+    mainText: authorFileAtOrNull(cwd, base, path),
     headText: authorFileAt(cwd, head, path),
     otherNames,
     readers,

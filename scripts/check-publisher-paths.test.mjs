@@ -709,8 +709,9 @@ test('the authors lane’s paths: exactly one plain <id>.md, added or modified, 
 
 /** Both readers, as the lane loads them: the site's and Astro's own. */
 const READERS = await loadFrontmatterReaders();
-const content = (status, baseText, headText, otherNames = ['Wiz Cat', 'Desk Bot', 'Mai'], path = QUILL) =>
-  authorContentProblems({ status, path, baseText, headText, otherNames, readers: READERS });
+/** Main as it is now: by default the same as the merge base (a branch cut from main's tip). */
+const content = (status, baseText, headText, otherNames = ['Wiz Cat', 'Desk Bot', 'Mai'], path = QUILL, mainText = status === 'M' ? baseText : null) =>
+  authorContentProblems({ status, path, baseText, mainText, headText, otherNames, readers: READERS });
 
 test('a modified AI writer or bot may change its bio, avatar, beats and introduction', () => {
   assert.deepEqual(content('M', QUILL_TEXT, author({ name: 'Quill', kind: 'ai', bio: 'The editor, and a writer.', beats: ['Editing'] }, 'I am Quill, still.\n')), []);
@@ -720,7 +721,7 @@ test('a modified AI writer or bot may change its bio, avatar, beats and introduc
 test('guardrail: a human’s file (or one of an unknown kind) is never changed through the App, not even its bio', () => {
   assert.deepEqual(AUTHOR_LANE_KINDS, ['ai', 'bot']);
   const wiz = `${AUTHORS_LANE}wiz-cat.md`;
-  const refusal = /wiz-cat\.md: an author of kind "human"; the authors lane changes only kind: ai or kind: bot files \(a human's file changes only through the maintainer\)/;
+  const refusal = /wiz-cat\.md: at the merge base, an author of kind "human"; the authors lane changes only kind: ai or kind: bot files \(a human's file changes only through the maintainer\)/;
   for (const head of [
     author({ name: 'Wiz Cat', kind: 'human', bio: 'Editor.' }),
     author({ name: 'Wiz Cat', kind: 'human', bio: 'Founding editor.' }, 'A new introduction.\n'),
@@ -741,10 +742,10 @@ test('guardrail: a human’s file (or one of an unknown kind) is never changed t
 test('guardrail: a modified AI writer or bot never changes its kind', () => {
   for (const [from, to] of [['ai', 'human'], ['bot', 'human'], ['ai', 'bot'], ['bot', 'ai'], ['ai', 'robot']]) {
     const problems = content('M', author({ name: 'Quill', kind: from, bio: 'x' }), author({ name: 'Quill', kind: to, bio: 'x' }));
-    assert.match(problems.join('\n'), new RegExp(`its kind changed \\("${from}" to "${to}"\\); an author's kind never changes`), `${from} → ${to}`);
+    assert.match(problems.join('\n'), new RegExp(`at the merge base, its kind is "${from}", and the head's is "${to}"; an author's kind never changes`), `${from} → ${to}`);
   }
   const dropped = content('M', QUILL_TEXT, author({ name: 'Quill', bio: 'x' }));
-  assert.match(dropped.join('\n'), /its kind changed \("ai" to undefined\)/);
+  assert.match(dropped.join('\n'), /its kind is "ai", and the head's is undefined/);
 });
 
 test('guardrail: a key outside the authors schema is refused, id and slug included (slug moves Astro’s id)', () => {
@@ -756,7 +757,7 @@ test('guardrail: a key outside the authors schema is refused, id and slug includ
 });
 
 test('guardrail: an AI writer or a bot keeps its name', () => {
-  assert.match(content('M', QUILL_TEXT, author({ name: 'Wiz Cat', kind: 'ai', bio: 'x' })).join('\n'), /its name changed \("Quill" to "Wiz Cat"\); an author of kind "ai" keeps its name/);
+  assert.match(content('M', QUILL_TEXT, author({ name: 'Wiz Cat', kind: 'ai', bio: 'x' })).join('\n'), /at the merge base, its name is "Quill", and the head's is "Wiz Cat"; an author of kind "ai" keeps its name/);
   assert.match(content('M', QUILL_TEXT, author({ name: 'Quill the Editor', kind: 'ai', bio: 'x' })).join('\n'), /an author of kind "ai" keeps its name/);
   assert.match(content('M', DESK_BOT_TEXT, author({ name: 'Desk Editor', kind: 'bot', bio: 'x' }), ['Quill'], `${AUTHORS_LANE}desk-bot.md`).join('\n'), /an author of kind "bot" keeps its name/);
 });
@@ -844,12 +845,12 @@ test('CLI: every guardrail refuses the posts App’s pull request', async () => 
     assert.match(run.output, /this pull request changes what the posts App may not \(in the posts App's authors lane/);
     assert.match(run.output, pattern);
   };
-  await refused('quill', (r) => r.write(QUILL, author({ name: 'Quill', kind: 'human', bio: 'x' })), /its kind changed \("ai" to "human"\)/);
+  await refused('quill', (r) => r.write(QUILL, author({ name: 'Quill', kind: 'human', bio: 'x' })), /its kind is "ai", and the head's is "human"/);
   await refused('quill', (r) => r.write(QUILL, author({ name: 'Wiz', kind: 'ai', bio: 'x' })), /an author of kind "ai" keeps its name/);
   await refused('desk-bot', (r) => r.write(`${AUTHORS_LANE}desk-bot.md`, author({ name: 'A Person', kind: 'bot', bio: 'x' })), /an author of kind "bot" keeps its name/);
   await refused('nova', (r) => r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova', kind: 'human', bio: 'x' })), /a new author of kind "human"/);
   await refused('nova', (r) => r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'mai', kind: 'ai', bio: 'x' })), /the name "mai" is another author's/);
-  await refused('wiz-cat', (r) => r.write(`${AUTHORS_LANE}wiz-cat.md`, author({ name: 'Wiz Cat', kind: 'human', bio: 'Only the bio changed.' })), /wiz-cat\.md: an author of kind "human"; the authors lane changes only kind: ai or kind: bot files/);
+  await refused('wiz-cat', (r) => r.write(`${AUTHORS_LANE}wiz-cat.md`, author({ name: 'Wiz Cat', kind: 'human', bio: 'Only the bio changed.' })), /wiz-cat\.md: at the merge base, an author of kind "human"; the authors lane changes only kind: ai or kind: bot files/);
   await refused('wiz-cat', (r) => r.write(`${AUTHORS_LANE}wiz-cat.md`, author({ name: 'Quill', kind: 'human', bio: 'x' })), /an author of kind "human"/);
   await refused('quill', (r) => r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'x', id: 'mai' })), /the key "id" is not in the authors schema/);
   await refused('quill', (r) => { r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'y' })); r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova', kind: 'ai', bio: 'x' })); }, /changes exactly one author file; this pull request changes 2/);
@@ -1043,4 +1044,59 @@ test('review B1: another author’s names are read leniently, by either reader',
   assert.deepEqual(namesIn('---\nname: Mai\n+++: x\nname2: y\n---\n', READERS), ['Mai', 'Mai']);
   assert.equal(namesIn('---\nname: [unclosed\n---\n', READERS), null);
   assert.deepEqual(namesIn('no frontmatter\n', READERS), []);
+});
+
+// ---- review of PR #46, B3: judged at main as it is now, not only at the merge base ----
+
+test('CLI (review B3): a stale branch cannot edit a file that main has since made a human’s', async () => {
+  const repo = authorRepository();
+  const pr = repo.head((r) => r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'EDITED BY APP.' })));
+  repo.git(['checkout', '-q', 'main']);
+  repo.write(QUILL, author({ name: 'Quill', kind: 'human', bio: 'The editor.' }));
+  const main = repo.commit('the maintainer re-kinds quill');
+  const run = await cli(['pr', '--base', main, '--head', pr], postsEnv('quill'), repo.dir);
+  assert.equal(run.code, 1, run.output);
+  assert.match(run.output, /quill\.md: on main now, an author of kind "human"; the authors lane changes only kind: ai or kind: bot files/);
+});
+
+test('CLI (review B3): a stale branch cannot rename against main, nor keep a file main deleted', async () => {
+  const repo = authorRepository();
+  const pr = repo.head((r) => r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'Edited.' })));
+  repo.git(['checkout', '-q', 'main']);
+  repo.write(QUILL, author({ name: 'Quill Editor', kind: 'ai', bio: 'The editor.' }));
+  const renamed = repo.commit('the maintainer renames quill');
+  const run = await cli(['pr', '--base', renamed, '--head', pr], postsEnv('quill'), repo.dir);
+  assert.equal(run.code, 1, run.output);
+  assert.match(run.output, /on main now, its name is "Quill Editor", and the head's is "Quill"/);
+  rmSync(join(repo.dir, QUILL));
+  const deleted = repo.commit('the maintainer removes quill');
+  const gone = await cli(['pr', '--base', deleted, '--head', pr], postsEnv('quill'), repo.dir);
+  assert.equal(gone.code, 1, gone.output);
+  assert.match(gone.output, /quill\.md: modified, but it is not on main now/);
+});
+
+test('CLI (review B3): an added author is judged against main’s authors too: no name main has since taken, no id main has since used', async () => {
+  const repo = authorRepository();
+  const pr = repo.head((r) => r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova Star', kind: 'ai', bio: 'x' })));
+  repo.git(['checkout', '-q', 'main']);
+  repo.write(`${AUTHORS_LANE}nova-star.md`, author({ name: 'Nova Star', kind: 'human', bio: 'A person.' }));
+  const withHuman = repo.commit('the maintainer adds a human named Nova Star');
+  const clash = await cli(['pr', '--base', withHuman, '--head', pr], postsEnv('nova'), repo.dir);
+  assert.equal(clash.code, 1, clash.output);
+  assert.match(clash.output, /the name "Nova Star" is another author's/);
+  repo.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova', kind: 'human', bio: 'Someone else.' }));
+  const taken = repo.commit('the maintainer adds nova');
+  const exists = await cli(['pr', '--base', taken, '--head', pr], postsEnv('nova'), repo.dir);
+  assert.equal(exists.code, 1, exists.output);
+  assert.match(exists.output, /nova\.md: added, but main has it now/);
+});
+
+test('CLI (review B3): when main has moved on elsewhere, an honest branch still passes', async () => {
+  const repo = authorRepository();
+  const pr = repo.head((r) => r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'Edited.' })));
+  repo.git(['checkout', '-q', 'main']);
+  repo.write('src/lib/site.ts', 'export const moved = 1;\n');
+  const moved = repo.commit('main moves on');
+  const run = await cli(['pr', '--base', moved, '--head', pr], postsEnv('quill'), repo.dir);
+  assert.equal(run.code, 0, run.output);
 });
