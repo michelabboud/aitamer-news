@@ -41,3 +41,18 @@ export function gitIn(dir) {
   run(['init', '-q']);
   return run;
 }
+
+/**
+ * `quietly` for an async `fn`: console output is captured until its promise settles.
+ * @template T @param {() => Promise<T>} fn @returns {Promise<{ result: T, output: string }>}
+ */
+export async function quietlyAsync(fn) {
+  const saved = { log: console.log, error: console.error, warn: console.warn };
+  const lines = [];
+  console.log = console.error = console.warn = (...args) => lines.push(args.join(' '));
+  try {
+    return { result: await fn(), output: lines.join('\n') };
+  } finally {
+    Object.assign(console, saved);
+  }
+}

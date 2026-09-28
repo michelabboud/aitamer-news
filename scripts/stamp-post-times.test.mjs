@@ -65,16 +65,16 @@ test('trailing comments, True and quoted values are read as YAML (B1)', () => {
   assert.throws(() => dateOnlyPubDate(post('title: "unclosed\npubDate: 2026-09-24')), /not valid YAML/);
 });
 
-test('stamping keeps a trailing comment, CRLF line endings and a byte-order mark', () => {
+test('stamping keeps a trailing comment; CRLF line endings and a byte-order mark are refused (review of PR #46, B1)', () => {
   const commented = post('title: A\npubDate: 2026-09-24   # draft date\ndraft: false');
   assert.equal(
     withStamp(commented, '2026-09-24T09:15:12Z'),
     commented.replace('pubDate: 2026-09-24   # draft date', 'pubDate: 2026-09-24T09:15:12Z # draft date'),
   );
   const crlf = '---\r\ntitle: A\r\npubDate: 2026-09-24\r\ndraft: false\r\n---\r\n\r\nBody\r\n';
-  assert.equal(withStamp(crlf, '2026-09-24T09:15:12Z'), crlf.replace('pubDate: 2026-09-24\r\n', 'pubDate: 2026-09-24T09:15:12Z\r\n'));
+  assert.throws(() => withStamp(crlf, '2026-09-24T09:15:12Z'), /carriage return/);
   const bom = `\uFEFF${post('pubDate: "2026-09-24"')}`;
-  assert.equal(withStamp(bom, '2026-09-24T09:15:12Z'), bom.replace('pubDate: "2026-09-24"', 'pubDate: 2026-09-24T09:15:12Z'));
+  assert.throws(() => withStamp(bom, '2026-09-24T09:15:12Z'), /byte-order mark/);
 });
 
 // --- B6: `$` patterns in user text must survive -----------------------------------------------

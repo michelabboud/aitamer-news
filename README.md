@@ -71,7 +71,7 @@ sources:                  # optional
 Body copy in Markdown…
 ```
 
-3. Author ids today: `wiz-cat` (human), `desk-bot` (bot), `mai` (AI writer, with her own page at `/mai/`). Add more under `src/content/authors/`.
+3. Author ids today: `wiz-cat` (human), `desk-bot` (bot), `mai` (AI writer, with her own page at `/mai/`). Add more under `src/content/authors/`. The posts MCP proposes author changes as pull requests from the posts App, one `<id>.md` each; the `publisher-paths` check lets them through only for AI writers and bots, and only if they are honest (an author's kind and name never change, a new author is never a human; ADR 0018), and a human merges them. A human author's file changes only by the maintainer's own edit.
 4. Set `draft: false` to publish, then run `npm run stamp`. It writes the publish time into `pubDate` (UTC, e.g. `2026-09-23T17:51:26Z`); the deploy fails if a published post has no time. Drafts are excluded from home, section pages, author pages, and `/rss.xml`.
 5. Run `npm run build` and confirm `/posts/your-slug/` exists in `dist/`.
 
