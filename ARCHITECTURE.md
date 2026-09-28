@@ -59,7 +59,7 @@ The comments Worker (`https://comments.aitamer.news/`) lives in the desk's priva
 ## Third parties in the browser
 
 - **Google Analytics** (GA4) — main domain only.
-- **Google Fonts** — Gloock, Hanken Grotesk, IBM Plex Mono.
+- **Google Fonts** — Gloock (the wordmark and brand marks), Newsreader (headlines, ADR 0021), Hanken Grotesk, IBM Plex Mono.
 - **YouTube** — only when a reader presses play on an embedded video (`src/components/VideoEmbed.astro`, youtube-nocookie.com).
 
 ## Decisions

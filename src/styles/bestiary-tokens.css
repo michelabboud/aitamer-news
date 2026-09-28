@@ -1,7 +1,9 @@
 /* The Bestiary — a night-shift field station. Tokens from the Claude Design handoff (Concept 2). */
 
 :root {
+  /* Gloock is the brand: the wordmark and a few marks (ADR 0021). Every headline is Newsreader. */
   --font-display: "Gloock", Georgia, serif;
+  --font-headline: "Newsreader", Georgia, serif;
   --font-reading: "Hanken Grotesk", system-ui, sans-serif;
   --font-machine: "IBM Plex Mono", ui-monospace, monospace;
 
@@ -14,8 +16,8 @@
 
   /* Ink */
   --bone: #ece6d6;
-  --ink-soft: #c4c9c2;
-  --ink-muted: #9aa39b;
+  --ink-soft: #d1d3c9;
+  --ink-muted: #aeb5ad;
   --ink-tag: #4a524c;
 
   /* Ember: the one accent */
@@ -53,7 +55,7 @@
   --shadow-tag: 0 12px 24px -10px rgba(0, 0, 0, 0.6);
 
   --container: 1200px;
-  --measure: 68ch;
+  --measure: 58ch;
   --gutter: 16px;
   --tap-min: 44px;
 }

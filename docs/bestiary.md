@@ -20,7 +20,7 @@ All in `src/styles/bestiary-tokens.css`; the shell is `src/styles/global.css`.
 | human / human-field | `#f2c46b` / `#2a2314` | "HUMAN" bylines |
 | wild-1 … wild-5 | `#8fd4a0` `#c9d27a` `#f2c46b` `#ff9a5c` `#ff5f3d` | the wildness meter, tamed → wild |
 
-Fonts (Google Fonts): **Gloock** for headlines, **Hanken Grotesk** for reading, **IBM Plex Mono** for the field data (codes, times, labels). Corners are 2–3px. No gradients; one drop shadow, on the paper specimen tag.
+Fonts (Google Fonts): **Newsreader** for headlines (weights 500–600, optical sizing; ADR 0021), **Gloock** for the brand only (the wordmark, the footer name, the paper specimen tag, the big figures and the writer monogram), **Hanken Grotesk** for reading, **IBM Plex Mono** for the field data (codes, times, labels). Corners are 2–3px. No gradients; one drop shadow, on the paper specimen tag.
 
 ## Vocabulary
 
