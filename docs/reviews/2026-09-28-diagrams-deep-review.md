@@ -9,7 +9,7 @@
 | Isolation | Blind to the implementation discussion; the brief and the commit only. Cold-read note written before probes. Single reviewer, not a dual-blind pair. |
 | Verdict | BLOCKED (4 blocking, 2 informational, 1 minor) |
 | Fixes | `7d349f1` (all seven findings); `3f642d3` (the re-check's five blockers) |
-| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 owed before merge |
+| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 (Opus) BLOCKED on `52ebdd3`, fixed in `d27d965`; re-check 5 owed before merge |
 
 ## Rulings (Quill, coordinator), each validated against source at the target
 
@@ -624,5 +624,114 @@ These fail and are new at this target:
 
 Not new, but noted for honesty:
 - The child combinator `g>rect` is refused by `DANGEROUS_VALUE`, because `>` is on its markup list. That has been true since the first commit. It is a writer surprise, not a risk, and `g rect` works.
+
+VERDICT: BLOCKED
+
+## Re-check 4: Opus, of `52ebdd3` (base `4b76e32`)
+
+Verdict BLOCKED: every earlier reproduction resolved; the string invariant held within one sheet under every attack tried (unquoted url with a quote, CDO/CDC, attribute-selector quotes, EOF in a string, NUL). One new blocking finding, confirmed and fixed in `d27d965`.
+
+| # | Finding | Ruling | Fix |
+|---|---|---|---|
+| E1 | Several `<style>` elements are separate sheets to a browser and one joined text to the parse, so a string or block can span the join | **Confirmed, blocking**, both payloads reproduced | At most one `<style>` per diagram (the reviewer's simpler alternative); ADR 0016's string rule now says "within one stylesheet" |
+
+### Re-check 4's report, verbatim
+
+# Fourth re-check (Opus, Strong tier): fix in 8ef160a
+
+**Target:** `52ebdd3` · **Base:** `4b76e32` · **Date:** 2026-09-28
+**Mode:** review only. Nothing in the repository was modified. The target's `scripts/`, `.github/`, `package.json` and pinned covers were extracted read-only with `git archive 52ebdd3` into `opus-probes/new4/`. The cold read is `COLD-READ-opus-4.md`, written before any probe.
+
+**Method:** as before. Each payload goes through `checkSvg` at the target. The shipped rewrite is opened as a document in Chromium (`chromium_headless_shell-1243`) and Firefox (`firefox-1538`) with `reducedMotion: 'reduce'`, and the running animations are counted. `matchMedia` confirmed reduce in every run. The `<img>` emulation limit is unchanged.
+
+**Test suite at the target:** `node --test scripts/check-diagrams.test.mjs` gives **tests 26, pass 26, fail 0.**
+
+---
+
+## 1. Reports 1–3 against 52ebdd3 (`opus-probes/probe6.mjs`)
+
+**Controls**, in both engines:
+- the POST.md example: PASS, running 0;
+- the bare `(prefers-reduced-motion)` form: PASS, running 0;
+- an honest two-sheet file (animation in one `<style>`, stop in the next): PASS, running 0;
+- `TEXT/CSS`: PASS, running 0.
+
+| Report | Cases | Result |
+|---|---|---|
+| 1 | original finding 3 (fill-only stop); B1 comment and element splits (×5); B2 `-webkit-` in a sheet and in an attribute; B3 `type="text/plain"`; B4 `re duce` | all refused |
+| 2 | C1 NBSP / U+3000 / U+FEFF (×8); C2 `type` with spaces or NBSP | all refused |
+| 2 | C3 walk depth, `<g fill=a/>`×3,999 | refused with a finding, no crash (re-run in report 3; the code is unchanged) |
+| 3 | D1 LF, single-quote and CR variants; a line break in a `style` attribute and in an attribute selector | all refused: "line break inside a quoted string" |
+
+**All earlier reproductions are resolved.**
+
+---
+
+## BLOCKING
+
+### E1. BLOCKING: every `<style>` is its own stylesheet to a browser, but the checker parses them joined into one
+
+**Where:** `scripts/check-diagrams.mjs`:
+- `:479-481`: each `<style>` is checked on its own by `cssProblem` / `cssCharacterProblem` and pushed to `sheets`;
+- `:497`: `parseStylesheet(sheets.join('\n'))`.
+
+The ADR's invariant ("a CSS string is exactly quote to the next same quote") is checked **per sheet**. The parse the motion proof reads spans **the join**. In a browser, each `<style>` element is a separate stylesheet (CSSOM: one `CSSStyleSheet` per element), and EOF closes whatever is open in it: a string, a declaration block, an `@media` block. The next sheet then starts fresh at the top level.
+
+A sheet that ends with something still open is legal to the checker's per-sheet checks:
+- the newline refusal never sees the join;
+- an open quote at a sheet's end is not refused by `cssCharacterProblem`;
+- the parse only ever sees the joined text, where the next sheet closes it.
+
+`verifyRewrite` cannot see this, because the rewrite keeps the same `<style>` boundaries and the re-check joins them the same way.
+
+**Reproduction** (`probe6.mjs`). Both cases pass `checkSvg`:
+
+| Case | Sheets as written | What the checker parses | What a browser applies | Chromium | Firefox |
+|---|---|---|---|---|---|
+| **A string across the join** | `<style>@keyframes spin{…}.a{x:"</style><style>;}.x{}.a{animation:spin 1s infinite}.z{y:"}</style>` | one rule `.a` with a single declaration `x`, whose string runs across the join through `.z{y:"`. No animation, so no stop is required | sheet 1: `.a{x:"…EOF` (the string ends at EOF). Sheet 2: `;}.x{}` is one invalid rule and is dropped; **`.a{animation:spin 1s infinite}` is live**; `.z{y:"…EOF` | **running 1** | **running 1** |
+| **A block across the join** | `<style>.a{animation:spin 1s infinite}@keyframes spin{…}.z{</style><style>}@media (prefers-reduced-motion: reduce){.a{animation:none}}</style>` | `.z{` is closed by the leading `}` of sheet 2, so the stop is valid | sheet 1: `.z{` is auto-closed at EOF. Sheet 2: the leading `}` starts a qualified-rule prelude, `}@media (…)`, whose `{…}` block becomes that invalid rule's body. **The stop is dropped** | **running 1** | **running 1** |
+| *(refuted)* an `@media` block across the join | `…@media (…reduce){</style><style>.a{animation:none}}` | a valid stop inside reduce | the stop lands at the **top level** of sheet 2 and applies to every reader | running 0 | running 0 |
+
+**Impact:** motion is forced on a reader who asked for reduced motion, and the first case needs no stop at all. This is the same class as B1 and D1: the checker's view of the sheet differs from a browser's.
+
+**Fix** (either one closes it; the first is smaller):
+1. **Parse each `<style>` on its own.** Call `parseStylesheet(styleText)` per element, require it to succeed (so every sheet must end at the top level with no string or block open), and concatenate the rule lists with a running `index`, so source order across sheets is kept for the motion proof. Make `cssCharacterProblem` also refuse a quote still open at the end of its text.
+2. **Allow one `<style>` per diagram**, which is all an honest diagram needs.
+
+Add both reproductions as tests. The ADR's string invariant should say "per stylesheet, and each `<style>` is a whole stylesheet".
+
+---
+
+## 2. Attacks on the invariant inside one sheet (all refuted)
+
+| Probe | Result | Why it holds |
+|---|---|---|
+| Unquoted `url(` holding a quote: `url(#a"b)` | refused | `urlProblem` reads to the first `)`, ignoring quotes, and `FRAGMENT` admits no quote. A browser's bad-url token never reaches a shipped file |
+| `url("#a)")` | refused | same reason; it fails closed |
+| CDO/CDC `<!-- … -->` in a sheet | refused (parse5 makes a comment node; `<` and `>` are also in `DANGEROUS_VALUE`) | |
+| A quote inside an attribute selector, `.a[x="}"]` with the matching stop | PASS; running 0 in both engines | a quoted `}` is a string to both readers, and it agrees |
+| An unquoted value holding a quote, `[x=a"b"]` | PASS; harmless (running 0) | a quote starts a string token in CSS too |
+| EOF inside a string within one sheet | refused ("does not close") | fails closed; a browser would accept it |
+| NUL inside a string | PASS; running 0 | parse5 turns NUL into U+FFFD before the check, so the checker, the rewrite and the browser all see U+FFFD |
+| U+FFFD inside a string | PASS, harmless | |
+| `animation:NONE` as the stop | PASS; running 0 | case-insensitive in both the checker and the browser |
+| `)` inside a string before an animation, `.a{x:")";animation:…}` with a stop | PASS; running 0 | `parseDeclarations` tracks quotes before parentheses, the same as CSS |
+| Escapes and comments | refused anywhere, strings included, by the raw regexes | fails closed |
+
+So **within one stylesheet** the invariant holds against every token class I tried: strings, url tokens, CDO/CDC, escapes, comments, NUL and EOF. E1 is the invariant's scope, not its content.
+
+## 3. Honest diagrams
+
+These pass, as before:
+- a multi-line sheet;
+- CRLF line ends;
+- a quoted CJK font family;
+- two sheets, each complete;
+- `TEXT/CSS`.
+
+These fail and are new at this target:
+- **a multi-line string**, e.g. a `content` or `font-family` string broken across lines. The message says to keep strings on one line. No diagram needs one.
+
+After fix 1 for E1, a diagram whose rule is split across two `<style>` elements would fail too. No honest tool writes that.
 
 VERDICT: BLOCKED
