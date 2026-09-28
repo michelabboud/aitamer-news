@@ -42,6 +42,8 @@ code {
   border: 1px solid var(--line);
   padding: 0.08em 0.35em;
   border-radius: var(--radius);
+  /* A long identifier breaks instead of widening the page on a phone; `pre` never wraps. */
+  overflow-wrap: anywhere;
 }
 pre {
   background: var(--night-raised);

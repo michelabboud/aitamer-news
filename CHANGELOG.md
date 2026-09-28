@@ -10,6 +10,9 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - **Brighter secondary text.** `--ink-soft` is `#d1d3c9` (was `#c4c9c2`) and `--ink-muted` is `#aeb5ad` (was `#9aa39b`). On the page background that is WCAG 12.16:1 and APCA Lc 78.5 for ledes, card descriptions and the footer (was Lc 72.2, under the body-text minimum of 75), and WCAG 8.78:1 and Lc 60.5 for labels and meta (was Lc 50.4). Body text (`--bone`) is unchanged at Lc 91.
 - **Card labels are readable.** The card kicker is 12 px (was 10), and the specimen number, wildness line and comment count are 11 px (were 10). The other 10 px labels on the site are left for a follow-up (BACKLOG).
 
+### Fixed
+- **Articles no longer scroll sideways on phones.** A long inline code word (such as `authorization_denied_returns_unknown_tool_error` in the agentgateway review) could not break, so at 390 px the page was 82 px wider than the screen (104 px at the new text size); the goose review had the same fault. Inline code now breaks where it must (`overflow-wrap: anywhere`); code blocks are unchanged and still scroll inside their box. Found while running the WCAG text-spacing check for this release; the page now fits with and without those overrides.
+
 ## [0.2.46] — 2026-09-28
 
 ### Changed
