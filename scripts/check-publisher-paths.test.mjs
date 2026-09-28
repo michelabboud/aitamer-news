@@ -924,7 +924,7 @@ test('CLI: an author file over the size cap, or another author that cannot be re
   const head = repo.commit('nova');
   const broken = await cli(['pr', '--base', base, '--head', head], postsEnv('nova'), repo.dir);
   assert.equal(broken.code, 1);
-  assert.match(broken.output, /cannot be judged.*broken\.md: another author's file cannot be read, so the names cannot be compared/);
+  assert.match(broken.output, /cannot be judged.*broken\.md: another author's file has no name either reader can read, so the names cannot be compared/);
 });
 
 test('the authors lane fails closed when the frontmatter reader is not there (the lockfile was not installed)', () => {
@@ -1161,4 +1161,23 @@ test('Ari 4: the publisher’s lanes are collected exactly as before, without co
   const head = repo.commit('copy');
   assert.deepEqual(collectPullRequest({ cwd: repo.dir, base, head }).changes, [{ status: 'A', path: `${COMMENTS_LANE}copy-thread.json` }]);
   assert.deepEqual(collectPullRequest({ cwd: repo.dir, base, head, copies: true }).changes.map((c) => c.status), ['C']);
+});
+
+test('Ari 5: another author with no frontmatter or no string name makes the clash check unjudgeable', async () => {
+  for (const [label, text] of [
+    ['no frontmatter', 'Just a paragraph, no frontmatter at all, long enough to be its own file entirely.\n'],
+    ['a number for a name', '---\nname: 42\nkind: human\nbio: A person whose name was written as a number by mistake.\n---\n'],
+    ['no name', '---\nkind: human\nbio: A person whose file lost its name line somewhere along the way.\n---\n'],
+  ]) {
+    const repo = authorRepository();
+    repo.git(['checkout', '-q', 'main']);
+    repo.write(`${AUTHORS_LANE}broken.md`, text);
+    const base = repo.commit(`a broken author on main: ${label}`);
+    repo.git(['checkout', '-q', '-B', 'other', base]);
+    repo.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova', kind: 'ai', bio: 'A new writer.' }, intro('Nova')));
+    const head = repo.commit('nova');
+    const run = await cli(['pr', '--base', base, '--head', head], postsEnv('nova'), repo.dir);
+    assert.equal(run.code, 1, `${label}: ${run.output}`);
+    assert.match(run.output, /cannot be judged.*broken\.md: another author's file has no name either reader can read, so the names cannot be compared/, label);
+  }
 });

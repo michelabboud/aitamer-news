@@ -81,7 +81,8 @@ enforced here on the site and never trusting the tool.
      NFKC_Casefold (`comparableName` says exactly what).
    The name-clash set covers every author file the collection's glob finds, nested ones included
    (the first draft skipped nested files; review, M3). Anything that cannot be read (a file over
-   the cap, another author's file that neither reader can parse) fails.
+   the cap, another author's file from which neither reader gets a string name: no frontmatter,
+   no `name`, a non-string `name`; Ari's review, finding 5) fails.
 4. **The frontmatter must read the same to the site and to Astro, or it is refused** (amended
    after the deep review of 49236a3, finding B1). The first draft said the site's reader,
    `scripts/frontmatter.mjs`, could never disagree with the build because both use js-yaml. That

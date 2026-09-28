@@ -632,7 +632,11 @@ export function authorsLaneProblems({ cwd, collected, headRef, readers }) {
     for (const [commit, tree] of [[head, modes], [base, baseModes]]) {
       for (const other of [...tree.keys()].filter((p) => p !== path && ANY_AUTHOR_FILE.test(p)).sort()) {
         const names = namesIn(authorFileAt(cwd, commit, other), readers);
-        if (names === null) throw new UnjudgeableError(`${other}: another author's file cannot be read, so the names cannot be compared`);
+        // No frontmatter, or no string name, counts as unreadable: skipping it would let its
+        // author's name be taken unseen (Ari's review, finding 5).
+        if (names === null || names.length === 0) {
+          throw new UnjudgeableError(`${other}: another author's file has no name either reader can read, so the names cannot be compared`);
+        }
         otherNames.push(...names);
       }
     }
