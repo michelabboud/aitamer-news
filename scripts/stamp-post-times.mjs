@@ -20,10 +20,10 @@
  * written: one unreadable post stops the run with nothing changed.
  *
  * The hero rule (`--check` only; ADR 0020): a published post's `heroImage`, when it has one, is
- * `https://media.aitamer.news/heroes/<slug>.jpg`, the slug being the post's file name. The old
- * repo-relative `/heroes/<slug>.jpg` passes only while `public/heroes/<slug>.jpg` exists (the folder
- * was removed when the heroes moved to R2, so today it is refused); any other value fails, naming
- * the file. A post without a hero gets its section's cover and is fine.
+ * `https://media.aitamer.news/heroes/<slug>.jpg`, the slug being the post's file name, byte for byte:
+ * no other host, scheme, case, query, fragment or encoding. The old repo-relative `/heroes/<slug>.jpg`
+ * is refused with the way out, and so is a `public/heroes/` folder at all: images never go back into
+ * the repository (the deep review of 0.2.45, N2). A post without a hero gets its section's cover.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
@@ -40,7 +40,7 @@ import {
 } from './frontmatter.mjs';
 
 export const POSTS_DIR = 'src/content/posts';
-/** Where heroes lived in the repo before they moved to R2 (ADR 0020). Gone since 0.2.45. */
+/** Where heroes lived in the repo before they moved to R2 (ADR 0020). Removed in 0.2.45; `--check` fails if it comes back. */
 export const HEROES_DIR = 'public/heroes';
 const POST_FILE = /\.mdx?$/;
 /**
@@ -63,19 +63,17 @@ export function dateOnlyPubDate(text) {
 /**
  * @param {string} text whole post file
  * @param {string} slug the post's file name without its extension
- * @param {{ heroesDir?: string }} [options] where the pre-migration heroes lived
  * @returns {string | null} what is wrong with a published post's `heroImage`, or null
  * @throws {Error} when the frontmatter is not valid YAML
  */
-export function heroProblem(text, slug, { heroesDir = HEROES_DIR } = {}) {
+export function heroProblem(text, slug) {
   const fm = readFrontmatter(text);
   if (fm === null || isPublishedDraftField(fm.data) !== true || !Object.hasOwn(fm.data, 'heroImage')) return null;
   const value = fm.data.heroImage;
   const expected = heroUrl(slug);
   if (value === expected) return null;
   if (value === `/heroes/${slug}.jpg`) {
-    if (existsSync(join(heroesDir, `${slug}.jpg`))) return null;
-    return `heroImage ${value} names a file in ${heroesDir}/, which is not there (heroes live on R2 now): upload it as POST.md §3 says and write heroImage: ${expected}`;
+    return `heroImage ${value} is the retired repo path (heroes live on R2 now): upload the image as POST.md §3 says and write heroImage: ${expected}`;
   }
   return `heroImage must be ${expected} (the post's own hero on the media host), not ${JSON.stringify(value)}`;
 }
@@ -152,7 +150,7 @@ function postFiles(dir) {
  * Read every post; collect the ones that need a time, and every file that cannot be read.
  * @returns {{ pending: { file: string, text: string, day: string }[], errors: string[] }}
  */
-function survey(dir, heroesDir) {
+function survey(dir) {
   const pending = [];
   const heroes = [];
   const errors = [];
@@ -161,7 +159,7 @@ function survey(dir, heroesDir) {
     try {
       const day = dateOnlyPubDate(text);
       if (day !== null) pending.push({ file, text, day });
-      const hero = heroProblem(text, basename(file).replace(POST_FILE, ''), { heroesDir });
+      const hero = heroProblem(text, basename(file).replace(POST_FILE, ''));
       if (hero !== null) heroes.push(`${file}: ${hero}`);
     } catch (error) {
       errors.push(`${file}: ${error.message}`);
@@ -172,7 +170,10 @@ function survey(dir, heroesDir) {
 
 export function main(argv, { postsDir = POSTS_DIR, heroesDir = HEROES_DIR, now = new Date(), publishTime = gitPublishTime } = {}) {
   const check = argv.includes('--check');
-  const { pending, heroes, errors } = survey(postsDir, heroesDir);
+  const { pending, heroes, errors } = survey(postsDir);
+  if (check && existsSync(heroesDir)) {
+    heroes.push(`${heroesDir}/: heroes live on R2, never in the repository (ADR 0020); upload each image as POST.md §3 says and remove the folder`);
+  }
 
   if (errors.length > 0) {
     console.error(`${check ? 'check:times' : 'stamp'}: these posts cannot be read; fix them first (nothing was changed):`);

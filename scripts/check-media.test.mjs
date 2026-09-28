@@ -8,8 +8,8 @@ import { bareEtag, judge, main, md5Hex } from './check-media.mjs';
 import { quietlyAsync, tempDir } from './test-support.mjs';
 
 const MEDIA = 'https://media.aitamer.news';
-const post = (slug, { hero = `${MEDIA}/heroes/${slug}.jpg`, draft = false } = {}) =>
-  `---\ntitle: ${slug}\npubDate: 2026-09-24T09:00:00Z\ndraft: ${draft}\nheroImage: ${hero}\n---\n\nBody.\n`;
+const post = (slug, { hero = `${MEDIA}/heroes/${slug}.jpg`, draft = false, pubDate = '2026-09-24T09:00:00Z' } = {}) =>
+  `---\ntitle: ${slug}\npubDate: ${pubDate}\ndraft: ${draft}\nheroImage: ${hero}\n---\n\nBody.\n`;
 const md5 = (text) => createHash('md5').update(text).digest('hex');
 
 /** Posts and a local heroes folder: a and b published, c a draft; the local folder holds a and b. */
@@ -96,7 +96,7 @@ test('a published post whose hero is missing fails; a draft\'s missing hero is o
   try {
     const { result, output } = await run([], { postsDir, origin: noC.origin });
     assert.equal(result, 0, output);
-    assert.match(output, /draft, not yet a finding: .*heroes\/c\.jpg .*answered 404/);
+    assert.match(output, /not live yet \(a draft or scheduled\), not a finding: .*heroes\/c\.jpg .*answered 404/);
   } finally {
     await noC.close();
   }
@@ -177,4 +177,21 @@ test('ETags are compared bare, and the judge reads only what matters', () => {
   assert.equal(judge({ status: 200, headers: headers({ 'content-type': 'image/jpeg; charset=binary' }) }, null), null);
   assert.match(judge({ status: 200, headers: headers({ 'content-type': 'image/jpeg', 'content-length': '4', etag: '"abc-2"' }) }, local), /multipart upload/);
   assert.match(judge({ status: 301, headers: headers({}) }, null), /answered 301/);
+});
+
+test('a scheduled post\'s missing hero is listed until its pubDate passes, then it fails', async () => {
+  const { postsDir } = fixture();
+  writeFileSync(join(postsDir, 'e.md'), post('e', { pubDate: '2026-10-01T09:00:00Z' }));
+  const media = await host(ALL);
+  try {
+    const before = await run([], { postsDir, origin: media.origin, now: new Date('2026-10-01T08:59:59Z') });
+    assert.equal(before.result, 0, before.output);
+    assert.match(before.output, /not live yet .*heroes\/e\.jpg .*answered 404/);
+    assert.match(before.output, /3\/4 post heroes .*\(2 of them live\)/);
+    const after = await run([], { postsDir, origin: media.origin, now: new Date('2026-10-01T09:00:00Z') });
+    assert.equal(after.result, 1);
+    assert.match(after.output, /heroes\/e\.jpg \(.*e\.md\): answered 404, expected 200/);
+  } finally {
+    await media.close();
+  }
 });

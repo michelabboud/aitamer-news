@@ -21,7 +21,7 @@ npm run check:bodies:build  # after the build: bot posts' shipped HTML, and the 
 npm run check:csp     # after the build: the Content-Security-Policy names every inline script (SECURITY.md)
 npm run check:dist    # no secrets in the built site
 npm run check:files   # the deploy stays under Cloudflare's file cap
-npm run check:media   # network, on demand, never in the deploy: every post's hero is on media.aitamer.news
+npm run check:media   # network (the deploy runs it too): every live post's hero is on media.aitamer.news
 ```
 
 - Posts follow the contract in `POST.md`; a post that breaks it fails the build and names the file.

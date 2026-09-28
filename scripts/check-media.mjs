@@ -7,14 +7,20 @@
  *
  * Exit 0 when everything checked is there, 1 when anything is missing or differs, 2 on a usage error.
  *
- * Network, on demand, and **never part of the deploy**: the build must not depend on the media host being
- * reachable (plan 2026-09-25-comments-and-r2-media §3, §7.1). Two uses:
+ * Network. The **build** never depends on the media host (plan 2026-09-25-comments-and-r2-media §3, §7.1),
+ * but the **deploy** runs this after the build's checks and before anything is uploaded
+ * (`deploy-pages.yml`, "Check every live post's hero is on the media host"): a live post whose hero was
+ * never uploaded fails the deploy, as a missing `public/heroes/` file used to fail `check:links` (the
+ * deep review of 0.2.45, N1). The media host is ours, so its outage holding a deploy back is the right
+ * outcome. A network error or a 5xx is retried (ATTEMPTS, ATTEMPT_DELAY_MS) before it counts. Uses:
  * - the migration (`--local public/heroes`, before the frontmatter rewrite and before the folder was
  *   removed): R2's ETag for an object uploaded in one part is the hex MD5 of its bytes, so a matching
  *   `Content-Length` and ETag prove the object is the file in git, not merely a file of that name;
- * - afterwards, with no argument: a writer or an editor asks "is every post's hero uploaded?". A published
- *   post whose hero is missing is a finding (readers see a broken image); a draft's is only listed, since a
- *   draft's hero may be uploaded later.
+ * - with no argument, in the deploy and on demand: "is every post's hero uploaded?". A **live** post's
+ *   missing hero is a finding (readers see a broken image): not a draft, and its `pubDate` has passed,
+ *   the same rule as the site's `isLive` (src/lib/schedule.ts). A draft's or a scheduled post's is only
+ *   listed, since its hero may be uploaded before it goes live; the hourly scheduled deploy that puts it
+ *   live runs this check again.
  *
  * Only `heroImage` values on the media host are requested; anything else is `check:posts`' business
  * (`scripts/stamp-post-times.mjs --check` refuses a published post whose hero is not its media URL).
@@ -24,7 +30,8 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MEDIA_ORIGIN } from '../src/lib/media.ts';
-import { isPublishedDraftField, readFrontmatter } from './frontmatter.mjs';
+import { isLive } from '../src/lib/schedule.ts';
+import { isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
 import { POSTS_DIR } from './stamp-post-times.mjs';
 
 /** Tries per request, for a network error or a 5xx. */
@@ -112,10 +119,10 @@ async function pool(items, limit, fn) {
 
 /**
  * The heroes to check. Keys are paths on the media host (`heroes/<slug>.jpg`).
- * @param {{ postsDir: string, localDir?: string | null }} where
+ * @param {{ postsDir: string, localDir?: string | null, now?: Date }} where `now` decides which posts are live
  * @returns {{ targets: { key: string, label: string, local: { size: number, md5: string } | null, required: boolean }[], errors: string[] }}
  */
-export function collect({ postsDir, localDir = null }) {
+export function collect({ postsDir, localDir = null, now = new Date() }) {
   const targets = [];
   const errors = [];
   const prefix = `${MEDIA_ORIGIN}/`;
@@ -130,7 +137,10 @@ export function collect({ postsDir, localDir = null }) {
     }
     const hero = fm?.data.heroImage;
     if (typeof hero !== 'string' || !hero.startsWith(prefix)) continue;
-    targets.push({ key: hero.slice(prefix.length), label: file, local: null, required: isPublishedDraftField(fm.data) === true });
+    // A pubDate the build cannot read fails the build anyway; counting that post as live keeps this strict.
+    const { date } = pubDateOf(fm);
+    const live = isPublishedDraftField(fm.data) === true && (date === null || isLive({ draft: false, pubDate: date }, now));
+    targets.push({ key: hero.slice(prefix.length), label: file, local: null, required: live });
   }
   if (localDir !== null) {
     for (const name of readdirSync(localDir).sort()) {
@@ -149,11 +159,11 @@ export function collect({ postsDir, localDir = null }) {
 
 /**
  * @param {string[]} argv
- * @param {{ postsDir?: string, origin?: string, attempts?: number, attemptDelayMs?: number, concurrency?: number }} [options]
+ * @param {{ postsDir?: string, origin?: string, now?: Date, attempts?: number, attemptDelayMs?: number, concurrency?: number }} [options]
  *   `origin` stands in for the media host (tests serve it locally)
  * @returns {Promise<number>} exit code
  */
-export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, attempts, attemptDelayMs, concurrency = CONCURRENCY } = {}) {
+export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, now = new Date(), attempts, attemptDelayMs, concurrency = CONCURRENCY } = {}) {
   const at = argv.indexOf('--local');
   const localDir = at >= 0 ? argv[at + 1] : null;
   const unknown = argv.filter((_, i) => at < 0 || (i !== at && i !== at + 1));
@@ -165,7 +175,7 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
     console.error(`check:media: ${localDir} does not exist`);
     return 2;
   }
-  const { targets, errors } = collect({ postsDir, localDir });
+  const { targets, errors } = collect({ postsDir, localDir, now });
   if (errors.length > 0) {
     console.error('check:media: these files cannot be read (nothing was requested):');
     for (const error of errors) console.error(`  ${error}`);
@@ -180,13 +190,13 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
   const failing = results.filter((r) => r.problem !== null && r.target.required);
   const drafts = results.filter((r) => r.problem !== null && !r.target.required);
   for (const { target, problem } of failing) console.error(`  ${origin}/${target.key} (${target.label}): ${problem}`);
-  for (const { target, problem } of drafts) console.warn(`  draft, not yet a finding: ${origin}/${target.key} (${target.label}): ${problem}`);
+  for (const { target, problem } of drafts) console.warn(`  not live yet (a draft or scheduled), not a finding: ${origin}/${target.key} (${target.label}): ${problem}`);
 
   const local = results.filter((r) => r.target.local !== null);
   const posts = results.filter((r) => r.target.local === null);
   const ok = (list) => list.filter((r) => r.problem === null).length;
   if (localDir !== null) console.log(`check:media: ${ok(local)}/${local.length} files in ${localDir} are on ${origin} byte for byte (size and ETag = MD5).`);
-  console.log(`check:media: ${ok(posts)}/${posts.length} post heroes on ${origin} answer 200 ${HERO_CONTENT_TYPE}.`);
+  console.log(`check:media: ${ok(posts)}/${posts.length} post heroes on ${origin} answer 200 ${HERO_CONTENT_TYPE} (${posts.filter((r) => r.target.required).length} of them live).`);
   return failing.length === 0 ? 0 : 1;
 }
 

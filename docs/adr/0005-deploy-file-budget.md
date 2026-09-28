@@ -8,8 +8,8 @@ Each post costs about three deploy files: its page, its hero JPEG (`public/heroe
 
 | Where the images and index live | Files per post | Posts before the 20,000 cap |
 |---|---|---|
-| Heroes and index in the deploy (until 0.2.44) | ~3 | ~6,600 |
-| Heroes on R2, index in the deploy (since 0.2.45, ADR 0020) | ~2 | ~9,900 |
+| Heroes and index in the deploy (today) | ~3 | ~6,600 |
+| Heroes on R2, index in the deploy | ~2 | ~9,900 |
 | Heroes and index on R2 | ~1 | ~19,900 |
 
 ## Decision
@@ -34,4 +34,4 @@ Each post costs about three deploy files: its page, its hero JPEG (`public/heroe
 
 ## Status
 
-Accepted, 2026-09-25. Step 3.1 done on 2026-09-28 (0.2.45): heroes moved to R2 by the site itself rather than atn-mcp (ADR 0020); the ceiling is now about 9,900 posts. Only the table's labels were updated; the rest records the decision as made.
+Accepted, 2026-09-25. Step 3.1 superseded in part by ADR 0020.
