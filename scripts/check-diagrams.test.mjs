@@ -344,3 +344,14 @@ test('the walk bounds its own depth, whatever the pre-scan counted', () => {
   const { findings } = checkSvg(text);
   assert.match(findings.join('\n'), /nested more than 64 deep/);
 });
+
+// The third Opus re-check of 4b76e32 (same review record).
+
+test('a line break inside a CSS string is refused, so no declaration hides behind one', () => {
+  for (const [q, br] of [['"', '\n'], ["'", '\n'], ['"', '\r'], ["'", '\r\n']]) {
+    const css = `.a{x:${q}${br};animation:spin 1s infinite;y:${q}}${SPIN}`;
+    assert.ok(motion(css).length > 0, JSON.stringify(q + br));
+  }
+  assert.ok(checkSvg(svg(`<style>.a{x:"\n;-webkit-transition:fill 1s;y:"}</style>`)).findings.length > 0);
+  assert.deepEqual(motion('.a { font-family: "Noto Sans", \'Serif\'; }\n.b { fill: red; }'), [], 'strings on one line are fine');
+});

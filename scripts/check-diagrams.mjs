@@ -155,6 +155,12 @@ function urlProblem(text, label) {
  * form feed: exactly CSS's own whitespace. JavaScript's `\s` and `trim()`, which this file's parse
  * uses, also treat U+00A0, U+3000, U+FEFF and others as space, while CSS reads them as part of a
  * name; with those refused, the parse and a browser agree on every name, selector and media query.
+ *
+ * **Strings.** Every reader of CSS in this file (this function, `parseDeclarations`,
+ * `parseStylesheet`) takes a string to run from a quote to the next same quote. CSS's tokenizer agrees
+ * exactly when a string holds no backslash (refused by DANGEROUS_VALUE) and no line break, which in
+ * CSS ends the string and turns the rest of the line back into live CSS. So a line break inside a
+ * string is refused here, before either parser runs, and the three readers stay in step with a browser.
  * @param {string} text @returns {string | null}
  */
 function cssCharacterProblem(text) {
@@ -162,6 +168,7 @@ function cssCharacterProblem(text) {
   for (let i = 0; i < text.length; i += 1) {
     const c = text[i];
     if (quote) {
+      if (c === '\n' || c === '\r' || c === '\f') return 'CSS has a line break inside a quoted string (CSS ends the string there); keep each string on one line';
       if (c === quote) quote = '';
     } else if (c === '"' || c === "'") quote = c;
     else if (!/[\t\n\r\f\x20-\x7e]/.test(c)) {
