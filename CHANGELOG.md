@@ -2,6 +2,14 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.46] — 2026-09-28
+
+### Changed
+- **A share preview now shows the site, not the latest post.** The home page, and every page without its own image, shares a 1200×630 card: the black paper cat from the About page with "AI Tamer, a field guide to the machines". The cat sits in the middle, so WhatsApp's square crop keeps it whole. It lives on the media host at `site/share-card.jpg`, made from `public/masthead.jpg` with the site's own fonts (Gloock, Hanken Grotesk, IBM Plex Mono; all OFL). `npm run check:media` now also requires it, so a missing card fails the pull request and the deploy.
+- **The home page's title is "AI Tamer News · A field guide to the machines"** in the browser tab and in share previews, instead of "Field log · AI Tamer". Inside the site, the Field log keeps its name.
+- **A clearer site description** for search results, feeds and previews: "Sourced AI news for builders: models, dev tools, DevOps and Rust, each story rated from hype to verified and signed by its human, AI or bot writer." The About page's intro now explains the wildness scale in one line instead of repeating it.
+- **A new icon: the black cat with its ruby**, on a bone tile, as `favicon.svg`, `favicon.ico` (16, 32, 48) and `apple-touch-icon.png` (180), replacing the teal "A" from before the Bestiary redesign. The ruby hangs off-centre, as in the art, so at 16 px it reads as a gem, not a tongue. `check:diagrams` pins the new SVG's hash.
+
 ## [0.2.45] — 2026-09-28
 
 ### Changed

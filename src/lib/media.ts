@@ -13,10 +13,12 @@ export function heroUrl(slug: string): string {
 }
 
 /**
- * The social-preview image of a page that has none of its own (home with no lead, author and writer
- * pages without a portrait): the welcome post's hero. `BaseLayout.astro` falls back to it.
+ * The social-preview image of a page that has none of its own (the home page, author and writer
+ * pages without a portrait): the site's share card, 1200×630, the black cat from the About page with
+ * the name. The cat sits in the middle so a square crop (WhatsApp) keeps it whole.
+ * `BaseLayout.astro` falls back to it.
  */
-export const DEFAULT_SOCIAL_IMAGE = heroUrl('welcome-to-aitamer');
+export const DEFAULT_SOCIAL_IMAGE = `${MEDIA_ORIGIN}/site/share-card.jpg`;
 
 function isMediaUrl(value: string): boolean {
   return value === MEDIA_ORIGIN || value.startsWith(`${MEDIA_ORIGIN}/`);

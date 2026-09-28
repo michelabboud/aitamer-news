@@ -56,7 +56,7 @@ test('with no override argument at all, resolveMedia reads no env under the Node
   assert.equal(resolveMedia(url), url);
 });
 
-test('the default social image is the welcome hero on the media host, and follows the local override', () => {
-  assert.equal(DEFAULT_SOCIAL_IMAGE, 'https://media.aitamer.news/heroes/welcome-to-aitamer.jpg');
-  assert.equal(resolveMedia(DEFAULT_SOCIAL_IMAGE, '/media-local'), '/media-local/heroes/welcome-to-aitamer.jpg');
+test('the default social image is the share card on the media host, and follows the local override', () => {
+  assert.equal(DEFAULT_SOCIAL_IMAGE, 'https://media.aitamer.news/site/share-card.jpg');
+  assert.equal(resolveMedia(DEFAULT_SOCIAL_IMAGE, '/media-local'), '/media-local/site/share-card.jpg');
 });

@@ -29,7 +29,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MEDIA_ORIGIN } from '../src/lib/media.ts';
+import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN } from '../src/lib/media.ts';
 import { isLive } from '../src/lib/schedule.ts';
 import { isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
 import { POSTS_DIR } from './stamp-post-times.mjs';
@@ -170,7 +170,10 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
  *   `origin` stands in for the media host (tests serve it locally)
  * @returns {Promise<number>} exit code
  */
-export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, now = new Date(), attempts, attemptDelayMs, concurrency = CONCURRENCY } = {}) {
+/** The site's own images on the media host that every page relies on: the default share card. */
+export const SITE_IMAGES = Object.freeze([DEFAULT_SOCIAL_IMAGE.slice(MEDIA_ORIGIN.length + 1)]);
+
+export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, now = new Date(), attempts, attemptDelayMs, concurrency = CONCURRENCY, siteImages = SITE_IMAGES } = {}) {
   const at = argv.indexOf('--local');
   const localDir = at >= 0 ? argv[at + 1] : null;
   const unknown = argv.filter((_, i) => at < 0 || (i !== at && i !== at + 1));
@@ -183,6 +186,8 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
     return 2;
   }
   const { targets, errors } = collect({ postsDir, localDir, now });
+  // Without the share card every page without its own image shares a broken preview.
+  for (const key of siteImages) targets.push({ key, label: 'the default share image (src/lib/media.ts)', local: null, required: true });
   if (errors.length > 0) {
     console.error('check:media: these files cannot be read (nothing was requested):');
     for (const error of errors) console.error(`  ${error}`);

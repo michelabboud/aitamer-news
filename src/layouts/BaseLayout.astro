@@ -7,6 +7,8 @@ import { WRITER_PAGE_KIND } from '../lib/writer-pages.ts';
 
 interface Props {
   title?: string;
+  /** The whole title, used as is (the home page); otherwise `title · AI Tamer`. */
+  fullTitle?: string;
   description?: string;
   canonical?: string;
   /** A site-relative path or an absolute URL (a hero on the media host); the welcome hero when absent. */
@@ -30,6 +32,7 @@ interface Props {
 }
 const {
   title,
+  fullTitle,
   description = SITE.description,
   canonical,
   image,
@@ -39,7 +42,7 @@ const {
   nav,
   home,
 } = Astro.props;
-const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.domain}`;
+const pageTitle = fullTitle ?? (title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.domain}`);
 const canonicalUrl = canonical ?? canonicalUrlFor(Astro.url.pathname);
 const imagePath = resolveMedia(image?.trim() || DEFAULT_SOCIAL_IMAGE);
 const absoluteImage = new URL(imagePath, SITE.url).toString();
@@ -86,7 +89,9 @@ const STATION_LINKS = [
     <meta name="color-scheme" content="dark" />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href={withBase('/rss.xml')} />
     <link rel="alternate" type="application/feed+json" title={`${SITE.title} JSON Feed`} href={withBase('/feed.json')} />
     <link rel="alternate" type="text/plain" title="Guide for language models" href={withBase('/llms.txt')} />

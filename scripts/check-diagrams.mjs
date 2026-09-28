@@ -633,7 +633,7 @@ function distProblems(dist, diagrams) {
  * redrawn (`scripts/generate-covers.py`) gets its new hash here in the same change, by the maintainer.
  */
 export const SITE_SVGS = new Map([
-  ['favicon.svg', '467e6918602a794c76e4c60406b2b228775605fa387ad947575c21d5750e1ce6'],
+  ['favicon.svg', '1de2032edc4f86f55b2c215e8ec713c2808bf5db507d510b02745ecb9349bae4'],
   ['covers/creative.svg', 'c8820fb32ca753ae872c2725d49e5a6bafea3e47683724d292438a6b9690ce5d'],
   ['covers/dev.svg', '3761f938d5a994f5eb80f402e136c58fe5e816bd6c37b54479bc31c22e3a8bc6'],
   ['covers/infra.svg', 'b4feafc3c35fd3f685b29ec21491a1716748c8c9ac44beaac9ac99fbda980ccc'],
