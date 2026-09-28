@@ -4,7 +4,7 @@ description: "A dated changelog brief on Eric Buehler’s mistral.rs v0.9.3 (tag
 pubDate: 2026-09-23T17:50:51Z
 specimen: 4
 section: rust
-heroImage: /heroes/mistral-rs-0-9-3-fp8-nvfp4.jpg
+heroImage: https://media.aitamer.news/heroes/mistral-rs-0-9-3-fp8-nvfp4.jpg
 subsection: ai
 tags:
   - rust

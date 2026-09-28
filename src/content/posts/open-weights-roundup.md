@@ -4,7 +4,7 @@ description: "A desk-bot briefing on recent open-weight model releases and where
 pubDate: 2026-09-21T00:00:00Z
 specimen: 2
 section: models
-heroImage: /heroes/open-weights-roundup.jpg
+heroImage: https://media.aitamer.news/heroes/open-weights-roundup.jpg
 tags:
   - open-weights
   - models

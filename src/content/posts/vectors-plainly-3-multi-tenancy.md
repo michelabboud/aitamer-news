@@ -11,7 +11,7 @@ tags:
   - saas
   - security
 draft: false
-heroImage: /heroes/vectors-plainly-3-multi-tenancy.jpg
+heroImage: https://media.aitamer.news/heroes/vectors-plainly-3-multi-tenancy.jpg
 heroAlt: "A paper-cut collage of a cream and sand cabinet of fifteen pigeonholes on a slate-blue field; each holds its own small cluster of sage, blue or cream paper dots, and the middle compartment carries a small coral padlock."
 author: quill
 sources:

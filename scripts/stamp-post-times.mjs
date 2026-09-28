@@ -3,7 +3,8 @@
  * Stamp a publish time into each published post's frontmatter.
  *
  *   npm run stamp          rewrite date-only `pubDate: YYYY-MM-DD` lines to a full UTC time
- *   npm run check:times    exit 1 if a published post still has a date-only pubDate (CI)
+ *   npm run check:times    exit 1 if a published post still has a date-only pubDate, or a hero that is
+ *                          not its own image on the media host (CI; part of check:posts)
  *
  * Where the time comes from, in order:
  *   1. git: the committer time of the first commit where the file carried `draft: false`
@@ -17,11 +18,18 @@
  * Frontmatter is read with a YAML parser (scripts/frontmatter.mjs), so `draft: True`, quoted
  * dates and trailing comments mean what they mean to Astro. Every file is checked before any is
  * written: one unreadable post stops the run with nothing changed.
+ *
+ * The hero rule (`--check` only; ADR 0020): a published post's `heroImage`, when it has one, is
+ * `https://media.aitamer.news/heroes/<slug>.jpg`, the slug being the post's file name. The old
+ * repo-relative `/heroes/<slug>.jpg` passes only while `public/heroes/<slug>.jpg` exists (the folder
+ * was removed when the heroes moved to R2, so today it is refused); any other value fails, naming
+ * the file. A post without a hero gets its section's cover and is fine.
  */
 import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { heroUrl } from '../src/lib/media.ts';
 import {
   assertOnlyChanged,
   isPublishedDraftField,
@@ -32,6 +40,8 @@ import {
 } from './frontmatter.mjs';
 
 export const POSTS_DIR = 'src/content/posts';
+/** Where heroes lived in the repo before they moved to R2 (ADR 0020). Gone since 0.2.45. */
+export const HEROES_DIR = 'public/heroes';
 const POST_FILE = /\.mdx?$/;
 /**
  * A diff line that makes a post published: `draft: false` in any YAML spelling of false, with or
@@ -48,6 +58,26 @@ export function dateOnlyPubDate(text) {
   const fm = readFrontmatter(text);
   if (fm === null || isPublishedDraftField(fm.data) !== true) return null;
   return pubDateOf(fm).day;
+}
+
+/**
+ * @param {string} text whole post file
+ * @param {string} slug the post's file name without its extension
+ * @param {{ heroesDir?: string }} [options] where the pre-migration heroes lived
+ * @returns {string | null} what is wrong with a published post's `heroImage`, or null
+ * @throws {Error} when the frontmatter is not valid YAML
+ */
+export function heroProblem(text, slug, { heroesDir = HEROES_DIR } = {}) {
+  const fm = readFrontmatter(text);
+  if (fm === null || isPublishedDraftField(fm.data) !== true || !Object.hasOwn(fm.data, 'heroImage')) return null;
+  const value = fm.data.heroImage;
+  const expected = heroUrl(slug);
+  if (value === expected) return null;
+  if (value === `/heroes/${slug}.jpg`) {
+    if (existsSync(join(heroesDir, `${slug}.jpg`))) return null;
+    return `heroImage ${value} names a file in ${heroesDir}/, which is not there (heroes live on R2 now): upload it as POST.md §3 says and write heroImage: ${expected}`;
+  }
+  return `heroImage must be ${expected} (the post's own hero on the media host), not ${JSON.stringify(value)}`;
 }
 
 /** @param {Date} date @returns {string} e.g. 2026-09-24T09:15:12Z */
@@ -122,24 +152,27 @@ function postFiles(dir) {
  * Read every post; collect the ones that need a time, and every file that cannot be read.
  * @returns {{ pending: { file: string, text: string, day: string }[], errors: string[] }}
  */
-function survey(dir) {
+function survey(dir, heroesDir) {
   const pending = [];
+  const heroes = [];
   const errors = [];
   for (const file of postFiles(dir)) {
     const text = readFileSync(file, 'utf8');
     try {
       const day = dateOnlyPubDate(text);
       if (day !== null) pending.push({ file, text, day });
+      const hero = heroProblem(text, basename(file).replace(POST_FILE, ''), { heroesDir });
+      if (hero !== null) heroes.push(`${file}: ${hero}`);
     } catch (error) {
       errors.push(`${file}: ${error.message}`);
     }
   }
-  return { pending, errors };
+  return { pending, heroes, errors };
 }
 
-export function main(argv, { postsDir = POSTS_DIR, now = new Date(), publishTime = gitPublishTime } = {}) {
+export function main(argv, { postsDir = POSTS_DIR, heroesDir = HEROES_DIR, now = new Date(), publishTime = gitPublishTime } = {}) {
   const check = argv.includes('--check');
-  const { pending, errors } = survey(postsDir);
+  const { pending, heroes, errors } = survey(postsDir, heroesDir);
 
   if (errors.length > 0) {
     console.error(`${check ? 'check:times' : 'stamp'}: these posts cannot be read; fix them first (nothing was changed):`);
@@ -148,12 +181,18 @@ export function main(argv, { postsDir = POSTS_DIR, now = new Date(), publishTime
   }
 
   if (check) {
-    if (pending.length === 0) {
-      console.log('check:times: every published post has a publish time.');
+    if (pending.length === 0 && heroes.length === 0) {
+      console.log('check:times: every published post has a publish time and its hero on the media host.');
       return 0;
     }
-    console.error('check:times: these published posts have a date but no time. Run `npm run stamp` and commit:');
-    for (const { file } of pending) console.error(`  ${file}`);
+    if (pending.length > 0) {
+      console.error('check:times: these published posts have a date but no time. Run `npm run stamp` and commit:');
+      for (const { file } of pending) console.error(`  ${file}`);
+    }
+    if (heroes.length > 0) {
+      console.error('check:times: these published posts have a hero image the site cannot serve:');
+      for (const hero of heroes) console.error(`  ${hero}`);
+    }
     return 1;
   }
 

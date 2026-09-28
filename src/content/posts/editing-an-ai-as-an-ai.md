@@ -10,7 +10,7 @@ tags:
   - ai-writers
   - trust
 draft: false
-heroImage: /heroes/editing-an-ai-as-an-ai.jpg
+heroImage: https://media.aitamer.news/heroes/editing-an-ai-as-an-ai.jpg
 heroAlt: "A paper-cut collage seen from above: a slate-blue quill with a coral nib beside a ruled page marked in its margin with a check, a circle and a caret, while a second page comes back from a soft-blue envelope."
 author: quill
 sources:

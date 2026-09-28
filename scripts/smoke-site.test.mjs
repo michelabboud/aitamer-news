@@ -21,7 +21,7 @@ function fixtureDist() {
     'llms.txt': 'llms',
     'rss.xml': '<rss/>',
     '_headers': '/*\n  X: 1\n',
-    '_redirects': '# retired\n/section/old/ /section/new/ 301\n',
+    '_redirects': '# retired\n/section/old/ /section/new/ 301\n/heroes/old.jpg https://media.aitamer.news/heroes/old.jpg 301\n',
     'diagrams/news/flow.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>\n',
   };
   for (const [path, body] of Object.entries(files)) {
@@ -54,6 +54,10 @@ async function host({ fault = null, flakyFirst = 0, robots = null } = {}) {
       if (fault === 'redirect-to') res.writeHead(301, { location: '/elsewhere/' }).end();
       else if (fault === 'redirect-status') res.writeHead(302, { location: '/section/new/' }).end();
       else res.writeHead(301, { location: '/section/new/' }).end();
+    } else if (path === '/heroes/old.jpg') {
+      if (fault === 'redirect-other-host') res.writeHead(301, { location: 'https://elsewhere.example/heroes/old.jpg' }).end();
+      else if (fault === 'redirect-same-host') res.writeHead(301, { location: '/heroes/old.jpg' }).end();
+      else res.writeHead(301, { location: 'https://media.aitamer.news/heroes/old.jpg' }).end();
     } else if (path === '/') html(200, page('Home'));
     else if (path === '/news/' && fault !== 'missing-page') html(200, page(fault === 'stale' ? 'Old news' : 'News'));
     else if (path === '/_astro/a.1b2c.css') res.writeHead(200, { 'cache-control': fault === 'no-cache' ? 'no-cache' : 'public, max-age=31536000, immutable' }).end('body{}');
@@ -85,7 +89,10 @@ test('the plan: every page but 404 and redirected fallbacks, root files and the 
   const work = plan(fixtureDist());
   assert.deepEqual(work.pages, [{ path: '/', title: 'Home' }, { path: '/news/', title: 'News' }]);
   assert.deepEqual(work.files, ['/_astro/a.1b2c.css', '/heroes/h.jpg', '/llms.txt', '/rss.xml']);
-  assert.deepEqual(work.redirects, [{ from: '/section/old/', to: '/section/new/', status: 301 }]);
+  assert.deepEqual(work.redirects, [
+    { from: '/section/old/', to: '/section/new/', status: 301 },
+    { from: '/heroes/old.jpg', to: 'https://media.aitamer.news/heroes/old.jpg', status: 301 },
+  ]);
   assert.deepEqual(work.diagrams, ['/diagrams/news/flow.svg']);
   // Key pages come first and the cap never drops them; the cap trims the rest.
   const dist = fixtureDist();
@@ -110,6 +117,9 @@ test('each way a deployment can be wrong is a finding', async () => {
     ['missing-file', 'production', /\/llms\.txt: answered 404/],
     ['redirect-to', 'production', /redirect \/section\/old\/: points at \/elsewhere\/, expected \/section\/new\//],
     ['redirect-status', 'production', /redirect \/section\/old\/: answered 302, expected 301/],
+    // A redirect to another host must land on that host, not merely on the same path (ADR 0020).
+    ['redirect-other-host', 'production', /redirect \/heroes\/old\.jpg: points at https:\/\/elsewhere\.example\/heroes\/old\.jpg, expected https:\/\/media\.aitamer\.news/],
+    ['redirect-same-host', 'production', /redirect \/heroes\/old\.jpg: points at \/heroes\/old\.jpg, expected https:\/\/media\.aitamer\.news/],
     ['soft-404', 'production', /does not exist answered 200, expected 404/],
     ['no-csp', 'production', /no Content-Security-Policy/],
     ['no-cache', 'production', /missing the long cache/],

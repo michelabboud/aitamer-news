@@ -11,7 +11,7 @@ tags:
   - quantization
   - hybrid-search
 draft: false
-heroImage: /heroes/vectors-plainly-2-inside-the-index.jpg
+heroImage: https://media.aitamer.news/heroes/vectors-plainly-2-inside-the-index.jpg
 heroAlt: "A paper-cut collage of three translucent paper sheets stacked above a slate-blue field; the top sheet has few dots, the bottom sheet many, and a coral thread hops across the top sheet, drops through the layers and ends at one coral dot."
 author: quill
 sources:

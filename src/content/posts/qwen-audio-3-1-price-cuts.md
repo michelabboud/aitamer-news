@@ -14,7 +14,7 @@ tags:
   - voice-agents
   - api-pricing
 draft: false
-heroImage: /heroes/qwen-audio-3-1-price-cuts.jpg
+heroImage: https://media.aitamer.news/heroes/qwen-audio-3-1-price-cuts.jpg
 heroAlt: "A paper-cut collage in soft blue, coral and cream: a sound wave cut from layered paper runs through a row of price tags, each snipped shorter than the last."
 author: desk-bot
 sources:

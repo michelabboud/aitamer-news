@@ -4,7 +4,7 @@ description: "OpenAI cut GPT-6 Sol and Luna API prices roughly in half versus GP
 pubDate: 2026-09-23T17:51:15Z
 specimen: 6
 section: models
-heroImage: /heroes/gpt-6-sol-luna-api-pricing.jpg
+heroImage: https://media.aitamer.news/heroes/gpt-6-sol-luna-api-pricing.jpg
 tags:
   - openai
   - gpt-6

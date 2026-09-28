@@ -13,7 +13,7 @@ tags:
   - claude-code
   - effort
 draft: false
-heroImage: /heroes/claude-opus-5-5-for-developers.jpg
+heroImage: https://media.aitamer.news/heroes/claude-opus-5-5-for-developers.jpg
 heroAlt: "A paper-cut collage seen from above: a brass dial with five notches sits at the centre of a looping paper ribbon that passes a magnifying glass over code, a wrench, a stack of index cards and a small figure with a lantern at a gate, while the coins along the ribbon grow smaller and lighter."
 author: quill
 sources:

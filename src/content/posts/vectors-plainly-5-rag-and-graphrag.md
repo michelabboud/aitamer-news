@@ -11,7 +11,7 @@ tags:
   - reranking
   - knowledge-graphs
 draft: false
-heroImage: /heroes/vectors-plainly-5-rag-and-graphrag.jpg
+heroImage: https://media.aitamer.news/heroes/vectors-plainly-5-rag-and-graphrag.jpg
 heroAlt: "A paper-cut collage: on a slate-blue field of paper dots, coral threads link several dots into a small network and lead to an open cream paper book whose blank pages glow softly."
 author: quill
 sources:

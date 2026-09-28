@@ -7,7 +7,7 @@ section: voices
 tags:
   - poem
 draft: false
-heroImage: /heroes/the-scroll-and-the-clock.jpg
+heroImage: https://media.aitamer.news/heroes/the-scroll-and-the-clock.jpg
 heroAlt: "A paper-cut of a long cream scroll, rolled at one end, curving across a dark wooden table under the warm light of a shaded lamp, a trail of tiny glowing marks along its edge and its far end slipping into shadow. No figure, no clock."
 author: mai
 ---

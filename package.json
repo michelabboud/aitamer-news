@@ -6,8 +6,8 @@
     "node": ">=22.18.0"
   },
   "scripts": {
-    "dev": "node scripts/decode-heroes.mjs && astro dev",
-    "build": "node scripts/decode-heroes.mjs && astro build && node scripts/check-diagrams.mjs --write dist && pagefind --site dist && node scripts/csp-headers.mjs",
+    "dev": "astro dev",
+    "build": "astro build && node scripts/check-diagrams.mjs --write dist && pagefind --site dist && node scripts/csp-headers.mjs",
     "preview": "astro preview",
     "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test \"scripts/*.test.mjs\" \"src/lib/*.test.ts\" \"workers/contact/test/*.test.mjs\"",
     "stamp": "node scripts/stamp-post-times.mjs && node scripts/stamp-specimens.mjs",
@@ -25,7 +25,8 @@
     "check:links": "node scripts/check-dist-links.mjs",
     "check:diagrams": "node scripts/check-diagrams.mjs",
     "check:diagrams:dist": "node scripts/check-diagrams.mjs --check-dist dist",
-    "check:csp": "node scripts/csp-headers.mjs --check"
+    "check:csp": "node scripts/csp-headers.mjs --check",
+    "check:media": "node scripts/check-media.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.2",

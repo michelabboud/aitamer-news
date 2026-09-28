@@ -15,7 +15,7 @@ tags:
   - rust
   - linux-foundation
 draft: false
-heroImage: /heroes/tools-review-goose.jpg
+heroImage: https://media.aitamer.news/heroes/tools-review-goose.jpg
 heroAlt: "A paper-cut collage of a white goose typing on a paper laptop at a wooden workbench, with round paper modules for a wrench, a folder, a gear, a magnifying glass and a puzzle piece plugged in by cables, and recipe cards pinned to a corkboard on the right."
 author: quill
 sources:

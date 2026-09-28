@@ -114,7 +114,11 @@ export const postSchema = z
     subsection: z.string().optional(),
     tags: z.array(z.string().min(1).max(60)).default([]),
     draft: z.boolean().default(false),
-    /** `/heroes/<slug>.jpg` in this repo, or an absolute https URL (R2, later). */
+    /**
+     * The post's hero: `https://media.aitamer.news/heroes/<slug>.jpg` (ADR 0020). The pattern still admits the
+     * old `/heroes/<slug>.jpg` so the posts tool's copy of this contract keeps parsing; `check:posts` refuses it
+     * for a published post now that `public/heroes/` is gone, and any host but the media host.
+     */
     heroImage: z
       .string()
       .regex(

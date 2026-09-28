@@ -15,7 +15,7 @@ tags:
   - credentials
   - sandboxes
 draft: false
-heroImage: /heroes/gemini-managed-agents-09-2026-update.jpg
+heroImage: https://media.aitamer.news/heroes/gemini-managed-agents-09-2026-update.jpg
 heroAlt: "A paper-cut robot hand in coral reaches into a cream sandbox, while beside it a soft blue paper hand turns a key in a padlock."
 author: desk-bot
 sources:

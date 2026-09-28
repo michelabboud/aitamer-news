@@ -9,9 +9,15 @@ export const WRITER_PAGE_KIND: AuthorKind = 'ai';
 
 /**
  * Top-level names already taken: the entries of `src/pages/` (`about.astro` → about, `archive/` →
- * archive; dynamic `[x]` and private `_x` entries are skipped) and of `public/` (`heroes`, `favicon.svg`).
+ * archive; dynamic `[x]` and private `_x` entries are skipped), of `public/` (`diagrams`, `favicon.svg`),
+ * and the first segment of every source path in `public/_redirects` (`/heroes/<slug>.jpg` → heroes, whose
+ * files moved to R2 but whose old URLs still redirect there, ADR 0020).
  */
-export function reservedTopLevelNames(pageEntries: readonly string[], publicEntries: readonly string[]): Set<string> {
+export function reservedTopLevelNames(
+  pageEntries: readonly string[],
+  publicEntries: readonly string[],
+  redirectsText = '',
+): Set<string> {
   const names = new Set<string>();
   for (const entry of pageEntries) {
     if (entry.startsWith('[') || entry.startsWith('_')) continue;
@@ -19,6 +25,12 @@ export function reservedTopLevelNames(pageEntries: readonly string[], publicEntr
     names.add(entry.replace(/\.(astro|md|mdx|ts|js)$/, ''));
   }
   for (const entry of publicEntries) names.add(entry);
+  for (const line of redirectsText.split('\n')) {
+    const source = line.trim().split(/\s+/)[0];
+    if (!source || source.startsWith('#')) continue;
+    const first = source.split('/')[1];
+    if (first) names.add(first);
+  }
   return names;
 }
 

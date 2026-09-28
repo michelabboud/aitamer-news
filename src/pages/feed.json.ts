@@ -13,7 +13,7 @@ import {
 } from '../lib/site';
 import { resolveMedia } from '../lib/media';
 
-/** `/heroes/<slug>.jpg` (site-relative) or an already-absolute `https://` URL (R2). */
+/** The hero's absolute URL: a media-host URL (ADR 0020), or a site-relative path made absolute. */
 function absoluteHeroImageUrl(heroImage: string | undefined): string | undefined {
   const trimmed = heroImage?.trim();
   if (!trimmed) return undefined;

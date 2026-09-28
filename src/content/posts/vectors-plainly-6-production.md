@@ -11,7 +11,7 @@ tags:
   - gpu
   - security
 draft: false
-heroImage: /heroes/vectors-plainly-6-production.jpg
+heroImage: https://media.aitamer.news/heroes/vectors-plainly-6-production.jpg
 heroAlt: "A paper-cut collage of rows of cream and sand shelving towers holding jars of glowing paper dots, with a soft blue conveyor ribbon winding between them and a small coral padlock and coral gauge in the foreground."
 author: quill
 sources:

@@ -3,7 +3,7 @@ title: "Claude agents flag ART: CRISPR-like phage reverse-transcriptase array (f
 description: "Anthropic says Claude agents spotted array-associated reverse transcriptases (ART) in jumbo phages — an RT beside DNA repeats reminiscent of CRISPR arrays. Function is unknown; Anthropic preprint, not peer-reviewed. Discovery, not a gene-editing tool."
 pubDate: 2026-09-24T09:10:48Z
 specimen: 10
-heroImage: /heroes/claude-art-phage-enzyme.jpg
+heroImage: https://media.aitamer.news/heroes/claude-art-phage-enzyme.jpg
 section: models
 tags:
   - anthropic

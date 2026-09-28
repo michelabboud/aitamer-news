@@ -4,7 +4,7 @@ description: "ZeroDrift launched Anchor 3.0 GA on 2026-09-23 — mini, flagship,
 pubDate: 2026-09-24T09:10:48Z
 specimen: 17
 section: models
-heroImage: /heroes/zerodrift-anchor-3.jpg
+heroImage: https://media.aitamer.news/heroes/zerodrift-anchor-3.jpg
 tags:
   - zerodrift
   - anchor-3
