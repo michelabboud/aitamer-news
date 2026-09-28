@@ -8,7 +8,7 @@
 
 ## Log
 
-- **2026-09-28** — 0.2.44: the posts App's authors lane (ADR 0018). Its author pull requests pass `publisher-paths` only if they change one author file honestly: kind never changes, AI writers and bots keep their names, no new humans, no borrowed names. The GitHub variable and ruleset come after merge.
+- **2026-09-28** — 0.2.44: the posts App's authors lane (ADR 0018). Its author pull requests pass `publisher-paths` only if they change one AI writer's or bot's file honestly: kind and name never change, no new humans, no borrowed names; a human's file changes only through Michel. The GitHub variable and ruleset come after merge.
 
 - **2026-09-27** — 0.2.33: `check:posts` now fails a post whose `author` has no profile. Astro only logged the broken reference and dropped the post from the build with exit 0.
 

@@ -17,9 +17,10 @@ name: Publisher paths
 # both the posts App, by numeric id with the repository variable POSTS_ACTOR_ID (unset, empty or
 # not a number: nobody gets the lane), on an `opened` or `synchronize` event from a
 # desk/authors-<desk>-<16 hex>-<id> branch, may change exactly one src/content/authors/<id>.md,
-# added or modified, and only honestly: a modified author keeps its kind (and its id field), an AI
-# writer or a bot keeps its name, an added author is `kind: ai` or `kind: bot`, never a human, and
-# no added or renamed author takes another author's name. The posts App gains nothing else, and
+# added or modified, and only an AI writer's or a bot's (kind at the merge base when modified, at
+# the head when added; a human's file changes only through the maintainer), and only honestly: a
+# modified author keeps its kind, name and id field, and an added author takes no other author's
+# name. The posts App gains nothing else, and
 # the publisher's lanes do not gain author files. The rules and why: the script's header.
 #
 # pull_request_target: the workflow, and the script it runs, always come from main — never from

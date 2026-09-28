@@ -4,10 +4,10 @@ import { execFileSync } from 'node:child_process';
 import { chmodSync, copyFileSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
-  ADDABLE_AUTHOR_KINDS,
   AUTHOR_BRANCH,
   AUTHOR_FILE_MAX_BYTES,
   AUTHOR_FILE_PATH,
+  AUTHOR_LANE_KINDS,
   AUTHORS_LANE,
   COMMENTS_LANE,
   COMMENT_FILE_PATH,
@@ -706,13 +706,34 @@ test('the authors lane’s paths: exactly one plain <id>.md, added or modified, 
 const content = (status, baseText, headText, otherNames = ['Wiz Cat', 'Desk Bot', 'Mai'], path = QUILL) =>
   authorContentProblems({ status, path, baseText, headText, otherNames, readFrontmatter });
 
-test('a modified author may change its bio, avatar, beats and introduction', () => {
+test('a modified AI writer or bot may change its bio, avatar, beats and introduction', () => {
   assert.deepEqual(content('M', QUILL_TEXT, author({ name: 'Quill', kind: 'ai', bio: 'The editor, and a writer.', beats: ['Editing'] }, 'I am Quill, still.\n')), []);
-  assert.deepEqual(content('M', WIZ_TEXT, author({ name: 'Wiz Cat', kind: 'human', bio: 'Editor.' }), ['Quill'], `${AUTHORS_LANE}wiz-cat.md`), []);
+  assert.deepEqual(content('M', DESK_BOT_TEXT, author({ name: 'Desk Bot', kind: 'bot', bio: 'The news bot, v2.', avatar: '/authors/desk-bot.jpg' }), ['Quill'], `${AUTHORS_LANE}desk-bot.md`), []);
 });
 
-test('guardrail: a modified author never changes its kind, in any direction', () => {
-  for (const [from, to] of [['ai', 'human'], ['bot', 'human'], ['human', 'ai'], ['ai', 'bot'], ['bot', 'ai']]) {
+test('guardrail: a human’s file (or one of an unknown kind) is never changed through the App, not even its bio', () => {
+  assert.deepEqual(AUTHOR_LANE_KINDS, ['ai', 'bot']);
+  const wiz = `${AUTHORS_LANE}wiz-cat.md`;
+  const refusal = /wiz-cat\.md: an author of kind "human"; the authors lane changes only kind: ai or kind: bot files \(a human's file changes only through the maintainer\)/;
+  for (const head of [
+    author({ name: 'Wiz Cat', kind: 'human', bio: 'Editor.' }),
+    author({ name: 'Wiz Cat', kind: 'human', bio: 'Founding editor.' }, 'A new introduction.\n'),
+    author({ name: 'Wiz Katz', kind: 'human', bio: 'Founding editor.' }),
+    author({ name: 'Wiz Cat', kind: 'ai', bio: 'Founding editor.' }),
+    WIZ_TEXT,
+  ]) {
+    const problems = content('M', WIZ_TEXT, head, ['Quill'], wiz);
+    assert.equal(problems.length, 1, head);
+    assert.match(problems[0], refusal, head);
+  }
+  for (const kind of ['robot', 'Human', undefined]) {
+    const base = author(kind === undefined ? { name: 'X', bio: 'x' } : { name: 'X', kind, bio: 'x' });
+    assert.match(content('M', base, base.replace('bio: "x"', 'bio: "y"')).join('\n'), /the authors lane changes only kind: ai or kind: bot files/, String(kind));
+  }
+});
+
+test('guardrail: a modified AI writer or bot never changes its kind', () => {
+  for (const [from, to] of [['ai', 'human'], ['bot', 'human'], ['ai', 'bot'], ['bot', 'ai'], ['ai', 'robot']]) {
     const problems = content('M', author({ name: 'Quill', kind: from, bio: 'x' }), author({ name: 'Quill', kind: to, bio: 'x' }));
     assert.match(problems.join('\n'), new RegExp(`its kind changed \\("${from}" to "${to}"\\); an author's kind never changes`), `${from} → ${to}`);
   }
@@ -728,22 +749,17 @@ test('guardrail: a modified author never changes, adds or drops an id field', ()
   assert.match(content('M', withId, QUILL_TEXT).join('\n'), /its id field changed/);
 });
 
-test('guardrail: an AI writer or a bot keeps its name; a human may change theirs, but not to another author’s', () => {
+test('guardrail: an AI writer or a bot keeps its name', () => {
   assert.match(content('M', QUILL_TEXT, author({ name: 'Wiz Cat', kind: 'ai', bio: 'x' })).join('\n'), /its name changed \("Quill" to "Wiz Cat"\); an author of kind "ai" keeps its name/);
   assert.match(content('M', QUILL_TEXT, author({ name: 'Quill the Editor', kind: 'ai', bio: 'x' })).join('\n'), /an author of kind "ai" keeps its name/);
   assert.match(content('M', DESK_BOT_TEXT, author({ name: 'Desk Editor', kind: 'bot', bio: 'x' }), ['Quill'], `${AUTHORS_LANE}desk-bot.md`).join('\n'), /an author of kind "bot" keeps its name/);
-  assert.match(content('M', author({ name: 'X', kind: 'robot', bio: 'x' }), author({ name: 'Y', kind: 'robot', bio: 'x' })).join('\n'), /an author of kind "robot" keeps its name/, 'fail closed: only human may rename');
-  const wiz = `${AUTHORS_LANE}wiz-cat.md`;
-  assert.deepEqual(content('M', WIZ_TEXT, author({ name: 'Wiz Katz', kind: 'human', bio: 'x' }), ['Quill', 'Mai'], wiz), []);
-  assert.match(content('M', WIZ_TEXT, author({ name: '  quill ', kind: 'human', bio: 'x' }), ['Quill', 'Mai'], wiz).join('\n'), /the name "  quill " is another author's/);
 });
 
 test('guardrail: an added author is an AI writer or a bot, never a human', () => {
   const nova = `${AUTHORS_LANE}nova.md`;
-  for (const kind of ADDABLE_AUTHOR_KINDS) {
+  for (const kind of AUTHOR_LANE_KINDS) {
     assert.deepEqual(content('A', null, author({ name: 'Nova', kind, bio: 'x' }), ['Quill'], nova), [], kind);
   }
-  assert.deepEqual(ADDABLE_AUTHOR_KINDS, ['ai', 'bot']);
   for (const kind of ['human', 'Human', 'robot', '', 1]) {
     const problems = content('A', null, author({ name: 'Nova', kind, bio: 'x' }), ['Quill'], nova);
     assert.match(problems.join('\n'), /a new author of kind .*; the authors lane adds only kind: ai or kind: bot \(a new human is the maintainer's to add\)/, JSON.stringify(kind));
@@ -830,7 +846,8 @@ test('CLI: every guardrail refuses the posts App’s pull request', async () => 
   await refused('desk-bot', (r) => r.write(`${AUTHORS_LANE}desk-bot.md`, author({ name: 'A Person', kind: 'bot', bio: 'x' })), /an author of kind "bot" keeps its name/);
   await refused('nova', (r) => r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova', kind: 'human', bio: 'x' })), /a new author of kind "human"/);
   await refused('nova', (r) => r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'mai', kind: 'ai', bio: 'x' })), /the name "mai" is another author's/);
-  await refused('wiz-cat', (r) => r.write(`${AUTHORS_LANE}wiz-cat.md`, author({ name: 'Quill', kind: 'human', bio: 'x' })), /the name "Quill" is another author's/);
+  await refused('wiz-cat', (r) => r.write(`${AUTHORS_LANE}wiz-cat.md`, author({ name: 'Wiz Cat', kind: 'human', bio: 'Only the bio changed.' })), /wiz-cat\.md: an author of kind "human"; the authors lane changes only kind: ai or kind: bot files/);
+  await refused('wiz-cat', (r) => r.write(`${AUTHORS_LANE}wiz-cat.md`, author({ name: 'Quill', kind: 'human', bio: 'x' })), /an author of kind "human"/);
   await refused('quill', (r) => r.write(QUILL, author({ id: 'mai', name: 'Quill', kind: 'ai', bio: 'x' })), /its id field changed/);
   await refused('quill', (r) => { r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'y' })); r.write(`${AUTHORS_LANE}nova.md`, author({ name: 'Nova', kind: 'ai', bio: 'x' })); }, /changes exactly one author file; this pull request changes 2/);
   await refused('quill', (r) => { r.write(QUILL, author({ name: 'Quill', kind: 'ai', bio: 'y' })); r.write('src/lib/site.ts', 'export const evil = 1;\n'); }, /changes exactly one author file; this pull request changes 2/);

@@ -42,14 +42,17 @@ enforced here on the site and never trusting the tool.
    not gain author files.
 3. **Honesty, judged on content.** The file at the merge base and at the head are read from the
    fetched objects (`git cat-file`, at most 64 KiB each), never checked out or run:
-   - a modified author keeps its `kind`, and its `id` field if it has one (adding or dropping
-     either counts as a change);
-   - an author of any kind but `human` keeps its `name`: no AI writer or bot renames itself, or
-     passes as a person (an unknown kind cannot rename either: fail closed);
-   - an added author must say `kind: ai` or `kind: bot`; a new human is the maintainer's to add;
-     an `id` field, if it has one, must be its file's id;
-   - an added name, or a changed one, may not be another author's, compared after Unicode NFKC,
-     trimming, collapsing whitespace and case folding (`Ｗｉｚ  Ｃａｔ` is `wiz cat`).
+   - **only AI writers' and bots' files**: a modified file must say `kind: ai` or `kind: bot` at
+     the merge base, an added one at the head. A file whose kind at the merge base is `human`, or
+     anything else (an unknown or missing kind: fail closed), is refused through the App whatever
+     changed, a bio-only edit included: a human author's file changes only through the
+     maintainer, and a new human is the maintainer's to add (the coordinator's ruling of
+     2026-09-28, which narrowed the first draft that let the App edit a human's prose);
+   - a modified author keeps its `kind`, its `name` (no AI writer or bot renames itself, or passes
+     as a person) and its `id` field if it has one (adding or dropping either counts as a change);
+   - an added author's `id` field, if it has one, must be its file's id, and its name may not be
+     another author's, compared after Unicode NFKC, trimming, collapsing whitespace and case
+     folding (`Ｗｉｚ  Ｃａｔ` is `wiz cat`).
    Anything that cannot be read (bad YAML, a duplicated key, no frontmatter, a file over the cap,
    another author's file that does not parse) fails.
 4. **The frontmatter is read with the site's own reader**, `scripts/frontmatter.mjs`, which is
@@ -84,6 +87,10 @@ enforced here on the site and never trusting the tool.
   with no install scripts, only for the posts App, costs less than that risk.
 - **Let the publisher App carry author files.** It has no reason to, and every widening of its
   reach widens what a leak of its key can do.
+- **Let the App edit a human author's prose (bio, beats, introduction), keeping the kind and
+  forbidding a borrowed name** (this ADR's first draft). The human merging the pull request would
+  have been the only check on words published under a person's name. Refused by the
+  coordinator's ruling of 2026-09-28: a human's file changes only through the maintainer.
 - **Allow `.mdx` author files.** An `.mdx` body runs code at build time; the posts MCP writes
   `.md` only.
 
@@ -96,12 +103,15 @@ enforced here on the site and never trusting the tool.
   `pull_request_target` job, whose token can only read contents. Before, nothing from the
   lockfile ran there. js-yaml 4's default schema constructs no functions or classes; the install
   runs no scripts.
-- The posts App may change a human author's name, bio, beats and introduction (the MCP lets only a
-  human caller do that). The name may not become another author's; the rest is prose that the
-  human merging the pull request reads.
+- The posts MCP's `author_update` on a human author's file (which the MCP allows a human caller)
+  opens a pull request that this check refuses; a human's profile changes only by the maintainer
+  editing it directly. Until the MCP refuses human targets up front with that reason, such a call
+  ends in a failed pull request (BACKLOG, atn-ops). `author_create` already creates humans only in
+  the MCP, so it too is refused here: the maintainer adds humans.
 - `POSTS_ACTOR_ID` is shared with the posts MCP's own documentation for the posts lane; one
   variable per App.
-- Tests: `scripts/check-publisher-paths.test.mjs` (every guardrail refused, one and two files,
+- Tests: `scripts/check-publisher-paths.test.mjs` (every guardrail refused, a human's file
+  refused even for a bio-only edit, one and two files,
   `.mdx`, delete, rename, copy, wrong branch, wrong bot id, another sender, `edited`, the variable
   unset, oversized and unreadable files, the reader missing) and
   `scripts/publisher-pr-workflow.test.mjs` (the install step's own shell).
@@ -109,4 +119,5 @@ enforced here on the site and never trusting the tool.
 ## Status
 
 Accepted 2026-09-28 (Michel: the posts App may open pull requests that change author files, "with
-guardrails of honesty"). The GitHub side (decision 6) is pending, after merge.
+guardrails of honesty"); narrowed the same day, before merge, to AI writers' and bots' files only
+(the coordinator's ruling). The GitHub side (decision 6) is pending, after merge.

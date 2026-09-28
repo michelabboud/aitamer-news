@@ -52,12 +52,13 @@
  *     posts MCP's author id rule, and the id the branch name ends with), added or modified only
  *     (no delete, no rename, no copy), a plain file;
  *   - honesty, judged on the file at the merge base against the file at the head (fetched objects,
- *     read with `git cat-file`, never checked out or run): a modified file keeps its `kind`, and
- *     its `id` field if it has one; an author whose kind is anything but `human` keeps its `name`
- *     too (no AI or bot renames itself, or passes as a person); an added file must say `kind: ai`
- *     or `kind: bot` (a new human is the maintainer's to add), and an `id` field, if it has one,
- *     must be its file's id; and an added name, or a changed one, may not be another author's
- *     (compared after NFKC, trimming, collapsing spaces and case folding).
+ *     read with `git cat-file`, never checked out or run): the lane touches only `kind: ai` and
+ *     `kind: bot` files, judged at the merge base for a modified file (a human's file, or one of
+ *     an unknown kind, changes only through the maintainer, whatever changed) and at the head for
+ *     an added one (a new human is the maintainer's to add); a modified file keeps its `kind`, its
+ *     `name` (no AI or bot renames itself, or passes as a person) and its `id` field if it has
+ *     one; an added file's `id` field, if it has one, is its file's id, and its name may not be
+ *     another author's (compared after NFKC, trimming, collapsing spaces and case folding).
  * The frontmatter is read with the site's own reader, `scripts/frontmatter.mjs` (js-yaml, the
  * parser Astro uses), imported only when this lane applies, so the publisher's lanes and the
  * `push` mode still run with a bare `node`; the workflow installs the lockfile (`npm ci
@@ -142,10 +143,12 @@ const ANY_AUTHOR_FILE = /^src\/content\/authors\/[^/]+\.mdx?$/;
 export const AUTHOR_BRANCH = new RegExp(`^desk/authors-[a-z0-9]{1,16}-[0-9a-f]{16}-(${AUTHOR_ID_SOURCE})$`);
 /** The change statuses the authors lane allows: an added or a modified profile. */
 const AUTHOR_LANE_STATUSES = new Set(['A', 'M']);
-/** The kinds the posts App may add. A new `human` is the maintainer's to add. */
-export const ADDABLE_AUTHOR_KINDS = Object.freeze(['ai', 'bot']);
-/** The one kind whose name the posts App may change (a person's name can change; an AI's or a bot's may not). */
-const RENAMEABLE_AUTHOR_KIND = 'human';
+/**
+ * The only kinds of author whose files the posts App may touch: at the merge base for a modified
+ * file, at the head for an added one. A human's file (or one of an unknown kind) changes only
+ * through the maintainer.
+ */
+export const AUTHOR_LANE_KINDS = Object.freeze(['ai', 'bot']);
 /** An author file larger than this is not a profile; it is refused before it is read. */
 export const AUTHOR_FILE_MAX_BYTES = 64 * 1024;
 
@@ -250,28 +253,28 @@ export function authorContentProblems({ status, path, baseText, headText, otherN
   if (head.problem) return [head.problem];
   const after = head.data;
   const problems = [];
-  let nameChanged = true;
+  const kinds = AUTHOR_LANE_KINDS.map((kind) => `kind: ${kind}`).join(' or ');
   if (status === 'M') {
     if (baseText === null) return [`${path}: modified, but it is not at the merge base`];
     const base = read(baseText, 'at the merge base');
     if (base.problem) return [base.problem];
     const before = base.data;
+    if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (before.kind))) {
+      return [`${path}: an author of kind ${JSON.stringify(before.kind)}; the authors lane changes only ${kinds} files (a human's file changes only through the maintainer)`];
+    }
     const same = (key) => Object.hasOwn(before, key) === Object.hasOwn(after, key) && isDeepStrictEqual(before[key], after[key]);
     if (!same('id')) problems.push(`${path}: its id field changed (${JSON.stringify(before.id)} to ${JSON.stringify(after.id)}); an author's id never changes`);
     if (!same('kind')) problems.push(`${path}: its kind changed (${JSON.stringify(before.kind)} to ${JSON.stringify(after.kind)}); an author's kind never changes in the authors lane`);
-    nameChanged = !same('name');
-    if (nameChanged && before.kind !== RENAMEABLE_AUTHOR_KIND) {
+    if (!same('name')) {
       problems.push(`${path}: its name changed (${JSON.stringify(before.name)} to ${JSON.stringify(after.name)}); an author of kind ${JSON.stringify(before.kind)} keeps its name`);
     }
   } else {
-    if (!ADDABLE_AUTHOR_KINDS.includes(/** @type {string} */ (after.kind))) {
-      problems.push(`${path}: a new author of kind ${JSON.stringify(after.kind)}; the authors lane adds only ${ADDABLE_AUTHOR_KINDS.map((kind) => `kind: ${kind}`).join(' or ')} (a new human is the maintainer's to add)`);
+    if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (after.kind))) {
+      problems.push(`${path}: a new author of kind ${JSON.stringify(after.kind)}; the authors lane adds only ${kinds} (a new human is the maintainer's to add)`);
     }
     if (Object.hasOwn(after, 'id') && after.id !== id) {
       problems.push(`${path}: its id field ${JSON.stringify(after.id)} is not its file's id ${JSON.stringify(id)}`);
     }
-  }
-  if (nameChanged) {
     const name = comparableName(after.name);
     if (name !== null && otherNames.some((other) => comparableName(other) === name)) {
       problems.push(`${path}: the name ${JSON.stringify(after.name)} is another author's; no author passes as another`);
@@ -471,8 +474,10 @@ export function authorsLaneProblems({ cwd, collected, headRef, readFrontmatter }
   const pathProblems = authorPathProblems({ changes, modes, headRef });
   if (pathProblems.length > 0) return pathProblems;
   const [{ status, path }] = changes;
+  // Only an added author's name can clash: a modified one keeps its name.
+  const others = status === 'A' ? [...modes.keys()].filter((p) => p !== path && ANY_AUTHOR_FILE.test(p)).sort() : [];
   const otherNames = [];
-  for (const other of [...modes.keys()].filter((p) => p !== path && ANY_AUTHOR_FILE.test(p)).sort()) {
+  for (const other of others) {
     let frontmatter;
     try {
       frontmatter = readFrontmatter(authorFileAt(cwd, head, other));
