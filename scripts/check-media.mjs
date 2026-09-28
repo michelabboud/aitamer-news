@@ -137,8 +137,15 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
     }
     const hero = fm?.data.heroImage;
     if (typeof hero !== 'string' || !hero.startsWith(prefix)) continue;
-    // A pubDate the build cannot read fails the build anyway; counting that post as live keeps this strict.
-    const { date } = pubDateOf(fm);
+    // A pubDate the stamper cannot read is reported as a problem here (and fails check:posts too),
+    // instead of escaping as an unhandled rejection (deep review re-check, R2).
+    let date;
+    try {
+      ({ date } = pubDateOf(fm));
+    } catch (error) {
+      errors.push(`${file}: ${error.message}`);
+      continue;
+    }
     const live = isPublishedDraftField(fm.data) === true && (date === null || isLive({ draft: false, pubDate: date }, now));
     targets.push({ key: hero.slice(prefix.length), label: file, local: null, required: live });
   }

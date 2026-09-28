@@ -166,6 +166,14 @@ test('usage errors and unreadable inputs are refused before any request', async 
   assert.match(output, /Not A Hero\.png: not a hero file name/);
 });
 
+test('a post whose pubDate cannot be read is reported as a problem, not a crash', async () => {
+  const { postsDir } = fixture();
+  writeFileSync(join(postsDir, 'odd-date.md'), '---\ntitle: x\npubDate: >-\n  2026-09-28\ndraft: false\nheroImage: https://media.aitamer.news/heroes/odd-date.jpg\n---\nBody.\n');
+  const { result, output } = await run([], { postsDir, origin: 'http://127.0.0.1:9' });
+  assert.equal(result, 1);
+  assert.match(output, /odd-date\.md: pubDate/);
+});
+
 test('ETags are compared bare, and the judge reads only what matters', () => {
   assert.equal(bareEtag('"ABC"'), 'abc');
   assert.equal(bareEtag('W/"abc"'), 'abc');

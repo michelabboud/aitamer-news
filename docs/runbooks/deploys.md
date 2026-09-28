@@ -37,6 +37,10 @@ The job summary lists the commit, the deployment that was live before, the previ
 
 `smoke:` checks the whole site three times, 20 s apart, before failing, so a one-off network error does not fail a deploy.
 
+## A post's hero is missing on the media host
+
+`check:media` fails the pull request and the deploy when a live post's `heroImage` does not answer `200 image/jpeg` on `https://media.aitamer.news`. Until it is fixed, every deploy of `main` stops at that step. Fix it one of two ways: upload the image (`npx wrangler r2 object put aitamer-media/heroes/<slug>.jpg --file <file>.jpg --content-type image/jpeg --cache-control "public, max-age=86400" --remote`, POST.md section 3), or set the post back to `draft: true` in a commit. Then re-run the deploy. If the whole media host is down, every live post fails this step; wait for it to answer, since shipping without it would publish broken images.
+
 ## Roll back by hand
 
 Cloudflare dashboard → Workers & Pages → `aitamer-news` → **Deployments** → the last good production deployment → **⋯** → **Rollback**. Any successful production deployment is a valid target, including one newer than the one live now.
