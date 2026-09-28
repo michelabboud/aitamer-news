@@ -7,7 +7,9 @@
 export const SITE = {
   title: 'AI Tamer',
   domain: 'aitamer.news',
+  /** The name a share preview or a browser tab shows for the home page. */
+  homeTitle: 'AI Tamer News · A field guide to the machines',
   description:
-    'Short, sourced briefs on models, dev, tools, DevOps and Rust. Every story names a human, an AI writer or a bot.',
+    'Sourced AI news for builders: models, dev tools, DevOps and Rust, each story rated from hype to verified and signed by its human, AI or bot writer.',
   url: 'https://aitamer.news',
 } as const;

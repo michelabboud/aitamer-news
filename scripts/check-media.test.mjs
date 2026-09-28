@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
-import { bareEtag, judge, main, md5Hex } from './check-media.mjs';
+import { SITE_IMAGES, bareEtag, judge, main, md5Hex } from './check-media.mjs';
 import { quietlyAsync, tempDir } from './test-support.mjs';
 
 const MEDIA = 'https://media.aitamer.news';
@@ -51,7 +51,7 @@ async function host(objects, override = () => false) {
   return { origin, seen, close: () => new Promise((resolve) => server.close(resolve)) };
 }
 
-const run = (argv, options) => quietlyAsync(() => main(argv, { attempts: 2, attemptDelayMs: 1, ...options }));
+const run = (argv, options) => quietlyAsync(() => main(argv, { attempts: 2, attemptDelayMs: 1, siteImages: [], ...options }));
 const ALL = { 'heroes/a.jpg': 'AAAA', 'heroes/b.jpg': 'BBBBBB', 'heroes/c.jpg': 'CC' };
 
 test('every local file on the host byte for byte, and every post hero there: exit 0', async () => {
@@ -201,5 +201,24 @@ test('a scheduled post\'s missing hero is listed until its pubDate passes, then 
     assert.match(after.output, /heroes\/e\.jpg \(.*e\.md\): answered 404, expected 200/);
   } finally {
     await media.close();
+  }
+});
+
+test('the default share card is checked too: missing, it fails every run', async () => {
+  assert.deepEqual([...SITE_IMAGES], ['site/share-card.jpg']);
+  const { postsDir } = fixture();
+  const withCard = await host({ ...ALL, 'site/share-card.jpg': 'CARD' });
+  try {
+    assert.equal((await run([], { postsDir, origin: withCard.origin, siteImages: SITE_IMAGES })).result, 0);
+  } finally {
+    await withCard.close();
+  }
+  const without = await host(ALL);
+  try {
+    const { result, output } = await run([], { postsDir, origin: without.origin, siteImages: SITE_IMAGES });
+    assert.equal(result, 1);
+    assert.match(output, /site\/share-card\.jpg \(the default share image/);
+  } finally {
+    await without.close();
   }
 });
