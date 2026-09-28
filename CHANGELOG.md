@@ -2,6 +2,14 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.47] — 2026-09-28
+
+### Changed
+- **Easier reading: bigger body text, more line spacing, shorter lines** (research and change list in `docs/reports/2026-09-28-reading-typography.md`; Michel asked for it). Site text goes from 17 to 18 px at line-height 1.6 (17 px on phones); article text from 18 to 19 px at 1.7 (18 px on phones), with a slightly larger gap between paragraphs. The article column (`--measure`) is `58ch` instead of `68ch`: measured in the browser at 1280 px, the median line on the agentgateway review is now 70 characters (it was 80), inside the usual 45 to 75. Lists in articles are the same colour as the paragraphs around them. Ledes step up with the body.
+- **Headlines lead, the art frames them.** Card titles go from 24 to 28 px with no negative tracking, so Gloock's thin strokes stop breaking up on the dark background; where cards sit three across (listing pages above 900 px wide) they are 26 px, because at 28 px the site's long titles often wrap to four lines. Card and front-page lead images are shown at 16:9, the shape every hero is drawn at, instead of being cropped to 3:2 and 4:3, which makes them about 16% shorter on cards. Card art is dimmed slightly (`saturate(.88) brightness(.9)`) and returns to full colour on hover or keyboard focus, with no fade when the reader asks for reduced motion. The lead headline's floor is 32 px, and headings get a little more line spacing (1.1) so two-line titles have room for their descenders.
+- **Brighter secondary text.** `--ink-soft` is `#d1d3c9` (was `#c4c9c2`) and `--ink-muted` is `#aeb5ad` (was `#9aa39b`). On the page background that is WCAG 12.16:1 and APCA Lc 78.5 for ledes, card descriptions and the footer (was Lc 72.2, under the body-text minimum of 75), and WCAG 8.78:1 and Lc 60.5 for labels and meta (was Lc 50.4). Body text (`--bone`) is unchanged at Lc 91.
+- **Card labels are readable.** The card kicker is 12 px (was 10), and the specimen number, wildness line and comment count are 11 px (were 10). The other 10 px labels on the site are left for a follow-up (BACKLOG).
+
 ## [0.2.46] — 2026-09-28
 
 ### Changed
