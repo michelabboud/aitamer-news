@@ -75,7 +75,7 @@ sources:
     url: https://aitamer.news/posts/tools-review-agentgateway/
 wildness:
   rating: 2
-  verified: "Features and defaults from v1.52.0 docs and source; exit status, session storage and recipe validation reproduced with the release binary"
+  verified: "From the v1.52.0 docs and source; exit status, session storage and recipe checks reproduced on the binary"
   claimed: "Provider and extension counts are the project's own figures"
 verdict: "The best open, provider-neutral agent for people who want one tool for code and everything else. Run it unattended only with tight recipes, a sandbox you supply, and a wrapper that judges success itself."
 ---

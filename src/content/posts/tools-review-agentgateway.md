@@ -71,8 +71,8 @@ sources:
     url: https://aitamer.news/posts/tools-review-goose/
 wildness:
   rating: 2
-  verified: "Features, defaults and config checked against the v1.5.0 docs, schema, source and a --validate-only run of the release binary"
-  claimed: "Solo.io's reasons for not building on Envoy are its own account; no performance figures are asserted here"
+  verified: "Defaults and config checked against the v1.5.0 docs, source and the release binary's --validate-only"
+  claimed: "Why it isn't built on Envoy is Solo.io's own account; no performance figures are claimed"
 verdict: "The best open-source choice today for per-caller MCP tool control with LLM routing in the same box. Deploy it only behind a firewall, with strict keys and read-only config."
 ---
 
