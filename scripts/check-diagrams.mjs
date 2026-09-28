@@ -431,6 +431,7 @@ export function checkSvg(text, { verifyRewrite = true } = {}) {
   let elements = 0;
   /** Every <style> text, in document order: together they are one cascade. */
   const sheets = [];
+  let styles = 0;
   /** @returns {string} the checked element, serialized */
   const visit = (node, path, depth = 1) => {
     elements += 1;
@@ -482,6 +483,7 @@ export function checkSvg(text, { verifyRewrite = true } = {}) {
       inner += visit(child, where, depth + 1);
     }
     if (name === 'style') {
+      styles += 1;
       // The whole sheet, exactly as it ships, is what is checked.
       const problem = cssProblem(styleText);
       if (problem) findings.push(`${where}: ${problem}`);
@@ -494,6 +496,10 @@ export function checkSvg(text, { verifyRewrite = true } = {}) {
   };
   const output = visit(roots[0], '');
   if (elements > MAX_ELEMENTS) findings.push(`more than ${MAX_ELEMENTS} elements`);
+  // A browser reads each <style> as its own stylesheet, closing whatever is open at its end; joined,
+  // a string or block could span two sheets for this parse and not for a browser. One sheet per
+  // diagram keeps the parse and the browser on the same text (third re-check, finding E1).
+  if (styles > 1) findings.push(`/svg: ${styles} <style> elements; a diagram has at most one`);
   const { rules, problem: sheetProblem } = parseStylesheet(sheets.join('\n'));
   const motion = sheetProblem ?? motionProblem(rules);
   if (motion) findings.push(`/svg/style: ${motion}`);

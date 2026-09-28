@@ -23,6 +23,7 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - In `public/`, HTML and XML documents are refused outside `diagrams/` like SVGs.
 - (Second re-check.) **CSS outside quoted strings must be ASCII**: a non-breaking space counted as a space for the check and as part of a name for browsers, so `(prefers-reduced-motion:\u00a0reduce)` passed as a stop. **`<style type>` is compared exactly** (`" text/css "` passed). The element walk bounds its own depth, ending a stack overflow on `<g fill=a/>` floods.
 - (Third re-check.) **A line break inside a CSS string is refused**: CSS ends the string there, so `x:"⏎;animation:…;y:"` hid a live animation from the check.
+- (Fourth re-check.) **One `<style>` per diagram**: a browser reads each sheet on its own, and a string or block spanning two sheets hid an animation, or a stop, from the joined parse.
 
 ## [0.2.40] — 2026-09-28
 

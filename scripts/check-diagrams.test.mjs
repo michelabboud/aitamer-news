@@ -355,3 +355,15 @@ test('a line break inside a CSS string is refused, so no declaration hides behin
   assert.ok(checkSvg(svg(`<style>.a{x:"\n;-webkit-transition:fill 1s;y:"}</style>`)).findings.length > 0);
   assert.deepEqual(motion('.a { font-family: "Noto Sans", \'Serif\'; }\n.b { fill: red; }'), [], 'strings on one line are fine');
 });
+
+// The fourth Opus re-check of 52ebdd3 (same review record).
+
+test('a diagram has at most one <style>, so nothing can span two stylesheets', () => {
+  const two = (a, b) => svg(`<style>${SPIN}${a}</style><style>${b}</style><rect class="a"/>`);
+  for (const text of [
+    two('.a{x:"', ';}.x{}.a{animation:spin 1s infinite}.z{y:"}'),
+    two('.a{animation:spin 1s}.z{', '}@media (prefers-reduced-motion: reduce){.a{animation:none}}'),
+    two('.a{fill:red}', '.b{fill:blue}'),
+  ]) assert.match(checkSvg(text).findings.join(), /at most one/);
+  assert.ok(checkSvg(GOOD).output, 'one sheet is fine');
+});
