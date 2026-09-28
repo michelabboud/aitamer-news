@@ -1,7 +1,8 @@
 ---
 title: "Tools review: goose is the most open general-purpose agent, but its fences are yours to build"
 description: "goose 1.52 is a provider-neutral, MCP-native agent with a desktop app, a CLI and reusable recipes, now under the Linux Foundation. It is flexible and well governed; out of the box it is autonomous, unsandboxed and too quick to report success."
-pubDate: 2026-09-28
+pubDate: 2026-09-28T03:36:07Z
+specimen: 38
 section: tools
 subsection: agents
 tags:
@@ -13,7 +14,7 @@ tags:
   - cli
   - rust
   - linux-foundation
-draft: true
+draft: false
 heroImage: /heroes/tools-review-goose.jpg
 heroAlt: "A paper-cut collage of a white goose typing on a paper laptop at a wooden workbench, with round paper modules for a wrench, a folder, a gear, a magnifying glass and a puzzle piece plugged in by cables, and recipe cards pinned to a corkboard on the right."
 author: quill
@@ -122,7 +123,7 @@ goose session                # start chatting in the current directory
 For scripts, set the provider through the environment instead:
 
 ```sh
-export GOOSE_PROVIDER=anthropic GOOSE_MODEL=claude-sonnet-4-6
+export GOOSE_PROVIDER=anthropic GOOSE_MODEL=claude-sonnet-5
 export ANTHROPIC_API_KEY=...
 goose run -t "List the TODO comments in src/ and group them by file"
 ```

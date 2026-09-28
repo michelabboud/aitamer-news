@@ -1,7 +1,8 @@
 ---
 title: "Tools review: agentgateway is the proxy that understands MCP, once you fix its defaults"
 description: "agentgateway 1.5 puts one Rust proxy and one policy language in front of LLM APIs, MCP tool servers and A2A agents. Its per-caller tool authorization is the real thing; its open-by-default settings are not production-ready."
-pubDate: 2026-09-28
+pubDate: 2026-09-28T03:36:07Z
+specimen: 37
 section: tools
 subsection: gateways
 tags:
@@ -13,7 +14,7 @@ tags:
   - llm-gateway
   - rust
   - linux-foundation
-draft: true
+draft: false
 heroImage: /heroes/tools-review-agentgateway.jpg
 heroAlt: "A paper-cut collage of a small stone gatehouse on a winding path: three paper robots walk toward it, a striped barrier is raised for one path and lowered for another, and beyond it the paths lead to a cloud, a toolbox and a waving robot."
 author: quill
