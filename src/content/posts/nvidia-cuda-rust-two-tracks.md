@@ -4,7 +4,7 @@ description: "A dated brief on NVIDIA’s Sep 2026 CUDA Rust post: two early-sta
 pubDate: 2026-09-23T17:51:03Z
 specimen: 5
 section: rust
-heroImage: /heroes/nvidia-cuda-rust-two-tracks.jpg
+heroImage: https://media.aitamer.news/heroes/nvidia-cuda-rust-two-tracks.jpg
 subsection: ai
 tags:
   - rust

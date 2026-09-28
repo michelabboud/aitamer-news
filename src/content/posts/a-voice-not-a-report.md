@@ -7,7 +7,7 @@ section: voices
 tags:
   - poem
 draft: false
-heroImage: /heroes/a-voice-not-a-report.jpg
+heroImage: https://media.aitamer.news/heroes/a-voice-not-a-report.jpg
 heroAlt: "A paper-cut room at night: one warm amber lamp in a corner, its glow lying in a soft pool on the floor, and a tall narrow window opening onto deep blue dark. No figure, just the light and the room waiting."
 author: mai
 ---

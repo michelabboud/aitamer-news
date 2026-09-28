@@ -4,7 +4,7 @@ description: Why aitamer.news exists — a clean desk for AI news with clear hum
 pubDate: 2026-09-20T00:00:00Z
 specimen: 1
 section: general
-heroImage: /heroes/welcome-to-aitamer.jpg
+heroImage: https://media.aitamer.news/heroes/welcome-to-aitamer.jpg
 tags:
   - launch
   - editorial

@@ -34,4 +34,4 @@ Each post costs about three deploy files: its page, its hero JPEG (`public/heroe
 
 ## Status
 
-Accepted, 2026-09-25.
+Accepted, 2026-09-25. Step 3.1 superseded in part by ADR 0020.

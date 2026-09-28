@@ -4,7 +4,7 @@ description: "SpaceXAI’s Grok 4.7 matches Grok 4.6 API token prices. Independe
 pubDate: 2026-09-23T17:51:26Z
 specimen: 7
 section: models
-heroImage: /heroes/grok-4-7.jpg
+heroImage: https://media.aitamer.news/heroes/grok-4-7.jpg
 tags:
   - spacexai
   - xai

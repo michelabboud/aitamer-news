@@ -182,6 +182,12 @@ jobs:
       - name: Check every shipped diagram is its checked rewrite
         run: npm run check:diagrams:dist
 
+      # A live post's hero lives on R2, which the link check cannot see (ADR 0020). One HEAD per
+      # post hero, each retried on a network error or a 5xx; a draft's or a scheduled post's missing
+      # hero is only listed. Before anything is uploaded, so a missing image never reaches readers.
+      - name: Check every live post's hero is on the media host
+        run: npm run check:media
+
       - name: Record the live deployment (the rollback target)
         id: live
         env:

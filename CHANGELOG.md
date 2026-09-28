@@ -2,6 +2,28 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.45] — 2026-09-28
+
+### Changed
+- **Hero images live on R2 now, served from `https://media.aitamer.news/heroes/<slug>.jpg`** (ADR 0020; plan tasks B2 and B3, Michel's go of 2026-09-28). All 44 heroes, scheduled posts included, were uploaded to the bucket `aitamer-media` and checked byte for byte (size, and the ETag against the file's MD5) before any post changed: 44 of 44. Every post's `heroImage` is now its full media URL. The rewrite (`scripts/rewrite-hero-urls.mjs`) changed that one line per post and nothing else, re-parsing each file and comparing every other field; bodies, Mai's poems included, are untouched. Each post now costs ~2 deploy files instead of ~3 (ADR 0005's table): the build ships 196 files, none of them heroes.
+- **The default social image** (home with no lead, author and writer pages without a portrait) is the welcome hero on the media host (`DEFAULT_SOCIAL_IMAGE`).
+- **The machine-authored post excused for its two YouTube iframes was re-hashed** in `scripts/check-rendered-body.mjs` (`GRANDFATHERED_POSTS`): its `heroImage` line is the only change, so the exemption covers exactly the bytes it covered before.
+
+### Added
+- **`check:posts` refuses a published post whose hero is not its own image on the media host**: another host, another post's image, or the old `/heroes/<slug>.jpg` now that the folder is gone. A post with no hero still gets its section cover.
+- **`npm run check:media`** (`scripts/check-media.mjs`): one `HEAD` per post hero; a live post's missing image is a finding, a draft's or a scheduled post's is only listed. With `--local <dir>`, every file must be on the host byte for byte. The deploy runs it before any upload (below).
+- **The old hero URLs keep working**: `public/_redirects` sends each of the 44 `/heroes/<slug>.jpg` to its media URL with a 301 (`LEGACY_HEROES`, held equal to the file by a test). The deploy's smoke test now requires a redirect to another host to land on that host, not merely on the same path. `heroes` stays a reserved name for writer pages.
+- POST.md §3: how a writer uploads a hero, and in-body images at `https://media.aitamer.news/posts/<slug>/<name>.jpg` for any author.
+
+### Changed after the deep review (same version)
+- **The deploy fails when a live post's hero is not on the media host** (review N1). `npm run check:media` runs in `deploy-pages.yml` after the build's checks and before the preview upload. Each `HEAD` is retried on a network error or a 5xx, and a draft's or a future-scheduled post's missing hero is only listed. Before this, nothing in CI proved a hero existed once heroes left the link check's reach. A test holds the step in place and unconditional. The pull-request check (`check-posts.yml`) runs it too, so a missing hero fails its pull request rather than the deploy of `main`; a test pins that step as well.
+- **`/heroes/<slug>.jpg` is refused outright**, and `check:posts` fails while a `public/heroes/` folder exists, even an empty one (review N2): images never return to the repository. The tests pin thirteen near misses of the media URL (another slug or host, `http`, a query, a fragment, a trailing slash, an uppercase host, an encoded slug, userinfo, a port, another extension, an in-body path), so a future "normalise first" refactor cannot loosen the rule.
+- `LICENSE-CONTENT.md` names the hero images by where they are now served (`https://media.aitamer.news/heroes/`); the terms are unchanged (review N3).
+- ADR 0005 is back to its accepted text, with one Status line pointing at ADR 0020, which says it supersedes step 3.1 in part (review N4).
+
+### Removed
+- `public/heroes/` (44 JPEGs, recoverable from git history) and `scripts/decode-heroes.mjs` with its steps in `dev` and `build`.
+
 ## [0.2.44] — 2026-09-28
 
 ### Security (the live site)

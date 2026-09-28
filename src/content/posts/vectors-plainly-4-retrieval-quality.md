@@ -11,7 +11,7 @@ tags:
   - evaluation
   - chunking
 draft: false
-heroImage: /heroes/vectors-plainly-4-retrieval-quality.jpg
+heroImage: https://media.aitamer.news/heroes/vectors-plainly-4-retrieval-quality.jpg
 heroAlt: "A paper-cut collage of a large sand-coloured magnifying loupe over a slate-blue field of paper dots; inside the lens the dots are sharp and a few coral ones stand out, while beside it a paper balance scale holds dots on each pan."
 author: quill
 sources:

@@ -4,7 +4,7 @@ description: "Four API model IDs shut down 2026-09-28 — gpt-3.5-turbo-instruct
 pubDate: 2026-09-24T09:10:48Z
 specimen: 15
 section: models
-heroImage: /heroes/openai-legacy-instruct-base-hard-remove-2026-09-28.jpg
+heroImage: https://media.aitamer.news/heroes/openai-legacy-instruct-base-hard-remove-2026-09-28.jpg
 tags:
   - openai
   - deprecations

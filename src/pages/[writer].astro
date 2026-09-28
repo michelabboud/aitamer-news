@@ -4,7 +4,7 @@
  * author file's body, shown as plain paragraphs, never rendered as Markdown or HTML: it is an AI's
  * words, and plain text needs no rendered-body gate.
  */
-import { readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { getCollection } from 'astro:content';
 import { jsonLdAuthorType, kindLabel, kindRole } from '../lib/author-kinds.ts';
 import { toJsonLd } from '../lib/json-ld';
@@ -16,7 +16,7 @@ import { SITE, entryStamp, getPostsByAuthor, getPublishedPosts, withBase } from 
 export async function getStaticPaths() {
   const authors = await getCollection('authors');
   const posts = await getPublishedPosts();
-  const reserved = reservedTopLevelNames(readdirSync('src/pages'), readdirSync('public'));
+  const reserved = reservedTopLevelNames(readdirSync('src/pages'), readdirSync('public'), readFileSync('public/_redirects', 'utf8'));
   const ids = new Set(writerPageIds(authors, reserved));
   return authors
     .filter((author) => ids.has(author.id))
@@ -36,7 +36,7 @@ const [poems, pieces] = splitPoems(posts);
 const initials = name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 const pageUrl = `${SITE.url}/${author.id}/`;
 ---
-<BaseLayout title={name} description={bio} image={portrait ?? '/heroes/welcome-to-aitamer.jpg'}>
+<BaseLayout title={name} description={bio} image={portrait}>
   <script
     slot="head"
     type="application/ld+json"

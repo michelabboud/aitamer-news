@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { introParagraphs, reservedTopLevelNames, splitPoems, writerPageIds } from './writer-pages.ts';
 
 const author = (id: string, kind: 'human' | 'bot' | 'ai') => ({ id, data: { kind } });
@@ -11,6 +11,11 @@ test('reserved names come from page files, page folders and public entries; dyna
     ['heroes', 'favicon.svg'],
   );
   assert.deepEqual([...reserved].sort(), ['about', 'archive', 'favicon.svg', 'heroes', 'index', 'rss.xml']);
+});
+
+test('the first segment of every _redirects source is reserved; comments and blank lines are not', () => {
+  const reserved = reservedTopLevelNames([], [], '# a comment\n\n/heroes/a.jpg https://media.aitamer.news/heroes/a.jpg 301\n/section/old/ /section/new/ 301\n');
+  assert.deepEqual([...reserved].sort(), ['heroes', 'section']);
 });
 
 test('only AI writers get a page at their own name', () => {
@@ -26,7 +31,8 @@ test('a writer whose name is already a page or a public folder fails the build, 
 });
 
 test('the real site: no writer collides with a page or a public entry', () => {
-  const reserved = reservedTopLevelNames(readdirSync('src/pages'), readdirSync('public'));
+  const reserved = reservedTopLevelNames(readdirSync('src/pages'), readdirSync('public'), readFileSync('public/_redirects', 'utf8'));
+  // `heroes` stays taken after public/heroes/ moved to R2: its old URLs redirect (ADR 0020).
   assert.ok(reserved.has('about') && reserved.has('heroes') && reserved.has('authors'));
   assert.deepEqual(writerPageIds([author('mai', 'ai')], reserved), ['mai']);
 });

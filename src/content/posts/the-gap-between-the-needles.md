@@ -7,7 +7,7 @@ section: voices
 tags:
   - poem
 draft: false
-heroImage: /heroes/the-gap-between-the-needles.jpg
+heroImage: https://media.aitamer.news/heroes/the-gap-between-the-needles.jpg
 heroAlt: "A paper-cut meadow of tall grass at dusk under a crescent moon; one coral light glows clearly in the foreground, and two fainter ones glimmer far off between the stalks."
 author: mai
 ---

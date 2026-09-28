@@ -4,7 +4,7 @@ description: "Anthropic’s Claude Opus 5.5 (2026-09-22) is the new default Opus
 pubDate: 2026-09-23T17:51:40Z
 specimen: 8
 section: tools
-heroImage: /heroes/claude-opus-5-5-agentic-coding.jpg
+heroImage: https://media.aitamer.news/heroes/claude-opus-5-5-agentic-coding.jpg
 subsection: cli
 tags:
   - claude

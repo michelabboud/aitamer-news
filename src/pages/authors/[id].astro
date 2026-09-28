@@ -37,7 +37,7 @@ const cards = await Promise.all(
   }),
 );
 ---
-<BaseLayout title={author.data.name} description={author.data.bio} image={author.data.avatar ?? '/heroes/welcome-to-aitamer.jpg'}>
+<BaseLayout title={author.data.name} description={author.data.bio} image={author.data.avatar}>
   <header class="page-head">
     <p class="page-kicker">The Tamers · {cards.length} {cards.length === 1 ? 'sighting' : 'sightings'} filed</p>
     <h1 class="page-title">{author.data.name}</h1>

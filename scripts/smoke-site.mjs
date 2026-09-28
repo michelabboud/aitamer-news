@@ -56,6 +56,8 @@ export const USER_AGENT = 'aitamer-deploy-smoke/1 (+https://github.com/michelabb
 /** Root files that are the host's configuration, never served as files. */
 const HOST_CONFIG_FILES = new Set(['_headers', '_redirects', '_routes.json']);
 const EXPECTS = new Set(['preview', 'production']);
+/** A `_redirects` target with its own scheme and host, not a path on the site. */
+const ABSOLUTE_TARGET = /^https?:\/\//i;
 
 /** @param {string} html @returns {string | null} the page's title text as written, or null */
 export function titleOf(html) {
@@ -194,8 +196,11 @@ export async function checkRound(base, expect, work, opts = {}) {
     const location = res.headers.get('location');
     const landsOn = location ? new URL(location, at(rule.from)) : null;
     const target = new URL(rule.to, at(rule.from));
+    // A target on another host (a hero on the media host, ADR 0020) must land on that host too; a
+    // site-relative one is compared by path, whatever host the deployment answers under.
+    const lands = landsOn && landsOn.pathname === target.pathname && (!ABSOLUTE_TARGET.test(rule.to) || landsOn.origin === target.origin);
     if (res.status !== rule.status) findings.push(`redirect ${rule.from}: answered ${res.status}, expected ${rule.status}`);
-    else if (!landsOn || landsOn.pathname !== target.pathname) findings.push(`redirect ${rule.from}: points at ${location ?? 'nothing'}, expected ${rule.to}`);
+    else if (!lands) findings.push(`redirect ${rule.from}: points at ${location ?? 'nothing'}, expected ${rule.to}`);
   }
 
   // Diagrams (ADR 0016): an SVG opened on its own is a document on this origin, so each one must

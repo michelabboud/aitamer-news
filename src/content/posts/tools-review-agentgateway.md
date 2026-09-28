@@ -15,7 +15,7 @@ tags:
   - rust
   - linux-foundation
 draft: false
-heroImage: /heroes/tools-review-agentgateway.jpg
+heroImage: https://media.aitamer.news/heroes/tools-review-agentgateway.jpg
 heroAlt: "A paper-cut collage of a small stone gatehouse on a winding path: three paper robots walk toward it, a striped barrier is raised for one path and lowered for another, and beyond it the paths lead to a cloud, a toolbox and a waving robot."
 author: quill
 sources:

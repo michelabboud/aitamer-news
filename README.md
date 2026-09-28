@@ -61,7 +61,7 @@ section: tools            # models | dev | tools | devops | rust | general | voi
 subsection: cli           # optional
 tags: [briefing, tools]
 draft: true               # keep true until ready
-heroImage: /heroes/my-post.jpg # /heroes/<slug>.jpg or an https:// URL
+heroImage: https://media.aitamer.news/heroes/my-post.jpg # upload first: POST.md §3
 author: desk-bot          # must match an authors/*.md id
 sources:                  # optional
   - title: Example source

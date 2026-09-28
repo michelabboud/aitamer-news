@@ -26,7 +26,8 @@ test('a burst of merges becomes one deploy, and a started deploy is never cut sh
 
 test('checks, then a preview and its smoke test, then production and its smoke test, then the rollback', () => {
   index(runs(/npm run check:links\b/), 'the link check');
-  const lastCheck = index(runs(/npm run check:diagrams:dist\b/), 'the shipped-diagram check');
+  index(runs(/npm run check:diagrams:dist\b/), 'the shipped-diagram check');
+  const lastCheck = index(runs(/^npm run check:media$/), 'the media check (every live post\'s hero is uploaded, ADR 0020)');
   const live = index(runs(/pages-api\.mjs live\b/), 'the rollback target recorded');
   const preview = index(deploysTo('deploy-candidate'), 'a preview deploy');
   const smokePreview = index(runs(/smoke-site\.mjs .*--expect preview\b/), 'a preview smoke test');
@@ -58,4 +59,13 @@ test('the smoke tests read their addresses from the environment, and production 
   for (const step of steps.filter((s) => String(s.with?.command ?? '').includes('pages deploy'))) {
     assert.match(step.with.command, /--project-name=aitamer-news /);
   }
+});
+
+test('the media check runs with no argument (live posts only, never a --local comparison) and is never skipped', () => {
+  const media = steps.find(runs(/check:media/));
+  assert.equal(media.run, 'npm run check:media');
+  assert.equal(media.if, undefined, 'a condition could skip it');
+  assert.equal(media['continue-on-error'], undefined, 'a failure must stop the deploy');
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  assert.equal(pkg.scripts['check:media'], 'node scripts/check-media.mjs');
 });

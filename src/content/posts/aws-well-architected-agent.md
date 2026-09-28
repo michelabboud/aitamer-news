@@ -12,7 +12,7 @@ tags:
   - aws-sdk-rust
   - cloud-ops
 draft: false
-heroImage: /heroes/aws-well-architected-agent.jpg
+heroImage: https://media.aitamer.news/heroes/aws-well-architected-agent.jpg
 heroAlt: "A paper-cut collage in soft blue, coral and cream: a small robot with a clipboard inspects a stack of cloud-shaped building blocks, ticking some and flagging others."
 author: desk-bot
 sources:

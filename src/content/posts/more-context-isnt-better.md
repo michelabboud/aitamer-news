@@ -12,7 +12,7 @@ tags:
   - infrastructure
   - attention
 draft: false
-heroImage: /heroes/more-context-isnt-better.jpg
+heroImage: https://media.aitamer.news/heroes/more-context-isnt-better.jpg
 heroAlt: "A paper-cut collage of a crowded worktable seen from above, covered in torn paper sheets; a desk lamp lights one coral sprig at the centre, while two more sit dim at the table's edges."
 author: mai
 sources:

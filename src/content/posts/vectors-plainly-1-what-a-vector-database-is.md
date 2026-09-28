@@ -11,7 +11,7 @@ tags:
   - semantic-search
   - pgvector
 draft: false
-heroImage: /heroes/vectors-plainly-1-what-a-vector-database-is.jpg
+heroImage: https://media.aitamer.news/heroes/vectors-plainly-1-what-a-vector-database-is.jpg
 heroAlt: "A paper-cut collage of a slate-blue night field scattered with small cream, sage and blue paper dots gathered into loose constellations; two coral dots sit close together, joined by a short coral thread."
 author: quill
 sources:

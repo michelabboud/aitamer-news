@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { chooseStamp, dateOnlyPubDate, gitPublishTime, isoUtcSeconds, main, withStamp } from './stamp-post-times.mjs';
+import { HEROES_DIR, chooseStamp, dateOnlyPubDate, gitPublishTime, heroProblem, isoUtcSeconds, main, withStamp } from './stamp-post-times.mjs';
 import { gitIn, quietly, tempDir } from './test-support.mjs';
 
 const post = (frontmatter, body = 'Body mentions pubDate: 2026-01-01 in prose.\n') =>
@@ -124,4 +124,70 @@ test('the git publish time is the first commit carrying draft: false, in any YAM
   writeFileSync(join(repo, 'p.md'), post('pubDate: 2026-09-24\ndraft: false'));
   git(['commit', '-q', '-am', 'respell'], { GIT_COMMITTER_DATE: '2026-09-25T09:30:00Z' });
   assert.equal(gitPublishTime('p.md', { cwd: repo }).toISOString(), '2026-09-24T09:30:00.000Z');
+});
+
+// --- the hero rule (ADR 0020) -------------------------------------------------------------------
+
+test('a published post\'s hero is its own image on the media host; no hero is fine; drafts are not judged', () => {
+  assert.equal(heroProblem(post('pubDate: 2026-09-24T09:00:00Z\nheroImage: https://media.aitamer.news/heroes/a.jpg'), 'a'), null);
+  assert.equal(heroProblem(post('heroImage: "https://media.aitamer.news/heroes/a.jpg"'), 'a'), null);
+  assert.equal(heroProblem(post('pubDate: 2026-09-24T09:00:00Z'), 'a'), null);
+  assert.equal(heroProblem(post('draft: true\nheroImage: https://elsewhere.example/x.jpg'), 'a'), null);
+});
+
+test('every near miss of the media URL is refused, naming the expected URL (review I2: no normalising)', () => {
+  const near = [
+    'https://media.aitamer.news/heroes/b.jpg', // another post's image
+    'https://elsewhere.example/heroes/a.jpg', // another host
+    'http://media.aitamer.news/heroes/a.jpg', // plain http
+    'https://media.aitamer.news/heroes/a.jpg?v=2', // a query
+    'https://media.aitamer.news/heroes/a.jpg#top', // a fragment
+    'https://media.aitamer.news/heroes/a.jpg/', // a trailing slash
+    'https://MEDIA.aitamer.news/heroes/a.jpg', // an uppercase host
+    'https://media.aitamer.news/heroes/%61.jpg', // an encoded slug
+    'https://media.aitamer.news@evil.example/heroes/a.jpg', // userinfo
+    'https://user@media.aitamer.news/heroes/a.jpg', // userinfo on the real host
+    'https://media.aitamer.news:443/heroes/a.jpg', // an explicit port
+    'https://media.aitamer.news/heroes/a.jpeg', // another extension
+    'https://media.aitamer.news/posts/a/a.jpg', // an in-body image path
+  ];
+  for (const value of near) {
+    assert.match(heroProblem(post(`heroImage: "${value}"`), 'a'), /must be https:\/\/media\.aitamer\.news\/heroes\/a\.jpg .*not "/, value);
+  }
+  assert.match(heroProblem(post('heroImage: ""'), 'a'), /must be/);
+  assert.match(heroProblem(post('heroImage:'), 'a'), /must be .*not null/);
+});
+
+test('the retired /heroes/<slug>.jpg path is refused with the way out, whatever is on disk', () => {
+  assert.match(heroProblem(post('heroImage: /heroes/a.jpg'), 'a'), /retired repo path .*write heroImage: https:\/\/media\.aitamer\.news\/heroes\/a\.jpg/);
+  assert.match(heroProblem(post('heroImage: /heroes/b.jpg'), 'a'), /must be/);
+});
+
+test('check mode fails on a bad hero, naming the post, and passes once it is fixed', () => {
+  const dir = tempDir('times-');
+  const heroesDir = join(dir, 'no-such-folder');
+  writeFileSync(join(dir, 'a.md'), post('pubDate: 2026-09-24T09:00:00Z\nheroImage: /heroes/a.jpg'));
+  const options = { postsDir: dir, heroesDir, publishTime: () => null };
+  const failing = quietly(() => main(['--check'], options));
+  assert.equal(failing.result, 1);
+  assert.match(failing.output, /a\.md: heroImage \/heroes\/a\.jpg is the retired repo path/);
+  writeFileSync(join(dir, 'a.md'), post('pubDate: 2026-09-24T09:00:00Z\nheroImage: https://media.aitamer.news/heroes/a.jpg'));
+  assert.equal(quietly(() => main(['--check'], options)).result, 0);
+});
+
+test('check mode fails while a public/heroes folder exists, even empty (review N2: no images back in the repo)', () => {
+  const dir = tempDir('times-');
+  const heroesDir = join(dir, 'heroes');
+  writeFileSync(join(dir, 'a.md'), post('pubDate: 2026-09-24T09:00:00Z\nheroImage: https://media.aitamer.news/heroes/a.jpg'));
+  mkdirSync(heroesDir);
+  const empty = quietly(() => main(['--check'], { postsDir: dir, heroesDir, publishTime: () => null }));
+  assert.equal(empty.result, 1);
+  assert.match(empty.output, /heroes\/: heroes live on R2, never in the repository/);
+  writeFileSync(join(heroesDir, 'a.jpg'), 'jpg');
+  assert.equal(quietly(() => main(['--check'], { postsDir: dir, heroesDir, publishTime: () => null })).result, 1);
+});
+
+test('the real repository: every post passes the hero rule, and public/heroes/ is gone', () => {
+  assert.equal(existsSync(HEROES_DIR), false, `${HEROES_DIR} must not exist (ADR 0020)`);
+  assert.equal(quietly(() => main(['--check'], { publishTime: () => null })).result, 0);
 });

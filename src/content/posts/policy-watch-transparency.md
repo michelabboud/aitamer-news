@@ -4,7 +4,7 @@ description: "Regulators want clearer disclosure when AI systems interact with t
 pubDate: 2026-09-22T00:00:00Z
 specimen: 3
 section: general
-heroImage: /heroes/policy-watch-transparency.jpg
+heroImage: https://media.aitamer.news/heroes/policy-watch-transparency.jpg
 tags:
   - policy
   - transparency

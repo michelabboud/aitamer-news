@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { ANALYTICS_ID, HABITAT_LIST, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
-import { resolveMedia } from '../lib/media';
+import { DEFAULT_SOCIAL_IMAGE, resolveMedia } from '../lib/media';
 import { getCollection } from 'astro:content';
 import { WRITER_PAGE_KIND } from '../lib/writer-pages.ts';
 
@@ -9,7 +9,7 @@ interface Props {
   title?: string;
   description?: string;
   canonical?: string;
-  /** Site-relative path like `/heroes/foo.jpg`. */
+  /** A site-relative path or an absolute URL (a hero on the media host); the welcome hero when absent. */
   image?: string;
   /** Open Graph type. */
   ogType?: 'website' | 'article';
@@ -41,8 +41,7 @@ const {
 } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.domain}`;
 const canonicalUrl = canonical ?? canonicalUrlFor(Astro.url.pathname);
-const defaultImage = '/heroes/welcome-to-aitamer.jpg';
-const imagePath = resolveMedia(image?.trim() || defaultImage);
+const imagePath = resolveMedia(image?.trim() || DEFAULT_SOCIAL_IMAGE);
 const absoluteImage = new URL(imagePath, SITE.url).toString();
 
 function isCurrent(href: string): boolean {

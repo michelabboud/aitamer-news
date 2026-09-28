@@ -83,10 +83,13 @@ export const POST_MAX_BYTES = 512 * 1024;
  * - `made-on-youtube-2026-gemini-ask-studio.md` embeds two YouTube players as raw `<iframe>`s. It
  *   predates the `video` front matter field and `VideoEmbed.astro` (which holds one video, where
  *   this post has two); whether and how to move it is Michel's call (posts MCP plan, Q4).
+ *   Re-hashed once, 2026-09-28, when its `heroImage` line moved to the media host (ADR 0020): that line
+ *   is the only change (scripts/rewrite-hero-urls.mjs re-parses and compares), the body and its two
+ *   iframes are byte for byte the ones excused before.
  */
 export const GRANDFATHERED_POSTS = Object.freeze({
   'src/content/posts/made-on-youtube-2026-gemini-ask-studio.md': Object.freeze({
-    sha256: '52e103385819d3511391d7847cd6d6a4fde2fba53bf09671e2aedb17c4579580',
+    sha256: '8973eb9688bc3245e774cf472196c161b3ada6e862a605ddbe5cd87ac1f75ca5',
     findings: Object.freeze([
       Object.freeze({ path: 'iframe[1]', element: 'iframe', problem: 'element <iframe> is not allowed' }),
       Object.freeze({ path: 'iframe[2]', element: 'iframe', problem: 'element <iframe> is not allowed' }),

@@ -13,7 +13,7 @@ tags:
   - qualcomm
   - branding
 draft: false
-heroImage: /heroes/copilot-plus-pc-brand-retired.jpg
+heroImage: https://media.aitamer.news/heroes/copilot-plus-pc-brand-retired.jpg
 heroAlt: "A paper-cut laptop in soft blue and cream, with a paper hand peeling a coral 'plus' sign off its lid like an old sticker."
 author: desk-bot
 sources:

@@ -74,7 +74,8 @@ const writers = authors
   .filter((a) => a.data.kind === WRITER_PAGE_KIND)
   .map((author) => ({ author, latest: posts.find((p) => p.data.author.id === author.id) }));
 
-const ogImage = lead ? postCover(lead) : '/heroes/welcome-to-aitamer.jpg';
+// No lead: BaseLayout falls back to the welcome hero (DEFAULT_SOCIAL_IMAGE).
+const ogImage = lead ? postCover(lead) : undefined;
 ---
 <BaseLayout title="Field log" description={SITE.description} image={ogImage} home={{ habitatCounts: counts }}>
   <script

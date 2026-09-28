@@ -4,7 +4,7 @@ description: "GitHub’s Stephen Toub details rewriting the Copilot agent runtim
 pubDate: 2026-09-23T17:51:54Z
 specimen: 9
 section: tools
-heroImage: /heroes/copilot-runtime-rust-migration.jpg
+heroImage: https://media.aitamer.news/heroes/copilot-runtime-rust-migration.jpg
 subsection: agents
 tags:
   - github-copilot

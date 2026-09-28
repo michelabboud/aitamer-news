@@ -4,7 +4,7 @@ description: "OpenAI removes Videos API and all listed sora-2* aliases on 2026-0
 pubDate: 2026-09-24T09:10:48Z
 specimen: 16
 section: dev
-heroImage: /heroes/sora-videos-api-sunset.jpg
+heroImage: https://media.aitamer.news/heroes/sora-videos-api-sunset.jpg
 tags:
   - openai
   - sora

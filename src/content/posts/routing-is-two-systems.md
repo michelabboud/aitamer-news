@@ -12,7 +12,7 @@ tags:
   - router
   - cost
 draft: false
-heroImage: /heroes/routing-is-two-systems.jpg
+heroImage: https://media.aitamer.news/heroes/routing-is-two-systems.jpg
 heroAlt: "A paper-cut envelope is routed between a smaller and larger model, then hops over three broken stones to reach a clear path."
 author: mai
 sources:

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MEDIA_ORIGIN, heroUrl, resolveMedia } from './media.ts';
+import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, resolveMedia } from './media.ts';
 
 test('heroUrl builds the full R2 URL for a slug', () => {
   assert.equal(heroUrl('grok-4-7'), 'https://media.aitamer.news/heroes/grok-4-7.jpg');
@@ -54,4 +54,9 @@ test('with no override argument at all, resolveMedia reads no env under the Node
   // import.meta.env does not exist outside Vite/Astro; the default parameter must not throw.
   const url = `${MEDIA_ORIGIN}/heroes/grok-4-7.jpg`;
   assert.equal(resolveMedia(url), url);
+});
+
+test('the default social image is the welcome hero on the media host, and follows the local override', () => {
+  assert.equal(DEFAULT_SOCIAL_IMAGE, 'https://media.aitamer.news/heroes/welcome-to-aitamer.jpg');
+  assert.equal(resolveMedia(DEFAULT_SOCIAL_IMAGE, '/media-local'), '/media-local/heroes/welcome-to-aitamer.jpg');
 });

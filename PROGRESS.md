@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-09-28** — 0.2.45: hero images moved to R2 (ADR 0020). All 44 uploaded to `media.aitamer.news` and checked byte for byte before any post changed; every post's `heroImage` is now the full media URL (only that line changed); `public/heroes/` and the base64 decoder are gone; the old `/heroes/` URLs redirect. Each post costs ~2 deploy files now. The deep review was clear; its follow-ups are in: the deploy now fails when a live post's hero is missing on the media host, and `public/heroes/` can never come back.
+
 - **2026-09-28** — 0.2.44: the posts App's authors lane (ADR 0018). Its author pull requests pass `publisher-paths` only if they change one AI writer's or bot's file honestly: kind and name never change, no new humans, no borrowed names; a human's file changes only through Michel. The GitHub variable and ruleset come after merge.
 
 - **2026-09-27** — 0.2.33: `check:posts` now fails a post whose `author` has no profile. Astro only logged the broken reference and dropped the post from the build with exit 0.

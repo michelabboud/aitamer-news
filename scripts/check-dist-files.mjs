@@ -4,8 +4,8 @@
  *
  *   npm run check:files     warn from WARN_AT files, fail from FAIL_AT (run after `npm run build`)
  *
- * The free plan accepts at most 20,000 files per deploy, and every post costs about three
- * (its page, its hero image, its Pagefind fragment). A deploy over the cap is rejected outright,
+ * The free plan accepts at most 20,000 files per deploy, and every post costs about two
+ * (its page and its Pagefind fragment; its hero image lives on R2 since 0.2.45, ADR 0020). A deploy over the cap is rejected outright,
  * so this fails the build first, with room to spare, and warns long before
  * (docs/adr/0005-deploy-file-budget.md).
  */
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 
 /** Cloudflare's free-plan limit on files in one Pages / Workers-assets deploy. */
 export const DEPLOY_FILE_CAP = 20_000;
-/** Start warning here: about 1,300 posts of headroom left at three files per post. */
+/** Start warning here: about 2,000 posts of headroom left at two files per post. */
 export const WARN_AT = 16_000;
 /** Fail here, before Cloudflare does, so the error names the cause. */
 export const FAIL_AT = 19_500;
@@ -35,7 +35,7 @@ export function verdict(files) {
   const left = DEPLOY_FILE_CAP - files;
   const base = `${files} files in the deploy; the free plan allows ${DEPLOY_FILE_CAP} (${left} left).`;
   if (files >= FAIL_AT) {
-    return { level: 'fail', message: `${base} Move hero images or the search index to R2, or move to Workers Paid (docs/adr/0005-deploy-file-budget.md).` };
+    return { level: 'fail', message: `${base} Move the search index to R2, or move to Workers Paid (docs/adr/0005-deploy-file-budget.md).` };
   }
   if (files >= WARN_AT) return { level: 'warn', message: `${base} Plan the move in docs/adr/0005-deploy-file-budget.md now.` };
   return { level: 'ok', message: base };

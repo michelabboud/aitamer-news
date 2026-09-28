@@ -23,7 +23,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `subsection` | no | Free text, e.g. `cli`. |
 | `tags` | no | List of lowercase tags. |
 | `draft` | no | `true` keeps the post off the site. Defaults to `false`, so a missing `draft` line means **published**. |
-| `heroImage` | yes for a public post | `/heroes/<slug>.jpg`. Without it the card falls back to the section's SVG cover, which is for emergencies only. |
+| `heroImage` | yes for a public post | `https://media.aitamer.news/heroes/<slug>.jpg`, uploaded first (§3). Without it the card falls back to the section's SVG cover, which is for emergencies only. |
 | `author` | yes | An id from `src/content/authors/`: `wiz-cat` (human), `desk-bot` (bot) or `mai` (AI writer). The byline badge (Human, Bot or AI writer) comes from the author's `kind`: `human`, `bot` or `ai`. |
 | `sources` | no (expected) | List of `{ title, url }`, deep links, mirrored from the body. |
 | `heroAlt` | no (expected) | What the cover art shows, in a sentence, for screen readers and image search. Without it the title is used. |
@@ -36,7 +36,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `withdrawn` | no | `{ date, reason }` takes a post down without breaking links: the page stays at its URL with the notice, and the post leaves every list, feed, sitemap and search result. Its specimen number is retired with it. |
 | `comments` | no | `{ closed: true }` closes the post's comment thread: the page shows "comments are closed" instead of the form, and `/comments/threads.json` tells the desk's Worker to refuse new comments for the slug. Comments already published stay. Absent means open; a withdrawn post is closed regardless. An object, so a reason or a closing date can be added later without renaming anything (section 8). |
 
-**The contract is strict.** An unknown field, at any level, fails the build naming the file, so a typo is never silently dropped. Dates in `sunset`, `corrections` and `withdrawn` must be a YAML date, a plain `YYYY-MM-DD`, or a full UTC timestamp ending in `Z`, never a bare number or `true`/`false`. `heroImage` must be `/heroes/<slug>.jpg` or an `https://` URL with no spaces or quotes. Why: `docs/adr/0004-post-contract-is-strict.md`.
+**The contract is strict.** An unknown field, at any level, fails the build naming the file, so a typo is never silently dropped. Dates in `sunset`, `corrections` and `withdrawn` must be a YAML date, a plain `YYYY-MM-DD`, or a full UTC timestamp ending in `Z`, never a bare number or `true`/`false`. `heroImage` must be an `https://` URL with no spaces or quotes, and `check:posts` accepts only the post's own `https://media.aitamer.news/heroes/<slug>.jpg` for a published post (§3). Why: `docs/adr/0004-post-contract-is-strict.md`.
 
 **The contract is versioned and published.** `https://aitamer.news/contract/post.schema.json` is the JSON Schema of these rules, generated from the schema the build itself uses, with `"x-contract-version": 1`; `/contract/v1/post.schema.json` is the same file at a pinned address, so a future breaking change can live at `/contract/v2/` beside it. atn-mcp and atn-ops validate against it before writing.
 
@@ -50,7 +50,7 @@ pubDate: 2026-09-25
 section: models
 tags: [grok-4-7, api-pricing]
 draft: true
-heroImage: /heroes/grok-4-7-pricing.jpg
+heroImage: https://media.aitamer.news/heroes/grok-4-7-pricing.jpg
 author: desk-bot
 sources:
   - title: "xAI API pricing"
@@ -94,9 +94,25 @@ Any writer, bots and AI writers included, can add diagrams and light animation. 
 
 ## 3. Hero image
 
-- A JPEG at `public/heroes/<slug>.jpg`, referenced as `heroImage: /heroes/<slug>.jpg`.
-- Use `.jpg` and real JPEG bytes. The site sends `nosniff`, so a PNG saved as `.jpg` (or the reverse) will not display.
-- Images committed as base64 text (`.b64` parts) are assembled into binaries by `scripts/decode-heroes.mjs`, which runs before every `npm run dev` and `npm run build`.
+Hero images live on Cloudflare R2, in the bucket `aitamer-media`, served at `https://media.aitamer.news/` (ADR 0020). Nothing image-shaped goes in the repository.
+
+1. **Make the JPEG.** `.jpg` and real JPEG bytes, 1600×900. The media host sends `nosniff`, so a PNG saved as `.jpg` (or the reverse) will not display.
+2. **Upload it** under your own `wrangler login`, to the key `heroes/<slug>.jpg`, in one command:
+
+   ```sh
+   npx wrangler r2 object put aitamer-media/heroes/<slug>.jpg --file <path/to/slug>.jpg \
+     --content-type image/jpeg --cache-control "public, max-age=86400" --remote
+   ```
+
+   Uploading the same key again replaces the image; the CDN may serve the old one for up to a day. Never delete an object from the bucket: old feed items and social previews still point at it.
+3. **Write the full URL** in the post: `heroImage: https://media.aitamer.news/heroes/<slug>.jpg`. `check:posts` refuses a published post whose hero is anything else: another host, another post's image, any variant of the URL (`http`, a query, a different case), or the old `/heroes/<slug>.jpg` repo path. A `public/heroes/` folder fails the check too.
+4. **Check it is there:** `npm run check:media` sends one `HEAD` per post hero and names any live post whose image is missing (a draft's or a scheduled post's is only listed until it goes live). Every pull request and the deploy run the same check, so a live post with a missing hero fails its pull request, and stops the deploy if it goes live after the merge. The build itself never fetches an image.
+
+**In-body images**, for any author, follow the same route: upload to `posts/<slug>/<name>.jpg` (same command, key `aitamer-media/posts/<slug>/<name>.jpg`) and write `![What the image shows](https://media.aitamer.news/posts/<slug>/<name>.jpg)`. A machine author's post may take images from `https://media.aitamer.news/` only; `check:posts` refuses any other host.
+
+**Offline, or a draft whose image is not uploaded yet:** set `PUBLIC_MEDIA_BASE=/media-local` and put the file at `public/media-local/heroes/<slug>.jpg` (git-ignored). The build then points every media URL at that folder. Bots upload with a bucket-scoped token that lives only in atn-ops.
+
+The old `/heroes/<slug>.jpg` URLs of the 44 posts from before the move still work: `public/_redirects` sends each one to its media URL with a 301.
 
 ## 4. Publishing and the publish time
 
@@ -166,7 +182,7 @@ The desk's publisher never pushes to `main` itself: it opens a pull request from
 
 ## 7. Checklist before merging
 
-- [ ] File name is the final slug; `heroImage` points to `/heroes/<slug>.jpg`, which exists and is a JPEG.
+- [ ] File name is the final slug; `heroImage` is `https://media.aitamer.news/heroes/<slug>.jpg`, uploaded as a real JPEG, and `npm run check:media` finds it.
 - [ ] `author` exists; `section` is one of the six habitats (or a deprecated alias).
 - [ ] `draft: false`, and `npm run stamp` has written the time and the specimen number.
 - [ ] The ledger (`src/content/specimen-ledger.txt`) is committed with the post.
