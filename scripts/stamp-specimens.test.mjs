@@ -419,7 +419,7 @@ test('the real site: the human editors are exactly the authors marked human', ()
 });
 
 test('the real site: the AI writers are exactly the authors marked ai', () => {
-  assert.deepEqual([...loadAiWriters('src/content/authors')], ['mai', 'quill']);
+  assert.deepEqual([...loadAiWriters('src/content/authors')], ['ari', 'mai', 'quill']);
 });
 
 test('review of PR #46, B1 addendum: a post that names a human to the site and a bot to Astro gets no opinion exemption; it is refused', () => {
