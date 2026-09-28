@@ -9,7 +9,7 @@
 | Isolation | Blind to the implementation discussion; the brief and the commit only. Cold-read note written before probes. Single reviewer, not a dual-blind pair. |
 | Verdict | BLOCKED (4 blocking, 2 informational, 1 minor) |
 | Fixes | `7d349f1` (all seven findings); `3f642d3` (the re-check's five blockers) |
-| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 (Opus) BLOCKED on `52ebdd3`, fixed in `d27d965`; re-check 5 (Opus) BLOCKED on `7a39184`, fixed in `86d92fb`; Ari's re-check BLOCKED on `d7dd25f`, new findings fixed in `8aa6f04`; re-check 6 owed before merge |
+| Status | Re-check 1 (Opus) BLOCKED on `246551b`, fixed in `3f642d3`; re-check 2 (Opus) BLOCKED on `d7dd25f`, fixed in `3a3da8e`; re-check 3 (Opus) BLOCKED on `4b76e32`, fixed in `8ef160a`; re-check 4 (Opus) BLOCKED on `52ebdd3`, fixed in `d27d965`; re-check 5 (Opus) BLOCKED on `7a39184`, fixed in `86d92fb`; Ari's re-check BLOCKED on `d7dd25f`, new findings fixed in `8aa6f04`; re-check 6 (Opus) CLEAR on `7456b59`; its hardening note in `3340b6b`. **Ruled.** |
 
 ## Rulings (Quill, coordinator), each validated against source at the target
 
@@ -1005,3 +1005,136 @@ The refusal step is at `.github/workflows/deploy-github-pages.yml:75-86`, after 
 - `git status --short` showed only the pre-existing linked `node_modules` entry as untracked. All probe files and both review documents were outside the repository.
 
 VERDICT: BLOCKED
+
+## Re-check 6 (final): Opus, of `7456b59` (base `7a39184`)
+
+**Verdict CLEAR.** All 71 payloads from Opus reports 1–5 and Ari's B2, B4 and B5 are refused or harmless (no running animation in Chromium or Firefox with reduced motion). The bracket rule, selector normalization, the file walk and the build path held under attack; no honest diagram that should pass fails.
+
+| # | Note | Ruling |
+|---|---|---|
+| I | `--write` could write through a symlink inside `dist/diagrams` before its check fails (not reachable by a writer) | Hardened in `3340b6b`: the folder is checked before any write; test added. A change this small and local takes the mechanical check (tests), not another deep round. |
+| I | The `>` combinator is refused | POST.md now points to `g rect` |
+
+**Status of the review:** ruled. Every blocking finding across the first review and six re-checks (Ari twice, Opus six times) is fixed at `3340b6b` or later, with a regression test for each.
+
+### Re-check 6's report, verbatim
+
+# Sixth and final re-check (Opus, Strong tier): fixes in 86d92fb and 8aa6f04
+
+**Target:** `7456b59` · **Base:** `7a39184` · **Date:** 2026-09-28
+**Mode:** review only. Nothing in the repository was modified. The target's `scripts/`, `.github/`, `package.json` and pinned covers were extracted read-only with `git archive 7456b59` into `opus-probes/new6/`. The file-system probes ran in a throwaway sandbox (`opus-probes/sbx`) built by `opus-probes/sbx.sh`. The cold read is `COLD-READ-opus-6.md`, written before any probe.
+
+**Method:** as before. Each payload goes through `checkSvg` at the target. The shipped rewrite is opened as a document in Chromium (`chromium_headless_shell-1243`) and Firefox (`firefox-1538`) with `reducedMotion: 'reduce'`, and the running animations are counted. `matchMedia` confirmed reduce in every run. The `<img>` emulation limit is unchanged.
+
+**Test suite at the target:** `node --test scripts/check-diagrams.test.mjs` gives **tests 31, pass 31, fail 0.**
+
+**Bottom line: nothing blocking remains.** Every reproduction from my five reports and Ari's re-check is refused or harmless, and I found no new way past any layer.
+
+---
+
+## 1. Every reproduction, re-run at 7456b59 (`opus-probes/probe8.mjs`, 71 payloads)
+
+| Source | Cases | Result |
+|---|---|---|
+| Controls | the POST.md example; the bare-query form; `TEXT/CSS`; a quoted non-ASCII font name; `<style>` inside `<g>` or `<text>`; `!important` on a presentation value in `style=""` | PASS; running 0 in both engines |
+| Report 1 | original finding 3; B1 (×5); B2 (×2); B3; B4 | all refused |
+| Report 1 | B5 (parse5 floods) | refused by the pre-scan, unchanged since report 2 |
+| Report 2 | C1 (×8); C2 (×2) | all refused |
+| Report 2 | C3 (walk depth) | refused with a finding; the code is unchanged since report 3 |
+| Report 3 | D1 (×7) | all refused (a line break inside a string) |
+| Report 4 | E1 (×3) | all refused. They are now caught **earlier**, by the per-sheet bracket and string rules, before the one-`<style>` rule |
+| Report 4 | token probes: `url(#a"b)`, `url("#a)")`, CDO/CDC, EOF in a string | refused |
+| Report 4 | token probes: attribute-selector quotes, NUL (U+FFFD), `NONE` | harmless (running 0) |
+| Report 5 | F1 (×6: `[`/`(` in a value, selector, media prelude or keyframe value) | all refused: "{ inside an open [" / "} that closes nothing" |
+| Report 5 | `style="x:[;animation:…]"` | refused: "; inside an open [" |
+| Ari B2 | animated `rect[aria-label="a  b"]`, stop `rect[aria-label="a b"]` | **refused**: the selectors no longer match, so no valid stop |
+| Ari B2 | honest control: `svg   rect` against `svg`⏎` rect` | PASS; running 0. Whitespace outside quotes still normalizes |
+| Ari B4 | `public/covers/x.html`, with `--write dist` | **refused**, exit 1: the source-folder stray check now runs in `--write` |
+| Ari B5 | `public/diagrams/p/z.svg → /dev/zero` | **refused at once**, exit 1: "must be a regular file, not a symbolic link or device". No hang |
+
+---
+
+## 2. Attacks on the new code (all refuted)
+
+**The bracket rule (`cssCharacterProblem`).** All of these probes are refused before either parser runs:
+
+| Probe | Refused because |
+|---|---|
+| `)(` (a closer before its opener) | "closes nothing" |
+| `(]` | wrong closer |
+| `({)}` | "{ inside an open (" |
+| `[;]` | "; inside an open [" |
+| a bracket still open at the end | "left open" |
+| a quote still open at the end | "no closing quote" |
+| `{}` nested inside a rule body | the bracket rule allows it, `readRule` refuses it |
+| a top-level `;` | the selector reader refuses it |
+| `@media print;` | the selector reader refuses it |
+
+Brackets inside strings are ignored, the same as in CSS. The honest uses pass, with running 0 when animated with a stop: `.a[x]`, `:is(.a, .b)`, and an empty `@media (x){}` before the stop.
+
+With strings (no backslash, no comment, no line break) and blocks (balanced and nested, no `{}`/`;` inside `()`/`[]`) both pinned, every stopping point of the checker's readers is a structural token for a CSS parser. **I found no remaining divergence between the checker's reading and a browser's.**
+
+It is linear: 99,000 nested parentheses (198 kB) pass in 67 ms, and 33,000 `a[x]{}` rules in 69 ms.
+
+**`normalizeSelector`.** It collapses whitespace only outside quotes, and only CSS whitespace. Inside CSS selectors, a run of whitespace outside strings is either a descendant combinator or insignificant, and one space equals any run. So equal normalized strings mean equal selectors to a browser. Quoted values are kept byte for byte (Ari B2 above). Unbalanced quotes never reach it, because the bracket and string rule refuses them first. 4,000 selectors, each with 40 spaces inside quotes: 46 ms.
+
+**`filesUnder`, `checkAll` and `distProblems`, in the sandbox:**
+
+| Case | Result |
+|---|---|
+| A FIFO in `diagrams/` | refused at once, no hang |
+| A hard link in `diagrams/` to a hostile file | a regular file whose content is checked: refused for `<script>` |
+| A 300 kB regular file | refused from `stat`, without reading |
+| An extra file in `dist/diagrams` after `--write` | refused: "no checked source makes it" |
+| A symlink inside `dist/diagrams` | refused: "not a regular file" |
+| `dist/diagrams` itself a symlink | refused by the dist stray check **before** anything is written; the link's target stayed empty |
+| An honest diagram | `--write`: exit 0, "wrote 1"; then `--check-dist`: exit 0, "every shipped diagram (1)"; then source mode: exit 0 |
+
+---
+
+## INFORMATIONAL
+
+### G1. `--write` writes through a symlink it has not yet checked, then fails
+
+**Where:** `scripts/check-diagrams.mjs`, the `--write` branch of `main()`, which calls `writeFileSync(target, output)` before `distProblems`.
+
+**Reproduction** (sandbox): replace `dist/diagrams/p/ok.svg` with a symlink to `../../../outside.txt` and run `--write dist`. The run exits 1 ("not a regular file", "missing from the build"). **But `outside.txt` now holds the checked SVG rewrite**, because the write followed the link first.
+
+**Not reachable by a writer.** `dist/` comes from Astro copying `public/`, and every symlink in `public/` is refused by `checkAll` and the source stray check, **before** any write. A symlink directly in `dist/` is flagged by the dist stray check before the write too. Only a symlink *inside* `dist/diagrams`, which nothing a writer controls can create, reaches this. What gets written is the checked rewrite, and the build fails anyway.
+
+**Optional hardening:** run `distProblems`' irregular-entry check (or `lstat` each target) before writing, or open with `O_NOFOLLOW`.
+
+### G2. Not a change: the child combinator is refused
+
+`g > rect` is refused by `DANGEROUS_VALUE` because `>` is on its markup list. This has been so since the first commit, and `g rect` works. It is a writer surprise, not a risk. POST.md could say so in one line.
+
+---
+
+## 3. Honest diagrams
+
+These pass:
+- the POST.md example and the bare `(prefers-reduced-motion)` form;
+- multi-line sheets and CRLF;
+- `@media (min-width: 600px) and (prefers-color-scheme: dark)`;
+- keyframes with `0%,50%` lists;
+- quoted font lists (`'Inter', "Noto Sans", sans-serif`) and a quoted CJK font name;
+- attribute selectors, `:is()`, `:not()`, `calc()`, `rgb()`;
+- `<style>` inside a group;
+- `TEXT/CSS`;
+- a dense 199 kB animated file (report 2: 104 ms; the per-sheet work since then is linear).
+
+These fail by design and are documented in POST.md:
+- two `<style>` elements;
+- comments or elements inside `<style>`;
+- vendor prefixes;
+- multi-line strings;
+- unquoted non-ASCII names;
+- nesting deeper than 64.
+
+These also fail, and neither is realistic:
+- tags written inside an XML comment (they count toward the pre-scan);
+- the `>` combinator (G2).
+
+**No honest diagram that should pass now fails.**
+
+VERDICT: CLEAR
