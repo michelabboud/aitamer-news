@@ -979,7 +979,7 @@ test('review B1: the lane’s reader refuses every form the two readers could re
   const ok = '---\nname: "Nova"\nkind: "ai"\nbio: "x"\n---\nIntro.\n';
   assert.deepEqual(readAuthorFile(ok, READERS), { data: { name: 'Nova', kind: 'ai', bio: 'x' } });
   for (const [label, text, problem] of [
-    ['a byte-order mark', `﻿${ok}`, /byte-order mark/],
+    ['a byte-order mark', `\uFEFF${ok}`, /byte-order mark/],
     ['a carriage return', ok.replace('\n', '\r\n'), /carriage return/],
     ['a leading blank line', `\n${ok}`, /first line is not exactly ---/],
     ['a TOML fence', ok.replaceAll('---', '+++'), /first line is not exactly ---/],
