@@ -28,8 +28,8 @@ sources:
     url: "https://simonwillison.net/2026/Sep/29/openai-devday-2026-live-blog/"
 wildness:
   rating: 3
-  verified: "Setup, per-task state, seven-day recovery, VM sizes by plan and the unsupported list are in OpenAI's documentation and in several reports."
-  claimed: "Faster task starts, and the security-scan figures, come from launch coverage; we have not measured either."
+  verified: "Setup, per-task state, seven-day recovery and VM sizes are in OpenAI's docs and several reports."
+  claimed: "Faster task starts and the security-scan figures come from launch coverage; we did not measure them."
 verdict: "A real change in how Codex cloud works: tasks now start from a published setup and keep their own state for seven days. Read the network defaults and the unsupported list before you move real repositories over."
 ---
 
