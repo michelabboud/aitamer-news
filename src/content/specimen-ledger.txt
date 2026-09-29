@@ -72,3 +72,4 @@
 0069 ai-review-builds-left-88-gb
 0070 claude-sonnet-5-5-for-developers
 0071 emdash-and-the-agent-edited-web
+0072 rust-on-workers-with-a-runtime-attached
