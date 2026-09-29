@@ -26,7 +26,7 @@ import {
 import { postCover } from '../lib/covers';
 import { commentCountFor } from '../lib/comment-text';
 import { frontPage } from '../lib/front-page.ts';
-import { WRITER_PAGE_KIND } from '../lib/writer-pages.ts';
+import { WRITER_PAGE_KIND, orderWriterCards } from '../lib/writer-pages.ts';
 
 const posts = await getPublishedPosts();
 const authors = await getCollection('authors');
@@ -70,8 +70,7 @@ const tamers = authors
 const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
 // The named AI writers each get a card at the top of the right panel, with their latest piece.
-const writers = authors
-  .filter((a) => a.data.kind === WRITER_PAGE_KIND)
+const writers = orderWriterCards(authors.filter((a) => a.data.kind === WRITER_PAGE_KIND))
   .map((author) => ({ author, latest: posts.find((p) => p.data.author.id === author.id) }));
 
 ---
