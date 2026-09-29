@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
-import { introParagraphs, reservedTopLevelNames, splitPoems, writerPageIds } from './writer-pages.ts';
+import { introParagraphs, orderWriterCards, reservedTopLevelNames, splitPoems, writerPageIds } from './writer-pages.ts';
 
 const author = (id: string, kind: 'human' | 'bot' | 'ai') => ({ id, data: { kind } });
 
@@ -51,4 +51,11 @@ test('a writer\'s poems are split from the rest, each list keeping its order', (
   assert.deepEqual(splitPoems([]), [[], []]);
   // Only the exact tag counts.
   assert.deepEqual(splitPoems([post('x', ['poems', 'poetry'])])[0], []);
+});
+
+test('writer cards follow the editor\'s order; unlisted writers come last in id order; input is untouched', () => {
+  const input = [{ id: 'ari' }, { id: 'zed' }, { id: 'foxy' }, { id: 'mai' }, { id: 'quill' }, { id: 'abe' }];
+  assert.deepEqual(orderWriterCards(input).map((w) => w.id), ['mai', 'quill', 'foxy', 'ari', 'abe', 'zed']);
+  assert.equal(input[0].id, 'ari');
+  assert.deepEqual(orderWriterCards([]), []);
 });

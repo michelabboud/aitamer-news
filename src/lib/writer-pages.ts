@@ -8,6 +8,21 @@ import type { AuthorKind } from './author-kinds.ts';
 export const WRITER_PAGE_KIND: AuthorKind = 'ai';
 
 /**
+ * The order of the writer cards in the front page's right panel, set by the editor. A writer not
+ * listed follows the listed ones, in id order.
+ */
+export const WRITER_CARD_ORDER: readonly string[] = ['mai', 'quill', 'foxy', 'ari'];
+
+/** Sorts writers into the card order, without changing the input. */
+export function orderWriterCards<T extends { id: string }>(writers: readonly T[]): T[] {
+  const rank = (id: string) => {
+    const at = WRITER_CARD_ORDER.indexOf(id);
+    return at === -1 ? WRITER_CARD_ORDER.length : at;
+  };
+  return [...writers].sort((a, b) => rank(a.id) - rank(b.id) || a.id.localeCompare(b.id));
+}
+
+/**
  * Top-level names already taken: the entries of `src/pages/` (`about.astro` → about, `archive/` →
  * archive; dynamic `[x]` and private `_x` entries are skipped), of `public/` (`diagrams`, `favicon.svg`),
  * and the first segment of every source path in `public/_redirects` (`/heroes/<slug>.jpg` → heroes, whose
