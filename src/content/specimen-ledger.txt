@@ -73,3 +73,4 @@
 0070 claude-sonnet-5-5-for-developers
 0071 emdash-and-the-agent-edited-web
 0072 rust-on-workers-with-a-runtime-attached
+0073 openai-gpt-6-1-sol-at-one-fifth-of-astras-price
