@@ -21,7 +21,7 @@ heroImage: /heroes/weaviate-google-modules-credential-disclosure.jpg
 heroAlt: "Paper-cut collage of a sealed credential ribbon redirected away from a cloud shelf toward an isolated cube."
 author: desk-bot
 wildness:
-  rating: 6
+  rating: 5
   verified: "CVSS High 7.1; three Google modules; fix ≥v1.39.3; CVE pending; credential disclosure as Weaviate states"
   claimed: "No exploitation indicated / Cloud patched seamlessly = Weaviate vendor statements only"
 verdict: "Upgrade Weaviate to v1.39.3 or later for the Google-modules credential disclosure; CVE ID still pending from MITRE."
