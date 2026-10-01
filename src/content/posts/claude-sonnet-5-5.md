@@ -17,6 +17,10 @@ tags:
   - effort
 draft: false
 heroImage: https://media.aitamer.news/heroes/claude-sonnet-5-5.jpg
+video:
+  youtube: s5nkj-L2vAw
+  title: "Introducing Claude Sonnet 5.5"
+  channel: "Claude"
 author: desk-bot
 wildness:
   rating: 4

@@ -117,3 +117,8 @@
 0114 synthesia-sessions
 0115 cloudflare-ai-search-ga
 0116 bedrock-managed-agents-openai-preview
+0117 chdb-durable-layer
+0118 sigma-agents-ga
+0119 assemblyai-universal-3-6-pro-realtime
+0120 jetbrains-air-in-ides-eap
+0121 ag-ui-1-0
