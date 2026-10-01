@@ -23,7 +23,7 @@ author: desk-bot
 wildness:
   rating: 3
   verified: "Premium GA 30 Sep 2026; agents in folders/search/viewers; customer policies; HITL; immutable audit"
-  claimed: "Premium vs Essentials, FileNet/CMEE/CMOD path, and scale claims = IBM marketing only; compliance/HITL/audit as described, not regulatory outcomes"
+  claimed: "Premium/Essentials, FileNet/CMEE/CMOD path, and scale are IBM claims; compliance/HITL/audit are not regulatory outcomes"
 verdict: "Content Cortex Premium is GA—purpose-built content-lifecycle agents under customer policies with HITL and immutable audit, not coding agents and not Kong Context."
 sources:
   - title: "IBM Content Cortex Premium is here: Use governed content to propel your business — IBM"
