@@ -29,10 +29,22 @@ test('habitat codes run H1–H7 in list order', () => {
 test('the retired habitats are accepted in frontmatter and filed where they folded', () => {
   assert.deepEqual(
     Object.fromEntries(Object.keys(SECTION_ALIASES).map((a) => [a, normalizeSection(a)])),
-    { creative: 'tools', infra: 'devops', policy: 'general', opinion: 'general' },
+    {
+      creative: 'tools',
+      infra: 'devops',
+      policy: 'general',
+      opinion: 'general',
+      data: 'devops',
+      databases: 'devops',
+      video: 'tools',
+      image: 'tools',
+    },
   );
   for (const h of HABITATS) assert.equal(normalizeSection(h), h);
-  assert.deepEqual([...FRONTMATTER_SECTIONS], [...HABITATS, 'creative', 'infra', 'policy', 'opinion']);
+  assert.deepEqual(
+    [...FRONTMATTER_SECTIONS],
+    [...HABITATS, 'creative', 'infra', 'policy', 'opinion', 'data', 'databases', 'video', 'image'],
+  );
   // An alias is never also a habitat, or a writer could not tell which one they meant.
   for (const alias of Object.keys(SECTION_ALIASES)) assert.ok(!isHabitat(alias), alias);
 });

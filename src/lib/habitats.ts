@@ -49,6 +49,10 @@ export const SECTION_ALIASES = {
   infra: 'devops',
   policy: 'general',
   opinion: 'general',
+  data: 'devops',
+  databases: 'devops',
+  video: 'tools',
+  image: 'tools',
 } as const satisfies Record<string, Habitat>;
 
 export type SectionAlias = keyof typeof SECTION_ALIASES;

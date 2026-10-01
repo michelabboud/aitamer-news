@@ -27,6 +27,7 @@ The site had seven habitats: Models, Tools, Creative, Infra, Rust, Policy and Op
 - The posts server (atn-ops, `posts-core`) must re-vendor the contract from the live site after this deploys, pin the new hash, and replace its `SECTION_WITHOUT_SOURCES = "opinion"` rule. Until then it rejects the new names (the aliases keep it working) and its sources pre-check is looser than the site's, which stays the gate.
 - One post, `made-on-youtube-2026-gemini-ask-studio`, keeps `section: creative` on purpose: its rendered-body exemption holds only while the file is byte-identical, and the alias files it under Tools.
 - A new author kind must say whether it writes Columns (the record in `author-kinds.ts` makes it choose).
+- 2026-10-01: the older desk names (`data`, `databases`, `video`, `image`) also joined `SECTION_ALIASES` with the same targets as `LEGACY_SECTIONS`, so frontmatter using those names parses; `top` stays URL-only.
 
 ## Status
 
