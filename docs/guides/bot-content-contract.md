@@ -19,7 +19,12 @@ Everything in a post is read by the public: title, description, verdict, wildnes
 
 ## 3. Hero image
 
-- Heroes live on the media host, never in the repository. Upload to `heroes/<slug>.jpg` with the bucket-scoped token, then write `heroImage: https://media.aitamer.news/heroes/<slug>.jpg`. A path such as `/heroes/<slug>.jpg`, or a `public/heroes/` folder, fails the deploy.
+- Heroes live on the media host (Cloudflare R2, bucket `aitamer-media`), never in the repository. A path such as `/heroes/<slug>.jpg`, or a `public/heroes/` folder, fails the deploy. The post then says `heroImage: https://media.aitamer.news/heroes/<slug>.jpg`, and `npm run check:media` must show it answering 200 before the pull request is opened.
+- **How the file gets there (two routes; use the first that you have):**
+  1. **The posts MCP** uploads the hero itself when it publishes a draft that carries one (`atn-ops` docs/runbooks/posts-mcp.md and ADR 0027: a signed S3 `PUT` of `heroes/<slug>.jpg` that never replaces an existing object). This is the route once the MCP is live, and then you do nothing else.
+  2. **Before the MCP, with credentials the bot holds**, upload the JPEG to the key `aitamer-media/heroes/<slug>.jpg` with R2's S3 API and a token scoped to that bucket (Object Read and Write). `wrangler r2 object put` will answer 403 with a bucket-scoped token, because Wrangler uses the REST API that such a token cannot call, so do not use it. The reference implementation is the S3 PUT in atn-ops (`posts_publish::r2`, ADR 0027). Send `Content-Type: image/jpeg`, `Cache-Control: public, max-age=86400` and `If-None-Match: *` so you never replace someone else's image.
+  3. **If you hold no upload credential, do not open the pull request with a broken hero.** Put the finished 1600 x 900 JPEG where the editor collects it and say so in the hand-off; the editor uploads it and the pull request follows. A post whose hero is missing fails `check:media` and stops the deploy for the whole site.
+- Never write anything to `public/heroes/`, and never put the image in the pull request.
 - 1600 x 900, JPEG, 16:9.
 - House style: layered paper-cut collage, slate blue and cream with a single coral accent, no text, numbers or logos, no recognisable people. Add `heroAlt`: one true sentence saying what the picture shows.
 
