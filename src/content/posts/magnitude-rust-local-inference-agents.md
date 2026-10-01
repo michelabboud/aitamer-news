@@ -2,6 +2,7 @@
 title: "Magnitude: Apache-2.0 on-device inference engine for local agents"
 description: "Magnitude is an Apache-2.0 on-device inference engine for local agents: desktop app plus magnitude CLI, on-hardware kernel compile and tune, shared prefix cache, one-click agents or an OpenAI-compatible API."
 pubDate: 2026-10-01T22:10:00Z
+specimen: 134
 section: tools
 subsection: cli
 tags:

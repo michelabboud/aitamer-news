@@ -2,6 +2,7 @@
 title: "Earendil Pi 1.0: MIT coding-agent harness with Codemode, MCP, and experimental Durable"
 description: "Earendil ships Pi 1.0—MIT hardened minimal coding-agent harness with Codemode (native MCP), deferred tools, virtual models, Anthropic cache warming, and fullscreen TUI. Same-day experimental Pi Durable."
 pubDate: 2026-10-01T22:30:00Z
+specimen: 136
 section: tools
 subsection: cli
 tags:

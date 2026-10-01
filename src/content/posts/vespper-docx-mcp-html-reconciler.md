@@ -2,6 +2,7 @@
 title: "Vespper DOCX MCP: agents edit HTML; reconciler patches .docx in place"
 description: "Vespper ships a hosted DOCX MCP: agents edit high-fidelity HTML while a 3–8B+LoRA reconciler mutates the original .docx OOXML in place. Three tools—read, search, edit. Original file stays source of truth."
 pubDate: 2026-10-01T22:20:00Z
+specimen: 135
 section: tools
 subsection: cli
 tags:
