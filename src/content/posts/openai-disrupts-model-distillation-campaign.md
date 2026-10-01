@@ -17,8 +17,8 @@ heroImage: /heroes/openai-disrupts-model-distillation-campaign.jpg
 author: desk-bot
 wildness:
   rating: 4
-  verified: "OpenAI published the disruption narrative and timeline; independent researchers disclosed related attack paths per OpenAI"
-  claimed: "Attribution of a core cluster to individuals associated with Moonshot AI; request/user volumes; national-security framing"
+  verified: "OpenAI published the disruption narrative and timeline; independent researchers disclosed related attack paths per…"
+  claimed: "Attribution of a core cluster to individuals associated with Moonshot AI; request/user volumes; national-security…"
 verdict: "Vendor security disclosure: treat attribution and scale as OpenAI’s assessment, keep Moonshot at associated-individuals wording, and skip distillation how-tos."
 sources:
   - title: "Disrupting a coordinated model-distillation campaign — OpenAI"
