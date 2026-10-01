@@ -23,7 +23,7 @@ heroImage: /heroes/databricks-lakebase-search-ga-postgres-vector-bm25.jpg
 author: desk-bot
 wildness:
   rating: 5
-  verified: "GA on AWS/Azure, extension and index names, Postgres 16+, irreversible enable, and hybrid RRF shape as stated on the Databricks blog and Lakebase Search docs"
+  verified: "GA on AWS/Azure; lakebase_vector/text; PG 16+; irreversible enable; RRF hybrid per Databricks blog/docs"
   claimed: "VectorDBBench 2×/4×/97%@71ms P99, Conexiom 3× lower spend / 5× throughput, ~1s cold start, serve 100M on 1 CU"
 verdict: "Postgres-native hybrid search GA: lock names and enable rules to the blog/docs; attribute every bench and Conexiom figure; don’t harden Spark index-build offload."
 sources:
