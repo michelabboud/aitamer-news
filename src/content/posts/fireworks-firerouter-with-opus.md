@@ -22,7 +22,7 @@ heroAlt: "Paper-cut collage of three model lanes converging into a slate cache-a
 author: desk-bot
 wildness:
   rating: 4
-  verified: "FireRouter with Opus 9/28/2026; routes Opus 5.5 / GLM 5.3 / GLM 5.3 Flash; CLI + standalone serverless endpoint; cache-aware"
+  verified: "FireRouter with Opus 9/28/2026; routes Opus 5.5 / GLM 5.3 / GLM 5.3 Flash; CLI + serverless endpoint; cache-aware"
   claimed: "98.1% accuracy / 57% cost / $15.36→$6.63 / 94.2% cache = Fireworks internal A/B only"
 verdict: "Fireworks Nexus coding-route product—cache-aware serverless router, not a multi-provider enterprise gateway. Opus and GLM are routing targets, not Fireworks-owned models."
 sources:
