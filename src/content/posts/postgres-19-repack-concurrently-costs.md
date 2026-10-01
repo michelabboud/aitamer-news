@@ -2,6 +2,7 @@
 title: "PostgreSQL 19 REPACK (CONCURRENTLY): what Marek’s benches cost"
 description: "Radim Marek (boringSQL, Sep 28) benches PostgreSQL 19beta4 core REPACK (CONCURRENTLY) vs pg_repack/pg_squeeze: WAL, disk, cluster-wide VACUUM hold-back, ~105M change ceiling, and MVCC caveats—author benches only."
 pubDate: 2026-10-01T22:00:00Z
+specimen: 133
 section: devops
 subsection: postgres
 tags:

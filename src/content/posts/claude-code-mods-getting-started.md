@@ -2,6 +2,7 @@
 title: "Claude Code mods getting started: in-session hooks, custom UI, default-on at 2.1.287"
 description: "Anthropic’s Addy Osmani guide (Oct 1, 2026): Claude Code mods—in-session JS/TS hooks that observe, rewrite, or answer events—with custom UI and hot-reload state. On by default at 2.1.287+."
 pubDate: 2026-10-01T22:40:00Z
+specimen: 137
 section: tools
 subsection: cli
 tags:

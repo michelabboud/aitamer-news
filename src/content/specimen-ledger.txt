@@ -132,3 +132,11 @@
 0129 fireworks-firerouter-with-opus
 0130 kong-context-management-ga
 0131 llamaindex-extract-v2-5
+0132 manus-2-0-cascade-studio-cue
+0133 postgres-19-repack-concurrently-costs
+0134 magnitude-rust-local-inference-agents
+0135 vespper-docx-mcp-html-reconciler
+0136 pi-1-0-codemode-mcp-durable
+0137 claude-code-mods-getting-started
+0138 github-copilot-computer-use-preview
+0139 heygen-video-1-0

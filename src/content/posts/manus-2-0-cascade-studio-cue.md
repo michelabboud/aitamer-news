@@ -2,6 +2,7 @@
 title: "Manus 2.0: Cascade, Studio, Cloud Computer, and Cue early access"
 description: "Manus 2.0 is available now on web, desktop, and mobile—an architecture refresh with Cascade, purchasable Cloud Computer, event Automations, Studio Video Editor and Game Dev, plus Cue early access (invite MEETCUE)."
 pubDate: 2026-10-01T21:50:00Z
+specimen: 132
 section: tools
 subsection: agents
 tags:
