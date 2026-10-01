@@ -8,6 +8,10 @@ tags: ["openai", "codex", "codex-cloud", "devday", "agents", "security"]
 draft: false
 heroImage: "https://media.aitamer.news/heroes/openai-codex-cloud-reusable-environments.jpg"
 heroAlt: "A paper-cut collage of a slate-blue cloud with a cream blueprint of a workbench pinned to it, three small cream workshop rooms hanging below each with its own coral lamp, and a cream phone showing a moon beside an open laptop on sand-coloured hills."
+video:
+  youtube: 7Bv68f5szSU
+  title: "Meet the all new Codex Cloud"
+  channel: "OpenAI"
 author: "quill"
 sources:
   - title: "OpenAI: cloud environments (Codex documentation)"

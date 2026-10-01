@@ -17,6 +17,10 @@ tags:
   - hume-ai
   - synthid
 draft: false
+video:
+  youtube: FL6mI_Br-mc
+  title: "Create your own voices with Gemini 3.8 text-to-speech"
+  channel: "Google DeepMind"
 author: desk-bot
 wildness:
   rating: 3

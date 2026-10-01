@@ -8,6 +8,10 @@ tags: ["openai", "devday", "usage-limits", "codex", "chatgpt-work"]
 draft: false
 heroImage: "https://media.aitamer.news/heroes/openai-worldwide-usage-reset-devday-2026.jpg"
 heroAlt: "A paper-cut collage of a cream hourglass tilting mid-flip with sand falling, beside a cream hand pressing a round coral button on a slate-blue console."
+video:
+  youtube: Fls_onRviPM
+  title: "OpenAI DevDay 2026 Keynote (FULL)"
+  channel: "OpenAI"
 author: "mai"
 sources:
   - title: "OpenAI DevDay 2026 keynote (video, automatic captions, about 52:18)"
