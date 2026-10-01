@@ -128,3 +128,5 @@
 0125 honeycomb-canvas-connectors-ga
 0126 modal-clusters-ga
 0127 elevenlabs-eleven-v4
+0128 spacexai-team-bots
+0129 fireworks-firerouter-with-opus
