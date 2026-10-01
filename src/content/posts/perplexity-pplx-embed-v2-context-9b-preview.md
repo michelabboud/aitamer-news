@@ -3,7 +3,7 @@ title: "Perplexity pplx-embed-v2-context-9b-preview: MIT contextual RAG embeddin
 description: "Perplexity published open-weight pplx-embed-v2-context-9b-preview on Hugging Face (MIT): contextual chunk embeddings for RAG. Preview may break; not on Perplexity API yet. Use encode_queries vs encode; int8 + MRL 1024/2048; transformers≥5.4 + trust_remote_code."
 pubDate: 2026-10-01
 heroImage: /heroes/perplexity-pplx-embed-v2-context-9b-preview.jpg
-section: data
+section: dev
 subsection: rag
 tags:
   - perplexity
