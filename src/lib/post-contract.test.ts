@@ -73,9 +73,10 @@ test('a YouTube URL in video.youtube is rejected — only the bare 11-character 
   assert.equal(result.success, false);
 });
 
-test('a retired section value is rejected', () => {
+test('a retired desk name (video) is accepted as an alias and filed under tools', () => {
   const result = postSchema.safeParse({ ...validPost, section: 'video' });
-  assert.equal(result.success, false);
+  assert.equal(result.success, true);
+  assert.equal(result.success && result.data.section, 'tools');
 });
 
 test('an unknown top-level key is rejected (the contract is strict)', () => {
@@ -254,14 +255,21 @@ test('the 2026-09-28 sections: new names parse as themselves, the old ones parse
   assert.equal(sectionOf('infra'), 'devops');
   assert.equal(sectionOf('policy'), 'general');
   assert.equal(sectionOf('opinion'), 'general');
+  assert.equal(sectionOf('data'), 'devops');
+  assert.equal(sectionOf('databases'), 'devops');
+  assert.equal(sectionOf('video'), 'tools');
+  assert.equal(sectionOf('image'), 'tools');
   assert.equal(postSchema.safeParse({ ...validPost, section: 'news' }).success, false);
   assert.equal(postSchema.safeParse({ ...validPost, section: 'columns' }).success, false);
+  assert.equal(postSchema.safeParse({ ...validPost, section: 'top' }).success, false);
 });
 
 test('the published contract still accepts every value it accepted before, and names the new ones', () => {
   const schema = postFrontmatterJsonSchema() as { 'x-contract-version': number; properties: { section: { enum: string[] } } };
   const accepted = schema.properties.section.enum;
-  for (const old of ['models', 'tools', 'creative', 'infra', 'rust', 'policy', 'opinion']) assert.ok(accepted.includes(old), old);
+  for (const old of ['models', 'tools', 'creative', 'infra', 'rust', 'policy', 'opinion', 'data', 'databases', 'video', 'image'])
+    assert.ok(accepted.includes(old), old);
   for (const added of ['dev', 'devops', 'general']) assert.ok(accepted.includes(added), added);
+  assert.equal(accepted.includes('top'), false, 'top is legacy URL only, not a frontmatter alias');
   assert.equal(schema['x-contract-version'], 1, 'an additive change keeps version 1');
 });
