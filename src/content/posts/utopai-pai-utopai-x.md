@@ -1,7 +1,7 @@
 ---
 title: "Utopai PAI + Utopai X: production platform; #2 on AA T2V-with-audio"
 description: "Utopai Studios launched PAI (production intelligence) and Utopai X on 2026-09-30. On Artificial Analysis AA-Video-T2V v2.0 With Audio (accessed 2026-10-01 ~08:58 IDT), Utopai X (based on MiniMax H3) ranks #2 at Elo 1153 (±11) behind Wan 3.0 at 1159. No API."
-pubDate: 2026-10-01
+pubDate: 2026-10-01T06:40:00Z
 heroImage: /heroes/utopai-pai-utopai-x.jpg
 section: tools
 subsection: movie-gen

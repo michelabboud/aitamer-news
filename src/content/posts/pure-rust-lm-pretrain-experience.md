@@ -1,7 +1,7 @@
 ---
 title: "Pure-Rust LM pretrain experience report: Candle/Burn defects, then train PyTorch / serve Rust"
 description: "arXiv 2609.25008v1 is a preprint experience report (not SOTA): after a Candle/Burn failure taxonomy on a ~0.4B Bangla-first run, the author pivoted to train in PyTorch and keep Rust for serving. Self-reported $164 / 54.6h H100; weights not public."
-pubDate: 2026-10-01
+pubDate: 2026-10-01T07:00:00Z
 heroImage: /heroes/pure-rust-lm-pretrain-experience.jpg
 section: rust
 subsection: ai

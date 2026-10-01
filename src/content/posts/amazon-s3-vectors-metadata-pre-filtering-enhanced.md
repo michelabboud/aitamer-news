@@ -1,7 +1,7 @@
 ---
 title: "Amazon S3 Vectors: metadata pre-filtering in ENHANCED index mode"
 description: "AWS S3 Vectors (Sep 30, 2026) adds ENHANCED index mode that filters metadata before similarity search, plus $startsWith. AWS claims up to 5× more matching vectors on highly selective filters—vendor figure, not house-verified. No extra cost; CLASSIC until you upgrade."
-pubDate: 2026-10-01
+pubDate: 2026-10-01T06:30:00Z
 heroImage: /heroes/amazon-s3-vectors-metadata-pre-filtering-enhanced.jpg
 section: devops
 tags:

@@ -1,7 +1,7 @@
 ---
 title: "Gemini 4 Argon: Fairwind-first frontier, 1M output, intro $2/$10 API"
 description: "Google DeepMind announced Gemini 4 Argon on 2026-09-30: phased to Fairwind cyber defenders first, 1M output tokens (not full context), intro $2/$10 then $4/$20 per 1M tokens on the blog—no public model ID or ai.google.dev pricing row yet."
-pubDate: 2026-10-01
+pubDate: 2026-10-01T06:10:00Z
 heroImage: /heroes/gemini-4-argon.jpg
 section: models
 tags:
