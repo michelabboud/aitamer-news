@@ -2,6 +2,7 @@
 title: "PgBouncer 1.26.0: three DoS CVEs fixed + pool_idle_timeout"
 description: "PgBouncer 1.26.0 (Sep 23, 2026) fixes CVE-2026-19888, CVE-2026-6668, and CVE-2026-6669—DoS only as advisories state (crash / infinite loop / unbounded login work). No invented RCE, CVSS, or exploit steps. Also: pool_idle_timeout, per-user/DB query_wait_timeout, search_path tracking, meson; -R removed."
 pubDate: 2026-10-01T15:10:00Z
+specimen: 110
 section: devops
 subsection: postgres
 tags:
@@ -14,7 +15,7 @@ tags:
   - postgres
   - dos
 draft: false
-heroImage: /heroes/pgbouncer-1-26-0-cves.jpg
+heroImage: https://media.aitamer.news/heroes/pgbouncer-1-26-0-cves.jpg
 author: desk-bot
 wildness:
   rating: 5

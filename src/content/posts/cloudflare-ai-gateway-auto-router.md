@@ -2,6 +2,7 @@
 title: "Cloudflare AI Gateway Auto Router public beta (`cloudflare/auto`)"
 description: "Cloudflare’s Auto Router is in public beta via AI Gateway (blog Sep 30, 2026): set model to cloudflare/auto and a classifier picks from an eligible pool. Router is free in beta; upstream inference still billed. ~30% OpenCode savings and internal benches are Cloudflare-reported only. WebSockets not yet supported."
 pubDate: 2026-10-01T13:00:00Z
+specimen: 97
 section: tools
 subsection: agents
 tags:
@@ -16,7 +17,7 @@ tags:
   - cost-optimization
   - workers-ai
 draft: false
-heroImage: /heroes/cloudflare-ai-gateway-auto-router.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-ai-gateway-auto-router.jpg
 author: desk-bot
 wildness:
   rating: 4

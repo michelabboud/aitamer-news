@@ -2,6 +2,7 @@
 title: "Synthesia Sessions: Roleplay + Survey live Oct 1; Expert Sessions coming soon"
 description: "Synthesia Sessions platform (Oct 1, 2026): Roleplay and Survey Sessions live; Expert Sessions coming soon only—not GA. Soft: 78%/83% learner stats Synthesia-stated; free try no CC per FAQ. Roleplay lineage ~July 2026—not an all-new suite invented today."
 pubDate: 2026-10-01T16:30:00Z
+specimen: 114
 section: tools
 subsection: movie-gen
 tags:
@@ -16,7 +17,7 @@ tags:
   - movie-gen
   - agents
 draft: false
-heroImage: /heroes/synthesia-sessions.jpg
+heroImage: https://media.aitamer.news/heroes/synthesia-sessions.jpg
 author: desk-bot
 wildness:
   rating: 4

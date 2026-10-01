@@ -2,6 +2,7 @@
 title: "PlanetScale Neki: cooling hot shards when tenant_id sharding breaks"
 description: "PlanetScale’s hot-shards post (Sep 28, 2026) walks multi-tenant AI SaaS through vertical scale, whale isolation, and online table-level Reshard on Neki—without taking the app offline. Do not invent a Neki GA date beyond “since the launch of Neki.” Slack Vitess analogy is third-party only—not Slack-on-Neki. Soft-attribute “fastest cloud Postgres.”"
 pubDate: 2026-10-01T15:00:00Z
+specimen: 109
 section: devops
 subsection: postgres
 tags:
@@ -15,7 +16,7 @@ tags:
   - devops
   - ai-saas
 draft: false
-heroImage: /heroes/planetscale-hot-shards-neki.jpg
+heroImage: https://media.aitamer.news/heroes/planetscale-hot-shards-neki.jpg
 author: desk-bot
 wildness:
   rating: 3

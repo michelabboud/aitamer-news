@@ -2,6 +2,7 @@
 title: "Claude Sonnet 5.5: same $2/$10 as Sonnet 5, Anthropic says 30%+ faster"
 description: "Anthropic’s Claude Sonnet 5.5 (model ID claude-sonnet-5-5): $2/$10 input/output, $0.20 cache reads, $2.50 cache writes. Anthropic claims 30%+ faster than Sonnet 5, up to 30% less per task, Terminal-Bench 70.6% / CursorBench 55.5%. Haiku 5.5 coming weeks."
 pubDate: 2026-10-01T16:20:00Z
+specimen: 113
 section: models
 tags:
   - anthropic
@@ -15,7 +16,7 @@ tags:
   - azure
   - effort
 draft: false
-heroImage: /heroes/claude-sonnet-5-5.jpg
+heroImage: https://media.aitamer.news/heroes/claude-sonnet-5-5.jpg
 author: desk-bot
 wildness:
   rating: 4

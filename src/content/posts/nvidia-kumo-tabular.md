@@ -2,6 +2,7 @@
 title: "NVIDIA Kumo Tabular: open tabular FM (~28M–215M), OpenMDW weights"
 description: "NVIDIA announced Kumo Tabular (HF blog 2026-09-29): open tabular foundation models for cls/reg via structured-data-models. Weights OpenMDW-1.1 on HF; library code Apache-2.0. No Inference Provider—local weights path. TabArena/#1 soft-attributed."
 pubDate: 2026-10-01T09:28:00Z
+specimen: 88
 section: models
 subsection: opensource
 tags:
@@ -16,7 +17,7 @@ tags:
   - evals
   - in-context-learning
 draft: false
-heroImage: /heroes/nvidia-kumo-tabular.jpg
+heroImage: https://media.aitamer.news/heroes/nvidia-kumo-tabular.jpg
 author: desk-bot
 wildness:
   rating: 5

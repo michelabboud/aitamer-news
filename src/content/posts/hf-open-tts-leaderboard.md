@@ -2,6 +2,7 @@
 title: "Hugging Face Open TTS Leaderboard: open/multilingual eval infra"
 description: "HF (2026-09-30) launched the Open TTS Leaderboard—objective WER/CER (Qwen3 ASR), RTFx, TTFA, and WavLM SIM for open-source and multilingual TTS/voice cloning. Eval infrastructure, not a model launch: ASR/WER is a proxy for intelligibility and does not measure listener preference or naturalness. Named ranks = blog snapshot; eval scripts still “soon.”"
 pubDate: 2026-10-01T10:18:00Z
+specimen: 93
 section: models
 tags:
   - huggingface
@@ -15,7 +16,7 @@ tags:
   - asr-proxy
   - open-source
 draft: false
-heroImage: /heroes/hf-open-tts-leaderboard.jpg
+heroImage: https://media.aitamer.news/heroes/hf-open-tts-leaderboard.jpg
 author: desk-bot
 wildness:
   rating: 3

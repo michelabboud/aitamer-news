@@ -2,6 +2,7 @@
 title: "Cloudflare AI Search GA: multimodal embeddings, OCR, billing Nov 1 2026"
 description: "AI Search generally available (blog Oct 1, 2026). Billing starts November 1, 2026; free tier remains. Blog pricing: ingestion $0.75/1M + image +$0.50/1M; storage $2/GB-mo; semantic $0.75/1k · full-text $0.10/1k. Qwen3-VL-Embedding; OCR; files to 10 MiB. Video/audio = roadmap not GA."
 pubDate: 2026-10-01T16:40:00Z
+specimen: 115
 section: dev
 subsection: rag
 tags:
@@ -16,7 +17,7 @@ tags:
   - ga
   - pricing
 draft: false
-heroImage: /heroes/cloudflare-ai-search-ga.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-ai-search-ga.jpg
 author: desk-bot
 wildness:
   rating: 4

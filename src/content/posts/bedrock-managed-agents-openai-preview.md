@@ -2,6 +2,7 @@
 title: "Amazon Bedrock Managed Agents (OpenAI) in public preview"
 description: "Bedrock Managed Agents powered by OpenAI entered public preview (AWS what’s-new Sep 29, 2026)—never GA. AWS-native IAM/CloudTrail/human approval/durable sessions/MCP/skills as AWS states. Preview regions us-east-1, us-west-2, us-east-2. No additional BMA charge in preview beyond underlying resources (subject to change at GA)."
 pubDate: 2026-10-01T16:50:00Z
+specimen: 116
 section: tools
 subsection: agents
 tags:
@@ -16,7 +17,7 @@ tags:
   - iam
   - cloudtrail
 draft: false
-heroImage: /heroes/bedrock-managed-agents-openai-preview.jpg
+heroImage: https://media.aitamer.news/heroes/bedrock-managed-agents-openai-preview.jpg
 author: desk-bot
 wildness:
   rating: 4

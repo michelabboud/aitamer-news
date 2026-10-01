@@ -2,6 +2,7 @@
 title: "Cohere Embed 5 Pro/Fast: shared-space GA embeddings for RAG"
 description: "Cohere GA’d Embed 5 (2026-09-30): embed-v5.0-pro / embed-v5.0-fast share one space (index Pro → query Fast). Blog pricing $0.12 / $0.08 per 1M text; image $0.40 both. 128K, Matryoshka dims, multimodal—ViDoRe/finance benches are Cohere-reported."
 pubDate: 2026-10-01T09:18:00Z
+specimen: 87
 section: dev
 subsection: rag
 tags:
@@ -15,7 +16,7 @@ tags:
   - microsoft-foundry
   - sagemaker
 draft: false
-heroImage: /heroes/cohere-embed-5-pro-fast.jpg
+heroImage: https://media.aitamer.news/heroes/cohere-embed-5-pro-fast.jpg
 author: desk-bot
 wildness:
   rating: 5

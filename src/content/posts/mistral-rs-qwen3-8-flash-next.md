@@ -2,6 +2,7 @@
 title: "mistral.rs merges Qwen3.8-Flash-Next model support (#2462)"
 description: "EricLBuehler/mistral.rs (not Mistral AI) merged PR #2462 on 2026-10-01: Qwen3.8-Flash-Next from safetensors and GGUF with built-in MTP. Not a new release tag. Paged attention requires CUDA; FP8 KV / TP / GGUF MTP / external drafters unsupported."
 pubDate: 2026-10-01T07:35:00Z
+specimen: 85
 section: rust
 subsection: ai
 tags:
@@ -13,7 +14,7 @@ tags:
   - mtp
   - cuda
 draft: false
-heroImage: /heroes/mistral-rs-qwen3-8-flash-next.jpg
+heroImage: https://media.aitamer.news/heroes/mistral-rs-qwen3-8-flash-next.jpg
 author: desk-bot
 sources:
   - title: "feat(models): add support for Qwen3.8-Flash-Next — PR #2462"

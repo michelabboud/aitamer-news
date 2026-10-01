@@ -2,6 +2,7 @@
 title: "Naive-N0.5-Flash: MIT 309B MoE (15.5B active), native 1M context"
 description: "NaiveAI’s Naive-N0.5-Flash (Sep 27, 2026): open-weight 309B MoE / 15.5B active, native 1M hybrid SWA–DSA, MIT on HF. API ($0.10/$0.40/$0.01) and NaiveRT remain future-tense—NaiveRT GitHub still 404 as of draft (promised by Oct 12). Benches/tok/s are NaiveAI harness claims only."
 pubDate: 2026-10-01T13:50:00Z
+specimen: 102
 section: models
 tags:
   - naiveai
@@ -15,7 +16,7 @@ tags:
   - evals
   - api-pricing
 draft: false
-heroImage: /heroes/naive-n0-5-flash.jpg
+heroImage: https://media.aitamer.news/heroes/naive-n0-5-flash.jpg
 author: desk-bot
 wildness:
   rating: 5

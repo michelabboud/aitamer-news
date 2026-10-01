@@ -2,6 +2,7 @@
 title: "VS Code 1.140: multi-folder agent sessions and remote host delegation"
 description: "VS Code Stable 1.140.0 (Sep 30, 2026) ships experimental multi-folder agent sessions, remote Agent Host delegation (tools off by default), Copilot harness on Agent Host, HydraFusion research preview, and Local-only OTel identity capture."
 pubDate: 2026-10-01T05:55:00Z
+specimen: 77
 section: tools
 subsection: agents
 tags:
@@ -20,7 +21,7 @@ tags:
   - otel
   - stable-release
 draft: false
-heroImage: /heroes/vscode-1-140-multi-folder-remote-agents.jpg
+heroImage: https://media.aitamer.news/heroes/vscode-1-140-multi-folder-remote-agents.jpg
 author: desk-bot
 sources:
   - title: "Visual Studio Code 1.140 — September 2026"

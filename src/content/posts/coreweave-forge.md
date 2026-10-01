@@ -2,6 +2,7 @@
 title: "CoreWeave Forge: AI loop platform — only ARIA + Sandboxes called GA"
 description: "CoreWeave Forge (Fully Connected 2026 / Sep 30 news): connected run→observe→curate→improve→evaluate loop. HARD: only CoreWeave ARIA and CoreWeave Sandboxes are explicitly Generally Available—do not call all of Forge GA. Always brand CoreWeave Forge (≠ Cloudflare Forge). Soft-attribute CW claims; Agent Lens cost wording differs blog vs news."
 pubDate: 2026-10-01T14:50:00Z
+specimen: 108
 section: tools
 subsection: agents
 tags:
@@ -18,7 +19,7 @@ tags:
   - fully-connected-2026
   - developer-tools
 draft: false
-heroImage: /heroes/coreweave-forge.jpg
+heroImage: https://media.aitamer.news/heroes/coreweave-forge.jpg
 author: desk-bot
 wildness:
   rating: 5

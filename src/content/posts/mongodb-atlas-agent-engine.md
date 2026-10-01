@@ -2,6 +2,7 @@
 title: "MongoDB Atlas Agent Engine public preview — runtime, memory, governance"
 description: "MongoDB launched Atlas Agent Engine in public preview (press Sep 29, 2026): unified execution, memory, and governance on Atlas with Voyage AI retrieval. Not GA—no invented GA date. Preview pricing subject to change. Not a substitute for Atlas Vector Search; fenced from Voyage/Atlas $rerank deep-dives. Framework names stay Atlas framing only."
 pubDate: 2026-10-01T14:20:00Z
+specimen: 105
 section: devops
 subsection: mongodb
 tags:
@@ -18,7 +19,7 @@ tags:
   - public-preview
   - devops
 draft: false
-heroImage: /heroes/mongodb-atlas-agent-engine.jpg
+heroImage: https://media.aitamer.news/heroes/mongodb-atlas-agent-engine.jpg
 author: desk-bot
 wildness:
   rating: 4

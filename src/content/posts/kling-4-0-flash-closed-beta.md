@@ -2,7 +2,8 @@
 title: "Kling 4.0 Flash live for Ultra Yearly; full 4K still an October promise"
 description: "Kling AI says Kling 4.0 Flash is live now for Ultra Yearly subscribers; full Kling 4.0 (up to 4K / 10-bit HDR / ~30s) is pitched for October 2026—not today. Tech Times: Flash is 3–20s at 720p 8-bit SDR. No Kling 4.0 on AA yet."
 pubDate: 2026-10-01T06:50:00Z
-heroImage: /heroes/kling-4-0-flash-closed-beta.jpg
+specimen: 82
+heroImage: https://media.aitamer.news/heroes/kling-4-0-flash-closed-beta.jpg
 section: tools
 subsection: movie-gen
 tags:

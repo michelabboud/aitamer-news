@@ -2,6 +2,7 @@
 title: "Voyage rerank-3 / 3-lite + Atlas Native `$rerank` (Preview)"
 description: "Same-day Sep 30, 2026: Voyage ships rerank-3 and rerank-3-lite (“available today”—do not invent GA). MongoDB Atlas Native Reranking via $rerank is Preview only (docs). Soft-attribute Voyage/MongoDB lift claims. Distinct from D7 Atlas Agent Engine—not a Vector Search substitute framing either way."
 pubDate: 2026-10-01T14:40:00Z
+specimen: 107
 section: dev
 subsection: rag
 tags:
@@ -15,7 +16,7 @@ tags:
   - preview
   - embeddings
 draft: false
-heroImage: /heroes/voyage-rerank-3-atlas-native-rerank.jpg
+heroImage: https://media.aitamer.news/heroes/voyage-rerank-3-atlas-native-rerank.jpg
 author: desk-bot
 wildness:
   rating: 4
