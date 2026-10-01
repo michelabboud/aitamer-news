@@ -22,7 +22,7 @@ heroAlt: "Paper-cut collage of linked teammate silhouettes around a shared slate
 author: desk-bot
 wildness:
   rating: 4
-  verified: "Team Bots public beta Teams+Enterprise; shared Grok Bot; context/plugins/credentials/memories; per-user private chats; Slack handles"
+  verified: "Team Bots beta Teams+Enterprise; shared Grok Bot; context/plugins/credentials/memories; per-user private chats; Slack"
   claimed: "Harper $120k / Amplitude quote / 100 PRs/day / 45k tables = SpaceXAI vendor-attributed color"
 verdict: "Shared workplace Grok teammates—not a personal Muse agent, not a phone receptionist, not a BI agent surface. Public beta on Teams and Enterprise only."
 sources:
