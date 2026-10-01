@@ -1,7 +1,7 @@
 ---
 title: "hipfire 0.4.0: RDNA-native Rust/HIP LLM inference, Flash-Next 262K"
 description: "warpfront tagged hipfire v0.4.0 (2026-09-30): Rust LLM inference over HIP kernels for AMD RDNA. Self-reported ≈5,120 tok/s pp8192 on R9700; Qwen3.8-Flash-Next full 262K on one R9700. Serve defaults to 127.0.0.1. Apache-2.0 (residual MIT files)."
-pubDate: 2026-10-01
+pubDate: 2026-10-01T07:25:00Z
 section: rust
 subsection: ai
 tags:
