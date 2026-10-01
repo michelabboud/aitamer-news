@@ -51,7 +51,7 @@ New TypeScript config (`cloudflare.config.ts` with `defineConfig`, `bindings`, `
 
 ## Install + auth
 
-Global install: `npm i -g cf` (also yarn/pnpm/bun). Requires **Node.js 22.18+** (Bun not supported for `cloudflare.config.ts` loads). Sign in with `cf auth login` (device link + code; `--no-browser` for SSH/containers); confirm with `cf auth whoami`. Credentials are **separate from Wrangler**. CI uses `CLOUDFLARE_API_TOKEN` (+ account id). Dual binary names: `cf` and `cloudflare` ([get started](https://developers.cloudflare.com/cf/get-started/), [blog](https://blog.cloudflare.com/cloudflare-cf-cli-launch/)).
+Global install: `npm i -g cf` (also yarn/pnpm/bun). Requires **Node.js 22.18+** (Bun not supported for `cloudflare.config.ts` loads). Sign in with `cf auth login` (device link + code; `--no-browser` for SSH/containers); confirm with `cf auth whoami`. Credentials are **separate from Wrangler**. CI authenticates with a Cloudflare API token plus the account id, supplied as environment variables. Dual binary names: `cf` and `cloudflare` ([get started](https://developers.cloudflare.com/cf/get-started/), [blog](https://blog.cloudflare.com/cloudflare-cf-cli-launch/)).
 
 ## Wrangler coexistence
 
