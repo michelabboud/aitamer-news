@@ -2,6 +2,7 @@
 title: "Cloudflare `cf` CLI open beta — agentic surface for the public API"
 description: "Cloudflare launched cf in open beta (blog Sep 28, 2026): Forge-generated ~3k OpenAPI ops, JSON-default output, cf cli search, cloudflare.config.ts + Vite default. Distinct from AI Gateway Auto Router. Agent-usage % and ~40% config shrink are Cloudflare-reported. Wrangler kept during beta; 18 months maintenance after."
 pubDate: 2026-10-01T13:20:00Z
+specimen: 99
 section: tools
 subsection: cli
 tags:
@@ -16,7 +17,7 @@ tags:
   - openapi
   - developer-tools
 draft: false
-heroImage: /heroes/cloudflare-cf-cli.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-cf-cli.jpg
 author: desk-bot
 wildness:
   rating: 4

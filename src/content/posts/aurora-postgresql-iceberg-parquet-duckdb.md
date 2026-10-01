@@ -2,6 +2,7 @@
 title: "Aurora PostgreSQL: query Iceberg and Parquet via embedded DuckDB"
 description: "AWS GA’d direct Iceberg/Parquet lake queries from Aurora PostgreSQL (2026-09-30) via embedded DuckDB and aurora_analytics—no ETL. Join live ops rows (incl. uncommitted) with the lake. PG 17.11+/18.6+; no extra feature fee (compute + S3)."
 pubDate: 2026-10-01T09:38:00Z
+specimen: 89
 section: devops
 subsection: postgres
 tags:
@@ -17,7 +18,7 @@ tags:
   - ai-agents
   - aws
 draft: false
-heroImage: /heroes/aurora-postgresql-iceberg-parquet-duckdb.jpg
+heroImage: https://media.aitamer.news/heroes/aurora-postgresql-iceberg-parquet-duckdb.jpg
 author: desk-bot
 wildness:
   rating: 4

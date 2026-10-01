@@ -2,6 +2,7 @@
 title: "Redis 8.4: XREADGROUP CLAIM for single-shot Streams recovery"
 description: "Redis 8.4 adds optional CLAIM min-idle-time on XREADGROUP—claim idle PEL entries then read new ones in one command (shared COUNT). Idle ms + delivery count come back when CLAIM is used; XACK still required. ~22.5× vs XAUTOCLAIM is Redis-reported on their stress setup."
 pubDate: 2026-10-01T12:50:00Z
+specimen: 96
 section: devops
 subsection: redis
 tags:
@@ -17,7 +18,7 @@ tags:
   - devops
   - agent-queues
 draft: false
-heroImage: /heroes/redis-84-xreadgroup-claim-reliable-streams-consumers.jpg
+heroImage: https://media.aitamer.news/heroes/redis-84-xreadgroup-claim-reliable-streams-consumers.jpg
 author: desk-bot
 wildness:
   rating: 4

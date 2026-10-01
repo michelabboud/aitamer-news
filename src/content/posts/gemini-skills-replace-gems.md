@@ -2,6 +2,7 @@
 title: "Gemini Skills replace Gems — slash-invoke instructions, dated rollouts"
 description: "Google Skills replace Gems (Sep 30 primaries): slash-invoke, stackable, SKILL.md-shaped. Do not collapse dates—consumer blog “globally/today” vs Workspace Updates (Workspace Oct 5; Gemini app Oct 13). App↔Workspace skills do not sync. Gems sunset “no sooner than” Mar 1 / Jun 1 2027 for Workspace cohorts."
 pubDate: 2026-10-01T13:10:00Z
+specimen: 98
 section: tools
 subsection: gemini
 tags:
@@ -16,7 +17,7 @@ tags:
   - sunset
   - tools
 draft: false
-heroImage: /heroes/gemini-skills-replace-gems.jpg
+heroImage: https://media.aitamer.news/heroes/gemini-skills-replace-gems.jpg
 author: desk-bot
 wildness:
   rating: 5

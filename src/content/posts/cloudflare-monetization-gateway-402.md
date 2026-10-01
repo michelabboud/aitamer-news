@@ -2,6 +2,7 @@
 title: "Cloudflare Monetization Gateway closed beta — HTTP 402 / x402 for agents"
 description: "Cloudflare opened Monetization Gateway in closed beta (Sep 30, 2026): HTTP 402 + x402 inline pay-per-request for sites, APIs, MCP tools, and datasets. Settlement rails as CF states (USDC on Base via Coinbase Facilitator)—not crypto advice. Distinct from Pay Per Use content metering. US buyers/sellers; API2PDF >50% drop-off is vendor soft."
 pubDate: 2026-10-01T13:30:00Z
+specimen: 100
 section: tools
 subsection: agents
 tags:
@@ -17,7 +18,7 @@ tags:
   - machine-payments
   - ai-gateway
 draft: false
-heroImage: /heroes/cloudflare-monetization-gateway-402.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-monetization-gateway-402.jpg
 author: desk-bot
 wildness:
   rating: 5

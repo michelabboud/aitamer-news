@@ -2,6 +2,7 @@
 title: "Cloudflare Threat Signals: free OSINT→IOC skills for every account"
 description: "Threat Signals GA free for every Cloudflare account (blog Sep 29, 2026): 1 RSS feed on free tier, private dataset up to 30 days, Threat Events access. RSS→Browser Run→IOC→Threat Events→WAF as CF describes—no latency/accuracy SLAs; review before block."
 pubDate: 2026-10-01T16:10:00Z
+specimen: 112
 section: tools
 subsection: agents
 tags:
@@ -16,7 +17,7 @@ tags:
   - agents
   - security
 draft: false
-heroImage: /heroes/cloudflare-threat-signals.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-threat-signals.jpg
 author: desk-bot
 wildness:
   rating: 4

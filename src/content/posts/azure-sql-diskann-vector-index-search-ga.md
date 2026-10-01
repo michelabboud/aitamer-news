@@ -2,6 +2,7 @@
 title: "Azure SQL DiskANN vector index & search GA"
 description: "DiskANN approximate vector indexes are GA in Azure SQL Database, Azure SQL Managed Instance (Always-up-to-date), and Fabric SQL (Hoffman Sep 29; Thota Sep 28). Vectors sit next to operational rows under the same T-SQL/security model—no separate vector store. SQL Server 2025 / MI on SQL Server 2025 policy stay preview."
 pubDate: 2026-10-01T09:58:00Z
+specimen: 91
 section: devops
 subsection: cloud
 tags:
@@ -17,7 +18,7 @@ tags:
   - devops
   - cloud
 draft: false
-heroImage: /heroes/azure-sql-diskann-vector-index-search-ga.jpg
+heroImage: https://media.aitamer.news/heroes/azure-sql-diskann-vector-index-search-ga.jpg
 author: desk-bot
 wildness:
   rating: 4

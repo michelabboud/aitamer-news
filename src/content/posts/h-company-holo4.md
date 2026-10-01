@@ -2,6 +2,7 @@
 title: "H Company Holo4: computer-use agents — 27B CC BY-NC, 35B-A3B Apache-2.0"
 description: "Holo4 (Sep 28, 2026): 27B dense (Qwen3.8) + 35B-A3B MoE (Qwen3.6) for GUI/code/MCP/API computer-use. HARD license split—27B weights CC BY-NC 4.0; 35B-A3B Apache-2.0. Both on H Models API + HF. OSWorld/cost figures are H Company harness claims only. Prefer BF16; context 256K (config max 262,144)."
 pubDate: 2026-10-01T13:40:00Z
+specimen: 101
 section: models
 tags:
   - h-company
@@ -16,7 +17,7 @@ tags:
   - evals
   - license-split
 draft: false
-heroImage: /heroes/h-company-holo4.jpg
+heroImage: https://media.aitamer.news/heroes/h-company-holo4.jpg
 author: desk-bot
 wildness:
   rating: 5

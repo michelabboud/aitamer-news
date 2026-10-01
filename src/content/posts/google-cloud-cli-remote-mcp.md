@@ -2,6 +2,7 @@
 title: "Google Cloud CLI remote MCP server public preview"
 description: "Google Cloud’s Cloud CLI remote MCP (blog Sep 30, 2026) exposes gcloud + bq via https://cloudcli.googleapis.com/mcp—Preview / Pre-GA Terms, as is; do not call GA. Tools run_gcloud_command / run_bq_command; MCP no extra charge, pay for GCP resources. Distinct from local gcloud-mcp, BigQuery MCP (GA SQL), and Gemini Skills."
 pubDate: 2026-10-01T14:10:00Z
+specimen: 104
 section: tools
 subsection: cli
 tags:
@@ -16,7 +17,7 @@ tags:
   - cloud-cli-execution
   - developer-tools
 draft: false
-heroImage: /heroes/google-cloud-cli-remote-mcp.jpg
+heroImage: https://media.aitamer.news/heroes/google-cloud-cli-remote-mcp.jpg
 author: desk-bot
 wildness:
   rating: 4

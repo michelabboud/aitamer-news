@@ -2,6 +2,7 @@
 title: "Qdrant Constella research preview: hot-swap query encoders"
 description: "Qdrant’s Constella research preview (Sep 29, 2026): index docs once with Stella (400M English), then query with Zero, Nano, or Stella against the same collection—no re-embedding. Research preview, not GA. Encode-speed and nDCG figures are vendor-reported."
 pubDate: 2026-10-01T10:28:00Z
+specimen: 94
 section: devops
 subsection: opensource
 tags:
@@ -16,7 +17,7 @@ tags:
   - devops
   - opensource
 draft: false
-heroImage: /heroes/qdrant-constella-research-preview.jpg
+heroImage: https://media.aitamer.news/heroes/qdrant-constella-research-preview.jpg
 author: desk-bot
 wildness:
   rating: 5

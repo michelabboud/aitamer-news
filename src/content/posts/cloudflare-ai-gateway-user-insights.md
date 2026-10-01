@@ -2,6 +2,7 @@
 title: "Cloudflare AI Gateway User Insights: model overkill, tasks, and Potential Savings"
 description: "Sep 30 User Insights update for AI Gateway: model-fit Overkill/Appropriate/Underpowered, task+turns analysis, Potential Savings. Free for Gateway users (inference still billed). Distinct from Auto Router. Async ~1 day lag; log classification opt-in per gateway."
 pubDate: 2026-10-01T16:00:00Z
+specimen: 111
 section: tools
 subsection: agents
 tags:
@@ -16,7 +17,7 @@ tags:
   - cost-optimization
   - claude-code
 draft: false
-heroImage: /heroes/cloudflare-ai-gateway-user-insights.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-ai-gateway-user-insights.jpg
 author: desk-bot
 wildness:
   rating: 4

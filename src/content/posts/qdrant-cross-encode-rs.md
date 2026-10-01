@@ -2,6 +2,7 @@
 title: "cross-encode-rs: Rust ONNX cross-encoder reranking (Qdrant blog)"
 description: "Qdrant’s Clelia Bertelli blog (Sep 25, 2026) covers cross-encode-rs—a Rust ONNX Runtime cross-encoder for reranking. crates.io owner is AstraBert (not a Qdrant-org crate). ~1.1×/~1.4× vs Python stacks on M4 Max are vendor-reported; all three hand work to onnxruntime. Linux/macOS only."
 pubDate: 2026-10-01T10:38:00Z
+specimen: 95
 section: rust
 subsection: opensource
 tags:
@@ -15,7 +16,7 @@ tags:
   - rag
   - opensource
 draft: false
-heroImage: /heroes/qdrant-cross-encode-rs.jpg
+heroImage: https://media.aitamer.news/heroes/qdrant-cross-encode-rs.jpg
 author: desk-bot
 wildness:
   rating: 4

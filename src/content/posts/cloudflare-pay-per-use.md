@@ -2,6 +2,7 @@
 title: "Cloudflare Pay Per Use beta — publishers paid when AI *uses* content"
 description: "Cloudflare opened Pay Per Use in beta (blog Sep 30, 2026): a content-network path where AI buyers offer prices for defined uses, publishers opt in, buyers self-report usage, Cloudflare settles monthly. HARD fence vs Monetization Gateway / x402 (API/MCP 402 rails). Distinct from Pay Per Crawl. Soft: beta/US-era trust model; no invented GA."
 pubDate: 2026-10-01T14:30:00Z
+specimen: 106
 section: tools
 subsection: agents
 tags:
@@ -17,7 +18,7 @@ tags:
   - pay-per-crawl
   - content-monetization
 draft: false
-heroImage: /heroes/cloudflare-pay-per-use.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-pay-per-use.jpg
 author: desk-bot
 wildness:
   rating: 4

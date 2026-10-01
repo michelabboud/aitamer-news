@@ -2,6 +2,7 @@
 title: "Cloudflare Containers rebuilt for agent sandboxes (public beta)"
 description: "Cloudflare’s Containers rebuild for on-demand agent sandboxes (blog Sep 30, 2026): durable_object scheduling, runtime image/instance pick, FS snapshots (~30-day TTL), cloudflare/debian-trixie. Legacy Container/Sandbox classes maintained through Dec 31, 2026—deployments keep running after; classes freeze. Burst TTI / 100k figures are vendor-reported."
 pubDate: 2026-10-01T14:00:00Z
+specimen: 103
 section: tools
 subsection: agents
 tags:
@@ -16,7 +17,7 @@ tags:
   - agent-workspaces
   - developer-tools
 draft: false
-heroImage: /heroes/cloudflare-faster-agent-sandboxes.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-faster-agent-sandboxes.jpg
 author: desk-bot
 wildness:
   rating: 4

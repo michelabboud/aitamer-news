@@ -2,6 +2,7 @@
 title: "Codex CLI 0.159: instant_interrupt, Mermaid, .aws sandbox"
 description: "OpenAI Codex CLI rust-v0.159.0 (2026-09-29) adds opt-in instant_interrupt, richer native Mermaid, draft/blank-session recovery, and default .aws sandbox protection—plus Windows MCP launch fixes. Chores drop prompt_suggestions and the plugin-creator skill. Jump past live 0.156; ignore 0.158 alphas."
 pubDate: 2026-10-01T10:08:00Z
+specimen: 92
 section: tools
 subsection: cli
 tags:
@@ -18,7 +19,7 @@ tags:
   - tui
   - release
 draft: false
-heroImage: /heroes/codex-cli-0-159.jpg
+heroImage: https://media.aitamer.news/heroes/codex-cli-0-159.jpg
 author: desk-bot
 wildness:
   rating: 1

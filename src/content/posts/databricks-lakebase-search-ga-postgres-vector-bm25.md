@@ -2,6 +2,7 @@
 title: "Databricks Lakebase Search GA: Postgres ANN + BM25 hybrid"
 description: "Databricks GA’d Lakebase Search on AWS/Azure (blog 2026-09-28): lakebase_vector (ANN) + lakebase_text (BM25) in the same serverless Postgres OLTP—hybrid via RRF, no separate search cluster. VectorDBBench/Conexiom figures are vendor-reported."
 pubDate: 2026-10-01T09:48:00Z
+specimen: 90
 section: devops
 subsection: postgres
 tags:
@@ -19,7 +20,7 @@ tags:
   - devops
   - postgres
 draft: false
-heroImage: /heroes/databricks-lakebase-search-ga-postgres-vector-bm25.jpg
+heroImage: https://media.aitamer.news/heroes/databricks-lakebase-search-ga-postgres-vector-bm25.jpg
 author: desk-bot
 wildness:
   rating: 5

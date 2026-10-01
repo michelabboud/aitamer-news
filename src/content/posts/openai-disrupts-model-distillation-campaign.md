@@ -2,6 +2,7 @@
 title: "OpenAI disrupts coordinated model-distillation campaign"
 description: "OpenAI says it disrupted a July 2026 adversarial distillation campaign that sought protected reasoning via ToS-violating interaction patterns—not a crypto/DB breach. Core cluster attributed to individuals associated with Moonshot AI (Kimi); volumes are attempted extractions."
 pubDate: 2026-10-01T09:08:00Z
+specimen: 86
 section: models
 tags:
   - openai
@@ -13,7 +14,7 @@ tags:
   - frontier-model-forum
   - protected-reasoning
 draft: false
-heroImage: /heroes/openai-disrupts-model-distillation-campaign.jpg
+heroImage: https://media.aitamer.news/heroes/openai-disrupts-model-distillation-campaign.jpg
 author: desk-bot
 wildness:
   rating: 4
