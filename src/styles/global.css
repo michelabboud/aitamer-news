@@ -326,7 +326,7 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 .lead__photo-link .specimen-photo img { aspect-ratio: 16 / 9; }
 .lead__body { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .lead__kicker { display: flex; gap: 10px; align-items: center; font-family: var(--font-machine); font-size: 0.6875rem; letter-spacing: 0.08em; }
-.lead__title { font-size: 52px; line-height: 1.06; letter-spacing: 0; font-weight: 600; margin: 0; }
+.lead__title { font-size: 52px; line-height: 1.06; letter-spacing: 0; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
 .lead__catch { color: var(--ember-text); font-weight: 600; }
 .lead__title a, .card__title a, a.log-row__title { color: inherit; text-decoration: none; }
 .lead__title a:hover, .card__title a:hover, a.log-row__title:hover { color: var(--ember-text); }
@@ -411,13 +411,13 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
 .card__meta a { color: var(--ink-muted); text-decoration: none; }
 .card__meta a:hover { color: var(--bone); }
 .card__by { font-weight: 600; }
-.card__title { font-size: 29px; line-height: 1.12; letter-spacing: 0; font-weight: 600; margin: 0; text-wrap: pretty; }
+.card__title { font-size: 29px; line-height: 1.12; letter-spacing: 0; font-weight: 600; margin: 0; text-wrap: pretty; overflow-wrap: anywhere; }
 /* 12 − 6 = 6 px between kicker and title. */
 .card__meta + .card__title { margin-top: -6px; }
 /* Three across, the long titles wrap to four lines at full size; 27 px keeps most of them to three.
    Listings go three across above 900 px; the front page's main column at 1000 px of its own width. */
 @media (min-width: 901px) { .cards.listing .card__title { font-size: 27px; } }
-.card__desc { margin: 0; font-size: 1rem; color: var(--ink-soft); line-height: 1.5; }
+.card__desc { margin: 0; font-size: 1rem; color: var(--ink-soft); line-height: 1.5; overflow-wrap: anywhere; }
 .card__foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
 .card__wl { font-family: var(--font-machine); font-size: 0.6875rem; letter-spacing: 0.08em; color: var(--ink-muted); text-transform: uppercase; }
 .card__comments { font-family: var(--font-machine); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -427,8 +427,9 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
 .front { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 48px; align-items: start; }
 /* The main column sizes its own contents, so the lead and cards fit whatever width the panel leaves. */
 .front__main { container-type: inline-size; display: flex; flex-direction: column; gap: 56px; min-width: 0; }
-.front__main .lead__story { grid-template-columns: 1fr; grid-template-areas: "photo" "body" "details"; gap: 24px; }
-.front__main .cards { grid-template-columns: 1fr; }
+.front__main .lead__story { grid-template-columns: minmax(0, 1fr); grid-template-areas: "photo" "body" "details"; gap: 24px; }
+/* minmax(0, 1fr), not 1fr: a bare 1fr track will not shrink below its content, so one card with a long unbreakable word widened every card past the phone screen. */
+.front__main .cards { grid-template-columns: minmax(0, 1fr); }
 @container (min-width: 560px) { .front__main .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container (min-width: 720px) {
   /* The lead stays stacked (photo, then headline, then details): side by side the headline got under half of a
@@ -928,7 +929,7 @@ a.archive-month__name:hover { color: var(--ember-text); }
   .log-row__time { font-size: 0.6875rem; padding-top: 3px; }
   .log-row__title { font-size: 0.9375rem; }
 
-  .cards { grid-template-columns: 1fr; gap: 32px; }
+  .cards { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .station-row { grid-template-columns: 1fr; }
   .watch, .watch--page { padding: 20px; }
   .watch--page .watch-item { grid-template-columns: 78px 1fr; }
