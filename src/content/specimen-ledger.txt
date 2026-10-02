@@ -161,3 +161,6 @@
 0158 set-it-aside-instead-of-deleting
 0159 disk-at-97-percent
 0160 handoff-notes-between-sessions
+0161 what-never-to-log-in-agent-runs
+0162 message-buses-between-agents
+0163 secrets-in-agent-workflows-three-leaks
