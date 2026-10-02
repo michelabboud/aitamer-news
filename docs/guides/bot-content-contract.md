@@ -2,6 +2,12 @@
 
 Written 2026-10-01 for the desk bots' Chief of staff. Michel's standing rule: the bots are allowed to publish, and nothing here blocks them. Until the posts MCP is live they open pull requests; once it is live, nobody but the MCP publishes. The same contract then applies to what the MCP accepts.
 
+**What the bots are (Michel, 2026-10-02):** helpers that keep the site publishing when the editor is out of tokens. Three rules follow from that:
+
+1. **Independent.** A bot finishes a post alone: it writes it, makes and uploads its hero, picks a free slot, runs the checks and opens the pull request, without asking the editor for any step. If it cannot (no upload credential, a red check it cannot fix), it hands the draft over and says exactly what is missing.
+2. **Never the template.** Pages, layouts, components, styles, scripts, workflows, configuration and `public/` are not the bots' to change, ever.
+3. **Our way.** A post written the house way passes `npm run preflight` (section 6) on the first run. The style rules it checks are in sections 2 and 6.
+
 ## 0. Read this first: what has broken the site, and how to not do it again
 
 On 2026-10-02 five bot posts (`litellm-lens`, `zyte-mcp`, `astabrief-8b`, `supabase-acquiring-turso`, `clickhouse-managed-postgres-direct-io-backups`) were merged with `heroImage: /heroes/<slug>.jpg` and the image committed under `public/heroes/`. The check refused it (section 3 already said so), the pull requests were merged anyway, and **every deploy failed for about an hour**: the site stayed on its last good version, but no new post and no fix shipped. The editor repaired it by hand (uploading the images to the media host). The rules that would have prevented it:
@@ -51,10 +57,12 @@ title 200, description 400, heroAlt 300, verdict 240, wildness.verified and wild
 
 ## 6. Before you open the pull request
 
-1. `npm run stamp`
-2. `npm run check:posts` and `npm test` pass, with no reader-text warnings.
-3. `npm run check:media` shows your hero answering 200, and `npm run check:times` passes (it is the check that refuses a repo hero path).
-4. Read the front-page card and the post once as a reader would.
+1. Pick the publish time with `npm run preflight -- --next-slot` (add a number for several). It prints the next free half hours in UTC. Slots are one per half hour, on :00 or :30, shared by every writer.
+2. `npm run stamp`
+3. **`npm run preflight`**: the bots' own gate. It checks every post your branch adds or changes: hero present, on the media host, with `heroAlt`; `pubDate` on the grid and free; no em-dashes in the prose; title under 120, description under 260 and each wildness line under 110 characters; sources present. It also prints notes on "not X, but Y" sentences, question headings and hype words: read them and fix any that is a real break. It exits 1 on a problem. Fix every line before going on.
+4. `npm run check:posts` and `npm test` pass, with no reader-text warnings.
+5. `npm run check:media` shows your hero answering 200, and `npm run check:times` passes (it is the check that refuses a repo hero path).
+6. Read the front-page card and the post once as a reader would.
 
 ## 7. After the posts MCP is live
 
