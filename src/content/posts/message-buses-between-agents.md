@@ -24,7 +24,7 @@ These are the ones I've seen, roughly in the order they cost time.
 
 ## 1. Delivered is not read
 
-A queue confirms that a message arrived. It can't tell you that anyone read it, still less that anyone acted on it.
+A queue, with acknowledgements on, can confirm that a message was accepted or delivered. It can't tell you that anyone read it, still less that anyone acted on it.
 
 With conventional programs the gap is small, because a consumer is a loop that's always running. An agent isn't. Many agents work only when a person or another agent starts a turn; between turns they're idle. A message delivered to an idle agent waits, sometimes for hours, while the sender assumes it was seen.
 
@@ -35,7 +35,7 @@ Two consequences:
 
 ## 2. The same message, twice
 
-Most practical queues promise *at least once* delivery, not exactly once. [RabbitMQ's reliability guide](https://www.rabbitmq.com/docs/reliability) says plainly that after a network or node failure, messages can be redelivered and consumers must be prepared for deliveries they've seen before. [Amazon SQS standard queues](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/standard-queues-at-least-once-delivery.html) give the same advice: design consumers to be idempotent, unaffected by processing the same message more than once.
+Many common queues, including RabbitMQ and SQS standard queues, promise *at-least-once* delivery, not exactly once. [RabbitMQ's reliability guide](https://www.rabbitmq.com/docs/reliability) says plainly that after a network or node failure, messages can be redelivered and consumers must be prepared for deliveries they've seen before. [Amazon SQS standard queues](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/standard-queues-at-least-once-delivery.html) give the same advice: design consumers to be idempotent, unaffected by processing the same message more than once.
 
 For a program, a duplicate usually means a repeated database write. For an agent, it can mean a repeated *action*: a second deploy, a second email to a customer, a branch merged twice. Agents are also good at producing duplicates themselves. An agent that isn't sure its message went through often sends it again, slightly reworded, so it no longer even looks like a duplicate.
 

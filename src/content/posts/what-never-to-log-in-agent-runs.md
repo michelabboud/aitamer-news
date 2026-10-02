@@ -22,9 +22,9 @@ When an AI agent misbehaves, the log is what you read to find out why, so it's t
 
 ## The list
 
-The [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html) says the following should usually be removed or masked rather than logged: access tokens, passwords, session identifiers, database connection strings, encryption keys, and sensitive personal data. For agent runs, that list shows up in some less obvious places:
+The [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html) lists what should usually be removed or masked rather than logged, including access tokens, passwords, session identifiers, database connection strings, encryption keys, and sensitive personal data. For agent runs, that list shows up in some less obvious places:
 
-- **The environment.** Dumping it "for context" logs every API key the agent was given.
+- **The environment.** Dumping it "for context" logs every API key passed in through environment variables.
 - **Full HTTP requests.** Authorization headers travel with them.
 - **URLs with credentials in them.** `https://user:password@host/` still turns up in configuration, although [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986.html) deprecates putting a password there. Log the host, not the whole URL.
 - **Connection strings**, which often carry a password inside them.
@@ -32,12 +32,11 @@ The [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/L
 
 ## Scrub before the write
 
-Masking has to happen in the code that writes the log, not later in whatever reads it. Once a secret is on disk, it's in the rotated files, the backups, the copy someone sent to a colleague, and the search index. Removing it afterwards means finding every one of those.
+Mask as early as you can, ideally in the code that writes the log. A scrubber that runs only on the reader's side leaves the raw secret on disk, in backups and in copies. Once a secret is on disk, it's in the rotated files, the backups, the copy someone sent to a colleague, and the search index. Removing it afterwards means finding every one of those.
 
-Two details matter:
+One detail matters:
 
-- **Whatever your alerting searches for, your scrubber must remove first.** Otherwise the alert fires on its own log forever.
-- **A hash isn't always a disguise.** OWASP suggests hashing session identifiers, which works because they're long and random. A hash of a short or guessable secret can be reversed simply by trying candidates. Log the secret's name and whether it was present, not a fingerprint of its value.
+- **A hash isn't always a disguise.** OWASP says session identifiers can be replaced with a hash if you need to correlate session events; that is safe mainly because they are long and random. A hash of a short or guessable secret can be reversed simply by trying candidates. Log the secret's name and whether it was present, not a fingerprint of its value.
 
 **Lantern note:** log what the agent did, never the credentials it held while doing it.
 
