@@ -8,6 +8,8 @@ import AuthorBadge from '../../components/AuthorBadge.astro';
 import CommentCount from '../../components/CommentCount.astro';
 import Comments from '../../components/Comments.astro';
 import Reactions from '../../components/Reactions.astro';
+import Freshness from '../../components/Freshness.astro';
+import { revDocument } from '../../lib/freshness';
 import ShareLinks from '../../components/ShareLinks.astro';
 import SpecimenTag from '../../components/SpecimenTag.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
@@ -65,6 +67,7 @@ export async function getStaticPaths() {
 }
 
 const { post, comments, reactions } = Astro.props;
+const rev = revDocument(post);
 const author = await resolveAuthor(post);
 if (!author) throw new Error(`Missing author for post ${post.id}`);
 const { Content } = await render(post);
@@ -284,4 +287,5 @@ const breadcrumbs = {
       </>
     )}
   </article>
+  <Freshness mode="post" slug={post.id} rev={rev.rev} corrections={rev.corrections} withdrawn={rev.withdrawn} />
 </BaseLayout>
