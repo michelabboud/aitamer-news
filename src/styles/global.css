@@ -610,6 +610,24 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 .rating-report { font-size: 0.95rem; color: var(--ink-soft); }
 .rating-report p { margin: 0; }
 
+/* Share this story: plain links, plus a copy button and the phone's share sheet once the script runs. */
+.share { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--line); max-width: var(--measure); }
+.share h2 { font-size: 1.5rem; margin-bottom: 0.75rem; }
+.share__links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.share__links a, .share__button {
+  display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0.4rem 0.9rem;
+  background: var(--night-raised); color: var(--bone);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  font: 600 0.95rem/1 var(--font-reading); text-decoration: none; cursor: pointer;
+}
+.share__links a:hover, .share__button:hover { border-color: var(--ember); color: var(--ember-text); }
+.share__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; margin-top: 0.5rem; }
+.share__links:empty + .share__actions { margin-top: 0; }
+.share__button[hidden] { display: none; }
+.share--native .share__links { display: none; }
+.share__status { font-size: 0.95rem; color: var(--ink-soft); }
+@media print { .share { display: none; } }
+
 .comment-count { color: var(--ink-muted); text-decoration: none; }
 .comment-count:hover { color: var(--ember-text); text-decoration: underline; }
 
