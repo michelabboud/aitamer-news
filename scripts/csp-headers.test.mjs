@@ -318,10 +318,12 @@ test('S2: link loads are checked by rel (and by as, for preload)', () => {
       '<link rel="alternate" href="https://elsewhere.example.com/feed.xml">',
     ].join(''),
   );
-  assert.equal(guard.filter((x) => x.includes('style-src')).length, 2, guard.join('\n'));
+  // The Google Fonts stylesheet is a finding too: fonts are self-hosted (ADR 0022), so no font host is allowed.
+  assert.equal(guard.filter((x) => x.includes('style-src')).length, 3, guard.join('\n'));
+  assert.ok(guard.some((x) => x.includes('fonts.googleapis.com')), guard.join('\n'));
   assert.equal(guard.filter((x) => x.includes('script-src')).length, 2, guard.join('\n'));
   assert.equal(guard.filter((x) => x.includes('font-src')).length, 1, guard.join('\n'));
-  assert.equal(guard.length, 5, guard.join('\n'));
+  assert.equal(guard.length, 6, guard.join('\n'));
 });
 
 test('S2: images are checked against img-src, so http: fails and https:, data: and the site pass', () => {

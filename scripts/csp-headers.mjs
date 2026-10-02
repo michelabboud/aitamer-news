@@ -141,9 +141,6 @@ export const ORIGINS = {
    * use the Ads features, which need more hosts.
    */
   analyticsConnect: ['https://*.google-analytics.com', 'https://*.google.com'],
-  /** Google Fonts: the layout's stylesheet link, and the font files it points at. */
-  fontsCss: 'https://fonts.googleapis.com',
-  fontsFiles: 'https://fonts.gstatic.com',
   /** VideoEmbed's click-to-load player. */
   youtubeNoCookie: 'https://www.youtube-nocookie.com',
   /** Only the one grandfathered post that embeds raw YouTube iframes (made-on-youtube-2026-gemini-ask-studio). */
@@ -162,8 +159,9 @@ export function directives({ hashes, endpoints, wasm = false, enforce = CSP_ENFO
     ['script-src', ["'self'", ...(wasm ? ["'wasm-unsafe-eval'"] : []), ...hashSources, ORIGINS.turnstile, ORIGINS.gtag]],
     // Inline style attributes (Shiki's code blocks, table alignment, Astro's scoped styles) carry
     // no script; the rendered-body gate constrains their values in bot posts.
-    ['style-src', ["'self'", "'unsafe-inline'", ORIGINS.fontsCss]],
-    ['font-src', ["'self'", ORIGINS.fontsFiles]],
+    ['style-src', ["'self'", "'unsafe-inline'"]],
+    // Fonts are self-hosted (src/assets/fonts, fingerprinted under /_astro/): no reader's address goes to a font host.
+    ['font-src', ["'self'"]],
     // Human posts may use an image from any https host (and gtag's pixel is one).
     ['img-src', ["'self'", 'data:', 'https:']],
     ['connect-src', ["'self'", endpoints.comments, endpoints.contact, ORIGINS.gtag, ...ORIGINS.analyticsConnect]],
