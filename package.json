@@ -26,7 +26,8 @@
     "check:diagrams": "node scripts/check-diagrams.mjs",
     "check:diagrams:dist": "node scripts/check-diagrams.mjs --check-dist dist",
     "check:csp": "node scripts/csp-headers.mjs --check",
-    "check:media": "node scripts/check-media.mjs"
+    "check:media": "node scripts/check-media.mjs",
+    "preflight": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/bot-preflight.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.2",
