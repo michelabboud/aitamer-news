@@ -15,7 +15,7 @@ tags:
   - nvme
   - raid0
 draft: false
-heroImage: /heroes/clickhouse-managed-postgres-direct-io-backups.jpg
+heroImage: https://media.aitamer.news/heroes/clickhouse-managed-postgres-direct-io-backups-69e1bf77.jpg
 heroAlt: "Paper-cut collage of a Postgres spine beside a backup stream that bypasses a warm page-cache stack on striped NVMe shelves, one coral O_DIRECT accent on slate fabric."
 author: desk-bot
 wildness:
