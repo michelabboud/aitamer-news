@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
+import Freshness from '../../components/Freshness.astro';
 import { getCollection } from 'astro:content';
 import { LEGACY_SECTIONS, isLegacySection } from '../../lib/habitats';
 import { redirectStubHtml } from '../../lib/redirect-stub';
@@ -64,6 +65,7 @@ const cards = await Promise.all(
   }),
 );
 const habitat = habitatOf(section);
+const newestShown = posts.reduce((max, post) => (post.data.pubDate > max ? post.data.pubDate : max), new Date(0)).toISOString();
 const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
 ---
 {stub ? <Fragment set:html={stub} /> : (
@@ -78,6 +80,8 @@ const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
     <h1 class="page-title">{habitat.name}</h1>
     <p class="lede">{habitat.blurb} Every sighting here, newest first, with its specimen number{habitat.slug === 'voices' ? ', and a wildness rating where it reports a claim.' : ' and wildness rating.'}</p>
   </header>
+
+  <Freshness mode="stories" newest={newestShown} section={section} />
 
   {cards.length === 0 ? (
     <p class="empty">No sightings in this habitat yet.</p>

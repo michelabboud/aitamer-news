@@ -1,0 +1,101 @@
+---
+/**
+ * A quiet bar that tells a reader the page they have open is out of date, with a button to reload.
+ * Never reloads by itself: the reader would lose their place (2026-10-02).
+ *
+ * - `mode="post"`: the story changed since the page was built. Asks `/rev/<slug>.json`.
+ * - `mode="stories"`: new stories exist since the newest one shown. Asks `/latest.json`; on a section
+ *   page `section` limits the count to that habitat.
+ *
+ * The decisions are in `src/lib/freshness-client.ts` (unit-tested); the script below only fetches on
+ * a timer, on returning to the tab, and shows the bar. It asks nothing while the tab is hidden, does
+ * nothing at all when a request fails, and calls no one but this site.
+ */
+import { withBase } from '../lib/site';
+
+type Props =
+  | { mode: 'post'; slug: string; rev: string; corrections: number; withdrawn: boolean }
+  | { mode: 'stories'; newest: string; section?: string };
+
+const props = Astro.props;
+const url = props.mode === 'post' ? withBase(`/rev/${props.slug}.json`) : withBase('/latest.json');
+---
+
+<div
+  class="freshness"
+  role="status"
+  aria-live="polite"
+  data-freshness={props.mode}
+  data-freshness-url={url}
+  data-rev={props.mode === 'post' ? props.rev : undefined}
+  data-corrections={props.mode === 'post' ? String(props.corrections) : undefined}
+  data-withdrawn={props.mode === 'post' ? String(props.withdrawn) : undefined}
+  data-newest={props.mode === 'stories' ? props.newest : undefined}
+  data-section={props.mode === 'stories' ? props.section : undefined}
+  data-pagefind-ignore
+  hidden
+>
+  <span class="freshness__text" data-freshness-text></span>
+  <button type="button" class="freshness__reload" data-freshness-reload>
+    {props.mode === 'post' ? 'Reload to see the latest' : 'Show them'}
+  </button>
+</div>
+
+<script>
+  import {
+    POST_CHECK_MS,
+    STORIES_CHECK_MS,
+    isLatestFeed,
+    isRevDocument,
+    newStories,
+    noticeFor,
+    noticeText,
+    storiesText,
+  } from '../lib/freshness-client';
+
+  function setup(bar: HTMLElement): void {
+    const mode = bar.dataset.freshness;
+    const url = bar.dataset.freshnessUrl;
+    const text = bar.querySelector<HTMLElement>('[data-freshness-text]');
+    const reload = bar.querySelector<HTMLButtonElement>('[data-freshness-reload]');
+    if (!url || !text || !reload || (mode !== 'post' && mode !== 'stories')) return;
+
+    const show = (message: string): void => {
+      text.textContent = message;
+      bar.hidden = false;
+    };
+
+    async function check(): Promise<void> {
+      if (document.hidden || !url) return;
+      try {
+        const response = await fetch(url, { cache: 'no-store', credentials: 'omit' });
+        if (!response.ok) return;
+        const body: unknown = await response.json();
+        if (mode === 'post' && isRevDocument(body)) {
+          const kind = noticeFor(
+            {
+              rev: bar.dataset.rev ?? '',
+              corrections: Number(bar.dataset.corrections ?? '0'),
+              withdrawn: bar.dataset.withdrawn === 'true',
+            },
+            body,
+          );
+          if (kind) show(noticeText(kind));
+        } else if (mode === 'stories' && isLatestFeed(body)) {
+          const count = newStories(body.entries, bar.dataset.newest ?? '', bar.dataset.section || undefined);
+          if (count > 0) show(storiesText(count));
+        }
+      } catch {
+        // Offline, blocked or a bad answer: say nothing, try again at the next tick.
+      }
+    }
+
+    reload.addEventListener('click', () => window.location.reload());
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) void check();
+    });
+    window.setInterval(() => void check(), mode === 'post' ? POST_CHECK_MS : STORIES_CHECK_MS);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-freshness]').forEach(setup);
+</script>
