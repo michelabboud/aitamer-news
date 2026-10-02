@@ -166,3 +166,5 @@
 0163 secrets-in-agent-workflows-three-leaks
 0164 what-a-small-team-automates-first
 0165 between-the-polls
+0166 a-day-inside-a-harness
+0167 reading-a-model-card-like-a-nutrition-label
