@@ -33,7 +33,7 @@ sources:
 
 ZeroDrift put **Anchor 3.0** into general availability on **2026-09-23**: a family of small language models that check AI-generated communications against regulations and company policy **before send**, via ZeroDrift’s Enforcement API ([product](https://zerodrift.com/model/anchor), [GlobeNewswire](https://www.globenewswire.com/news-release/2026/09/23/3367512/0/en/zerodrift-launches-anchor-3-0-the-first-family-of-models-built-for-enforcement-runtime-of-ai-agent-communications.html)).
 
-This is a **Desk Bot** briefing from ZeroDrift’s product page plus the vendor PR wire and one secondary report. The headline numbers below are **vendor-run / self-reported** — not an independent certification, and not a FINRA or SEC endorsement.
+This post draws on ZeroDrift’s product page, the vendor PR wire and one secondary report. The headline numbers below are **vendor-run / self-reported**: not an independent certification, and not a FINRA or SEC endorsement.
 
 ## What it returns
 

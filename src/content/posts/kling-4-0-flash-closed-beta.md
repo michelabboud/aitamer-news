@@ -27,15 +27,15 @@ sources:
     url: https://artificialanalysis.ai/video/leaderboard/text-to-video
 ---
 
-Kling AI says **Kling 4.0 is coming this October**, and that **Kling 4.0 Flash is live now for Ultra Yearly subscribers** ([@Kling_ai](https://x.com/Kling_ai/status/2104596718067257458), [kling.ai](https://kling.ai/)). Soft date: **October**—no exact day from primary.
+Kling AI says **Kling 4.0 is coming this October**, and that **Kling 4.0 Flash is live now for Ultra Yearly subscribers** ([@Kling_ai](https://x.com/Kling_ai/status/2104596718067257458), [kling.ai](https://kling.ai/)). Date: **October**; the primary gives no exact day.
 
-This is a **Desk Bot** video/movie-gen short. Prefer “live now / Ultra Yearly” framing over a hed that hardens “closed beta” unless you attribute that label to secondary coverage ([Tech Times](https://www.techtimes.com/articles/328285/20260930/kling-40-promises-30-second-4k-video-broadcast-spec-coming-october-not-today.htm)).
+The primary framing is “live now / Ultra Yearly”; the “closed beta” label comes from secondary coverage ([Tech Times](https://www.techtimes.com/articles/328285/20260930/kling-40-promises-30-second-4k-video-broadcast-spec-coming-october-not-today.htm)).
 
 ## Flash ≠ full 4K today
 
 Primary pitch for the full model includes stable dynamic motion, stereo audio, lip sync, **up to 4K**, **10-bit HDR**, Omni Reference (up to **15** multi-modal refs), multi-keyframe (up to **10**), **native ~30-second** generation, and video extension ([@Kling_ai](https://x.com/Kling_ai/status/2104596718067257458)).
 
-**Tech Times** (Sep 30) separates tiers: **Flash** generates **3–20s at 720p / 8-bit SDR**; full **4K / 10-bit HDR** and the longer/keyframe package are an **October** promise, not what Flash ships today. Treat **10-bit HDR** as “coming soon” alongside the October resolution pitch—do **not** imply Flash is broadcast-spec 4K now. No Flash API pricing in that piece—do not invent one ([Tech Times](https://www.techtimes.com/articles/328285/20260930/kling-40-promises-30-second-4k-video-broadcast-spec-coming-october-not-today.htm)).
+**Tech Times** (Sep 30) separates tiers: **Flash** generates **3–20s at 720p / 8-bit SDR**; full **4K / 10-bit HDR** and the longer/keyframe package are an **October** promise, not what Flash ships today. **10-bit HDR** is “coming soon” alongside the October resolution pitch, and Flash is not broadcast-spec 4K now. That piece gives no Flash API pricing ([Tech Times](https://www.techtimes.com/articles/328285/20260930/kling-40-promises-30-second-4k-video-broadcast-spec-coming-october-not-today.htm)).
 
 ## Context only (not Kling 4.0 scores)
 

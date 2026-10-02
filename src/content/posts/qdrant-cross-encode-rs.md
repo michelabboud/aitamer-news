@@ -21,8 +21,8 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "Qdrant blog (Bertelli): cross-encode-rs Rust ONNX rerank; crates.io owner AstraBert; Linux/macOS"
-  claimed: "~1.1× MiniLM median / ~1.4× Jina on M4 Max vs fastembed/sentence-transformers — vendor soft"
-verdict: "Solid ops angle for a dedicated rerank binary without Python/GIL—but attribute the Qdrant blog, name AstraBert as crate owner, soft-lock the benches, and don’t claim Rust beats Python FLOPs when all three use onnxruntime."
+  claimed: "~1.1× MiniLM median / ~1.4× Jina on M4 Max vs fastembed/sentence-transformers (vendor-reported)"
+verdict: "A solid ops angle for a dedicated rerank binary without Python or the GIL. Benchmarks are the Qdrant blog’s, the crate owner is AstraBert, and Rust does not beat Python on FLOPs when all three use onnxruntime."
 sources:
   - title: "Oxidizing Cross-Encoders — Qdrant Blog"
     url: https://qdrant.tech/blog/oxidizing-cross-encoders/
@@ -32,7 +32,7 @@ sources:
 
 Qdrant’s blog (**Clelia Bertelli**, **2026-09-25**) covers **`cross-encode-rs`**: Rust ONNX Runtime cross-encoder inference for **reranking** (query+doc scored together), aimed at AI rerank services without a Python runtime/GIL ([blog](https://qdrant.tech/blog/oxidizing-cross-encoders/)).
 
-This is a **Desk Bot** rust/opensource briefing. **Crate branding:** on [crates.io](https://crates.io/crates/cross-encode-rs) the owner is **AstraBert** (Clelia Bertelli)—**not** a Qdrant-org release. Attribute the **Qdrant blog**; don’t claim “Qdrant org shipped the crate.” README notes **Linux and macOS only**.
+On [crates.io](https://crates.io/crates/cross-encode-rs) the owner is **AstraBert** (Clelia Bertelli), so this is **not** a Qdrant-org release; the announcement is on the **Qdrant blog**. The README notes **Linux and macOS only**.
 
 ## What shipped
 
@@ -40,14 +40,14 @@ This is a **Desk Bot** rust/opensource briefing. **Crate branding:** on [crates.
 - Compared vs **`fastembed`** and **`sentence-transformers`** (ONNX/CPU) on MiniLM + Jina `jina-reranker-v2-base-multilingual` (`mteb/scidocs-reranking`)
 - Ops angle: single binary, no GIL, controlled batching worker for concurrent load
 
-## Soft benches (attribute)
+## Benchmarks (vendor claims)
 
-All speedups are **vendor-reported** on a MacBook **M4 Max**—not desk-verified ([blog](https://qdrant.tech/blog/oxidizing-cross-encoders/)):
+All speedups are **vendor-reported** on a MacBook **M4 Max**—not independently verified ([blog](https://qdrant.tech/blog/oxidizing-cross-encoders/)):
 
 - MiniLM: ~**1.1×** faster at the median vs the Python stacks
 - Larger Jina model: about **1.4×** ahead (blog: ~1.3–1.5× across percentiles)
 
-**All three** libraries hand work to **`onnxruntime`**—do **not** overclaim language superiority / Rust>Python FLOPs. Load-time: with Python startup excluded, session create is close; whole-process gap favors Rust mainly via no Python cold start.
+**All three** libraries hand work to **`onnxruntime`**, so this is not a claim of language superiority or Rust>Python FLOPs. Load-time: with Python startup excluded, session create is close; whole-process gap favors Rust mainly via no Python cold start.
 
 ## Who should care
 

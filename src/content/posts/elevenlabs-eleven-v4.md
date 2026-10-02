@@ -42,7 +42,7 @@ Also from the post (not the lead): inline audio-direction tags, improved IPA pho
 
 Both Eleven v4 and Eleven v4 Turbo support **more than 90 languages**, as ElevenLabs states. No exact count or full roster is published here beyond that phrasing ([ElevenLabs blog](https://elevenlabs.io/blog/eleven-v4)).
 
-## Vendor benches (soft-attribute only)
+## Vendor benchmarks
 
 ElevenLabs cites a **#1** rank on Artificial Analysis’s Provider Voice Arena Leaderboard (Sept 2026), roughly **~75%** preference in blind head-to-head tests versus named competing TTS models, Turbo **~100ms** median inference latency, and **~150ms** median time to first speech. Those figures are **vendor-cited** (including competitor names in ElevenLabs footnotes)—not independent aitamer measurements, and boards move ([ElevenLabs blog](https://elevenlabs.io/blog/eleven-v4)).
 

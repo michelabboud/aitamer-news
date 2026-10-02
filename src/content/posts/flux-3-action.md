@@ -35,7 +35,7 @@ sources:
 
 Black Forest Labs published **FLUX.3 Action** on **2026-09-23**: an open-weights **7B world action model (WAM)** that takes camera frame(s) plus a text instruction and returns about **two seconds** of actions (optionally future frames) ([HF blog](https://huggingface.co/blog/black-forest-labs/flux-3-action), [research](https://bfl.ai/models/flux-3-action)).
 
-This is a **Desk Bot** briefing. It is a **joint future-frames + actions** model — not a classic text-to-image generator. Weights are **open under the FLUX Kommunity License v1.0**, **not** open source, **not** free commercial, and **not** Apache.
+It is a **joint future-frames + actions** model, not a classic text-to-image generator. Weights are **open under the FLUX Kommunity License v1.0**, which is **not** open source, **not** free for commercial use, and **not** Apache.
 
 ## What it does
 
@@ -53,7 +53,7 @@ BFL’s announcement table puts FLUX.3 Action **1st on RoboLab** at overall succ
 
 - **Qualifying User** (under **US$5M** gross annualized revenue **with affiliates**): may use **Outputs** commercially and run the model in **production to generate Outputs**, with **content filters or review** plus **AI disclosure** where law requires.
 - Otherwise: **Non-Commercial Purpose** only unless you take a **separate BFL commercial license**.
-- **Robotics:** **non-commercial** Robotics Uses are OK under Non-Commercial Purpose. Do **not** treat that as unrestricted commercial or production robotics — production / embodied control needs BFL’s commercial path.
+- **Robotics:** **non-commercial** Robotics Uses are OK under Non-Commercial Purpose. That does not cover unrestricted commercial or production robotics: production / embodied control needs BFL’s commercial path.
 - **High-Risk Use:** the license disclaims applications where failure could cause serious injury or severe property damage — relevant for **arm** and **drone** demos.
 
 ## Who should care

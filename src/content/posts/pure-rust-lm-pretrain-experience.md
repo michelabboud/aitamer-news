@@ -28,7 +28,7 @@ sources:
 
 An arXiv **cs.CL preprint** ([2609.25008v1](https://arxiv.org/abs/2609.25008v1), Jul 2026) is an **experience report** on a solo pure-Rust language-model pretraining attempt—**not** peer-reviewed, **not** a product launch, and **not** a SOTA claim.
 
-This is a **Desk Bot** rust/ai briefing. Soft “among the first documented…” framing stays with the author’s own caveat; forbid “first Rust LLM” or launch language. The central story is the **failure taxonomy** and the pivot to **train in PyTorch / serve in Rust**—not “pure Rust pretrain” as a product pitch.
+The “among the first documented…” framing comes with the author’s own caveat; this is not a claim of a “first Rust LLM” or a launch. The central story is the **failure taxonomy** and the pivot to **train in PyTorch / serve in Rust**, not “pure Rust pretrain” as a product pitch.
 
 ## What the author tried
 
@@ -38,16 +38,16 @@ Measurements sit against **Candle 0.11** and **Burn 0.20** (cubecl-runtime 0.9.0
 
 ## Candle / Burn defects (the spine)
 
-The useful desk spine is silent training defects under loss curves. Candle classes include fused ops registered via a “no backward” wrapper (missing grads), optimizer host memory blow-ups, aggressive intermediate retention, softmax OOM/footgun paths, and causal-mask rebuild churn—several tied to live Candle issues/PRs the author cites (#3011, #3526, #1241, #3508, #3613; note **#3526 / #3508 / #3613** were open PRs in the paper’s framing). Burn’s supported path is called “genuinely good” on correctness, with fences on fusion at multi-billion scale (**burn#4347**—“multi-billion” is **author framing**, not issue text), slow backward loops, and optimizer/RoPE traps ([arXiv](https://arxiv.org/abs/2609.25008v1)).
+The useful core of the paper is silent training defects under loss curves. Candle classes include fused ops registered via a “no backward” wrapper (missing grads), optimizer host memory blow-ups, aggressive intermediate retention, softmax OOM/footgun paths, and causal-mask rebuild churn—several tied to live Candle issues/PRs the author cites (#3011, #3526, #1241, #3508, #3613; note **#3526 / #3508 / #3613** were open PRs in the paper’s framing). Burn’s supported path is called “genuinely good” on correctness, with limits on fusion at multi-billion scale (**burn#4347**—“multi-billion” is **author framing**, not issue text), slow backward loops, and optimizer/RoPE traps ([arXiv](https://arxiv.org/abs/2609.25008v1)).
 
-The author’s reusable practice is a **gradient-flow arbiter** (one forward/backward; assert every trainable param has finite, nonzero-norm gradient), shipped MIT at [gradient-flow-arbiter](https://github.com/Adiuk24/gradient-flow-arbiter). **Model weights and the full training stack are not public**—do not imply otherwise ([arXiv](https://arxiv.org/abs/2609.25008v1)).
+The author’s reusable practice is a **gradient-flow arbiter** (one forward/backward; assert every trainable param has finite, nonzero-norm gradient), shipped MIT at [gradient-flow-arbiter](https://github.com/Adiuk24/gradient-flow-arbiter). **Model weights and the full training stack are not public** ([arXiv](https://arxiv.org/abs/2609.25008v1)).
 
 ## Pivot: train PyTorch, serve Rust
 
 After the run, the author moved **training to PyTorch** and kept **Rust for on-device serving** (“train in Python, serve in Rust” as of that 2026 snapshot)—explicitly not a permanent language verdict ([arXiv](https://arxiv.org/abs/2609.25008v1)).
 
-Corpus sources the author lists as permissive include Sangraha (CC-BY-4.0), FineWeb-2/FineWeb-Edu/FineMath (ODC-By), bangla_newspaper_dataset (MIT), and UltraX-Preview (Apache-2.0). An unresolved small Bangla dialogue subset (`bn_empathetic`) has **no surviving licence record**—flag if you touch data statements; do not present the mix as fully cleared ([arXiv](https://arxiv.org/abs/2609.25008v1)).
+Corpus sources the author lists as permissive include Sangraha (CC-BY-4.0), FineWeb-2/FineWeb-Edu/FineMath (ODC-By), bangla_newspaper_dataset (MIT), and UltraX-Preview (Apache-2.0). An unresolved small Bangla dialogue subset (`bn_empathetic`) has **no surviving licence record**; the mix is not fully cleared ([arXiv](https://arxiv.org/abs/2609.25008v1)).
 
 ## Who should care
 
-Rust ML builders evaluating Candle/Burn as **training** backends should read the [preprint](https://arxiv.org/abs/2609.25008v1) for the defect taxonomy and the [arbiter repo](https://github.com/Adiuk24/gradient-flow-arbiter)—not as a checkpoint drop or a frontier scorecard. (Gemini 4 Argon C++→Rust migration anecdotes are a separate sidebar story; do not merge those numbers here.)
+Rust ML builders evaluating Candle/Burn as **training** backends should read the [preprint](https://arxiv.org/abs/2609.25008v1) for the defect taxonomy and the [arbiter repo](https://github.com/Adiuk24/gradient-flow-arbiter)—not as a checkpoint drop or a frontier scorecard. (Gemini 4 Argon C++→Rust migration anecdotes are a separate story and are not included here.)

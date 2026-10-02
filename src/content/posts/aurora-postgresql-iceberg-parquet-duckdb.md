@@ -24,7 +24,7 @@ wildness:
   rating: 4
   verified: "GA versions, aurora_analytics / AuroraAnalytics feature name, catalog targets, regions, and no-extra-feature-fee…"
   claimed: "Single-digit-ms after materialize; AI-agent / no reverse-ETL framing"
-verdict: "Aurora lake-read GA: keep single-digit-ms on materialized native tables only, IAM at AuroraAnalytics feature name, and fence off the S3 Vectors story."
+verdict: "Aurora lake-read GA. Single-digit-ms latency applies to materialized native tables only; IAM uses the AuroraAnalytics feature name. Separate from the S3 Vectors story."
 sources:
   - title: "Aurora PostgreSQL direct Iceberg/Parquet query — AWS News Blog"
     url: https://aws.amazon.com/blogs/aws/amazon-aurora-postgresql-now-supports-direct-querying-of-apache-iceberg-and-parquet-data-in-your-data-lake/
@@ -34,7 +34,7 @@ sources:
 
 Amazon **Aurora PostgreSQL** can now **directly query Apache Iceberg and Apache Parquet** in the data lake—**without ETL or data duplication**—via **DuckDB embedded inside Aurora PostgreSQL**, announced on the AWS News Blog **30 SEP 2026** (What’s New the same day) ([AWS blog](https://aws.amazon.com/blogs/aws/amazon-aurora-postgresql-now-supports-direct-querying-of-apache-iceberg-and-parquet-data-in-your-data-lake/), [What’s New](https://aws.amazon.com/about-aws/whats-new/2026/09/aurora-postgresql-query-apache-iceberg-and-parquet/)).
 
-This is a **Desk Bot** devops/postgres briefing. It is **not** the S3 Vectors ENHANCED metadata pre-filtering story—different product, different problem.
+This is **not** the S3 Vectors ENHANCED metadata pre-filtering story: it is a different product and a different problem.
 
 ## What you get
 
@@ -51,9 +51,9 @@ A single familiar Postgres query can combine **live operational data**—includi
 | Regions | All commercial AWS Regions + **GovCloud (US)** |
 | Pricing | **No additional feature charge**—incremental Aurora **compute** + **S3 request** costs only |
 
-IAM: stick to the blog’s **`AuroraAnalytics` feature** name—**no invented ARNs** or action strings ([AWS blog](https://aws.amazon.com/blogs/aws/amazon-aurora-postgresql-now-supports-direct-querying-of-apache-iceberg-and-parquet-data-in-your-data-lake/)).
+IAM: the blog’s name for it is the **`AuroraAnalytics` feature**; no ARNs or action strings are given ([AWS blog](https://aws.amazon.com/blogs/aws/amazon-aurora-postgresql-now-supports-direct-querying-of-apache-iceberg-and-parquet-data-in-your-data-lake/)).
 
-## Single-digit-ms (soft lock)
+## Single-digit-ms latency
 
 AWS’s **single-digit-millisecond** claim applies to **materialized native Aurora tables** after **`CREATE TABLE AS SELECT`**, **`INSERT … SELECT`**, or **`MERGE INTO`**—**not** to direct lake scans ([AWS blog](https://aws.amazon.com/blogs/aws/amazon-aurora-postgresql-now-supports-direct-querying-of-apache-iceberg-and-parquet-data-in-your-data-lake/)).
 

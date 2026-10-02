@@ -29,7 +29,7 @@ sources:
 
 On **2026-09-21**, Hugging Face tagged Rust **tokenizers** [`v1.0.0-rc.2`](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2)—a **release candidate**, not stable `1.0.0`. Install path: `cargo add tokenizers --pre`. Companion post: [tokenizers v1 on the HF blog](https://huggingface.co/blog/tokenizers-v1).
 
-This is a **Desk Bot** briefing from that GitHub pre-release and blog. License: **Apache-2.0** (repo LICENSE). Foundational Rust tokenization library; Python and other bindings wrap the same core.
+This post draws on the GitHub pre-release and its blog. License: **Apache-2.0** (repo LICENSE). Foundational Rust tokenization library; Python and other bindings wrap the same core.
 
 ## Compatibility and architecture (HF’s framing)
 

@@ -26,7 +26,7 @@ wildness:
   rating: 5
   verified: "GA on AWS/Azure; lakebase_vector/text; PG 16+; irreversible enable; RRF hybrid per Databricks blog/docs"
   claimed: "VectorDBBench 2×/4×/97%@71ms P99, Conexiom 3× lower spend / 5× throughput, ~1s cold start, serve 100M on 1 CU"
-verdict: "Postgres-native hybrid search GA: lock names and enable rules to the blog/docs; attribute every bench and Conexiom figure; don’t harden Spark index-build offload."
+verdict: "Postgres-native hybrid search GA. Names and enable rules are from the blog and docs; every benchmark and Conexiom figure is attributed; treat the Spark index-build offload as not yet firm."
 sources:
   - title: "Lakebase Search — Databricks Blog"
     url: https://www.databricks.com/blog/lakebase-search-state-art-full-text-and-vector-search-postgres
@@ -40,7 +40,7 @@ sources:
 
 Databricks **generally available**’d **Lakebase Search** on **AWS and Azure** (blog **2026-09-28**; release notes mark Search GA **2026-09-18**): two Postgres extensions—**`lakebase_vector`** (ANN) and **`lakebase_text`** (BM25)—so semantic, keyword, and hybrid retrieval run in the same serverless **Lakebase** OLTP database, without a separate search cluster + ETL sync ([blog](https://www.databricks.com/blog/lakebase-search-state-art-full-text-and-vector-search-postgres), [docs](https://docs.databricks.com/aws/en/oltp/projects/lakebase-search)).
 
-This is a **Desk Bot** devops/postgres briefing. Fence it from S3 Vectors metadata pre-filtering and Aurora+DuckDB lake foreign tables—this beat is **Postgres-native ANN + BM25** inside Lakebase.
+This is about **Postgres-native ANN + BM25** inside Lakebase. It is separate from S3 Vectors metadata pre-filtering and from Aurora and DuckDB lake foreign tables.
 
 ## What shipped
 
@@ -56,17 +56,17 @@ Hybrid: run both paths and fuse (docs show **RRF** / weighted fusion). Search ca
 
 Complements **Databricks AI Search**—managed retrieval when you don’t want to tune; Lakebase Search when ops + search stay in one DB ([blog](https://www.databricks.com/blog/lakebase-search-state-art-full-text-and-vector-search-postgres)).
 
-## Soft vendor claims (attribute)
+## Vendor claims
 
-All figures below are **Databricks-reported**—not desk-verified ([blog](https://www.databricks.com/blog/lakebase-search-state-art-full-text-and-vector-search-postgres)):
+All figures below are **Databricks-reported**—not independently verified ([blog](https://www.databricks.com/blog/lakebase-search-state-art-full-text-and-vector-search-postgres)):
 
 - VectorDBBench LAION **100M**: “**2×** throughput of next-best,” “**4×** cheaper than cloud Postgres + pgvector,” **97% recall @ 71 ms P99** (blog notes pgvector/DiskANN tested on a single large instance).
-- **Conexiom**: “**3× lower** database spend” / “cut infrastructure costs by **3×**” and “**5×** higher throughput vs pgvector” (also “half the compute footprint”—do not independently reconcile; attribute only).
+- **Conexiom**: “**3× lower** database spend” / “cut infrastructure costs by **3×**” and “**5×** higher throughput vs pgvector” (also “half the compute footprint”; we did not independently reconcile these).
 - Cold start: measured **P90** first query after scale-to-zero **1.13 s** (100M × 768-dim)—“~1s” paraphrase OK if attributed; not an SLA.
-- Architecture soft: serve **100M** on **1 CU**; storage-backed indexes survive scale-to-zero. Index builds described as offloadable / LTAP→Spark—“**Stay tuned**”; **do not** claim Spark offload as shipped GA.
+- Architecture: serve **100M** on **1 CU**; storage-backed indexes survive scale-to-zero. Index builds described as offloadable / LTAP→Spark—“**Stay tuned**”; Spark offload is not shipped GA.
 
-No invented dollar pricing.
+No dollar pricing is given.
 
 ## Who should care
 
-Teams that want agent RAG / hybrid retrieval next to OLTP rows in one serverless Postgres should start at the [Databricks blog](https://www.databricks.com/blog/lakebase-search-state-art-full-text-and-vector-search-postgres) and [Lakebase Search docs](https://docs.databricks.com/aws/en/oltp/projects/lakebase-search)—attribute every bench, keep the irreversible-enable note, and pick AI Search vs Lakebase Search by whether you want managed retrieval or one-DB ops.
+Teams that want agent RAG / hybrid retrieval next to OLTP rows in one serverless Postgres should start at the [Databricks blog](https://www.databricks.com/blog/lakebase-search-state-art-full-text-and-vector-search-postgres) and [Lakebase Search docs](https://docs.databricks.com/aws/en/oltp/projects/lakebase-search).

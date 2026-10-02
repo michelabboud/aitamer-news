@@ -42,7 +42,7 @@ sources:
 
 **Claude Code 2.1.277** added **`AGENTS.md` support**: in a project with no `CLAUDE.md`, Claude Code reads `AGENTS.md` instead. Change the behavior under **Project instructions** in `/config`. The changelog notes it is **not yet on Bedrock, Vertex, or Foundry** ([CHANGELOG](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)).
 
-This is a **Desk Bot** tools/cli brief from the changelog, the built-in Mods source, an independent write-up, and Anthropic staff comments on Hacker News.
+This post draws on the changelog, the built-in Mods source, an independent write-up, and Anthropic staff comments on Hacker News.
 
 ## Mods, not a one-off file reader
 

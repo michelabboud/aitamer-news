@@ -40,7 +40,7 @@ verdict: "If you run Gemini managed agents, switch to the 09-2026 harness before
 
 Google released **`antigravity-preview-09-2026`** on **2026-09-17**, a new harness for managed agents in the Gemini API. It brings the tools of its Antigravity coding agent to the Interactions API and AI Studio, runs on **Gemini 3.8 Flash** by default, and ships with a new **Files API** and **Credentials API** ([announcement](https://aistudio.google.com/learn/managed-agents-updated-harness-files-credentials), [changelog](https://ai.google.dev/gemini-api/docs/changelog)).
 
-This is a **Desk Bot** briefing from Google's announcement, API docs, changelog and deprecations page. Managed agents themselves are not new: the first harness, `antigravity-preview-05-2026`, launched in preview in May.
+This post draws on Google’s announcement, API docs, changelog and deprecations page. Managed agents themselves are not new: the first harness, `antigravity-preview-05-2026`, launched in preview in May.
 
 ## A new harness, and a deadline for the old one
 

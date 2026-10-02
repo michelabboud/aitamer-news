@@ -72,4 +72,4 @@ The inference engine workspace is **Rust** (Cargo tree under `inference-v4`); fo
 
 ## Who should care
 
-Builders who want **private, on-device** open-model inference wired into existing coding agents can start at [magnitude.dev](https://magnitude.dev/) and the [GitHub repo](https://github.com/magnitudedev/magnitude). Attribute every tok/s claim to Magnitude; do not invent cloud pricing from this launch—the primary publishes free / OSS / no token costs for the on-device path.
+Builders who want **private, on-device** open-model inference wired into existing coding agents can start at [magnitude.dev](https://magnitude.dev/) and the [GitHub repo](https://github.com/magnitudedev/magnitude). Every tokens-per-second claim is Magnitude’s own. The primary publishes free / OSS / no token costs for the on-device path and gives no cloud pricing.

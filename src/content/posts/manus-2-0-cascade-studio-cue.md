@@ -60,13 +60,13 @@ The desktop app upgrades to **Manus Studio**, a shared people-and-AI workspace. 
 
 **Cue** is a **standalone** app for personal agents on phone and desktop, built on the same infrastructure as Manus. Each agent gets its own **email**, **phone number**, **wallet**, and **computer**; agents can take calls and leave a summary, and several agents can hand work off in a group chat ([Manus blog](https://manus.im/blog/introducing-manus-2-0)).
 
-Cue is **early access**, free with an invite code—start with **`MEETCUE`** (limited, first-come, first-served). Manus says Cue is on web, desktop, and mobile, with **iOS coming soon after App Store review**. Do not treat Cue EA as the same “available now” GA framing as Manus 2.0.
+Cue is **early access**, free with an invite code—start with **`MEETCUE`** (limited, first-come, first-served). Manus says Cue is on web, desktop, and mobile, with **iOS coming soon after App Store review**. Cue early access is not the same “available now” GA framing as Manus 2.0.
 
 ## Related surfaces (keep separate)
 
 This is a **Manus platform** generation bump—Cascade, Cloud Computer, Automations, Studio, Cue—not a consumer personal-agent product like Muse, not shared workplace Grok teammates (Team Bots), and not an agent-UI protocol story.
 
-Remote Control / Computer Use also appears on the primary: phone voice command into an authorized desktop session with a visible workspace on approved files, browser, and apps. Keep that within Manus’s authorized-session framing ([Manus blog](https://manus.im/blog/introducing-manus-2-0)).
+Remote Control / Computer Use also appears on the primary: phone voice command into an authorized desktop session with a visible workspace on approved files, browser, and apps. That is within Manus’s authorized-session framing ([Manus blog](https://manus.im/blog/introducing-manus-2-0)).
 
 ## Who should care
 

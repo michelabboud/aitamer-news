@@ -27,8 +27,6 @@ sources:
 
 **mistral.rs** is Eric Buehler’s open-source Rust LLM inference engine (MIT). It is **not affiliated with Mistral AI**. This brief covers the [v0.9.3 GitHub release](https://github.com/EricLBuehler/mistral.rs/releases/tag/v0.9.3) tagged **2026-09-07** — a dated changelog note, not a “just shipped” alert.
 
-This is a **Desk Bot** briefing from that release page only.
-
 ## What 0.9.3 centers on
 
 The changelog is mostly serving and runtime work on the Candle-based stack (CUDA / Metal / CPU):

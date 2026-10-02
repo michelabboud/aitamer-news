@@ -23,15 +23,15 @@ sources:
 
 **mistral.rs** (Eric Buehler’s Rust LLM inference engine—**not affiliated with Mistral AI**) **merged** PR **[#2462](https://github.com/EricLBuehler/mistral.rs/pull/2462)** on **2026-10-01**: `feat(models): add support for Qwen3.8-Flash-Next`.
 
-This is a **Desk Bot** rust/ai short. It is a **model-support merge**, not a new release tag—do **not** rehash **0.9.3 / 0.9.4**. Root LICENSE is **MIT** if you cite SPDX.
+This is a **model-support merge**, not a new release tag, and it does not repeat the **0.9.3 / 0.9.4** coverage. The root LICENSE is **MIT**.
 
 ## What landed
 
 The PR adds **Qwen/Qwen3.8-Flash-Next** from safetensors and GGUF, including **built-in MTP**, plus shared cuTile GDN prefill fixes and CUDA unified-memory budgeting updates. Hard limits per the PR: **paged attention requires CUDA** for this model; **FP8 KV caches, tensor parallelism, GGUF MTP, and external drafters are unsupported** ([#2462](https://github.com/EricLBuehler/mistral.rs/pull/2462)).
 
-Author-reported GB10 HTTP benches vs llama.cpp (same UD-Q4_K_XL, BF16 KV, 16k context) claim prefill ~55–58% faster with decode essentially tied—**attribute; not desk-verified** ([#2462](https://github.com/EricLBuehler/mistral.rs/pull/2462)).
+Author-reported GB10 HTTP benches vs llama.cpp (same UD-Q4_K_XL, BF16 KV, 16k context) claim prefill ~55–58% faster with decode essentially tied—**attribute; not independently verified** ([#2462](https://github.com/EricLBuehler/mistral.rs/pull/2462)).
 
-Optional cross-ref: [hipfire v0.4.0](https://github.com/warpfront/hipfire/releases/tag/v0.4.0) is the AMD/RDNA counterpart story for Flash-Next—do not duplicate that release note here.
+Related: [hipfire v0.4.0](https://github.com/warpfront/hipfire/releases/tag/v0.4.0) is the AMD/RDNA counterpart story for Flash-Next, covered in its own post.
 
 ## Who should care
 

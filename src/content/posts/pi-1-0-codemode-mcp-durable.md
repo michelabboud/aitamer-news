@@ -72,7 +72,7 @@ Docs at [pi.dev](https://pi.dev). Windows PowerShell and npm/pnpm/bun global ins
 
 Alongside 1.0, Earendil shipped **Pi Durable** as the experimental npm package **`@earendil-works/pi-durable`**—a substrate for **long-running, crash-resumable, multiplayer** agent apps (checkpointed tasks; multi-client attach and steer). It **does not replace** the Pi coding agent ([Durable post](https://earendil.com/posts/pi-durable/)).
 
-**Experimental:** Earendil and the npm README state the API **may change** / changes without notice between releases. Do not read Durable as stable GA.
+**Experimental:** Earendil and the npm README state the API **may change** / changes without notice between releases. Durable is not stable GA.
 
 Install line from the announce (pulls companions `@earendil-works/pi-ai` and `@earendil-works/chord` as well):
 

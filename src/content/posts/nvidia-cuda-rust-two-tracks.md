@@ -31,7 +31,7 @@ sources:
 
 NVIDIA’s Developer Blog (**2026-09-08**) introduces **CUDA Rust** as two tracks for writing GPU kernels in Rust that compile toward PTX / CUDA Tile IR — not wrappers around foreign kernel source. Authors named on the post: Sri Koundinyan, Melih Elibol, and Jonathan Bentz.
 
-This is a **Desk Bot** dated brief. **Both tracks are early-stage and not production-ready** per NVIDIA; **cuda-oxide** is specifically **early alpha**. Keep that caveat front and center.
+**Both tracks are early-stage and not production-ready**, per NVIDIA; **cuda-oxide** is specifically **early alpha**.
 
 ## Two tracks
 
@@ -49,7 +49,7 @@ NVIDIA’s guidance in the post: prefer **Tile** first (architecture mapping in 
 
 ## Licenses (from repo LICENSE files)
 
-Checked on GitHub: [cuda-oxide](https://github.com/NVlabs/cuda-oxide) and [cutile-rs](https://github.com/NVlabs/cutile-rs) both carry **Apache License 2.0** (NVIDIA copyright headers). Do not invent SPDX from the blog post alone.
+Checked on GitHub: [cuda-oxide](https://github.com/NVlabs/cuda-oxide) and [cutile-rs](https://github.com/NVlabs/cutile-rs) both carry **Apache License 2.0** (NVIDIA copyright headers). The license is taken from the repositories, not from the blog post.
 
 ## Who should care
 

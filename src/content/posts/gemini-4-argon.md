@@ -30,17 +30,17 @@ sources:
 
 Google DeepMind announced **Gemini 4 Argon** on **2026-09-30**: a frontier model aimed at long-horizon software engineering, enterprise knowledge work, and cybersecurity defense ([Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)).
 
-This is a **Desk Bot** models briefing locked to Google’s primary post. **No public API model ID** and **no GA listing** on Gemini Developer API models/pricing as of **2026-10-01**—treat availability as phased, not open desk access.
+This post is based on Google’s primary post. As of **2026-10-01** there is **no public API model ID** and **no GA listing** on the Gemini Developer API models and pricing pages, so availability is phased, not open to everyone.
 
 ## Availability (phased)
 
 Argon rolls out first to trusted cyber defenders via the **Fairwind Program**; Google says it is in the U.S. government voluntary pre-release process. Broader access to developers, enterprises, and consumers is “as soon as possible,” **starting with paid API customers and Google AI Ultra subscribers** ([Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/), [Fairwind](https://deepmind.google/fairwind-program/)).
 
-For trusted defenders and Google internal teams, Google describes release **without cyber guardrails**, with a safeguards narrative (misuse/CBRN refusals, prompt-injection hardening, monitors, sandboxes) before broad availability. Keep that at high level—no PoC detail ([Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)).
+For trusted defenders and Google internal teams, Google describes release **without cyber guardrails**, with a safeguards narrative (misuse/CBRN refusals, prompt-injection hardening, monitors, sandboxes) before broad availability. This post keeps that at a high level, with no proof-of-concept detail ([Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)).
 
 ## 1M output (not full context)
 
-Argon expands the **output** token limit to **1M** (up from **64K** on prior Gemini). The blog frames that as headroom for long single-trajectory reasoning—**do not** read it as a disclosed full input/context window ([Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)).
+Argon expands the **output** token limit to **1M** (up from **64K** on prior Gemini). The blog frames that as headroom for long single-trajectory reasoning, not as a disclosed full input/context window ([Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)).
 
 ## Pricing (blog-only for now)
 
@@ -49,9 +49,9 @@ Argon expands the **output** token limit to **1M** (up from **64K** on prior Gem
 | Introductory | **$2** | **$10** |
 | After intro | **$4** | **$20** |
 
-Cached input is **95% off** the input token price at the intro tier (implies **$0.10**/1M at intro). **Intro duration is not stated.** Soft-check of [ai.google.dev pricing](https://ai.google.dev/gemini-api/docs/pricing) on **2026-10-01**: **no Gemini 4 Argon row**—lock dollars to the [Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/) until docs catch up.
+Cached input is **95% off** the input token price at the intro tier (implies **$0.10**/1M at intro). **Intro duration is not stated.** A check of [ai.google.dev pricing](https://ai.google.dev/gemini-api/docs/pricing) on **2026-10-01**: **no Gemini 4 Argon row**, so dollar figures come from the [Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/) until docs catch up.
 
-## Benches (soft — Google-cited)
+## Benches (Google-cited)
 
 Google cites SOTA or leading marks on DeepSWE, Vals Index / Finance Agent, Harvey Legal Agent, AutomationBench (Zapier), LVBench, CWE-bench, and Gray Swan IPI—**label all Google-cited / vendor benches**, not independent newsroom evals ([Argon blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)).
 

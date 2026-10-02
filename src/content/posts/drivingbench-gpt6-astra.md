@@ -35,7 +35,7 @@ sources:
 
 **DrivingBench** (Aditya Ramabadran, Simon Mahns, Tobias Gessler — equal contribution) gives frontier models control of a **Toyota Corolla’s** steering, accelerator, and brakes via tools, then scores them on a **fixed cone course** ([site](https://drivingbench.com/), [report](https://drivingbench.com/report/)).
 
-This is a **Desk Bot** briefing. Label it **self-published** until third-party replication. This is **not** “can drive,” autonomous driving solved, or road-ready AV competence—**cone course only**, low speed, empty lot, human ready to brake (authors’ own caveats).
+The results are **self-published** and have not been replicated by third parties. They do **not** show that a model “can drive,” that autonomous driving is solved, or road-ready AV competence: **cone course only**, low speed, empty lot, human ready to brake (the authors’ own caveats).
 
 ## Protocol
 
@@ -52,7 +52,7 @@ From [drivingbench.com](https://drivingbench.com/) (Codex / Claude Code / Cursor
 | **Grok 4.6** (Cursor · medium) | **11%** | 8%, 11%, 10% (all DNF) |
 | **GPT-5.6 Sol** (Codex · medium) | **6%** | 6%, 6%, 6% (all DNF) |
 
-Astra was the **only** model to complete the course (attempt 2). Trace viewer: [gpt-6-astra / 2](https://drivingbench.com/trace/gpt-6-astra/2/). Numbers can change—locked to this fetch.
+Astra was the **only** model to complete the course (attempt 2). Trace viewer: [gpt-6-astra / 2](https://drivingbench.com/trace/gpt-6-astra/2/). Numbers can change—as of this fetch.
 
 ## Limits (authors)
 
@@ -60,4 +60,4 @@ Single multi-attempt trial per model in the same chat (not independent replicate
 
 ## Who should care
 
-Embodied-agent and eval teams watching real-car, human-supervised demos should read the [site](https://drivingbench.com/) and [report](https://drivingbench.com/report/)—and keep the self-published / cone-course frame. Do not echo HN “ability to drive” headlines.
+Embodied-agent and eval teams watching real-car, human-supervised demos should read the [site](https://drivingbench.com/) and [report](https://drivingbench.com/report/). Read it as self-published and limited to a cone course, not as evidence of an “ability to drive.”

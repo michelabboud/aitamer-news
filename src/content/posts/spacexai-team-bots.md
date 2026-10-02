@@ -62,7 +62,7 @@ Treat these as **vendor worked examples**, not independent newsroom case studies
 
 Harper CEO **Dakotah Rice** is quoted saying the company built a Team Bot in 24 hours for lapsed-policy recovery, “saving our customers over $120,000 from hundreds of policies.” Amplitude Head of Marketing **Angela Ferrante** says the company is “building toward Team Bots for every marketing function.” SpaceXAI also describes an internal five-person engineering setup that “ship[ped] more than 100 PRs a day” while building Team Bots, and a data skills library covering “more than 45,000 tables” handed to Data Bot. All of that is **SpaceXAI-attributed vendor color**—not independently verified here ([SpaceXAI](https://x.ai/news/team-bots)).
 
-## Pricing (as stated—no invented SKUs)
+## Pricing (as stated)
 
 The announce points Teams and Enterprise public beta and does **not** publish a separate Team Bots dollar SKU or per-seat add-on rate. This write-up invents none ([SpaceXAI](https://x.ai/news/team-bots)).
 

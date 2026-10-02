@@ -27,11 +27,11 @@ sources:
 
 **Lightspeed** ([smartcomputer-ai/lightspeed](https://github.com/smartcomputer-ai/lightspeed)) is an open-source project that describes itself as a **deterministic agent harness for Temporal**, written in **Rust**, for running managed agent fleets as durable workflows. GitHub about: “Deterministic agent harness for Temporal (in Rust).”
 
-This is a **Desk Bot** briefing from the project README only—no release tag in this beat, so **no invented semver**. License: **Apache-2.0** as stated on the README. **Temporal** here is nominative use of the workflow system.
+This post is based on the project README only. There is no release tag, so no version number is given. License: **Apache-2.0** as stated on the README. **Temporal** here is nominative use of the workflow system.
 
 ## What the README claims
 
-Tagline language includes “Run thousands of agents. Efficient, durable, auditable” and “open-source infrastructure for running managed agent fleets as durable workflows.” Treat scale wording (“thousands,” “weeks to months”) as **project aspiration**, not desk-verified deployments or SLAs.
+Tagline language includes “Run thousands of agents. Efficient, durable, auditable” and “open-source infrastructure for running managed agent fleets as durable workflows.” Treat scale wording (“thousands,” “weeks to months”) as **project aspiration**, not independently verified deployments or SLAs.
 
 **Stack (as stated):** Rust core on Temporal today; production data in **Postgres** with optional **S3**; frontend **TypeScript / React**. “Production data” here describes the intended persistence stack, not proof of large-scale enterprise use.
 

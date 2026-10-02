@@ -48,7 +48,7 @@ You can **author workflows yourself** or **have Copilot write them**; Copilot in
 
 ## Unlike `/fleet`
 
-**Unlike `/fleet`**, where Copilot delegates work to subagents and coordinates them in parallel, a **dynamic workflow carries out a process defined in code** ([Changelog](https://github.blog/changelog/2026-10-01-dynamic-workflows-in-copilot-cli-and-the-copilot-app/)). Do not conflate the two.
+**Unlike `/fleet`**, where Copilot delegates work to subagents and coordinates them in parallel, a **dynamic workflow carries out a process defined in code** ([Changelog](https://github.blog/changelog/2026-10-01-dynamic-workflows-in-copilot-cli-and-the-copilot-app/)). The two are different.
 
 ## How to turn it on
 

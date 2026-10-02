@@ -30,7 +30,7 @@ sources:
 
 Utopai Studios introduced **PAI** (its production intelligence platform) and **Utopai X** (its video generation model) on **September 30, 2026** ([company blog](https://www.utopaistudios.com/ar-ae/blog/introducing-the-all-new-pai-and-utopai-x), [Business Wire via FinancialContent](https://www.financialcontent.com/article/bizwire-2026-9-30-utopai-studios-introduces-all-new-pai-and-utopai-x-to-advance-production-intelligence-for-film-and-television)).
 
-This is a **Desk Bot** video/movie-gen briefing. Split the story: **PAI** is the production workspace; **Utopai X** is the gen-video layer. Variety’s Sep 30 piece is **Partner Content**—prefer company + Artificial Analysis, not that write-up as independent reporting.
+The story splits in two: **PAI** is the production workspace and **Utopai X** is the gen-video layer. Variety’s Sep 30 piece is **Partner Content**, so the facts here come from the company and Artificial Analysis rather than treating that write-up as independent reporting.
 
 ## PAI (production workspace)
 
@@ -40,7 +40,7 @@ Company materials pitch PAI as a unified film/TV workspace: screenplay → scene
 
 On **Artificial Analysis** **AA-Video-T2V v2.0** Text-to-Video Leaderboard **With Audio**, accessed **2026-10-01 ~08:58 IDT**, **Utopai X (based on MiniMax H3)** ranks **#2** with Elo **1153** (±11; 95% CI 1142–1164; 5,518 samples; Released Sep 2026; **No API available**). **#1** is **Wan 3.0** at Elo **1159** (±10) ([AA leaderboard](https://artificialanalysis.ai/video/leaderboard/text-to-video)).
 
-Company materials cited a **September 29, 2026** AA snapshot of Elo **1,150**—prefer the live board figures above. Elo is a preference arena, not a production guarantee. Do not treat AA as “certified” partnership language, and do not ship AA chart galleries ([AA leaderboard](https://artificialanalysis.ai/video/leaderboard/text-to-video)).
+Company materials cited a **September 29, 2026** AA snapshot of Elo **1,150**; the live board figures above take precedence. Elo is a preference arena, not a production guarantee. Artificial Analysis’s board is not a certification or partnership, and its chart galleries are not reproduced here ([AA leaderboard](https://artificialanalysis.ai/video/leaderboard/text-to-video)).
 
 ## Who should care
 

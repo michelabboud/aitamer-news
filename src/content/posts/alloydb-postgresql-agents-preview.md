@@ -44,4 +44,4 @@ Google also markets “thousands” of collaborating agents and “lakehouse ana
 
 ## Who should care
 
-Teams running AlloyDB who want agent analytics on fresh OLTP state without hammering the primary should start at the [AlloyDB PostgreSQL for agents docs](https://docs.cloud.google.com/alloydb/docs/postgresql-agents-alloydb)—keep every claim in **Preview**, and treat access-gated details as out of scope until Google publishes them publicly.
+Teams running AlloyDB who want agent analytics on fresh OLTP state without hammering the primary should start at the [AlloyDB PostgreSQL for agents docs](https://docs.cloud.google.com/alloydb/docs/postgresql-agents-alloydb).

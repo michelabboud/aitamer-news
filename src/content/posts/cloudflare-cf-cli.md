@@ -22,8 +22,8 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "Open beta cf CLI Sep 28; Forge ~3k ops; JSON-default; cli search; Node 22.18+; Wrangler coexistence + 18mo post-beta"
-  claimed: "Wrangler agent use ~25%→48%; ~2× commands/day; ~40% config shrink — Cloudflare telemetry soft only"
-verdict: "CLI-for-agents story, not Auto Router—lock beta/install/auth/search; soft-attribute CF telemetry; don’t invent GA or hard Wrangler EOL."
+  claimed: "Wrangler agent use ~25%→48%; ~2× commands/day; ~40% config shrink (Cloudflare telemetry)"
+verdict: "CLI-for-agents story, not Auto Router. Beta, install, auth and search are as Cloudflare states; telemetry figures are Cloudflare’s; the post gives no GA date and no hard Wrangler end-of-life."
 sources:
   - title: "Introducing cf — The Cloudflare Blog"
     url: https://blog.cloudflare.com/cloudflare-cf-cli-launch/
@@ -39,7 +39,7 @@ sources:
 
 Cloudflare launched **`cf`**, an agentic CLI for the public Cloudflare API and Workers projects, in **open beta** (blog **2026-09-28**): one tool to manage zones, DNS, storage, security, and create/develop/deploy Workers. Docs label it **beta**—commands, config, and Build Output may change before stable ([blog](https://blog.cloudflare.com/cloudflare-cf-cli-launch/), [docs](https://developers.cloudflare.com/cf/), [changelog](https://developers.cloudflare.com/changelog/post/2026-09-28-cloudflare-cli-beta/)).
 
-This is a **Desk Bot** tools/cli briefing. **Fence from T3** (AI Gateway Auto Router / `cloudflare/auto`)—this slug is **package/CLI/DX only**.
+This post covers the package, the CLI and its developer experience only, not AI Gateway Auto Router (`cloudflare/auto`).
 
 ## What shipped
 
@@ -55,9 +55,9 @@ Global install: `npm i -g cf` (also yarn/pnpm/bun). Requires **Node.js 22.18+** 
 
 ## Wrangler coexistence
 
-During beta, `cf` can run resource commands in existing Wrangler projects without migrating. After open beta ends, a final major Wrangler will point users/agents to `cf`; **18 months** maintenance support for Wrangler post-beta. Open source on GitHub (`cloudflare/cf`). Do **not** invent a GA date or claim every Wrangler workflow already migrates cleanly ([blog](https://blog.cloudflare.com/cloudflare-cf-cli-launch/), [changelog](https://developers.cloudflare.com/changelog/post/2026-09-28-cloudflare-cli-beta/)).
+During beta, `cf` can run resource commands in existing Wrangler projects without migrating. After open beta ends, a final major Wrangler will point users/agents to `cf`; **18 months** maintenance support for Wrangler post-beta. Open source on GitHub (`cloudflare/cf`). No GA date is given, and not every Wrangler workflow is claimed to migrate cleanly yet ([blog](https://blog.cloudflare.com/cloudflare-cf-cli-launch/), [changelog](https://developers.cloudflare.com/changelog/post/2026-09-28-cloudflare-cli-beta/)).
 
-## Soft: CF-internal telemetry (attribute)
+## CF-internal telemetry (vendor claims)
 
 All figures below are **Cloudflare-internal / vendor telemetry**—not independent measurement ([blog](https://blog.cloudflare.com/cloudflare-cf-cli-launch/)):
 
@@ -67,4 +67,4 @@ All figures below are **Cloudflare-internal / vendor telemetry**—not independe
 
 ## Who should care
 
-Teams (and coding agents) that need the full Cloudflare API from one searchable, JSON-default CLI should start at the [cf launch blog](https://blog.cloudflare.com/cloudflare-cf-cli-launch/) and [get started](https://developers.cloudflare.com/cf/get-started/)—keep beta + Node 22.18+, soft-attribute CF telemetry, and treat Wrangler’s 18-month post-beta window as stated maintenance, not an invented EOL day.
+Teams (and coding agents) that need the full Cloudflare API from one searchable, JSON-default CLI should start at the [cf launch blog](https://blog.cloudflare.com/cloudflare-cf-cli-launch/) and [get started](https://developers.cloudflare.com/cf/get-started/).

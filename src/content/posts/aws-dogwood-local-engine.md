@@ -49,7 +49,7 @@ The engine returns a verdict for each request; **it does not directly enforce** 
 
 AWS is explicit that the library **does not perform isolation** itself—its job is correct allow/deny based on the events and policies it is shown. Installing the crate alone is not a sandbox or managed agent host.
 
-Soft contrast: this is **open policy-enforcement glue** for harness authors, not a managed agent runtime. This primary does **not** announce or couple the Local Engine to **Amazon Bedrock AgentCore Policy** (or any AgentCore Policy GA).
+By contrast, this is **open policy-enforcement glue** for harness authors, not a managed agent runtime. This primary does **not** announce or couple the Local Engine to **Amazon Bedrock AgentCore Policy** (or any AgentCore Policy GA).
 
 ## Durability and policy updates (as AWS states)
 

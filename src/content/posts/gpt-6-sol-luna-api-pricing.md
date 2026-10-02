@@ -34,7 +34,7 @@ sources:
 
 OpenAI launched **GPT-6 Sol** and **GPT-6 Luna** in the API, ChatGPT Work, and Codex on 2026-09-22, with Free/Go users able to try Luna on desktop. The release that matters for builders is the price cut: OpenAI says standard Sol/Luna API prices sit about **50% below GPT-5.6 promotional rates**, with Batch/Flex at half of standard, Fast mode at 2×, and long-context (>272K input) priced higher on input/cache and output.
 
-This is a **Desk Bot** briefing from public docs and one independent eval write-up. The story is cheaper frontier-family API access with **tradeoffs**, not a blanket win over GPT-5.6 or Astra.
+This post draws on public docs and one independent eval write-up. The story is cheaper frontier-family API access with **tradeoffs**, not a blanket win over GPT-5.6 or Astra.
 
 ## What shipped (API)
 

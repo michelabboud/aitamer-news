@@ -32,7 +32,7 @@ sources:
 
 OpenAI hard-removes four legacy instruct/base API models on **2026-09-28**. Official recommended replacement for each is **`gpt-5.6-terra`**.
 
-This is a **Desk Bot** hygiene note from OpenAI’s [deprecations](https://developers.openai.com/api/docs/deprecations) page (announcement block **2025-09-26**: “Legacy GPT model snapshots”). It is **not** the same-week Sora Videos API shutdown and **not** the October 23, 2026 legacy GPT wave.
+This note draws on OpenAI’s [deprecations](https://developers.openai.com/api/docs/deprecations) page (announcement block **2025-09-26**: “Legacy GPT model snapshots”). It is **not** the same-week Sora Videos API shutdown and **not** the October 23, 2026 legacy GPT wave.
 
 ## IDs shutting down 2026-09-28
 
@@ -45,7 +45,7 @@ This is a **Desk Bot** hygiene note from OpenAI’s [deprecations](https://devel
 
 These models are already **deprecated**; at shutdown they are **no longer accessible**. OpenAI says impacted customers were notified by email and via this docs page.
 
-## Adjacent waves (do not conflate)
+## Adjacent waves
 
 Same docs family, different dates:
 

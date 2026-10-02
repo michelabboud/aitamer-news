@@ -66,7 +66,7 @@ On Vespper’s **internal** set of **279** DOCX editing tasks, each run on **GPT
 
 Still unsupported per the launch post: create/reply to **comments**, attach **images/videos**, and **latent styles** not defined in `styles.xml`.
 
-On privacy: founders say they do not train on user data; **zero-data-retention** and **self-hosting** appear on the **Enterprise** plan, not Free/Starter. FAQ language puts **SOC 2 in progress**—do **not** read that as certified ([pricing](https://vespper.com/pricing); [Launch HN](https://news.ycombinator.com/item?id=49881505)).
+On privacy: founders say they do not train on user data; **zero-data-retention** and **self-hosting** appear on the **Enterprise** plan, not Free/Starter. FAQ language puts **SOC 2 in progress**; that does not mean certified ([pricing](https://vespper.com/pricing); [Launch HN](https://news.ycombinator.com/item?id=49881505)).
 
 **Free** tier: **500 edits per month** (confirmed on the pricing page). Starter and Enterprise dollars stay on their site if you need plan color.
 

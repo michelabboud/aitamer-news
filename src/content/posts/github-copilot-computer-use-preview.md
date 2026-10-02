@@ -37,7 +37,7 @@ That means Copilot can act on **local desktop apps** on your machine—not a pho
 
 On your behalf, Copilot can **read accessible app content and visual context**, **click** controls, **enter and edit text**, **press keys**, **scroll**, **drag**, and **move across multi-app workflows**—including **legacy and GUI-only** software that has no API, CLI, or MCP ([Changelog](https://github.blog/changelog/2026-10-01-github-copilot-can-now-interact-with-desktop-apps/)).
 
-GitHub names **macOS and Windows** only. Do not assume Linux support from this announce.
+GitHub names **macOS and Windows** only. Linux support is not mentioned in the announcement.
 
 ## You stay in control
 
@@ -56,4 +56,4 @@ The Changelog includes a marketing demo of an expense-report flow in Safari—tr
 
 ## Who should care
 
-Developers on **macOS or Windows** who want Copilot to drive GUI-only or multi-app desktop workflows should start at the [Oct 1 Changelog](https://github.blog/changelog/2026-10-01-github-copilot-can-now-interact-with-desktop-apps/)—keep **public preview**, check org policy, and use approval / always-allow review before handing Copilot the mouse.
+Developers on **macOS or Windows** who want Copilot to drive GUI-only or multi-app desktop workflows should start at the [Oct 1 Changelog](https://github.blog/changelog/2026-10-01-github-copilot-can-now-interact-with-desktop-apps/).
