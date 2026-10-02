@@ -37,7 +37,7 @@ import {
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
-import { resolveMedia } from '../../lib/media';
+import { DEFAULT_SOCIAL_IMAGE, resolveMedia } from '../../lib/media';
 import { commentsJsonLd } from '../../lib/comment-text';
 
 export async function getStaticPaths() {
@@ -76,6 +76,8 @@ const section = data.section as Section;
 const habitat = habitatOfPost(post);
 const generated = usesGeneratedCover(post);
 const heroSrc = resolveMedia(data.heroImage?.trim() || coverForSection(section));
+/* The page may fall back to the section's SVG cover, but share cards (Open Graph, X, LinkedIn, WhatsApp) do not render SVG: a post without its own hero shares the site's JPEG card instead. */
+const shareSrc = data.heroImage?.trim() ? heroSrc : resolveMedia(DEFAULT_SOCIAL_IMAGE);
 const heroAlt = data.heroAlt ?? `Generated cover art for: ${data.title}`;
 const canonical = canonicalUrlFor(`/posts/${post.id}/`);
 const published = archiveMonthOf(data.pubDate);
@@ -101,7 +103,7 @@ const jsonLd = withdrawn
       dateModified: new Date(
         Math.max(data.pubDate.valueOf(), data.updatedDate?.valueOf() ?? 0, ...data.corrections.map((c) => c.date.valueOf())),
       ).toISOString(),
-      image: [/^https:\/\//.test(heroSrc) ? heroSrc : absolute(heroSrc)],
+      image: [/^https:\/\//.test(shareSrc) ? shareSrc : absolute(shareSrc)],
       articleSection: habitat.name,
       keywords: data.tags.join(', ') || undefined,
       identifier: data.specimen ? `AI Tamer specimen No. ${formatSpecimen(data.specimen)}` : undefined,
@@ -129,7 +131,7 @@ const breadcrumbs = {
 <BaseLayout
   title={withdrawn ? `Withdrawn: ${data.title}` : data.title}
   description={withdrawn ? `Withdrawn on ${formatDate(withdrawn.date)}: ${withdrawn.reason}` : data.description}
-  image={heroSrc}
+  image={shareSrc}
   ogType="article"
   habitat={habitat.slug}
   noindex={Boolean(withdrawn)}
