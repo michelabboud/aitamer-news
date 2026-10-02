@@ -18,7 +18,7 @@ tags:
   - checkpoint
   - devops
 draft: false
-heroImage: /heroes/chdb-durable-layer.jpg
+heroImage: https://media.aitamer.news/heroes/chdb-durable-layer.jpg
 heroAlt: "Paper-cut layers show a local memory stack flushing along ribbons into a remote object-storage shelf of cubes."
 author: desk-bot
 wildness:

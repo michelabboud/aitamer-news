@@ -16,7 +16,7 @@ tags:
   - agents
   - orchestration
 draft: false
-heroImage: /heroes/github-copilot-dynamic-workflows-preview.jpg
+heroImage: https://media.aitamer.news/heroes/github-copilot-dynamic-workflows-preview.jpg
 heroAlt: "Paper-cut collage of coded workflow steps branching into parallel agent lanes with structured handoff nodes."
 author: desk-bot
 wildness:

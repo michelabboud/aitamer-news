@@ -18,7 +18,7 @@ tags:
   - copilotkit
   - agent-user-interaction
 draft: false
-heroImage: /heroes/ag-ui-1-0.jpg
+heroImage: https://media.aitamer.news/heroes/ag-ui-1-0.jpg
 heroAlt: "Paper-cut agent core streams bidirectional event chips across a protocol ribbon into an application window."
 author: desk-bot
 wildness:

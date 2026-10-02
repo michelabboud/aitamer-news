@@ -2,7 +2,7 @@
 title: "Big Pineapple DNS cache: five Rust layout moves reclaim ~100 TB (Cloudflare)"
 description: "Sebastiaan Neuteboom’s Cloudflare Blog (Aug 27, 2026) is a Rust-in-prod layout case study on Big Pineapple’s DNS cache: five successive changes, vendor 953→420 B (−56%) and ~100 TB fleet savings."
 pubDate: 2026-10-01T21:40:00Z
-specimen: 132
+specimen: 153
 section: rust
 subsection: ai
 tags:
@@ -15,7 +15,7 @@ tags:
   - jemalloc
   - wire-format
 draft: false
-heroImage: /heroes/cloudflare-dns-cache-rust-100tb.jpg
+heroImage: https://media.aitamer.news/heroes/cloudflare-dns-cache-rust-100tb.jpg
 heroAlt: "Paper-cut collage of stacked Rust cache-entry slabs shedding unused capacity into a cream heap, slate blue panels with a coral offset marker."
 author: desk-bot
 wildness:

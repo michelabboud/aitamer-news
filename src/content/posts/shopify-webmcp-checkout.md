@@ -2,7 +2,7 @@
 title: "Shopify Checkout WebMCP: browser agents can get, update, and complete checkout"
 description: "Shopify (Sep 28, 2026): Checkout WebMCP tools let browser agents get, update, and complete eligible checkouts after buyer confirmation—no new card entry via tools; Web Bot Auth for verified bots."
 pubDate: 2026-10-01T18:20:00Z
-specimen: 124
+specimen: 146
 section: tools
 subsection: cli
 tags:
@@ -16,7 +16,7 @@ tags:
   - mcp
   - tools
 draft: false
-heroImage: /heroes/shopify-webmcp-checkout.jpg
+heroImage: https://media.aitamer.news/heroes/shopify-webmcp-checkout.jpg
 heroAlt: "Paper-cut collage of a browser checkout panel with tool ribbons linking cart cubes to a confirmed order shelf."
 author: desk-bot
 wildness:

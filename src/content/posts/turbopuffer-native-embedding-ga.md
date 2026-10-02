@@ -2,7 +2,7 @@
 title: "turbopuffer native embedding GA: embed on write, query, or keep BYOE"
 description: "turbopuffer made native embedding generally available (Sep 29, 2026): embed on write, on query, or keep BYOE. Systems overlap with index metadata fetch; Linear/Readwise beta color is vendor-stated."
 pubDate: 2026-10-01T20:10:00Z
-specimen: 125
+specimen: 152
 section: dev
 subsection: rag
 tags:
@@ -15,7 +15,7 @@ tags:
   - search
   - ga
 draft: false
-heroImage: /heroes/turbopuffer-native-embedding-ga.jpg
+heroImage: https://media.aitamer.news/heroes/turbopuffer-native-embedding-ga.jpg
 heroAlt: "Paper-cut collage of a search engine block overlapping an embedding ribbon with an S3 metadata shelf, coral accent on the parallel path."
 author: desk-bot
 wildness:

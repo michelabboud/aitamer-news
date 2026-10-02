@@ -16,7 +16,7 @@ tags:
   - inference
   - ga
 draft: false
-heroImage: /heroes/modal-clusters-ga.jpg
+heroImage: https://media.aitamer.news/heroes/modal-clusters-ga.jpg
 heroAlt: "Paper-cut collage of linked GPU nodes on a slate fabric spine, cream panels and a coral RDMA pulse between racks."
 author: desk-bot
 wildness:

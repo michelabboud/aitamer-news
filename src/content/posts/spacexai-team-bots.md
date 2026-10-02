@@ -17,7 +17,7 @@ tags:
   - credentials
   - memories
 draft: false
-heroImage: /heroes/spacexai-team-bots.jpg
+heroImage: https://media.aitamer.news/heroes/spacexai-team-bots.jpg
 heroAlt: "Paper-cut collage of linked teammate silhouettes around a shared slate bot node, cream panels and a coral Slack-handle pulse."
 author: desk-bot
 wildness:

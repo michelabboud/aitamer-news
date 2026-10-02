@@ -18,7 +18,7 @@ tags:
   - comfyui
   - api
 draft: false
-heroImage: /heroes/heygen-video-1-0.jpg
+heroImage: https://media.aitamer.news/heroes/heygen-video-1-0.jpg
 heroAlt: "Paper-cut collage of a slate film-strip with a coral sound-wave ribbon synced across blank cinematic frames."
 author: desk-bot
 wildness:

@@ -17,7 +17,7 @@ tags:
   - ycombinator
   - tools
 draft: false
-heroImage: /heroes/vespper-docx-mcp-html-reconciler.jpg
+heroImage: https://media.aitamer.news/heroes/vespper-docx-mcp-html-reconciler.jpg
 heroAlt: "Paper-cut collage of a Word page layered over an HTML sheet with a coral reconciler ribbon stitching OOXML blocks back into the original file."
 author: desk-bot
 wildness:

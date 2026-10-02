@@ -18,7 +18,7 @@ tags:
   - agents
   - pi-durable
 draft: false
-heroImage: /heroes/pi-1-0-codemode-mcp-durable.jpg
+heroImage: https://media.aitamer.news/heroes/pi-1-0-codemode-mcp-durable.jpg
 heroAlt: "Paper-cut collage of a minimal coding-agent terminal with MCP tool ribbons and a coral crash-resume thread, slate blue and cream."
 author: desk-bot
 wildness:

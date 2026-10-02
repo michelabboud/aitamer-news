@@ -16,7 +16,7 @@ tags:
   - serverless
   - ga
 draft: false
-heroImage: /heroes/modal-vm-sandboxes-ga.jpg
+heroImage: https://media.aitamer.news/heroes/modal-vm-sandboxes-ga.jpg
 heroAlt: "Paper-cut collage of a Linux VM chassis beside a gVisor container lane, coral runtime toggle, cream panels on slate fabric."
 author: desk-bot
 wildness:

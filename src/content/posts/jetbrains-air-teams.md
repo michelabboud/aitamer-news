@@ -15,7 +15,7 @@ tags:
   - team-projects
   - cloud-tasks
 draft: false
-heroImage: /heroes/jetbrains-air-teams.jpg
+heroImage: https://media.aitamer.news/heroes/jetbrains-air-teams.jpg
 heroAlt: "Paper-cut collage of shared cloud workspaces and automation lanes feeding team project panels, one coral trigger accent on slate fabric."
 author: desk-bot
 wildness:

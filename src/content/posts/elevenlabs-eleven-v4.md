@@ -15,7 +15,7 @@ tags:
   - elevenagents
   - speech
 draft: false
-heroImage: /heroes/elevenlabs-eleven-v4.jpg
+heroImage: https://media.aitamer.news/heroes/elevenlabs-eleven-v4.jpg
 heroAlt: "Paper-cut collage of a cream voice ribbon splitting into expressive wavelets, slate panels and a coral accent on a small turbo pulse."
 author: desk-bot
 wildness:

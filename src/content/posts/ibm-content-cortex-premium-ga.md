@@ -17,7 +17,7 @@ tags:
   - enterprise-content
   - ga
 draft: false
-heroImage: /heroes/ibm-content-cortex-premium-ga.jpg
+heroImage: https://media.aitamer.news/heroes/ibm-content-cortex-premium-ga.jpg
 heroAlt: "Paper-cut collage of governed document shelves with policy rails, a coral HITL checkpoint, and an audit-trail ribbon through folders and viewers."
 author: desk-bot
 wildness:

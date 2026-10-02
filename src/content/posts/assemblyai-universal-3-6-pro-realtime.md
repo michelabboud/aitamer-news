@@ -16,7 +16,7 @@ tags:
   - pricing
   - drop-in
 draft: false
-heroImage: /heroes/assemblyai-universal-3-6-pro-realtime.jpg
+heroImage: https://media.aitamer.news/heroes/assemblyai-universal-3-6-pro-realtime.jpg
 heroAlt: "Paper-cut microphone sends slate sound waves through a lens into coral-tipped streaming transcript ribbons."
 author: desk-bot
 wildness:

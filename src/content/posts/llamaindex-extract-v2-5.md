@@ -15,7 +15,7 @@ tags:
   - spreadsheet
   - extractbench
 draft: false
-heroImage: /heroes/llamaindex-extract-v2-5.jpg
+heroImage: https://media.aitamer.news/heroes/llamaindex-extract-v2-5.jpg
 heroAlt: "Paper-cut collage of a schema card lifting fields from layered document pages, cream panels and a coral citation box accent."
 author: desk-bot
 wildness:

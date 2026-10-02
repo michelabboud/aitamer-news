@@ -15,7 +15,7 @@ tags:
   - devops
   - postgres
 draft: false
-heroImage: /heroes/pgpool-ii-jvn-22475874.jpg
+heroImage: https://media.aitamer.news/heroes/pgpool-ii-jvn-22475874.jpg
 heroAlt: "Paper-cut collage of a slate-blue shield over pooled connection wires with a coral patch accent beside stacked backend shelves."
 author: desk-bot
 wildness:

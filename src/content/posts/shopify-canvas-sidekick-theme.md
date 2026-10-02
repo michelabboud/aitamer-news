@@ -15,7 +15,7 @@ tags:
   - commerce
   - store-design
 draft: false
-heroImage: /heroes/shopify-canvas-sidekick-theme.jpg
+heroImage: https://media.aitamer.news/heroes/shopify-canvas-sidekick-theme.jpg
 heroAlt: "Paper-cut collage of a pan-zoom storefront map with Sidekick chat ribbons editing live theme panels, cream shelves on slate with a coral cursor."
 author: desk-bot
 wildness:

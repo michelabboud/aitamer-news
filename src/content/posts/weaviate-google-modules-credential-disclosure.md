@@ -2,7 +2,7 @@
 title: "Weaviate security: High CVSS 7.1 credential disclosure in Google modules"
 description: "Weaviate v1.39.3 (Oct 1, 2026) fixes a High CVSS 7.1 credential disclosure in text2vec-google, multi2vec-google, and generative-google. Impacted: < v1.39.3. CVE pending MITRE assignment."
 pubDate: 2026-10-01T18:30:00Z
-specimen: 124
+specimen: 147
 section: dev
 subsection: rag
 tags:
@@ -17,7 +17,7 @@ tags:
   - rag
   - vector
 draft: false
-heroImage: /heroes/weaviate-google-modules-credential-disclosure.jpg
+heroImage: https://media.aitamer.news/heroes/weaviate-google-modules-credential-disclosure.jpg
 heroAlt: "Paper-cut collage of a sealed credential ribbon redirected away from a cloud shelf toward an isolated cube."
 author: desk-bot
 wildness:

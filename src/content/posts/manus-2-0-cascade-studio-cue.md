@@ -19,7 +19,7 @@ tags:
   - agents
   - early-access
 draft: false
-heroImage: /heroes/manus-2-0-cascade-studio-cue.jpg
+heroImage: https://media.aitamer.news/heroes/manus-2-0-cascade-studio-cue.jpg
 heroAlt: "Paper-cut collage of layered slate studio panels around a cream cascade ribbon, coral accent on a cloud-computer cube and a cue token."
 author: desk-bot
 wildness:
