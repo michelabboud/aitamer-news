@@ -38,7 +38,7 @@ Two more are worth a glance. `aliases` carries other identifiers such as a CVE n
 
 ## What the informational labels mean
 
-`unmaintained` says the crate is no longer maintained. It does not say the crate is exploitable today, but it does say a future bug will have no upstream fix. `unsound` points to a soundness problem: the crate can be made to break Rust's safety guarantees through its public API. `notice` is everything else.
+`unmaintained` says the crate is no longer maintained. It does not say the crate is exploitable today, but it does say a future bug will have no upstream fix. `unsound` marks a soundness issue, which means code that looks safe may not be. `notice` is everything else.
 
 ## A short order of response
 
