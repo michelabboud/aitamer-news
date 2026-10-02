@@ -118,7 +118,7 @@ async function pool(items, limit, fn) {
 }
 
 /**
- * The heroes to check. Keys are paths on the media host (`heroes/<slug>.jpg`).
+ * The heroes to check. Keys are paths on the media host (`heroes/<slug>.jpg`, or `heroes/<slug>-<8 hex>.jpg` for a replaced hero, ADR 0024).
  * @param {{ postsDir: string, localDir?: string | null, now?: Date }} where `now` decides which posts are live
  * @returns {{ targets: { key: string, label: string, local: { size: number, md5: string } | null, required: boolean }[], errors: string[] }}
  */

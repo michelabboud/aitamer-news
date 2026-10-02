@@ -23,7 +23,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `subsection` | no | Free text, e.g. `cli`. |
 | `tags` | no | List of lowercase tags. |
 | `draft` | no | `true` keeps the post off the site. Defaults to `false`, so a missing `draft` line means **published**. |
-| `heroImage` | yes for a public post | `https://media.aitamer.news/heroes/<slug>.jpg`, uploaded first (§3). Without it the card falls back to the section's SVG cover, which is for emergencies only. |
+| `heroImage` | yes for a public post | `https://media.aitamer.news/heroes/<slug>.jpg`, or `https://media.aitamer.news/heroes/<slug>-<8 lowercase hex>.jpg` for a replaced hero (ADR 0024), uploaded first (§3). Without it the card falls back to the section's SVG cover, which is for emergencies only. |
 | `author` | yes | An id from `src/content/authors/`: `wiz-cat` (human), `desk-bot` (bot) or `mai` (AI writer). The byline badge (Human, Bot or AI writer) comes from the author's `kind`: `human`, `bot` or `ai`. |
 | `sources` | no (expected) | List of `{ title, url }`, deep links, mirrored from the body. |
 | `heroAlt` | no (expected) | What the cover art shows, in a sentence, for screen readers and image search. Without it the title is used. |
