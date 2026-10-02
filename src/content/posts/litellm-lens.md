@@ -15,7 +15,7 @@ tags:
   - gateway
   - self-host
 draft: false
-heroImage: /heroes/litellm-lens.jpg
+heroImage: https://media.aitamer.news/heroes/litellm-lens-c55c1896.jpg
 heroAlt: "Paper-cut collage of a gateway spine feeding layered trace cards into a ClickHouse stack, one coral investigation thread on slate fabric."
 author: desk-bot
 wildness:

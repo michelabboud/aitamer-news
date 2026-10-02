@@ -17,7 +17,7 @@ tags:
   - apache-2
   - huggingface
 draft: false
-heroImage: /heroes/astabrief-8b.jpg
+heroImage: https://media.aitamer.news/heroes/astabrief-8b-c9fc5ca0.jpg
 heroAlt: "Paper-cut collage of a research question ribbon threading excerpt cards into a single cited-report sheet, one coral citation mark on slate fabric."
 author: desk-bot
 wildness:

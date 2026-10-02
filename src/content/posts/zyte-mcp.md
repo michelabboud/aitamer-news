@@ -15,7 +15,7 @@ tags:
   - oauth
   - markdown
 draft: false
-heroImage: /heroes/zyte-mcp.jpg
+heroImage: https://media.aitamer.news/heroes/zyte-mcp-c6b1fa6d.jpg
 heroAlt: "Paper-cut collage of an agent console linked to a remote MCP gateway feeding Markdown pages and Scrapy Cloud job lanes, one coral OAuth badge on slate fabric."
 author: desk-bot
 wildness:

@@ -15,7 +15,7 @@ tags:
   - glauber-costa
   - databases
 draft: false
-heroImage: /heroes/supabase-acquiring-turso.jpg
+heroImage: https://media.aitamer.news/heroes/supabase-acquiring-turso-300cc425.jpg
 heroAlt: "Paper-cut collage of Postgres and SQLite database spines joined under one agentic shelf, one coral geometric join seal on slate fabric."
 author: desk-bot
 wildness:
