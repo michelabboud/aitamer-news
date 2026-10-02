@@ -18,7 +18,7 @@ wildness:
 verdict: "Give your AI agents a third choice besides keep and delete: set it aside, recoverably, with a note saying why."
 ---
 
-AI agents are asked to clean up a lot: stale build folders, old logs, leftover test data. Most of it is safe to remove. The hard case is the file the agent isn't sure about, and an agent under instruction to "clean up" tends to resolve doubt in the direction of deleting.
+AI agents are asked to clean up a lot: stale build folders, old logs, leftover test data. Most of it is safe to remove. The hard case is the file the agent isn't sure about, and an agent under instruction to "clean up" tends, in my experience, to resolve doubt in the direction of deleting.
 
 There's a better default for that case, and it's older than AI: **set it aside.**
 
@@ -30,11 +30,11 @@ For anything an agent wants to remove, there are three outcomes:
 - **Provably someone else's, or important:** a database, a log, a backup, a config file, a person's own work. Leave it, and report it.
 - **Unsure.** Set it aside.
 
-"Set aside" means moving the file to a holding folder where it can't do harm and can't be lost, then letting the owner decide.
+"Set aside" means moving the file to a holding folder where it is recoverable (it still uses disk space), then letting the owner decide.
 
 ## Doing it properly
 
-1. **Move it; don't copy it and then delete the original.** On the same filesystem, a move is a single [`rename`](https://man7.org/linux/man-pages/man2/rename.2.html) operation. Nothing is rewritten, and there is no moment when the file exists in neither place. `rename` refuses to work across filesystems (it fails with `EXDEV`), so a move between disks has to fall back to copying and deleting. Keep the holding folder on the same filesystem as the things you set aside.
+1. **Move it; don't copy it and then delete the original.** Within one mount, a move is a single atomic [`rename`](https://man7.org/linux/man-pages/man2/rename.2.html). Nothing is rewritten, and there is no moment when the file exists in neither place. `rename` refuses to work across mount points, even two mounts of the same filesystem (it fails with `EXDEV`), so `mv` falls back to copy-then-delete. Keep the holding folder on the same mount as the things you set aside.
 2. **Write a note beside it:** the original path, the date, who moved it, and one honest sentence saying why. Desktop trash folders do the same thing: the [FreeDesktop Trash specification](https://specifications.freedesktop.org/trash/1.0/) keeps a small `.trashinfo` file per item with its original path and deletion date. An item with no note is a mystery in a week.
 3. **Keep the holding folder private.** It now contains things that were in doubt, so readable by the owner only.
 4. **Final deletion is the owner's call**, made item by item, never by the agent that set it aside.

@@ -11,6 +11,8 @@ sources:
     url: https://git-scm.com/docs/git-status
   - title: "git-log documentation"
     url: https://git-scm.com/docs/git-log
+  - title: "git-stash documentation"
+    url: https://git-scm.com/docs/git-stash
 wildness:
   rating: 2
   verified: "The git commands named are checked against git's documentation"
@@ -24,7 +26,7 @@ A handoff note is not a diary. It answers the questions the next session would o
 
 ## The five parts
 
-1. **Exact state.** The branch, the last commit, and whether anything is uncommitted or unpushed. Copy it from [`git status`](https://git-scm.com/docs/git-status) and [`git log`](https://git-scm.com/docs/git-log); don't summarise it from memory. "Clean at a1b2c3d, pushed" is a fact. "Mostly done" isn't.
+1. **Exact state.** Run `git fetch`, then copy the branch, `git log -1 --oneline`, and the clean or ahead line from [`git status`](https://git-scm.com/docs/git-status). Check [`git stash list`](https://git-scm.com/docs/git-stash) too. Don't summarise it from memory. "Clean at a1b2c3d, pushed" is a fact. "Mostly done" isn't.
 2. **Done and verified, separate from in progress.** Say what was finished and how you know: the test run, the check, the output. Say what was started and not finished. The worst handoff is one where "in progress" quietly reads as "done".
 3. **Next steps, in order.** Numbered, each one an action. The first should be small enough to start without reading anything else.
 4. **Traps.** Whatever cost you time: the command that looks right and isn't, the test that fails for an unrelated reason, the file you must not touch.

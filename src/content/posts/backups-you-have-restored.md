@@ -41,13 +41,13 @@ Fingerprint the backup file itself with [`sha256sum`](https://man7.org/linux/man
 
 ## Two mistakes the drill catches
 
-**Copying a live SQLite file.** If something writes to the database while you copy it, the copy can be inconsistent. SQLite has a proper way to take a copy while the database is in use: the [online backup API](https://www.sqlite.org/backup.html), which produces a consistent snapshot even if the database is written to during the copy. The command-line shell has a [`.backup` command](https://www.sqlite.org/cli.html) for the same job. Another option is [`VACUUM INTO`](https://www.sqlite.org/lang_vacuum.html), which SQLite documents as an alternative to the backup API for copying a live database.
+**Copying a live SQLite file.** If something writes to the database while you copy it, the copy can be inconsistent. SQLite has a proper way to take a copy while the database is in use: the [online backup API](https://www.sqlite.org/backup.html), which produces a consistent snapshot even if the database is written to during the copy (heavy concurrent writes make the backup restart and run longer). The command-line shell's [`.backup` command](https://www.sqlite.org/cli.html) takes such a copy from the command line. Another option is [`VACUUM INTO`](https://www.sqlite.org/lang_vacuum.html), which SQLite documents as an alternative to the backup API for copying a live database.
 
-**Backing up PostgreSQL by copying its data folder** while the server runs. The documentation says a [file-level copy is only usable if the server is shut down](https://www.postgresql.org/docs/current/backup-file.html). [`pg_dump`](https://www.postgresql.org/docs/current/backup-dump.html) produces a dump that is internally consistent, a snapshot of the database at the moment the dump began, and the same page describes how to restore it. Restoring that dump into a scratch database is the drill.
+**Backing up PostgreSQL by copying its data folder** while the server runs. A plain file copy of a running server's data folder is not usable. It works only with the server shut down, or from a consistent filesystem snapshot, as [the documentation describes](https://www.postgresql.org/docs/current/backup-file.html). [`pg_dump`](https://www.postgresql.org/docs/current/backup-dump.html) produces a dump that is internally consistent, a snapshot of the database at the moment the dump began (one database; roles and tablespaces need `pg_dumpall`), and the same page describes how to restore it. Restoring that dump into a scratch database is the drill.
 
 ## What it costs
 
-One restore takes as long as a restore takes, and that is exactly the figure you want to know before an outage. On a small server it's usually a few minutes of attention, a few times a year.
+How long a restore takes depends on the size of the data, so time it the first time. That is exactly the figure you want to know before an outage.
 
 **Lantern note:** a backup proves itself only once you've restored it, and the time to try that is before you need it.
 

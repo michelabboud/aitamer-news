@@ -36,14 +36,14 @@ A disk that fills up doesn't fail politely. Databases stop writing, logs stop re
 
 Pick one threshold and write it down. [`df -h`](https://man7.org/linux/man-pages/man1/df.1.html) shows each filesystem's use; check the one where the work happens, not just `/`. A useful pair is a warning at 90 percent and a hard stop on new heavy jobs at 95, but the right numbers depend on how fast your disk fills on a bad day. The warning has to arrive early enough that someone can still react.
 
-On ext2/3/4 filesystems, part of the disk is [reserved for privileged processes](https://man7.org/linux/man-pages/man8/tune2fs.8.html), normally 5 percent. That reserve is why system services can keep working briefly after ordinary users are refused, and why `df` can show less space available than size minus used.
+On ext2/3/4 filesystems, part of the disk is [reserved for privileged processes](https://man7.org/linux/man-pages/man8/tune2fs.8.html), normally 5 percent. Only privileged processes can use it, so privileged processes (the manual's example is the system logger, `syslogd`) can keep writing briefly while services running as ordinary users are already refused. This is an ext2/3/4 feature.
 
 ## Where the space hides
 
 [`du`](https://man7.org/linux/man-pages/man1/du.1.html) finds most of it. These are the places it tends to miss, or that surprise people:
 
 - **Deleted files still held open.** A process that keeps a deleted log open keeps its space in use; `df` counts it and `du` can't see it. [`lsof +L1`](https://man7.org/linux/man-pages/man8/lsof.8.html) lists open files that have been unlinked. Restarting the process frees the space.
-- **The trash.** Moving something to the desktop trash moves it into a folder in your home directory ([the FreeDesktop Trash layout](https://specifications.freedesktop.org/trash/1.0/)). It frees nothing until the trash is emptied. Check it early when space is missing.
+- **The trash.** Desktop trash keeps deleted files on disk (in `~/.local/share/Trash`, or a `.Trash-<uid>` folder at the top of another volume, per [the FreeDesktop Trash specification](https://specifications.freedesktop.org/trash/1.0/)), so on the same disk it frees nothing until emptied. `rm` and most server tools skip it. Check it early when space is missing.
 - **Container storage.** Images, stopped containers, volumes and build cache add up. [`docker system df`](https://docs.docker.com/reference/cli/docker/system/df/) shows how much space images, containers and volumes use, and how much of it is reclaimable. Be careful which you remove: volumes can hold the only copy of data.
 - **The system journal.** Its size cap is set in [`journald.conf`](https://man7.org/linux/man-pages/man5/journald.conf.5.html) (`SystemMaxUse=`); [`journalctl --disk-usage`](https://man7.org/linux/man-pages/man1/journalctl.1.html) shows the current size.
 - **Build output and temporary folders** left behind by tools, and lately by AI coding sessions that build code and never clean up.

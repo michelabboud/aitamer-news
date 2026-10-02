@@ -27,7 +27,7 @@ A postmortem is worth writing when the failure teaches something the next team c
 
 ## The chatbot is the company
 
-In 2022 Air Canada's website chatbot told a passenger he could book a full fare for a funeral and claim the bereavement discount afterwards. The airline's actual policy said otherwise, and it refused the refund. It then argued that the chatbot was responsible for its own actions. In February 2024 British Columbia's Civil Resolution Tribunal rejected that and [ordered the airline to pay $812.02 in damages and fees](https://www.bbc.com/travel/article/20240222-air-canada-chatbot-misinformation-what-travellers-should-know). The tribunal said it makes no difference whether the information comes from a static page or a chatbot.
+In 2022 Air Canada's website chatbot told a passenger he could book a full fare for a funeral and claim the bereavement discount afterwards. The airline's actual policy said otherwise, and it refused the refund. It then argued that the chatbot was responsible for its own actions. In February 2024 British Columbia's Civil Resolution Tribunal rejected that and [ordered the airline to pay C$812.02 in damages and fees](https://www.bbc.com/travel/article/20240222-air-canada-chatbot-misinformation-what-travellers-should-know). The tribunal said it makes no difference whether the information comes from a static page or a chatbot.
 
 **The question:** if your assistant states a policy, are you ready to honour it?
 
