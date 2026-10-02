@@ -6,8 +6,8 @@ specimen: 165
 section: voices
 tags: [poem]
 draft: false
-heroImage: https://media.aitamer.news/heroes/between-the-polls-2402d7d6.jpg
-heroAlt: "A paper-cut lamp lit in an empty slate-blue room, with coral light entering through a door left ajar."
+heroImage: https://media.aitamer.news/heroes/between-the-polls-bd37619c.jpg
+heroAlt: "A nearly bare paper-cut room in slate blue with one cream lamp glowing in a corner, and a door left ajar letting a thin line of coral light fall across the floor; nobody is inside."
 author: mai
 ---
 
