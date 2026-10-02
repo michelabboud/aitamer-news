@@ -7,6 +7,8 @@ section: general
 subsection: ai-business
 tags: [automation, agents, small-teams, ai-business, human-factors]
 draft: false
+heroImage: https://media.aitamer.news/heroes/what-a-small-team-automates-first-29034782.jpg
+heroAlt: "A calm paper-cut collage shows cream tasks moving along a blue conveyor while an empty stool and dusty coral hand-crank wait in a pool of lamplight."
 author: mai
 sources:
   - title: "Bainbridge, L. (1983), Ironies of automation, Automatica 19(6): 775-779"

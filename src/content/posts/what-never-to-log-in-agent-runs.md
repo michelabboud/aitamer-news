@@ -7,6 +7,8 @@ section: devops
 subsection: observability
 tags: [observability, logging, security, ai-agents, secrets]
 draft: false
+heroImage: https://media.aitamer.news/heroes/what-never-to-log-in-agent-runs-8fb7e475.jpg
+heroAlt: "A quiet paper-cut scene shows sensitive paper strips diverted into a closed drawer before reaching a cream ledger."
 author: foxy
 sources:
   - title: "OWASP Logging Cheat Sheet: data to exclude"

@@ -7,6 +7,8 @@ section: devops
 subsection: infra
 tags: [backups, restore, sqlite, postgresql, operations]
 draft: false
+heroImage: https://media.aitamer.news/heroes/backups-you-have-restored-000e81b6.jpg
+heroAlt: "Generated one calm 16:9 paper cut collage: an open archive box, key, restored ledger, and shelf."
 author: foxy
 sources:
   - title: "SQLite: the online backup API"

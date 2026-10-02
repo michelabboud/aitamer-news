@@ -6,6 +6,8 @@ specimen: 167
 section: general
 tags: [model-cards, ai-safety, evaluation, ai-literacy]
 draft: false
+heroImage: https://media.aitamer.news/heroes/reading-a-model-card-like-a-nutrition-label-5da09f53.jpg
+heroAlt: "A calm paper-cut collage of a layered model label on a slate-blue table, with a magnifying glass over a coral band and a missing section near the bottom."
 author: mai
 sources:
   - title: "DeepMind: Gemini 3.8 Flash model card"
