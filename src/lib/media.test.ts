@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, resolveMedia } from './media.ts';
+import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, isOwnHeroUrl, resolveMedia } from './media.ts';
 
 test('heroUrl builds the full R2 URL for a slug', () => {
   assert.equal(heroUrl('grok-4-7'), 'https://media.aitamer.news/heroes/grok-4-7.jpg');
@@ -59,4 +59,26 @@ test('with no override argument at all, resolveMedia reads no env under the Node
 test('the default social image is the share card on the media host, and follows the local override', () => {
   assert.equal(DEFAULT_SOCIAL_IMAGE, 'https://media.aitamer.news/site/share-card.jpg');
   assert.equal(resolveMedia(DEFAULT_SOCIAL_IMAGE, '/media-local'), '/media-local/site/share-card.jpg');
+});
+
+test('isOwnHeroUrl accepts the legacy URL and the content-addressed one, for the post\'s own slug only', () => {
+  assert.equal(isOwnHeroUrl('a', heroUrl('a')), true);
+  assert.equal(isOwnHeroUrl('a', 'https://media.aitamer.news/heroes/a-0123abcd.jpg'), true);
+  assert.equal(isOwnHeroUrl('a-0123abcd', heroUrl('a-0123abcd')), true);
+  for (const value of [
+    'https://media.aitamer.news/heroes/b-0123abcd.jpg',
+    'https://media.aitamer.news/heroes/a-0123ABCD.jpg',
+    'https://media.aitamer.news/heroes/a-0123abc.jpg',
+    'https://media.aitamer.news/heroes/a-0123abcde.jpg',
+    'https://media.aitamer.news/heroes/a-0123abcd.png',
+    'https://media.aitamer.news/heroes/a-0123abcd.jpg?x=1',
+    'http://media.aitamer.news/heroes/a-0123abcd.jpg',
+    'https://media.aitamer.news/heroes/a-.jpg',
+    '/heroes/a-0123abcd.jpg',
+    '',
+  ]) {
+    assert.equal(isOwnHeroUrl('a', value), false, value);
+  }
+  assert.equal(isOwnHeroUrl('a', undefined), false);
+  assert.equal(isOwnHeroUrl('a', 7), false);
 });

@@ -12,6 +12,23 @@ export function heroUrl(slug: string): string {
   return `${MEDIA_ORIGIN}/heroes/${slug}.jpg`;
 }
 
+/** The hash in a content-addressed hero's name: 8 lowercase hex characters (atn-ops ADR 0043). */
+const HERO_HASH = /^[0-9a-f]{8}$/;
+
+/**
+ * Whether `value` is this post's own hero on the media host: `heroUrl(slug)` (every hero before 2026-10-02, and
+ * any that never changes), or `https://media.aitamer.news/heroes/<slug>-<8 lowercase hex>.jpg`, the form a
+ * replaced hero takes so its address changes with its picture and can be cached for a year (ADR 0024).
+ * Byte for byte: no other host, scheme, case, query, fragment, encoding or other slug's image.
+ */
+export function isOwnHeroUrl(slug: string, value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  if (value === heroUrl(slug)) return true;
+  const prefix = `${MEDIA_ORIGIN}/heroes/${slug}-`;
+  if (!value.startsWith(prefix) || !value.endsWith('.jpg')) return false;
+  return HERO_HASH.test(value.slice(prefix.length, value.length - '.jpg'.length));
+}
+
 /**
  * The social-preview image of a page that has none of its own (the home page, author and writer
  * pages without a portrait): the site's share card, 1200×630, the black cat from the About page with

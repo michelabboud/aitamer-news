@@ -20,8 +20,9 @@
  * written: one unreadable post stops the run with nothing changed.
  *
  * The hero rule (`--check` only; ADR 0020): a published post's `heroImage`, when it has one, is
- * `https://media.aitamer.news/heroes/<slug>.jpg`, the slug being the post's file name, byte for byte:
- * no other host, scheme, case, query, fragment or encoding. The old repo-relative `/heroes/<slug>.jpg`
+ * `https://media.aitamer.news/heroes/<slug>.jpg` or, for a hero that was replaced, the content-addressed
+ * `https://media.aitamer.news/heroes/<slug>-<8 lowercase hex>.jpg` (ADR 0024), the slug being the post's
+ * file name, byte for byte: no other host, scheme, case, query, fragment or encoding. The old repo-relative `/heroes/<slug>.jpg`
  * is refused with the way out, and so is a `public/heroes/` folder at all: images never go back into
  * the repository (the deep review of 0.2.45, N2). A post without a hero gets its section's cover.
  */
@@ -29,7 +30,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { heroUrl } from '../src/lib/media.ts';
+import { MEDIA_ORIGIN, heroUrl, isOwnHeroUrl } from '../src/lib/media.ts';
 import {
   assertOnlyChanged,
   isPublishedDraftField,
@@ -71,11 +72,11 @@ export function heroProblem(text, slug) {
   if (fm === null || isPublishedDraftField(fm.data) !== true || !Object.hasOwn(fm.data, 'heroImage')) return null;
   const value = fm.data.heroImage;
   const expected = heroUrl(slug);
-  if (value === expected) return null;
+  if (isOwnHeroUrl(slug, value)) return null;
   if (value === `/heroes/${slug}.jpg`) {
     return `heroImage ${value} is the retired repo path (heroes live on R2 now): upload the image as POST.md §3 says and write heroImage: ${expected}`;
   }
-  return `heroImage must be ${expected} (the post's own hero on the media host), not ${JSON.stringify(value)}`;
+  return `heroImage must be ${expected} (the post's own hero on the media host), or ${MEDIA_ORIGIN}/heroes/${slug}-<8 lowercase hex>.jpg, not ${JSON.stringify(value)}`;
 }
 
 /** @param {Date} date @returns {string} e.g. 2026-09-24T09:15:12Z */

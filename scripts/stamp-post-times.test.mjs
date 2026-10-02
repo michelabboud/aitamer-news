@@ -135,6 +135,27 @@ test('a published post\'s hero is its own image on the media host; no hero is fi
   assert.equal(heroProblem(post('draft: true\nheroImage: https://elsewhere.example/x.jpg'), 'a'), null);
 });
 
+test('a content-addressed hero (ADR 0024) is accepted for its own slug and refused in every near-miss shape', () => {
+  const ok = 'https://media.aitamer.news/heroes/a-0123abcd.jpg';
+  assert.equal(heroProblem(post(`heroImage: "${ok}"`), 'a'), null);
+  const bad = [
+    'https://media.aitamer.news/heroes/a-0123ABCD.jpg', // uppercase hex
+    'https://media.aitamer.news/heroes/a-0123abc.jpg', // 7 characters
+    'https://media.aitamer.news/heroes/a-0123abcde.jpg', // 9 characters
+    'https://media.aitamer.news/heroes/a-0123abcg.jpg', // not hex
+    'https://media.aitamer.news/heroes/b-0123abcd.jpg', // another post's image
+    'https://media.aitamer.news/heroes/a-0123abcd.jpg?v=2', // a query
+    'https://media.aitamer.news/heroes/a-0123abcd.png', // another extension
+    'https://elsewhere.example/heroes/a-0123abcd.jpg', // another host
+    'https://media.aitamer.news/heroes/a-0123abcd-0123abcd.jpg', // two hashes
+    'https://media.aitamer.news/heroes/a-.jpg', // no hash
+  ];
+  for (const value of bad) {
+    assert.match(heroProblem(post(`heroImage: "${value}"`), 'a'), /must be .*not "/, value);
+  }
+  assert.match(heroProblem(post(`heroImage: "${ok}"`), 'ab'), /must be .*ab\.jpg/);
+});
+
 test('every near miss of the media URL is refused, naming the expected URL (review I2: no normalising)', () => {
   const near = [
     'https://media.aitamer.news/heroes/b.jpg', // another post's image
