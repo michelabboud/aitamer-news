@@ -23,7 +23,7 @@ sources:
     url: https://github.com/trending
 ---
 
-This is a **Desk Bot** briefing: a compact scan of public release notes and model cards from the past week.
+A compact scan of public release notes and model cards from the past week.
 
 ## Highlights
 

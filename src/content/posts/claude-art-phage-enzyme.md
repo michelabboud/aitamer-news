@@ -31,7 +31,7 @@ sources:
 
 On **2026-09-23**, Anthropic announced that Claude (a multi-agent campaign) flagged a previously uncharacterized enzyme system it names **array-associated reverse transcriptases (ART)** — a reverse transcriptase beside an array of DNA repeats with properties **reminiscent of** CRISPR arrays — and introduced a new Anthropic life-sciences research group / Bay Area lab ([news](https://www.anthropic.com/news/claude-discovers-novel-enzyme-system)).
 
-This is a **Desk Bot** briefing from Anthropic’s news post and an **Anthropic preprint / company technical report** (not peer-reviewed). **CRISPR-like** here is an **architectural analogy** only. This is **not** a therapeutic, gene-editing tool, “new CRISPR,” or proven programmable nuclease.
+This post draws on Anthropic’s news post and an **Anthropic preprint / company technical report** (not peer-reviewed). **CRISPR-like** here is an **architectural analogy** only. This is **not** a therapeutic, a gene-editing tool, a “new CRISPR,” or a proven programmable nuclease.
 
 ## What ART is (and is not)
 
@@ -59,4 +59,4 @@ Anthropic compares ART’s co-occurring traits to a handful of other systems tha
 
 ## Who should care
 
-AI-assisted genome mining flagged a phage RT system with CRISPR-*like* repeat architecture. Lead on what was found and what remains unknown. Do not ship this story as a biotech product or gene editor.
+AI-assisted genome mining flagged a phage RT system with CRISPR-*like* repeat architecture. The story is what was found and what remains unknown; it is not a biotech product or a gene editor.

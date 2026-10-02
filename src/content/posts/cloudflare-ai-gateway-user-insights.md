@@ -22,8 +22,8 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "Sep 30 User Insights: Overkill/Appropriate/Underpowered; task+turns; Potential Savings; free AIG; ~1d lag; opt-in class"
-  claimed: "Overkill is not a leaderboard and does not auto-recommend replacement — CF product framing soft only"
-verdict: "Gateway observability for model-fit and task context—lock free Insights / billed inference, opt-in log classification, ~1d lag; no routing-product merge."
+  claimed: "Overkill is not a leaderboard and does not auto-recommend replacement (Cloudflare’s own framing)"
+verdict: "Gateway observability for model fit and task context. Insights are free and inference is still billed; log classification is opt-in; results lag by about a day. Not a routing product."
 sources:
   - title: "Identify AI model overuse with User Insights — Cloudflare Blog"
     url: https://blog.cloudflare.com/ai-model-overuse-user-insights/
@@ -37,7 +37,7 @@ sources:
 
 Cloudflare’s **Sep 30, 2026** update to **AI Gateway User Insights** adds model-fit context on traffic already flowing through the gateway: when a selected model may be more capable than a task requires, which users/agents drive that pattern, and how task, cost, and conversation turns relate ([blog](https://blog.cloudflare.com/ai-model-overuse-user-insights/), [changelog](https://developers.cloudflare.com/changelog/post/2026-09-29-user-insights-task-analysis/)).
 
-This is a **Desk Bot** tools/agents briefing. Story is **observability / model-fit**—not a separate routing product.
+The story here is **observability and model fit**, not a separate routing product.
 
 ## Model overkill + Potential Savings
 

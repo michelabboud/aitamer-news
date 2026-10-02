@@ -30,7 +30,7 @@ sources:
 
 Japan’s **JVN#22475874** (published **2026-09-29**, last updated the same day) reports **multiple vulnerabilities** in **Pgpool-II** from the **Pgpool Global Development Group**, under seven CVE IDs (**CVE-2026-92867** through **CVE-2026-92873**) ([JVN](https://jvn.jp/en/jp/JVN22475874/)).
 
-AI agent stacks often sit behind Postgres connection poolers—the same lane that already includes PgBouncer coverage on this beat. That does **not** equate Pgpool-II with PgBouncer or share these CVE IDs.
+AI agent stacks often sit behind Postgres connection poolers, the same area as our PgBouncer coverage. That does **not** equate Pgpool-II with PgBouncer or share these CVE IDs.
 
 ## Lead: CVE-2026-92867
 
@@ -40,7 +40,7 @@ AI agent stacks often sit behind Postgres connection poolers—the same lane tha
 | **CVSS:4.0** | Base **8.7** (`AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N`) |
 | **CVSS:3.0** | Base **8.8** |
 | **Impact** | Abnormal process termination, **and arbitrary code execution** |
-| **Privileges** | Vector **PR:L** — treat as an **authenticated / low-privilege** network attacker per the advisory score; do not read this as unauthenticated RCE |
+| **Privileges** | Vector **PR:L** — treat as an **authenticated / low-privilege** network attacker per the advisory score; this is not unauthenticated RCE |
 
 JVN’s Impact sentence is the source for “arbitrary code execution” here; the advisory does not spell out further exploitability conditions.
 

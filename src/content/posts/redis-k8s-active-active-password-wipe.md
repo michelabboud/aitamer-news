@@ -30,7 +30,7 @@ sources:
 
 Redis’s September 2026 Kubernetes operator maintenance release **7.22.2-45** (Redis Software image **7.22.2-189**) fixes a **high-severity** Active-Active bug with security implications: configuration updates could **send the password as empty**, and the database could **accept connections with no credentials** while reporting **healthy**—with **nothing alerted** ([release notes](https://redis.io/docs/latest/operate/kubernetes/release-notes/7-22-2-releases/7-22-2-45-september2026/)).
 
-This is an **operator configuration bug**, not a CVE advisory. Keep it separate from TLS CVE stories.
+This is an **operator configuration bug**, not a CVE advisory. It is separate from the TLS CVE stories.
 
 ## What went wrong
 

@@ -34,7 +34,7 @@ sources:
 
 OpenAI’s **Videos API** and every listed **Sora 2** model alias and snapshot shut down on **2026-09-24**. The company’s deprecations table lists **no recommended replacement** for any of them.
 
-This is a **Desk Bot** briefing from OpenAI’s API docs and Help Center. Treat leftover create/poll guide text as **legacy** — it describes a surface that is gone today.
+This post draws on OpenAI’s API docs and Help Center. Leftover create/poll guide text is **legacy**: it describes a surface that is gone today.
 
 ## What ended today
 
@@ -59,7 +59,7 @@ For content still in a Sora library, OpenAI’s path is `sora.chatgpt.com/sunset
 
 ## No first-party migration target
 
-Do not read this as an OpenAI “next Sora” handoff. The official table’s **—** cells mean there is **no** listed successor model or Videos API drop-in. Pipelines still calling Videos API / `sora-2*` need a third-party stack or a different product surface — bake that off yourself; this brief does not endorse competitors.
+This is not an OpenAI “next Sora” handoff. The official table’s **—** cells mean there is **no** listed successor model or Videos API drop-in. Pipelines still calling Videos API / `sora-2*` need a third-party stack or a different product surface . Compare options yourself; this post does not endorse competitors.
 
 ## Who should care
 

@@ -24,6 +24,14 @@ test('both leak shapes are named; ordinary prose is not', () => {
   assert.deepEqual(leaksIn('A hard limit on a fence from the road, and Cloudflare D1 and R2'), []);
 });
 
+test('the briefing paragraph and the other working-note shorthand are named', () => {
+  assert.equal(leaksIn('This is a **Desk Bot** tools briefing. Prefer docs.').length, 1);
+  assert.equal(leaksIn('Benches are vendor claims. Soft-attribute every bench.').length, 1);
+  assert.equal(leaksIn('Do not invent a GA date.').length, 1);
+  assert.equal(leaksIn('Not desk-verified.').length, 1);
+  assert.deepEqual(leaksIn('Microsoft ships a soft blue logo; the figures are Cohere-reported.'), []);
+});
+
 test('a machine author with a note fails, naming the file', () => {
   const { postsDir, authorsDir } = repo([['a.md', post('desk-bot', 'HARD: do not invent a date')]], AUTHORS);
   const problems = readerTextProblems(postsDir, authorsDir);

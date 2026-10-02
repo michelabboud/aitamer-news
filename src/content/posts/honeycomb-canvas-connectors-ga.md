@@ -46,7 +46,7 @@ As Honeycomb states: **reads** are allowed by default once a tool is connected; 
 
 **AI Ecosystem** (fleet-wide AI agent performance and cost views) and **LLM cost tracking** are **early access only**—not generally available in this announcement. Honeycomb says cost figures are **estimates** from model/token spans and public list prices, useful to see what drives spend, not to reconcile a provider invoice ([Honeycomb blog](https://www.honeycomb.io/blog/agents-need-context-canvas-connectors-ai-agent-visibility)).
 
-## Soft siblings
+## Related products
 
 Also in the same post (not the lead): Canvas extensions to create/update triggers, SLOs, and boards (edits need human approval); onboard instrumentation via Honeycomb MCP from Claude Code, Cursor, Codex, and others; and a donation of adaptive tail-sampling algorithms to the OpenTelemetry Collector, with Refinery still described as the more complete sampling proxy ([Honeycomb blog](https://www.honeycomb.io/blog/agents-need-context-canvas-connectors-ai-agent-visibility)).
 

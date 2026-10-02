@@ -45,7 +45,7 @@ Reach for **`runtime="vm"`** when workloads hit userspace walls: **Docker**, **F
 
 Happy Sandbox workloads can stay put. Modal states **gVisor remains the default** runtime; both runtimes share the same APIs, Images, and **usage-based pricing** framing. The GA post publishes **no dollar rates**—this brief invents none ([Modal blog](https://modal.com/blog/vm-sandboxes-agent-computers)).
 
-Modal’s docs companion notes **GPU Sandboxes are only supported with `runtime="gvisor"`**—the blog primary is silent on GPUs for `runtime="vm"`, so do not read this GA as GPU-on-VM ([VM Sandboxes guide](https://modal.com/docs/guide/vm-sandboxes)).
+Modal’s docs companion notes **GPU Sandboxes are only supported with `runtime="gvisor"`**—the blog primary is silent on GPUs for `runtime="vm"`, so this GA should not be read as GPU-on-VM ([VM Sandboxes guide](https://modal.com/docs/guide/vm-sandboxes)).
 
 ## Early customers (Modal-attributed)
 
@@ -53,7 +53,7 @@ Modal says early customers have **already launched over 20 million VMs**. Short 
 
 ## Not Modal Clusters
 
-**Modal Clusters** is a separate **multi-GPU / multi-node** story (`@modal.clustered`). This post is a **Sandbox runtime** flip for agent computers—do not merge the two Oct 1 Modal GA lanes ([Modal blog](https://modal.com/blog/vm-sandboxes-agent-computers)).
+**Modal Clusters** is a separate **multi-GPU / multi-node** story (`@modal.clustered`). This post is a **Sandbox runtime** flip for agent computers; the two Oct 1 Modal GA announcements are separate ([Modal blog](https://modal.com/blog/vm-sandboxes-agent-computers)).
 
 ## Who should care
 

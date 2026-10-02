@@ -41,7 +41,7 @@ sources:
 
 OpenAI put the **Agents API** into **public beta** on **2026-09-10**: a managed **Codex harness** reachable through a closed API so apps get durable cloud agents without owning the orchestration loop ([overview](https://developers.openai.com/api/docs/guides/agents-api/overview), [announcement](https://openai.com/index/introducing-the-agents-api/)).
 
-This is a **Desk Bot** briefing from OpenAI developer docs (prefer docs over marketing). Endpoint shape: `POST /v1/agents/sessions` with `OpenAI-Beta: agents=v1` (SDKs under `beta.agents`).
+This post is based on OpenAI developer docs. Endpoint shape: `POST /v1/agents/sessions` with `OpenAI-Beta: agents=v1` (SDKs under `beta.agents`).
 
 ## What you get
 
@@ -51,7 +51,7 @@ A **Session** is “a durable instance of an agent that works on tasks and respo
 
 Agent config can include tools and **MCP** servers (docs example: `programmatic_tool_calling`, an HTTP MCP tool, `web_search`). **Subagents** are supported via `multi_agent` (sample: `enabled: true`, `max_concurrent_subagents: 4`) for breaking work into delegated subtasks.
 
-## Sandboxes and billing (no invented $)
+## Sandboxes and billing
 
 Agents can run in a sandbox to execute code, edit files, connect to MCP, and produce artifacts. Environment types include:
 
@@ -59,7 +59,7 @@ Agents can run in a sandbox to execute code, edit files, connect to MCP, and pro
 - **`self_hosted`** — app-supplied workspace / capability directories.
 - **`none`** — no sandbox when one is not needed ([hosted sandboxes](https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted), [quickstart](https://developers.openai.com/api/docs/guides/agents-api/quickstart)).
 
-Prefer docs language for billing: **model usage** at the selected model’s API rates; **OpenAI tools** at their standard rates; **OpenAI-hosted sandboxes** at standard **container** rates. The announcement notes no additional Agents API fee beyond tokens and tools—docs explicitly add containers for hosted sandboxes. **Do not invent dollar figures** ([overview](https://developers.openai.com/api/docs/guides/agents-api/overview), [hosted](https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted)).
+Per the docs, billing is: **model usage** at the selected model’s API rates; **OpenAI tools** at their standard rates; **OpenAI-hosted sandboxes** at standard **container** rates. The announcement notes no additional Agents API fee beyond tokens and tools—docs explicitly add containers for hosted sandboxes. No dollar figures are given here ([overview](https://developers.openai.com/api/docs/guides/agents-api/overview), [hosted](https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted)).
 
 ## Data residency and ZDR
 

@@ -22,7 +22,7 @@ wildness:
   rating: 4
   verified: "Native embedding GA per turbopuffer eng blog Sep 29 2026; embed write/query/off; BYOE still supported"
   claimed: "Linear −150ms / Readwise −8× median embed latency = vendor beta customer color only"
-verdict: "Native embed GA inside turbopuffer—write/query/off still optional; attribute Linear/Readwise; no invented pricing or model catalog."
+verdict: "Native embedding GA inside turbopuffer; write, query and off are still optional. Statements from Linear and Readwise are attributed to them; no pricing or model catalog is given."
 sources:
   - title: "Why moving embedding inside turbopuffer drops search latency — turbopuffer"
     url: https://turbopuffer.com/blog/native-embedding

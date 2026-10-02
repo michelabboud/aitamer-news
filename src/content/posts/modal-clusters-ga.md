@@ -51,7 +51,7 @@ Modal claims InfiniBand verbs at **up to 6.4 Tbps**, automatic PyTorch/NCCL setu
 
 The same post includes customer testimonials from **Decagon**, **1x**, and **Runway** (fine-tunes, world-model pretrain, multi-node inference). Short attributed color only—not independent case studies.
 
-## Pricing (as stated—no invented rates)
+## Pricing (as stated)
 
 Modal frames Clusters as **billed by the second** / pay for what you use, with cluster size **bounded by your plan’s GPU limits** and a “reach out” path for large jobs. The GA post does **not** publish dollar-per-GPU-hour rates; this write-up invents none ([Modal blog](https://modal.com/blog/modal-clusters-generally-available)).
 

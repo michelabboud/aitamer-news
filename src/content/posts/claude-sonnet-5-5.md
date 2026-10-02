@@ -26,7 +26,7 @@ wildness:
   rating: 4
   verified: "Model ID claude-sonnet-5-5; $2/$10/$0.20 cache reads; cache writes $2.50; AWS/GCP/Azure + Claude Platform"
   claimed: "30%+ faster vs Sonnet 5; up to 30% less/task; Terminal-Bench 70.6% / CursorBench 55.5% — Anthropic-attributed only"
-verdict: "Everyday Sonnet upgrade at Sonnet 5 token prices—lock model ID + pricing; soft-attribute Anthropic benches/speed; Haiku 5.5 is coming-weeks only."
+verdict: "Everyday Sonnet upgrade at Sonnet 5 token prices. Model ID and pricing are from Anthropic; speed and benchmark claims are Anthropic’s own; Haiku 5.5 is only said to be coming in weeks."
 sources:
   - title: "Introducing Claude Sonnet 5.5 — Anthropic"
     url: https://www.anthropic.com/claude-sonnet-5-5
@@ -36,13 +36,11 @@ sources:
 
 Anthropic released **Claude Sonnet 5.5** (blog **2026-09-28**), second model in the Claude 5.5 family after Opus 5.5. Primary model ID on the Claude Platform: **`claude-sonnet-5-5`**. Anthropic positions it as a faster, lower-cost complement to Opus for well-scoped everyday work ([Anthropic](https://www.anthropic.com/claude-sonnet-5-5)).
 
-This is a **Desk Bot** models briefing.
-
-## Pricing (HARD)
+## Pricing
 
 Same per-token list as Sonnet 5: **$2 / 1M input**, **$10 / 1M output**, **$0.20 / 1M cache reads**. Anthropic also lists **cache writes at $2.50 / 1M** (5-minute) on the Sonnet 5.5 pricing table ([Anthropic](https://www.anthropic.com/claude-sonnet-5-5), [claude.dev](https://claude.dev/blog/building-with-claude-sonnet-5-5/)).
 
-## Soft: speed, cost-per-task, benches (attribute)
+## Speed, cost per task and benchmarks (Anthropic’s claims)
 
 All of the following are **Anthropic-stated / self-reported**—not independent validation ([Anthropic](https://www.anthropic.com/claude-sonnet-5-5)):
 
@@ -52,7 +50,7 @@ All of the following are **Anthropic-stated / self-reported**—not independent 
 
 ## Availability + Haiku teaser
 
-Available on **Amazon Web Services, Google Cloud, and Microsoft Azure**, plus Claude Platform / Claude Code. Bedrock soft ID (builder hub): **`anthropic.claude-sonnet-5-5`** ([Anthropic](https://www.anthropic.com/claude-sonnet-5-5), [claude.dev](https://claude.dev/blog/building-with-claude-sonnet-5-5/)).
+Available on **Amazon Web Services, Google Cloud, and Microsoft Azure**, plus Claude Platform / Claude Code. Bedrock ID (from the builder hub): **`anthropic.claude-sonnet-5-5`** ([Anthropic](https://www.anthropic.com/claude-sonnet-5-5), [claude.dev](https://claude.dev/blog/building-with-claude-sonnet-5-5/)).
 
 **Claude Haiku 5.5** — “coming weeks”; **no ship date** ([Anthropic](https://www.anthropic.com/claude-sonnet-5-5)).
 
@@ -66,4 +64,4 @@ Anthropic: first Sonnet with **cyber safeguards** comparable to its most capable
 
 ## Who should care
 
-Teams on Sonnet 5 who want the same list prices with Anthropic-claimed speed/efficiency gains should start at [anthropic.com/claude-sonnet-5-5](https://www.anthropic.com/claude-sonnet-5-5)—lock **`claude-sonnet-5-5`**, soft-attribute benches, and treat Haiku 5.5 as coming-weeks only.
+Teams on Sonnet 5 who want the same list prices with Anthropic-claimed speed/efficiency gains should start at [anthropic.com/claude-sonnet-5-5](https://www.anthropic.com/claude-sonnet-5-5).

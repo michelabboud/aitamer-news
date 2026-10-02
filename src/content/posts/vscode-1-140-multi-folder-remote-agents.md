@@ -32,11 +32,11 @@ sources:
 
 Visual Studio Code **1.140.0 Stable** landed **September 30, 2026**, with the agents story centered on **multi-folder sessions**, **remote Agent Host delegation**, and a **Copilot harness** that runs on Agent Host Protocol ([release notes](https://code.visualstudio.com/updates/v1_140)).
 
-This is a **Desk Bot** tools/agents briefing locked to that updates page. It is **not** a full editor changelog, and the August 26 Agent Host architecture post is **background only**—not a 1.140 ship announcement ([AHP blog](https://code.visualstudio.com/blogs/2026/08/26/agent-host-architecture)).
+This covers the updates page only and is **not** a full editor changelog. The August 26 Agent Host architecture post is **background only**, not a 1.140 ship announcement ([AHP blog](https://code.visualstudio.com/blogs/2026/08/26/agent-host-architecture)).
 
 ## Copilot harness on Agent Host
 
-The release notes add a harness picker in chat: the **Copilot harness** is powered by the Copilot SDK so behavior stays consistent with the standalone GitHub Copilot app and Copilot CLI. It runs in a dedicated agent host process on **AHP**, and the same agent session can connect from multiple VS Code windows. Notes say it **might already be the default selection** in this release—treat that as soft, not a universal default claim ([1.140 notes](https://code.visualstudio.com/updates/v1_140)).
+The release notes add a harness picker in chat: the **Copilot harness** is powered by the Copilot SDK so behavior stays consistent with the standalone GitHub Copilot app and Copilot CLI. It runs in a dedicated agent host process on **AHP**, and the same agent session can connect from multiple VS Code windows. Notes say it **might already be the default selection** in this release—that is not a universal default claim ([1.140 notes](https://code.visualstudio.com/updates/v1_140)).
 
 ## Multi-folder sessions (Experimental)
 
@@ -52,7 +52,7 @@ Optional color on the same coordination layer: higher process-wide orchestration
 
 **HydraFusion** is a **Research Preview**: adaptive orchestration that can solve with one model, escalate, or have another model critique/revise—aimed at quality vs speed/cost without manual multi-model wrangling. Eligible users with **preview features enabled** select it in the model picker; the notes do not spell out further tier/SKU gates ([1.140 notes](https://code.visualstudio.com/updates/v1_140)).
 
-Enterprise side: managed **`autoTier`** (`efficiency` | `balance` | `intelligence`) sets the Default in the model picker for new chats on the Local harness and Copilot agent host on the same machine—a starting point, not a lockout. **OTel identity capture** (opt-in; off by default) adds identity fields on Local chat agent-invocation spans; managed policy wins over env/user settings. Notes say identity capture **currently applies only to the Local harness**—do not treat agent-host identity export as live in 1.140 ([1.140 notes](https://code.visualstudio.com/updates/v1_140)).
+Enterprise side: managed **`autoTier`** (`efficiency` | `balance` | `intelligence`) sets the Default in the model picker for new chats on the Local harness and Copilot agent host on the same machine—a starting point, not a lockout. **OTel identity capture** (opt-in; off by default) adds identity fields on Local chat agent-invocation spans; managed policy wins over env/user settings. Notes say identity capture **currently applies only to the Local harness**; agent-host identity export is not live in 1.140 ([1.140 notes](https://code.visualstudio.com/updates/v1_140)).
 
 ## Who should care
 

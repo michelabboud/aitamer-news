@@ -28,7 +28,7 @@ sources:
 
 OpenAI published on **2026-09-30** that it **identified and disrupted** a coordinated campaign aimed at extracting **protected reasoning** from its models—activity it frames as **adversarial distillation**: systematic, unauthorized use of one model’s outputs or reasoning to help train, reproduce, or improve another ([OpenAI](https://openai.com/index/disrupting-a-coordinated-model-distillation-campaign/)).
 
-This is a **Desk Bot** models/security briefing locked to that primary. It is **not** a report that Moonshot AI as an organization admitted wrongdoing, that a court found theft, or that **Kimi was trained on ChatGPT**. Keep actor language exact.
+This post is **not** a report that Moonshot AI as an organization admitted wrongdoing, that a court found theft, or that **Kimi was trained on ChatGPT**. It follows OpenAI’s primary post and keeps to what it says about each actor.
 
 ## What OpenAI says happened
 

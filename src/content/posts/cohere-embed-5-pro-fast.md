@@ -22,7 +22,7 @@ wildness:
   rating: 5
   verified: "Product names, model IDs, blog pricing, and GA hosts as stated on Cohere’s Embed 5 post"
   claimed: "ViDoRe/FinanceBench/FinQA/multimodal scores, competitor comparisons, cross-model % losses, 2.4× Fast throughput"
-verdict: "Vendor GA drop: lock dollars and IDs to the blog; treat retrieval benches and competitor tables as Cohere-reported under RCP-nDCG@10."
+verdict: "Vendor GA drop. Dollar prices and model IDs are from the blog; retrieval benchmarks and competitor tables are Cohere-reported (RCP-nDCG@10)."
 sources:
   - title: "Cohere Embed 5 — Cohere Blog"
     url: https://cohere.com/blog/embed-5
@@ -32,7 +32,7 @@ sources:
 
 Cohere released **Embed 5** on **2026-09-30** as a **generally available** Pro/Fast embedding family for enterprise search, RAG, and agentic retrieval—**`embed-v5.0-pro`** and **`embed-v5.0-fast`**—with a shared embedding space so teams can **index with Pro and query with either model without re-indexing** ([Embed 5 blog](https://cohere.com/blog/embed-5)).
 
-This is a **Desk Bot** dev/rag briefing locked to that primary. Every bench and competitor score below is **Cohere-reported**, not desk-verified. **Compass Cloud** (private beta) is out of scope here.
+Every benchmark and competitor score below is **Cohere-reported**, not verified by us. **Compass Cloud** (private beta) is out of scope here.
 
 ## What shipped
 
@@ -49,7 +49,7 @@ This is a **Desk Bot** dev/rag briefing locked to that primary. Every bench and 
 
 Hosts Cohere names: Cohere API / Model Vault, **Microsoft Foundry**, **Amazon SageMaker**; self-host via **vLLM** also stated. Integrations listed: LangChain, Haystack, Weaviate, Qdrant, Pinecone, Elasticsearch, MongoDB, Redis, Milvus, OpenSearch ([Embed 5 blog](https://cohere.com/blog/embed-5)).
 
-Pricing above is **blog-only**—do not invent other tiers. Both sides of a Pro/Fast mix must use the **same `output_dimension`**; Cohere says Matryoshka truncation and int8 stay compatible ([Embed 5 blog](https://cohere.com/blog/embed-5)).
+Pricing above is **from the blog only**; no other tiers are given. Both sides of a Pro/Fast mix must use the **same `output_dimension`**; Cohere says Matryoshka truncation and int8 stay compatible ([Embed 5 blog](https://cohere.com/blog/embed-5)).
 
 ## Shared space (practitioner hook)
 
@@ -61,7 +61,7 @@ API snippets use distinct `input_type` **`search_document`** vs **`search_query`
 
 Matryoshka + int8/binary cut vector storage. Cohere’s illustration: 2048-d float32 ≈ **8 KB** → 1024-d int8 **1 KB** → 256-d binary **32 bytes**; across **100M** chunks, raw storage ~**819 GB → 3.2 GB**. Vendor default efficiency point: **1024-d int8**. Fast document throughput is self-reported ~**2.4×** Pro across ~200-token and ~1K-token contexts ([Embed 5 blog](https://cohere.com/blog/embed-5)).
 
-## Benches (soft — Cohere)
+## Benches (Cohere)
 
 Embed 5 is evaluated with **RCP-nDCG@10**, Cohere’s methodology: a **two-stage / reorder-fixed-candidate** setup whose scores reflect **reranking-style** quality, **not** a drop-in first-stage Recall substitute ([Embed 5 blog](https://cohere.com/blog/embed-5) footnote).
 
@@ -76,4 +76,4 @@ Treat competitor rows as **Cohere’s comparisons only** ([Embed 5 blog](https:/
 
 ## Who should care
 
-RAG and enterprise search teams that want GA multimodal embeddings with a **Pro-index / Fast-query** path should start at the [Embed 5 blog](https://cohere.com/blog/embed-5)—lock dollars to that post, keep RCP-nDCG@10 as Cohere’s metric, and leave Compass Cloud for a separate beat.
+RAG and enterprise search teams that want GA multimodal embeddings with a **Pro-index / Fast-query** path should start at the [Embed 5 blog](https://cohere.com/blog/embed-5).

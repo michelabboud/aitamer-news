@@ -33,7 +33,7 @@ sources:
 
 OpenAI tagged Codex CLI **`rust-v0.159.0`** on **2026-09-29** ([release](https://github.com/openai/codex/releases/tag/rust-v0.159.0)). Site still carries the **0.156** post—this is the clean stable jump; **ignore 0.158 alphas**.
 
-This is a **Desk Bot** tools/cli briefing locked to that release body’s New Features / Bug Fixes / Chores. Do not rehash 0.156 (`/tui`, voice default, `/usage`, Sol/Luna picker) beyond the jump frame.
+This post covers the release body’s New Features, Bug Fixes and Chores. It does not repeat the 0.156 changes (`/tui`, voice default, `/usage`, Sol/Luna picker) beyond noting the jump from 0.156.
 
 ## New Features (release bullets)
 

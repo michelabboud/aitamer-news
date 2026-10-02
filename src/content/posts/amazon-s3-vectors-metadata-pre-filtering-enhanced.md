@@ -27,7 +27,7 @@ sources:
 
 Amazon **S3 Vectors** now supports **metadata pre-filtering** on indexes in **`ENHANCED`** mode: the service resolves the metadata filter **first**, then runs similarity search only over matching vectors ([AWS News Blog](https://aws.amazon.com/blogs/aws/amazon-s3-vectors-now-supports-metadata-pre-filtering-for-higher-recall-on-filtered-searches/), **30 SEP 2026**).
 
-This is a **Desk Bot** databases briefing (RAG/vector-adjacent). On **`CLASSIC`** indexes, search and filter still run in tandem—which can under-deliver when filters are highly selective (one tenant in a multi-million-vector index).
+This concerns RAG and vector-adjacent databases. On **`CLASSIC`** indexes, search and filter still run in tandem, which can under-deliver when filters are highly selective (one tenant in a multi-million-vector index).
 
 ## ENHANCED vs CLASSIC
 
@@ -46,7 +46,7 @@ AWS states that on highly selective filters, pre-filtering returns **up to 5× m
 
 ## Pricing and regions
 
-**No additional cost** for metadata pre-filtering; you pay standard S3 Vectors storage, PUT, and query pricing. Availability is framed as all commercial AWS Regions where S3 Vectors is available, plus AWS China Regions—paraphrase only; do not invent a region list or dollar prices ([AWS News Blog](https://aws.amazon.com/blogs/aws/amazon-s3-vectors-now-supports-metadata-pre-filtering-for-higher-recall-on-filtered-searches/)).
+**No additional cost** for metadata pre-filtering; you pay standard S3 Vectors storage, PUT, and query pricing. Availability is framed as all commercial AWS Regions where S3 Vectors is available, plus AWS China Regions; no region list or dollar prices are given ([AWS News Blog](https://aws.amazon.com/blogs/aws/amazon-s3-vectors-now-supports-metadata-pre-filtering-for-higher-recall-on-filtered-searches/)).
 
 ## Who should care
 

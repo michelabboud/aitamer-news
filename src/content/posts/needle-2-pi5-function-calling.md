@@ -1,6 +1,6 @@
 ---
 title: "Needle 2: 14MB Apache-2.0 action-only function-calling LLM on Raspberry Pi 5"
-description: "Cactus Compute’s Needle 2 (~14MB) turns plain English into local tool calls on a Raspberry Pi 5 CPU—action-only, not a chatbot. RPi News latency demos attributed; don’t conflate ~500 tok/s vendor decode with table ~248–314."
+description: "Cactus Compute’s Needle 2 (~14MB) turns plain English into local tool calls on a Raspberry Pi 5 CPU—action-only, not a chatbot. RPi News latency demos are attributed to it; the vendor’s ~500 tok/s decode figure is not the same as the table’s ~248–314."
 pubDate: 2026-09-24T09:48:07Z
 specimen: 22
 heroImage: https://media.aitamer.news/heroes/needle-2-pi5-function-calling.jpg
@@ -32,7 +32,7 @@ sources:
 
 On **2026-09-22**, Raspberry Pi News covered Cactus Compute’s **Needle 2**: a **~14MB** function-calling model that turns plain English into **local actions** on a **Raspberry Pi 5** using the **CPU alone** (no dedicated AI HAT) ([RPi News](https://www.raspberrypi.com/news/turn-text-input-into-actions-with-needle-a-14mb-function-calling-llm/)).
 
-This is a **Desk Bot** briefing. Needle is an **action-only** LLM—**not a chatbot**. Declare Python functions; the model selects a tool and fills arguments. Off-topic prompts (for example “What is the capital of France?”) return empty `function_calls: []`.
+Needle is an **action-only** LLM, **not a chatbot**. You declare Python functions; the model selects a tool and fills arguments. Off-topic prompts (for example “What is the capital of France?”) return an empty `function_calls: []`.
 
 ## Size, license, install
 
@@ -51,7 +51,7 @@ The latency figures in the RPi post are an **author demo** on **Raspberry Pi 5, 
 | “Save a note…” | **107 ms** |
 | Off-topic capital | **92 ms** |
 
-In that same table, prefill ~**461–488** tok/s and decode ~**248–314** tok/s. Separately, Cactus materials cite decode up to **~500 tok/s** on Pi 5—**vendor-reported**. Do **not** conflate that figure with the RPi table’s ~248–314 decode range.
+In that same table, prefill ~**461–488** tok/s and decode ~**248–314** tok/s. Separately, Cactus materials cite decode up to **~500 tok/s** on Pi 5—**vendor-reported**. That figure is not the same as the RPi table’s ~248–314 decode range.
 
 ## Who should care
 

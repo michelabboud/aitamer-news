@@ -22,8 +22,8 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "Public beta via AI Gateway; model cloudflare/auto; classifier→score→fallback; session affinity headers; WS not supported"
-  claimed: "~30% OpenCode cost vs frontier-only + internal knowledge-work table — Cloudflare self-reported soft only"
-verdict: "Gateway moves from budgets to per-request model pick—lock beta / free-router / billed-inference; soft-attribute CF-internal benches; don’t freeze the default pool."
+  claimed: "~30% OpenCode cost vs frontier-only + internal knowledge-work table (Cloudflare self-reported)"
+verdict: "Gateway moves from budgets to per-request model pick. Beta, free router and billed inference are as Cloudflare states; Cloudflare-internal benchmarks are its own; the default model pool may change."
 sources:
   - title: "Introducing Auto Router — The Cloudflare Blog"
     url: https://blog.cloudflare.com/auto-router/
@@ -33,7 +33,7 @@ sources:
 
 Cloudflare put **Auto Router** into **public beta** through **AI Gateway** (blog **2026-09-30**): set `model` to **`cloudflare/auto`** and the gateway picks a model capable enough for the request so callers need not choose manually ([blog](https://blog.cloudflare.com/auto-router/), [docs](https://developers.cloudflare.com/ai-gateway/features/auto-router/)).
 
-This is a **Desk Bot** tools/agents briefing. Story is **per-request routing** on the same Gateway control plane—not a new budgets/limits feature.
+The story is **per-request routing** on the same Gateway control plane, not a new budgets or limits feature.
 
 ## How routing works
 
@@ -45,13 +45,13 @@ Unified OpenAI-compatible **Chat Completions** (and Responses API): send `model:
 
 For agent/coding turns, `cf-aig-session-id` pins the model for a turn (user message + tool follow-ups) to keep prompt cache hot; optional `cf-aig-turn-id` / `cf-aig-no-session-affinity`. Narrow the pool with `cf-aig-allowed-models` / `cf-aig-allowed-providers`. Clients such as **OpenCode** can send session IDs automatically; docs ship an `opencode.json` + `@cloudflare/aig-opencode-plugin` path ([docs](https://developers.cloudflare.com/ai-gateway/features/auto-router/)).
 
-**Default pool** (docs; **may change**): includes Anthropic Claude Fable/Opus/Sonnet 5, OpenAI GPT-5.6 Luna/Sol/Terra, xAI Grok 4.5; additional models (Workers AI, Alibaba, Fireworks, etc.) only when allow-listed. Do **not** freeze specific SKUs as permanent defaults.
+**Default pool** (docs; **may change**): includes Anthropic Claude Fable/Opus/Sonnet 5, OpenAI GPT-5.6 Luna/Sol/Terra, xAI Grok 4.5; additional models (Workers AI, Alibaba, Fireworks, etc.) only when allow-listed. Specific SKUs should not be treated as permanent defaults.
 
 ## Pricing (beta)
 
-Blog: **“The Auto Router is free while in beta.”** Upstream inference is still billed per provider/gateway usage as usual—do **not** imply all token spend is free ([blog](https://blog.cloudflare.com/auto-router/)). No invented GA date or post-beta Auto Router fee.
+Blog: **“The Auto Router is free while in beta.”** Upstream inference is still billed per provider/gateway usage as usual, so not all token spend is free ([blog](https://blog.cloudflare.com/auto-router/)). No GA date or post-beta Auto Router fee is given.
 
-## Soft: CF-internal results (attribute)
+## CF-internal results (vendor claims)
 
 All figures below are **Cloudflare-internal / self-reported**—not independent validation ([blog](https://blog.cloudflare.com/auto-router/)):
 
@@ -64,4 +64,4 @@ Near-term plans called out on the blog include expanding models, ZDR filtering, 
 
 ## Who should care
 
-Teams already on AI Gateway who want coding-agent / org traffic off a permanent Opus default should start at the [Auto Router blog](https://blog.cloudflare.com/auto-router/) and [docs](https://developers.cloudflare.com/ai-gateway/features/auto-router/)—keep beta + free-router / billed-inference, soft-attribute CF-internal benches, and treat the default pool as mutable.
+Teams already on AI Gateway who want coding-agent / org traffic off a permanent Opus default should start at the [Auto Router blog](https://blog.cloudflare.com/auto-router/) and [docs](https://developers.cloudflare.com/ai-gateway/features/auto-router/).

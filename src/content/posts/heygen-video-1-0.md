@@ -47,7 +47,7 @@ Per Help:
 
 ## Availability and channels
 
-HeyGen says the model is **available via API right now**; **web platform access is coming soon**—do not call web GA ([Help](https://help.heygen.com/en/articles/17272995-introducing-heygen-video-generate-cinematic-clips-from-a-prompt)).
+HeyGen says the model is **available via API right now**; **web platform access is coming soon**; web is not GA ([Help](https://help.heygen.com/en/articles/17272995-introducing-heygen-video-generate-cinematic-clips-from-a-prompt)).
 
 Named access paths: **HeyGen API**, **OpenRouter** (primary launch partner), **Runware**, and **ComfyUI**.
 
@@ -62,7 +62,7 @@ Help bills **per second of output video** and runs a **50% launch promotion thro
 | T2V / I2V | $0.01 / sec | $0.015 / sec | $0.02 / sec | $0.03 / sec |
 | Ref2V | $0.02 / sec | $0.03 / sec | $0.04 / sec | $0.06 / sec |
 
-Attribute dollars to [HeyGen Help](https://help.heygen.com/en/articles/17272995-introducing-heygen-video-generate-cinematic-clips-from-a-prompt). Runware publishes a separate reseller matrix—cite that URL if you quote those figures; do not merge the two tables.
+Dollar figures are from [HeyGen Help](https://help.heygen.com/en/articles/17272995-introducing-heygen-video-generate-cinematic-clips-from-a-prompt). Runware publishes a separate reseller matrix, and the two tables are not merged.
 
 ## Vendor comparison claims (not ours)
 

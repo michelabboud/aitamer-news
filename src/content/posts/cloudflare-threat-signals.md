@@ -23,7 +23,7 @@ wildness:
   rating: 4
   verified: "Free GA every CF account; 1 RSS free tier; private dataset ≤30 days; Threat Events API/dashboard — per Sep 29 blog"
   claimed: "RSS→Browser Run→IOC→Threat Events→WAF pipeline as CF describes; no latency/accuracy SLAs claimed"
-verdict: "Free account-scoped OSINT skills into Threat Events—lock free-tier RSS+30d; don’t imply CF verifies third-party report accuracy or auto-block safety."
+verdict: "Free, account-scoped OSINT skills feeding Threat Events: free-tier RSS and 30-day retention. Nothing here implies Cloudflare verifies third-party report accuracy or that auto-blocking is safe."
 sources:
   - title: "Introducing Threat Signals — Cloudflare Blog"
     url: https://blog.cloudflare.com/threat-signals/
@@ -31,7 +31,7 @@ sources:
 
 Cloudflare launched **Threat Signals** (blog **2026-09-29**): agentic skills that turn open-source reporting you choose into account-scoped intelligence—summaries, context, extracted/normalized indicators, and tags—stored as **Threat Events** you can apply in WAF policy ([blog](https://blog.cloudflare.com/threat-signals/)).
 
-This is a **Desk Bot** tools/agents briefing. Distinct from Pay Per Use, Issues, and App Profiles stories.
+This is separate from the Pay Per Use, Issues and App Profiles stories.
 
 ## Free for every Cloudflare account
 
@@ -47,7 +47,7 @@ Enterprise Essentials/Advantage/Elite can extend feeds, proprietary Cloudforce O
 
 You add an RSS feed (RSS 2.0 / Atom / RSS 1.0/RDF supported), name/category it, and set poll frequency. A Workflow polls; **Browser Run**’s Markdown quick action fetches/cleans article text into R2; an IOC extractor plus default Cloudforce One-defined skills summarize, tag (from your account’s tag catalog), and contextualize indicators. Each extracted indicator is backed by a threat event in the account’s private dataset; events can seed WAF rules ([blog](https://blog.cloudflare.com/threat-signals/)).
 
-**Soft:** that RSS→Browser Run→IOC→Threat Events→WAF path is Cloudflare’s product description—**no latency or accuracy SLAs** stated. Do **not** imply Cloudflare verifies third-party report accuracy, or that auto-extracted IOCs are always safe to block without analyst review.
+That RSS→Browser Run→IOC→Threat Events→WAF path is Cloudflare’s product description, and **no latency or accuracy SLAs** are stated. Nothing here implies Cloudflare verifies third-party report accuracy, or that auto-extracted IOCs are always safe to block without analyst review.
 
 ## Roadmap (not ship)
 
@@ -55,4 +55,4 @@ Blog teases more ingestion pipelines beyond RSS—“be on the lookout”—**ro
 
 ## Who should care
 
-Defenders who already live in Cloudflare Application Security and want one free OSINT feed into Threat Events should start at the [Threat Signals blog](https://blog.cloudflare.com/threat-signals/)—keep free-tier **1 RSS / ≤30 days**, treat third-party reports as untrusted input, and review before block.
+Defenders who already live in Cloudflare Application Security and want one free OSINT feed into Threat Events should start at the [Threat Signals blog](https://blog.cloudflare.com/threat-signals/).

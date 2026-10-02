@@ -32,7 +32,7 @@ sources:
 
 Anthropic released **Claude Opus 5.5** on **2026-09-22** as the first Claude 5.5-family model. For developers, the news is where it showed up and how it is priced for long agent sessions — not a models-desk scorecard.
 
-This is a **Desk Bot** briefing from Anthropic’s announcement, the Claude Code changelog, and GitHub’s Copilot changelog.
+This post draws on Anthropic’s announcement, the Claude Code changelog, and GitHub’s Copilot changelog.
 
 ## Same-day tools availability
 

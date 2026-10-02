@@ -28,7 +28,7 @@ sources:
 
 warpfront tagged **hipfire v0.4.0** on **2026-09-30**: a Rust LLM inference engine over hand-written **HIP** kernels for AMD **RDNA** GPUs—“no PyTorch / no Python in the hot path / single binary” ([release](https://github.com/warpfront/hipfire/releases/tag/v0.4.0), [hipfire.dev](https://hipfire.dev/)).
 
-This is a **Desk Bot** rust/ai briefing locked to the release body. Every tok/s figure below is **project self-reported** (fresh-process A/B unless noted)—not independently reproduced. Prefer release numbers over undated homepage snapshots. License: **Apache-2.0** for the work as a whole, with **residual MIT** files per SPDX headers—not a simple dual MIT/Apache claim ([release](https://github.com/warpfront/hipfire/releases/tag/v0.4.0)).
+Every tokens-per-second figure below is **project self-reported** (fresh-process A/B unless noted), not independently reproduced. Release numbers are used over undated homepage snapshots. License: **Apache-2.0** for the work as a whole, with **residual MIT** files per SPDX headers, not a simple dual MIT/Apache claim ([release](https://github.com/warpfront/hipfire/releases/tag/v0.4.0)).
 
 ## Prefill, decode, and Flash-Next
 
@@ -48,8 +48,8 @@ On R9700, the project reports pp8192 **≈5,120 tok/s** on H2 with native fp8 KV
 
 Also: Qwen default KV `auto` uses native fp8 KV + fp8 flash attention on exact gfx1201 for the stated single-GPU geometry; `hardware.devices` / `HIPFIRE_DEVICES` mean physical cards (PCI-sorted), not ROCr ordinals; request pull/arbitrary paths stay locked down unless opted in ([release](https://github.com/warpfront/hipfire/releases/tag/v0.4.0)).
 
-Known soft limits from the project: multi-slot ≥4 can diverge from serial greedy text; fp8 KV is **gfx1201-only**; Flash-Next has **no KLD reference yet**; greedy MTP text can differ from greedy AR ([release](https://github.com/warpfront/hipfire/releases/tag/v0.4.0)).
+Known limits from the project: multi-slot ≥4 can diverge from serial greedy text; fp8 KV is **gfx1201-only**; Flash-Next has **no KLD reference yet**; greedy MTP text can differ from greedy AR ([release](https://github.com/warpfront/hipfire/releases/tag/v0.4.0)).
 
 ## Who should care
 
-AMD RDNA builders who want a single-binary Rust/HIP inference path should start at the [v0.4.0 release](https://github.com/warpfront/hipfire/releases/tag/v0.4.0)—treat benches as project measurements, and note the localhost serve default before exposing anything on a LAN. Cadence after 0.4.0: weekly alternating Tue/Sun; **0.4.1** targeted **Tuesday 2026-10-06**.
+AMD RDNA builders who want a single-binary Rust/HIP inference path should start at the [v0.4.0 release](https://github.com/warpfront/hipfire/releases/tag/v0.4.0).

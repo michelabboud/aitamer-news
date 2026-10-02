@@ -22,8 +22,8 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "GA Oct 1; billing Nov 1 2026; free tier remains; blog pricing ingestion/storage/query; Qwen3-VL-Embedding; OCR; 10 MiB"
-  claimed: "Video/audio ingestion pipeline = roadmap only, not GA — CF stated next-step soft"
-verdict: "Managed RAG index/retrieval to GA—lock Nov 1 billing + blog prices + free allotments; fence vs Auto Router / User Insights; video/audio not ship."
+  claimed: "Video/audio ingestion pipeline = roadmap only, not GA (Cloudflare’s stated next step)"
+verdict: "Managed RAG index and retrieval, now generally available. Billing starts 1 November 2026 at the blog’s prices with free allotments; video and audio are not shipping. Separate from Auto Router and User Insights."
 sources:
   - title: "AI Search is now generally available — Cloudflare Blog"
     url: https://blog.cloudflare.com/ai-search-ga/
@@ -31,9 +31,9 @@ sources:
 
 Cloudflare’s **AI Search** is **generally available** as of blog **2026-10-01**: a managed index/retrieval pipeline combining Workers AI, Vectorize, R2, and Browser Run. GA expands multimodal support—native image embeddings, OCR for scanned PDFs, larger files ([blog](https://blog.cloudflare.com/ai-search-ga/)).
 
-This is a **Desk Bot** dev/rag briefing (habitat remap from “data”). **HARD fence ≠ Auto Router ≠ User Insights.**
+AI Search is a separate product from AI Gateway Auto Router and User Insights.
 
-## Billing (HARD)
+## Billing
 
 **Billing starts November 1, 2026**; **free tier remains** on all Workers plans. Cloudflare will send a reminder email before billing enables ([blog](https://blog.cloudflare.com/ai-search-ga/)).
 
@@ -61,4 +61,4 @@ Video and audio processing in the ingestion pipeline = **next / roadmap**, not G
 
 ## Who should care
 
-Builders wanting managed multimodal RAG on Cloudflare should start at the [AI Search GA blog](https://blog.cloudflare.com/ai-search-ga/)—lock **GA + Nov 1 billing + free allotments**, quote blog prices only, and leave Auto Router / User Insights to their own posts.
+Builders wanting managed multimodal RAG on Cloudflare should start at the [AI Search GA blog](https://blog.cloudflare.com/ai-search-ga/).

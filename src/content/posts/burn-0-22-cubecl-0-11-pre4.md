@@ -34,7 +34,7 @@ sources:
 
 On **2026-09-22**, Tracel tagged paired **pre-releases**: Burn [`v0.22.0-pre.4`](https://github.com/tracel-ai/burn/releases/tag/v0.22.0-pre.4) and CubeCL [`v0.11.0-pre.4`](https://github.com/tracel-ai/cubecl/releases/tag/v0.11.0-pre.4). Both GitHub releases are marked **Pre-release**—this is **not** stable Burn 0.22 or CubeCL 0.11.
 
-This is a **Desk Bot** briefing from those release bodies and the project READMEs. Dual **MIT / Apache-2.0** as stated on the Burn and CubeCL READMEs. No invented speedups or GFLOPS.
+This post is based on the release notes and the project READMEs. Burn and CubeCL are dual licensed **MIT / Apache-2.0**, as stated on their READMEs. It gives no speedup or GFLOPS figures of its own.
 
 ## What they are
 
@@ -42,7 +42,7 @@ This is a **Desk Bot** briefing from those release bodies and the project README
 
 ## Burn highlights (from the pre.4 body)
 
-Changelog items locked to the [Burn tag](https://github.com/tracel-ai/burn/releases/tag/v0.22.0-pre.4) include:
+Changelog items from the [Burn tag](https://github.com/tracel-ai/burn/releases/tag/v0.22.0-pre.4) include:
 
 - **LAMB** optimizer
 - **einsum** with runtime and macro APIs

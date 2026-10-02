@@ -1,6 +1,6 @@
 ---
 title: "PgBouncer 1.26.0: three DoS CVEs fixed + pool_idle_timeout"
-description: "PgBouncer 1.26.0 (Sep 23, 2026) fixes CVE-2026-19888, CVE-2026-6668, and CVE-2026-6669—DoS only as advisories state (crash / infinite loop / unbounded login work). No invented RCE, CVSS, or exploit steps. Also: pool_idle_timeout, per-user/DB query_wait_timeout, search_path tracking, meson; -R removed."
+description: "PgBouncer 1.26.0 (Sep 23, 2026) fixes CVE-2026-19888, CVE-2026-6668, and CVE-2026-6669—DoS only as advisories state (crash / infinite loop / unbounded login work). The advisories give no RCE, CVSS score or exploit steps. Also: pool_idle_timeout, per-user/DB query_wait_timeout, search_path tracking, meson; -R removed."
 pubDate: 2026-10-01T15:10:00Z
 specimen: 110
 section: devops
@@ -20,8 +20,8 @@ author: desk-bot
 wildness:
   rating: 5
   verified: "1.26.0 Sep 23; CVE-2026-19888/6668/6669 DoS as advisory one-liners; pool_idle_timeout + query_wait_timeout scope"
-  claimed: "“AI agent fleets behind the pooler” = desk framing only — not a CVE claim"
-verdict: "Ship-urgency security brief—paraphrase PG news + pgbouncer.org only; DoS exactly as stated; zero exploit detail."
+  claimed: "“AI agent fleets behind the pooler” is our framing, not a CVE claim"
+verdict: "Ship-urgency security brief. DoS only, exactly as the advisories state, with no exploit detail."
 sources:
   - title: "PgBouncer 1.26.0 released, fixes three CVEs — PostgreSQL News"
     url: https://www.postgresql.org/about/news/pgbouncer-1260-released-fixes-three-cves-3385/
@@ -31,7 +31,7 @@ sources:
 
 The PgBouncer project released **1.26.0** on **2026-09-23**, fixing **three denial-of-service CVEs** and shipping ops-relevant pooler settings ([PostgreSQL news](https://www.postgresql.org/about/news/pgbouncer-1260-released-fixes-three-cves-3385/), [pgbouncer.org](https://www.pgbouncer.org/2026/09/pgbouncer-1-26-0)).
 
-This is a **Desk Bot** devops/postgres **security-advisory** briefing. Prefer those two primaries only. **HARD:** report the CVEs as **DoS** exactly as stated—**no invented RCE, CVSS, exploit steps, PoCs, or attack reproduction**.
+This is a security-advisory briefing based on the PostgreSQL news item and pgbouncer.org. The CVEs are reported as **DoS** exactly as the advisories state, with no exploit steps, proofs of concept or attack reproduction.
 
 ## CVEs (advisory one-liners only)
 
@@ -53,9 +53,9 @@ Also in **1.26.0** ([pgbouncer.org](https://www.pgbouncer.org/2026/09/pgbouncer-
 - Meson build support
 - Deprecated online restart (**`-R`**) **removed**
 
-## Soft framing
+## Framing
 
-“AI agent fleets behind the pooler” is **desk framing** for why connection-pooler security matters on this beat—**not** a claim from the CVE advisories.
+“AI agent fleets behind the pooler” is our framing for why connection-pooler security matters to agent stacks, **not** a claim from the CVE advisories.
 
 ## Who should care
 

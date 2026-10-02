@@ -1,6 +1,6 @@
 ---
 title: "Google Cloud CLI remote MCP server public preview"
-description: "Google Cloud’s Cloud CLI remote MCP (blog Sep 30, 2026) exposes gcloud + bq via https://cloudcli.googleapis.com/mcp—Preview / Pre-GA Terms, as is; do not call GA. Tools run_gcloud_command / run_bq_command; MCP no extra charge, pay for GCP resources. Distinct from local gcloud-mcp, BigQuery MCP (GA SQL), and Gemini Skills."
+description: "Google Cloud’s Cloud CLI remote MCP (blog Sep 30, 2026) exposes gcloud + bq via https://cloudcli.googleapis.com/mcp—Preview / Pre-GA Terms, as is; not GA. Tools run_gcloud_command / run_bq_command; MCP no extra charge, pay for GCP resources. Distinct from local gcloud-mcp, BigQuery MCP (GA SQL), and Gemini Skills."
 pubDate: 2026-10-01T14:10:00Z
 specimen: 104
 section: tools
@@ -23,7 +23,7 @@ wildness:
   rating: 4
   verified: "Public preview Sep 30; cloudcli.googleapis.com/mcp; run_gcloud_command + run_bq_command; Pre-GA Terms as is"
   claimed: "IAM/Model Armor/Audit Logs as Google states; MCP free / pay resources; blocked-command lists non-exhaustive"
-verdict: "Managed remote gcloud+bq for agents—keep Preview/Pre-GA hard; fence local gcloud-mcp, BigQuery MCP SQL, and T4 Skills; soft-note pay-for-resources."
+verdict: "Managed remote gcloud and bq for agents. Preview under Pre-GA Terms, not GA. Separate from the local gcloud-mcp, the BigQuery MCP server and Gemini Skills. You pay for the GCP resources it uses."
 sources:
   - title: "Google Cloud CLI remote MCP server in preview — Google Cloud Blog"
     url: https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-cli-remote-mcp-server-in-preview/
@@ -37,7 +37,7 @@ sources:
 
 Google Cloud put a **Cloud CLI remote MCP server** into **public preview** (blog **2026-09-30**), powered by **`gcloud`** and **`bq`**, so AI agents can run CLI operations against GCP infra and BigQuery without packaging CLI binaries into agent runtimes. Docs label the feature **Preview** under **Pre-GA Offerings Terms**—**as is**, limited support ([blog](https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-cli-remote-mcp-server-in-preview/), [docs](https://docs.cloud.google.com/sdk/use-gcloud-mcp)).
 
-This is a **Desk Bot** tools/cli briefing. **HARD:** do **not** call GA or invent a GA date. **Fence from** local stdio **`gcloud-mcp`**, the separate **BigQuery MCP server** (GA SQL/analysis), and **T4 Gemini Skills / Gems**.
+This remote MCP is in **Preview** and is not generally available. It is separate from the local stdio **`gcloud-mcp`**, the **BigQuery MCP server** (GA SQL and analysis), and **Gemini Skills / Gems**.
 
 ## Endpoint + enablement
 
@@ -49,16 +49,16 @@ Agents get broad CLI surface via **`run_gcloud_command`** and **`run_bq_command`
 
 MCP reference warns: tools are **not** read-only—they can create/update/delete resources ([reference](https://docs.cloud.google.com/sdk/reference/mcp)).
 
-## Soft: blocked commands (non-exhaustive)
+## Blocked commands (non-exhaustive)
 
 Docs list **example** blocked `gcloud` groups (security/inapplicability), including **`auth`**, **`config`**, **`iam service-accounts`**, **`init`**, **`survey`**—list is **non-exhaustive** and **subject to change**. Blocked `bq` examples: **`init`**, **`pyshell`**, **`shell`**. Reference adds further forbidden `gcloud` examples (e.g. `app deploy`, `app instances ssh`, `billing`, `components`, `docker`, `feedback`, `info`, `meta`). Prefer “examples of blocked groups” over claiming a complete allowlist ([docs](https://docs.cloud.google.com/sdk/use-gcloud-mcp), [reference](https://docs.cloud.google.com/sdk/reference/mcp)).
 
-## Soft: security / pricing (as Google states)
+## Security / pricing (as Google states)
 
 Network-restricted execution with **no ambient credentials**; calls run as the authenticated caller with IAM + org-policy enforcement; optional **Model Armor** screening; configurable Audit Logs (Data Access under `cloudcli.googleapis.com/mcp`) without exposing sensitive command payloads/PII per blog—attribute as Google-stated ([blog](https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-cli-remote-mcp-server-in-preview/), [docs](https://docs.cloud.google.com/sdk/use-gcloud-mcp)).
 
-**Pricing:** **no additional charge** for the MCP server itself; customers **pay only for GCP resources created** and applicable data transfer. Do **not** invent free-tier quotas for the Execution API ([blog](https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-cli-remote-mcp-server-in-preview/)).
+**Pricing:** **no additional charge** for the MCP server itself; customers **pay only for GCP resources created** and applicable data transfer. No free-tier quotas are stated for the Execution API ([blog](https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-cli-remote-mcp-server-in-preview/)).
 
 ## Who should care
 
-Teams wiring agents to GCP without stuffing CLI binaries into every sandbox should start at the [preview blog](https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-cli-remote-mcp-server-in-preview/) and [use-gcloud-mcp docs](https://docs.cloud.google.com/sdk/use-gcloud-mcp)—keep **Preview / Pre-GA**, treat blocked lists as mutable examples, soft-attribute IAM/Model Armor/Audit Logs and pay-for-resources, and leave Skills and BigQuery SQL MCP to their own slugs.
+Teams wiring agents to GCP without stuffing CLI binaries into every sandbox should start at the [preview blog](https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-cli-remote-mcp-server-in-preview/) and [use-gcloud-mcp docs](https://docs.cloud.google.com/sdk/use-gcloud-mcp).

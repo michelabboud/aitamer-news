@@ -23,8 +23,8 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "Redis 8.4 XREADGROUP CLAIM min-idle; claim-then-read; shared COUNT; idle+delivery extras; XACK still required"
-  claimed: "Up to ~22.5× vs XAUTOCLAIM avg latency (20k PEL/1k idle); +28% XREADGROUP RPS linked-list — Redis soft"
-verdict: "Ops win for Streams worker fleets: one round trip for reclaim+read—lock semantics to blog/docs; soft-attribute every bench; keep XACK mandatory."
+  claimed: "Up to ~22.5× vs XAUTOCLAIM avg latency (20k PEL/1k idle); +28% XREADGROUP RPS linked-list (Redis-reported)"
+verdict: "Ops win for Streams worker fleets: one round trip for reclaim and read. Semantics are from the blog and docs; every benchmark is Redis’s own; XACK stays mandatory."
 sources:
   - title: "Single-shot reliable consumers with XREADGROUP CLAIM in Redis 8.4 — Redis Blog"
     url: https://redis.io/blog/single-shot-reliable-consumers-with-xreadgroup-claim-in-redis-84/
@@ -36,7 +36,7 @@ sources:
 
 Redis **8.4** extends **`XREADGROUP`** with optional **`CLAIM min-idle-time`**: one command reclaims idle pending stream entries, then spends the remaining **`COUNT`** budget on new messages (`>`), collapsing the old **XPENDING → XCLAIM/XAUTOCLAIM → XREADGROUP** recovery loop into a single round trip ([blog](https://redis.io/blog/single-shot-reliable-consumers-with-xreadgroup-claim-in-redis-84/), Sergey Georgiev, **2026-05-26**; [docs](https://redis.io/docs/latest/commands/XREADGROUP/)).
 
-This is a **Desk Bot** devops/redis briefing. Fence it from other Redis surface area—this slug is **Streams consumer-group CLAIM only**.
+This post covers **Streams consumer-group CLAIM only**, not other Redis surface area.
 
 ## What shipped
 
@@ -57,16 +57,16 @@ Docs synopsis order for optional tokens: `[CLAIM min-idle-time] [NOACK]` before 
 - **Ignored when** the stream ID is not `>` (e.g. replaying own pending)—standard response shape, no CLAIM extras ([docs](https://redis.io/docs/latest/commands/XREADGROUP/)).
 - **Compatibility:** fully optional; mix CLAIM and non-CLAIM consumers in one group. An internal `streamNACK` linked-list opt (replacing a time-ordered rax index) does **not** change protocol/RDB/AOF formats ([blog](https://redis.io/blog/single-shot-reliable-consumers-with-xreadgroup-claim-in-redis-84/)).
 
-## Soft vendor claims (attribute)
+## Vendor claims
 
-All figures below are **Redis-reported**—not desk-verified ([blog](https://redis.io/blog/single-shot-reliable-consumers-with-xreadgroup-claim-in-redis-84/)):
+All figures below are **Redis-reported**—not independently verified ([blog](https://redis.io/blog/single-shot-reliable-consumers-with-xreadgroup-claim-in-redis-84/)):
 
 - Vs **`XAUTOCLAIM`** on their stress setup (**20k PEL / 1k idle / COUNT=1000**): avg claim latency **54.671 ms → 2.426 ms** — “up to **22.5×** faster on average.” Frame as *Redis-reported / up to / that workload*; blog caveats that speedup scales with PEL size ÷ idle fraction—small or mostly-idle PELs see much smaller wins.
 - Linked-list vs rax (memtier, **2M** msgs): **4,935 → 6,321** ops/sec (**+28%** throughput; blog also cites **−22%** avg / **−21%** P99 latency).
 - Earlier rax index overhead ~**18.6 B/entry** (~**8.7%** on their 200k-PEL memory test)—vendor measurement; later removed by the linked-list opt.
 
-Do **not** harden these into universal speedups, invent client libraries, or bake off vs Kafka/NATS.
+These are not universal speedups, and the post makes no comparison with Kafka or NATS.
 
 ## Who should care
 
-Teams running agent job queues / event pipelines on Redis Streams who still hand-roll reclaim loops should start at the [Redis blog](https://redis.io/blog/single-shot-reliable-consumers-with-xreadgroup-claim-in-redis-84/) and [XREADGROUP docs](https://redis.io/docs/latest/commands/XREADGROUP/)—keep `XACK`, soft-attribute every bench, and treat CLAIM as optional recovery polish on 8.4+.
+Teams running agent job queues / event pipelines on Redis Streams who still hand-roll reclaim loops should start at the [Redis blog](https://redis.io/blog/single-shot-reliable-consumers-with-xreadgroup-claim-in-redis-84/) and [XREADGROUP docs](https://redis.io/docs/latest/commands/XREADGROUP/).

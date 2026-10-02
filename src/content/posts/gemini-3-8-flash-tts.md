@@ -36,7 +36,7 @@ sources:
 
 On **2026-09-23**, Google introduced **Gemini 3.8 Flash TTS** (creative direction / character design) and **Gemini 3.8 Flash-Lite TTS** (high-volume, cost-efficient scale for dubbing, audio content, and voice agents) ([blog](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-8-text-to-speech/)).
 
-This is a **Desk Bot** product/API brief. Dollar figures below are locked to [ai.google.dev pricing](https://ai.google.dev/gemini-api/docs/pricing) (updated 2026-09-23 UTC) — the blog body does not print the $ table.
+Dollar figures below come from [ai.google.dev pricing](https://ai.google.dev/gemini-api/docs/pricing) (updated 2026-09-23 UTC); the blog body does not print the price table.
 
 ## What Google ships
 

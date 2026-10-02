@@ -22,8 +22,8 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "Public beta durable_object policy; runtime image/instance; FS snapshots ~30d TTL; legacy classes through Dec 31 2026"
-  claimed: "ComputeSDK Burst TTI ~6.2× (4.049s→648ms) + CF 100k start in 5.387s — vendor-reported soft only"
-verdict: "Per-task Linux workspaces from Durable Objects—lock public beta + Dec 31 class freeze (not deployment kill); soft-attribute TTI/burst; fence other CF beats."
+  claimed: "ComputeSDK Burst TTI ~6.2× (4.049s→648ms) + CF 100k start in 5.387s (vendor-reported)"
+verdict: "Per-task Linux workspaces built on Durable Objects. Public beta; the legacy Container and Sandbox classes are maintained until 31 December 2026 and then frozen, which does not kill deployments. Start-up and burst figures are Cloudflare’s."
 sources:
   - title: "Faster agent sandboxes — The Cloudflare Blog"
     url: https://blog.cloudflare.com/faster-agent-sandboxes/
@@ -39,23 +39,23 @@ sources:
 
 Cloudflare announced a **Containers** rebuild aimed at **on-demand agent sandboxes** (blog **2026-09-30**): runtime choice of image + instance type, faster startup, and filesystem snapshots—all under the new **`durable_object`** scheduling policy ([blog](https://blog.cloudflare.com/faster-agent-sandboxes/), [scheduling docs](https://developers.cloudflare.com/containers/configuration/scheduling-policy/)).
 
-This is a **Desk Bot** tools/agents briefing. **Fence from** Auto Router, `cf` CLI, Monetization Gateway / 402, and Pay Per Use—this slug is **Containers/sandbox runtime only**.
+This post covers the Containers and sandbox runtime only. Auto Router, the `cf` CLI, Monetization Gateway and Pay Per Use have their own posts.
 
 ## What shipped (public beta)
 
 Opt in via Wrangler (`scheduling_policy: "durable_object"` + named `images`). After the task is known, code calls `this.ctx.container.start({ image, instance, … })`—one Durable Object class can start Node vs Python / standard-1 vs standard-2 side by side; rollouts become pin/canary logic in app code. Policy is **public beta**; docs note it does **not** support `max_instances` ([docs](https://developers.cloudflare.com/containers/configuration/scheduling-policy/), [changelog](https://developers.cloudflare.com/changelog/post/2026-09-30-durable-object-scheduling-policy/)).
 
-**Filesystem snapshots** (public beta): `snapshotContainer()` saves full filesystem state; restore via `start({ containerSnapshot })`. Patterns: pause/resume workspaces; fork many sandboxes from one immutable baseline (evals/RL). Docs: snapshots only with `durable_object` policy; **filesystem only** (no memory/processes); tied to the image version; ~**30-day** TTL refreshed on restore ([snapshots guide](https://developers.cloudflare.com/containers/guides/snapshots/), [changelog](https://developers.cloudflare.com/changelog/post/2026-09-30-snapshots/)). Do **not** invent snapshot pricing or claim memory/process restore.
+**Filesystem snapshots** (public beta): `snapshotContainer()` saves full filesystem state; restore via `start({ containerSnapshot })`. Patterns: pause/resume workspaces; fork many sandboxes from one immutable baseline (evals/RL). Docs: snapshots only with `durable_object` policy; **filesystem only** (no memory/processes); tied to the image version; ~**30-day** TTL refreshed on restore ([snapshots guide](https://developers.cloudflare.com/containers/guides/snapshots/), [changelog](https://developers.cloudflare.com/changelog/post/2026-09-30-snapshots/)). No snapshot pricing is given, and memory and process restore are not claimed.
 
 **Managed base image `cloudflare/debian-trixie`:** Debian Trixie Slim + **Node.js 24.20.0 LTS**, startable without a custom Dockerfile; configure via `exec()`. Cloudflare says it can pre-distribute/prepare the image on eligible hosts ([blog](https://blog.cloudflare.com/faster-agent-sandboxes/)).
 
-## HARD: legacy class maintenance through Dec 31, 2026
+## Legacy class maintenance through Dec 31, 2026
 
 New capabilities (policy, faster start, runtime image/instance, snapshots) are **native-only** on `ctx.container`. Cloudflare will maintain the wrapper **`Container` class** and legacy **`Sandbox` class** through **December 31, 2026** only—**existing deployments keep running after that date**, but classes won’t get updates; migrate to `extends DurableObject` + `this.ctx.container`. Sandbox SDK 1.0 becomes utilities inside your DO (not a base class); higher-level option `@cloudflare/computer` ([blog](https://blog.cloudflare.com/faster-agent-sandboxes/)).
 
-Do **not** invent a post-cutoff kill of running deployments.
+Running deployments are not stated to be killed after the cutoff.
 
-## Soft: startup numbers (attribute)
+## Startup numbers (vendor claims)
 
 All figures below are **vendor-cited**—not aitamer measurement or a GA SLA ([blog](https://blog.cloudflare.com/faster-agent-sandboxes/)):
 
@@ -64,8 +64,8 @@ All figures below are **vendor-cited**—not aitamer measurement or a GA SLA ([b
 
 ## Partner framing (CF only)
 
-Blog positions the work against Base44 / Kilo Code usage and integrations with Cursor Cloud Agents, Devin Outposts, OpenAI Agents API, and Claude Managed Agents—cite as **Cloudflare’s named partners/integrations**, not as new third-party launches in this slug ([blog](https://blog.cloudflare.com/faster-agent-sandboxes/)).
+Blog positions the work against Base44 / Kilo Code usage and integrations with Cursor Cloud Agents, Devin Outposts, OpenAI Agents API, and Claude Managed Agents. These are **Cloudflare’s named partners and integrations**, not new third-party launches ([blog](https://blog.cloudflare.com/faster-agent-sandboxes/)).
 
 ## Who should care
 
-Teams spinning per-task Linux workspaces from Durable Objects should start at the [faster agent sandboxes blog](https://blog.cloudflare.com/faster-agent-sandboxes/) and [scheduling docs](https://developers.cloudflare.com/containers/configuration/scheduling-policy/)—keep public beta + the **Dec 31, 2026** class-freeze (not deployment kill), soft-attribute every TTI/burst figure, and plan the native `ctx.container` migrate path.
+Teams spinning per-task Linux workspaces from Durable Objects should start at the [faster agent sandboxes blog](https://blog.cloudflare.com/faster-agent-sandboxes/) and [scheduling docs](https://developers.cloudflare.com/containers/configuration/scheduling-policy/).

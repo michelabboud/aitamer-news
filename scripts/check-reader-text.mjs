@@ -23,10 +23,14 @@ import { fileURLToPath } from 'node:url';
 export const POSTS_DIR = 'src/content/posts';
 export const AUTHORS_DIR = 'src/content/authors';
 
-/** The two shapes of a leaked note: the upper-case word HARD, and a "fence vs/from/against X" line. */
+/** The shapes of a leaked note seen so far. Each is a line the bot wrote to itself, not a fact for readers. */
 export const LEAK_PATTERNS = Object.freeze([
   { name: 'the upper-case working word "HARD"', re: /\bHARD\b/ },
   { name: 'a "fence vs/from/against" working note', re: /\bFence\s+(?:vs\.?|from|against)\b|\bfence\s*(?:≠|vs\.?\s+[A-Z])/ },
+  { name: 'a "This is a **Desk Bot** ... briefing" instruction paragraph', re: /^This is a \*\*Desk Bot\*\*/m },
+  { name: '"soft-attribute" or "(attribute)" shorthand', re: /\bsoft-attribute\b|\(attribute\)/i },
+  { name: 'a "do not invent" / "no invented" / "never invent" reminder', re: /\b(?:do not|don.t|never) invent\b|\bno invented\b/i },
+  { name: '"desk-verified" (say who verified it, in plain words)', re: /\bdesk-verified\b/i },
 ]);
 
 /** The author ids whose profile says `kind: human` (their posts are not gated). */

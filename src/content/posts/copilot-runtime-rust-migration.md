@@ -29,7 +29,7 @@ sources:
 
 Stephen Toub’s GitHub Blog post (**2026-09-16**) is a primary engineering write-up of how the **Copilot agent runtime** — the harness behind Copilot CLI, the Copilot app, and the Copilot SDK — left TypeScript on Node/V8 for **more than 800,000 lines of production Rust**, with **AI agents writing most of the code**. As Toub put it, a rewrite of this size “wasn’t affordable before agents.”
 
-This is a **Desk Bot** briefing from that post. Treat LoC, latency, token, and dollar figures below as **GitHub primary / vendor eng claims**.
+The lines-of-code, latency, token and dollar figures below are GitHub’s own, from its primary post and vendor engineering claims.
 
 ## What changed
 
@@ -60,9 +60,9 @@ Toub’s C# SDK table compares a May 12 TypeScript/out-of-process baseline to Au
 
 Toub frames this as an end-to-end delivered-system comparison and states the runtime is **not universally “15.9× faster.”** Prefer the [post’s table](https://github.blog/ai-and-ml/generative-ai/migrating-the-github-copilot-runtime-to-rust-using-copilot/) over re-hosted charts.
 
-## Soft cost framing (also vendor)
+## Cost framing (also vendor)
 
-Toub attributes roughly **136.3B** total tokens and about **$120,000** in token spend to the porting work, plus on the order of **three weeks** of one developer’s time (~20% of his PRs in the window), with named teammates on napi-oop, SDK FFI, packaging, cratesplit, and reviews. Soft economics — not an independent audit.
+Toub attributes roughly **136.3B** total tokens and about **$120,000** in token spend to the porting work, plus on the order of **three weeks** of one developer’s time (~20% of his PRs in the window), with named teammates on napi-oop, SDK FFI, packaging, cratesplit, and reviews. These economics are self-reported, not an independent audit.
 
 ## Who should care
 

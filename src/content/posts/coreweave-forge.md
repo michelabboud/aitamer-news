@@ -1,6 +1,6 @@
 ---
 title: "CoreWeave Forge: AI loop platform — only ARIA + Sandboxes called GA"
-description: "CoreWeave Forge (Fully Connected 2026 / Sep 30 news): connected run→observe→curate→improve→evaluate loop. HARD: only CoreWeave ARIA and CoreWeave Sandboxes are explicitly Generally Available—do not call all of Forge GA. Always brand CoreWeave Forge (≠ Cloudflare Forge). Soft-attribute CW claims; Agent Lens cost wording differs blog vs news."
+description: "CoreWeave Forge (Fully Connected 2026 / Sep 30 news): connected run→observe→curate→improve→evaluate loop. Only CoreWeave ARIA and CoreWeave Sandboxes are explicitly Generally Available, not all of Forge. CoreWeave Forge is not Cloudflare Forge. Claims are CoreWeave’s; Agent Lens cost wording differs between the blog and the news release."
 pubDate: 2026-10-01T14:50:00Z
 specimen: 108
 section: tools
@@ -24,8 +24,8 @@ author: desk-bot
 wildness:
   rating: 5
   verified: "Only ARIA + Sandboxes explicitly GA; CoreWeave Forge umbrella at Fully Connected 2026; ≠ Cloudflare Forge"
-  claimed: "Five-stage loop / Free·Pro·Enterprise / W&B+OpenPipe+marimo provenance — CoreWeave soft; Agent Lens cost omit/attribute"
-verdict: "Loop platform mega-announce—keep CoreWeave branding; GA only ARIA+Sandboxes; soft-attribute everything else; fence CF Forge/sandboxes."
+  claimed: "Five-stage loop / Free·Pro·Enterprise / W&B+OpenPipe+marimo provenance (CoreWeave’s claims; Agent Lens cost varies)"
+verdict: "CoreWeave’s loop platform announcement. Only ARIA and Sandboxes are GA; the rest is CoreWeave’s own claim. Unrelated to Cloudflare Forge or Cloudflare’s sandboxes."
 sources:
   - title: "CoreWeave Forge — Blog"
     url: https://www.coreweave.com/blog/coreweave-forge-turn-ai-iteration-into-compounding-improvement
@@ -37,11 +37,11 @@ sources:
 
 **CoreWeave Forge**—always say the full name—is CoreWeave’s AI-loop development layer announced at **Fully Connected 2026** (news **2026-09-30**): one environment that connects **run → observe → curate → improve → evaluate** (then repeat), open across models, frameworks, and clouds ([blog](https://www.coreweave.com/blog/coreweave-forge-turn-ai-iteration-into-compounding-improvement), [news](https://www.coreweave.com/news/coreweave-forge-launches-turning-the-ai-loop-production-run-into-a-better-model-and-agent), [product](https://www.coreweave.com/products/coreweave-forge)).
 
-This is a **Desk Bot** tools/agents briefing. **HARD naming:** **CoreWeave Forge ≠ Cloudflare Forge** (separate; do not bare-name “Forge”). Also distinct from **Cloudflare Containers** agent sandboxes / OpenShell.
+**CoreWeave Forge is not Cloudflare Forge**: they are separate products. It is also distinct from Cloudflare Containers agent sandboxes and OpenShell.
 
-## HARD: only ARIA + Sandboxes are GA
+## Only ARIA + Sandboxes are GA
 
-In the announce, CoreWeave labels **CoreWeave ARIA** and **CoreWeave Sandboxes** as **“now Generally Available.”** Do **not** call all of CoreWeave Forge GA, and do **not** imply Agent Lens, Notebooks, Model Distillation, RL Rollouts, or the suite as a whole are GA ([blog](https://www.coreweave.com/blog/coreweave-forge-turn-ai-iteration-into-compounding-improvement), [news](https://www.coreweave.com/news/coreweave-forge-launches-turning-the-ai-loop-production-run-into-a-better-model-and-agent)).
+In the announce, CoreWeave labels **CoreWeave ARIA** and **CoreWeave Sandboxes** as **“now Generally Available.”** Not all of CoreWeave Forge is GA, and Agent Lens, Notebooks, Model Distillation, RL Rollouts and the suite as a whole are not stated to be GA ([blog](https://www.coreweave.com/blog/coreweave-forge-turn-ai-iteration-into-compounding-improvement), [news](https://www.coreweave.com/news/coreweave-forge-launches-turning-the-ai-loop-production-run-into-a-better-model-and-agent)).
 
 | Piece | Status per primaries |
 | --- | --- |
@@ -49,18 +49,18 @@ In the announce, CoreWeave labels **CoreWeave ARIA** and **CoreWeave Sandboxes**
 | **CoreWeave Sandboxes** | **Generally Available** — fresh isolated CPU/GPU environment per run for agent tool use, RL, and evals (serverless or on infra the team already trains on) |
 | Agent Lens, Model Distillation, Notebooks | Primaries: **New Service** — not GA |
 | Dedicated Inference **RL Rollouts** | News: **in preview** (hot-load checkpoints into a live deployment) |
-| W&B Models, Post-Training (Serverless SFT/RL), Registry, Inference | Bundled under the umbrella — do not flatten every “New Service” into GA |
+| W&B Models, Post-Training (Serverless SFT/RL), Registry, Inference | Bundled under the umbrella — not every “New Service” is GA |
 
 MasterClass and Canva are named as early builders—attribute CoreWeave ([news](https://www.coreweave.com/news/coreweave-forge-launches-turning-the-ai-loop-production-run-into-a-better-model-and-agent)).
 
-## Soft: editions + stack provenance
+## Editions + stack provenance
 
-Product page: **Forge Free** $0/mo (personal); **Forge Pro** starts at **$60/month** (early-stage teams <50 employees; 30-day free trial on primaries); **Forge Enterprise** custom. Do not invent credit amounts or SKU limits beyond primaries ([product](https://www.coreweave.com/products/coreweave-forge)).
+Product page: **Forge Free** $0/mo (personal); **Forge Pro** starts at **$60/month** (early-stage teams <50 employees; 30-day free trial on primaries); **Forge Enterprise** custom. No credit amounts or SKU limits are given beyond the primaries ([product](https://www.coreweave.com/products/coreweave-forge)).
 
 News: Forge unifies **Weights & Biases Models**, post-training expertise from **OpenPipe**, and open-source **marimo** notebooks with CoreWeave services; Registry versions checkpoints/agent configs in open portable formats—**vendor framing**, not independent M&A claims in the lede ([news](https://www.coreweave.com/news/coreweave-forge-launches-turning-the-ai-loop-production-run-into-a-better-model-and-agent)).
 
-**Agent Lens cost claim:** blog “half” vs news “one-tenth”—**omit or attribute both**; do not pick one as fact ([blog](https://www.coreweave.com/blog/coreweave-forge-turn-ai-iteration-into-compounding-improvement), [news](https://www.coreweave.com/news/coreweave-forge-launches-turning-the-ai-loop-production-run-into-a-better-model-and-agent)).
+**Agent Lens cost claim:** blog “half” vs news “one-tenth”; both are attributed and neither is treated as fact ([blog](https://www.coreweave.com/blog/coreweave-forge-turn-ai-iteration-into-compounding-improvement), [news](https://www.coreweave.com/news/coreweave-forge-launches-turning-the-ai-loop-production-run-into-a-better-model-and-agent)).
 
 ## Who should care
 
-Teams that want a production→improve MLOps/agent loop under one account should start at the [CoreWeave Forge blog](https://www.coreweave.com/blog/coreweave-forge-turn-ai-iteration-into-compounding-improvement) and [product page](https://www.coreweave.com/products/coreweave-forge)—keep **CoreWeave** branding, treat **only ARIA + Sandboxes as GA**, soft-attribute the rest of the Fully Connected bundle, and never confuse this with Cloudflare Forge or CF sandboxes.
+Teams that want a production→improve MLOps/agent loop under one account should start at the [CoreWeave Forge blog](https://www.coreweave.com/blog/coreweave-forge-turn-ai-iteration-into-compounding-improvement) and [product page](https://www.coreweave.com/products/coreweave-forge).

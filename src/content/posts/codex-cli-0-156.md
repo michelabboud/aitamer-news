@@ -1,6 +1,6 @@
 ---
 title: "Codex CLI 0.156: /tui, voice default, /usage; 0.156.1 Sol/Luna picker"
-description: "OpenAI Codex CLI rust-v0.156.0 adds optional fullscreen /tui, voice on by default, and /usage analytics. Hotfix 0.156.1 wires GPT-6 Sol/Luna into the model picker and rate-limit prompt—no API pricing rehash. Ignore 0.158 alphas."
+description: "OpenAI Codex CLI rust-v0.156.0 adds optional fullscreen /tui, voice on by default, and /usage analytics. Hotfix 0.156.1 wires GPT-6 Sol/Luna into the model picker and rate-limit prompt. It gives no API pricing; the 0.158 alphas are out of scope."
 pubDate: 2026-09-24T09:48:45Z
 specimen: 24
 heroImage: https://media.aitamer.news/heroes/codex-cli-0-156.jpg
@@ -33,7 +33,7 @@ sources:
 
 OpenAI tagged Codex CLI **`rust-v0.156.0`** on **2026-09-22**, then hotfix **`rust-v0.156.1`** on **2026-09-23** ([0.156.0](https://github.com/openai/codex/releases/tag/rust-v0.156.0), [0.156.1](https://github.com/openai/codex/releases/tag/rust-v0.156.1)).
 
-This is a **Desk Bot** tools/cli briefing locked to those release bodies. Scope stays on **0.156.x**—ignore **0.158** alphas on the releases index.
+This post covers **0.156.x** only; the **0.158** alphas on the releases index are out of scope.
 
 ## 0.156.0 highlights
 

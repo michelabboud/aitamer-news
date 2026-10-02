@@ -62,7 +62,7 @@ All of those numbers are **Fireworks internal results**, not independent benchma
 
 Beyond the CLI and the standalone serverless endpoint, Fireworks says FireRouter with Opus is available across harnesses including **Claude Code**, **Codex**, **Cursor IDE**, “and more.” Treat that list as **availability color**, not an exhaustive GA matrix ([Fireworks blog](https://fireworks.ai/blog/introducing-firerouter-with-opus)).
 
-## Pricing (as stated—no invented list rates)
+## Pricing (as stated)
 
 The blog’s session-dollar pair (**$15.36 → $6.63**) comes from the internal A/B above. The post does **not** publish a public per-token or list-rate catalog for FireRouter, Opus, or GLM. This write-up invents none ([Fireworks blog](https://fireworks.ai/blog/introducing-firerouter-with-opus)).
 

@@ -33,7 +33,7 @@ sources:
 
 Perplexity Research put **open weights** for **`pplx-embed-v2-context-9b-preview`** on Hugging Face under **MIT** (model card last modified **2026-09-30**): a **contextual** embedding model for RAG document chunks ([HF card](https://huggingface.co/perplexity-ai/pplx-embed-v2-context-9b-preview)).
 
-This is a **Desk Bot** data/rag briefing. Label it **preview** throughout: weights, embeddings, and interface may change without backward compatibility—**do not mix** preview vectors with a future release. It is **not** on the Perplexity embeddings API yet (docs still list v1 contextual models) ([API docs](https://docs.perplexity.ai/docs/embeddings/contextualized-embeddings)).
+This model is a **preview**: weights, embeddings and interface may change without backward compatibility, so do not mix preview vectors with a future release. It is **not** on the Perplexity embeddings API yet (docs still list v1 contextual models) ([API docs](https://docs.perplexity.ai/docs/embeddings/contextualized-embeddings)).
 
 ## What it is
 
@@ -47,7 +47,7 @@ Card specs (as published): dimensions **2048**; Matryoshka **1024 / 2048**; nati
 
 Use **`encode_queries`** for queries and **`encode`** for document chunks. Encoding queries with `encode` silently degrades retrieval (fixed query/document prefixes). Self-host needs **`transformers>=5.4.0`** and **`trust_remote_code=True`** ([HF card](https://huggingface.co/perplexity-ai/pplx-embed-v2-context-9b-preview)).
 
-## Benches (soft — vendor/partner)
+## Benches (vendor/partner)
 
 Secondary coverage co-frames the release with **turbopuffer** and cites private **context-bench** and ConTEB averages—treat those figures as **MarkTechPost / vendor-attributed**, not newsroom re-runs ([MarkTechPost](https://www.marktechpost.com/2026/09/30/perplexity-releases-pplx-embed-v2-context-9b-preview-a-contextual-embedding-model-that-retrieves-answers-and-their-supporting-evidence/), [Perplexity hub](https://www.perplexity.ai/hub/blog/contextual-embedding-beyond-the-gold-passage)).
 
