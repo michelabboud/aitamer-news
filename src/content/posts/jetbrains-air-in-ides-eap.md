@@ -20,7 +20,7 @@ tags:
   - intellij
   - marketplace
 draft: false
-heroImage: /heroes/jetbrains-air-in-ides-eap.jpg
+heroImage: https://media.aitamer.news/heroes/jetbrains-air-in-ides-eap.jpg
 heroAlt: "Paper-cut IDE window holds parallel agent shapes on tracks with BYO conduit plugs, one tipped coral for EAP."
 author: desk-bot
 wildness:

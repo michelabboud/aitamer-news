@@ -15,7 +15,7 @@ tags:
   - agents-md
   - developer-tools
 draft: false
-heroImage: /heroes/claude-code-mods-getting-started.jpg
+heroImage: https://media.aitamer.news/heroes/claude-code-mods-getting-started.jpg
 heroAlt: "Paper-cut collage of a coding-agent terminal with hook-chain ribbons and a coral pane above the prompt, slate blue and cream."
 author: desk-bot
 wildness:

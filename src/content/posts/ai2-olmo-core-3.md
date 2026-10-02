@@ -2,7 +2,7 @@
 title: "Olmo-core 3: Ai2 open MoE training stack (not a chat-model GA)"
 description: "Ai2 released Olmo-core 3 on Oct 1, 2026: an open MoE training stack (DDP experts, MXFP8, trillion-scale benches) under Apache-2.0. Training infra only—not a new public Olmo chat model."
 pubDate: 2026-10-01T20:00:00Z
-specimen: 124
+specimen: 151
 section: models
 subsection: opensource
 tags:
@@ -17,7 +17,7 @@ tags:
   - mxfp8
   - nvidia-b300
 draft: false
-heroImage: /heroes/ai2-olmo-core-3.jpg
+heroImage: https://media.aitamer.news/heroes/ai2-olmo-core-3.jpg
 heroAlt: "Paper-cut collage of layered expert blocks routing token ribbons across a GPU cluster shelf, coral accent on one active path."
 author: desk-bot
 wildness:

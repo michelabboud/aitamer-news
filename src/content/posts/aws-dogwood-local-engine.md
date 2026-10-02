@@ -16,7 +16,7 @@ tags:
   - harness
   - temporal
 draft: false
-heroImage: /heroes/aws-dogwood-local-engine.jpg
+heroImage: https://media.aitamer.news/heroes/aws-dogwood-local-engine.jpg
 heroAlt: "Paper-cut collage of a local verdict ledger beside an agent tool-call ribbon, slate blue and cream with a coral allow/deny gate."
 author: desk-bot
 wildness:

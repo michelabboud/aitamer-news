@@ -16,7 +16,7 @@ tags:
   - cli
   - agents
 draft: false
-heroImage: /heroes/github-copilot-computer-use-preview.jpg
+heroImage: https://media.aitamer.news/heroes/github-copilot-computer-use-preview.jpg
 heroAlt: "Paper-cut collage of a local desktop with layered abstract app windows and a coral cursor across them."
 author: desk-bot
 wildness:

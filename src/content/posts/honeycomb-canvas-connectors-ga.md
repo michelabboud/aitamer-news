@@ -15,7 +15,7 @@ tags:
   - mcp
   - ga
 draft: false
-heroImage: /heroes/honeycomb-canvas-connectors-ga.jpg
+heroImage: https://media.aitamer.news/heroes/honeycomb-canvas-connectors-ga.jpg
 heroAlt: "Paper-cut collage of a shared investigation canvas linked to small connector ports, slate blue and cream with a coral pulse on the anomaly ribbon."
 author: desk-bot
 wildness:

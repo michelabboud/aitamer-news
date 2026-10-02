@@ -19,7 +19,7 @@ tags:
   - snowflake
   - databricks
 draft: false
-heroImage: /heroes/sigma-agents-ga.jpg
+heroImage: https://media.aitamer.news/heroes/sigma-agents-ga.jpg
 heroAlt: "Paper-cut open workbook on a warehouse pedestal with an agent orb and soft MCP, REST, and admin ports."
 author: desk-bot
 wildness:

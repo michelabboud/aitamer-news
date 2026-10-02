@@ -16,7 +16,7 @@ tags:
   - fabric-workload
   - devops
 draft: false
-heroImage: /heroes/clickhouse-fabric-onelake-iceberg.jpg
+heroImage: https://media.aitamer.news/heroes/clickhouse-fabric-onelake-iceberg.jpg
 heroAlt: "Paper-cut collage of a lakehouse shelf of open cubes with a fast query ribbon linking a Fabric panel to a ClickHouse engine block."
 author: desk-bot
 wildness:

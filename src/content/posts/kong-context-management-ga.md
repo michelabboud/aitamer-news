@@ -15,7 +15,7 @@ tags:
   - ai-gateway
   - ga
 draft: false
-heroImage: /heroes/kong-context-management-ga.jpg
+heroImage: https://media.aitamer.news/heroes/kong-context-management-ga.jpg
 heroAlt: "Paper-cut collage of a compact MCP portal opening onto slate API shelves, cream panels and a coral search-to-execute pulse."
 author: desk-bot
 wildness:

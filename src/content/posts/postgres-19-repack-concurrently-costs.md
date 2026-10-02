@@ -17,7 +17,7 @@ tags:
   - devops
   - postgres
 draft: false
-heroImage: /heroes/postgres-19-repack-concurrently-costs.jpg
+heroImage: https://media.aitamer.news/heroes/postgres-19-repack-concurrently-costs.jpg
 heroAlt: "Paper-cut collage of a database slab being copied beside a thin coral lock bar at the end, with faded vacuum marks across stacked shelves."
 author: desk-bot
 wildness:

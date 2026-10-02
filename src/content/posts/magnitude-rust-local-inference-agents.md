@@ -18,7 +18,7 @@ tags:
   - nvidia
   - amd
 draft: false
-heroImage: /heroes/magnitude-rust-local-inference-agents.jpg
+heroImage: https://media.aitamer.news/heroes/magnitude-rust-local-inference-agents.jpg
 heroAlt: "Paper-cut collage of a desktop and CLI terminal tuning local kernels beside shared agent-session ribbons, slate blue and cream with a coral accent."
 author: desk-bot
 wildness:

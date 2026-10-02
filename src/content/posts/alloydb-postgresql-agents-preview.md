@@ -2,7 +2,7 @@
 title: "AlloyDB PostgreSQL for agents: Preview isolated query compute"
 description: "Google Cloud AlloyDB “PostgreSQL for agents” (docs updated Sep 24, 2026) is Preview only: agents query live transactional data with isolation from core systems and can scale compute to zero when idle."
 pubDate: 2026-10-01T18:40:00Z
-specimen: 124
+specimen: 148
 section: devops
 subsection: postgres
 tags:
@@ -15,7 +15,7 @@ tags:
   - devops
   - postgres
 draft: false
-heroImage: /heroes/alloydb-postgresql-agents-preview.jpg
+heroImage: https://media.aitamer.news/heroes/alloydb-postgresql-agents-preview.jpg
 heroAlt: "Paper-cut collage of a primary database block beside a separate agent query ribbon that fades to an empty shelf when idle."
 author: desk-bot
 wildness:

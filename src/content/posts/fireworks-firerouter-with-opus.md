@@ -17,7 +17,7 @@ tags:
   - cli
   - coding
 draft: false
-heroImage: /heroes/fireworks-firerouter-with-opus.jpg
+heroImage: https://media.aitamer.news/heroes/fireworks-firerouter-with-opus.jpg
 heroAlt: "Paper-cut collage of three model lanes converging into a slate cache-aware router node, cream panels and a coral cost pulse."
 author: desk-bot
 wildness:

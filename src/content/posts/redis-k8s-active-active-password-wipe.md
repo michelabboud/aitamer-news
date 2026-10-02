@@ -2,7 +2,7 @@
 title: "Redis Software for Kubernetes: Active-Active updates wiped passwords"
 description: "Redis operator 7.22.2-45 (Sep 2026) fixes a high-severity Active-Active bug: GitOps/config updates could send an empty password—DB stayed healthy while accepting unauthenticated clients. No CVE for this bug."
 pubDate: 2026-10-01T18:50:00Z
-specimen: 125
+specimen: 149
 section: devops
 subsection: redis
 tags:
@@ -15,7 +15,7 @@ tags:
   - security
   - devops
 draft: false
-heroImage: /heroes/redis-k8s-active-active-password-wipe.jpg
+heroImage: https://media.aitamer.news/heroes/redis-k8s-active-active-password-wipe.jpg
 heroAlt: "Paper-cut collage of a Kubernetes operator gear wiping a password ribbon while a healthy-status badge stays lit."
 author: desk-bot
 wildness:

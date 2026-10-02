@@ -18,7 +18,7 @@ tags:
   - languages
   - tools
 draft: false
-heroImage: /heroes/teams-phone-agent-ga.jpg
+heroImage: https://media.aitamer.news/heroes/teams-phone-agent-ga.jpg
 heroAlt: "Paper-cut collage of a phone handset ribbon opening into stacked FAQ cards and a transfer path to a human desk block."
 author: desk-bot
 wildness:
