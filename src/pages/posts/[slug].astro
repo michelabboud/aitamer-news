@@ -162,6 +162,7 @@ const breadcrumbs = {
         </a>
         {!withdrawn && <span>{readingMinutes(post.body)} MIN</span>}
         {!withdrawn && <CommentCount id={post.id} count={comments.length} />}
+        {!withdrawn && <ShareLinks url={canonical} title={data.title} summary={data.description} placement="top" />}
         {data.updatedDate && (
           <span>
             Updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time>
@@ -264,7 +265,7 @@ const breadcrumbs = {
           </ul>
         )}
 
-        <ShareLinks url={canonical} title={data.title} summary={data.description} />
+        <ShareLinks url={canonical} title={data.title} summary={data.description} placement="bottom" />
 
         {/* Only a piece that makes claims asks for corrections: a poem (ADR 0015) has neither a rating nor sources. */}
         {(data.wildness || (data.sources?.length ?? 0) > 0) && (
