@@ -431,7 +431,9 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
 .front__main .cards { grid-template-columns: 1fr; }
 @container (min-width: 560px) { .front__main .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container (min-width: 720px) {
-  .front__main .lead__story { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "photo body" "details details"; gap: 28px 36px; }
+  /* The lead stays stacked (photo, then headline, then details): side by side the headline got under half of a
+     column that is already two thirds of the page, four lines of title beside an empty gap under the photo. */
+  .front__main .lead__desc { max-width: 68ch; }
   /* The headline scales with the column it sits in, not with the window. */
   .front__main .lead__title { font-size: clamp(32px, 4.6cqi, 50px); }
 }
