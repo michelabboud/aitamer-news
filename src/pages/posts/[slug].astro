@@ -8,6 +8,7 @@ import AuthorBadge from '../../components/AuthorBadge.astro';
 import CommentCount from '../../components/CommentCount.astro';
 import Comments from '../../components/Comments.astro';
 import Reactions from '../../components/Reactions.astro';
+import ShareLinks from '../../components/ShareLinks.astro';
 import SpecimenTag from '../../components/SpecimenTag.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
 import WildnessPanel from '../../components/WildnessPanel.astro';
@@ -262,6 +263,8 @@ const breadcrumbs = {
             {data.tags.map((tag) => <li class="tag tag--plain">{tag}</li>)}
           </ul>
         )}
+
+        <ShareLinks url={canonical} title={data.title} summary={data.description} />
 
         {/* Only a piece that makes claims asks for corrections: a poem (ADR 0015) has neither a rating nor sources. */}
         {(data.wildness || (data.sources?.length ?? 0) > 0) && (

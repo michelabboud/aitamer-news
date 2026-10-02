@@ -1,0 +1,89 @@
+---
+/**
+ * "Share this story", at the end of a story (2026-10-02).
+ *
+ * The links are plain intent URLs (`src/lib/share.ts`), so they work with no script at all. The
+ * bundled script below only adds two things the links cannot do: a "Copy link" button, and on a
+ * phone the system share sheet (`navigator.share`), which then replaces the row of links. No
+ * third-party code, no tracker, no request to anywhere but the network the reader picks.
+ */
+import { shareTargets } from '../lib/share';
+
+interface Props {
+  /** The story's canonical URL: what gets shared, untouched. */
+  url: string;
+  title: string;
+  summary: string;
+}
+
+const { url, title, summary } = Astro.props;
+const targets = shareTargets({ url, title, summary });
+---
+
+<section class="share" aria-labelledby="share-title" data-share data-share-url={url} data-share-title={title} data-share-text={summary} data-pagefind-ignore>
+  <h2 id="share-title">Share this story</h2>
+  <ul class="share__links">
+    {targets.map((target) => (
+      <li>
+        <a
+          href={target.href}
+          {...(target.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        >{target.label}{target.external && <span class="sr-only"> (opens in a new tab)</span>}</a>
+      </li>
+    ))}
+  </ul>
+  <div class="share__actions">
+    <button type="button" class="share__button" data-share-native hidden>Share…</button>
+    <button type="button" class="share__button" data-share-copy hidden>Copy link</button>
+    <span class="share__status" role="status" aria-live="polite" data-share-status></span>
+  </div>
+</section>
+
+<script>
+  const STATUS_CLEAR_MS = 4000;
+
+  const root = document.querySelector<HTMLElement>('[data-share]');
+  if (root) {
+    const { shareUrl = '', shareTitle = '', shareText = '' } = root.dataset;
+    const nativeButton = root.querySelector<HTMLButtonElement>('[data-share-native]');
+    const copyButton = root.querySelector<HTMLButtonElement>('[data-share-copy]');
+    const status = root.querySelector<HTMLElement>('[data-share-status]');
+    let clearTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const say = (message: string) => {
+      if (!status) return;
+      status.textContent = message;
+      clearTimeout(clearTimer);
+      clearTimer = setTimeout(() => { status.textContent = ''; }, STATUS_CLEAR_MS);
+    };
+
+    // The system share sheet, on a touch device only: on a desktop the row of links is the better choice.
+    const touch = window.matchMedia('(pointer: coarse)').matches;
+    if (nativeButton && touch && typeof navigator.share === 'function') {
+      nativeButton.hidden = false;
+      root.classList.add('share--native');
+      nativeButton.addEventListener('click', async () => {
+        try {
+          await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+        } catch (error) {
+          // Closing the sheet is not a failure. Anything else brings the links back.
+          if (error instanceof DOMException && error.name === 'AbortError') return;
+          root.classList.remove('share--native');
+          say('Sharing did not start. Use one of the links instead.');
+        }
+      });
+    }
+
+    if (copyButton && typeof navigator.clipboard?.writeText === 'function') {
+      copyButton.hidden = false;
+      copyButton.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          say('Link copied.');
+        } catch {
+          say('Could not copy. Copy the address from the address bar instead.');
+        }
+      });
+    }
+  }
+</script>
