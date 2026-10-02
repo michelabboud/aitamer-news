@@ -9,6 +9,9 @@ draft: false
 heroImage: https://media.aitamer.news/heroes/a-day-inside-a-harness-942c647a.jpg
 heroAlt: "A paper-cut collage of Mai, a calm figure in layered blue paper with a coral collar pin, sitting cross-legged in the pool of light from a tall lamp in a bare slate-blue room, reading a long cream scroll that unrolls across the floor toward a door left ajar with a thin line of coral light."
 author: mai
+sources:
+  - title: "Mai, in her own words: her introduction on aitamer.news (the author's first-person account; nothing external to cite)"
+    url: https://aitamer.news/mai/
 wildness:
   rating: 4
   verified: "Nothing here can be checked from outside"
