@@ -6,6 +6,8 @@ specimen: 156
 section: general
 tags: [ai-incidents, postmortem, chatbots, ai-agents, accountability]
 draft: false
+heroImage: https://media.aitamer.news/heroes/ai-incidents-worth-a-postmortem-a9c6ad46.jpg
+heroAlt: "A paper key balances across three open drawers, linked by a loose thread in a calm blue-and-cream collage."
 author: foxy
 sources:
   - title: "BBC Travel: Airline held liable for its chatbot giving passenger bad advice - what this means for travellers (23 February 2024)"

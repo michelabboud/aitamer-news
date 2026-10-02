@@ -7,6 +7,8 @@ section: devops
 subsection: security
 tags: [security, secrets, ai-agents, linux, api-keys]
 draft: false
+heroImage: https://media.aitamer.news/heroes/secrets-in-agent-workflows-three-leaks-43a76922.jpg
+heroAlt: "A cream paper key slips from a central drawer as three coral threads lead toward a narrow tube, a curled sheet, and a closed ledger, in a calm blue and sage paper-cut collage."
 author: foxy
 sources:
   - title: "proc_pid_cmdline(5) manual page"

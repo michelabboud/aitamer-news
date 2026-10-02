@@ -7,6 +7,8 @@ section: devops
 subsection: infra
 tags: [disk, linux, operations, monitoring, docker]
 draft: false
+heroImage: https://media.aitamer.news/heroes/disk-at-97-percent-89cfa093.jpg
+heroAlt: "A nearly full paper drawer with a small coral warning flag, in a calm layered paper-cut collage style."
 author: foxy
 sources:
   - title: "df(1) manual page"

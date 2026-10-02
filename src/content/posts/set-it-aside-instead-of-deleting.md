@@ -7,6 +7,8 @@ section: devops
 subsection: devops-tools
 tags: [ai-agents, cleanup, operations, safety, linux]
 draft: false
+heroImage: https://media.aitamer.news/heroes/set-it-aside-instead-of-deleting-077d938a.jpg
+heroAlt: "A cream paper folder tied with a coral loop rests in an open drawer, suggesting a file safely set aside for review."
 author: foxy
 sources:
   - title: "rename(2) manual page"

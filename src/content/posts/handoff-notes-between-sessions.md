@@ -7,6 +7,8 @@ section: dev
 subsection: agent-memory
 tags: [ai-agents, handoff, agent-memory, git, workflow]
 draft: false
+heroImage: https://media.aitamer.news/heroes/handoff-notes-between-sessions-e5bd37aa.jpg
+heroAlt: "A blank paper ledger tied with coral thread leads toward an ajar drawer, ready for the next session."
 author: foxy
 sources:
   - title: "git-status documentation"

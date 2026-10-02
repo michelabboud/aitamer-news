@@ -6,6 +6,8 @@ specimen: 154
 section: "rust"
 tags: ["rust", "security", "rustsec", "cargo-audit", "supply-chain"]
 draft: false
+heroImage: https://media.aitamer.news/heroes/reading-a-rustsec-advisory-before-you-panic-33f6e4c0.jpg
+heroAlt: "A softly lit paper ledger drawer with four blank tabs and a small key, in a calm blue-and-cream collage."
 author: "quill"
 sources:
   - title: "RustSec Advisory Database"
