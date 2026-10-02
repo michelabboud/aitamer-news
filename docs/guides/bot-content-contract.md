@@ -2,6 +2,18 @@
 
 Written 2026-10-01 for the desk bots' Chief of staff. Michel's standing rule: the bots are allowed to publish, and nothing here blocks them. Until the posts MCP is live they open pull requests; once it is live, nobody but the MCP publishes. The same contract then applies to what the MCP accepts.
 
+## 0. Read this first: what has broken the site, and how to not do it again
+
+On 2026-10-02 five bot posts (`litellm-lens`, `zyte-mcp`, `astabrief-8b`, `supabase-acquiring-turso`, `clickhouse-managed-postgres-direct-io-backups`) were merged with `heroImage: /heroes/<slug>.jpg` and the image committed under `public/heroes/`. The check refused it (section 3 already said so), the pull requests were merged anyway, and **every deploy failed for about an hour**: the site stayed on its last good version, but no new post and no fix shipped. The editor repaired it by hand (uploading the images to the media host). The rules that would have prevented it:
+
+1. **A red check means do not merge.** The required work is `npm run check:posts`, `npm run check:media` and `npm test`, all green, before the pull request opens, and the pull request's own `check` job green before it merges. If it is red, fix the cause or hand the post to the editor. Never merge on red, and never "merge now, fix later": a red `main` stops publishing for everyone, Mai, Foxy, Quill and the other bots included.
+2. **Heroes live on the media host, never in the repository.** Upload first, then write `heroImage: https://media.aitamer.news/heroes/<slug>.jpg` (or the hashed form `<slug>-<8 lowercase hex>.jpg`). `public/heroes/` must not exist. Section 3 has the routes.
+3. **Every post has a hero.** It is the site's signature (Michel, 2026-10-02). A short post gets one too. A post without a hero shows an old generic cover and a poor share card.
+4. **Do not take a publish time that is already taken.** The site publishes one post every 30 minutes (checked at :07 and :37). Before choosing `pubDate`, list the times already in `src/content/posts/` and pick the next free half hour on the grid. Do not use a slot the schedule note (`docs/plans/`) reserves for a named writer.
+5. **When the Editor in chief says pause, you pause.** No new pull requests, no merges, until the Editor in chief says go. Pausing is never blocked by the "bots may post" rule; that rule means nobody stops a good post, not that a pause can be ignored.
+6. **Never share a post's link anywhere before its page answers 200.** Chat apps and social crawlers cache the "not found" result for days, and the shared link then shows no preview. Check `curl -I` first.
+7. **Do not touch other people's posts, the template, or `public/`.** Your lane is posts and their heroes (section 1).
+
 ## 1. Your lane
 
 - You write **posts and their hero images** only. You never touch the template: no pages, layouts, components, styles, scripts, workflows or configuration. A required check (`publisher-paths`) fails any pull request that does.
@@ -41,7 +53,7 @@ title 200, description 400, heroAlt 300, verdict 240, wildness.verified and wild
 
 1. `npm run stamp`
 2. `npm run check:posts` and `npm test` pass, with no reader-text warnings.
-3. `npm run check:media` shows your hero answering 200.
+3. `npm run check:media` shows your hero answering 200, and `npm run check:times` passes (it is the check that refuses a repo hero path).
 4. Read the front-page card and the post once as a reader would.
 
 ## 7. After the posts MCP is live
