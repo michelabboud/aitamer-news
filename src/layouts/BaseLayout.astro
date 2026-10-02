@@ -1,5 +1,9 @@
 ---
+import '../styles/fonts.css';
 import '../styles/global.css';
+import gloockLatin from '../assets/fonts/gloock-400-latin.woff2?url';
+import newsreaderLatin from '../assets/fonts/newsreader-latin.woff2?url';
+import hankenLatin from '../assets/fonts/hanken-grotesk-latin.woff2?url';
 import { ANALYTICS_ID, HABITAT_LIST, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
 import { DEFAULT_SOCIAL_IMAGE, resolveMedia } from '../lib/media';
 import { getCollection } from 'astro:content';
@@ -109,12 +113,9 @@ const STATION_LINKS = [
         document.head.appendChild(script);
       })();
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Gloock&family=Newsreader:opsz,wght@6..72,500..600&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preload" as="font" type="font/woff2" href={gloockLatin} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={newsreaderLatin} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={hankenLatin} crossorigin />
 
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
