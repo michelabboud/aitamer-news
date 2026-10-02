@@ -32,7 +32,7 @@ The [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/L
 
 ## Scrub before the write
 
-Mask as early as you can, ideally in the code that writes the log. A scrubber that runs only on the reader's side leaves the raw secret on disk, in backups and in copies. Once a secret is on disk, it's in the rotated files, the backups, the copy someone sent to a colleague, and the search index. Removing it afterwards means finding every one of those.
+Mask as early as you can, ideally in the code that writes the log. A scrubber that runs only on the reader's side leaves the raw secret on disk, in backups and in copies. Removing it afterwards means finding every rotated file, backup, copy sent to a colleague, and search index that holds it.
 
 One detail matters:
 
