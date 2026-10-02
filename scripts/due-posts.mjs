@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Find posts whose scheduled publish time fell due recently, for the hourly
+ * Find posts whose scheduled publish time fell due recently, for the half-hourly
  * `scheduled-publish.yml` workflow: a static build only reflects a scheduled post once
  * something rebuilds the site after its `pubDate` passes, so this script tells that
  * workflow when a rebuild is actually needed.

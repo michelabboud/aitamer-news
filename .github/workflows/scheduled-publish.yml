@@ -5,7 +5,9 @@ on:
     # :07, not :00 — GitHub's own docs flag the top of the hour as the most popular cron
     # minute, so jobs scheduled there queue behind everyone else's and can start late.
     # :07 avoids that congestion and keeps this job starting close to on time.
-    - cron: '7 * * * *'
+    # Twice an hour so a post scheduled on the hour and one on the half hour each go live in their own slot
+    # (2026-10-02, Michel: one post every 30 minutes, around the clock). :07 and :37, never :00 or :30.
+    - cron: '7,37 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -31,7 +33,9 @@ jobs:
 
       - name: Check for due posts
         id: due
-        run: node scripts/due-posts.mjs
+        # 65 minutes, a little over two runs: a run GitHub delays or skips is caught by the next, and a post
+        # does not keep triggering a deploy for two hours (the script's default window, sized for hourly runs).
+        run: node scripts/due-posts.mjs --window-minutes 65
 
       - name: Trigger the deploy
         if: steps.due.outputs.due == 'true'
