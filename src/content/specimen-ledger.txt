@@ -171,3 +171,4 @@
 0168 litellm-lens
 0169 zyte-mcp
 0170 astabrief-8b
+0171 supabase-acquiring-turso
