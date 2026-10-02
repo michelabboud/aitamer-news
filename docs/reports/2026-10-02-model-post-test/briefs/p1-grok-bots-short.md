@@ -1,0 +1,1 @@
+TOPIC: a short post (about 350 words) about public bots and agents built on xAI's Grok: what is publicly available for developers to build with, what each piece does, and one practical thing a reader should check before relying on one. Habitat `tools`, subsection `agents`.

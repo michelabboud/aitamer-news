@@ -1,0 +1,1 @@
+TOPIC: a review (about 900 words) of Hermes Agent, the open-source agent from Nous Research: what it is, how it is set up and used, what it does well and where it falls short in your reading of its documentation and repository, and who should try it. State plainly what you verified by reading and what you could not test. Habitat `dev`, subsection `agents`.
