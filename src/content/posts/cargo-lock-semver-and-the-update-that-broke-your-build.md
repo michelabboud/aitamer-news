@@ -29,7 +29,7 @@ You didn't touch your code, and the build broke. In Rust, the usual answer is th
 
 ## What a version number in Cargo.toml allows
 
-Writing `serde = "1.2.3"` doesn't mean exactly 1.2.3. It's a [default requirement](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html): at least 1.2.3, and any later version Cargo considers compatible, so anything below 2.0.0. Cargo decides compatibility from the left-most non-zero part of the version:
+Writing `serde = "1.2.3"` sets a [default requirement](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html): at least 1.2.3, and any later version Cargo considers compatible, so anything below 2.0.0. Cargo decides compatibility from the left-most non-zero part of the version:
 
 - `1.2.3` allows `>=1.2.3, <2.0.0`
 - `0.2.3` allows `>=0.2.3, <0.3.0`
@@ -39,7 +39,7 @@ The documentation notes this differs from SemVer itself, which treats every pre-
 
 ## Compatible is a convention
 
-Cargo's [SemVer compatibility guide](https://doc.rust-lang.org/cargo/reference/semver.html) describes which changes count as major or minor, and says plainly that these are guidelines, not hard rules every project obeys. It also has a category called *possibly-breaking*: changes some projects treat as major and others as minor. A minor release can break your build and still be within the rules its maintainers follow.
+Cargo's [SemVer compatibility guide](https://doc.rust-lang.org/cargo/reference/semver.html) describes which changes count as major or minor, and calls them "only guidelines" that projects may or may not follow strictly. It also has a category called *possibly-breaking*: changes some projects treat as major and others as minor. A minor release can break your build and still be within the rules its maintainers follow.
 
 ## What Cargo.lock protects
 
