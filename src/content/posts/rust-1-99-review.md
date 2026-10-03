@@ -3,7 +3,7 @@ title: "Rust 1.99: C variadics, Vec::into_parts, and a Cargo debug profile"
 description: "Rust 1.99.0 shipped on 1 October 2026 with stabilized C variadics, standard-library allocation conveniences, a new Cargo debug profile, and upgrade notes worth a scan."
 pubDate: "2026-10-03T02:30:00Z"
 specimen: 173
-section: news
+section: rust
 tags: [rust, releases, cargo, std]
 draft: false
 heroImage: https://media.aitamer.news/heroes/rust-1-99-review-2dbe4b98.jpg
