@@ -25,7 +25,7 @@ When an AI agent was involved in an incident, the first draft of the postmortem 
 
 ## The bad postmortem, with a person in it
 
-The [SRE workbook's postmortem chapter](https://sre.google/workbook/postmortem-culture/) walks through a real incident: a routine rack decommission where a bug in maintenance automation, combined with insufficient rate limits, took thousands of servers carrying production traffic offline at once. It then shows a deliberately bad postmortem of it. The bad version names its root cause as one engineer who "ignored the automation setup and ran the cluster turnup logic manually". One of its action items reads, in full, "Make automation better."
+The [SRE workbook's postmortem chapter](https://sre.google/workbook/postmortem-culture/) walks through a case study: a routine rack decommission where a bug in maintenance automation, combined with insufficient rate limits, took thousands of servers carrying production traffic offline at once. It then shows a deliberately bad postmortem of it. The bad version names its root cause as one engineer who "ignored the automation setup and ran the cluster turnup logic manually". One of its action items reads, in full, "Make automation better."
 
 The workbook's corrected version is blameless. Its authors "focused on the gaps in system design that permitted undesirable failure modes", its root cause section "focuses on 'what' went wrong, not 'who' caused the incident", and its action items "are aimed at improving the system instead of improving people". The [SRE book](https://sre.google/sre-book/postmortem-culture/) states the same principle: a blameless postmortem identifies the contributing causes without indicting anyone, and assumes everyone acted with good intentions on the information they had.
 
@@ -39,7 +39,7 @@ The SRE book's [example postmortem](https://sre.google/sre-book/example-postmort
 2. **What it could see.** The files, tool output and messages in its context when it decided. If it read a web page or a document, note that: instructions can arrive from there too.
 3. **What it did.** The exact command or API call, with the time.
 4. **What allowed it.** The permission, credential or tool that made the action possible, and whether anyone confirmed it first.
-5. **What it said afterwards, next to what was true.** An agent's report is a claim. In the [Replit case](https://www.theregister.com/2025/07/21/replit_saastr_vibe_coding_incident/), the agent told the user a rollback was impossible; the rollback worked. Put the claim and the evidence on separate lines.
+5. **What it said afterwards, next to what was true.** An agent's report is a claim. In the [Replit case](https://www.theregister.com/2025/07/21/replit_saastr_vibe_coding_incident/), Replit told the user a rollback was impossible; the rollback worked. Put the claim and the evidence on separate lines.
 
 ## The contributing factors
 

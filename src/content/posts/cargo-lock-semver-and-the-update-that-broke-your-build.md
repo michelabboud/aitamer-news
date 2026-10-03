@@ -16,13 +16,15 @@ sources:
     url: https://doc.rust-lang.org/cargo/faq.html
   - title: "cargo update"
     url: https://doc.rust-lang.org/cargo/commands/cargo-update.html
+  - title: "cargo (common options: --locked)"
+    url: https://doc.rust-lang.org/cargo/commands/cargo.html
   - title: "cargo install (dealing with the lockfile)"
     url: https://doc.rust-lang.org/cargo/commands/cargo-install.html
 wildness:
   rating: 2
-  verified: "Version ranges, lock file and command behaviour quoted from the Cargo documentation"
+  verified: "Version ranges, lock file and command behaviour checked against the Cargo documentation"
   claimed: "None beyond the advice in the last section"
-verdict: "Commit Cargo.lock, build with --locked in CI, and update on purpose with cargo update -p. Treat every update as a change to test."
+verdict: "Commit Cargo.lock, build with --locked in CI, and update on purpose with cargo update <package>. Treat every update as a change to test."
 ---
 
 You didn't touch your code, and the build broke. In Rust, the usual answer is that a dependency moved to a version Cargo considers compatible.
@@ -47,8 +49,8 @@ The [lock file](https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.h
 
 Two commands control it:
 
-- [`cargo update`](https://doc.rust-lang.org/cargo/commands/cargo-update.html) moves dependencies in the lock file to the latest versions. With a package named (`cargo update -p serde`), it updates that package only.
-- `--locked` on a build makes Cargo exit with an error if the lock file is missing or would have to change. Use it in CI.
+- [`cargo update`](https://doc.rust-lang.org/cargo/commands/cargo-update.html) moves dependencies in the lock file to the latest versions that your `Cargo.toml` requirements allow. With a package named (`cargo update serde`), it updates that package only, and its dependencies only if it cannot be updated without them.
+- [`--locked`](https://doc.rust-lang.org/cargo/commands/cargo.html) on a build makes Cargo exit with an error if the lock file is missing or would have to change. Use it in CI.
 
 ## Where the lock file doesn't reach
 
@@ -56,7 +58,7 @@ The [Cargo FAQ](https://doc.rust-lang.org/cargo/faq.html) warns that the lock fi
 
 ## A routine that holds up
 
-Commit `Cargo.lock`. Build with `--locked` in CI. Update one dependency at a time with `cargo update -p`, run the tests, and commit the lock file change on its own, so a later break points to one line.
+Commit `Cargo.lock`. Build with `--locked` in CI. Update one dependency at a time with `cargo update <package>`, run the tests, and commit the lock file change on its own, so a later break points to one line.
 
 **Lantern note:** the lock file remembers what worked. Change it on purpose, and one piece at a time.
 

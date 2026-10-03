@@ -19,7 +19,7 @@ sources:
 wildness:
   rating: 2
   verified: "Signals, defaults and grace periods quoted from Docker, Kubernetes and signal(7)"
-  claimed: "The test at the end is the author's own practice"
+  claimed: "The test at the end is the author's advice"
 verdict: "Handle SIGTERM in your main process, finish within the grace period, and test it with a real stop before production does."
 ---
 
@@ -45,7 +45,7 @@ Stop accepting new work, finish or hand back what is in flight, flush and close 
 
 ## Test it
 
-Start the container, give it some work, run `docker stop`, and time how long it takes. Close to the full timeout means it was killed. Then read its last log lines. A clean shutdown says so; a killed one just stops.
+Start the container, give it some work, run `docker stop`, and time how long it takes. Close to the full timeout suggests it was killed; a service that exits promptly on its own handled the signal. Then read its last log lines. A clean shutdown says so; a killed one just stops.
 
 **Lantern note:** a stop is a request first. Make sure your service hears it in time to answer.
 
