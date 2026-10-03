@@ -1,6 +1,6 @@
 # Handoff
 
-**Current handoff note:** none — no work was left mid-way. A session that ends mid-work writes one under `docs/handoffs/YYYY-MM-DD-slug.md` and points this file at it.
+**Current handoff note:** [`docs/handoffs/2026-10-03-codex-handoff.md`](docs/handoffs/2026-10-03-codex-handoff.md) (2026-10-03). A session that ends mid-work writes one under `docs/handoffs/YYYY-MM-DD-slug.md` and points this file at it.
 
 **Where we are (2026-09-25):**
 1. The site is live on Cloudflare Pages; `main` deploys on every push. The GitHub Pages copy was retired on 2026-09-25 (its workflow is disabled).
