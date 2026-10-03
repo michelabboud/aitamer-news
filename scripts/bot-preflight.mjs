@@ -6,6 +6,7 @@
  *
  *   node scripts/bot-preflight.mjs                  check every post this branch adds or changes against origin/main
  *   node scripts/bot-preflight.mjs --files a.md b.md   check these post files
+ *   node scripts/bot-preflight.mjs --news [--files ...]   news burst: publish now, off the half-hour grid and sharing a slot is allowed
  *   node scripts/bot-preflight.mjs --next-slot [N]   print the next N free half-hour slots (default 1), in UTC
  *
  * It exits 1 on any problem. It is the bots' pre-flight, not a gate on the site: CI stays as it is
@@ -35,6 +36,8 @@ export const DESCRIPTION_SOFT_MAX = 260;
 /** wildness.verified and wildness.claimed fail the build at 120; stay under so an edit never trips it. */
 export const WILDNESS_LINE_SOFT_MAX = 110;
 export const TITLE_SOFT_MAX = 120;
+/** A news burst goes live at the next publish check, so its pubDate may be at most this far ahead. */
+export const NEWS_MAX_AHEAD_MINUTES = 180;
 
 const HYPE = /\b(revolutionary|game-changing|game changer|groundbreaking|cutting-edge|supercharge[sd]?|unleash(?:es|ed)?|seamless(?:ly)?|robust|powerful|blazing|next-generation|unlock(?:s|ed)?|paradigm|delve|ever-evolving|testament)\b/gi;
 const NOT_X_BUT_Y = /\bnot (?:just |only |merely )?[^.;\n]{1,60}?,? but\b/gi;
@@ -68,7 +71,8 @@ export function styleProblems(data, body) {
     const line = String(data.wildness?.[key] ?? '');
     if (line.length > WILDNESS_LINE_SOFT_MAX) out.push(`wildness.${key} is ${line.length} characters; keep it under ${WILDNESS_LINE_SOFT_MAX} (the build fails at 120)`);
   }
-  if (!Array.isArray(data.sources) || data.sources.length === 0) out.push('no sources: bots always cite, with deep links to what was actually read');
+  const isPoem = Array.isArray(data.tags) && data.tags.includes('poem');
+  if (!isPoem && (!Array.isArray(data.sources) || data.sources.length === 0)) out.push('no sources: bots always cite, with deep links to what was actually read');
   return out;
 }
 
@@ -130,6 +134,20 @@ export function slotProblems(pubDate, taken) {
 }
 
 /**
+ * Publish-time problems for a news burst (backoffice or desk-bot news): news is not held for a free slot,
+ * the publisher takes every post due at a check in one deploy, so only a readable, near pubDate is required.
+ * @param {unknown} pubDate @param {Date} now @returns {string[]}
+ */
+export function newsSlotProblems(pubDate, now) {
+  const date = toDate(/** @type {any} */ (pubDate));
+  if (!date) return ['no readable pubDate: write the time the news should go live, for example 2026-10-03T09:15:00Z'];
+  if (date.valueOf() - now.valueOf() > NEWS_MAX_AHEAD_MINUTES * 60_000) {
+    return [`pubDate ${date.toISOString()} is more than ${NEWS_MAX_AHEAD_MINUTES} minutes ahead: news goes live now; later times belong to the scheduled evergreen queue`];
+  }
+  return [];
+}
+
+/**
  * The next free half-hour slots after `from`.
  * @param {Set<string>} taken @param {Date} from @param {number} [count] @returns {string[]} ISO strings, UTC
  */
@@ -172,7 +190,7 @@ export function changedPosts(base = 'origin/main', cwd = process.cwd()) {
  * @param {string[]} files post file paths @param {{postsDir?: string, heroesDir?: string}} [options]
  * @returns {{file: string, problems: string[], notes: string[]}[]} only the files with problems or notes; a repository hero folder is reported under its own path
  */
-export function preflight(files, { postsDir = POSTS_DIR, heroesDir = HEROES_DIR } = {}) {
+export function preflight(files, { postsDir = POSTS_DIR, heroesDir = HEROES_DIR, news = false, now = new Date() } = {}) {
   const results = [];
   const own = new Set(files.map((f) => basename(f)));
   const taken = takenSlots(postsDir, own);
@@ -187,9 +205,9 @@ export function preflight(files, { postsDir = POSTS_DIR, heroesDir = HEROES_DIR 
       problems.push(`unreadable frontmatter: ${error.message}`);
     }
     if (parsed) {
-      problems.push(...heroProblems(parsed.data), ...slotProblems(parsed.data.pubDate, taken), ...styleProblems(parsed.data, parsed.body));
+      problems.push(...heroProblems(parsed.data), ...(news ? newsSlotProblems(parsed.data.pubDate, now) : slotProblems(parsed.data.pubDate, taken)), ...styleProblems(parsed.data, parsed.body));
       notes.push(...styleNotes(parsed.body));
-      const key = toDate(parsed.data.pubDate) ? slotKey(toDate(parsed.data.pubDate)) : null;
+      const key = !news && toDate(parsed.data.pubDate) ? slotKey(toDate(parsed.data.pubDate)) : null;
       if (key && seen.has(key)) problems.push(`pubDate ${key}Z is also used by another post in this same pull request`);
       if (key) seen.add(key);
     }
@@ -214,7 +232,7 @@ export function main(argv, now = new Date()) {
     console.log('preflight: no post files added or changed; nothing to check.');
     return 0;
   }
-  const results = preflight(files);
+  const results = preflight(files, { news: argv.includes('--news'), now });
   const failing = results.filter((r) => r.problems.length);
   for (const { file, notes } of results) {
     if (notes.length === 0) continue;
