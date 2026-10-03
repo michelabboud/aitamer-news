@@ -6,6 +6,7 @@
  *
  *   node scripts/post-builder.mjs --fields fields.json --author ari --pubDate 2026-10-04T12:00:00Z \
  *        --hero https://media.aitamer.news/heroes/x-0123abcd.jpg --heroAlt "..." \
+ *        [--reply]   (the --fields file is a raw model reply; extract the JSON object from it)
  *        [--model sol --type short --slug my-post --attempt 1 --max-attempts 2 --min-words 250 --max-words 450] \
  *        [--roster roster.json] [--ledger misses.jsonl] [--out src/content/posts/slug.md] \
  *        [--news] [--no-links] [--open-issue]
@@ -68,6 +69,20 @@ export const countWords = (body) => proseOnly(body).split(/\s+/).filter(Boolean)
 export const digest = (v) => createHash('sha256').update(typeof v === 'string' ? v : JSON.stringify(v)).digest('hex').slice(0, 12);
 
 const fixDashes = (s) => s.replace(/\s*—\s*/g, ', ');
+
+/**
+ * The fields object inside a raw model reply: the whole reply, a fenced json block, or the outermost braces.
+ * A reply with no parseable object is `null`, which the CLI reports as a retry (the writer sent no fields).
+ * @param {string} text @returns {Record<string, any> | null}
+ */
+export function extractFields(text) {
+  const tries = [text.trim(), (text.match(/```(?:json)?\s*([\s\S]*?)```/) ?? [])[1], text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)];
+  for (const t of tries) {
+    if (!t) continue;
+    try { const v = JSON.parse(t); if (v && typeof v === 'object' && !Array.isArray(v)) return v; } catch { /* next */ }
+  }
+  return null;
+}
 
 /** @returns {{fields: Record<string, any>, repairs: {code: string, field: string, detail: string}[]}} */
 export function repairFields(input) {
@@ -185,6 +200,14 @@ export function factCheckHints(body) {
 export async function buildPost(rawFields, ctx) {
   const { fields, repairs } = repairFields(rawFields);
   const problems = []; const warnings = [];
+  if (!rawFields || Object.keys(rawFields).length === 0) {
+    const attempt0 = ctx.attempt ?? 1; const max0 = ctx.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
+    const p0 = [{ code: 'no-fields', field: '(reply)', message: 'the reply held no JSON fields object; reply with one JSON object and nothing else' }];
+    const fb = attempt0 >= max0 ? (ctx.roster?.fallbacks?.[ctx.model] ?? null) : null;
+    return { status: attempt0 < max0 ? 'retry' : 'fallback', file: null, repairs, problems: p0, warnings, factCheckHints: [], words: 0, fallbackModel: fb,
+      retryPrompt: attempt0 < max0 ? `Your reply held no JSON fields object. Reply with ONE JSON object and nothing else, in the shape the brief gives. Do not add pubDate, author, hero, specimen or YAML.` : null,
+      issue: attempt0 >= max0 ? buildIssue({ title: '(no fields returned)', model: ctx.model, type: ctx.type, attempt: attempt0, problems: p0, fallbackModel: fb, pubDate: ctx.pubDate }) : null };
+  }
   const P = (code, field, message) => problems.push({ code, field, message });
   const W = (code, field, message) => warnings.push({ code, field, message });
 
@@ -197,7 +220,8 @@ export async function buildPost(rawFields, ctx) {
   if (FRONTMATTER_SECTIONS.includes(fields.section) && fields.section in SECTION_ALIASES) {
     repairs.push({ code: 'section', field: 'section', detail: `"${fields.section}" is a deprecated alias; filed under ${SECTION_ALIASES[fields.section]}` });
   }
-  for (const m of styleProblems({ ...data, section: fields.section, tags: fields.tags }, body)) P('style', 'prose', m);
+  // The schema and the sources check below already report a bad section and missing sources; do not report them twice.
+  for (const m of styleProblems({ ...data, section: fields.section, tags: fields.tags }, body)) if (!/^section |^no sources/.test(m)) P('style', 'prose', m);
   for (const m of heroProblems(data)) P('hero', 'heroImage', m);
   if (ctx.news) for (const m of newsSlotProblems(ctx.pubDate, ctx.now ?? new Date())) P('slot', 'pubDate', m);
   else for (const m of slotProblems(ctx.pubDate, ctx.taken ?? takenSlots(ctx.postsDir))) P('slot', 'pubDate', m);
@@ -284,7 +308,9 @@ export async function main(argv) {
     news: argv.includes('--news'), noLinks: argv.includes('--no-links'), allowFirstPerson: argv.includes('--allow-first-person'), roster, postsDir: 'src/content/posts',
   };
   if (!ctx.author || !ctx.pubDate) { console.error('--author and --pubDate are required (code sets them, not the model)'); return 2; }
-  const result = await buildPost(JSON.parse(readFileSync(fieldsPath, 'utf8')), ctx);
+  const raw = readFileSync(fieldsPath, 'utf8');
+  const parsedFields = argv.includes('--reply') ? extractFields(raw) : JSON.parse(raw);
+  const result = await buildPost(parsedFields ?? {}, ctx);
   const ledger = arg(argv, '--ledger');
   if (ledger) { mkdirSync(dirname(ledger), { recursive: true }); appendFileSync(ledger, ledgerLines(result, ctx).join('\n') + '\n'); }
   const out = arg(argv, '--out');

@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import yaml from 'js-yaml';
-import { buildPost, bodyLinks, countWords, digest, factCheckHints, ledgerLines, main, repairFields } from './post-builder.mjs';
+import { buildPost, bodyLinks, extractFields, countWords, digest, factCheckHints, ledgerLines, main, repairFields } from './post-builder.mjs';
 
 const ok200 = async () => ({ status: 200 });
 const fields = (extra = {}) => ({
@@ -160,4 +160,24 @@ test('the CLI writes the file only on ok, appends the ledger, and exits 2 withou
     const err = console.error; console.error = () => {};
     try { assert.equal(await main(['--fields', join(dir, 'f.json')]), 2); } finally { console.error = err; }
   } finally { console.log = orig; }
+});
+
+test('extractFields finds the JSON in a bare reply, a fenced reply, or a reply with prose around it, and null otherwise', () => {
+  assert.deepEqual(extractFields('{"a":1}'), { a: 1 });
+  assert.deepEqual(extractFields('Here you go:\n```json\n{"a":2}\n```\nDone.'), { a: 2 });
+  assert.deepEqual(extractFields('Sure. {"a":3} thanks'), { a: 3 });
+  assert.equal(extractFields('no fields here'), null);
+  assert.equal(extractFields('[1,2]'), null);
+});
+
+test('an empty or non-JSON reply is one clear problem, then a fallback, and a bad section is reported once', async () => {
+  const one = await buildPost({}, ctx({ attempt: 1 }));
+  assert.equal(one.status, 'retry');
+  assert.deepEqual(one.problems.map((p) => p.code), ['no-fields']);
+  const two = await buildPost(null, ctx({ attempt: 2 }));
+  assert.equal(two.status, 'fallback');
+  assert.equal(two.fallbackModel, 'opus');
+  const bad = await buildPost(fields({ section: 'banana', sources: [] }), ctx());
+  assert.equal(bad.problems.filter((p) => /section/.test(p.message) || p.field === 'section').length, 1);
+  assert.equal(bad.problems.filter((p) => p.code === 'no-sources' || /no sources/.test(p.message)).length, 1);
 });
