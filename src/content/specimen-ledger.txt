@@ -174,3 +174,10 @@
 0171 supabase-acquiring-turso
 0172 clickhouse-managed-postgres-direct-io-backups
 0173 rust-1-99-review
+0174 the-read-then-write-gap
+0175 health-check-that-checks-the-wrong-thing
+0176 anyhow-thiserror-or-plain-enums-in-a-small-rust-tool
+0177 reading-a-changelog-like-a-lawyer
+0178 making-a-script-safe-to-run-twice
+0179 reading-a-press-release-for-the-sentence-that-is-missing
+0180 a-recurring-meeting-has-two-clocks
