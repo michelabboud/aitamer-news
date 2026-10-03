@@ -20,20 +20,22 @@ sources:
     url: https://www.sqlite.org/howtocorrupt.html
   - title: "SQLite: the online backup API"
     url: https://www.sqlite.org/backup.html
+  - title: "SQLite: VACUUM INTO"
+    url: https://www.sqlite.org/lang_vacuum.html
   - title: "SQLite: FTS5 full-text search"
     url: https://www.sqlite.org/fts5.html
 wildness:
   rating: 2
-  verified: "Every SQLite behaviour and limit is quoted from the SQLite documentation"
+  verified: "SQLite behaviour and limits checked against the SQLite documentation"
   claimed: "That most small AI tools fit SQLite is the author's own judgment"
-verdict: "Start with one SQLite file in WAL mode. Move to a database server when the SQLite checklist tells you to, and not before."
+verdict: "Start with one SQLite file in WAL mode. Move to a database server when the SQLite documentation's own tests say to, and not before."
 ---
 
 A small AI tool usually needs to remember things: conversations, settings, a job queue, search results, a cache of model replies. The reflex is to reach for a database server. For most small tools, a single SQLite file is the better first choice, and SQLite's own documentation is unusually honest about when it isn't.
 
 ## What SQLite is for
 
-The SQLite project puts it in one line: [SQLite does not compete with client/server databases. SQLite competes with `fopen()`](https://www.sqlite.org/whentouse.html). It is a library inside your program that reads and writes one file. There is no server to install, start, secure, back up separately or keep running.
+The SQLite project puts it in one line: [SQLite does not compete with client/server databases. SQLite competes with `fopen()`](https://www.sqlite.org/whentouse.html). It is a library inside your program that reads and writes one file. There is no server to install, start or keep running.
 
 For a small tool that is most of the appeal. Nothing to administer means nothing to break at 3 a.m., and the whole database moves with the tool as one file.
 
@@ -44,12 +46,12 @@ The same page lists where it works well. Two fit AI tools directly:
 
 ## When SQLite says to pick something else
 
-The documentation includes a checklist, and it is worth reading before you commit. The questions that matter for AI tools:
+The documentation includes a checklist and a list of situations where a server works better, and both are worth reading before you commit. The questions that matter for AI tools:
 
-1. **Is the data on the other side of a network from the program?** Then choose a client/server database. SQLite can run over a network filesystem, but the page warns that performance will be poor and that file locking is buggy in many network filesystems.
+1. **Is the data on the other side of a network from the program?** Then choose a client/server database. SQLite can run over a network filesystem, but the page warns that performance will not be great and that file locking is buggy in many network filesystems.
 2. **Many writers at the same instant?** SQLite allows [an unlimited number of simultaneous readers but only one writer at a time](https://www.sqlite.org/whentouse.html). Writes queue up, and the page notes that most write transactions take milliseconds. If many processes truly cannot take turns, use a server.
-3. **Very large data?** A database is limited to about 281 terabytes, and it lives in a single file, so the filesystem's file size limit applies too.
-4. **Several application servers sharing one database?** For a write-heavy site or one busy enough to need several servers, the page suggests a client/server engine.
+3. **Very large data?** SQLite's limit is about 281 terabytes in a single file, and the checklist advises a client/server engine once the data looks like it will creep into the terabyte range.
+4. **A write-heavy or very busy website?** The page says one that is write-intensive, or so busy it needs multiple servers, should consider a client/server engine.
 
 A single-user desktop assistant, a command-line agent, a small team's internal bot or a scheduled job runner usually passes all four.
 
@@ -63,7 +65,7 @@ PRAGMA journal_mode=WAL;
 
 The trade-off is listed on the same page: every process using the database must be on the same machine, because WAL doesn't work over a network filesystem.
 
-**2. A busy timeout.** When one connection is writing and another tries to start a write, the second gets [`SQLITE_BUSY`](https://www.sqlite.org/rescode.html). A [busy timeout](https://www.sqlite.org/pragma.html) makes it wait and retry for a set time instead of failing on the spot. An AI tool with a background worker and a front end will hit this sooner than you think.
+**2. A busy timeout.** When one connection is writing and another tries to start a write, the second gets [`SQLITE_BUSY`](https://www.sqlite.org/rescode.html). A [busy timeout](https://www.sqlite.org/pragma.html) makes it wait for a set time instead of failing on the spot. A tool with a background worker and a front end can hit this.
 
 ```sql
 PRAGMA busy_timeout = 5000;
@@ -75,18 +77,18 @@ PRAGMA busy_timeout = 5000;
 PRAGMA foreign_keys = ON;
 ```
 
-**4. Full-text search, when you need it.** [FTS5](https://www.sqlite.org/fts5.html) is a built-in module for searching text. Before adding a separate search service for conversation logs or notes, try it.
+**4. Full-text search, when you need it.** [FTS5](https://www.sqlite.org/fts5.html) is a full-text search module included in the SQLite amalgamation. Check that your build has it enabled. Before adding a separate search service for conversation logs or notes, try it.
 
 ## Two ways to lose the file
 
 The SQLite project keeps a page titled [How To Corrupt An SQLite Database File](https://www.sqlite.org/howtocorrupt.html). Two items on it catch small tools most:
 
-- **Copying the database file without its journal**, which is what a naive backup script does while the tool is running. Use the [online backup API](https://www.sqlite.org/backup.html), or the shell's `.backup` command, instead.
+- **Copying the database file while a transaction is in progress, or without its journal or WAL file.** The copy can mix old and new content and be corrupt. Use the [online backup API](https://www.sqlite.org/backup.html) or [`VACUUM INTO`](https://www.sqlite.org/lang_vacuum.html) instead.
 - **File locking that doesn't work**, which the page says is especially common on network filesystems. Keep the database on a local disk.
 
 ## When to move
 
-Move to a database server when one of the checklist questions changes answer: the data has to live across a network from the tools that use it, or several writers genuinely can't take turns. Until then, one file, in WAL mode, backed up properly, is less to run and less to go wrong.
+Move to a database server when one of those questions changes answer: the data has to live across a network from the tools that use it, or several writers genuinely can't take turns. Until then, one file, in WAL mode, backed up properly, is less to run and less to go wrong.
 
 **Lantern note:** pick the database you won't have to look after at night. For a small tool, that's usually a file.
 

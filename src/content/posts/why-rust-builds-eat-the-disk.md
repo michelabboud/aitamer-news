@@ -1,6 +1,6 @@
 ---
 title: "Why your Rust builds eat the disk"
-description: "A Rust project's target folder can run to tens of gigabytes. The three Cargo defaults behind that, and the settings that shrink each one without slowing down your day."
+description: "A Rust project's target folder can grow large. The three Cargo defaults behind that, and the settings that shrink each one."
 section: rust
 tags: [rust, cargo, disk, build, debug-info]
 draft: false
@@ -20,14 +20,14 @@ wildness:
   rating: 2
   verified: "Every Cargo default and setting is checked against the Cargo reference"
   claimed: "The 15 GB to 4.3 GB figure is the author's own measurement on one project"
-verdict: "If you only need pass or fail from a Rust build, turn debug info down to line tables. It is the biggest single saving."
+verdict: "If you only need pass or fail from a Rust build, turn debug info down to line tables. It removes the type and variable information Cargo writes by default."
 ---
 
-A Rust project that builds in a few minutes can leave tens of gigabytes behind in its `target` folder. Three Cargo defaults explain most of it.
+A Rust project's target folder can grow large. Three Cargo defaults contribute to it.
 
 ## 1. Full debug info in every dev and test build
 
-The [`dev` profile](https://doc.rust-lang.org/cargo/reference/profiles.html), used by `cargo build`, sets `debug = true`, which means full debug info. The `test` profile inherits from `dev`, so `cargo test` builds carry it too. On one project I measured a test build at 15 GB with the default and 4.3 GB with debug info turned off.
+The [`dev` profile](https://doc.rust-lang.org/cargo/reference/profiles.html), used by `cargo build`, sets `debug = true`, which means full debug info. The `test` profile inherits from `dev`, so `cargo test` builds carry it too. Full debug info is the default for dev builds, and it adds type and variable information that backtraces do not need. On one project I measured a test build at 15 GB with the default and 4.3 GB with debug info turned off.
 
 **The fix:** if you need readable backtraces but not a debugger, use `debug = "line-tables-only"`. Cargo describes it as the minimum needed for backtraces with file names and line numbers. For a one-off build, the environment variable `CARGO_PROFILE_DEV_DEBUG` overrides the setting without touching `Cargo.toml` ([configuration reference](https://doc.rust-lang.org/cargo/reference/config.html)).
 

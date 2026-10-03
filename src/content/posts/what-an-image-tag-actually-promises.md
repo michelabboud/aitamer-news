@@ -29,13 +29,13 @@ Docker's own [`docker pull` reference](https://docs.docker.com/reference/cli/doc
 
 ## What :latest means
 
-`latest` is the tag you get when you don't write one: Docker's [tag reference](https://docs.docker.com/reference/cli/docker/image/tag/) shows `alpine` resolving to `alpine:latest` by default. It means whatever was last pushed under that name. That can differ from the newest stable release, and from what the same tag meant yesterday.
+`latest` is the tag you get when you don't write one: Docker's [tag reference](https://docs.docker.com/reference/cli/docker/image/tag/) shows `alpine` resolving to `alpine:latest` by default. It is an ordinary tag, so the publisher decides which image it points to and can move it, like any other.
 
 Kubernetes advises against it in production: `:latest` makes it harder to track which version is running and harder to roll back. Its recommendation is a meaningful tag such as `v1.42.0`, a digest, or both.
 
 ## Why the same tag can be two images
 
-A machine that pulled `myapp:2.1` last month and a machine that pulls it today may be running different images if the publisher moved the tag in between. Both report `2.1`. When something behaves differently on one of them, the tag won't tell you why. The digest will.
+A machine that pulled `myapp:2.1` last month and a machine that pulls it today may be running different images if the publisher moved the tag in between. Both ask for `2.1`. When something behaves differently on one of them, the tag won't tell you why. The digest will.
 
 ## Pin both
 
