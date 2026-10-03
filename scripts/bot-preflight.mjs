@@ -23,6 +23,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { FRONTMATTER_SECTIONS } from '../src/lib/habitats.ts';
 import { readFrontmatter } from './frontmatter.mjs';
 
 export const POSTS_DIR = 'src/content/posts';
@@ -58,6 +59,7 @@ export function styleProblems(data, body) {
   const text = prose(body);
   const dashes = (text.match(/—/g) ?? []).length;
   if (dashes > 0) out.push(`${dashes} em-dash(es) in the prose: write two sentences, or use a colon or a comma (no em-dash asides)`);
+  if (!FRONTMATTER_SECTIONS.includes(data.section)) out.push(`section ${JSON.stringify(data.section)} is not a habitat: use one of ${FRONTMATTER_SECTIONS.join(', ')}`);
   const title = String(data.title ?? '');
   if (title.length > TITLE_SOFT_MAX) out.push(`title is ${title.length} characters; keep it under ${TITLE_SOFT_MAX} so a card shows it whole`);
   const description = String(data.description ?? '');
