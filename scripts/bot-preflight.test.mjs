@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { heroProblems, main, nextFreeSlots, preflight, slotProblems, styleNotes, styleProblems, takenSlots } from './bot-preflight.mjs';
+import { heroProblems, main, newsSlotProblems, nextFreeSlots, preflight, slotProblems, styleNotes, styleProblems, takenSlots } from './bot-preflight.mjs';
 import { quietly, tempDir } from './test-support.mjs';
 
 const good = (extra = {}) => ({
@@ -128,4 +128,17 @@ test('--files exits 1 with the reasons and 0 when clean; --next-slot prints a sl
   assert.equal(slot.result, 0);
   assert.equal(slot.output.split('\n').length, 2);
   assert.ok(takenSlots(postsDir).has('2026-10-03T05:00'));
+});
+
+test('a news burst may sit off the grid and share a slot, but not be far ahead', () => {
+  const now = new Date('2026-10-03T09:00:00Z');
+  assert.deepEqual(newsSlotProblems('2026-10-03T09:12:00Z', now), []);
+  assert.deepEqual(newsSlotProblems('2026-10-03T08:20:00Z', now), []);
+  assert.match(newsSlotProblems('2026-10-03T14:00:00Z', now).join(), /more than 180 minutes ahead/);
+  assert.match(newsSlotProblems(undefined, now).join(), /no readable pubDate/);
+});
+
+test('a poem may omit sources, any other post may not', () => {
+  assert.deepEqual(styleProblems({ ...good(), sources: [], tags: ['poem'] }, 'Plain.\n'), []);
+  assert.match(styleProblems({ ...good(), sources: [], tags: ['voices'] }, 'Plain.\n').join(), /no sources/);
 });
