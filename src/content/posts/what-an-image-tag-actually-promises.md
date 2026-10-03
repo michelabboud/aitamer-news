@@ -23,7 +23,7 @@ An image reference like `myapp:2.1` looks like a version number. It's a label, a
 
 ## Tags move, digests don't
 
-The [Kubernetes documentation](https://kubernetes.io/docs/concepts/containers/images/) says it plainly: tags can be moved to point to different images, but digests are fixed. A digest is a content hash made of an algorithm and a value, such as `sha256:2e86…`, so it can't point at anything else.
+The [Kubernetes documentation](https://kubernetes.io/docs/concepts/containers/images/) says it plainly: “Tags can be moved to point to different images, but digests are fixed.” A digest is a content hash made of an algorithm and a value, such as `sha256:2e86…`, so it can't point at anything else.
 
 Docker's own [`docker pull` reference](https://docs.docker.com/reference/cli/docker/image/pull/) makes the same distinction. Pulling `ubuntu:24.04` again gets you whatever that tag means today, which is useful for updates. Pulling by digest pins the image to one version and, in the documentation's words, guarantees that the image you're using is always the same.
 
