@@ -31,7 +31,7 @@ verdict: "Assume every script will run twice, sometimes at the same time, and so
 
 Sooner or later, every script runs twice. A cron job starts while the previous run is still going. A CI system retries a failed step. A queue delivers the same message again, as [Amazon SQS's documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/standard-queues-at-least-once-delivery.html) warns it may, and asks you to design for. An AI agent that isn't sure its command worked runs it again.
 
-The property you want has a name. [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html) calls an HTTP method *idempotent* if the intended effect of several identical requests is the same as the effect of one. It also gives the reason that matters here: an idempotent request can be repeated automatically after a failure, because repeating it is harmless. A script with the same property can be retried without anyone having to think.
+The property you want has a name. [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html) calls an HTTP method *idempotent* if the intended effect of several identical requests is the same as the effect of one. It also gives the reason that matters here: an idempotent request can be repeated automatically after a failure, because repeating it has the same intended effect. A script with the same property can be retried without anyone having to think.
 
 ## Three ways a rerun hurts
 
@@ -53,11 +53,11 @@ grep -qxF "$line" "$file" || printf '%s\n' "$line" >> "$file"
 
 [`grep`](https://man7.org/linux/man-pages/man1/grep.1.html) with `-x` matches only whole lines, `-F` treats the text literally, and `-q` prints nothing and only reports whether it found a match.
 
-**Write the whole result, then swap it in.** Instead of editing a file in place, write the new version to a temporary file next to it and rename it over the old one. [`rename`](https://man7.org/linux/man-pages/man2/rename.2.html) replaces the target atomically: no other process ever finds it missing or half-written. A run that dies before the rename leaves the old file intact, and the next run starts from a clean state.
+**Write the whole result, then swap it in.** Instead of editing a file in place, write the new version to a temporary file next to it and rename it over the old one. [`rename`](https://man7.org/linux/man-pages/man2/rename.2.html) replaces the target atomically: no other process ever finds it missing. Because the new content was fully written to the temporary file first, no reader sees a half-written file either. A run that dies before the rename leaves the old file intact, and the next run starts from a clean state.
 
 **Record what you did, keyed by an identifier.** Some actions can't be checked afterwards by looking at the world: you can't un-send an email to see whether it went. For those, give each unit of work an identifier (an order number, a message id, a date) and record it once the action succeeds. Before acting, check the record. If it's there, say "already done" and exit successfully.
 
-**Prevent overlap with a lock.** [`flock`](https://man7.org/linux/man-pages/man1/flock.1.html) runs a command while holding a lock on a file. With `-n` it fails instead of waiting when the lock is taken, which is usually what you want from a scheduled job: the second copy gives up and the first one finishes.
+**Prevent overlap with a lock.** [`flock`](https://man7.org/linux/man-pages/man1/flock.1.html) runs a command while holding a lock on a file. With `-n` it fails instead of waiting when the lock is taken, which is usually what you want from a scheduled job: the second copy gives up and the first one finishes. With `-n`, the skipped copy exits with status 1 by default. Use `-E` to change that exit code if your scheduler treats non-zero as an alert.
 
 ```sh
 flock -n /var/lock/nightly-report.lock ./nightly-report.sh

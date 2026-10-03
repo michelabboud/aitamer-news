@@ -10,12 +10,14 @@ sources:
     url: https://docs.docker.com/reference/dockerfile/#healthcheck
   - title: "Kubernetes: liveness, readiness and startup probes (concepts)"
     url: https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/
+  - title: "curl manual: --fail"
+    url: https://curl.se/docs/manpage.html
   - title: "Kubernetes: configure liveness, readiness and startup probes"
     url: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 wildness:
   rating: 2
   verified: "Docker and Kubernetes probe behaviour checked against their documentation"
-  claimed: "That shallow checks are common is the author's own experience"
+  claimed: "The advice on what belongs in readiness is the author's judgment"
 verdict: "Make the health check ask the question a user would ask. A green light on a service that cannot answer is worse than no light."
 ---
 
@@ -29,7 +31,7 @@ A service can be running, listening on its port, and still unable to do its job.
 
 ## Ask the real question
 
-Probe the protocol the service speaks. For a web service, request a real page or a health endpoint that touches what the service needs, and treat any error status as a failure. Docker's example does exactly that: `curl -f` against the main page, with a three-second timeout. In Docker, the check's exit status decides the result: 0 is healthy, 1 is unhealthy.
+Probe the protocol the service speaks. For a web service, request a real page or a health endpoint that touches what the service needs, and treat any error status as a failure. Docker's example does exactly that: it requests the main page with a three-second timeout using [`curl -f`](https://curl.se/docs/manpage.html), which fails on HTTP error responses. In Docker, the check's exit status decides the result: 0 is healthy, 1 is unhealthy.
 
 ## Know which question each probe answers
 
@@ -39,7 +41,7 @@ Kubernetes [separates three](https://kubernetes.io/docs/concepts/configuration/l
 - **Readiness:** can it take traffic right now? A pod that isn't ready receives no traffic through Services, and nothing is killed.
 - **Startup:** has it finished starting? Until it succeeds, Kubernetes runs neither of the other two, which gives slow starters time.
 
-In my experience, a slow dependency check placed in the liveness probe turns a database hiccup into a restart loop. That kind of check belongs in readiness.
+Kubernetes warns that [a badly configured liveness probe can cause cascading failures](https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/): containers restarted under high load, and more work for the remaining pods. A check that depends on a back end, such as the database, belongs in the readiness probe. The docs describe readiness probes that check each required back-end service.
 
 **Lantern note:** a health check is only as honest as the question it asks.
 
