@@ -6,6 +6,7 @@ import { heroProblems, main, nextFreeSlots, preflight, slotProblems, styleNotes,
 import { quietly, tempDir } from './test-support.mjs';
 
 const good = (extra = {}) => ({
+  section: 'tools',
   title: 'LiteLLM Lens reads gateway traces',
   description: 'LiteLLM says Lens lets agents investigate traces stored in your own ClickHouse.',
   sources: [{ title: 'Docs', url: 'https://docs.litellm.ai/' }],
@@ -15,6 +16,11 @@ const good = (extra = {}) => ({
 
 test('a post written our way has no style problems', () => {
   assert.deepEqual(styleProblems(good(), '## Setup\n\nRun the container. It stores traces locally.\n'), []);
+});
+
+test('a section that is not a habitat fails the run', () => {
+  assert.match(styleProblems({ ...good(), section: 'news' }, 'Plain.\n').join('\n'), /section "news" is not a habitat/);
+  assert.deepEqual(styleProblems({ ...good(), section: 'rust' }, 'Plain.\n'), []);
 });
 
 test('an em-dash fails the run; the softer patterns are only noted', () => {
@@ -71,6 +77,7 @@ function repo(files) {
   return { dir, postsDir };
 }
 const file = (pub, extra = '', body = 'Plain text.') => `---
+section: tools
 title: T
 description: A plain sentence.
 pubDate: "${pub}"
