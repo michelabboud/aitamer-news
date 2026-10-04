@@ -66,3 +66,5 @@
 - **2026-10-04** — 0.2.51: recovery article-body proof is required by the live check and receipt validator. Independent source recheck and 766 repository tests pass. Content integration, full independent candidate review and activation remain pending.
 
 - **2026-10-04** — 0.2.52: complete 180-article queue prepared in PR #165, with 171 new files, nine existing updates, and one metadata-only quarantine. All 766 tests and source/media checks pass. The 211-article baseline is unchanged. Final independent review, isolated-artifact proof, bootstrap and timer activation remain pending.
+
+- **2026-10-04** — 0.2.53: Michel requested disabling the queue requirement. Restore the pre-admission publishing workflows; queue and receipt implementation retained inactive. Verification and production deployment pending.

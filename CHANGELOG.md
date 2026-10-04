@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.53] — 2026-10-04
+
+### Fixed
+- Restore publication through post dates and the existing scheduled publisher; disable queue admission, baseline bootstrap, receipt prerequisites and acknowledgment spacing in production workflows.
+- Preserve the reviewed content, R2 heroes, queue history and existing preview/production checks and rollback. Overdue posts are included together on the next successful build.
+
 ## [0.2.52] — 2026-10-04
 
 ### Added

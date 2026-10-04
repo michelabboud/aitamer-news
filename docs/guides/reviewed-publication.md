@@ -1,6 +1,14 @@
 # Reviewed publication queue
 
-The deployment workflow retains the currently visible articles unless explicitly asked to admit one reviewed due article. Run it on `main` with `publication_mode=publish`; omit that input to deploy code without adding articles.
+**Current status (2026-10-04): reviewed queue admission is disabled at Michel's request.** Production uses the repository's normal `pubDate` publishing behavior. A successful deployment exposes every non-draft article whose `pubDate` has arrived, including overdue articles, together. Queue membership, review receipts, bootstrap, and the 30-minute admission spacing do not control the deployed article set.
+
+`deploy-pages.yml` builds the checked-out repository, runs the existing build and hero checks, smoke-tests a preview, deploys production, and rolls back if its production smoke test fails. The `scheduled-publish.yml` timer checks at :07 and :37 for non-draft posts due within the previous 65 minutes and dispatches that normal deployment when it finds one. The time window controls whether the timer triggers; a resulting build includes all overdue non-draft posts, even those outside the window. After a longer scheduler outage, dispatch `deploy-pages.yml` manually to catch up.
+
+The queue, admission code, tests, receipts, and historical records remain preserved. Production workflows do not call `publication-cli.mjs` or accept `publication_mode`, `bootstrap_digest`, or `publication_request_id`. Do not dispatch the archived bootstrap or controller commands below while admission is disabled. No new admission receipts or publication-state acknowledgments are produced by this publishing mode; retained observations describe the earlier system.
+
+## Preserved admission contract (inactive)
+
+The remaining sections describe the retained queue implementation for review and a possible future reactivation. They are not the current operating procedure. Reactivation requires a new explicit decision and a verified baseline; historical state and receipts do not authorize it automatically.
 
 ## Queue contract
 
