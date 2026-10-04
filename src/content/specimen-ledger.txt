@@ -221,3 +221,4 @@
 0218 the-human-in-the-loop-is-a-job-not-a-button
 0219 apple-tightens-macos-full-disk-access-for-ai-agents
 0220 cloudflare-adds-a-web-search-api-to-ai-gateway
+0221 the-small-model-that-never-gets-the-final-say
