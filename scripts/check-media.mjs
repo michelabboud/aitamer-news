@@ -2,7 +2,7 @@
 /**
  * Check that the hero images the posts point at are really on the media host (ADR 0020).
  *
- *   npm run check:media                          every post's hero answers 200 image/jpeg on media.aitamer.news
+ *   npm run check:media                          every post's hero answers 200 image/jpeg on its allowlisted media host
  *   npm run check:media -- --local <dir>         and every <dir>/<slug>.jpg is there byte for byte (size, ETag = MD5)
  *
  * Exit 0 when everything checked is there, 1 when anything is missing or differs, 2 on a usage error.
@@ -22,14 +22,14 @@
  *   listed, since its hero may be uploaded before it goes live; the hourly scheduled deploy that puts it
  *   live runs this check again.
  *
- * Only `heroImage` values on the media host are requested; anything else is `check:posts`' business
+ * Only a post's own `heroImage` on an allowlisted media host is requested; anything else is `check:posts`' business
  * (`scripts/stamp-post-times.mjs --check` refuses a published post whose hero is not its media URL).
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN } from '../src/lib/media.ts';
+import { BOT_MEDIA_ORIGIN, DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, isOwnHeroUrl, mediaOrigin } from '../src/lib/media.ts';
 import { isLive } from '../src/lib/schedule.ts';
 import { isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
 import { POSTS_DIR } from './stamp-post-times.mjs';
@@ -118,14 +118,13 @@ async function pool(items, limit, fn) {
 }
 
 /**
- * The heroes to check. Keys are paths on the media host (`heroes/<slug>.jpg`, or `heroes/<slug>-<8 hex>.jpg` for a replaced hero, ADR 0024).
+ * The heroes to check, each with its actual origin and key (`heroes/<slug>.jpg`, or the hashed form).
  * @param {{ postsDir: string, localDir?: string | null, now?: Date }} where `now` decides which posts are live
- * @returns {{ targets: { key: string, label: string, local: { size: number, md5: string } | null, required: boolean }[], errors: string[] }}
+ * @returns {{ targets: { origin: string, key: string, label: string, local: { size: number, md5: string } | null, required: boolean }[], errors: string[] }}
  */
 export function collect({ postsDir, localDir = null, now = new Date() }) {
   const targets = [];
   const errors = [];
-  const prefix = `${MEDIA_ORIGIN}/`;
   for (const name of readdirSync(postsDir).filter((n) => POST_FILE.test(n)).sort()) {
     const file = join(postsDir, name);
     let fm;
@@ -136,7 +135,9 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
       continue;
     }
     const hero = fm?.data.heroImage;
-    if (typeof hero !== 'string' || !hero.startsWith(prefix)) continue;
+    const slug = basename(name).replace(POST_FILE, '');
+    if (!isOwnHeroUrl(slug, hero)) continue;
+    const origin = mediaOrigin(hero);
     // A pubDate the stamper cannot read is reported as a problem here (and fails check:posts too),
     // instead of escaping as an unhandled rejection (deep review re-check, R2).
     let date;
@@ -147,7 +148,7 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
       continue;
     }
     const live = isPublishedDraftField(fm.data) === true && (date === null || isLive({ draft: false, pubDate: date }, now));
-    targets.push({ key: hero.slice(prefix.length), label: file, local: null, required: live });
+    targets.push({ origin, key: hero.slice(origin.length + 1), label: file, local: null, required: live });
   }
   if (localDir !== null) {
     for (const name of readdirSync(localDir).sort()) {
@@ -158,7 +159,8 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
         continue;
       }
       const bytes = readFileSync(file);
-      targets.push({ key: `heroes/${name}`, label: file, local: { size: bytes.length, md5: md5Hex(bytes) }, required: true });
+      // --local predates bot uploads: migration files are verified on the original media host.
+      targets.push({ origin: MEDIA_ORIGIN, key: `heroes/${name}`, label: file, local: { size: bytes.length, md5: md5Hex(bytes) }, required: true });
     }
   }
   return { targets, errors };
@@ -166,14 +168,14 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
 
 /**
  * @param {string[]} argv
- * @param {{ postsDir?: string, origin?: string, now?: Date, attempts?: number, attemptDelayMs?: number, concurrency?: number }} [options]
- *   `origin` stands in for the media host (tests serve it locally)
+ * @param {{ postsDir?: string, origin?: string, botOrigin?: string, now?: Date, attempts?: number, attemptDelayMs?: number, concurrency?: number }} [options]
+ *   `origin` and `botOrigin` independently stand in for the two media hosts (tests serve them locally).
  * @returns {Promise<number>} exit code
  */
 /** The site's own images on the media host that every page relies on: the default share card. */
 export const SITE_IMAGES = Object.freeze([DEFAULT_SOCIAL_IMAGE.slice(MEDIA_ORIGIN.length + 1)]);
 
-export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, now = new Date(), attempts, attemptDelayMs, concurrency = CONCURRENCY, siteImages = SITE_IMAGES } = {}) {
+export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, botOrigin = BOT_MEDIA_ORIGIN, now = new Date(), attempts, attemptDelayMs, concurrency = CONCURRENCY, siteImages = SITE_IMAGES } = {}) {
   const at = argv.indexOf('--local');
   const localDir = at >= 0 ? argv[at + 1] : null;
   const unknown = argv.filter((_, i) => at < 0 || (i !== at && i !== at + 1));
@@ -187,7 +189,7 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
   }
   const { targets, errors } = collect({ postsDir, localDir, now });
   // Without the share card every page without its own image shares a broken preview.
-  for (const key of siteImages) targets.push({ key, label: 'the default share image (src/lib/media.ts)', local: null, required: true });
+  for (const key of siteImages) targets.push({ origin: MEDIA_ORIGIN, key, label: 'the default share image (src/lib/media.ts)', local: null, required: true });
   if (errors.length > 0) {
     console.error('check:media: these files cannot be read (nothing was requested):');
     for (const error of errors) console.error(`  ${error}`);
@@ -195,20 +197,22 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
   }
 
   const results = await pool(targets, concurrency, async (target) => {
-    const res = await head(`${origin}/${target.key}`, { attempts, attemptDelayMs });
-    return { target, problem: 'error' in res ? res.error : judge(res, target.local) };
+    const url = `${target.origin === MEDIA_ORIGIN ? origin : botOrigin}/${target.key}`;
+    const res = await head(url, { attempts, attemptDelayMs });
+    return { target, url, problem: 'error' in res ? res.error : judge(res, target.local) };
   });
 
   const failing = results.filter((r) => r.problem !== null && r.target.required);
   const drafts = results.filter((r) => r.problem !== null && !r.target.required);
-  for (const { target, problem } of failing) console.error(`  ${origin}/${target.key} (${target.label}): ${problem}`);
-  for (const { target, problem } of drafts) console.warn(`  not live yet (a draft or scheduled), not a finding: ${origin}/${target.key} (${target.label}): ${problem}`);
+  for (const { target, url, problem } of failing) console.error(`  ${url} (${target.label}): ${problem}`);
+  for (const { target, url, problem } of drafts) console.warn(`  not live yet (a draft or scheduled), not a finding: ${url} (${target.label}): ${problem}`);
 
   const local = results.filter((r) => r.target.local !== null);
   const posts = results.filter((r) => r.target.local === null);
   const ok = (list) => list.filter((r) => r.problem === null).length;
   if (localDir !== null) console.log(`check:media: ${ok(local)}/${local.length} files in ${localDir} are on ${origin} byte for byte (size and ETag = MD5).`);
-  console.log(`check:media: ${ok(posts)}/${posts.length} post heroes on ${origin} answer 200 ${HERO_CONTENT_TYPE} (${posts.filter((r) => r.target.required).length} of them live).`);
+  const checkedOrigins = [...new Set(posts.map((r) => new URL(r.url).origin))].join(', ') || origin;
+  console.log(`check:media: ${ok(posts)}/${posts.length} post heroes on ${checkedOrigins} answer 200 ${HERO_CONTENT_TYPE} (${posts.filter((r) => r.target.required).length} of them live).`);
   return failing.length === 0 ? 0 : 1;
 }
 

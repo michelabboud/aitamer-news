@@ -135,6 +135,19 @@ test('a published post\'s hero is its own image on the media host; no hero is fi
   assert.equal(heroProblem(post('draft: true\nheroImage: https://elsewhere.example/x.jpg'), 'a'), null);
 });
 
+test('published bot heroes accept only the hashed own-slug URL, with the correct remedy for invalid values', () => {
+  const hero = 'https://bots.aitamer.news/heroes/a-0123abcd.jpg';
+  assert.equal(heroProblem(post(`heroImage: "${hero}"`), 'a'), null);
+  for (const value of [
+    'https://bots.aitamer.news/heroes/a.jpg',
+    'https://bots.aitamer.news/heroes/b-0123abcd.jpg',
+    'https://bots.aitamer.news.evil.example/heroes/a-0123abcd.jpg',
+    `${hero}?v=1`, `${hero}#top`,
+  ]) {
+    assert.match(heroProblem(post(`heroImage: "${value}"`), 'a'), /or https:\/\/bots\.aitamer\.news\/heroes\/a-<8 lowercase hex>\.jpg, not/);
+  }
+});
+
 test('a content-addressed hero (ADR 0024) is accepted for its own slug and refused in every near-miss shape', () => {
   const ok = 'https://media.aitamer.news/heroes/a-0123abcd.jpg';
   assert.equal(heroProblem(post(`heroImage: "${ok}"`), 'a'), null);

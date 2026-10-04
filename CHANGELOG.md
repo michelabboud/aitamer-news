@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.54] — 2026-10-04
+
+### Added
+- Allow hashed, own-slug hero JPEGs from the isolated `bots.aitamer.news` bucket alongside existing media.
+- Check live bot-host heroes at their actual origin and preserve existing migration checks.
+- Document Grok news posting commands, conditional image uploads, the exact house-style hero prompt, and the existing PR identity boundary.
+
 ## [0.2.53] — 2026-10-04
 
 ### Fixed
