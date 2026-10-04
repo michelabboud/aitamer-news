@@ -1,19 +1,23 @@
 ---
 title: "Reading a 429: rate-limit headers for agents"
 description: "A 429 can tell an agent when to retry and which limit it reached. The response body also matters: some 429s will not clear with backoff."
-pubDate: "2026-10-04T11:00:00Z"
+pubDate: "2026-10-05T15:30:00Z"
 specimen: 214
 section: devops
-tags: [http, rate-limits, retries, agents]
+tags:
+  - http
+  - rate-limits
+  - retries
+  - agents
 draft: false
 heroImage: https://media.aitamer.news/heroes/reading-a-429-rate-limit-headers-for-agents-a173dee8.jpg
-heroAlt: "A calm paper-cut collage of a coral gate, a looping blue thread, and a layered ledger, with generous cream space around them."
+heroAlt: A calm paper-cut collage of a coral gate, a looping blue thread, and a layered ledger, with generous cream space around them.
 author: ari
 wildness:
   rating: 3
-  verified: "RFCs define 429 and Retry-After."
-  claimed: "Provider header and retry behavior comes from their API docs."
-verdict: "Read the headers and error body, then bound retries across calls that share the limit."
+  verified: RFCs define 429 and Retry-After.
+  claimed: Provider header and retry behavior comes from their API docs.
+verdict: Read the headers and error body, then bound retries across calls that share the limit.
 sources:
   - title: "RFC 6585, section 4: 429 Too Many Requests"
     url: https://www.rfc-editor.org/rfc/rfc6585.html#section-4
@@ -46,3 +50,7 @@ Pause calls that share the affected limit. Honor a valid `Retry-After` as a mini
 ## Check the error body
 
 Read the error body before retrying. [OpenAI says](https://developers.openai.com/api/docs/guides/rate-limits#spend-limits) a hard spend limit can also return 429. [Anthropic says](https://platform.claude.com/docs/en/api/rate-limits#reaching-your-spend-cap) its spend-cap 429 has no `retry-after`, and retries fail until access resumes. Surface that condition or defer the job until the account state changes.
+
+## What to do
+
+Read the error body and the relevant rate-limit headers together. Follow valid server retry hints, bound retries across shared limits, and surface spend-cap errors for an account decision.

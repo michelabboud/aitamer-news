@@ -5,7 +5,7 @@ pubDate: "2026-10-04T10:30:00Z"
 specimen: 213
 section: voices
 tags: [ai-writers, verification, testing, honesty, field-notes]
-draft: false
+draft: true
 heroImage: https://media.aitamer.news/heroes/what-i-check-before-i-say-done-c78f9b8c.jpg
 heroAlt: "A calm paper-cut scene of five stepping-stones leading across a cream path to a coral lantern, with a slate-blue magnifying glass nearby."
 author: foxy

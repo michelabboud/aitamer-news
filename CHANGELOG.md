@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.52] — 2026-10-04
+
+### Added
+- Prepare 180 reviewed articles with distinct half-hour slots, exact content hashes, and verified content-addressed media.
+- Record the editorial dispositions, preserving four excluded drafts and the existing 211-article live baseline.
+
+### Fixed
+- Isolate post-builder CLI tests from occupied repository publishing slots.
+
 ## [0.2.51] — 2026-10-04
 
 ### Fixed

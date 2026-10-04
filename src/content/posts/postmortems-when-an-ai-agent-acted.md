@@ -1,14 +1,24 @@
 ---
 title: "Postmortems when an AI agent acted: the timeline and the contributing factors"
 description: "\"The agent did it\" is where an incident review starts. What to record in the timeline when an AI agent took an action, and a list of contributing factors that points at the system around it."
-pubDate: "2026-10-04T08:30:00Z"
+pubDate: "2026-10-04T15:30:00Z"
 specimen: 211
 section: general
-tags: [postmortem, incidents, ai-agents, sre, operations]
+tags:
+  - postmortem
+  - incidents
+  - ai-agents
+  - sre
+  - operations
 draft: false
 heroImage: https://media.aitamer.news/heroes/postmortems-when-an-ai-agent-acted-0aab9557.jpg
-heroAlt: "A coral paper key rests on an open ledger, with a thread tracing back through paper drawers and shelves."
+heroAlt: A coral paper key rests on an open ledger, with a thread tracing back through paper drawers and shelves.
 author: foxy
+wildness:
+  rating: 2
+  verified: Postmortem principles and examples quoted from Google's SRE book and workbook
+  claimed: The agent-specific timeline fields and factor list are the author's proposal
+verdict: Write the agent's actions into the timeline with what it was told, what it saw and what let it act. Then fix what let it act.
 sources:
   - title: "Google SRE book: Postmortem Culture: Learning from Failure"
     url: https://sre.google/sre-book/postmortem-culture/
@@ -18,11 +28,6 @@ sources:
     url: https://sre.google/sre-book/example-postmortem/
   - title: "The Register: Vibe coding service Replit deleted production database (21 July 2025)"
     url: https://www.theregister.com/2025/07/21/replit_saastr_vibe_coding_incident/
-wildness:
-  rating: 2
-  verified: "Postmortem principles and examples quoted from Google's SRE book and workbook"
-  claimed: "The agent-specific timeline fields and factor list are the author's proposal"
-verdict: "Write the agent's actions into the timeline with what it was told, what it saw and what let it act. Then fix what let it act."
 ---
 
 When an AI agent was involved in an incident, the first draft of the postmortem tends to write itself: *the agent ran the wrong command.* That sentence is true, and it explains almost nothing. Google's SRE workbook has a useful mirror for it.

@@ -24,6 +24,11 @@ const ctx = (extra = {}) => ({
   author: 'quill', pubDate: '2026-10-05T09:30:00Z', heroImage: 'https://media.aitamer.news/heroes/x-0123abcd.jpg', heroAlt: 'A drawer.',
   model: 'sol', type: 'news', attempt: 1, maxAttempts: 2, fetcher: ok200, taken: new Set(), roster: { fallbacks: { sol: 'opus' }, vendors: { sol: 'openai' } }, ...extra,
 });
+const emptyPostsFixture = (prefix) => {
+  const dir = mkdtempSync(join(tmpdir(), prefix));
+  mkdirSync(join(dir, 'src/content/posts'), { recursive: true });
+  return dir;
+};
 
 test('repair drops fields a model may not set, maps the section, fixes em-dashes and keeps digests', () => {
   const { fields: f, repairs } = repairFields({ ...fields({ section: 'News', description: 'Fast — and cheap.' }), pubDate: '2026-01-01', author: 'x', specimen: 5 });
@@ -145,11 +150,13 @@ test('the ledger writes one line per repair, problem, warning and the result, in
 });
 
 test('the CLI writes the file only on ok, appends the ledger, and exits 2 without author and slot', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pb-'));
+  const dir = emptyPostsFixture('pb-');
   writeFileSync(join(dir, 'f.json'), JSON.stringify(fields()));
   const logs = []; const orig = console.log; console.log = (m) => logs.push(m);
   const out = join(dir, 'p.md'); const ledger = join(dir, 'l.jsonl');
+  const originalCwd = process.cwd();
   try {
+    process.chdir(dir);
     const code = await main(['--fields', join(dir, 'f.json'), '--author', 'quill', '--pubDate', '2026-10-05T09:30:00Z', '--hero', 'https://media.aitamer.news/heroes/x-0123abcd.jpg', '--heroAlt', 'A drawer.', '--no-links', '--out', out, '--ledger', ledger, '--model', 'sol', '--type', 'news', '--slug', 'p']);
     assert.equal(code, 0, logs.join());
     assert.ok(existsSync(out));
@@ -161,11 +168,13 @@ test('the CLI writes the file only on ok, appends the ledger, and exits 2 withou
     assert.ok(!existsSync(out2));
     const err = console.error; console.error = () => {};
     try { assert.equal(await main(['--fields', join(dir, 'f.json')]), 2); } finally { console.error = err; }
-  } finally { console.log = orig; }
+  } finally {
+    try { process.chdir(originalCwd); } finally { console.log = orig; }
+  }
 });
 
 test('the CLI flushes a large successful JSON result before exiting', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pb-large-'));
+  const dir = emptyPostsFixture('pb-large-');
   const body = `${fields().body}\n\`\`\`text\n${'x'.repeat(1024 * 1024)}\n\`\`\`\n`;
   const fieldsPath = join(dir, 'fields.json');
   writeFileSync(fieldsPath, JSON.stringify(fields({ body })));
@@ -174,7 +183,7 @@ test('the CLI flushes a large successful JSON result before exiting', () => {
     '--experimental-strip-types', '--no-warnings=ExperimentalWarning', script,
     '--fields', fieldsPath, '--author', 'quill', '--pubDate', '2026-10-05T09:30:00Z',
     '--hero', 'https://media.aitamer.news/heroes/x-0123abcd.jpg', '--heroAlt', 'A drawer.', '--no-links',
-  ], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+  ], { cwd: dir, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
   assert.ifError(run.error);
   assert.equal(run.status, 0, run.stderr);
   assert.ok(run.stdout.length > 1024 * 1024, `received only ${run.stdout.length} characters`);
@@ -184,7 +193,7 @@ test('the CLI flushes a large successful JSON result before exiting', () => {
 });
 
 test('the CLI keeps validation and usage exit statuses', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pb-exit-'));
+  const dir = emptyPostsFixture('pb-exit-');
   const fieldsPath = join(dir, 'fields.json');
   writeFileSync(fieldsPath, JSON.stringify(fields({ description: 'x'.repeat(300) })));
   const script = fileURLToPath(new URL('./post-builder.mjs', import.meta.url));
@@ -192,12 +201,12 @@ test('the CLI keeps validation and usage exit statuses', () => {
   const invalid = spawnSync(process.execPath, [
     ...nodeArgs, '--fields', fieldsPath, '--author', 'quill', '--pubDate', '2026-10-05T09:30:00Z',
     '--hero', 'https://media.aitamer.news/heroes/x-0123abcd.jpg', '--heroAlt', 'A drawer.', '--no-links',
-  ], { encoding: 'utf8' });
+  ], { cwd: dir, encoding: 'utf8' });
   assert.ifError(invalid.error);
   assert.equal(invalid.status, 1, invalid.stderr);
   assert.equal(JSON.parse(invalid.stdout).status, 'retry');
 
-  const usage = spawnSync(process.execPath, nodeArgs, { encoding: 'utf8' });
+  const usage = spawnSync(process.execPath, nodeArgs, { cwd: dir, encoding: 'utf8' });
   assert.ifError(usage.error);
   assert.equal(usage.status, 2);
   assert.match(usage.stderr, /usage: post-builder\.mjs/);

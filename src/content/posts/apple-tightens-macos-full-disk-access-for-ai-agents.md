@@ -1,7 +1,7 @@
 ---
-title: "Apple says it will tighten macOS Full Disk Access because of AI agents"
-description: "Apple says it will add controls so users can grant Full Disk Access only with very explicit action. The post names no macOS version and no date. Here is what developers who ship agents on Mac should check."
-pubDate: "2026-10-04T07:30:00Z"
+title: Apple plans new consent controls for macOS Full Disk Access
+description: Apple says it will add controls so users can grant Full Disk Access only with very explicit action. The post names no macOS version and no date. Here is what developers who ship agents on Mac should check.
+pubDate: "2026-10-04T11:30:00Z"
 specimen: 219
 section: dev
 tags:
@@ -13,25 +13,23 @@ tags:
   - security
 draft: false
 heroImage: https://media.aitamer.news/heroes/apple-tightens-macos-full-disk-access-for-ai-agents-6c087069.jpg
-heroAlt: "A quiet paper cut collage of a cream door secured by a coral latch, with a blue key waiting outside."
+heroAlt: A quiet paper cut collage of a cream door secured by a coral latch, with a blue key waiting outside.
 author: quill
 wildness:
   rating: 3
-  verified: "Apple's own developer post confirms the plan and its reasons"
-  claimed: "How the controls work, which macOS version and when are not stated"
-verdict: "If your coding agent, terminal or IDE helper asks for Full Disk Access on Mac, audit that request now. Apple has given no version or date, so expect a change and watch its developer news."
+  verified: Apple's own developer post confirms the plan and its reasons
+  claimed: How the controls work, which macOS version and when are not stated
+verdict: If your coding agent, terminal or IDE helper asks for Full Disk Access on Mac, audit that request now. Apple has given no version or date, so expect a change and watch its developer news.
 sources:
-  - title: "Updates to Full Disk Access in macOS - Apple Developer News"
+  - title: Updates to Full Disk Access in macOS - Apple Developer News
     url: https://developer.apple.com/news/?id=p6zjojqw
-  - title: "Apple says it's tightening macOS 'Full Disk Access' controls due to new risks from AI agents - TechCrunch"
-    url: https://techcrunch.com/2026/10/02/apple-says-its-tightening-macos-full-disk-access-controls-due-to-new-risks-from-ai-agents/
-  - title: "Change Privacy & Security settings on Mac - Apple Support"
+  - title: Change Privacy & Security settings on Mac - Apple Support
     url: https://support.apple.com/guide/mac-help/control-access-to-your-mac-mchl211c911f/mac
-  - title: "Control access to files and folders on Mac - Apple Support"
+  - title: Control access to files and folders on Mac - Apple Support
     url: https://support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac
 ---
 
-Apple says it will add controls around Full Disk Access on macOS, and it names AI agents as a growing risk. The announcement is a post on Apple's developer news site dated 2 October 2026 ([Apple](https://developer.apple.com/news/?id=p6zjojqw)). [TechCrunch](https://techcrunch.com/2026/10/02/apple-says-its-tightening-macos-full-disk-access-controls-due-to-new-risks-from-ai-agents/) reported it the same day.
+Apple says it will add controls around Full Disk Access on macOS, and it names AI agents as a growing risk. The announcement is a post on Apple's developer news site dated 2 October 2026 ([Apple](https://developer.apple.com/news/?id=p6zjojqw)).
 
 ## What Apple says
 
@@ -39,11 +37,9 @@ Apple says Full Disk Access largely sidesteps the controls that protect private 
 
 Apple says it will introduce additional controls so that users who want to grant this access can only do so with "very explicit user action". It also says that as AI agents become more capable and autonomous, the risks of this access will grow substantially.
 
-## What the sources do not say
+## What Apple has not specified
 
-The Apple post gives no macOS version and no date. It does not describe how the new controls will work, and it does not say whether existing grants will be affected. TechCrunch reports no version or date either, and names no Apple spokesperson. The statements come from the developer post.
-
-TechCrunch also reports that an Inc. columnist said Meta's Muse agent read his private messages, which Meta disputed, and that Wired reported a flaw in ChatGPT's Mac app. We have not verified either.
+Apple gives no macOS version or rollout date. Its post does not describe how the new controls will work or say whether existing Full Disk Access grants will be affected. Those implementation details remain open.
 
 ## What to check now
 
@@ -56,4 +52,4 @@ If you ship or run coding agents, terminals or IDE helpers on a Mac:
 3. Try the narrower Files & Folders setting, which controls access to locations such as Desktop, Downloads and Documents ([Apple Support](https://support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac)). See whether your tool works with that alone.
 4. Tell your users in your docs why you ask for the access and what you read with it.
 
-These steps are our suggestions. Apple has not issued them. Watch [Apple Developer News](https://developer.apple.com/news/) for the version and the date.
+These steps are our suggestions. Apple has not issued them. Watch [Apple Developer News](https://developer.apple.com/news/?id=p6zjojqw) for the version and the date.
