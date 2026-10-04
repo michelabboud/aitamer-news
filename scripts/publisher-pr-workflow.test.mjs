@@ -53,6 +53,15 @@ test('the check step is given the head branch and the posts App’s id, next to 
   assert.equal(check.run, 'node scripts/check-publisher-paths.mjs pr --base "$BASE_SHA" --head "$HEAD_SHA"');
 });
 
+test('the Grok check gets trusted repository metadata and installs no proposal dependencies', () => {
+  assert.equal(check.env.GROK_ACTOR_ID, '${{ vars.GROK_ACTOR_ID }}');
+  assert.equal(check.env.PR_HEAD_REPO, '${{ github.event.pull_request.head.repo.full_name }}');
+  assert.equal(check.env.PR_BASE_REPO, '${{ github.repository }}');
+  const run = runInstall({ POSTS_ACTOR_ID: POSTS, PR_AUTHOR_ID: '9900003' });
+  assert.equal(run.status, 0, run.output);
+  assert.deepEqual(run.calls, []);
+});
+
 test('the posts App’s pull request installs the lockfile with no install scripts', () => {
   for (const posts of [POSTS, ` ${POSTS} `]) {
     const run = runInstall({ POSTS_ACTOR_ID: posts, PR_AUTHOR_ID: POSTS });

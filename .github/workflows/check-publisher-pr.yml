@@ -112,5 +112,8 @@ jobs:
           PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
           POSTS_ACTOR_ID: ${{ vars.POSTS_ACTOR_ID }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GROK_ACTOR_ID: ${{ vars.GROK_ACTOR_ID }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_BASE_REPO: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/check-publisher-paths.mjs pr --base "$BASE_SHA" --head "$HEAD_SHA"
