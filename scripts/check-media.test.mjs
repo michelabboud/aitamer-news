@@ -4,10 +4,11 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
-import { SITE_IMAGES, bareEtag, judge, main, md5Hex } from './check-media.mjs';
+import { SITE_IMAGES, bareEtag, collect, judge, main, md5Hex } from './check-media.mjs';
 import { quietlyAsync, tempDir } from './test-support.mjs';
 
 const MEDIA = 'https://media.aitamer.news';
+const BOTS = 'https://bots.aitamer.news';
 const post = (slug, { hero = `${MEDIA}/heroes/${slug}.jpg`, draft = false, pubDate = '2026-09-24T09:00:00Z' } = {}) =>
   `---\ntitle: ${slug}\npubDate: ${pubDate}\ndraft: ${draft}\nheroImage: ${hero}\n---\n\nBody.\n`;
 const md5 = (text) => createHash('md5').update(text).digest('hex');
@@ -220,5 +221,99 @@ test('the default share card is checked too: missing, it fails every run', async
     assert.match(output, /site\/share-card\.jpg \(the default share image/);
   } finally {
     await without.close();
+  }
+});
+
+test('mixed origins request bot heroes from the bot host and migration files and share card from the original host', async () => {
+  const { postsDir, localDir } = fixture();
+  const botKey = 'heroes/b-0123abcd.jpg';
+  writeFileSync(join(postsDir, 'b.md'), post('b', { hero: `${BOTS}/${botKey}` }));
+  const media = await host({ ...ALL, 'site/share-card.jpg': 'CARD' });
+  const bots = await host({ [botKey]: 'BOT' });
+  try {
+    const { targets } = collect({ postsDir });
+    assert.equal(targets.find((target) => target.key === botKey)?.origin, BOTS);
+    const { result, output } = await run(['--local', localDir], { postsDir, origin: media.origin, botOrigin: bots.origin, siteImages: SITE_IMAGES });
+    assert.equal(result, 0, output);
+    assert.deepEqual(bots.seen, [`HEAD ${botKey}`]);
+    assert.ok(!media.seen.includes(`HEAD ${botKey}`), 'no request for a bot key on the main host');
+    assert.ok(media.seen.includes('HEAD heroes/b.jpg'), 'legacy local migration still checks main host');
+    assert.ok(media.seen.includes('HEAD site/share-card.jpg'));
+    assert.match(output, /4\/4 post heroes/);
+    assert.ok(output.includes(media.origin) && output.includes(bots.origin), 'summary names both actual hosts');
+  } finally {
+    await media.close();
+    await bots.close();
+  }
+});
+
+test('a missing live bot hero fails even when the same key exists on the main host', async () => {
+  const { postsDir } = fixture();
+  const botKey = 'heroes/b-0123abcd.jpg';
+  writeFileSync(join(postsDir, 'b.md'), post('b', { hero: `${BOTS}/${botKey}` }));
+  const media = await host({ ...ALL, [botKey]: 'WRONG BUCKET' });
+  const bots = await host({});
+  try {
+    const { result, output } = await run([], { postsDir, origin: media.origin, botOrigin: bots.origin });
+    assert.equal(result, 1, output);
+    assert.ok(output.includes(`${bots.origin}/${botKey}`));
+    assert.match(output, /b-0123abcd\.jpg .*answered 404, expected 200/);
+    assert.deepEqual(bots.seen, [`HEAD ${botKey}`]);
+    assert.ok(!media.seen.includes(`HEAD ${botKey}`));
+  } finally {
+    await media.close();
+    await bots.close();
+  }
+});
+
+test('missing draft and scheduled bot heroes warn until the scheduled hero becomes live', async () => {
+  const { postsDir } = fixture();
+  writeFileSync(join(postsDir, 'c.md'), post('c', { draft: true, hero: `${BOTS}/heroes/c-0123abcd.jpg` }));
+  writeFileSync(join(postsDir, 'e.md'), post('e', { hero: `${BOTS}/heroes/e-0123abcd.jpg`, pubDate: '2026-10-01T09:00:00Z' }));
+  const media = await host(ALL);
+  const bots = await host({});
+  try {
+    const options = { postsDir, origin: media.origin, botOrigin: bots.origin };
+    const before = await run([], { ...options, now: new Date('2026-10-01T08:59:59Z') });
+    assert.equal(before.result, 0, before.output);
+    assert.match(before.output, /not live yet .*heroes\/c-0123abcd\.jpg .*answered 404/);
+    assert.match(before.output, /not live yet .*heroes\/e-0123abcd\.jpg .*answered 404/);
+    const after = await run([], { ...options, now: new Date('2026-10-01T09:00:00Z') });
+    assert.equal(after.result, 1, after.output);
+    assert.match(after.output, /e-0123abcd\.jpg .*answered 404, expected 200/);
+    assert.match(after.output, /not live yet .*heroes\/c-0123abcd\.jpg/);
+  } finally {
+    await media.close();
+    await bots.close();
+  }
+});
+
+test('lookalike hosts and malformed bot keys are never requested', async () => {
+  const { postsDir } = fixture();
+  const invalid = [
+    'https://bots.aitamer.news.evil.example/heroes/x-0123abcd.jpg',
+    'https://bots.aitamer.news@evil.example/heroes/x-0123abcd.jpg',
+    'https://user@bots.aitamer.news/heroes/x-0123abcd.jpg',
+    'https://bots.aitamer.news:443/heroes/x-0123abcd.jpg',
+    `${BOTS}/heroes/x-0123abcd.jpg?redirect=https://evil.example`,
+    `${BOTS}/heroes/x-0123abcd.jpg#top`,
+    `${BOTS}/heroes/other-0123abcd.jpg`,
+    `${BOTS}/heroes/x.jpg`,
+    `${BOTS}/posts/x-0123abcd.jpg`,
+    `${BOTS}/heroes/../heroes/x-0123abcd.jpg`,
+  ];
+  const media = await host(ALL);
+  const bots = await host({});
+  try {
+    for (const hero of invalid) {
+      writeFileSync(join(postsDir, 'x.md'), post('x', { hero }));
+      const { result, output } = await run([], { postsDir, origin: media.origin, botOrigin: bots.origin });
+      assert.equal(result, 0, output); // check:posts reports these invalid URLs; media checks never request them.
+    }
+    assert.deepEqual(bots.seen, []);
+    assert.ok(media.seen.every((line) => ['HEAD heroes/a.jpg', 'HEAD heroes/b.jpg', 'HEAD heroes/c.jpg'].includes(line)));
+  } finally {
+    await media.close();
+    await bots.close();
   }
 });

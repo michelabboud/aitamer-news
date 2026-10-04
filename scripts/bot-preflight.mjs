@@ -101,7 +101,7 @@ export function heroProblems(data) {
   const out = [];
   const hero = typeof data.heroImage === 'string' ? data.heroImage.trim() : '';
   if (!hero) out.push('no heroImage: every post needs a hero (upload the image to the media host first)');
-  else if (hero.startsWith('/')) out.push(`heroImage ${hero} is a repository path: heroes live on the media host (https://media.aitamer.news/heroes/...), never in the repository`);
+  else if (hero.startsWith('/')) out.push(`heroImage ${hero} is a repository path: heroes live on the media hosts (https://bots.aitamer.news/heroes/<slug>-<8 lowercase hex>.jpg or https://media.aitamer.news/heroes/...), never in the repository`);
   const alt = typeof data.heroAlt === 'string' ? data.heroAlt.trim() : '';
   if (hero && !alt) out.push('no heroAlt: add one true sentence saying what the picture shows');
   return out;

@@ -82,3 +82,38 @@ test('isOwnHeroUrl accepts the legacy URL and the content-addressed one, for the
   assert.equal(isOwnHeroUrl('a', undefined), false);
   assert.equal(isOwnHeroUrl('a', 7), false);
 });
+
+test('bot heroes require the own slug and an eight-character lowercase hex hash on the exact host', () => {
+  const own = 'https://bots.aitamer.news/heroes/a-0123abcd.jpg';
+  assert.equal(isOwnHeroUrl('a', own), true);
+  for (const value of [
+    'https://bots.aitamer.news/heroes/a.jpg',
+    'https://bots.aitamer.news/heroes/b-0123abcd.jpg',
+    'https://bots.aitamer.news/heroes/a-0123ABCD.jpg',
+    'https://bots.aitamer.news/heroes/a-0123abc.jpg',
+    'https://bots.aitamer.news/heroes/a-0123abcde.jpg',
+    'https://bots.aitamer.news/heroes/a-0123abcd\n.jpg',
+    'https://bots.aitamer.news/heroes/a-0123abcd\r.jpg',
+    `${own}?v=2`, `${own}#top`, `${own}/`,
+    'https://bots.aitamer.news.evil.example/heroes/a-0123abcd.jpg',
+    'https://bots.aitamer.news@evil.example/heroes/a-0123abcd.jpg',
+    'https://user@bots.aitamer.news/heroes/a-0123abcd.jpg',
+    'https://bots.aitamer.news:443/heroes/a-0123abcd.jpg',
+    'https://BOTS.aitamer.news/heroes/a-0123abcd.jpg',
+    'http://bots.aitamer.news/heroes/a-0123abcd.jpg',
+    'https://bots.aitamer.news/heroes/%61-0123abcd.jpg',
+    'https://bots.aitamer.news/posts/a-0123abcd.jpg',
+  ]) assert.equal(isOwnHeroUrl('a', value), false, value);
+});
+
+test('local media overrides handle the bot origin while leaving lookalikes untouched', () => {
+  const hero = 'https://bots.aitamer.news/heroes/a-0123abcd.jpg';
+  assert.equal(resolveMedia(hero, '/media-local/'), '/media-local/heroes/a-0123abcd.jpg');
+  assert.equal(resolveMedia('https://bots.aitamer.news', '/media-local/'), '/media-local');
+  assert.equal(resolveMedia(hero), hero);
+  for (const url of [
+    'https://bots.aitamer.news.evil.example/heroes/a-0123abcd.jpg',
+    'https://bots.aitamer.news@evil.example/heroes/a-0123abcd.jpg',
+    'https://user@bots.aitamer.news/heroes/a-0123abcd.jpg',
+  ]) assert.equal(resolveMedia(url, '/media-local'), url);
+});

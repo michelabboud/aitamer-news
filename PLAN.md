@@ -16,3 +16,5 @@ Three plans are running. Their documents live in the private operations reposito
 | [Reviewed queue publication](docs/adr/0025-reviewed-publication-admission.md) | Review every queued draft, preserve exclusions and source evidence, publish one approved article every 30 minutes with recovery and durable receipts | admission disabled by Michel 2026-10-04; preserve reviewed posts and restore pubDate publishing | 2026-10-04 | 2026-10-04 (Michel) | 2026-10-04 |
 
 When a plan is written it goes under `docs/plans/YYYY-MM-DD-slug.md` and gets a row here. A plan not listed here as approved has no go.
+
+| [Bot hero origin](docs/adr/0028-isolated-bot-hero-origin.md) | Support Michel's isolated bot-media domain and provide exact Grok posting/image/author instructions | implementation checked; review and deployment pending | 2026-10-04 | 2026-10-04 (Michel) | 2026-10-04 |

@@ -68,3 +68,5 @@
 - **2026-10-04** — 0.2.52: complete 180-article queue prepared in PR #165, with 171 new files, nine existing updates, and one metadata-only quarantine. All 766 tests and source/media checks pass. The 211-article baseline is unchanged. Final independent review, isolated-artifact proof, bootstrap and timer activation remain pending.
 
 - **2026-10-04** — 0.2.53: Michel requested disabling the queue requirement. Restore the pre-admission publishing workflows; queue and receipt implementation retained inactive. Verification and production deployment pending.
+
+- **2026-10-04** — 0.2.54: Michel provisioned bots.aitamer.news and requested exact Grok posting instructions. Add an exact bot-media origin with per-host hero checks; preserve existing publishing and media. 773 tests, build, source checks and existing media checks passed; independent review and deployment pending.

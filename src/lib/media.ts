@@ -1,13 +1,19 @@
 /**
- * Hero images live on R2, served from media.aitamer.news (plan §5.5, §7.3). This module is the one
- * place that knows the media host and how to rewrite it for local/offline development, so every
+ * Hero images live on R2, served from media.aitamer.news or bots.aitamer.news. This module is the one
+ * place that knows the media hosts and how to rewrite them for local/offline development, so every
  * consumer of `heroImage` resolves it the same way.
  */
 
 /** Where hero images are served from in production. */
 export const MEDIA_ORIGIN = 'https://media.aitamer.news';
 
-/** The full URL a bot writes into a post's `heroImage` frontmatter for a given slug. */
+/** Separate R2 origin for bot-uploaded, content-addressed heroes. */
+export const BOT_MEDIA_ORIGIN = 'https://bots.aitamer.news';
+
+/** Exact production origins; prefixes, userinfo, ports and lookalikes never add a host. */
+export const MEDIA_ORIGINS: readonly string[] = Object.freeze([MEDIA_ORIGIN, BOT_MEDIA_ORIGIN]);
+
+/** The legacy, unhashed hero URL on the original media host, retained for existing posts. */
 export function heroUrl(slug: string): string {
   return `${MEDIA_ORIGIN}/heroes/${slug}.jpg`;
 }
@@ -19,14 +25,17 @@ const HERO_HASH = /^[0-9a-f]{8}$/;
  * Whether `value` is this post's own hero on the media host: `heroUrl(slug)` (every hero before 2026-10-02, and
  * any that never changes), or `https://media.aitamer.news/heroes/<slug>-<8 lowercase hex>.jpg`, the form a
  * replaced hero takes so its address changes with its picture and can be cached for a year (ADR 0024).
+ * Bot heroes on bots.aitamer.news require that same hashed form; no unhashed bot URL is accepted.
  * Byte for byte: no other host, scheme, case, query, fragment, encoding or other slug's image.
  */
 export function isOwnHeroUrl(slug: string, value: unknown): boolean {
   if (typeof value !== 'string') return false;
   if (value === heroUrl(slug)) return true;
-  const prefix = `${MEDIA_ORIGIN}/heroes/${slug}-`;
-  if (!value.startsWith(prefix) || !value.endsWith('.jpg')) return false;
-  return HERO_HASH.test(value.slice(prefix.length, value.length - '.jpg'.length));
+  return MEDIA_ORIGINS.some((origin) => {
+    const prefix = `${origin}/heroes/${slug}-`;
+    if (!value.startsWith(prefix) || !value.endsWith('.jpg')) return false;
+    return HERO_HASH.test(value.slice(prefix.length, value.length - '.jpg'.length));
+  });
 }
 
 /**
@@ -37,8 +46,9 @@ export function isOwnHeroUrl(slug: string, value: unknown): boolean {
  */
 export const DEFAULT_SOCIAL_IMAGE = `${MEDIA_ORIGIN}/site/share-card.jpg`;
 
-function isMediaUrl(value: string): boolean {
-  return value === MEDIA_ORIGIN || value.startsWith(`${MEDIA_ORIGIN}/`);
+/** The exact allowlisted origin of a media URL, if any, without URL normalisation. */
+export function mediaOrigin(value: string): string | undefined {
+  return MEDIA_ORIGINS.find((origin) => value === origin || value.startsWith(`${origin}/`));
 }
 
 /**
@@ -52,7 +62,7 @@ function readMediaBase(): string | undefined {
 }
 
 /**
- * Rewrites a URL on {@link MEDIA_ORIGIN} to `mediaBase`, for local or offline development
+ * Rewrites a URL on either allowlisted media origin to `mediaBase`, for local or offline development
  * (`PUBLIC_MEDIA_BASE=/media-local`, plan §7.1). Every other value — including the pre-migration
  * `/heroes/<slug>.jpg` repo-relative path and any third-party URL — passes through unchanged.
  * Never introduces a double slash, regardless of trailing slashes on `mediaBase`.
@@ -65,8 +75,9 @@ export function resolveMedia(
   value: string,
   mediaBase: string | undefined = readMediaBase(),
 ): string {
-  if (!mediaBase || !isMediaUrl(value)) return value;
-  const suffix = value.slice(MEDIA_ORIGIN.length); // '' or e.g. '/heroes/slug.jpg'
+  const origin = mediaOrigin(value);
+  if (!mediaBase || !origin) return value;
+  const suffix = value.slice(origin.length); // '' or e.g. '/heroes/slug.jpg'
   const base = mediaBase.replace(/\/+$/, '');
   return suffix ? `${base}${suffix}` : base;
 }
