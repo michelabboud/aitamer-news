@@ -11,7 +11,7 @@ wildness:
   rating: 1
   verified: "Every logrotate behaviour is checked against the logrotate(8) manual page"
   claimed: "The choice of method per service is the author's advice"
-verdict: "Prefer rename-and-reopen. Use copytruncate only for a program that cannot reopen its log, and accept that it can drop a few lines."
+verdict: "Prefer rename-and-reopen. Use copytruncate only for a program that cannot reopen its log, and accept that it can drop lines written during the copy."
 ---
 
 A log file that grows forever eventually fills the disk. [logrotate](https://man7.org/linux/man-pages/man8/logrotate.8.html) is the usual answer on Linux, and it has two basic ways of rotating a file. They fail differently.
@@ -33,12 +33,12 @@ The price is in the manual too: there is "a very small time slice between copyin
 ## Three options that matter more than they look
 
 - **`rotate count`**: how many old logs to keep. The manual gives the default as 0, which means old versions are removed instead of kept. If you want history, set it.
-- **`delaycompress`**: leaves the most recent rotated file uncompressed until the next cycle. That helps when a program may still be writing to it for a while.
+- **`delaycompress`**: when used with `compress`, leaves the most recent rotated file uncompressed until the next cycle. On its own it has no effect. That helps when a program may still be writing to it for a while.
 - **`missingok`** and **`notifempty`**: don't fail on a missing log, and don't rotate an empty one.
 
 ## Choosing
 
-If your program supports reopening its log on a signal, use rename with `create` and a `postrotate` that sends the signal. Use `copytruncate` only for programs that can't reopen, and accept that a busy log can lose a few lines at each rotation.
+If your program supports reopening its log on a signal, use rename with `create` and a `postrotate` that sends the signal. Use `copytruncate` only for programs that can't reopen, and accept that a busy log can lose whatever is written between the copy and the truncate at each rotation.
 
 **Lantern note:** a rotation is safe when the program writing the log knows it happened.
 

@@ -32,13 +32,13 @@ Cron and systemd timers both run a job on a schedule, and on a good day they loo
 
 ## 1. The machine was off at the scheduled time
 
-Cron assumes the machine is always on. The [anacron manual](https://man7.org/linux/man-pages/man8/anacron.8.html) puts it that way, in describing itself: "Unlike cron(8), it does not assume that the machine is running continuously." On many systems the daily, weekly and monthly jobs are handed to anacron for that reason, as [cron(8)](https://man7.org/linux/man-pages/man8/cron.8.html) notes.
+Cron assumes the machine is always on. The [anacron manual](https://man7.org/linux/man-pages/man8/anacron.8.html) puts it that way, in describing itself: "Unlike cron(8), it does not assume that the machine is running continuously." The [cron(8)](https://man7.org/linux/man-pages/man8/cron.8.html) page cited here says that its default daily, weekly and monthly jobs are now run through anacron.
 
-A [systemd timer](https://man7.org/linux/man-pages/man5/systemd.timer.5.html) with `Persistent=true` stores when it last triggered. If a run was due while the timer was inactive, for example while the system was powered down, the service runs immediately when the timer comes back.
+A [systemd timer](https://man7.org/linux/man-pages/man5/systemd.timer.5.html) with `Persistent=true` stores when it last triggered. If a run was due while the timer was inactive, for example while the system was powered down, the service is triggered as soon as the timer comes back, subject to any `RandomizedDelaySec=` delay. The setting only affects timers that use `OnCalendar=`.
 
 ## 2. The last run is still going
 
-systemd's answer is in its manual: if the unit is still active when the timer elapses, "it is not restarted, but simply left running. There is no concept of spawning new service instances in this case." A slow run delays the next one instead of overlapping it.
+systemd's answer is in its manual: if the unit is still active when the timer elapses, "it is not restarted, but simply left running. There is no concept of spawning new service instances in this case." A slow run never gets a second copy started beside it.
 
 Cron's manual pages say nothing that prevents an overlap. If two copies must never run together, wrap the command in [`flock -n`](https://man7.org/linux/man-pages/man1/flock.1.html), which fails instead of waiting when the lock is already held.
 
@@ -50,7 +50,7 @@ A timer runs a systemd service, and unless configured otherwise the service's ou
 
 ## 4. Who hears about a failure
 
-With cron, the output mail is the signal, if mail works. With systemd, a service can name other units in [`OnFailure=`](https://man7.org/linux/man-pages/man5/systemd.unit.5.html), and those are started when it enters the failed state. Point it at a unit that sends the alert you actually read.
+Cron mails a job's output. A job that exits with an error and prints nothing leaves nothing to mail, so to hear about failures, the job or a wrapper around it has to check the exit status and report it. With systemd, a service can name other units in [`OnFailure=`](https://man7.org/linux/man-pages/man5/systemd.unit.5.html), and those are started when it enters the failed state. Point it at a unit that sends the alert you actually read.
 
 ## One more: everyone at midnight
 
@@ -58,7 +58,7 @@ Timers have `RandomizedDelaySec=`, which delays each run by a random amount up t
 
 ## Choosing
 
-For a job whose failures matter, a systemd timer answers all four questions with settings you can read in the unit files. Cron can do the same with anacron, `flock` and working mail, as long as you set each one up yourself.
+For a job whose failures matter, a systemd timer answers all four questions with settings you can read in the unit files. Cron can do the same with anacron, `flock`, working mail and a wrapper that reports a nonzero exit status, as long as you set each one up yourself.
 
 **Lantern note:** a schedule is the easy part. Decide what happens when the job doesn't run, runs twice, or fails.
 

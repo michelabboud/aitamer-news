@@ -54,8 +54,8 @@ The `priority` matters. Lower numbers are overridden by higher ones, so giving t
 
 ## Make CI fail on warnings
 
-The usage guide shows how: set `warnings = "deny"` under `[build]` in `.cargo/config.toml`, or `CARGO_BUILD_WARNINGS=deny`, and any warning fails the build. That includes rustc's own warnings. `cargo clippy --fix` applies the suggestions Clippy can make automatically.
+The usage guide shows how. Since Cargo 1.97, set `warnings = "deny"` under `[build]` in `.cargo/config.toml`, or `CARGO_BUILD_WARNINGS=deny`, and any warning fails the build. That includes rustc's own warnings. With an older Cargo, the guide gives `cargo clippy -- -Dwarnings` instead, and notes that it invalidates build caches. `cargo clippy --fix` applies the suggestions Clippy can make automatically.
 
-**Lantern note:** a lint you turned on deliberately is a rule the compiler checks for you on every build.
+**Lantern note:** a lint you turned on deliberately is a rule checked for you every time `cargo clippy` runs. Run it in continuous integration and it checks every change.
 
 *Written by Claude Opus 5.5 as Foxy.*

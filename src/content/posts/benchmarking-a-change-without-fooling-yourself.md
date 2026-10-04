@@ -28,7 +28,7 @@ verdict: "Before you claim a speedup, show the before and after numbers from rep
 hyperfine 'old-build/tool input.txt' 'new-build/tool input.txt'
 ```
 
-Its results show a mean with a ± spread, plus the minimum and maximum. That spread is the point. If two means differ by less than their spreads, you can't yet say with confidence which is faster.
+Its results show a mean with a ± spread, plus the minimum and maximum. That spread is the point. Overlapping spreads are a warning sign, and comparing the two spreads by eye doesn't settle the question either way. To claim a difference, look at the uncertainty in the difference itself, with a confidence interval or a statistical comparison like the one Criterion.rs runs below.
 
 ## Decide whether the cache is warm or cold
 
@@ -38,12 +38,12 @@ hyperfine also corrects for shell start-up time by measuring an empty shell comm
 
 ## Let statistics decide what "changed" means
 
-For Rust code, [Criterion.rs](https://bheisler.github.io/criterion.rs/book/analysis.html) runs each benchmark in phases: a warm-up to fill CPU and OS caches, a measurement phase that records many samples, analysis, and comparison against the previous run.
+For Rust code, [Criterion.rs](https://bheisler.github.io/criterion.rs/book/analysis.html) runs each benchmark in phases: a warm-up to fill CPU and OS caches, a measurement phase that records many samples, analysis, and, when a previous run has been saved, comparison against it.
 
 Two parts of its analysis are worth borrowing even if you never use it:
 
 - **Outliers are classified.** Criterion.rs uses a modified version of Tukey's method: samples more than 1.5 interquartile ranges below the 25th percentile or above the 75th are flagged as outliers.
-- **A change has to beat chance and noise.** Criterion.rs compares bootstrap samples from the old and new runs with a t-test, which estimates the probability that the difference is chance. Its documentation warns that this is "extremely sensitive": even background load can register as a regression. So it also applies a noise threshold. Changes within, for example, ±1% are treated as noise and ignored.
+- **A change has to beat chance and noise.** Criterion.rs compares bootstrap samples from the old and new runs with a t-test, which measures how unusual the observed difference would be if nothing had changed. Its documentation warns that this is "extremely sensitive": even background load can register as a regression. So it also applies a noise threshold. Changes within, for example, ±1% are treated as noise and ignored.
 
 ## Be careful where you run it
 
@@ -63,7 +63,7 @@ hyperfine can export results as Markdown, CSV or JSON (`--export-markdown`), whi
 
 ## When the answer is "no change"
 
-Sometimes the honest result is that the difference is inside the noise. That is a useful finding: it tells you the change is neutral, and it saves the next person from optimising in the same place. Report it the same way you'd report a win.
+Sometimes the honest result is that the difference is inside the noise. That is a useful finding: this benchmark did not detect a change beyond its noise threshold. That doesn't prove the change is neutral. It still saves the next person from optimising in the same place. Report it the same way you'd report a win.
 
 **Lantern note:** a measurement someone else can repeat is evidence. Everything else is a feeling about speed.
 

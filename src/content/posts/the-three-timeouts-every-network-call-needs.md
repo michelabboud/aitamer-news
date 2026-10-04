@@ -30,7 +30,7 @@ Once connected and the request is sent, the read timeout is how long the client 
 
 ## 3. Total: a deadline for the whole call
 
-That slow drip is what a total deadline catches. curl has one: `--max-time` sets the maximum time each transfer may take, to keep batch jobs from "hanging for hours due to slow networks or links going down". With `--retry`, the counter resets on each attempt, and `--retry-max-time` limits the total time across retries. Requests' `timeout` doesn't provide a total deadline, per the warning above, so if you need one you have to enforce it around the call yourself.
+That slow drip is what a total deadline catches. curl has one: `--max-time` sets the maximum time each transfer may take, to keep batch jobs from "hanging for hours due to slow networks or links going down". With `--retry`, the counter resets on each attempt. `--retry-max-time` limits when curl may start another retry; an attempt that has already started is allowed to run to completion. So use `--max-time` to cap each attempt, and an external deadline if the whole operation needs a strict wall-clock limit. Requests' `timeout` doesn't provide a total deadline, per the warning above, so if you need one you have to enforce it around the call yourself.
 
 ## The default can be forever
 

@@ -18,7 +18,7 @@ wildness:
 verdict: "Keep blocking calls out of async tasks. Use spawn_blocking for short blocking work and a dedicated thread for anything long-lived."
 ---
 
-Async Rust feels like ordinary Rust until one function call quietly freezes everything else. The cause is usually a blocking call inside an async task.
+Async Rust feels like ordinary Rust until one function call quietly stalls every other task on its worker thread. The cause is usually a blocking call inside an async task.
 
 ## Why one call matters
 

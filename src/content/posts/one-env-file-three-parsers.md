@@ -29,7 +29,7 @@ LEVEL=info # verbose later
 ```
 
 - **Compose** documents that [inline comments for unquoted values must be preceded with a space](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/), so the value is `info`.
-- **systemd** ignores only lines that *start* with `;` or `#`, and for unquoted values [interior whitespace "is preserved verbatim"](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). The value is `info # verbose later`.
+- **systemd** treats only lines that *start* with `;` or `#` as comments, so an inline `#` stays in an unquoted value, and for unquoted values [interior whitespace "is preserved verbatim"](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). The value is `info # verbose later`.
 - **A POSIX shell** treats a `#` that starts a word as the [start of a comment](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html), so the value is `info`.
 
 Two out of three agree, and the service run by systemd gets a log level it may not recognise.
@@ -56,11 +56,11 @@ GREETING=hello world
 
 ## And `docker run --env-file`
 
-The [`docker run` reference](https://docs.docker.com/reference/cli/docker/container/run/) documents `--env-file` only by example: plain `VAR=value` lines and a `#` comment line. It doesn't describe quoting at all. Treat anything beyond plain lines as untested until you've tried it.
+The [`docker run` reference](https://docs.docker.com/reference/cli/docker/container/run/) gives the syntax for `--env-file`: `<variable>=value`, or a bare `<variable>` that takes its value from your local environment. Lines beginning with `#` are comments, and a `#` anywhere else in a line is part of the value. It doesn't describe quoting at all. Treat anything beyond plain lines as untested until you've tried it.
 
 ## Keeping one file for everyone
 
-If one file must feed several readers, use the subset they all read the same way: one `KEY=value` per line, comments on their own lines, and no spaces, quotes or backslashes in values. Anything that needs more belongs in a file only one tool reads.
+If one file must feed several readers, use the subset they all read the same way: one `KEY=value` per line, comments on their own lines, and values made only of letters, digits and a few safe characters such as `.`, `-`, `_`, `/` and `:`. No spaces, quotes, backslashes, `$` or other shell syntax: Compose and the shell both expand `$` in unquoted values. A shell that sources the file also needs `set -a`, or an `export` for each variable, before child processes see them. Anything that needs more belongs in a file only one tool reads.
 
 **Lantern note:** an env file has no single format. It means whatever the program reading it decides.
 

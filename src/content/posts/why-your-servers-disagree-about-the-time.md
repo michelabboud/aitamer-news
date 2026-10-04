@@ -1,6 +1,6 @@
 ---
 title: "Why your servers disagree about the time"
-description: "Two machines' logs that don't line up usually mean one clock isn't synchronised, or someone mixed time zones. How to check sync on Linux, and which clock to use for timestamps and for durations."
+description: "Two machines' logs that don't line up can mean one clock isn't synchronised, or that time zones got mixed. How to check sync on Linux, and which clock to use for timestamps and for durations."
 section: devops
 tags: [time, ntp, chrony, linux, logs]
 draft: false
@@ -20,11 +20,11 @@ wildness:
 verdict: "Check that every machine says it is synchronised, log in UTC with an explicit offset, and measure durations with a monotonic clock."
 ---
 
-You line up the logs from two servers to trace one request, and the second machine seems to answer before the first one asked. Usually one of two things is wrong: a clock that isn't synchronised, or a time zone mixed in where it shouldn't be.
+You line up the logs from two servers to trace one request, and the second machine seems to answer before the first one asked. Two possible causes are worth checking first: a clock that isn't synchronised, and a time zone mixed in where it shouldn't be.
 
 ## Is this machine synchronised?
 
-On a systemd-based Linux system, [`timedatectl status`](https://man7.org/linux/man-pages/man1/timedatectl.1.html) shows local time, universal time, the time zone, and two lines that answer the question: `System clock synchronized: yes` and whether the `NTP service` is active. `timedatectl set-ntp true` turns network time synchronisation on.
+On a systemd-based Linux system, [`timedatectl status`](https://man7.org/linux/man-pages/man1/timedatectl.1.html) shows local time, universal time, the time zone, and two lines that answer the question: `System clock synchronized: yes` and whether the `NTP service` is active. `timedatectl set-ntp true` enables and starts the first available network time synchronisation service, if there is one; run `timedatectl status` again afterwards to see whether the clock is synchronised.
 
 If the machine runs chrony, [`chronyc tracking`](https://chrony-project.org/doc/4.6/chronyc.html) goes further. Its `System time` line says how far the system clock is from NTP time, in seconds, fast or slow. The documentation's example shows a clock 0.000006523 seconds slow. A reference ID of `7F7F0101` with no server name means the machine isn't synchronised to any external source.
 
