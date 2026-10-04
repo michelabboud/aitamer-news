@@ -97,12 +97,23 @@ export function validateSelection(selection) {
     requireThat(prior.visible.every((slug) => state.visible.includes(slug)) && additions.length <= 1 &&
       (additions[0] ?? null) === selection.selected, 'publication receipt visible-set difference is invalid');
     if (selection.selected !== null) requireThat(selection.reason === 'publish' && state.lastPublication.slug === selection.selected &&
-      state.lastPublication.runId === state.lastDeployment.runId && state.lastPublication.attempt === state.lastDeployment.attempt,
+      state.lastPublication.runId === state.lastDeployment.runId && state.lastPublication.attempt === state.lastDeployment.attempt &&
+      state.lastPublication.sourceSha === state.lastDeployment.sourceSha,
       'publication receipt selected article is invalid');
     else requireThat(['retained', 'recovery', 'spacing', 'nothing_due'].includes(selection.reason), 'publication receipt reason is invalid');
     if (selection.reason === 'retained') requireThat(digest(prior.lastPublication) === digest(state.lastPublication), 'retained publication clock changed');
+    if (selection.reason === 'recovery') requireThat(state.lastPublication.slug === prior.lastPublication.slug &&
+      state.lastPublication.runId === state.lastDeployment.runId && state.lastPublication.attempt === state.lastDeployment.attempt &&
+      state.lastPublication.sourceSha === state.lastDeployment.sourceSha,
+    'recovery publication identity is invalid');
   }
   return { state, requestId };
+}
+
+/** A recovery must re-prove the last admitted article even though it adds no new slug. */
+export function expectedArticleBodySlug(selection) {
+  const { state } = validateSelection(selection);
+  return selection.selected ?? (selection.reason === 'recovery' ? state.lastPublication.slug : null);
 }
 
 /** Validate the archived, successful workflow's proof against the currently served state. */
@@ -125,10 +136,11 @@ export function validateReceiptBundle(bundle, rawLive) {
   'publication receipt workflow identity is mismatched');
   requireThat((outcome.requestId ?? null) === requestId, 'publication request identity is mismatched');
   requireThat(!['spacing', 'nothing_due'].includes(selection.reason), 'undelivered publication has no production receipt');
-  if (selection.selected === null) requireThat(productionVerification.articleBody === null, 'unexpected publication body proof');
+  const bodySlug = expectedArticleBodySlug(selection);
+  if (bodySlug === null) requireThat(productionVerification.articleBody === null, 'unexpected publication body proof');
   else {
     const body = productionVerification.articleBody;
-    requireThat(object(body) && body.slug === selection.selected && HASH.test(body.builtSha256) &&
+    requireThat(object(body) && body.slug === bodySlug && HASH.test(body.builtSha256) &&
       body.builtSha256 === body.servedSha256, 'publication article body was not verified');
   }
   return { state: live, deploymentId: outcome.productionDeployment, runId: outcome.runId,

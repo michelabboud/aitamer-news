@@ -6,7 +6,7 @@ import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { parse, serialize } from 'parse5';
-import { acknowledgedAt, digest, isoTime, selectPublication, sha256, slugs, validateQueue, validateReceiptBundle, validateRequestId, validateSelection, validateState } from './publication.mjs';
+import { acknowledgedAt, digest, expectedArticleBodySlug, isoTime, selectPublication, sha256, slugs, validateQueue, validateReceiptBundle, validateRequestId, validateSelection, validateState } from './publication.mjs';
 import { assertOnlyChanged, isPublishedDraftField, pubDateOf, readFrontmatter, topLevelLine, withRaw } from './frontmatter.mjs';
 
 const SITE = 'https://aitamer.news';
@@ -25,7 +25,7 @@ export function articleBodyDigest(html) {
     for (const child of node.childNodes ?? []) visit(child);
   };
   visit(parse(html));
-  requireThat(bodies.length === 1, 'selected article must contain exactly one story body');
+  requireThat(bodies.length === 1, 'verified article must contain exactly one story body');
   return sha256(serialize(bodies[0]));
 }
 
@@ -128,10 +128,10 @@ export function verifyArtifact(root, state) {
   return { visibleCount: expected.visible.length, digest: expected.digest, state: expected };
 }
 
-function selectionReceipt(env) {
+function selectionReceipt(env, root = process.cwd()) {
   requireThat(Boolean(env.PUBLICATION_RECEIPT_DIR), 'publication selection receipt directory is required');
   const receiptDir = realpathSync(env.PUBLICATION_RECEIPT_DIR);
-  const buildDir = realpathSync(process.cwd());
+  const buildDir = realpathSync(root);
   requireThat(receiptDir !== buildDir && !receiptDir.startsWith(`${buildDir}${sep}`), 'publication selection receipt must be outside the build copy');
   const selection = JSON.parse(readFileSync(join(receiptDir, 'selection.json'), 'utf8'));
   const { state } = validateSelection(selection);
@@ -207,24 +207,24 @@ async function prepare(mode, bootstrapDigest, env) {
   console.log(`publication: ${plan.reason}; ${plan.state.visible.length} visible; selected ${plan.selected ?? 'none'}`);
 }
 
-async function verifyLive(base, env) {
+export async function verifyLive(base, env, { root = process.cwd(), fetchImpl = fetch } = {}) {
   const origin = siteBase(base);
-  const { selection, state: expected, receiptDir } = selectionReceipt(env);
-  verifyArtifact(process.cwd(), expected);
-  const live = validateState(await fetchJson(`${origin}/publication-state.json?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`));
+  const { selection, state: expected, receiptDir } = selectionReceipt(env, root);
+  verifyArtifact(root, expected);
+  const live = validateState(await fetchJson(`${origin}/publication-state.json?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`, { fetchImpl }));
   requireThat(live.digest === expected.digest, 'served publication state differs from selection');
-  const threads = await fetchJson(`${origin}/comments/threads.json?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`);
+  const threads = await fetchJson(`${origin}/comments/threads.json?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`, { fetchImpl });
   requireThat(digest(slugs(Object.keys(threads.threads ?? {}))) === digest(expected.visible), 'served threads differ from publication state');
   let articleBody = null;
-  if (selection.selected) {
-    const slug = selection.selected;
-    requireThat(expected.visible.includes(slug), 'selected article is absent from the expected live set');
-    const response = await fetch(`${origin}/posts/${encodeURIComponent(slug)}/?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`, { redirect: 'error', signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS), cache: 'no-store' });
-    requireThat(response.ok, `selected live article answered HTTP ${response.status}`);
+  const slug = expectedArticleBodySlug(selection);
+  if (slug !== null) {
+    requireThat(expected.visible.includes(slug), 'verified article is absent from the expected live set');
+    const response = await fetchImpl(`${origin}/posts/${encodeURIComponent(slug)}/?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`, { redirect: 'error', signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS), cache: 'no-store' });
+    requireThat(response.ok, `verified live article answered HTTP ${response.status}`);
     const page = await response.text();
-    const built = readFileSync(join('dist/posts', slug, 'index.html'), 'utf8');
+    const built = readFileSync(join(root, 'dist/posts', slug, 'index.html'), 'utf8');
     const servedSha256 = articleBodyDigest(page), builtSha256 = articleBodyDigest(built);
-    requireThat(servedSha256 === builtSha256, 'selected live article body differs from the checked HTML');
+    requireThat(servedSha256 === builtSha256, 'verified live article body differs from the checked HTML');
     articleBody = { slug, builtSha256, servedSha256 };
   }
   requireThat(typeof env.PUBLICATION_DEPLOYMENT_ID === 'string' && env.PUBLICATION_DEPLOYMENT_ID.trim().length > 0,

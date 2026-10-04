@@ -5,8 +5,8 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import yaml from 'js-yaml';
-import { acknowledgedAt, digest, isoTime, PUBLICATION_INTERVAL_MS, selectPublication, sealState, validateQueue, validateReceiptBundle, validateRequestId, validateState } from './publication.mjs';
-import { articleBodyDigest, fetchJson, heldPost, prepareBuildCopy, readPosts, siteBase } from './publication-cli.mjs';
+import { acknowledgedAt, digest, expectedArticleBodySlug, isoTime, PUBLICATION_INTERVAL_MS, selectPublication, sealState, validateQueue, validateReceiptBundle, validateRequestId, validateState } from './publication.mjs';
+import { articleBodyDigest, fetchJson, heldPost, prepareBuildCopy, readPosts, siteBase, verifyLive } from './publication-cli.mjs';
 import { readFrontmatter } from './frontmatter.mjs';
 
 const sourceSha = 'a'.repeat(40), hash = 'b'.repeat(64);
@@ -134,6 +134,62 @@ test('a retain receipt proves its own deployment while preserving the earlier pu
   assert.equal(plan.state.lastPublication.runId, '1');
 });
 
+test('recovery requires body proof for the earlier admitted article before another admission', () => {
+  const priorState = select().state;
+  const plan = select({ live: priorState, acknowledgment: null, runId: '3', now: time('09:05:00') });
+  assert.equal(plan.reason, 'recovery');
+  assert.equal(plan.selected, null);
+  const bundle = receiptBundle();
+  bundle.selection = { ...plan, priorState, requestId: null };
+  bundle.artifactVerification = { state: plan.state, visibleCount: plan.state.visible.length, digest: plan.state.digest };
+  bundle.productionVerification = { origin: 'https://aitamer.news', verifiedAt: '2026-10-04T09:06:00.000Z',
+    deploymentId: 'actual-deployment-id', state: plan.state, articleBody: null };
+  bundle.outcome = { ...bundle.outcome, runId: '3' };
+  assert.equal(expectedArticleBodySlug(bundle.selection), 'first');
+  assert.throws(() => validateReceiptBundle(bundle, plan.state), /body was not verified/);
+  bundle.productionVerification.articleBody = { slug: 'second', builtSha256: hash, servedSha256: hash };
+  assert.throws(() => validateReceiptBundle(bundle, plan.state), /body was not verified/);
+  bundle.productionVerification.articleBody = { slug: 'first', builtSha256: hash, servedSha256: 'c'.repeat(64) };
+  assert.throws(() => validateReceiptBundle(bundle, plan.state), /body was not verified/);
+  bundle.productionVerification.articleBody = { slug: 'first', builtSha256: hash, servedSha256: hash };
+  assert.equal(validateReceiptBundle(bundle, plan.state).runId, '3');
+  const { digest: ignoredDigest, ...unsealed } = plan.state;
+  const falseRecovery = sealState({ ...unsealed, lastPublication: { ...plan.state.lastPublication, slug: 'old' } });
+  assert.throws(() => expectedArticleBodySlug({ ...bundle.selection, state: falseRecovery }), /recovery publication identity/);
+  assert.equal(select({ live: plan.state, acknowledgment: time('09:06:00'), runId: '4', now: time('09:36:00') }).selected, 'second');
+});
+
+test('live recovery compares the previously selected story and records its proof', async () => {
+  const priorState = select().state;
+  const plan = select({ live: priorState, acknowledgment: null, runId: '3', now: time('09:05:00') });
+  const directory = mkdtempSync(join(tmpdir(), 'aitamer-recovery-body-'));
+  const build = join(directory, 'site'), receipts = join(directory, 'receipts');
+  mkdirSync(join(build, 'dist/posts/first'), { recursive: true });
+  mkdirSync(join(build, 'dist/posts/old'), { recursive: true });
+  mkdirSync(join(build, 'dist/comments'), { recursive: true });
+  mkdirSync(receipts);
+  const built = '<html><div class="article__body"><p>Checked story.</p></div></html>';
+  writeFileSync(join(build, 'dist/posts/first/index.html'), built);
+  writeFileSync(join(build, 'dist/posts/old/index.html'), '<html>Old</html>');
+  writeFileSync(join(build, 'dist/publication-state.json'), JSON.stringify(plan.state));
+  writeFileSync(join(build, 'dist/comments/threads.json'), JSON.stringify({ threads: { first: {}, old: {} } }));
+  writeFileSync(join(receipts, 'selection.json'), JSON.stringify({ ...plan, requestId: null, priorState }));
+  const env = { PUBLICATION_RECEIPT_DIR: receipts, PUBLICATION_SELECTION_DIGEST: plan.state.digest,
+    PUBLICATION_DEPLOYMENT_ID: 'actual-deployment-id', GITHUB_RUN_ID: '3', GITHUB_RUN_ATTEMPT: '1', GITHUB_SHA: sourceSha };
+  const fetchFor = (body) => async (url) => {
+    const path = new URL(url).pathname;
+    if (path === '/publication-state.json') return new Response(JSON.stringify(plan.state));
+    if (path === '/comments/threads.json') return new Response(JSON.stringify({ threads: { first: {}, old: {} } }));
+    if (path === '/posts/first/') return new Response(body);
+    throw new Error(`unexpected recovery request: ${path}`);
+  };
+  await assert.rejects(verifyLive('https://aitamer.news', env, { root: build, fetchImpl: fetchFor(built.replace('Checked story.', 'Different story.')) }), /body differs/);
+  await verifyLive('https://aitamer.news', env, { root: build, fetchImpl: fetchFor(built) });
+  const proof = JSON.parse(readFileSync(join(receipts, 'production-verification.json'), 'utf8'));
+  assert.equal(proof.articleBody.slug, 'first');
+  assert.equal(proof.articleBody.servedSha256, proof.articleBody.builtSha256);
+});
+
 test('the initial zero-addition bootstrap has an independently verifiable receipt', () => {
   const plan = select({ live: null, mode: 'bootstrap', bootstrapSlugs: ['old'], bootstrapDigest: digest(['old']) });
   const bundle = receiptBundle();
@@ -143,6 +199,14 @@ test('the initial zero-addition bootstrap has an independently verifiable receip
     deploymentId: 'actual-deployment-id', state: plan.state, articleBody: null };
   assert.equal(validateReceiptBundle(bundle, plan.state).state.visible.length, 1);
   assert.throws(() => validateReceiptBundle({ ...bundle, selection: { ...bundle.selection, selected: 'first' } }, plan.state), /bootstrap receipt/);
+});
+
+test('recovery of the baseline has no article body to check', () => {
+  const baseline = select({ live: null, mode: 'bootstrap', bootstrapSlugs: ['old'], bootstrapDigest: digest(['old']) }).state;
+  const recovered = select({ live: baseline, acknowledgment: null, runId: '3' });
+  const selection = { ...recovered, priorState: baseline, requestId: null };
+  assert.equal(recovered.selected, null);
+  assert.equal(expectedArticleBodySlug(selection), null);
 });
 
 test('publication request IDs are either absent or canonical UUID version 4', () => {

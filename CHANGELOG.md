@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.51] — 2026-10-04
+
+### Fixed
+- Verify the previously admitted article body during recovery before its successful receipt can become the spacing clock. Recovery adds no article.
+
 ## [0.2.50] — 2026-10-04
 
 ### Fixed
