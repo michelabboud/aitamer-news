@@ -1,5 +1,7 @@
 name: Deploy Cloudflare Pages
-run-name: ${{ inputs.publication_request_id != '' && format('Publication {0}', inputs.publication_request_id) || format('Deploy {0}', github.run_id) }}
+
+# Reviewed publication admission is disabled. Build the repository normally: all non-draft
+# posts whose pubDate has arrived become visible together in the next verified deployment.
 
 # Every deploy is verified before and after it goes live (docs/adr/0014-verified-deploys.md):
 #   1. `settle` waits after a merge, so a burst of merges becomes one deploy of the last of them;
@@ -16,19 +18,6 @@ on:
         description: "Wait the settle time first, as a merge does"
         type: boolean
         default: false
-      publication_mode:
-        description: "retain current articles; publish at most one reviewed due article; bootstrap a verified baseline"
-        type: choice
-        options: [retain, publish, bootstrap]
-        default: retain
-      bootstrap_digest:
-        description: "Exact observed baseline digest; required only for first bootstrap"
-        type: string
-        default: ""
-      publication_request_id:
-        description: "Optional UUID from the durable publication controller intent"
-        type: string
-        default: ""
 
 jobs:
   settle:
@@ -60,7 +49,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      actions: read
     # Never cancelled once started: a deploy stopped between going live and its check, or midway
     # through a rollback, would leave production unverified. A newer run waits here instead, and
     # GitHub keeps only the newest waiting one.
@@ -158,18 +146,6 @@ jobs:
           npm test
           npm run check:posts
 
-      # Inside pages-production: every dispatch re-reads live state after earlier runs finish.
-      # Source pushes and the default manual action retain visibility. Only an explicit publish
-      # may admit one due hash-bound article, after the previous publication is acknowledged.
-      - name: Select reviewed publication
-        id: publication
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLICATION_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.publication_mode || 'retain' }}
-          BOOTSTRAP_DIGEST: ${{ inputs.bootstrap_digest }}
-          PUBLICATION_REQUEST_ID: ${{ inputs.publication_request_id }}
-        run: node scripts/publication-cli.mjs prepare "$PUBLICATION_MODE" "$BOOTSTRAP_DIGEST"
-
       # The cache holds parsed content, and Astro does not re-parse an unchanged file when the schema
       # changes (2026-09-28: a renamed section kept its old value). So the key carries a fingerprint of
       # everything the content schema can import (src/content.config.ts, src/content/, src/lib/) and of
@@ -177,7 +153,6 @@ jobs:
       # walks the schema's real imports to keep this list whole. The author files are in it too: a warm
       # cache kept a deleted author (2026-09-28), and authors change rarely.
       - name: Restore Astro incremental cache
-        if: steps.publication.outputs.should-deploy == 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules/.astro
@@ -186,63 +161,38 @@ jobs:
             astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}-
 
       - name: Build
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         run: npm run build
-
-      - name: Verify exact article admission
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
-        env:
-          PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
-          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
-        run: node scripts/publication-cli.mjs verify-artifact
 
       # Bot posts: the shipped HTML of every bot-authored post passes the allowlist, and the
       # checker renders every post exactly as this build did (SECURITY.md, "Bot posts"; ADR 0009).
       - name: Check bot post bodies against the build
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         run: npm run check:bodies:build
 
       # The Content-Security-Policy the build wrote into dist/_headers names every inline script on
       # every page, and nothing on a page needs what it refuses (SECURITY.md, "Content-Security-Policy").
       - name: Check the Content-Security-Policy against the build
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         run: npm run check:csp
 
       - name: Check the build holds no secrets
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         run: npm run check:dist
 
       - name: Check the deploy fits the file budget
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         run: npm run check:files
 
       - name: Check every internal link leads somewhere
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         run: npm run check:links
 
       - name: Check every shipped diagram is its checked rewrite
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         run: npm run check:diagrams:dist
 
       # A live post's hero lives on R2, which the link check cannot see (ADR 0020). One HEAD per
       # post hero, each retried on a network error or a 5xx; a draft's or a scheduled post's missing
       # hero is only listed. Before anything is uploaded, so a missing image never reaches readers.
       - name: Check every live post's hero is on the media host
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         run: npm run check:media
 
       - name: Record the live deployment (the rollback target)
         id: live
-        if: steps.publication.outputs.should-deploy == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -250,7 +200,6 @@ jobs:
 
       - name: Deploy a preview (not live)
         id: preview
-        if: steps.publication.outputs.should-deploy == 'true'
         # Pinned to a commit: this step receives the Cloudflare API token. Any branch other than
         # main is a Pages preview: its own address under pages.dev, which nobody is sent to.
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
@@ -258,48 +207,25 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.139.0"
-          command: pages deploy ${{ steps.publication.outputs.build-dir }}/dist --project-name=aitamer-news --branch=deploy-candidate
+          command: pages deploy dist --project-name=aitamer-news --branch=deploy-candidate
 
       - name: Smoke-test the preview
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
         env:
           PREVIEW_URL: ${{ steps.preview.outputs.deployment-url }}
-          PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
-          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
-          PUBLICATION_DEPLOYMENT_ID: ${{ steps.preview.outputs.pages-deployment-id }}
-        run: |
-          node scripts/smoke-site.mjs --base "$PREVIEW_URL" --expect preview
-          node scripts/publication-cli.mjs verify-live "$PREVIEW_URL"
-
-      - name: Verify production has not changed since selection
-        if: steps.publication.outputs.should-deploy == 'true'
-        env:
-          PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
-          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
-        run: node scripts/publication-cli.mjs verify-prior
+        run: node scripts/smoke-site.mjs --base "$PREVIEW_URL" --expect preview
 
       - name: Deploy to Cloudflare Pages
         id: production
-        if: steps.publication.outputs.should-deploy == 'true'
         # Pinned to a commit: this step receives the Cloudflare API token.
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.139.0"
-          command: pages deploy ${{ steps.publication.outputs.build-dir }}/dist --project-name=aitamer-news --branch=main
+          command: pages deploy dist --project-name=aitamer-news --branch=main
 
       - name: Smoke-test production
-        if: steps.publication.outputs.should-deploy == 'true'
-        working-directory: ${{ steps.publication.outputs.build-dir }}
-        env:
-          PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
-          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
-          PUBLICATION_DEPLOYMENT_ID: ${{ steps.production.outputs.pages-deployment-id }}
-        run: |
-          node scripts/smoke-site.mjs --base "$SITE_URL" --expect production
-          node scripts/publication-cli.mjs verify-live "$SITE_URL"
+        run: node scripts/smoke-site.mjs --base "$SITE_URL" --expect production
 
       - name: Roll production back
         # Only when this run put a deployment live and the check after it failed. The job still
@@ -309,11 +235,8 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           TARGET: ${{ steps.live.outputs.deployment-id }}
-          PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
-          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
         run: |
           node scripts/pages-api.mjs rollback "$TARGET"
-          node scripts/publication-cli.mjs verify-prior
           echo "::error::production failed its check after going live and was rolled back to deployment $TARGET"
 
       - name: Summary
@@ -323,33 +246,10 @@ jobs:
           LIVE_BEFORE: ${{ steps.live.outputs.deployment-id }}
           DEPLOYED: ${{ steps.production.outputs.pages-deployment-id }}
           OUTCOME: ${{ job.status }}
-          PUBLICATION_REASON: ${{ steps.publication.outputs.reason }}
-          PUBLICATION_SELECTED: ${{ steps.publication.outputs.selected }}
         run: |
           {
             echo "### Deploy of ${GITHUB_SHA::7}: ${OUTCOME}"
             echo "- live before: ${LIVE_BEFORE:-none recorded}"
             echo "- preview: ${PREVIEW_URL:-not deployed}"
             echo "- production deployment: ${DEPLOYED:-not deployed}"
-            echo "- publication: ${PUBLICATION_REASON:-selection failed}; added ${PUBLICATION_SELECTED:-none}"
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Record publication outcome
-        if: always() && steps.publication.outputs.receipt-dir != ''
-        env:
-          PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
-          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
-          PUBLICATION_OUTCOME: ${{ job.status }}
-          PUBLICATION_PREVIOUS_DEPLOYMENT: ${{ steps.live.outputs.deployment-id }}
-          PUBLICATION_PREVIEW_DEPLOYMENT: ${{ steps.preview.outputs.pages-deployment-id }}
-          PUBLICATION_PRODUCTION_DEPLOYMENT: ${{ steps.production.outputs.pages-deployment-id }}
-        run: node scripts/publication-cli.mjs record
-
-      - name: Retain publication receipts
-        if: always() && steps.publication.outputs.receipt-dir != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: publication-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ steps.publication.outputs.receipt-dir }}/*.json
-          retention-days: 90
-          if-no-files-found: error

@@ -61,40 +61,42 @@ test('the smoke tests read their addresses from the environment, and production 
   }
 });
 
-test('the media check runs on every actual deploy, including the selected article', () => {
+test('the media check runs with no argument (live posts only, never a --local comparison) and is never skipped', () => {
   const media = steps.find(runs(/check:media/));
   assert.equal(media.run, 'npm run check:media');
-  assert.equal(media.if, "steps.publication.outputs.should-deploy == 'true'");
-  assert.equal(media.if, steps.find(deploysTo('main')).if, 'media and upload share the same admission condition');
-  assert.equal(media['working-directory'], '${{ steps.publication.outputs.build-dir }}');
+  assert.equal(media.if, undefined, 'a condition could skip it');
   assert.equal(media['continue-on-error'], undefined, 'a failure must stop the deploy');
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
   assert.equal(pkg.scripts['check:media'], 'node scripts/check-media.mjs');
 });
 
-test('receipt selection is carried outside the build and bound to every verification stage', () => {
-  const selection = index((step) => step.id === 'publication', 'publication selection');
-  const artifact = index(runs(/publication-cli\.mjs verify-artifact/), 'artifact verification');
-  const preview = index(runs(/publication-cli\.mjs verify-live "\$PREVIEW_URL"/), 'preview verification');
-  const prior = index(runs(/publication-cli\.mjs verify-prior/), 'prior production verification');
-  const production = index(runs(/publication-cli\.mjs verify-live "\$SITE_URL"/), 'production verification');
-  const record = index(runs(/publication-cli\.mjs record/), 'outcome receipt');
-  assert.ok(selection < artifact && artifact < preview && preview < prior && prior < production && production < record);
-  for (const position of [artifact, preview, prior, production, record]) {
-    assert.equal(steps[position].env.PUBLICATION_RECEIPT_DIR, '${{ steps.publication.outputs.receipt-dir }}');
-    assert.equal(steps[position].env.PUBLICATION_SELECTION_DIGEST, '${{ steps.publication.outputs.selection-digest }}');
+test('production deploys build the repository without reviewed publication admission', () => {
+  const build = steps.find(runs(/^npm run build$/));
+  assert.ok(build, 'the repository build is present');
+  assert.equal(build.if, undefined, 'a publication decision cannot suppress the build');
+  assert.equal(build['working-directory'], undefined, 'the normal repository is built');
+  assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs), ['wait']);
+  for (const step of steps) {
+    assert.doesNotMatch(JSON.stringify(step), /publication-cli|steps\.publication|PUBLICATION_/, 'inactive admission is absent from production steps');
+    assert.equal(step['working-directory'], undefined, 'checks use the repository build');
   }
-  assert.equal(steps[preview].env.PUBLICATION_DEPLOYMENT_ID, '${{ steps.preview.outputs.pages-deployment-id }}');
-  assert.equal(steps[production].env.PUBLICATION_DEPLOYMENT_ID, '${{ steps.production.outputs.pages-deployment-id }}');
-  assert.equal(workflow.on.workflow_dispatch.inputs.publication_request_id.default, '');
-  assert.match(workflow['run-name'], /Publication \{0\}/);
-  assert.equal(steps[selection].env.PUBLICATION_REQUEST_ID, '${{ inputs.publication_request_id }}');
+  for (const branch of ['deploy-candidate', 'main']) {
+    const upload = steps.find(deploysTo(branch));
+    assert.equal(upload.with.command, `pages deploy dist --project-name=aitamer-news --branch=${branch}`);
+    assert.equal(upload.if, undefined, 'every checked build is uploaded');
+  }
 });
 
-test('the secondary schedule dispatches with an explicit repository and no unused installation', () => {
+test('the secondary schedule checks recently due posts before dispatching the normal deploy', () => {
   const schedule = yaml.load(readFileSync(new URL('../.github/workflows/scheduled-publish.yml', import.meta.url), 'utf8'));
   const scheduledSteps = schedule.jobs['check-due'].steps;
-  assert.equal(scheduledSteps.length, 1);
-  assert.equal(scheduledSteps[0].run, 'gh workflow run deploy-pages.yml -R michelabboud/aitamer-news --ref main -f publication_mode=publish');
-  assert.equal(scheduledSteps[0].env.GH_TOKEN, '${{ secrets.GITHUB_TOKEN }}');
+  const install = scheduledSteps.findIndex((step) => step.run === 'npm ci --omit=dev --ignore-scripts');
+  const due = scheduledSteps.findIndex((step) => step.id === 'due');
+  const trigger = scheduledSteps.findIndex((step) => String(step.run ?? '').startsWith('gh workflow run'));
+  assert.ok(install >= 0 && install < due && due < trigger, 'dependencies and due detection precede dispatch');
+  assert.equal(scheduledSteps[due].run, 'node scripts/due-posts.mjs --window-minutes 65');
+  assert.equal(scheduledSteps[trigger].if, "steps.due.outputs.due == 'true'", 'empty due windows cause no deployment');
+  assert.equal(scheduledSteps[trigger].run, 'gh workflow run deploy-pages.yml -R michelabboud/aitamer-news --ref main');
+  assert.equal(scheduledSteps[trigger].env.GH_TOKEN, '${{ secrets.GITHUB_TOKEN }}');
+  assert.deepEqual(schedule.on.schedule, [{ cron: '7,37 * * * *' }]);
 });

@@ -277,19 +277,22 @@ test('network errors and malformed/oversize publication responses cannot become 
   await assert.rejects(fetchJson('https://example.test', { fetchImpl: response('<html>') }), /valid JSON/);
   await assert.rejects(fetchJson('https://example.test', { fetchImpl: response('{}', 200, { 'content-length': '999999999' }) }), /size limit/);
 });
-test('workflow defaults retain, serializes selection and checks the selected artifact before upload', () => {
+test('production workflow keeps publication admission inactive and deploys the normal repository build', () => {
   const workflow = yaml.load(readFileSync(new URL('../.github/workflows/deploy-pages.yml', import.meta.url), 'utf8'));
-  assert.equal(workflow.on.workflow_dispatch.inputs.publication_mode.default, 'retain');
+  assert.equal(workflow.on.workflow_dispatch.inputs.publication_mode, undefined);
+  assert.equal(workflow.on.workflow_dispatch.inputs.bootstrap_digest, undefined);
+  assert.equal(workflow.on.workflow_dispatch.inputs.publication_request_id, undefined);
   const job = workflow.jobs.deploy, steps = job.steps;
   assert.deepEqual(job.concurrency, { group: 'pages-production', 'cancel-in-progress': false });
-  const selection = steps.findIndex((step) => step.id === 'publication');
-  const artifact = steps.findIndex((step) => step.run?.includes('verify-artifact'));
+  const build = steps.findIndex((step) => step.run === 'npm run build');
+  const preview = steps.findIndex((step) => step.id === 'preview');
   const production = steps.findIndex((step) => step.id === 'production');
-  assert.ok(selection > 0 && artifact > selection && production > artifact);
-  assert.match(steps[selection].env.PUBLICATION_MODE, /workflow_dispatch.*retain/);
-  for (const step of steps.filter((step) => step.with?.command?.includes('pages deploy'))) assert.match(step.with.command, /outputs.build-dir.*\/dist/);
-  assert.ok(steps.some((step) => step.run?.includes('verify-prior')));
-  assert.ok(steps.some((step) => step.name === 'Retain publication receipts' && step.if.startsWith('always()')));
+  assert.ok(build > 0 && preview > build && production > preview);
+  assert.equal(steps[build].if, undefined);
+  assert.equal(steps[build]['working-directory'], undefined);
+  assert.equal(steps.some((step) => step.id === 'publication' || step.run?.includes('publication-cli.mjs')), false);
+  assert.equal(steps.some((step) => step.name === 'Retain publication receipts'), false);
+  for (const step of steps.filter((step) => step.with?.command?.includes('pages deploy'))) assert.match(step.with.command, /^pages deploy dist /);
 });
 test('publication source hash changes and untracked files cannot enter an approved build', () => {
   const root = mkdtempSync(join(tmpdir(), 'aitamer-publication-test-'));
