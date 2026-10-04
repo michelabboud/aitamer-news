@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.48] — 2026-10-04
+
+### Added
+- Publish the sourced speculative-decoding explainer “The Small Model That Never Gets the Final Say,” with a verified media hero.
+
 ## [0.2.47] — 2026-09-28
 
 ### Changed
