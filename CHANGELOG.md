@@ -2,6 +2,14 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.50] — 2026-10-04
+
+### Fixed
+- Bind artifact and production checks to the prepared selection, workflow identity, and Pages deployment identifier.
+- Require prior deployment receipts before admitting another article, including recovery after an interrupted deployment.
+- Correlate controller dispatches with workflow runs and preserve publication spacing across retained deployments.
+- Remove dependency installation from the scheduling-only workflow.
+
 ## [0.2.49] — 2026-10-04
 
 ### Added

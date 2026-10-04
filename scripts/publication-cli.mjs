@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 /** Prepare and verify the exact publication artifact; credentials never enter receipts. */
-import { appendFileSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { appendFileSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, symlinkSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { parse, serialize } from 'parse5';
-import { acknowledgedAt, digest, isoTime, selectPublication, sha256, slugs, validateQueue, validateState } from './publication.mjs';
+import { acknowledgedAt, digest, isoTime, selectPublication, sha256, slugs, validateQueue, validateReceiptBundle, validateRequestId, validateSelection, validateState } from './publication.mjs';
 import { assertOnlyChanged, isPublishedDraftField, pubDateOf, readFrontmatter, topLevelLine, withRaw } from './frontmatter.mjs';
 
 const SITE = 'https://aitamer.news';
 const REPOSITORY = 'michelabboud/aitamer-news';
 const NETWORK_TIMEOUT_MS = 30_000;
 const MAX_JSON_BYTES = 4 * 1024 * 1024;
+const MAX_RECEIPT_ARTIFACT_BYTES = 1024 * 1024;
 const POSTS = 'src/content/posts';
 const requireThat = (condition, message) => { if (!condition) throw new Error(message); };
 
@@ -124,11 +125,45 @@ export function verifyArtifact(root, state) {
   requireThat(digest(slugs(Object.keys(threads.threads ?? {}))) === digest(expected.visible), 'built comment threads differ from selected articles');
   const pages = readdirSync(join(root, 'dist/posts'), { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync(join(root, 'dist/posts', entry.name, 'index.html'))).map((entry) => entry.name);
   requireThat(digest(slugs(pages)) === digest(expected.visible), 'built article pages differ from selected articles');
-  return { visibleCount: expected.visible.length, digest: expected.digest };
+  return { visibleCount: expected.visible.length, digest: expected.digest, state: expected };
+}
+
+function selectionReceipt(env) {
+  requireThat(Boolean(env.PUBLICATION_RECEIPT_DIR), 'publication selection receipt directory is required');
+  const receiptDir = realpathSync(env.PUBLICATION_RECEIPT_DIR);
+  const buildDir = realpathSync(process.cwd());
+  requireThat(receiptDir !== buildDir && !receiptDir.startsWith(`${buildDir}${sep}`), 'publication selection receipt must be outside the build copy');
+  const selection = JSON.parse(readFileSync(join(receiptDir, 'selection.json'), 'utf8'));
+  const { state } = validateSelection(selection);
+  requireThat(state.digest === env.PUBLICATION_SELECTION_DIGEST, 'publication selection digest differs from prepare output');
+  requireThat(state.lastDeployment.runId === env.GITHUB_RUN_ID && state.lastDeployment.attempt === Number(env.GITHUB_RUN_ATTEMPT) &&
+    state.sourceSha === env.GITHUB_SHA, 'publication selection workflow identity differs');
+  return { selection, state, receiptDir };
+}
+
+async function priorReceipt(runId, attempt, token, live) {
+  const name = `publication-${runId}-${attempt}`;
+  const listing = await fetchJson(`https://api.github.com/repos/${REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100`, { token });
+  requireThat(Array.isArray(listing.artifacts), 'GitHub publication artifact listing is invalid');
+  const matches = listing.artifacts.filter((artifact) => artifact.name === name && !artifact.expired);
+  if (matches.length === 0) return null;
+  requireThat(matches.length === 1 && Number.isSafeInteger(matches[0].size_in_bytes) &&
+    matches[0].size_in_bytes > 0 && matches[0].size_in_bytes <= MAX_RECEIPT_ARTIFACT_BYTES, 'publication receipt artifact is ambiguous or too large');
+  const directory = mkdtempSync(join(process.env.RUNNER_TEMP || tmpdir(), 'aitamer-prior-receipt-'));
+  execFileSync('gh', ['run', 'download', runId, '--name', name, '--dir', directory, '--repo', REPOSITORY],
+    { env: { ...process.env, GH_TOKEN: token }, stdio: 'pipe', maxBuffer: MAX_JSON_BYTES });
+  const read = (file) => {
+    const path = join(directory, file);
+    requireThat(lstatSync(path).isFile() && lstatSync(path).size <= MAX_JSON_BYTES, `invalid publication receipt file: ${file}`);
+    return JSON.parse(readFileSync(path, 'utf8'));
+  };
+  return validateReceiptBundle({ selection: read('selection.json'), artifactVerification: read('artifact-verification.json'),
+    productionVerification: read('production-verification.json'), outcome: read('outcome.json') }, live);
 }
 
 async function prepare(mode, bootstrapDigest, env) {
   const root = process.cwd();
+  const requestId = validateRequestId(env.PUBLICATION_REQUEST_ID ?? '');
   requireThat(env.GITHUB_REPOSITORY === REPOSITORY && env.GITHUB_REF === 'refs/heads/main', 'publication only runs from the main repository branch');
   const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   requireThat(head === env.GITHUB_SHA, 'checked out publication commit differs from workflow');
@@ -141,9 +176,18 @@ async function prepare(mode, bootstrapDigest, env) {
   let acknowledgment = null, bootstrapSlugs = null;
   if (live !== null) {
     const state = validateState(live);
-    const identity = state.lastPublication;
-    const run = await fetchJson(`https://api.github.com/repos/${REPOSITORY}/actions/runs/${identity.runId}/attempts/${identity.attempt}`, { token, missing: true });
-    acknowledgment = acknowledgedAt(run, identity);
+    const deployment = state.lastDeployment;
+    const deployedRun = await fetchJson(`https://api.github.com/repos/${REPOSITORY}/actions/runs/${deployment.runId}/attempts/${deployment.attempt}`, { token, missing: true });
+    if (acknowledgedAt(deployedRun, deployment) !== null) {
+      const receipt = await priorReceipt(deployment.runId, deployment.attempt, token, state);
+      if (receipt !== null) {
+        const publication = state.lastPublication;
+        const publishedRun = publication.runId === deployment.runId && publication.attempt === deployment.attempt
+          ? deployedRun : await fetchJson(`https://api.github.com/repos/${REPOSITORY}/actions/runs/${publication.runId}/attempts/${publication.attempt}`, { token, missing: true });
+        acknowledgment = acknowledgedAt(publishedRun, publication);
+      }
+      else console.log('publication: previous successful run has no archived receipt; recovering the visible set');
+    }
   } else {
     const threads = await fetchJson(`${SITE}/comments/threads.json?publication=${encodeURIComponent(env.GITHUB_RUN_ID)}`);
     requireThat(threads?.version === 1 && typeof threads.threads === 'object' && threads.threads !== null, 'live baseline threads are invalid');
@@ -158,35 +202,41 @@ async function prepare(mode, bootstrapDigest, env) {
   const trackedFiles = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).split('\0').filter(Boolean);
   requireThat(trackedFiles.includes('publication/queue.json'), 'publication queue is not part of the pinned source');
   prepareBuildCopy(root, destination, files, plan.state, now, trackedFiles);
-  writeFileSync(join(runDir, 'selection.json'), JSON.stringify({ ...plan, priorState: live, acknowledgment: acknowledgment === null ? null : new Date(acknowledgment).toISOString() }, null, 2) + '\n');
-  if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `build-dir=${destination}\nreceipt-dir=${runDir}\nselected=${plan.selected ?? ''}\nreason=${plan.reason}\nshould-deploy=${!['spacing', 'nothing_due'].includes(plan.reason)}\n`);
+  writeFileSync(join(runDir, 'selection.json'), JSON.stringify({ ...plan, requestId, priorState: live, acknowledgment: acknowledgment === null ? null : new Date(acknowledgment).toISOString() }, null, 2) + '\n');
+  if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `build-dir=${destination}\nreceipt-dir=${runDir}\nselection-digest=${plan.state.digest}\nselected=${plan.selected ?? ''}\nreason=${plan.reason}\nshould-deploy=${!['spacing', 'nothing_due'].includes(plan.reason)}\n`);
   console.log(`publication: ${plan.reason}; ${plan.state.visible.length} visible; selected ${plan.selected ?? 'none'}`);
 }
 
 async function verifyLive(base, env) {
   const origin = siteBase(base);
-  const expected = validateState(JSON.parse(readFileSync('dist/publication-state.json', 'utf8')));
+  const { selection, state: expected, receiptDir } = selectionReceipt(env);
+  verifyArtifact(process.cwd(), expected);
   const live = validateState(await fetchJson(`${origin}/publication-state.json?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`));
-  requireThat(live.digest === expected.digest, 'served publication state differs from the built artifact');
+  requireThat(live.digest === expected.digest, 'served publication state differs from selection');
   const threads = await fetchJson(`${origin}/comments/threads.json?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`);
   requireThat(digest(slugs(Object.keys(threads.threads ?? {}))) === digest(expected.visible), 'served threads differ from publication state');
-  const selection = env.PUBLICATION_RECEIPT_DIR ? JSON.parse(readFileSync(join(env.PUBLICATION_RECEIPT_DIR, 'selection.json'), 'utf8')) : null;
-  if (selection?.selected) {
+  let articleBody = null;
+  if (selection.selected) {
     const slug = selection.selected;
     requireThat(expected.visible.includes(slug), 'selected article is absent from the expected live set');
     const response = await fetch(`${origin}/posts/${encodeURIComponent(slug)}/?publication=${encodeURIComponent(env.GITHUB_RUN_ID ?? 'verify')}`, { redirect: 'error', signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS), cache: 'no-store' });
     requireThat(response.ok, `selected live article answered HTTP ${response.status}`);
     const page = await response.text();
     const built = readFileSync(join('dist/posts', slug, 'index.html'), 'utf8');
-    requireThat(articleBodyDigest(page) === articleBodyDigest(built), 'selected live article body differs from the checked HTML');
+    const servedSha256 = articleBodyDigest(page), builtSha256 = articleBodyDigest(built);
+    requireThat(servedSha256 === builtSha256, 'selected live article body differs from the checked HTML');
+    articleBody = { slug, builtSha256, servedSha256 };
   }
+  requireThat(typeof env.PUBLICATION_DEPLOYMENT_ID === 'string' && env.PUBLICATION_DEPLOYMENT_ID.trim().length > 0,
+    'verified deployment identity is required');
   console.log(`publication verified: ${expected.visible.length} articles; ${expected.digest}`);
-  if (env.PUBLICATION_RECEIPT_DIR) writeFileSync(join(env.PUBLICATION_RECEIPT_DIR, origin === SITE ? 'production-verification.json' : 'preview-verification.json'), JSON.stringify({ origin, verifiedAt: new Date().toISOString(), state: expected }, null, 2) + '\n');
+  writeFileSync(join(receiptDir, origin === SITE ? 'production-verification.json' : 'preview-verification.json'),
+    JSON.stringify({ origin, verifiedAt: new Date().toISOString(), deploymentId: env.PUBLICATION_DEPLOYMENT_ID,
+      state: expected, articleBody }, null, 2) + '\n', { flag: 'wx' });
 }
 
 async function verifyPrior(env) {
-  requireThat(Boolean(env.PUBLICATION_RECEIPT_DIR), 'publication selection receipt is required');
-  const selection = JSON.parse(readFileSync(join(env.PUBLICATION_RECEIPT_DIR, 'selection.json'), 'utf8'));
+  const { selection } = selectionReceipt(env);
   const live = await fetchJson(`${SITE}/publication-state.json?publication=${encodeURIComponent(env.GITHUB_RUN_ID)}`, { missing: selection.priorState === null });
   if (selection.priorState === null) {
     requireThat(live === null, 'publication bootstrap baseline changed');
@@ -200,22 +250,25 @@ export async function main(args, env = process.env) {
   const [command, value, bootstrapDigest = ''] = args;
   if (command === 'prepare' && args.length <= 3) return prepare(value || 'retain', bootstrapDigest, env);
   if (command === 'verify-artifact' && args.length === 1) {
-    const state = JSON.parse(readFileSync('public/publication-state.json', 'utf8'));
-    console.log(`publication artifact: ${JSON.stringify(verifyArtifact(process.cwd(), state))}`);
+    const { state, receiptDir } = selectionReceipt(env);
+    const verified = verifyArtifact(process.cwd(), state);
+    writeFileSync(join(receiptDir, 'artifact-verification.json'), JSON.stringify({ ...verified, verifiedAt: new Date().toISOString() }, null, 2) + '\n', { flag: 'wx' });
+    console.log(`publication artifact: ${JSON.stringify({ visibleCount: verified.visibleCount, digest: verified.digest })}`);
     return;
   }
   if (command === 'verify-live' && args.length === 2) return verifyLive(value, env);
   if (command === 'verify-prior' && args.length === 1) return verifyPrior(env);
   if (command === 'record' && args.length === 1) {
-    requireThat(Boolean(env.PUBLICATION_RECEIPT_DIR), 'publication receipt directory is required');
+    const { selection, receiptDir } = selectionReceipt(env);
     const receipt = {
       runId: env.GITHUB_RUN_ID, attempt: Number(env.GITHUB_RUN_ATTEMPT), sourceSha: env.GITHUB_SHA,
+      requestId: selection.requestId,
       observedAt: new Date().toISOString(), outcome: env.PUBLICATION_OUTCOME,
       previousDeployment: env.PUBLICATION_PREVIOUS_DEPLOYMENT || null,
       previewDeployment: env.PUBLICATION_PREVIEW_DEPLOYMENT || null,
       productionDeployment: env.PUBLICATION_PRODUCTION_DEPLOYMENT || null,
     };
-    writeFileSync(join(env.PUBLICATION_RECEIPT_DIR, 'outcome.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
+    writeFileSync(join(receiptDir, 'outcome.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
     return;
   }
   throw new Error('usage: publication-cli.mjs prepare [retain|publish|bootstrap] [baseline-digest] | verify-artifact | verify-live <origin> | verify-prior');

@@ -1,4 +1,5 @@
 name: Deploy Cloudflare Pages
+run-name: ${{ inputs.publication_request_id != '' && format('Publication {0}', inputs.publication_request_id) || format('Deploy {0}', github.run_id) }}
 
 # Every deploy is verified before and after it goes live (docs/adr/0014-verified-deploys.md):
 #   1. `settle` waits after a merge, so a burst of merges becomes one deploy of the last of them;
@@ -22,6 +23,10 @@ on:
         default: retain
       bootstrap_digest:
         description: "Exact observed baseline digest; required only for first bootstrap"
+        type: string
+        default: ""
+      publication_request_id:
+        description: "Optional UUID from the durable publication controller intent"
         type: string
         default: ""
 
@@ -162,6 +167,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLICATION_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.publication_mode || 'retain' }}
           BOOTSTRAP_DIGEST: ${{ inputs.bootstrap_digest }}
+          PUBLICATION_REQUEST_ID: ${{ inputs.publication_request_id }}
         run: node scripts/publication-cli.mjs prepare "$PUBLICATION_MODE" "$BOOTSTRAP_DIGEST"
 
       # The cache holds parsed content, and Astro does not re-parse an unchanged file when the schema
@@ -187,6 +193,9 @@ jobs:
       - name: Verify exact article admission
         if: steps.publication.outputs.should-deploy == 'true'
         working-directory: ${{ steps.publication.outputs.build-dir }}
+        env:
+          PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
+          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
         run: node scripts/publication-cli.mjs verify-artifact
 
       # Bot posts: the shipped HTML of every bot-authored post passes the allowlist, and the
@@ -257,6 +266,8 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.preview.outputs.deployment-url }}
           PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
+          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
+          PUBLICATION_DEPLOYMENT_ID: ${{ steps.preview.outputs.pages-deployment-id }}
         run: |
           node scripts/smoke-site.mjs --base "$PREVIEW_URL" --expect preview
           node scripts/publication-cli.mjs verify-live "$PREVIEW_URL"
@@ -265,6 +276,7 @@ jobs:
         if: steps.publication.outputs.should-deploy == 'true'
         env:
           PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
+          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
         run: node scripts/publication-cli.mjs verify-prior
 
       - name: Deploy to Cloudflare Pages
@@ -283,6 +295,8 @@ jobs:
         working-directory: ${{ steps.publication.outputs.build-dir }}
         env:
           PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
+          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
+          PUBLICATION_DEPLOYMENT_ID: ${{ steps.production.outputs.pages-deployment-id }}
         run: |
           node scripts/smoke-site.mjs --base "$SITE_URL" --expect production
           node scripts/publication-cli.mjs verify-live "$SITE_URL"
@@ -296,6 +310,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           TARGET: ${{ steps.live.outputs.deployment-id }}
           PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
+          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
         run: |
           node scripts/pages-api.mjs rollback "$TARGET"
           node scripts/publication-cli.mjs verify-prior
@@ -323,6 +338,7 @@ jobs:
         if: always() && steps.publication.outputs.receipt-dir != ''
         env:
           PUBLICATION_RECEIPT_DIR: ${{ steps.publication.outputs.receipt-dir }}
+          PUBLICATION_SELECTION_DIGEST: ${{ steps.publication.outputs.selection-digest }}
           PUBLICATION_OUTCOME: ${{ job.status }}
           PUBLICATION_PREVIOUS_DEPLOYMENT: ${{ steps.live.outputs.deployment-id }}
           PUBLICATION_PREVIEW_DEPLOYMENT: ${{ steps.preview.outputs.pages-deployment-id }}

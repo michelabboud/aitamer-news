@@ -7,6 +7,7 @@ export const PUBLICATION_INTERVAL_MS = 30 * 60_000;
 const HASH = /^[a-f0-9]{64}$/;
 const COMMIT = /^[a-f0-9]{40}$/;
 const RUN_ID = /^[1-9][0-9]*$/;
+const REQUEST_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 export const digest = (value) => sha256(JSON.stringify(value));
@@ -59,9 +60,10 @@ export function validateState(raw) {
   const visible = slugs(raw.visible);
   const state = {
     version: PUBLICATION_VERSION, sourceSha: raw.sourceSha, queueSha256: raw.queueSha256,
-    visible, lastPublication: publicationRun(raw.lastPublication),
+    visible, lastPublication: publicationRun(raw.lastPublication), lastDeployment: publicationRun(raw.lastDeployment),
   };
   requireThat(state.lastPublication.slug === null || visible.includes(state.lastPublication.slug), 'last publication is not visible');
+  requireThat(state.lastDeployment.slug === null || visible.includes(state.lastDeployment.slug), 'last deployment slug is not visible');
   requireThat(raw.digest === digest(state), 'publication state digest mismatch');
   return sealState(state);
 }
@@ -73,6 +75,64 @@ export function acknowledgedAt(run, identity) {
       String(run.path).split('@')[0] !== '.github/workflows/deploy-pages.yml' ||
       run.status !== 'completed' || run.conclusion !== 'success') return null;
   return isoTime(run.updated_at);
+}
+
+export function validateRequestId(value) {
+  requireThat(value === '' || REQUEST_ID.test(value), 'invalid publication request ID');
+  return value || null;
+}
+
+/** The private pre-build selection must describe the only change in the visible set. */
+export function validateSelection(selection) {
+  requireThat(object(selection), 'publication selection receipt is invalid');
+  const state = validateState(selection.state);
+  const requestId = validateRequestId(selection.requestId ?? '');
+  requireThat(selection.requestId === requestId, 'publication request identity is invalid');
+  if (selection.priorState === null) {
+    requireThat(selection.reason === 'bootstrap' && selection.selected === null && state.lastPublication.slug === null &&
+      state.lastDeployment.runId === state.lastPublication.runId, 'invalid bootstrap receipt');
+  } else {
+    const prior = validateState(selection.priorState);
+    const additions = state.visible.filter((slug) => !prior.visible.includes(slug));
+    requireThat(prior.visible.every((slug) => state.visible.includes(slug)) && additions.length <= 1 &&
+      (additions[0] ?? null) === selection.selected, 'publication receipt visible-set difference is invalid');
+    if (selection.selected !== null) requireThat(selection.reason === 'publish' && state.lastPublication.slug === selection.selected &&
+      state.lastPublication.runId === state.lastDeployment.runId && state.lastPublication.attempt === state.lastDeployment.attempt,
+      'publication receipt selected article is invalid');
+    else requireThat(['retained', 'recovery', 'spacing', 'nothing_due'].includes(selection.reason), 'publication receipt reason is invalid');
+    if (selection.reason === 'retained') requireThat(digest(prior.lastPublication) === digest(state.lastPublication), 'retained publication clock changed');
+  }
+  return { state, requestId };
+}
+
+/** Validate the archived, successful workflow's proof against the currently served state. */
+export function validateReceiptBundle(bundle, rawLive) {
+  requireThat(object(bundle), 'publication receipt bundle is missing');
+  const { selection, artifactVerification, productionVerification, outcome } = bundle;
+  requireThat(object(selection) && object(artifactVerification) && object(productionVerification) && object(outcome), 'publication receipt files are missing');
+  const live = validateState(rawLive);
+  const { state: selected, requestId } = validateSelection(selection);
+  const built = validateState(artifactVerification.state);
+  const verified = validateState(productionVerification.state);
+  requireThat(selected.digest === live.digest && built.digest === live.digest && verified.digest === live.digest, 'publication receipt state differs from production');
+  requireThat(artifactVerification.visibleCount === live.visible.length && artifactVerification.digest === live.digest, 'publication artifact proof differs from selection');
+  requireThat(productionVerification.origin === 'https://aitamer.news' && isoTime(productionVerification.verifiedAt) >= 0, 'publication production verification is invalid');
+  requireThat(typeof outcome.productionDeployment === 'string' && outcome.productionDeployment.trim().length > 0 &&
+    outcome.productionDeployment === productionVerification.deploymentId, 'publication deployment identity is missing or mismatched');
+  requireThat(outcome.outcome === 'success' && outcome.runId === live.lastDeployment.runId &&
+    outcome.attempt === live.lastDeployment.attempt && outcome.sourceSha === live.lastDeployment.sourceSha &&
+    live.sourceSha === outcome.sourceSha,
+  'publication receipt workflow identity is mismatched');
+  requireThat((outcome.requestId ?? null) === requestId, 'publication request identity is mismatched');
+  requireThat(!['spacing', 'nothing_due'].includes(selection.reason), 'undelivered publication has no production receipt');
+  if (selection.selected === null) requireThat(productionVerification.articleBody === null, 'unexpected publication body proof');
+  else {
+    const body = productionVerification.articleBody;
+    requireThat(object(body) && body.slug === selection.selected && HASH.test(body.builtSha256) &&
+      body.builtSha256 === body.servedSha256, 'publication article body was not verified');
+  }
+  return { state: live, deploymentId: outcome.productionDeployment, runId: outcome.runId,
+    attempt: outcome.attempt, sourceSha: outcome.sourceSha, requestId };
 }
 
 /**
@@ -116,5 +176,5 @@ export function selectPublication({ queue: rawQueue, live: rawLive, mode = 'reta
       }
     }
   }
-  return { reason, selected, state: sealState({ version: PUBLICATION_VERSION, sourceSha, queueSha256: digest(queue), visible, lastPublication }) };
+  return { reason, selected, state: sealState({ version: PUBLICATION_VERSION, sourceSha, queueSha256: digest(queue), visible, lastPublication, lastDeployment: currentRun }) };
 }

@@ -60,3 +60,5 @@
 - **2026-09-25** — Standard repository files added; versioning starts at 0.1.0.
 
 - **2026-10-04** — 0.2.49: reviewed-publication guard implemented; 755 tests pass and the isolated fixture retains exactly 211 live articles while holding 10 queued source posts. The new queue, independent review, bootstrap and timer activation remain pending. Existing publishers remain disabled.
+
+- **2026-10-04** — 0.2.50: independent source review confirms the receipt corrections; 763 repository tests, 48 focused publisher tests, and 18 private controller tests pass. Full queue integration and live timer activation remain pending; publishers stay disabled.

@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import yaml from 'js-yaml';
-import { acknowledgedAt, digest, isoTime, PUBLICATION_INTERVAL_MS, selectPublication, sealState, validateQueue, validateState } from './publication.mjs';
+import { acknowledgedAt, digest, isoTime, PUBLICATION_INTERVAL_MS, selectPublication, sealState, validateQueue, validateReceiptBundle, validateRequestId, validateState } from './publication.mjs';
 import { articleBodyDigest, fetchJson, heldPost, prepareBuildCopy, readPosts, siteBase } from './publication-cli.mjs';
 import { readFrontmatter } from './frontmatter.mjs';
 
@@ -14,7 +15,7 @@ const queue = () => ({ version: 1, baseline: { slugs: ['old'], sha256: digest(['
   { slug: 'first', sha256: hash, reviewSha256: hash, pubDate: '2026-10-04T08:00:00Z' },
   { slug: 'second', sha256: hash, reviewSha256: hash, pubDate: '2026-10-04T08:30:00Z' },
 ] });
-const live = () => sealState({ version: 1, sourceSha, queueSha256: digest(validateQueue(queue())), visible: ['old'], lastPublication: { runId: '1', attempt: 1, sourceSha, slug: null } });
+const live = () => sealState({ version: 1, sourceSha, queueSha256: digest(validateQueue(queue())), visible: ['old'], lastPublication: { runId: '1', attempt: 1, sourceSha, slug: null }, lastDeployment: { runId: '1', attempt: 1, sourceSha, slug: null } });
 const select = (extra = {}) => selectPublication({ queue: queue(), live: live(), mode: 'publish', now: time('09:00:00'), sourceSha, runId: '2', attempt: 1, acknowledgment: time('08:00:00'), ...extra });
 
 test('long outage admits exactly the earliest due reviewed article without a lookback window', () => {
@@ -76,6 +77,113 @@ test('only matching successful deploy run attempts acknowledge publication', () 
   const run = { id: 1, run_attempt: 1, head_sha: sourceSha, head_branch: 'main', path: '.github/workflows/deploy-pages.yml', status: 'completed', conclusion: 'success', updated_at: '2026-10-04T08:00:00Z' };
   assert.equal(acknowledgedAt(run, identity), time('08:00:00'));
   for (const patch of [{ id: 2 }, { run_attempt: 2 }, { head_sha: 'c'.repeat(40) }, { head_branch: 'other' }, { path: 'other.yml' }, { conclusion: 'failure' }, { status: 'in_progress' }]) assert.equal(acknowledgedAt({ ...run, ...patch }, identity), null);
+});
+test('the latest deployment identity advances on retain without resetting the article spacing clock', () => {
+  const retained = select({ mode: 'retain', runId: '4' });
+  assert.equal(retained.state.lastPublication.runId, '1');
+  assert.equal(retained.state.lastDeployment.runId, '4');
+  assert.equal(retained.state.digest, validateState(retained.state).digest);
+});
+
+function receiptBundle() {
+  const priorState = live(), plan = select();
+  return {
+    selection: { ...plan, priorState, requestId: null },
+    artifactVerification: { state: plan.state, visibleCount: plan.state.visible.length, digest: plan.state.digest },
+    productionVerification: { origin: 'https://aitamer.news', verifiedAt: '2026-10-04T09:01:00.000Z',
+      deploymentId: 'actual-deployment-id', state: plan.state,
+      articleBody: { slug: 'first', builtSha256: hash, servedSha256: hash } },
+    outcome: { runId: '2', attempt: 1, sourceSha, requestId: null, outcome: 'success',
+      productionDeployment: 'actual-deployment-id' },
+  };
+}
+
+test('archived proof binds the exact served state, artifact, deployment and checked article body', () => {
+  const bundle = receiptBundle(), state = bundle.selection.state;
+  assert.equal(validateReceiptBundle(bundle, state).deploymentId, 'actual-deployment-id');
+  assert.throws(() => validateReceiptBundle(null, state), /bundle is missing/);
+  const altered = (part, patch) => ({ ...bundle, [part]: { ...bundle[part], ...patch } });
+  for (const name of ['artifactVerification', 'productionVerification', 'outcome']) {
+    const missing = { ...bundle, [name]: undefined };
+    assert.throws(() => validateReceiptBundle(missing, state), /files are missing/);
+  }
+  assert.throws(() => validateReceiptBundle(altered('outcome', { runId: '3' }), state), /identity/);
+  assert.throws(() => validateReceiptBundle(altered('outcome', { attempt: 2 }), state), /identity/);
+  assert.throws(() => validateReceiptBundle(altered('outcome', { sourceSha: 'c'.repeat(40) }), state), /identity/);
+  assert.throws(() => validateReceiptBundle(altered('outcome', { requestId: 'a7a44583-7e28-4a7c-8edb-20b9d77d9621' }), state), /request identity/);
+  assert.throws(() => validateReceiptBundle(altered('outcome', { productionDeployment: '' }), state), /deployment identity/);
+  assert.throws(() => validateReceiptBundle(altered('productionVerification', { deploymentId: 'another-deployment' }), state), /deployment identity/);
+  assert.throws(() => validateReceiptBundle(altered('productionVerification', { origin: 'https://preview.aitamer-news.pages.dev' }), state), /production verification/);
+  assert.throws(() => validateReceiptBundle(altered('productionVerification', { articleBody: null }), state), /body was not verified/);
+  assert.throws(() => validateReceiptBundle(altered('productionVerification', { articleBody: { slug: 'first', builtSha256: hash, servedSha256: 'c'.repeat(64) } }), state), /body was not verified/);
+  assert.throws(() => validateReceiptBundle(altered('artifactVerification', { digest: 'c'.repeat(64) }), state), /artifact proof/);
+  const { digest: ignoredDigest, ...unsealed } = state;
+  const other = sealState({ ...unsealed, visible: [...state.visible, 'second'] });
+  assert.throws(() => validateReceiptBundle(bundle, other), /differs from production/);
+});
+
+test('a retain receipt proves its own deployment while preserving the earlier publication identity', () => {
+  const priorState = live();
+  const plan = select({ mode: 'retain' });
+  const bundle = receiptBundle();
+  bundle.selection = { ...plan, priorState, requestId: null };
+  bundle.artifactVerification = { state: plan.state, visibleCount: plan.state.visible.length, digest: plan.state.digest };
+  bundle.productionVerification = { origin: 'https://aitamer.news', verifiedAt: '2026-10-04T09:01:00.000Z',
+    deploymentId: 'actual-deployment-id', state: plan.state, articleBody: null };
+  assert.equal(validateReceiptBundle(bundle, plan.state).runId, '2');
+  assert.equal(plan.state.lastPublication.runId, '1');
+});
+
+test('the initial zero-addition bootstrap has an independently verifiable receipt', () => {
+  const plan = select({ live: null, mode: 'bootstrap', bootstrapSlugs: ['old'], bootstrapDigest: digest(['old']) });
+  const bundle = receiptBundle();
+  bundle.selection = { ...plan, priorState: null, requestId: null };
+  bundle.artifactVerification = { state: plan.state, visibleCount: plan.state.visible.length, digest: plan.state.digest };
+  bundle.productionVerification = { origin: 'https://aitamer.news', verifiedAt: '2026-10-04T09:01:00.000Z',
+    deploymentId: 'actual-deployment-id', state: plan.state, articleBody: null };
+  assert.equal(validateReceiptBundle(bundle, plan.state).state.visible.length, 1);
+  assert.throws(() => validateReceiptBundle({ ...bundle, selection: { ...bundle.selection, selected: 'first' } }, plan.state), /bootstrap receipt/);
+});
+
+test('publication request IDs are either absent or canonical UUID version 4', () => {
+  const id = 'a7a44583-7e28-4a7c-8edb-20b9d77d9621';
+  assert.equal(validateRequestId(id), id);
+  assert.equal(validateRequestId(''), null);
+  for (const invalid of ['../../bad', 'plain', id.toUpperCase(), 'a7a44583-7e28-1a7c-8edb-20b9d77d9621'])
+    assert.throws(() => validateRequestId(invalid), /request ID/);
+});
+
+test('artifact command refuses post-build state changes even when pages and threads match the changed state', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'aitamer-selection-boundary-'));
+  const build = join(directory, 'site'), receipts = join(directory, 'receipts');
+  mkdirSync(join(build, 'dist/posts/old'), { recursive: true });
+  mkdirSync(join(build, 'dist/comments'), { recursive: true });
+  mkdirSync(join(build, 'public'), { recursive: true });
+  mkdirSync(receipts);
+  const plan = select({ mode: 'retain' }), state = plan.state;
+  writeFileSync(join(receipts, 'selection.json'), JSON.stringify({ ...plan, requestId: null, priorState: live() }));
+  writeFileSync(join(build, 'public/publication-state.json'), JSON.stringify(state));
+  writeFileSync(join(build, 'dist/publication-state.json'), JSON.stringify(state));
+  writeFileSync(join(build, 'dist/comments/threads.json'), JSON.stringify({ threads: { old: {} } }));
+  writeFileSync(join(build, 'dist/posts/old/index.html'), '<main>Old</main>');
+  const env = { ...process.env, PUBLICATION_RECEIPT_DIR: receipts, PUBLICATION_SELECTION_DIGEST: state.digest,
+    GITHUB_RUN_ID: '2', GITHUB_RUN_ATTEMPT: '1', GITHUB_SHA: sourceSha };
+  const script = new URL('./publication-cli.mjs', import.meta.url).pathname;
+  assert.match(execFileSync(process.execPath, [script, 'verify-artifact'], { cwd: build, env, encoding: 'utf8' }), /publication artifact/);
+  writeFileSync(join(receipts, 'selection.json'), JSON.stringify({ ...plan, selected: 'first', requestId: null, priorState: live() }));
+  assert.throws(() => execFileSync(process.execPath, [script, 'verify-artifact'], { cwd: build, env, stdio: 'pipe' }), /visible-set difference is invalid/);
+  writeFileSync(join(receipts, 'selection.json'), JSON.stringify({ ...plan, requestId: null, priorState: live() }));
+  const { digest: ignoredDigest, ...unsealed } = state;
+  const changed = sealState({ ...unsealed, visible: ['first', 'old'] });
+  writeFileSync(join(build, 'public/publication-state.json'), JSON.stringify(changed));
+  writeFileSync(join(build, 'dist/publication-state.json'), JSON.stringify(changed));
+  writeFileSync(join(build, 'dist/comments/threads.json'), JSON.stringify({ threads: { old: {}, first: {} } }));
+  mkdirSync(join(build, 'dist/posts/first'));
+  writeFileSync(join(build, 'dist/posts/first/index.html'), '<main>First</main>');
+  assert.throws(() => execFileSync(process.execPath, [script, 'verify-artifact'], { cwd: build, env, stdio: 'pipe' }), /built publication state differs from selection/);
+  assert.throws(() => execFileSync(process.execPath, [script, 'verify-artifact'], { cwd: build, env: { ...env, PUBLICATION_RECEIPT_DIR: '' }, stdio: 'pipe' }), /selection receipt directory is required/);
+  assert.throws(() => execFileSync(process.execPath, [script, 'verify-live', 'https://aitamer.news'], { cwd: build, env, stdio: 'pipe' }), /built publication state differs from selection/);
+  assert.throws(() => execFileSync(process.execPath, [script, 'verify-live', 'https://aitamer.news'], { cwd: build, env: { ...env, PUBLICATION_RECEIPT_DIR: '' }, stdio: 'pipe' }), /selection receipt directory is required/);
 });
 test('holding a post changes only its draft flag, preserving body and metadata', () => {
   for (const flag of ['', 'draft: false\n', 'draft: true\n']) {
