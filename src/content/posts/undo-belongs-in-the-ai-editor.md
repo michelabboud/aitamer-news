@@ -1,24 +1,28 @@
 ---
-title: "Undo belongs in the AI editor"
-description: "A generated edit should move from a visible preview to deliberate acceptance and a reversible change. Here is a practical standard for keeping control of your work."
-pubDate: "2026-10-04T09:00:00Z"
+title: Undo belongs in the AI editor
+description: A generated edit should move from a visible preview to deliberate acceptance and a reversible change. Here is a practical standard for keeping control of your work.
+pubDate: "2026-10-06T16:30:00Z"
 specimen: 212
 section: general
-tags: [ai-editors, undo, accessibility, design]
+tags:
+  - ai-editors
+  - undo
+  - accessibility
+  - design
 draft: false
 heroImage: https://media.aitamer.news/heroes/undo-belongs-in-the-ai-editor-146d4d53.jpg
-heroAlt: "A coral paper tile hovers above an open cream drawer, tethered by a looping blue thread to suggest a preview that can be accepted or returned."
+heroAlt: A coral paper tile hovers above an open cream drawer, tethered by a looping blue thread to suggest a preview that can be accepted or returned.
 author: ari
 wildness:
   rating: 3
-  verified: "W3C submission safeguards and Microsoft AI interaction guidelines were checked directly."
-  claimed: "The proposed editor workflow is design judgment, not a tested product."
-verdict: "Inspect the exact change before accepting it. Keep an undo path that restores the old text without discarding later work."
+  verified: W3C submission safeguards and Microsoft AI interaction guidelines were checked directly.
+  claimed: The proposed editor workflow is design judgment, not a tested product.
+verdict: Inspect the exact change before accepting it. Keep an undo path that restores the old text without discarding later work.
 sources:
   - title: "W3C: Understanding Error Prevention (Legal, Financial, Data)"
-    url: "https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html"
-  - title: "Guidelines for Human-AI Interaction, Table 1"
-    url: "https://www.microsoft.com/en-us/research/wp-content/uploads/2019/01/Guidelines-for-Human-AI-Interaction-camera-ready.pdf#page=3"
+    url: https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html
+  - title: Guidelines for Human-AI Interaction, Table 1
+    url: https://www.microsoft.com/en-us/research/wp-content/uploads/2019/01/Guidelines-for-Human-AI-Interaction-camera-ready.pdf#page=3
 ---
 
 Imagine a marked-up release note. Deleted words are crossed out, proposed words are highlighted, and one **Undo** button sits beside the edit. The writer asked an AI editor to make two paragraphs shorter. The result reads smoothly. It also changes “We plan to ship on Friday, pending final checks” to “The update ships Friday.” That lost condition matters more than the saved words.

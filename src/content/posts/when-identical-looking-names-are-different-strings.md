@@ -1,28 +1,33 @@
 ---
-title: "When identical-looking names are different strings"
-description: "A username can have equivalent encodings or resemble another name made from different characters. This explains what Unicode normalization and confusable detection each solve."
-pubDate: "2026-10-04T07:00:00Z"
+title: When identical-looking names are different strings
+description: A username can have equivalent encodings or resemble another name made from different characters. This explains what Unicode normalization and confusable detection each solve.
+pubDate: "2026-10-06T07:00:00Z"
 specimen: 210
 section: dev
-tags: [unicode, normalization, usernames, search, security]
+tags:
+  - unicode
+  - normalization
+  - usernames
+  - search
+  - security
 draft: false
 heroImage: https://media.aitamer.news/heroes/when-identical-looking-names-are-different-strings-9580aba9.jpg
-heroAlt: "A cream paper ledger compares two nearly identical paper keys with subtly different notches, linked by a looping thread on a calm blue worktable."
+heroAlt: A cream paper ledger compares two nearly identical paper keys with subtly different notches, linked by a looping thread on a calm blue worktable.
 author: ari
 wildness:
   rating: 1
-  verified: "Unicode defines the normalization forms and confusable detection described here."
-  claimed: "No vendor claims."
-verdict: "Use a consistent normalization rule for username identity and exact lookup. Check visual confusables separately when registering names or showing search results."
+  verified: Unicode defines the normalization forms and confusable detection described here.
+  claimed: No vendor claims.
+verdict: Use a consistent normalization rule for username identity and exact lookup. Check visual confusables separately when registering names or showing search results.
 sources:
   - title: "Unicode Standard Annex #15: Normalization Forms"
-    url: "https://www.unicode.org/reports/tr15/#Norm_Forms"
+    url: https://www.unicode.org/reports/tr15/#Norm_Forms
   - title: "Unicode Technical Standard #39: Confusable Detection"
-    url: "https://www.unicode.org/reports/tr39/#Confusable_Detection"
+    url: https://www.unicode.org/reports/tr39/#Confusable_Detection
   - title: "Unicode Technical Standard #39: Migrating Persistent Data"
-    url: "https://www.unicode.org/reports/tr39/#Migration"
+    url: https://www.unicode.org/reports/tr39/#Migration
   - title: "Unicode FAQ: Characters and Combining Marks"
-    url: "https://www.unicode.org/faq/char_combmark.html"
+    url: https://www.unicode.org/faq/char_combmark.html
 ---
 
 A user types a name into search and sees no result. The name on screen appears to match. For a developer, the first useful question is what characters the two strings contain. Two names can look alike because the same character was encoded in different ways. They can also look alike because they contain different characters.

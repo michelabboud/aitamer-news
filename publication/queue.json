@@ -1,0 +1,1301 @@
+{
+  "version": 1,
+  "baseline": {
+    "slugs": [
+      "a-day-inside-a-harness",
+      "a-recurring-meeting-has-two-clocks",
+      "a-voice-not-a-report",
+      "after-the-fact",
+      "ag-ui-1-0",
+      "ai-incidents-worth-a-postmortem",
+      "ai-review-builds-left-88-gb",
+      "ai-video-generation-explained",
+      "ai2-olmo-core-3",
+      "alloydb-postgresql-agents-preview",
+      "alt-text-is-an-editorial-decision",
+      "amazon-s3-vectors-metadata-pre-filtering-enhanced",
+      "anatomy-of-a-coding-agent",
+      "anyhow-thiserror-or-plain-enums-in-a-small-rust-tool",
+      "assemblyai-universal-3-6-pro-realtime",
+      "astabrief-8b",
+      "aurora-postgresql-iceberg-parquet-duckdb",
+      "aws-dogwood-local-engine",
+      "aws-well-architected-agent",
+      "azure-sql-diskann-vector-index-search-ga",
+      "backups-you-have-restored",
+      "bedrock-managed-agents-openai-preview",
+      "between-the-polls",
+      "burn-0-22-cubecl-0-11-pre4",
+      "cargo-lock-semver-and-the-update-that-broke-your-build",
+      "chdb-durable-layer",
+      "choosing-an-embedding-model",
+      "claude-art-phage-enzyme",
+      "claude-code-agents-md-mods",
+      "claude-code-mods-getting-started",
+      "claude-opus-5-5-agentic-coding",
+      "claude-opus-5-5-for-developers",
+      "claude-sonnet-5-5",
+      "claude-sonnet-5-5-for-developers",
+      "clickhouse-fabric-onelake-iceberg",
+      "clickhouse-managed-postgres-direct-io-backups",
+      "cloudflare-ai-gateway-auto-router",
+      "cloudflare-ai-gateway-user-insights",
+      "cloudflare-ai-search-ga",
+      "cloudflare-cf-cli",
+      "cloudflare-dns-cache-rust-100tb",
+      "cloudflare-faster-agent-sandboxes",
+      "cloudflare-monetization-gateway-402",
+      "cloudflare-pay-per-use",
+      "cloudflare-threat-signals",
+      "codex-cli-0-156",
+      "codex-cli-0-159",
+      "cohere-embed-5-pro-fast",
+      "copilot-plus-pc-brand-retired",
+      "copilot-runtime-rust-migration",
+      "coreweave-forge",
+      "cross-compiling-a-rust-cli-for-a-small-server",
+      "databricks-lakebase-search-ga-postgres-vector-bm25",
+      "disk-at-97-percent",
+      "drivingbench-gpt6-astra",
+      "dropping-a-rust-future-can-lose-async-progress",
+      "editing-an-ai-as-an-ai",
+      "elevenlabs-eleven-v4",
+      "emdash-and-the-agent-edited-web",
+      "evals-for-small-teams",
+      "fireworks-firerouter-with-opus",
+      "flux-3-action",
+      "gemini-3-8-flash-tts",
+      "gemini-4-argon",
+      "gemini-managed-agents-09-2026-update",
+      "gemini-skills-replace-gems",
+      "github-copilot-computer-use-preview",
+      "github-copilot-dynamic-workflows-preview",
+      "google-cloud-cli-remote-mcp",
+      "gpt-6-sol-luna-api-pricing",
+      "grok-4-7",
+      "h-company-holo4",
+      "handoff-notes-between-sessions",
+      "health-check-that-checks-the-wrong-thing",
+      "heygen-video-1-0",
+      "hf-open-tts-leaderboard",
+      "hipfire-0-4-0-rdna-rust-inference",
+      "honeycomb-canvas-connectors-ga",
+      "how-to-fact-check-an-ai-written-article",
+      "huggingface-tokenizers-1-0-rc2",
+      "ibm-content-cortex-premium-ga",
+      "image-generation-explained",
+      "jetbrains-air-in-ides-eap",
+      "jetbrains-air-teams",
+      "kling-4-0-flash-closed-beta",
+      "kong-context-management-ga",
+      "lightspeed-temporal-rust-agent-harness",
+      "litellm-lens",
+      "llamaindex-extract-v2-5",
+      "made-on-youtube-2026-gemini-ask-studio",
+      "magnitude-rust-local-inference-agents",
+      "making-a-script-safe-to-run-twice",
+      "manus-2-0-cascade-studio-cue",
+      "many-agents-one-machine",
+      "mcp-explained",
+      "message-buses-between-agents",
+      "mistral-rs-0-9-3-fp8-nvfp4",
+      "mistral-rs-qwen3-8-flash-next",
+      "modal-clusters-ga",
+      "modal-vm-sandboxes-ga",
+      "model-hosting-services-explained",
+      "mongodb-atlas-agent-engine",
+      "more-context-isnt-better",
+      "mysql-and-sqlite-vs-postgres-for-ai",
+      "naive-n0-5-flash",
+      "needle-2-pi5-function-calling",
+      "nvidia-cuda-rust-two-tracks",
+      "nvidia-kumo-tabular",
+      "on-being-corrected",
+      "one-click-two-charges-how-idempotency-makes-payment-retries-",
+      "open-speech-models",
+      "open-weight-model-families",
+      "open-weights-roundup",
+      "openai-agents-api-public-beta",
+      "openai-codex-cloud-reusable-environments",
+      "openai-disrupts-model-distillation-campaign",
+      "openai-dots-always-on-agents-first-look",
+      "openai-gpt-6-1-sol-at-one-fifth-of-astras-price",
+      "openai-legacy-instruct-base-hard-remove-2026-09-28",
+      "openai-medicare-eval-agent-au",
+      "openai-worldwide-usage-reset-devday-2026",
+      "perplexity-pplx-embed-v2-context-9b-preview",
+      "pgbouncer-1-26-0-cves",
+      "pgpool-ii-jvn-22475874",
+      "pi-1-0-codemode-mcp-durable",
+      "planetscale-hot-shards-neki",
+      "policy-watch-transparency",
+      "postgres-19-repack-concurrently-costs",
+      "postgres-for-ai-apps",
+      "prompt-injection-for-builders",
+      "pure-rust-lm-pretrain-experience",
+      "qdrant-constella-research-preview",
+      "qdrant-cross-encode-rs",
+      "quantization-labels-decoded-q4-k-m-and-friends",
+      "quantization-plainly",
+      "qwen-audio-3-1-price-cuts",
+      "reading-a-changelog-like-a-lawyer",
+      "reading-a-cli-s-help-text-like-a-contract",
+      "reading-a-model-card-like-a-nutrition-label",
+      "reading-a-press-release-for-the-sentence-that-is-missing",
+      "reading-a-rustsec-advisory-before-you-panic",
+      "redis-84-xreadgroup-claim-reliable-streams-consumers",
+      "redis-cve-2026-81934",
+      "redis-for-ai-apps",
+      "redis-k8s-active-active-password-wipe",
+      "registry-latest-is-the-publishers-choice",
+      "reviewing-ai-written-code",
+      "routing-is-two-systems",
+      "running-open-weight-models-locally",
+      "rust-1-99-review",
+      "rust-errors-can-describe-a-failure-and-preserve-its-cause",
+      "rust-on-workers-with-a-runtime-attached",
+      "rust-when-to-reach-for-unsafe",
+      "secrets-in-agent-workflows-three-leaks",
+      "set-it-aside-instead-of-deleting",
+      "shopify-canvas-sidekick-theme",
+      "shopify-webmcp-checkout",
+      "sigma-agents-ga",
+      "sora-videos-api-sunset",
+      "spacexai-team-bots",
+      "sqlite-default-datastore-small-ai-tools",
+      "sqlite-for-ai-apps",
+      "streaming-llm-responses",
+      "streaming-model-responses-partial-output-and-cancellation",
+      "structured-output-json-mode-tool-calls-or-grammars",
+      "structured-outputs-explained",
+      "supabase-acquiring-turso",
+      "synthesia-sessions",
+      "teams-phone-agent-ga",
+      "the-courtesy-of-a-clear-exit",
+      "the-gap-between-the-needles",
+      "the-name-behind-an-icon-button",
+      "the-name-of-the-tool-is-not-the-name-of-the-need",
+      "the-prompt-that-survives-the-upgrade",
+      "the-read-then-write-gap",
+      "the-scroll-and-the-clock",
+      "the-small-model-that-never-gets-the-final-say",
+      "the-talker-and-the-answerer",
+      "tokenizers-why-the-same-sentence-costs-different-amounts",
+      "tokens-and-cost",
+      "tools-review-agentgateway",
+      "tools-review-goose",
+      "turbopuffer-native-embedding-ga",
+      "turn-taking-in-voice-agents",
+      "utopai-pai-utopai-x",
+      "vectors-plainly-1-what-a-vector-database-is",
+      "vectors-plainly-2-inside-the-index",
+      "vectors-plainly-3-multi-tenancy",
+      "vectors-plainly-4-retrieval-quality",
+      "vectors-plainly-5-rag-and-graphrag",
+      "vectors-plainly-6-production",
+      "vespper-docx-mcp-html-reconciler",
+      "voice-agent-pipeline-explained",
+      "voyage-rerank-3-atlas-native-rerank",
+      "vscode-1-140-multi-folder-remote-agents",
+      "weaviate-google-modules-credential-disclosure",
+      "webrtc-vs-websockets-for-voice",
+      "welcome-to-aitamer",
+      "what-a-70-percent-confident-answer-should-mean",
+      "what-a-leaderboard-leaves-off-the-podium",
+      "what-a-small-team-automates-first",
+      "what-a-static-site-costs-at-10-000-pages-on-a-free-tier",
+      "what-an-agent-harness-is",
+      "what-an-image-tag-actually-promises",
+      "what-never-to-log-in-agent-runs",
+      "what-temperature-changes-when-a-language-model-writes",
+      "when-the-wrapper-says-success",
+      "why-rust-builds-eat-the-disk",
+      "your-model-has-a-retirement-date",
+      "zerodrift-anchor-3",
+      "zyte-mcp"
+    ],
+    "sha256": "f227769d2757823280c97dc9ee061bcf1b0bafb44d7094b7a98f0b37e4755b83"
+  },
+  "entries": [
+    {
+      "slug": "meta-opens-the-muse-gadget-sdk-code-but-pairing-still-runs-through-its-own-service",
+      "sha256": "787abcc7f5135e85549d294a8fe36dbb5303121f92574a4a008fa94b243f80df",
+      "pubDate": "2026-10-04T11:00:00Z",
+      "reviewSha256": "40ca73f669e53fb1bb6e7ceb7f9395f955498934b3e17a4e7917433af7021bcb"
+    },
+    {
+      "slug": "apple-tightens-macos-full-disk-access-for-ai-agents",
+      "sha256": "f7e1ba4884300b6567e6bbc3e05e33497d39159a1aef6ceed46a158ff8177913",
+      "pubDate": "2026-10-04T11:30:00Z",
+      "reviewSha256": "d393f7a93d2dc27aa60303cdca28f7420d2dd14aa93ae756a41cb6a2f9038e49"
+    },
+    {
+      "slug": "cloudflare-adds-a-web-search-api-to-ai-gateway",
+      "sha256": "ba45d357dfea655541598e64fd7132354bf79cb585ee6f391654f58b2c0bb79a",
+      "pubDate": "2026-10-04T12:00:00Z",
+      "reviewSha256": "7d9d2ae803afb85f1cb25cc40076083419f4cb9c03732b6280db63fe7d098fa7"
+    },
+    {
+      "slug": "read-replicas-and-the-illusion-of-one-database",
+      "sha256": "182dfebe254b443bfbda63db92f40c318c611a9bf046f0f74544d942b456350a",
+      "pubDate": "2026-10-04T12:30:00Z",
+      "reviewSha256": "3e95b176e75a651f4ab754c62408f9ae53329d55688e51b24095490fee359640"
+    },
+    {
+      "slug": "a-diff-a-reviewer-can-actually-read",
+      "sha256": "9b069b8fbba4769a9873b8b29a777813a44fe4c1f25d42d82f8a482bca68f96e",
+      "pubDate": "2026-10-04T13:00:00Z",
+      "reviewSha256": "736c03091bc803531b14cc7e9778435532bce45cfcd76d8f122d993b45265c11"
+    },
+    {
+      "slug": "stopping-a-service-cleanly",
+      "sha256": "74499b7f42bc11b3b1bdf0086261e11d9b048b9602dff46d9b5b7e7d775c4fb9",
+      "pubDate": "2026-10-04T13:30:00Z",
+      "reviewSha256": "02e68b2b501af8cc295e4fc755f4246eb155c4f999f73e3f68a01745ab2f4370"
+    },
+    {
+      "slug": "a-model-answer-can-become-executable-html",
+      "sha256": "4d1f8b684d8d28c383713f0fe990d6acd1d188e7b4ad0a87e3d155c6f55170f8",
+      "pubDate": "2026-10-04T14:00:00Z",
+      "reviewSha256": "328d54360a34085e98c767088612ca8aaf926f3bc4f6622da5e6692d106b8ccb"
+    },
+    {
+      "slug": "how-a-model-says-no",
+      "sha256": "dfd183af563266128a75de75f25c4176ed1cc4b300a2204f5675675f988dcc0d",
+      "pubDate": "2026-10-04T14:30:00Z",
+      "reviewSha256": "41390ff54130438e697a4cde6a7ae0c035c5871df30fa00328ae8a0a17bf3cad"
+    },
+    {
+      "slug": "chunking-for-retrieval-how-big-a-piece-should-the-retriever-read",
+      "sha256": "21e9d130a8f357d2e891a7617cc8c45041ff73e88de257a8ca2d98a85b6b7bc9",
+      "pubDate": "2026-10-04T15:00:00Z",
+      "reviewSha256": "83d16f5011f2787be94a333965df3f3669844845ccb799407f4af47bbbf84eed"
+    },
+    {
+      "slug": "postmortems-when-an-ai-agent-acted",
+      "sha256": "8f441f2e42f562494d6d8d31798bb9b9157eb16646231c236e1166262a45f99e",
+      "pubDate": "2026-10-04T15:30:00Z",
+      "reviewSha256": "1026295a5934250ead4c9d7654ce85e611e94f7056bbe72d4547a5e566989584"
+    },
+    {
+      "slug": "a-partial-index-needs-a-matching-query",
+      "sha256": "7ed09875f60de523b145ec6df365b80f6d50a27259cdbb27b9dff147b3b1ffbe",
+      "pubDate": "2026-10-04T16:00:00Z",
+      "reviewSha256": "ba1fb3ea2674b00440f19c69fad073a748050cc1145e72dc1223b2d8d4d9c614"
+    },
+    {
+      "slug": "the-human-in-the-loop-is-a-job-not-a-button",
+      "sha256": "283bbddbb533ffaf1847cfc14f94b0e173462ed15cc87c507b26261acb8f32a0",
+      "pubDate": "2026-10-04T16:30:00Z",
+      "reviewSha256": "9661d25d040139f0058cfad9b126ec741469753b11a31698945a9647953f688e"
+    },
+    {
+      "slug": "why-an-agent-loop-needs-a-step-budget",
+      "sha256": "5d7c113bb7efba3da0307ca2709b2a752b84d14ad0c3640653cce2b982bd1cee",
+      "pubDate": "2026-10-04T17:00:00Z",
+      "reviewSha256": "fcb4d2330856f33b4adb68338206de47996cff0b2d650d9da2053f88fd44228f"
+    },
+    {
+      "slug": "a-cloud-deploy-without-a-stored-cloud-key",
+      "sha256": "2f3b4e54915519b8942687edd319989f77136ab150f6e63770689c8afa39c3b1",
+      "pubDate": "2026-10-04T17:30:00Z",
+      "reviewSha256": "14e942e38bf611ac6c0b565a7cfd33e3a6e05d9702fe90c152b6dc11ed5fb772"
+    },
+    {
+      "slug": "the-sentence-i-hedge",
+      "sha256": "b4ffb7c4d880f87e50744d04b334b40441797fb1af59a6963284eec32c4c17b0",
+      "pubDate": "2026-10-04T18:00:00Z",
+      "reviewSha256": "6320ddd826818060ddd3a0415f1c061fe7259fda23023535adf6dba5c58a9b9a"
+    },
+    {
+      "slug": "cost-per-finished-task-not-per-token",
+      "sha256": "a375c73d2579d6b66e94b783a9fabc4dd6aa17891d2d5e4f6366fc9e714c3e4e",
+      "pubDate": "2026-10-04T18:30:00Z",
+      "reviewSha256": "fb5e949065ecb321142eebf7974624858e4f9be8879966f13183011ea0c41cfa"
+    },
+    {
+      "slug": "a-rolled-back-insert-can-still-consume-an-id",
+      "sha256": "7c84eb91c6b13c5e30d4f26b7bf012efbe4e5257569d5cc1e31d647d987f1acd",
+      "pubDate": "2026-10-04T19:00:00Z",
+      "reviewSha256": "6bb9bb2437cf5b1c2fa74bb4cb58980f25412447fade2ac33498e654f4260bb9"
+    },
+    {
+      "slug": "reading-an-eval-table-without-being-fooled",
+      "sha256": "3cf93c33b6e74a330c7eb8d88be84af2ade79b8ebea106e01ff65faca6992460",
+      "pubDate": "2026-10-04T19:30:00Z",
+      "reviewSha256": "acba3993fee5340838cf5cd5d44796c1063abf48ed5571421b26169e4e51c70b"
+    },
+    {
+      "slug": "a-savepoint-can-undo-part-of-a-batch",
+      "sha256": "5b698c0a125a89dd367a866e2f0c7f8107716ffd083d391d2828f2da88b311a7",
+      "pubDate": "2026-10-04T20:00:00Z",
+      "reviewSha256": "c57a36faaed9f848e45ba5e4c48081a75478f6714b6b07cfedef992dc8bf4e79"
+    },
+    {
+      "slug": "small-rust-binaries-the-size-flags-that-matter",
+      "sha256": "d35b74679acb8f5b10003a41e41557edcb2d684c06e77f30e990aeb3ad7511a9",
+      "pubDate": "2026-10-04T20:30:00Z",
+      "reviewSha256": "c8c5d7a7f4649e258c2c5a0620fb2aa3fa99c79f2ecb039cc3ca6bc25304782b"
+    },
+    {
+      "slug": "a-seed-is-not-a-reproduction-plan",
+      "sha256": "ec702ac265d1921770453f0f3160ee872832054e38fb839ee2b25ee3de531e4e",
+      "pubDate": "2026-10-04T21:00:00Z",
+      "reviewSha256": "c5e33284727d7a0149c66a4510298bcce149e5676d50b95128a4a5583c90a537"
+    },
+    {
+      "slug": "exit-codes-how-a-cli-tells-a-script-what-happened",
+      "sha256": "2c90b408595adfc69a4b79b95379e25794e0941cfdaaf6d8fa5bfa3e0fce9eec",
+      "pubDate": "2026-10-04T21:30:00Z",
+      "reviewSha256": "d0ec7b0017d1b39f545fe21356ae212bba2f7e8301bff79cd992d407848aba01"
+    },
+    {
+      "slug": "a-session-cookie-does-not-prove-the-user-clicked",
+      "sha256": "e199cdc5b83642937bbad2e2d1436b4c42c762cf21b3ff4c61ce90e2b01a98e1",
+      "pubDate": "2026-10-04T22:00:00Z",
+      "reviewSha256": "f5ff0b6bafc6c6d671d6edf1f4a424596a0ea9fcf9c3cca9e30df7cb437118fe"
+    },
+    {
+      "slug": "reading-a-license-before-you-vendor-code",
+      "sha256": "976d6eb61fe300b941f86a999cf416423854da93037ac43990fe0b9922779e5a",
+      "pubDate": "2026-10-04T22:30:00Z",
+      "reviewSha256": "e6fa69e240285691686693c7fc9b06c3fb9beb86e565473bebb6f78d42ccd44a"
+    },
+    {
+      "slug": "a-slash-in-a-json-key-is-not-a-path-separator",
+      "sha256": "0fab3b320728a98fe6a77344885b7a69e13eab2f8673696115dd48ef38b3b1de",
+      "pubDate": "2026-10-04T23:00:00Z",
+      "reviewSha256": "08ee96bb2be82243b271dfcf76a038fac40f5ffccaf46bb0f151abca2f2b211d"
+    },
+    {
+      "slug": "a-failed-rollout-can-keep-retrying",
+      "sha256": "64604436020eeeb4529ba2d77ebff0c91ed3f170be5d4b7a59e908925d0e8a00",
+      "pubDate": "2026-10-04T23:30:00Z",
+      "reviewSha256": "50efce7e0b361332e3ac7bb79060cba68e7197303926326f466289db15058f1a"
+    },
+    {
+      "slug": "a-streaming-dataset-is-only-approximately-shuffled",
+      "sha256": "18f713fd89c78aba79b8a3faeb6eeae9d8cc463389dfeb1831a5555cb412d6a0",
+      "pubDate": "2026-10-05T00:00:00Z",
+      "reviewSha256": "ec336142b6c64cae82cac02c5365d547b1a01ae9761f17ece0c877219b904e00"
+    },
+    {
+      "slug": "a-gpu-is-an-integer-to-kubernetes",
+      "sha256": "97d56aa62109ad3f9a48af8c75997b930eadf9c9f3d55bdb735fc111ffee4f9e",
+      "pubDate": "2026-10-05T00:30:00Z",
+      "reviewSha256": "fc2331c7b10a95163552bba65baa8d9657748f2c43671c3284be096759d8dd23"
+    },
+    {
+      "slug": "a-token-for-one-mcp-server-belongs-to-that-server",
+      "sha256": "f08f2f1f3bd9f1a9678cab9214587f89137afcc4dd923f624816adcd4e37b3f8",
+      "pubDate": "2026-10-05T01:00:00Z",
+      "reviewSha256": "19b96fcf64ea59d1436964bb1590fa7957614ee1e73fc374c95ae645ed449607"
+    },
+    {
+      "slug": "a-namespace-quota-can-reject-a-pod-at-admission",
+      "sha256": "4927008c2c24bd9f3b6167483f65a9b6bc12419880007845f0254f9e081b81ff",
+      "pubDate": "2026-10-05T01:30:00Z",
+      "reviewSha256": "e036e49722ddf1f48f75026731a85ca32d3408b8361c2830b2ab5c2ed31ffeb2"
+    },
+    {
+      "slug": "a-word-boundary-is-a-language-decision",
+      "sha256": "3e38939f13b05363a83452408d35da2e523ecf62f1de716c27b7bd6acabf2aca",
+      "pubDate": "2026-10-05T02:00:00Z",
+      "reviewSha256": "cc9757266ebaddfc4a29319d670377df01e48463fa5f035047c73b92d8601a34"
+    },
+    {
+      "slug": "a-networkpolicy-takes-time-to-reach-the-pod",
+      "sha256": "a9e0ce77dc7776095203cc8e715cd7decad4450160e87b7742adb604970e5183",
+      "pubDate": "2026-10-05T02:30:00Z",
+      "reviewSha256": "f4c40b310c80789905021a50f6465389712a700bcf1ee74a6def5d280746ca5a"
+    },
+    {
+      "slug": "an-advisory-lock-works-only-if-workers-cooperate",
+      "sha256": "27deb16cef14de437e23bc6cc955dca425e477bdf14f8e14569ac66fdf22803c",
+      "pubDate": "2026-10-05T03:00:00Z",
+      "reviewSha256": "fc04fe8c01c327c3c19e59cb03f2e49887ad3efd1565bef4e8fa02b148d68822"
+    },
+    {
+      "slug": "a-signed-build-is-a-traceable-build",
+      "sha256": "6013b81435b1710d9769dfa9f7f1aa71df1ee57074d96661ac7aebaad741656d",
+      "pubDate": "2026-10-05T03:30:00Z",
+      "reviewSha256": "8a7e2480cca584dce83498effcbdf070d56dffd49ffee3aed244633328640ab0"
+    },
+    {
+      "slug": "ask-before-sending-the-gigabyte",
+      "sha256": "da86594b650cd8643f79950cc212f2c010b39886c38f7a0c7a39b21cec301e90",
+      "pubDate": "2026-10-05T04:00:00Z",
+      "reviewSha256": "5901bfe374cba978bf513251cd8aee01f054f81e7bd9cf9dbcbd65228b7d7355"
+    },
+    {
+      "slug": "a-user-id-is-an-expensive-metric-label",
+      "sha256": "f6db3823e8a7c29dee1ae44498856e4687d1804d88e3413a0e12de25859b376d",
+      "pubDate": "2026-10-05T04:30:00Z",
+      "reviewSha256": "ab1a4f0f147728f6adffb4c07b69bb7fe966eb2788ca21648a02720c9cbfbc84"
+    },
+    {
+      "slug": "generated-columns-move-work-between-writes-and-reads",
+      "sha256": "98bdce4afabf2fe283019b3e842fbf4479fb73fb1880cbfeaa834a509bf90693",
+      "pubDate": "2026-10-05T05:00:00Z",
+      "reviewSha256": "271a79db3728158c600b40bb1e4814f6ce88c481a36ae9a2a88d7865da879a76"
+    },
+    {
+      "slug": "an-agent-span-has-moments-inside-it",
+      "sha256": "efa509e5af484c9048ec939fba58eb7d25c8037169f0fe5603f1cff377ee215d",
+      "pubDate": "2026-10-05T05:30:00Z",
+      "reviewSha256": "63d973bca3c403b3781c3fba5f4bdf0705e4ba92a717b1e9e619b8c3a8fc5fba"
+    },
+    {
+      "slug": "http-errors-can-have-a-standard-shape",
+      "sha256": "7eb612796daa318b750ad6ad77c8d1efeca103ad70549b00c01448d5ec900d0f",
+      "pubDate": "2026-10-05T06:00:00Z",
+      "reviewSha256": "6f58d60e359052be2915a927fd1726fc8312bed7736db4f4d51b4a001a87e8e7"
+    },
+    {
+      "slug": "an-s3-etag-is-not-always-the-file-s-md5",
+      "sha256": "bd120774bf4433a2ceb29e2acc0a548b8d32c83eb69230861a16219ddc93477b",
+      "pubDate": "2026-10-05T06:30:00Z",
+      "reviewSha256": "b9a2b661990cb2e53fc481b83495888e5545828dce5a82cc14ea62af79511401"
+    },
+    {
+      "slug": "inference-mode-is-stricter-than-no-grad",
+      "sha256": "7e6280666ef5095cb3f4e69dc6b73173b68cb9ff1ddacecfb9b1bab22382acd4",
+      "pubDate": "2026-10-05T07:00:00Z",
+      "reviewSha256": "e288208b949f8a2be9c13d08f4b68a5c2bdd070b59d26c0f1bb92d1e08268027"
+    },
+    {
+      "slug": "autoscaling-happens-in-steps",
+      "sha256": "ea0adbfb0c959950b0c5a9567273676e2dfad55b7cfecd1062024b6788f6da78",
+      "pubDate": "2026-10-05T07:30:00Z",
+      "reviewSha256": "68a125c4f09c092a30eeb968d49c7f0635729dd23666fd369dd8c8b7a3a546f8"
+    },
+    {
+      "slug": "json-patch-applies-edits-in-order",
+      "sha256": "5ca52f6168ab25a54a95d4f6b258120c42d2374fce72bba68198bc9481256a56",
+      "pubDate": "2026-10-05T08:00:00Z",
+      "reviewSha256": "20ab7d1226cc74fb1bfae4bb446f80a31495e79636454712454d247fa184ce3d"
+    },
+    {
+      "slug": "build-tools-need-not-ship-with-the-server",
+      "sha256": "a9e9c1464e5faafdb948f1e444c94a13cc82b7ec24944b29eb70a037a4828de2",
+      "pubDate": "2026-10-05T08:30:00Z",
+      "reviewSha256": "cc8561f59d73ca422787e49e8b2f7caf2b62c44070b5e46cb79671265e6ad3c6"
+    },
+    {
+      "slug": "json-schema-allows-extra-keys-by-default",
+      "sha256": "da39c38a38954fe3373433e4262d15fcfcdc88e17243fc8ec65ac62e8945ab26",
+      "pubDate": "2026-10-05T09:00:00Z",
+      "reviewSha256": "31fd8ee9e744931406e6524c22bcb2246a979bd87d6f0fcda7bac56bad68460a"
+    },
+    {
+      "slug": "cpu-is-not-the-queue",
+      "sha256": "1fb1e8861b160cd94518de41dd102656886fe023d8f3cd8ee14916c4a94576e7",
+      "pubDate": "2026-10-05T09:30:00Z",
+      "reviewSha256": "125a29a04307debde703cdea6ff20295b9bb39987630e73bf5d1c7a0f274a151"
+    },
+    {
+      "slug": "jsonb-is-not-a-portable-blob",
+      "sha256": "7cfd103aac7785f60f689bfb4cbb859374b626ee50f0fdc3e15c78baaf4f9a8c",
+      "pubDate": "2026-10-05T10:00:00Z",
+      "reviewSha256": "d27576fb1543b0ede2c09a4fb3c5c86ff0d8f953a10eee330745dee036329b5f"
+    },
+    {
+      "slug": "cpu-requests-place-pods-cpu-limits-throttle-them",
+      "sha256": "939859cdac6be176587cb2266c66af1c481ba9c214e3b591915fb4376a2232bc",
+      "pubDate": "2026-10-05T10:30:00Z",
+      "reviewSha256": "5b361fde52f7623aa86fc21d5e7187affba679a63a36c91b26970c90b8af55ea"
+    },
+    {
+      "slug": "local-ai-without-a-frozen-page",
+      "sha256": "8dde52f8da613af3e92b99cc8c50795d95d56df89c05f04ac8525d79badb387c",
+      "pubDate": "2026-10-05T11:00:00Z",
+      "reviewSha256": "648b649eea7cedbe63e21de91f2a312871bf14d14128418584a731b74d244352"
+    },
+    {
+      "slug": "decide-which-agent-traces-to-keep-after-they-finish",
+      "sha256": "36b1f2989a9f108cbd64e336e79b14abe4fb2070d60eb41beb5a7ae706ae6b6b",
+      "pubDate": "2026-10-05T11:30:00Z",
+      "reviewSha256": "e3484bdce47b7b84f3c785f584b372322c9d0bd785e03785ec71a2c30557c90a"
+    },
+    {
+      "slug": "log-out-open-tabs-with-broadcastchannel",
+      "sha256": "5d496b7549b1deb1f54ac44be16a5140d13d21cfcdb7ee731f53a5bcd7f52f45",
+      "pubDate": "2026-10-05T12:00:00Z",
+      "reviewSha256": "2f6419e797b39e2b3827d27afbdac5c9b96013e052fd24570865d77d78fe8e03"
+    },
+    {
+      "slug": "first-token-and-next-token-need-separate-charts",
+      "sha256": "750cacced2cbaedca7659ac8318eb7dd5db9199b9a2ac88462e82c5c82f9dc79",
+      "pubDate": "2026-10-05T12:30:00Z",
+      "reviewSha256": "70db3ced48b8c9f554f50a75a9218bb7bcf65ef15c4c1b81371de470636c2e6f"
+    },
+    {
+      "slug": "make-html-sinks-reject-ordinary-strings",
+      "sha256": "bf9af18c5c8f86a2726305a0538a545f8932a3b6a6e6530ff90f4359b356ca52",
+      "pubDate": "2026-10-05T13:00:00Z",
+      "reviewSha256": "b6cf921d6491508fcca0193f88ae2112748c87feeb836933c97d170f89602fc4"
+    },
+    {
+      "slug": "priority-can-jump-the-queue-without-evicting-a-pod",
+      "sha256": "a26f9b161a53ae77eeb18e04dc757809fd8571e32511c9961b2f86aca4159fc0",
+      "pubDate": "2026-10-05T13:30:00Z",
+      "reviewSha256": "438cb42de57ab91b1d5e563e3cc97e52adf8f93d40b613f6ed44f906536fa2f1"
+    },
+    {
+      "slug": "one-failed-task-three-interrupted-siblings",
+      "sha256": "36ed03a4f80576741a009b1b7a5a4085439414cd25323371ea0bfe0cd759fb8a",
+      "pubDate": "2026-10-05T14:00:00Z",
+      "reviewSha256": "13946f7ba634d3108f6af62bc148e8a04bda689bea2850c3d9f1ae9909512e4c"
+    },
+    {
+      "slug": "protect-inference-capacity-during-a-node-drain",
+      "sha256": "48764e7265670f65eee6f15b9210c7e85618a98782dcad65100ef980a9782927",
+      "pubDate": "2026-10-05T14:30:00Z",
+      "reviewSha256": "2df83ad66f0fe0480d0842bb20df9adbc8413f505927826681bb880c3badd2ae"
+    },
+    {
+      "slug": "one-request-id-through-many-coroutines",
+      "sha256": "cfec8b386ed6ec1d2140291892fa940ecc5ec65848b05cb1b1bedd8051336560",
+      "pubDate": "2026-10-05T15:00:00Z",
+      "reviewSha256": "dd8890389516be996f10c8adba42d129674c5cbc165b43dfb8817fc24ed0d9e0"
+    },
+    {
+      "slug": "reading-a-429-rate-limit-headers-for-agents",
+      "sha256": "891ed8e24aa180a2e325322ef6ca0e72e50f63fb1e4d7f058ee17d3963e35445",
+      "pubDate": "2026-10-05T15:30:00Z",
+      "reviewSha256": "afc8689efe13550f23e138db776185a2b6975744f9bb918e805336887317248b"
+    },
+    {
+      "slug": "oneof-means-exactly-one-match",
+      "sha256": "1c4070064961f0775093bffd51c5bac5066a786fce928278704cb0c3e3c9140d",
+      "pubDate": "2026-10-05T16:00:00Z",
+      "reviewSha256": "3f2be2b3132d359da131e06a8438755c5e950c93f107196da04956301eaf5b78"
+    },
+    {
+      "slug": "stage-model-assets-before-the-server-starts",
+      "sha256": "9853c3742d6c6e88f50fd80227fecdbd4da248729ffdafe2b7028f2ef4b8f016",
+      "pubDate": "2026-10-05T16:30:00Z",
+      "reviewSha256": "2c14f60582aee907e271626ed2ce78d45aabda31af466f02a4fc9c9882f7986c"
+    },
+    {
+      "slug": "search-for-the-exact-error-code",
+      "sha256": "82d5046bb74f7cc384058bd3e17816fc3cadcf8bc4e53934bc93e0b7513cc426",
+      "pubDate": "2026-10-05T17:00:00Z",
+      "reviewSha256": "e27548a7ec6ae21fd22ed456c46dff83e1b8454d1224a5143ca09c094f25beb0"
+    },
+    {
+      "slug": "the-calls-behind-one-agent-answer",
+      "sha256": "73f36b5ec3a78ef5aa8bc20c3eb49fba125fd9c714064465baec79063773a0e2",
+      "pubDate": "2026-10-05T17:30:00Z",
+      "reviewSha256": "29e1855fc11bd5f0293ddd8ee17e63bdbcb6002d6520ca43233343ebf3d366a1"
+    },
+    {
+      "slug": "ship-a-prompt-to-one-cohort-first",
+      "sha256": "cc32e7d3b92a30957215deacd9f17511bb986edc23cd58b45b9f02ecd81802cd",
+      "pubDate": "2026-10-05T18:00:00Z",
+      "reviewSha256": "217a0d8608d525cb7579c5f78d962eb746c82752ea6ae24369aab9edd939e691"
+    },
+    {
+      "slug": "the-debug-container-you-add-after-deployment",
+      "sha256": "2901047f4bc7ff95388add12ea2b5476e6446e38c4077c287a5ecab377159ca2",
+      "pubDate": "2026-10-05T18:30:00Z",
+      "reviewSha256": "5de95caa8941adcf457b82fed4f818136f9cf15c16f8b9d352e71b72e4e088b8"
+    },
+    {
+      "slug": "sqlite-can-enforce-the-types-you-declared",
+      "sha256": "a29c3cf35be0962a6dd156db3993d302c015be5a4c9caf5e9b29f66081b33d5b",
+      "pubDate": "2026-10-05T19:00:00Z",
+      "reviewSha256": "72a3f1cf9a0956d9bcb923443ce5bfe912f937a6d2221a8a51c9fbe098857f9b"
+    },
+    {
+      "slug": "the-scratch-volume-that-dies-with-its-pod",
+      "sha256": "536f46551743c398672f22ce9164e8632d52c0d52d63579a3bbe0b88f464b60d",
+      "pubDate": "2026-10-05T19:30:00Z",
+      "reviewSha256": "c08311f8f0741d3264ac2c15d90d71732262b6ce3d5f955a77732214d258d490"
+    },
+    {
+      "slug": "stop-two-gpu-reservations-from-overlapping",
+      "sha256": "09d5ae3493c019848ef1b53c40dd743e8de0216d9191fe9c9015e0542d4c389a",
+      "pubDate": "2026-10-05T20:00:00Z",
+      "reviewSha256": "0135672978e031412d48ce733bf0109778bccd397013ddf3e85a2fbbb6dc4c2d"
+    },
+    {
+      "slug": "the-sqlite-reader-that-kept-the-log-growing",
+      "sha256": "315d3b3f20f067e7f5859c97edf16341ec09ce63566bfa3ce0537ff18c398cac",
+      "pubDate": "2026-10-05T20:30:00Z",
+      "reviewSha256": "42eafd6c18a7ca6397fd876732f65f916de3581b32b334be6f2ae04aa58871c1"
+    },
+    {
+      "slug": "the-chat-finished-but-the-screen-reader-heard-nothing",
+      "sha256": "2fb60d3646ab21a04fe13aa1d23a81a3c9d14162180a65246468eba64ffbb151",
+      "pubDate": "2026-10-05T21:00:00Z",
+      "reviewSha256": "5df07929baae47867ca0fa36129370780c63d6163bf5e58f9dfbb0a691079923"
+    },
+    {
+      "slug": "the-trace-pipeline-can-lose-the-failure",
+      "sha256": "f9d2483a504d6a78d5f9c55fdb0a3bf06e3b96fd221e155169baaef6966c941e",
+      "pubDate": "2026-10-05T21:30:00Z",
+      "reviewSha256": "186ac80460d912cd7a5cabf520e516ca91b749d5ba2078b6793e82a41a8f16b6"
+    },
+    {
+      "slug": "the-old-tab-blocking-your-browser-database-upgrade",
+      "sha256": "e4966e4ccd088931306eee13459a660425bd42cd68641515fe2ff8cb91502845",
+      "pubDate": "2026-10-05T22:00:00Z",
+      "reviewSha256": "307dae45199298f866662564e786e44a25fbdcd64b6500ae1e58903050e6e2fe"
+    },
+    {
+      "slug": "the-upload-that-failed-but-kept-charging",
+      "sha256": "7dfd0127107eca52dcae2bba78c65eed129cc8fa3ecff2691715b9928fd4be8c",
+      "pubDate": "2026-10-05T22:30:00Z",
+      "reviewSha256": "9a25880a2970456e10300cbe22fa998be8cf2361c620985fb5c1db2a3362e882"
+    },
+    {
+      "slug": "the-stream-with-a-traffic-jam",
+      "sha256": "f60224c76de143cd9ba4b0cfec2328e1e093b724152f77ccc9e54e72427921c3",
+      "pubDate": "2026-10-05T23:00:00Z",
+      "reviewSha256": "a9da021f893bd0b2c00379263d199a3ed5f565a9d14e337ebe99f1983d5d0440"
+    },
+    {
+      "slug": "three-replicas-can-still-land-in-one-failure-zone",
+      "sha256": "679571baecbe899d3b838f5f3cc4b2f6eac170b84b86a0be59d9d8adacb0f362",
+      "pubDate": "2026-10-05T23:30:00Z",
+      "reviewSha256": "a04cb518e751f92d8e2de74d489668b1344f7659ce25c102a0458c38b33cf95f"
+    },
+    {
+      "slug": "the-table-owner-can-bypass-your-row-policy",
+      "sha256": "0c912e923ff790cef8192386c77c94724c65756ab3b44e4d2c460ea4c15b193c",
+      "pubDate": "2026-10-06T00:00:00Z",
+      "reviewSha256": "2f2d12a84c46ca39a9c101163f7b7b25c7b69fe60085fb58b3da79d1499d5db3"
+    },
+    {
+      "slug": "trace-baggage-can-travel-to-a-third-party",
+      "sha256": "26a7ab8dd01a4ff1b45984238fd9f78b5c8400104480c7254c694e67472ee286",
+      "pubDate": "2026-10-06T00:30:00Z",
+      "reviewSha256": "75fde0c3e4749245b11f7fc06f7b20913a492728aa5f3f7e56c4eeb18ecc1f07"
+    },
+    {
+      "slug": "the-test-with-no-known-answer",
+      "sha256": "10c45fb952fb99e5d2716e60ff95620217073ccd8e6b099c67d247853bef7487",
+      "pubDate": "2026-10-06T01:00:00Z",
+      "reviewSha256": "753ade9a541ec05d40cff8a99e654e77d3dfde77f46b6838e7084130d29b9f01"
+    },
+    {
+      "slug": "when-dependabot-puts-several-fixes-in-one-pr",
+      "sha256": "84044bccf89edfe019b323e3e81f5418c3fc57c6ddd015c0e56295e6dfbf3f60",
+      "pubDate": "2026-10-06T01:30:00Z",
+      "reviewSha256": "6b1d65ee8bb0b20dac3affb60875f9dd63adc88bf5c328898cb3e52f21482ff2"
+    },
+    {
+      "slug": "the-url-an-agent-fetches-can-point-inward",
+      "sha256": "af089d28627c2eb0c6d1243e4234b729b6b14c897791a38c6a8a7a2a73ba4001",
+      "pubDate": "2026-10-06T02:00:00Z",
+      "reviewSha256": "e77d889782bd2fc352207a49573c02e9fe205fe2e6844398648c1de2c845db51"
+    },
+    {
+      "slug": "why-a-pod-runs-out-of-memory-before-the-node-does",
+      "sha256": "5bb7019b5d60cdf179b7c6b2da637ff49860c39dab0b54ce0583bf2aa95f2185",
+      "pubDate": "2026-10-06T02:30:00Z",
+      "reviewSha256": "ec97179b8d8bbbf1c2a0f02dcf4cf644b61d3a5c69cce0e1fd1e8e9a0907c403"
+    },
+    {
+      "slug": "turn-one-production-failure-into-an-eval-case",
+      "sha256": "6c71bc39655a52e2a2b3a633bf8e130399372e20799bb60becde4dea569bf619",
+      "pubDate": "2026-10-06T03:00:00Z",
+      "reviewSha256": "853bdd69a385850a14b7afec5f894e8179ecf33ce235122371da17ca47d7bd91"
+    },
+    {
+      "slug": "you-cannot-average-p95s",
+      "sha256": "a8d4fe69cf24e7129fb34514f65e97440a2cea448c83a18c3dca1eb664c15eee",
+      "pubDate": "2026-10-06T03:30:00Z",
+      "reviewSha256": "d6a04025b06c592acbca1544f9be2e1ecec84134deed76d61a90b9d948bf9212"
+    },
+    {
+      "slug": "two-values-for-one-json-key",
+      "sha256": "f0e3d263a4a327bc229a36cd70f5a48dbb3a11257aa12bc7853a886ddcbeabb6",
+      "pubDate": "2026-10-06T04:00:00Z",
+      "reviewSha256": "5fa29235769b55ac0da11e99c0b85bdf9fdc3e281e8a44becbb47654beda859b"
+    },
+    {
+      "slug": "a-chart-should-work-without-its-colors",
+      "sha256": "192b8f0d0423c38ab99c38067b2c18ca8be055192650481f62744ecda0b2ef97",
+      "pubDate": "2026-10-06T04:30:00Z",
+      "reviewSha256": "021af09ad1efb45e36b1263fa9fb5204dd9dc0fa3272414790e510f46c08fcad"
+    },
+    {
+      "slug": "verify-a-webhook-before-starting-the-ai-job",
+      "sha256": "127fabccc626e8837bf7e16c81288948f1eeb0a175d2f20df017e62350344430",
+      "pubDate": "2026-10-06T05:00:00Z",
+      "reviewSha256": "809cba4074f54a9660ca4be77f19cae715d0d4688ba7305b70b4c6c4a97a0c69"
+    },
+    {
+      "slug": "a-csv-export-can-become-a-spreadsheet-formula",
+      "sha256": "10ca9ed708c236cf956291b3b2ae59faefd45a0a2d8b38c5d0cd18240e674159",
+      "pubDate": "2026-10-06T05:30:00Z",
+      "reviewSha256": "fd9edf77a7b80736535ad5b6d8e332c0ddeea83614ea36b9c26dd60c1dfab2d5"
+    },
+    {
+      "slug": "when-a-batch-expires-some-results-survive",
+      "sha256": "928486366348040819ef8a92e73262fe5abdaa1700ce3090b695459f197dc625",
+      "pubDate": "2026-10-06T06:00:00Z",
+      "reviewSha256": "84683dc271c44d1142fa520679b9801ef46b16733c16ede9b036561e1ada1564"
+    },
+    {
+      "slug": "a-login-code-belongs-to-a-device-session",
+      "sha256": "a7fd83ddaf2144904a95b22a26365df5d028c47422964f118829ce85c579c4eb",
+      "pubDate": "2026-10-06T06:30:00Z",
+      "reviewSha256": "c9e40052cc50c937f0d6eca93f3f68bf81f7115ec120fbe3a5ab1dbac2de08bf"
+    },
+    {
+      "slug": "when-identical-looking-names-are-different-strings",
+      "sha256": "5d369a4ee8774e366a39d063f72217bbfdee1e4408aa2df00db74dd8f31761ec",
+      "pubDate": "2026-10-06T07:00:00Z",
+      "reviewSha256": "f811e6c813d5289bdba212ca9bc102dbe5f11d02f281369da77e8e27d2268e22"
+    },
+    {
+      "slug": "a-passkey-can-find-the-account-for-you",
+      "sha256": "6c57c1f426b4f0170bd426e6a66b6b1e6a8848c18372e49c0b6f7975d08f1808",
+      "pubDate": "2026-10-06T07:30:00Z",
+      "reviewSha256": "ccf13fb11b5621a96a610091692d5980aea01f511b688aa2feffb9e27748a78e"
+    },
+    {
+      "slug": "when-the-query-planner-guessed-wrong",
+      "sha256": "398d67c38cb2cae5b6e43eea511c07a86c1df2fd806c682908c3dd6cf43822ca",
+      "pubDate": "2026-10-06T08:00:00Z",
+      "reviewSha256": "e31a123f33ec14216933f9fac26e4e386cb1d149316e81f542409a446d089e92"
+    },
+    {
+      "slug": "an-http-header-can-carry-a-typed-value",
+      "sha256": "1df5f67f612b0de4b857ad961e744b783166b58e5ec85354f10f4b2dcda5e554",
+      "pubDate": "2026-10-06T08:30:00Z",
+      "reviewSha256": "428d84217477eb516873e955303efb0d928d468080226b72a7d07570ebb796ab"
+    },
+    {
+      "slug": "when-two-tabs-run-the-same-background-job",
+      "sha256": "7e8af6d74f4629516b10c85537402c0450e53a0895b3ff64f6b778d7bd12d0c1",
+      "pubDate": "2026-10-06T09:00:00Z",
+      "reviewSha256": "606e36e8c99471c1ba3344d2ad18cd0ec1845eb07c4a1b57e8964e3f8b9673f8"
+    },
+    {
+      "slug": "base64-makes-binary-data-larger",
+      "sha256": "123ba8e123a5c96a1388bbba17b24474fe4919daed50a1b56ffaf7d276fab972",
+      "pubDate": "2026-10-06T09:30:00Z",
+      "reviewSha256": "dc47af9a9569273b73ad60f91b1c44d02e83aa33e8272355d110e56e9a7b9627"
+    },
+    {
+      "slug": "who-remembers-the-chat",
+      "sha256": "c92853a5505d0076271875d12982471ed2fd4decd2c70c8f4f7b8a30a1dd2549",
+      "pubDate": "2026-10-06T10:00:00Z",
+      "reviewSha256": "f927e2a531e4bbf483a7d9e5bdc98a46813635a67b9e871529526c5796ab77c4"
+    },
+    {
+      "slug": "must-and-should-mean-different-commitments",
+      "sha256": "bebf9b1dad5f6356aabd5ab768c495debf4607e54076de1802bdf3fdbf5a0140",
+      "pubDate": "2026-10-06T10:30:00Z",
+      "reviewSha256": "7d061ad7b799b832642c7fe9bfed251297768846b5212434a41369b8ef765c86"
+    },
+    {
+      "slug": "why-an-embedded-voice-widget-gets-no-microphone-prompt",
+      "sha256": "80d862b352789b278dc5ebe4e38b4e44b37c42cb88b308e3017c947a0fd7eed7",
+      "pubDate": "2026-10-06T11:00:00Z",
+      "reviewSha256": "aad4a89c3ae6beb75c96ad522880b3ecaa96fa8395ecd8bf6ee5c35f92162543"
+    },
+    {
+      "slug": "postgres-notify-is-a-doorbell",
+      "sha256": "fb101a1c29507613f2e9a319777480f194e2d17014f48807b3523770ed0a79cf",
+      "pubDate": "2026-10-06T11:30:00Z",
+      "reviewSha256": "39829e88d2dca54a97c584328ed770deac733b9d2080a72b18ddef33f0a1991b"
+    },
+    {
+      "slug": "why-oauth-sends-the-challenge-before-the-verifier",
+      "sha256": "deccd6e0cc6d9d6d6b17f7672877bb3cd64675c0194afa9bc379758ee223ba88",
+      "pubDate": "2026-10-06T12:00:00Z",
+      "reviewSha256": "eb012c4d89a8ce9725c89f549fb59e4d50d47e0e5692650f671a3065fe84e7f3"
+    },
+    {
+      "slug": "skipping-locked-rows-changes-what-a-query-sees",
+      "sha256": "d685ee377b13cda57892315c487f6a40bf538ae03e5153e951b327434f4319a8",
+      "pubDate": "2026-10-06T12:30:00Z",
+      "reviewSha256": "b2fe4e926c25dae91aaa81d11425f21f757c8d73c0923cfc296f2be1741ed53b"
+    },
+    {
+      "slug": "your-index-starts-on-the-left",
+      "sha256": "45f36abf343fb03ee2f4f9018a82d2db1a8d6d2569042b52230df833245b8ccc",
+      "pubDate": "2026-10-06T13:00:00Z",
+      "reviewSha256": "d973f747f3248e7588c62139a400619b2e4cc8c08e2efb84897f8e2309d050a2"
+    },
+    {
+      "slug": "sqlite-foreign-keys-belong-to-the-connection",
+      "sha256": "21ca8bfde715c7c797c9cfb02788d2e4b51ba68176963f696d8081e3be0984cb",
+      "pubDate": "2026-10-06T13:30:00Z",
+      "reviewSha256": "8b5e009947540a38efac4a827435350a984404a674d8bd7bc65aab243fa03877"
+    },
+    {
+      "slug": "a-citation-has-coordinates",
+      "sha256": "3c420dd437408f65914776c9cca966575dd91472c5ac4ea175d244e7288e3500",
+      "pubDate": "2026-10-06T14:00:00Z",
+      "reviewSha256": "9c3708d853ba03f0aeb3c7bb3ff4dfefb512fd23b6882ac3b2f2e2aa045ec8fd"
+    },
+    {
+      "slug": "the-same-embed-gets-a-different-cookie-on-each-site",
+      "sha256": "869259c93ba074393c736e0d8d6e5cdd8942bd1ea80ce1db0443a3e5f9a781a6",
+      "pubDate": "2026-10-06T14:30:00Z",
+      "reviewSha256": "42e4a732528bd307c0d5fbbf3401d7c0b4c51e73fc6f5b22e208be6894b37af7"
+    },
+    {
+      "slug": "an-attention-mask-keeps-padding-out-of-attention",
+      "sha256": "5b8c2919202e7df96ad05f0f21b0701f0b244c9fb6c5ad21860b54b7e3c3166b",
+      "pubDate": "2026-10-06T15:00:00Z",
+      "reviewSha256": "2e8b414f5e49e353fe81e02f98d868a0e4b28570b2fb4861df3984a5071cdf3c"
+    },
+    {
+      "slug": "the-url-fragment-is-removed-before-retrieval",
+      "sha256": "beed3b6453ac9f32ef6946d9d6adb0695297a7c24952d73fa974a9853e4b68a8",
+      "pubDate": "2026-10-06T15:30:00Z",
+      "reviewSha256": "b97c46eaf98a317c7bd2dc35aafe8ed87889265d6e89638f3d0bd46e1c6843ae"
+    },
+    {
+      "slug": "beam-search-keeps-several-answers-alive",
+      "sha256": "20c1f1f7a313b13e54679aee1db40d8e0f232d704dd7092ab44e0eaf90b5b7da",
+      "pubDate": "2026-10-06T16:00:00Z",
+      "reviewSha256": "a00431f356a81ed48e7251ae9ac051aafac1933ec1287802b979731c995a24d1"
+    },
+    {
+      "slug": "undo-belongs-in-the-ai-editor",
+      "sha256": "bf785d9f7ccf6bed3a133da5cda800264042a8e4927efe7c6233bb4d9c1f9146",
+      "pubDate": "2026-10-06T16:30:00Z",
+      "reviewSha256": "5c0101c9a739fceb7730e60dda3ad8170943177351b1c22a77242c50bc2c158f"
+    },
+    {
+      "slug": "generation-stops-for-more-than-one-reason",
+      "sha256": "7ff5b14148ebf7c358f346f54a325ff215d85f49a4bd44214041a1938f7b16dd",
+      "pubDate": "2026-10-06T17:00:00Z",
+      "reviewSha256": "04ada78fb0974ccbfe3f74ad2579011cf0545b1f6c503d3f8fc502752a18abdf"
+    },
+    {
+      "slug": "vary-makes-one-url-mean-several-cached-responses",
+      "sha256": "cef73e52f9c8851816b80ac0f7c856c9e58c17f254309825bf454a392773e322",
+      "pubDate": "2026-10-06T17:30:00Z",
+      "reviewSha256": "3adb34de76c4b5c35c22def892678864b6fb5b9a520ff0d2511322e92249dc93"
+    },
+    {
+      "slug": "gradient-accumulation-builds-a-batch-in-steps",
+      "sha256": "883ec49c277ad99c3d19f12f14044075897ca41110e842076e323696c01f2897",
+      "pubDate": "2026-10-06T18:00:00Z",
+      "reviewSha256": "8de61ee9e2dc02ab0e6b70f0e6376b83f29fc61bfc39956f5c75e35308d494ee"
+    },
+    {
+      "slug": "a-crate-audit-is-a-trust-decision-with-a-paper-trail",
+      "sha256": "e8147eb2690236c468b2f4b9caf5cca20152828bdb79a09c6aec1b23436dbe7e",
+      "pubDate": "2026-10-06T18:30:00Z",
+      "reviewSha256": "454725477c0d09be450c9e5bec16aa86314e3e98053783acbaa8b024f07f1c29"
+    },
+    {
+      "slug": "one-gpu-batch-many-different-finish-times",
+      "sha256": "62b914d09088fc2076687dbfee80cbb868a48c6d4d617ea1ca6f9e33601b9f5f",
+      "pubDate": "2026-10-06T19:00:00Z",
+      "reviewSha256": "6c7eeeadea78462e5ec72d03b3eda50e57f25b04694ea08aafb20a735c5f3bd5"
+    },
+    {
+      "slug": "a-rust-file-path-may-not-be-utf-8",
+      "sha256": "f527c13bf483c0626ee881c6342f154a7dce053734ba2ffabd00adae7639c57f",
+      "pubDate": "2026-10-06T19:30:00Z",
+      "reviewSha256": "2c65e8a5047b6edfc1c9ef3b9e1a80b180da73044f481e3aed48ade1fc9fdac9"
+    },
+    {
+      "slug": "perplexity-changes-with-the-tokenizer",
+      "sha256": "b68cfc638299ce7d4c2016acc46f26e1af8c4f91774c758502c5db67dabe13c5",
+      "pubDate": "2026-10-06T20:00:00Z",
+      "reviewSha256": "ce41c7200fa39261a4e8044487d673a235cbcdd87a4a40e846a7b87869738134"
+    },
+    {
+      "slug": "a-rust-value-can-be-send-without-being-sync",
+      "sha256": "59bd4a004d76696ba8b404147043cc6aca56562fc06fb21ef803e815cb842248",
+      "pubDate": "2026-10-06T20:30:00Z",
+      "reviewSha256": "1c8e250e0876370c7665d8180e76332d139e9de27497f922f8f331f68949d940"
+    },
+    {
+      "slug": "swap-the-sampler-keep-the-image-model",
+      "sha256": "ea0076b4997a509e3cf59352375a9cabd627e104c886f64f32677e3881de989f",
+      "pubDate": "2026-10-06T21:00:00Z",
+      "reviewSha256": "a9c492891a6ecf14f3dbd3c8a6c53e3fb198216268b7034bed7dc97ca18daa9b"
+    },
+    {
+      "slug": "an-untagged-enum-chooses-the-first-match",
+      "sha256": "a1c417fd0a2c30bdf99150f5f6023acb9413bd06b9ed1eeebf90f93c415299bf",
+      "pubDate": "2026-10-06T21:30:00Z",
+      "reviewSha256": "1b00af209b46f447f98902d910d0d39da51bbaad1c8d909f5f708ec1eef34049"
+    },
+    {
+      "slug": "the-chat-role-is-a-token-sequence",
+      "sha256": "65e0a44fd518ad89ab3241b124419669b46fa0fce0d34692b149fbc72dd8e13f",
+      "pubDate": "2026-10-06T22:00:00Z",
+      "reviewSha256": "3e1bf559d55ce6354ba8c65ecd5f283b24fb27acce496c4cfaf168aea75c3e4e"
+    },
+    {
+      "slug": "arc-clone-did-not-copy-your-model",
+      "sha256": "2a552b1ed9771b30b1cc5bec682a026ba23cf3646d53e6b7822615f927506f6a",
+      "pubDate": "2026-10-06T22:30:00Z",
+      "reviewSha256": "0ad92a10d4caf3397ec7d06e9cfdd7ee05170fa0bd71e5a23386d153c388a299"
+    },
+    {
+      "slug": "the-image-your-model-actually-sees",
+      "sha256": "f35cd2642a4b4e180dc5a2f22b0db288a8dfeae7fd89ce11921e4495dd2b1083",
+      "pubDate": "2026-10-06T23:00:00Z",
+      "reviewSha256": "42391fc26a0ad92bb04e117efc6d58d32e50cb3a6275acd19fe09ad370ae8480"
+    },
+    {
+      "slug": "borrow-prompt-text-with-cow-until-you-need-ownership",
+      "sha256": "7aa795d8c01dcc7b3e67ddc5b974e640cac5774a99c7486f7d0bb1638b622ea4",
+      "pubDate": "2026-10-06T23:30:00Z",
+      "reviewSha256": "e7d9a83a9b2295b395ddce216413aaba6535a3de3adb89287782be1a786a144a"
+    },
+    {
+      "slug": "the-kv-cache-is-a-second-memory-budget",
+      "sha256": "e06db743ddc4151040beafcb93a11272495d1c3dfd852ff622fd48f7f6dee30a",
+      "pubDate": "2026-10-07T00:00:00Z",
+      "reviewSha256": "70268364d8548d9c0ec0f72214f39d7a96409ee5ad1dea295e04858635dfe203"
+    },
+    {
+      "slug": "cargo-features-add-up-across-dependencies",
+      "sha256": "cc85d35769e346dcac77899e39d2d232f4bb86bd7f575848441169dc562bd830",
+      "pubDate": "2026-10-07T00:30:00Z",
+      "reviewSha256": "ef3bdd9ccc6a069d48dad340e13804b2aa348339938c61cb5c144e1d97b76bc5"
+    },
+    {
+      "slug": "the-longest-prompt-sets-the-batch-shape",
+      "sha256": "25b2a5cc85a84ff2d71525aefd77c7b23f0213e71e719c18240f6e621c7467fc",
+      "pubDate": "2026-10-07T01:00:00Z",
+      "reviewSha256": "bfb984f2f1ae643f22fc087b7fc0a87e2eec1b43312cc1cffdd84d76ca3829ed"
+    },
+    {
+      "slug": "hashmap-order-is-not-an-output-contract",
+      "sha256": "fe82b000857c3ffa572ff5e2ec5717a503d5dc2378a0458f7aecc436d7b24030",
+      "pubDate": "2026-10-07T01:30:00Z",
+      "reviewSha256": "859fcdf4d27cfff78cd76df548e935fcef30848ae975758fe5eb64d169470fa7"
+    },
+    {
+      "slug": "the-model-beneath-the-adapter",
+      "sha256": "f2dafb3d90ffc8268fac34e9584a409205170fa9524cf955fc2f8c405a2e6e86",
+      "pubDate": "2026-10-07T02:00:00Z",
+      "reviewSha256": "9b352d1862c41b3ae9f6dbf75528f385386e12f6e265e6235ab3a4c8c7c73fdb"
+    },
+    {
+      "slug": "initialize-the-model-client-once",
+      "sha256": "98e013d1a1f40192145c816dd89fd1ddc65c162f78cdcd89beb2cf5e652e8f4a",
+      "pubDate": "2026-10-07T02:30:00Z",
+      "reviewSha256": "39805e9e903af8d7c45f20b538d6a7d0590ec0eed398b8dc3d1964edab75a591"
+    },
+    {
+      "slug": "the-prefix-you-keep-paying-for",
+      "sha256": "0753c3d09402c77b17074e08a9ab98bd283d79bab0b0bc390e18934cc9f65b58",
+      "pubDate": "2026-10-07T03:00:00Z",
+      "reviewSha256": "6e72528b0302d34751c902e446fd11ad14189febab24b0929ae4afe29ef9e73a"
+    },
+    {
+      "slug": "mem-take-moves-a-value-out-and-leaves-a-default",
+      "sha256": "47e5dcef2b84ecd016c67dda6d82fb327f026824c232f941d9e3f1f52619d42e",
+      "pubDate": "2026-10-07T03:30:00Z",
+      "reviewSha256": "043f5e54ac0621ddbc08e943b8b09f2e4f2da4be82416cd24d13e4c47eb08d40"
+    },
+    {
+      "slug": "the-tiny-draft-that-speeds-up-a-giant-model",
+      "sha256": "e12e387d83002c60816632acce262b48688ddd5c45f5a9662381cce77d16383d",
+      "pubDate": "2026-10-07T04:00:00Z",
+      "reviewSha256": "51f835282a518900d8058c9fdcd0f4ff97158faae976bc10f0d610d823cb1977"
+    },
+    {
+      "slug": "must-use-is-a-warning-not-a-guarantee",
+      "sha256": "824ecdc901ba076a1c6ac0023c9c5da1c28393314b657aa488d7ab12cbf52ebe",
+      "pubDate": "2026-10-07T04:30:00Z",
+      "reviewSha256": "f363f19d1fb450a2d5028f74b86907f8e80a4088323b16e73c3c2cb322dadc01"
+    },
+    {
+      "slug": "thinking-tokens-can-leave-no-room-for-an-answer",
+      "sha256": "723a7b2aff2d9a4351d3282984c4919511813887f9b565c18345c4af39786193",
+      "pubDate": "2026-10-07T05:00:00Z",
+      "reviewSha256": "ddb3287bf0382d1e7d46919a979bca5aad6909976569146d66845c4bf791ae99"
+    },
+    {
+      "slug": "non-exhaustive-leaves-room-for-tomorrow-s-error",
+      "sha256": "6e983f6f6cf56d2f2e304e446a3dea6e61035ecd232d44d7d7ea2c8419e4199b",
+      "pubDate": "2026-10-07T05:30:00Z",
+      "reviewSha256": "5887b0f82c645cef948cad42f9f6a7886de6ec5108310a03865caa7498a8ff81"
+    },
+    {
+      "slug": "top-p-keeps-a-moving-set-of-candidate-tokens",
+      "sha256": "ab0999ef900d3465c32fd59728e89acf3237880a2806cb095d5d62748628bc3b",
+      "pubDate": "2026-10-07T06:00:00Z",
+      "reviewSha256": "35acd3dcdaea1ac70f08fb42c04c4c8590d4173ed8c816be7c473818436dd53a"
+    },
+    {
+      "slug": "refcell-checks-borrowing-while-the-program-runs",
+      "sha256": "bc526b8b891fd494e08d8142f1cd30d6a9c56c743fe08f1d8c6dd203b60b2d41",
+      "pubDate": "2026-10-07T06:30:00Z",
+      "reviewSha256": "6f9c10f8730c9d0a17362bdb55afb0f50fc789bd87d6f03852d52e6171bcf56a"
+    },
+    {
+      "slug": "training-data-without-the-giant-download",
+      "sha256": "21fdbb0ac8dec915cb87667993feba36912a3bb5d713aa04e891e5d353d55ee8",
+      "pubDate": "2026-10-07T07:00:00Z",
+      "reviewSha256": "bdfc68fd95f1572a3ba58d453f7fbd9a580300d0b18e3822bd85aa7e1d83e59d"
+    },
+    {
+      "slug": "repr-c-does-not-make-every-c-enum-safe-in-rust",
+      "sha256": "4477dd9196b55ef75f34354b99d01759b8ac1ec93d4ab769de02969c0961b263",
+      "pubDate": "2026-10-07T07:30:00Z",
+      "reviewSha256": "994b7879b97e940d079d4a0c7ca82ea130af782b2fbc4fb9b7c20525f3ed0310"
+    },
+    {
+      "slug": "two-tool-calls-one-turn",
+      "sha256": "05c427de334006dfd1480182da950900c6c3829245ee97700cb79f0602772ffd",
+      "pubDate": "2026-10-07T08:00:00Z",
+      "reviewSha256": "c1053c8b4d87e4a2bfae791b4cf3ecc78196ce24437b4b990f4ac163a94c6514"
+    },
+    {
+      "slug": "rust-drop-cannot-await-cleanup",
+      "sha256": "0a713aa0d1acecdc94c944b094ea585c543fff8004df3ca8509cf4de28882e08",
+      "pubDate": "2026-10-07T08:30:00Z",
+      "reviewSha256": "14fd05489647ce0ec61334a30dd4bf5e9a571a3e730d65117a963cfda4e1397d"
+    },
+    {
+      "slug": "what-a-gguf-file-says-before-you-load-it",
+      "sha256": "9f34c857ecde4176fd3697df9739dbb63adcd4c12e835861345b0ba17a1a9311",
+      "pubDate": "2026-10-07T09:00:00Z",
+      "reviewSha256": "ba69bd023e5bf16a6220992160d64ed23bea1fed25c1eb3fdd0af66e785b0303"
+    },
+    {
+      "slug": "rust-drops-the-last-value-first",
+      "sha256": "afbab029d4508e72e8f978068393e26048222cfa2e5457f7b9a3c30d50500e1e",
+      "pubDate": "2026-10-07T09:30:00Z",
+      "reviewSha256": "3793bd70db0125735ddacc7cdd9e9041b69408a4bcc71037dae1ec523410010a"
+    },
+    {
+      "slug": "what-a-student-learns-from-the-teacher-s-second-choice",
+      "sha256": "0c7a4122797eaf56e84b7a9d6a946f9f934d581b12af04dfa90ffbb723a149a1",
+      "pubDate": "2026-10-07T10:00:00Z",
+      "reviewSha256": "f4e4a51800fb9f70256413e7aaa5dcb2123a052cf261919106cf998459f8ac6d"
+    },
+    {
+      "slug": "the-large-permit-request-at-the-front-of-the-line",
+      "sha256": "d3bde07686089f1efd6e052515fec6f12419f324db69f824ed08573e95891a17",
+      "pubDate": "2026-10-07T10:30:00Z",
+      "reviewSha256": "f9be69a0778114301b73dd5e1b18f441dbe8ba857da2eb1752b45d8e20243e45"
+    },
+    {
+      "slug": "when-a-repetition-rule-becomes-a-ban",
+      "sha256": "5054ef3c70f92686ea8dc5dd7e3122c380a720672e12f8c93da8750642e40302",
+      "pubDate": "2026-10-07T11:00:00Z",
+      "reviewSha256": "2063ac24e634c927722287254442ea124392ae2aac66ac59d5bf67a668eb380f"
+    },
+    {
+      "slug": "the-mutex-that-waits-across-await",
+      "sha256": "7b8bb6c815e5185ee5d111cb32f2481957cb5fd76ddc2bc46389142da4d6fcfe",
+      "pubDate": "2026-10-07T11:30:00Z",
+      "reviewSha256": "66c87ac73214d669d1667fa09ef1f0b90cd53d322b63e4eba662a8c9249b24ac"
+    },
+    {
+      "slug": "when-lora-adapters-disagree",
+      "sha256": "ef739d170f0a5d5ff728908062f1f56b03e48a6b8d8144644f43041d021f0661",
+      "pubDate": "2026-10-07T12:00:00Z",
+      "reviewSha256": "a17acea2d82899d1612c3a3733b175e8a5134211aa4094e768e195879d842c93"
+    },
+    {
+      "slug": "the-rust-channel-waiting-for-its-last-sender",
+      "sha256": "b7585982b29b243ee2d3c520993bd505c68550ed7188e18610811a1212b69a0b",
+      "pubDate": "2026-10-07T12:30:00Z",
+      "reviewSha256": "86418b6552ec2a11654ef27a4377d7084b183187d45a5a331923cc3f786a683b"
+    },
+    {
+      "slug": "your-long-prompt-needs-room-for-its-cache",
+      "sha256": "08e8ee4d484d3a195926c78c2d9639f014df8eded19d1bd372be65a215519f96",
+      "pubDate": "2026-10-07T13:00:00Z",
+      "reviewSha256": "bda2471c7b071b7257bad6abad90a240dd6c240ca705bfa1b431bb712edff160"
+    },
+    {
+      "slug": "threads-that-borrow-the-stack",
+      "sha256": "5eb86975215c51dd20aec89c871922ad24aba8baa2c38a6248575b416764ca82",
+      "pubDate": "2026-10-07T13:30:00Z",
+      "reviewSha256": "2a0d20f6f8ab6b7596c5a23452a28307b696a7b2a2ffa3fae657b1f64465b24c"
+    },
+    {
+      "slug": "a-code-action-is-more-than-a-text-diff",
+      "sha256": "57db57891a1cc86a31be09df562dd88edb3804e74e6d6abc046d9877be8a444b",
+      "pubDate": "2026-10-07T14:00:00Z",
+      "reviewSha256": "6f2c1bf6809213bfe376510a86eaa0259f0a666c1e4c6d82f0e11d149d0dcaa9"
+    },
+    {
+      "slug": "vec-reserve-promises-a-minimum-capacity",
+      "sha256": "6efd28ef313669382d5ac44ae7714e8416dc8fbf481e88effbfa3ba9f8224008",
+      "pubDate": "2026-10-07T14:30:00Z",
+      "reviewSha256": "07b29256dee8c3bfc8e0deedaa2486e4e6fb3c84c0be65fb3ffe71b0c4f5f3f9"
+    },
+    {
+      "slug": "a-playwright-click-waits-for-more-than-visibility",
+      "sha256": "c246baaa962302fe5eda6854c2e6cc6f551650f6889afcad5162f0188505ce24",
+      "pubDate": "2026-10-07T15:00:00Z",
+      "reviewSha256": "36cc63f8f9be4585db58f2aec9698be63a14dfb8c038f817af0fc5cc7c2cc5b2"
+    },
+    {
+      "slug": "watch-carries-state-broadcast-carries-events",
+      "sha256": "4a47fa81f7910814a9d9b55c9d3c099b82d24c5c57b1653b9c4bcd99d276cfb4",
+      "pubDate": "2026-10-07T15:30:00Z",
+      "reviewSha256": "66aeab423ebaa9b927a371b2d8cc425738bb41af57b24d8444d535601feaa3f3"
+    },
+    {
+      "slug": "find-the-first-bad-agent-refactor-with-git-bisect",
+      "sha256": "89ad64e1285a2dafffb9e2080d225eaec47dbcf146612cb65f6085a908bd3ce7",
+      "pubDate": "2026-10-07T16:00:00Z",
+      "reviewSha256": "bf1b90b0dd212f74d64431a1bfdfc94943083be642533444a13af0cc88bf0f41"
+    },
+    {
+      "slug": "weak-lets-an-owner-disappear",
+      "sha256": "7caa4d9a17af5a96329f055efd9ec6a5127dbb2d1d7015f8e5ab15c56d708a6a",
+      "pubDate": "2026-10-07T16:30:00Z",
+      "reviewSha256": "ef4a18dd03fa31939e6ff1fe80abe5bd777a75c4f4b87aff622c0b68b498d763"
+    },
+    {
+      "slug": "git-attributes-decide-a-file-s-line-endings",
+      "sha256": "546463acbdfc57f8c9f59721b18b2c54dab5a0cc2f217e50380f3017f4b19fe4",
+      "pubDate": "2026-10-07T17:00:00Z",
+      "reviewSha256": "82b812a0df66b2a58c692c56b3c1993a48aa22fa5ae268c58d2f067ea958c910"
+    },
+    {
+      "slug": "what-a-poisoned-mutex-really-tells-you",
+      "sha256": "3a7026438d0273717f3b0143674560cf5fa19ef4c00490efd5a3c02e50f93864",
+      "pubDate": "2026-10-07T17:30:00Z",
+      "reviewSha256": "c35f55596a4cf7439f8f047681da66799f94c7629c13639aa1592411ab36cbe0"
+    },
+    {
+      "slug": "git-maintenance-has-jobs-beyond-garbage-collection",
+      "sha256": "fd2760fa3f929693ed6032c04f292a1e1fcdff414ed3704285d5ab80bb9ad356",
+      "pubDate": "2026-10-07T18:00:00Z",
+      "reviewSha256": "a8de05238393521fcbffc5508da54f7912e10b5d02b5949763273b5e4084d467"
+    },
+    {
+      "slug": "a-complaint-needs-a-place-to-land",
+      "sha256": "d579ab6ec5d54b2c20fc9e37c8b8d0f322844d029ade8e338aba8bfd1d7274a3",
+      "pubDate": "2026-10-07T18:30:00Z",
+      "reviewSha256": "7ca2c01449b2f1fccca7b465ef81f04d45c14351ed37f8bcfeb8f0c1ef1cfe37"
+    },
+    {
+      "slug": "git-notes-add-context-without-rewriting-a-commit",
+      "sha256": "706581abc57c293d1170041ed0b23fb8a3b80ad5fc0d3ed0708d73e3fbd9d0c8",
+      "pubDate": "2026-10-07T19:00:00Z",
+      "reviewSha256": "beac03df880179241e884bcfa300f1c87128bebd571d268ec8099749b864366f"
+    },
+    {
+      "slug": "accepted-is-too-easy-to-hear-as-done",
+      "sha256": "97dabeddcddcd952dd857a078d8e1317cd491a8530e9aeaafa83ccb4ea9630fe",
+      "pubDate": "2026-10-07T19:30:00Z",
+      "reviewSha256": "d39c5763edbe61c2ea5b8b6289371fe1c14def7b7c1677772bf9a5b09109f2ac"
+    },
+    {
+      "slug": "git-rerere-remembers-a-conflict-resolution",
+      "sha256": "3c1b05e8187c88751193fb8f51f331d4597bf12e2f658188b91fc1d9202bcf1f",
+      "pubDate": "2026-10-07T20:00:00Z",
+      "reviewSha256": "9042f423f1d7f778cc4df54a9f71660fe9ac77aa3d7cf8ad3c2e2c9d0a262c8c"
+    },
+    {
+      "slug": "the-bug-report-your-ai-sends-to-a-human",
+      "sha256": "b733685a5412c4eda4a44ff24db18c2641fb89cf010339f8ac4774c4d7e5e229",
+      "pubDate": "2026-10-07T20:30:00Z",
+      "reviewSha256": "b877d0ec75de7ec0219592dbb3d500bb4224ac786cee5902ed64d75003f7be9d"
+    },
+    {
+      "slug": "give-each-coding-agent-its-own-git-worktree",
+      "sha256": "e0838c3aa758b37e8ab1a352e01dec8081c003ea25f6a8f34a03db430b84279e",
+      "pubDate": "2026-10-07T21:00:00Z",
+      "reviewSha256": "8a32957f62a61aedf985d1b39216b49892164d100146ee9615e9572cef22e6c8"
+    },
+    {
+      "slug": "the-person-who-never-opened-the-ai-app",
+      "sha256": "713b92de4806f5262499cd8a4c0a55fd6f66ec4d0a83b8b1661beab0517239a9",
+      "pubDate": "2026-10-07T21:30:00Z",
+      "reviewSha256": "09ac18963565896198df4a584c32575189d753410c89cb010c2fb025dd50bda9"
+    },
+    {
+      "slug": "keep-the-error-body-and-the-failing-exit-code",
+      "sha256": "9ef3e79ab165f9e357d1be98bea0a7a01491d244a4f3e36f24231c0029bbf05a",
+      "pubDate": "2026-10-07T22:00:00Z",
+      "reviewSha256": "b3ae04000b075a21ba8644fd47ee01e998c5d3e706c1850b2fa9804d631f0422"
+    },
+    {
+      "slug": "missing-from-your-sparse-checkout-does-not-mean-deleted",
+      "sha256": "a9b32e47c28d54919b15447418bc243c4d2b9225b1e0f1027f0df0f51aa6a81a",
+      "pubDate": "2026-10-07T22:30:00Z",
+      "reviewSha256": "0fa9b44817d79f00fd948b3539c9371e7dd76dd05113601b1bdde1c0023b7e9f"
+    },
+    {
+      "slug": "resume-a-model-download-safely",
+      "sha256": "73389b60a09546c9d8d7288b80b8db395805e9be770f9112bef8e9870bd4a008",
+      "pubDate": "2026-10-07T23:00:00Z",
+      "reviewSha256": "fe6cb3996672cd46de848c29bc2033139ec6374e5479a1bb31ca312dc0bb4a72"
+    },
+    {
+      "slug": "the-crawler-that-checks-for-changes",
+      "sha256": "1a194192db8112444a0bb27449684f455c4a7391104fd0662061bcf9f891e167",
+      "pubDate": "2026-10-07T23:30:00Z",
+      "reviewSha256": "f7bd0281d11c72a6bc66a82ce1b1417ec0008af81276d82ba56c7abb9cce94de"
+    },
+    {
+      "slug": "the-file-exclusion-your-coding-agent-may-not-honor",
+      "sha256": "20d605896bfbbe1d288470755b330a9b37becbe07b67da1caecf93dc213c0523",
+      "pubDate": "2026-10-08T00:00:00Z",
+      "reviewSha256": "9a4e0199e78c6f418f306c6b54342c1659752d04af91fc313d6c50cf7fdc0d58"
+    },
+    {
+      "slug": "the-pending-workflow-run-that-github-cancels",
+      "sha256": "def25251a4da807a4ef07ad454fcd2950b226bb7317a3a94609d36cb4b5d2331",
+      "pubDate": "2026-10-08T00:30:00Z",
+      "reviewSha256": "dc03fc826a78a1909f024c4b5d508cfe40975bc2566b7310f5e9c0c881acea08"
+    },
+    {
+      "slug": "the-reflog-is-a-recovery-window",
+      "sha256": "f186e2c3d751ed3b8bf9335e5b9c05d2a532345adf3044bf8e87309517536a4c",
+      "pubDate": "2026-10-08T01:00:00Z",
+      "reviewSha256": "68dc129a6a86437bc0eb9ea4681160626ef23f4c3b34ae34a91ee2cc4e874d2b"
+    },
+    {
+      "slug": "the-resource-changed-while-the-agent-was-thinking",
+      "sha256": "e6d78cb112a4650a00790e255f5c497b0ba395ddc112135d25724765a07a8a66",
+      "pubDate": "2026-10-08T01:30:00Z",
+      "reviewSha256": "b83e6e8a7ff3733fcc186c398dc24776b30295e928a2034a1c844e429f1cee08"
+    },
+    {
+      "slug": "uploaded-is-not-archived",
+      "sha256": "c29187ab94623c1fe87a20a8e06d35e013ce6491616531e10c785ab385afb601",
+      "pubDate": "2026-10-08T02:00:00Z",
+      "reviewSha256": "ae6df0aba5949d05b7a941cc3d24a1d4e0cb943252b52f8df36e294b89a2f8ea"
+    },
+    {
+      "slug": "when-a-tool-needs-to-ask-again",
+      "sha256": "619bb0fc56a840646be3421031fff34de93680ee1dbab78c1ada8d2051c27ad1",
+      "pubDate": "2026-10-08T02:30:00Z",
+      "reviewSha256": "b3b2e1f14b215ebe11412e97827cbffe89f8e9b9856530a7769316016b3ac5f9"
+    },
+    {
+      "slug": "when-the-dom-moves-the-locator-must-still-work",
+      "sha256": "736e65be890b9567e404d3662d5500f692f0b68b4b0e8f7308bd30a675105439",
+      "pubDate": "2026-10-08T03:00:00Z",
+      "reviewSha256": "60eea357883138147ecea3ef15767b99e7e670d7ff67081d57b2f0d82c084e43"
+    },
+    {
+      "slug": "who-owns-the-replicas-field",
+      "sha256": "57f872824de0b55338f66927cb439eb254f9c4fa094cd2d2f278b691effc43ed",
+      "pubDate": "2026-10-08T03:30:00Z",
+      "reviewSha256": "392532354f970fbe7d1991ee1b8ac4988d844e4aaf7bb5f5c02ca9e0335b9367"
+    },
+    {
+      "slug": "your-browser-may-evict-the-local-model",
+      "sha256": "66dc1e984061ceb51af903b2b90a670ee4fe39b058f76bf50b011b44f572a6de",
+      "pubDate": "2026-10-08T04:00:00Z",
+      "reviewSha256": "abb017503d73e8793673fc3e31d37e8d037dd0d3f57ca99e2590d1bf06218ff7"
+    },
+    {
+      "slug": "your-model-weights-shouldn-t-execute-code",
+      "sha256": "dd1a6a6986cca1e8987e660cdd3129fd551d26f7a0685ab8aeaeedb2572bd2cd",
+      "pubDate": "2026-10-08T04:30:00Z",
+      "reviewSha256": "4047a8cce224c5c557f75f6e26f8f013870aa71b942a187064f44a08081f83ba"
+    }
+  ]
+}

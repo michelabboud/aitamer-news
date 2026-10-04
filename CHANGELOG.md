@@ -2,6 +2,37 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.52] — 2026-10-04
+
+### Added
+- Prepare 180 reviewed articles with distinct half-hour slots, exact content hashes, and verified content-addressed media.
+- Record the editorial dispositions, preserving four excluded drafts and the existing 211-article live baseline.
+
+### Fixed
+- Isolate post-builder CLI tests from occupied repository publishing slots.
+
+## [0.2.51] — 2026-10-04
+
+### Fixed
+- Verify the previously admitted article body during recovery before its successful receipt can become the spacing clock. Recovery adds no article.
+
+## [0.2.50] — 2026-10-04
+
+### Fixed
+- Bind artifact and production checks to the prepared selection, workflow identity, and Pages deployment identifier.
+- Require prior deployment receipts before admitting another article, including recovery after an interrupted deployment.
+- Correlate controller dispatches with workflow runs and preserve publication spacing across retained deployments.
+- Remove dependency installation from the scheduling-only workflow.
+
+## [0.2.49] — 2026-10-04
+
+### Added
+- Guard production publication with exact reviewed article hashes, a preserved live baseline, one article per run, and a 30-minute interval after a successful acknowledgment.
+- Build and verify a separate publication artifact, retain failed-run evidence, and recover an interrupted deployment before adding another article.
+
+### Fixed
+- Let the post builder flush large JSON output before exiting.
+
 ## [0.2.48] — 2026-10-04
 
 ### Added

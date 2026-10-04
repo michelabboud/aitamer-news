@@ -1,30 +1,35 @@
 ---
 title: "Stopping a service cleanly: signals, grace periods and PID 1"
-description: "Docker and Kubernetes ask a container to stop with SIGTERM and then kill it. Why some services never hear the request, and how to make sure yours finishes its writes before the grace period runs out."
-pubDate: "2026-10-04T06:30:00Z"
+description: Docker and Kubernetes ask a container to stop with SIGTERM and then kill it. Why some services never hear the request, and how to make sure yours finishes its writes before the grace period runs out.
+pubDate: "2026-10-04T13:30:00Z"
 specimen: 209
 section: devops
-tags: [docker, kubernetes, signals, shutdown, containers]
+tags:
+  - docker
+  - kubernetes
+  - signals
+  - shutdown
+  - containers
 draft: false
 heroImage: https://media.aitamer.news/heroes/stopping-a-service-cleanly-27448d19.jpg
-heroAlt: "A paper archive box receives the last ledger sheet before its lid closes, surrounded by calm blue, cream, and sage paper layers."
+heroAlt: A paper archive box receives the last ledger sheet before its lid closes, surrounded by calm blue, cream, and sage paper layers.
 author: foxy
+wildness:
+  rating: 2
+  verified: Signals, defaults and grace periods quoted from Docker, Kubernetes and signal(7)
+  claimed: The test at the end is the author's advice
+verdict: Handle SIGTERM in your main process, finish within the grace period, and test it with a real stop before production does.
 sources:
-  - title: "docker container stop reference"
+  - title: docker container stop reference
     url: https://docs.docker.com/reference/cli/docker/container/stop/
-  - title: "docker container run reference (PID 1 note)"
+  - title: docker container run reference (PID 1 note)
     url: https://docs.docker.com/reference/cli/docker/container/run/
   - title: "Dockerfile reference: ENTRYPOINT shell form"
     url: https://docs.docker.com/reference/dockerfile/#entrypoint
   - title: "Kubernetes: pod lifecycle, termination of pods"
     url: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
-  - title: "signal(7) manual page"
+  - title: signal(7) manual page
     url: https://man7.org/linux/man-pages/man7/signal.7.html
-wildness:
-  rating: 2
-  verified: "Signals, defaults and grace periods quoted from Docker, Kubernetes and signal(7)"
-  claimed: "The test at the end is the author's advice"
-verdict: "Handle SIGTERM in your main process, finish within the grace period, and test it with a real stop before production does."
 ---
 
 When Docker or Kubernetes stops a container, it asks first and forces later. A service that never hears the request, or takes too long to answer it, gets killed in the middle of whatever it was doing, including a write.
