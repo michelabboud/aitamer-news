@@ -61,10 +61,12 @@ test('the smoke tests read their addresses from the environment, and production 
   }
 });
 
-test('the media check runs with no argument (live posts only, never a --local comparison) and is never skipped', () => {
+test('the media check runs on every actual deploy, including the selected article', () => {
   const media = steps.find(runs(/check:media/));
   assert.equal(media.run, 'npm run check:media');
-  assert.equal(media.if, undefined, 'a condition could skip it');
+  assert.equal(media.if, "steps.publication.outputs.should-deploy == 'true'");
+  assert.equal(media.if, steps.find(deploysTo('main')).if, 'media and upload share the same admission condition');
+  assert.equal(media['working-directory'], '${{ steps.publication.outputs.build-dir }}');
   assert.equal(media['continue-on-error'], undefined, 'a failure must stop the deploy');
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
   assert.equal(pkg.scripts['check:media'], 'node scripts/check-media.mjs');

@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { buildPost, bodyLinks, extractFields, countWords, digest, factCheckHints, ledgerLines, main, repairFields } from './post-builder.mjs';
 
@@ -160,6 +162,45 @@ test('the CLI writes the file only on ok, appends the ledger, and exits 2 withou
     const err = console.error; console.error = () => {};
     try { assert.equal(await main(['--fields', join(dir, 'f.json')]), 2); } finally { console.error = err; }
   } finally { console.log = orig; }
+});
+
+test('the CLI flushes a large successful JSON result before exiting', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pb-large-'));
+  const body = `${fields().body}\n\`\`\`text\n${'x'.repeat(1024 * 1024)}\n\`\`\`\n`;
+  const fieldsPath = join(dir, 'fields.json');
+  writeFileSync(fieldsPath, JSON.stringify(fields({ body })));
+  const script = fileURLToPath(new URL('./post-builder.mjs', import.meta.url));
+  const run = spawnSync(process.execPath, [
+    '--experimental-strip-types', '--no-warnings=ExperimentalWarning', script,
+    '--fields', fieldsPath, '--author', 'quill', '--pubDate', '2026-10-05T09:30:00Z',
+    '--hero', 'https://media.aitamer.news/heroes/x-0123abcd.jpg', '--heroAlt', 'A drawer.', '--no-links',
+  ], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+  assert.ifError(run.error);
+  assert.equal(run.status, 0, run.stderr);
+  assert.ok(run.stdout.length > 1024 * 1024, `received only ${run.stdout.length} characters`);
+  const result = JSON.parse(run.stdout);
+  assert.equal(result.status, 'ok');
+  assert.ok(result.file.includes(body));
+});
+
+test('the CLI keeps validation and usage exit statuses', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pb-exit-'));
+  const fieldsPath = join(dir, 'fields.json');
+  writeFileSync(fieldsPath, JSON.stringify(fields({ description: 'x'.repeat(300) })));
+  const script = fileURLToPath(new URL('./post-builder.mjs', import.meta.url));
+  const nodeArgs = ['--experimental-strip-types', '--no-warnings=ExperimentalWarning', script];
+  const invalid = spawnSync(process.execPath, [
+    ...nodeArgs, '--fields', fieldsPath, '--author', 'quill', '--pubDate', '2026-10-05T09:30:00Z',
+    '--hero', 'https://media.aitamer.news/heroes/x-0123abcd.jpg', '--heroAlt', 'A drawer.', '--no-links',
+  ], { encoding: 'utf8' });
+  assert.ifError(invalid.error);
+  assert.equal(invalid.status, 1, invalid.stderr);
+  assert.equal(JSON.parse(invalid.stdout).status, 'retry');
+
+  const usage = spawnSync(process.execPath, nodeArgs, { encoding: 'utf8' });
+  assert.ifError(usage.error);
+  assert.equal(usage.status, 2);
+  assert.match(usage.stderr, /usage: post-builder\.mjs/);
 });
 
 test('extractFields finds the JSON in a bare reply, a fenced reply, or a reply with prose around it, and null otherwise', () => {

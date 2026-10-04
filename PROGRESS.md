@@ -58,3 +58,5 @@
 - **2026-09-25** — 0.1.2: archive by year and month; `POST.md` documents how a post works.
 - **2026-09-25** — 0.1.1: publish times stamped into every published post; CI refuses a published post without one.
 - **2026-09-25** — Standard repository files added; versioning starts at 0.1.0.
+
+- **2026-10-04** — 0.2.49: reviewed-publication guard implemented; 755 tests pass and the isolated fixture retains exactly 211 live articles while holding 10 queued source posts. The new queue, independent review, bootstrap and timer activation remain pending. Existing publishers remain disabled.

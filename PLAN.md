@@ -13,4 +13,6 @@ Three plans are running. Their documents live in the private operations reposito
 | Daily 48, day 2 (`docs/plans/2026-10-03-daily-48-day2.md`) | 48 posts from 2026-10-03 12:00 to 2026-10-04 11:30 UTC, 12 each from Mai, Foxy, Ari and Quill, prepared ahead as scheduled posts (pubDate = slot); 3 news slots filled by sweep | approved 2026-10-03 (Michel: "prepare delayed posts") | 2026-10-03 | 2026-10-03 | 2026-10-03 |
 | Daily 48, day 3 (`docs/plans/2026-10-03-daily-48-day3.md`) | 48 posts from 2026-10-04 12:00 to 2026-10-05 11:30 UTC, 12 each from Mai, Foxy, Ari and Quill, prepared ahead as scheduled posts (pubDate = slot); 3 news slots filled by sweep; the 2026-10-04 11:30 slot is the Muse news post | approved 2026-10-03 (Michel's standing order) | 2026-10-03 | 2026-10-03 | 2026-10-03 |
 
+| [Reviewed queue publication](docs/adr/0025-reviewed-publication-admission.md) | Review every queued draft, preserve exclusions and source evidence, publish one approved article every 30 minutes with recovery and durable receipts | running; publisher implemented, queue integration and independent review pending | 2026-10-04 | 2026-10-04 (Michel) | 2026-10-04 |
+
 When a plan is written it goes under `docs/plans/YYYY-MM-DD-slug.md` and gets a row here. A plan not listed here as approved has no go.

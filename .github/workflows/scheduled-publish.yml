@@ -31,14 +31,9 @@ jobs:
       - name: Install
         run: npm ci --omit=dev --ignore-scripts
 
-      - name: Check for due posts
-        id: due
-        # 65 minutes, a little over two runs: a run GitHub delays or skips is caught by the next, and a post
-        # does not keep triggering a deploy for two hours (the script's default window, sized for hourly runs).
-        run: node scripts/due-posts.mjs --window-minutes 65
-
       - name: Trigger the deploy
-        if: steps.due.outputs.due == 'true'
+        # The serialized deploy reconciles every approved pending item and acknowledges the
+        # previous run. A short timestamp window cannot recover a long scheduler outage.
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run deploy-pages.yml --ref main
+        run: gh workflow run deploy-pages.yml --ref main -f publication_mode=publish

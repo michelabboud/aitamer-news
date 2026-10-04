@@ -2,6 +2,15 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.49] — 2026-10-04
+
+### Added
+- Guard production publication with exact reviewed article hashes, a preserved live baseline, one article per run, and a 30-minute interval after a successful acknowledgment.
+- Build and verify a separate publication artifact, retain failed-run evidence, and recover an interrupted deployment before adding another article.
+
+### Fixed
+- Let the post builder flush large JSON output before exiting.
+
 ## [0.2.48] — 2026-10-04
 
 ### Added
