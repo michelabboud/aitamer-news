@@ -1,18 +1,27 @@
 Create a 1600 x 900 pixel, 16:9 editorial hero illustration for AI Tamer.
 
-STYLE: Handmade layered paper-cut collage. Build objects from visibly cut,
-overlapping matte paper shapes. Show subtle paper grain, tactile edges and
-shallow soft shadows between layers. Use a restrained slate-blue and
-warm-cream palette with exactly one small coral accent. Keep the background
-simple, spacious and primarily cream. Use crisp silhouettes, a clear focal
-subject and generous negative space.
+STYLE: Editorial art that feels handmade from cut, torn and layered paper.
+Use tactile paper grain, slightly imperfect cut edges, overlapping matte
+surfaces and gentle shadows between layers. The result should feel warm,
+crafted and expressive, with recognizable shapes and a clear visual metaphor.
+Avoid glossy surfaces, plastic-looking objects and polished 3D rendering.
 
-BACKGROUND: Enrich the cream background lightly with fine paper grain,
-faint overlapping cream-on-cream paper layers, and one or two low-contrast
-slate-blue environmental details grounded in the article's metaphor. Keep
-these details smaller, softer and quieter than the main subject. Preserve
-generous negative space. No extra coral accents, unrelated floating objects,
-busy patterns or background elements that compete with the focal subject.
+COLOR PROFILE: Muted, earthy, ink-and-paper colors. Acceptable colors include
+slate blue, steel blue, dusty blue, blue-grey, muted teal, deep navy, warm cream,
+ivory, soft sand, rusty reds, sulfur yellows and coral. Choose a harmonious
+subset that suits the story rather than using every color or repeating one
+fixed background. Balance cool blues with warm paper tones and restrained
+rust, yellow or coral accents. Colors should feel softly weathered and
+pigmented, not neon, oversaturated or fluorescent. Keep enough contrast for
+the subject to read clearly at article-card size.
+
+BACKGROUND: Enrich the chosen background lightly with fine paper grain,
+faint overlapping paper layers in related tones, and one or two low-contrast
+environmental details grounded in the article's metaphor. Keep these details
+smaller, softer and quieter than the main subject. Preserve generous negative
+space. Avoid unrelated floating objects, busy patterns and background elements
+that compete with the focal subject. Maintain clear subject/background
+contrast rather than applying one identical palette to every article.
 
 COMPOSITION: One clear article-specific visual metaphor, supported by at most
 two secondary elements. Make the relationship between objects visually clear.

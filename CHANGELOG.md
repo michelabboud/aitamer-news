@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.59] — 2026-10-05
+
+### Changed
+- Replace the fixed cream hero background with an acceptable blue/teal/neutral palette; permit varied backgrounds and preserve light enrichment.
+- Remove the redundant writer-model requirement from Grok review evidence.
+
 ## [0.2.58] — 2026-10-05
 
 ### Changed
