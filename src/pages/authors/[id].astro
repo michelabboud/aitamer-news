@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import { isFeaturedWriter, writerRole } from '../../lib/writer-pages.ts';
+import { introParagraphs, isFeaturedWriter, writerRole } from '../../lib/writer-pages.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
@@ -26,6 +26,8 @@ export async function getStaticPaths() {
 }
 
 const { author } = Astro.props;
+const intro = introParagraphs(author.body);
+const biography = intro.length > 0 ? intro : introParagraphs(author.data.bio);
 const posts = await getPostsByAuthor(author.id);
 const initials = author.data.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 const cards = await Promise.all(
@@ -49,7 +51,7 @@ const cards = await Promise.all(
     )}
     <div class="author-card__text">
       <span><AuthorBadge kind={author.data.kind} name={writerRole(author)} /></span>
-      <p>{author.data.bio}</p>
+      {biography.map((paragraph) => <p>{paragraph}</p>)}
       {isFeaturedWriter(author) && (
         <p><a class="more" href={withBase(`/${author.id}/`)}>{author.data.name}’s own page →</a></p>
       )}

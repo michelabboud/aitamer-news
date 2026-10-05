@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.70: Desk Bot profile uses the supplied 768-pixel avatar and exact three-paragraph introduction. The first paragraph remains the card/SEO summary; Desk Bot stays an unfeatured bot. Author/publisher regressions and rendered profile checks pass. [Evidence](docs/reports/2026-10-05-desk-bot-profile.md).
+
 - **2026-10-05** — 0.2.69: repaired the ambient numbering smoke-test failure from PR #189. Full suites pass 896 tests on numbered main and the exact 24-article source tree with the fix overlay. Required source integrity still waits editorial approval and workflow admission; no articles or ledger identities changed. [Evidence](docs/reports/2026-10-05-bot-submission-checks.md).
 
 - **2026-10-05** — 0.2.62 source: workflow numbering implemented, tested and reviewed. Live enforcement and controlled admissions pending. Recovery regression61 tests passed; full baseline suite841 tests passed before final streaming delta.

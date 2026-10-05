@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.70] — 2026-10-05
+
+### Changed
+- Desk Bot's requested three-paragraph biography and external avatar; ordinary author profiles render escaped body paragraphs with a biography fallback.
+
 ## [0.2.69] — 2026-10-05
 
 ### Fixed
