@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.71] — 2026-10-05
+
+### Changed
+- Owner approval reviews automatically start workflow-only numbering and validation on the original PR; strict certified merge, legacy recovery and scheduled publication remain.
+- Source observations explain pending admission; withdrawn or superseded reviews enter durable holds.
+
 ## [0.2.70] — 2026-10-05
 
 ### Changed

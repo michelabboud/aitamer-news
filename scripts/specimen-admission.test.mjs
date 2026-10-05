@@ -75,6 +75,7 @@ class API {
     if (path==='/actions/workflows/specimen-admission.yml/runs') return [...this.runs];
     if (path==='/actions/workflows/deploy-pages.yml/runs') return this.deployRuns;
     if (path==='/pulls?state=all' || path==='/pulls?state=all&sort=created&direction=desc') return [...this.prs];
+    if (path==='/pulls?state=open&sort=created&direction=asc') return [];
     if (path.startsWith('/pulls?state=all&head=')) {
       const ref = decodeURIComponent(path.split('head=')[1]).split(':')[1];
       return this.prs.filter(p=>p.head.ref===ref);
@@ -495,8 +496,8 @@ test('idle index performs constant discovery work and never reproves retired com
   const api=new API();api.runs=[run(9999),...Array.from({length:1200},(_,i)=>run(i+1))];
   const index=memoryIndex(stateOf({cursor:9999}));
   for(let i=0;i<12;i++) await indexedSweep(api,STATE_ENV,{...index,completed:async()=>assert.fail('retired completion must not be reproved'),finalizeRun:async()=>assert.fail(),recover:async()=>assert.fail()});
-  assert.equal(api.calls.length,12);assert.equal(index.writes.length,0);
-  assert.ok(api.calls.every(c=>c.path==='/actions/workflows/specimen-admission.yml/runs'));
+  assert.equal(api.calls.length,24);assert.equal(index.writes.length,0);
+  assert.ok(api.calls.every(c=>['/actions/workflows/specimen-admission.yml/runs','/pulls?state=open&sort=created&direction=asc'].includes(c.path)));
 });
 
 test('verified deployment retires pending IDs once; failed CAS cannot erase outstanding evidence', async () => {
@@ -514,7 +515,7 @@ test('revoked/exhausted requests are durably held without repeated API proof unt
   const index=memoryIndex(stateOf({pending:[{id:10,status:'pending',reason:''}]}));
   await assert.rejects(indexedSweep(api,STATE_ENV,{...index,recover:async()=>{throw new Error('owner review revoked');}}),/protected state retained/);
   assert.equal(index.get().state.pending[0].status,'held');
-  api.calls=[];await indexedSweep(api,STATE_ENV,index);assert.equal(api.calls.length,1);
+  api.calls=[];await indexedSweep(api,STATE_ENV,index);assert.equal(api.calls.length,2);
   api.runs.unshift(run(11,{conclusion:'failure'}));let recovered=0;
   await indexedSweep(api,STATE_ENV,{...index,recover:async()=>{recovered++;return'dispatched';}});assert.equal(recovered,1);
 });
@@ -599,7 +600,7 @@ test('indexed recovery durably holds a closed merged source and next sweep perfo
   assert.match(index.get().state.pending[0].reason,/source approval withdrawn or moved/);
   const writes=index.writes.length;api.calls=[];
   await indexedSweep(api,STATE_ENV,{...index,recover,completed:async()=>assert.fail('held source must not recheck deployment proofs'),finalizeRun:async()=>assert.fail('held source must not finalize')});
-  assert.equal(api.calls.length,1);
+  assert.equal(api.calls.length,2);
   assert.equal(api.calls[0].path,'/actions/workflows/specimen-admission.yml/runs');
   assert.equal(index.writes.length,writes);
 });
