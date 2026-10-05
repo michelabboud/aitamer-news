@@ -28,7 +28,7 @@ Cloudflare's [1 October 2026 post](https://blog.cloudflare.com/workers-ml-kem-ml
 
 ## Which algorithms
 
-The first examples are `ML-KEM-768` with `encapsulate` and `decapsulateBits`, and `ML-DSA-44` with `sign` and `verify`. Cloudflare says the implementation also includes `ML-KEM-1024`, `ML-DSA-65`, and `ML-DSA-87`. `ML-KEM-512` is not included, because the BoringSSL build Workers uses does not expose it, and Cloudflare did not want a second implementation for that one size. `SubtleCrypto.supports` is there so a library can detect the algorithm before it calls `generateKey`. `getPublicKey` can derive a public key from a private key, with usage `verify` for signatures and `encapsulateBits` for ML-KEM.
+The first examples are `ML-KEM-768` with `encapsulateBits` and `decapsulateBits`, and `ML-DSA-44` with `sign` and `verify`. Cloudflare says the implementation also includes `ML-KEM-1024`, `ML-DSA-65`, and `ML-DSA-87`. `ML-KEM-512` is not included, because the BoringSSL build Workers uses does not expose it, and Cloudflare did not want a second implementation for that one size. `SubtleCrypto.supports` is there so a library can detect the algorithm before it calls `generateKey`. `getPublicKey` can derive a public key from a private key, with usage `verify` for signatures and `encapsulateBits` for ML-KEM.
 
 The post says the change landed in workerd, the open-source Workers runtime, on top of BoringSSL, with Web Platform Tests, Workers tests for the flag, and TypeScript types. It thanks Filip Skokan for the original workerd contribution and says an implementation was run against the test suites of the panva/hpke and panva/jose libraries. That is Cloudflare's account of its own tests.
 

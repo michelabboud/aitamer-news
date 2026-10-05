@@ -26,7 +26,7 @@ sources:
     url: https://www.npmjs.com/package/@cloudflare/workers-oauth-provider
 ---
 
-Cloudflare's changelog for [1 October 2026](https://developers.cloudflare.com/changelog/post/2026-10-01-workers-oauth-provider-1x/) says `@cloudflare/workers-oauth-provider` is now v1, with a split API. One Worker is the authorization server: it signs users in and issues tokens. The MCP server is a resource server and can run in another Worker. It checks each token by calling the authorization server over a Service Binding, so that check does not cross the public internet. The [npm registry](https://www.npmjs.com/package/@cloudflare/workers-oauth-provider) shows 1.0.0 published on 24 September 2026 and 1.2.1, the current latest, on 28 September 2026. The changelog post is four days after 1.0.0.
+Cloudflare's changelog for [1 October 2026](https://developers.cloudflare.com/changelog/post/2026-10-01-workers-oauth-provider-1x/) says `@cloudflare/workers-oauth-provider` is now v1, with a split API. One Worker is the authorization server: it signs users in and issues tokens. The MCP server is a resource server and can run in another Worker. It checks each token by calling the authorization server over a Service Binding, so that check does not cross the public internet. The [npm registry](https://www.npmjs.com/package/@cloudflare/workers-oauth-provider) shows 1.0.0 published on 24 September 2026 and 1.2.1, the current latest, on 28 September 2026. The changelog post is seven days after 1.0.0.
 
 ## What v1 adds, according to the changelog
 

@@ -35,7 +35,7 @@ Neon says the endpoint takes one string or a batch of up to 150 strings and retu
 | qwen3-embedding-0-6b | 1024, and Neon says this one is configurable | Yes | $0.02 per 1 million input tokens |
 | gte-large-en | 1024 | No; Neon says use cosine distance | $0.13 per 1 million input tokens |
 
-The sample calls `qwen3-embedding-0-6b` on the sentence "The quick brown fox jumps over the lazy dog." and prints a length of 1024. It sets `encoding_format` to `float`, which Neon says the OpenAI SDK v6 requires and later SDKs ignore. The client uses `NEON_AI_GATEWAY_TOKEN` and `NEON_AI_GATEWAY_BASE_URL`. Neon says `neon env pull` writes both for the branch you are on, and that a Neon Function receives them without that step. A credential needs the `ai_gateway:invoke` scope.
+The sample calls `qwen3-embedding-0-6b` on the sentence "The quick brown fox jumps over the lazy dog." and prints a length of 1024. It sets `encoding_format` to `float`, which the sample comment describes as required on OpenAI SDK v6 and harmless on v7 and later. The client uses `NEON_AI_GATEWAY_TOKEN` and `NEON_AI_GATEWAY_BASE_URL`. Neon says `neon env pull` writes both for the branch you are on, and that a Neon Function receives them without that step. A credential needs the `ai_gateway:invoke` scope.
 
 Availability is narrower than the whole Neon free plan. The post says AI Gateway is on the Launch and Scale plans and is paid with prepaid credits. A free try, Neon says, is a matter of asking in Discord for credits. It suggests starting on `qwen3-embedding-0-6b` because it is the cheaper of the two, and using `gte-large-en` when you already have vectors from that model and need new ones to match.
 

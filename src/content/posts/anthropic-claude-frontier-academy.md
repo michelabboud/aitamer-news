@@ -1,6 +1,6 @@
 ---
 title: Anthropic puts $100 million behind a program for 10,000 deployment engineers
-description: Anthropic's 2 October 2026 announcement commits $100 million to Claude Frontier Academy and aims to train 10,000 Frontier Deployed Engineers by the end of 2027. The program page calls the residency early access.
+description: Anthropic's 2 October 2026 announcement commits $100 million to Claude Frontier Academy and aims to train 10,000 Frontier Deployed Engineers by the end of 2027. Participation is by nomination through Anthropic's account teams or partner managers.
 pubDate: "2026-10-05T10:00:00Z"
 section: general
 subsection: training
@@ -17,7 +17,7 @@ wildness:
   rating: 4
   verified: "2 Oct news post: $100 million, 10,000 by the end of 2027, named first cohorts, cities"
   claimed: The bank's 3x code-change line and the partner quotes are statements in Anthropic's post
-verdict: A nominated residency with a $100 million commitment and a 2027 headcount goal. The program page still says early access, and the senior badge is not expected until early 2027.
+verdict: A nominated residency with a $100 million commitment and a 2027 headcount goal. The Frontier Deployed Engineer badge is not expected until early 2027.
 sources:
   - title: Claude Frontier Academy (Anthropic news, 2 October 2026)
     url: https://www.anthropic.com/news/claude-frontier-academy
@@ -25,7 +25,7 @@ sources:
     url: https://claude.com/programs/frontier-academy
 ---
 
-Anthropic's news post on [2 October 2026](https://www.anthropic.com/news/claude-frontier-academy) says it is launching Claude Frontier Academy with a $100 million commitment, aiming to train 10,000 Frontier Deployed Engineers by the end of 2027. The first cohorts named in that post are engineers from Accenture, Bain, Capgemini, Commonwealth Bank of Australia, Deloitte, McKinsey, Morgan Stanley, and Novo Nordisk, "and others." Cohorts are running in San Francisco, New York, and London. Participation is by nomination through an Anthropic account team or a partner manager. The [program page](https://claude.com/programs/frontier-academy) calls the Frontier Deployed Engineer Residency early access and says Anthropic expects to expand it.
+Anthropic's news post on [2 October 2026](https://www.anthropic.com/news/claude-frontier-academy) says it is launching Claude Frontier Academy with a $100 million commitment, aiming to train 10,000 Frontier Deployed Engineers by the end of 2027. The first cohorts named in that post are engineers from Accenture, Bain, Capgemini, Commonwealth Bank of Australia, Deloitte, McKinsey, Morgan Stanley, and Novo Nordisk, "and others." Cohorts are running in San Francisco, New York, and London. Participation is by nomination through an Anthropic account team or a partner manager. The [program page](https://claude.com/programs/frontier-academy) describes a four-day intensive followed by a 12-week residency.
 
 ## How the residency is structured
 
@@ -39,4 +39,4 @@ Anthropic says the academy builds on the Claude Partner Network, where people at
 
 ## Practical takeaway
 
-This is a nominated, early-access residency with a published headcount goal and a dollar commitment, not an open online course. If your company is already an Anthropic customer or partner, the route in is the account team. The credential Anthropic says it will issue first is the resident badge after the opening practical; the Frontier Deployed Engineer badge waits until the 12 weeks end, with the first of those expected in early 2027.
+This is a nomination-only residency with a published headcount goal and a dollar commitment, not an open online course. If your company is already an Anthropic customer or partner, the route in is the account team. The credential Anthropic says it will issue first is the resident badge after the opening practical; the Frontier Deployed Engineer badge waits until the 12 weeks end, with the first of those expected in early 2027.

@@ -1,6 +1,6 @@
 ---
 title: Anthropic says open-weight GLM-5.3 nears Mythos on exploit benchmarks
-description: Anthropic's 29 September 2026 note says GLM-5.3 matches Claude Mythos Preview on two exploit benchmarks, and that its safeguards failed simulated bypass tests. NIST's September assessment agrees on the capability gap.
+description: Anthropic's 29 September 2026 note says GLM-5.3 approaches Claude Mythos Preview on two exploit benchmarks, and that its safeguards failed simulated bypass tests. NIST's September assessment agrees on the capability gap.
 pubDate: "2026-10-05T10:10:00Z"
 section: models
 subsection: security

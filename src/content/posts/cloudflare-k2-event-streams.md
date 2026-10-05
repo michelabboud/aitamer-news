@@ -22,6 +22,8 @@ verdict: A public-beta log when you need fan-out or a long buffer, not when you 
 sources:
   - title: "Announcing Cloudflare K2: serverless event streams (Cloudflare blog, 1 October 2026)"
     url: https://blog.cloudflare.com/cloudflare-k2-streams/
+  - title: Cloudflare K2 consume and delivery guarantees
+    url: https://developers.cloudflare.com/k2/features/consume/
 ---
 
 Cloudflare's [1 October 2026 post](https://blog.cloudflare.com/cloudflare-k2-streams/) launches Cloudflare K2 in public beta. K2 is a serverless log: producers append events, K2 stores them in order, and consumers read at their own pace. Cloudflare says it built K2 first as the durable buffer in front of Basin Pipelines, because Pipelines pulls events and promises not to drop one after it has been accepted. The post contrasts that with running Apache Kafka on Cloudflare's edge, which it describes as many small, short-lived machines across over 335 cities.
@@ -30,7 +32,7 @@ Cloudflare's [1 October 2026 post](https://blog.cloudflare.com/cloudflare-k2-str
 
 R2 does not support append, so K2 batches writes in memory on an edge service and then writes a whole segment file. Ordering and offsets use R2's atomic operations, with no separate coordination service, according to the post. Cloudflare says object storage is why the first release shows about 1 second of produce latency at p99: the write waits for the batch and then for R2. It also cites R2's "11 9s" durability figure as the reason the log can keep data through a long consumer outage. A sample stream object in the post sets `retention_seconds` to 604800, which is 7 days, and includes a `created_at` of 28 September 2026. That timestamp is inside the example payload. The announcement date on the post is 1 October.
 
-You create a stream with the `cf` CLI, Wrangler, the dashboard, or the API. Producers use a Worker binding (`env.EVENTS.send` of byte records plus headers) or HTTP. Consumers create a subscription. One subscription can split records across workers so each event is handled once. A separate subscription per consumer is the fan-out case, and every consumer sees every event. A consume call returns a batch and a lease. Cloudflare says the lease in the example lasts 5 minutes. The sample request asks for `max_records` of 100. The client then acknowledges the batch, or the post says the lease expires and the records can be read again. The curl samples on the page include a credential variable; use whatever token your account docs specify, and do not copy a secret name into application logs.
+You create a stream with the `cf` CLI, Wrangler, the dashboard, or the API. Producers use a Worker binding (`env.EVENTS.send` of byte records plus headers) or HTTP. Consumers create a subscription. One subscription can divide batches among workers. The [consume documentation](https://developers.cloudflare.com/k2/features/consume/) describes at-least-once delivery, so consumers must tolerate duplicate records. A separate subscription per consumer is the fan-out case, and every consumer sees every event. A consume call returns a batch and a lease. Cloudflare says the lease in the example lasts 5 minutes. The sample request asks for `max_records` of 100. The client then acknowledges the batch, or the post says the lease expires and the records can be read again. The curl samples on the page include a credential variable; use whatever token your account docs specify, and do not copy a secret name into application logs.
 
 ## When Cloudflare says to use it
 
