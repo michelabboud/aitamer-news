@@ -49,6 +49,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+      actions: read
+      checks: read
     # Never cancelled once started: a deploy stopped between going live and its check, or midway
     # through a rollback, would leave production unverified. A newer run waits here instead, and
     # GitHub keeps only the newest waiting one.
@@ -159,6 +161,13 @@ jobs:
           key: astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}-${{ github.sha }}
           restore-keys: |
             astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}-
+
+      - name: Verify workflow-owned numbering
+        if: vars.SPECIMEN_ADMISSION_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
+        run: node scripts/specimen-admission.mjs deployed-gate
 
       - name: Build
         run: npm run build

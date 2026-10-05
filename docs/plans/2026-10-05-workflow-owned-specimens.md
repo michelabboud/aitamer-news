@@ -1,6 +1,6 @@
 # Workflow-owned specimen assignment
 
-Status: plan requested 2026-10-05; implementation not authorized by this planning request.
+Status: implementation authorized by Michel with “proceed”; source implemented and undergoing final review on 2026-10-05. Live enforcement and controlled publication remain pending.
 
 ## Owner requirements
 

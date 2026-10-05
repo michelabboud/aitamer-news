@@ -10,7 +10,8 @@ name: Check posts
 on:
   pull_request:
   push:
-    branches-ignore: [main]
+    # The protected control-state branch has no application tree or package manifest.
+    branches-ignore: [main, specimens/state]
 
 permissions:
   contents: read
@@ -21,12 +22,16 @@ concurrency:
 
 jobs:
   check:
+    # Both PR and push checks remain observations on admission-generated branches.
+    # A matching branch name supplies no required certificate and no merge authority.
+    name: ${{ startsWith(github.event.pull_request.head.ref || github.ref_name, 'specimens/run-') && 'check-observation' || 'check' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -40,7 +45,15 @@ jobs:
         run: npm test
 
       - name: Check posts
-        run: npm run check:posts
+        env:
+          SPECIMEN_ADMISSION_ENABLED: ${{ vars.SPECIMEN_ADMISSION_ENABLED }}
+        run: |
+          if [ "$SPECIMEN_ADMISSION_ENABLED" = 'true' ]; then
+            git fetch --no-tags origin main
+            npm run check:candidate -- --base "$(git rev-parse origin/main)"
+          else
+            npm run check:posts
+          fi
 
       # Heroes live on R2 (ADR 0020): a live post whose hero was never uploaded fails its pull
       # request here, not the deploy of main. One HEAD per post hero, retried on a network error or

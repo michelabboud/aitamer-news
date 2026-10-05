@@ -54,7 +54,9 @@ concurrency:
 
 jobs:
   publisher-paths:
-    name: publisher-paths
+    # Admission certificates alone supply the required context on generated branches.
+    # Prefix matching changes only the observation name; it grants no lane or authority.
+    name: ${{ startsWith(github.event.pull_request.head.ref, 'specimens/run-') && 'publisher-paths-observation' || 'publisher-paths' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main (the base; never the pull request)

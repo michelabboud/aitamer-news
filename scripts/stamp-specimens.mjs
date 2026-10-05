@@ -28,7 +28,7 @@
  * and commit the ledger with it.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   SLUG,
@@ -418,6 +418,11 @@ function loadLedger(file) {
  */
 export function main(argv, { postsDir = POSTS_DIR, ledgerFile = LEDGER_FILE, authorsDir = AUTHORS_DIR, stampPost = withSpecimen } = {}) {
   const check = argv.includes('--check');
+  // Test fixtures are disposable; the repository ledger is workflow-owned.
+  if (!check && resolve(ledgerFile) === resolve(fileURLToPath(new URL('../src/content/specimen-ledger.txt', import.meta.url)))) {
+    console.error('stamp-specimens: the repository ledger is workflow-owned. Submit an unnumbered article; use check:candidate, not local allocation.');
+    return 1;
+  }
   const { files, problems: loadProblems } = loadPosts(postsDir);
   const ledger = loadLedger(ledgerFile);
   const posts = files.map((f) => f.post);
