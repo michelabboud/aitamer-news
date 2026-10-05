@@ -8,6 +8,12 @@ All notable changes to aitamer.news. The version lives in `VERSION`; each task i
 - Trusted workflow-only specimen assignment, exact-content approval, automatic number repair and current-main merge checks.
 - Recovery of stale/failed requests and deployment dispatches, preserving all approval and failure evidence.
 - Unnumbered candidate checks and migrated producer instructions; date publication and 60-second deployment batching remain.
+## [0.2.61] — 2026-10-05
+
+### Added
+- Reusable featured human writer profiles and ordering, safe website links, and author-wide personal-opinion labeling with a closing disclaimer.
+- Aviram’s paper-art portrait and GizmoJack-sourced biography, immediately after Mai.
+- Backlog proposal for a pinned hero and two-new/two-pinned article groups.
 
 ## [0.2.60] — 2026-10-05
 

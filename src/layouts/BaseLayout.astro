@@ -7,7 +7,7 @@ import hankenLatin from '../assets/fonts/hanken-grotesk-latin.woff2?url';
 import { ANALYTICS_ID, HABITAT_LIST, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
 import { DEFAULT_SOCIAL_IMAGE, resolveMedia } from '../lib/media';
 import { getCollection } from 'astro:content';
-import { WRITER_PAGE_KIND } from '../lib/writer-pages.ts';
+import { isFeaturedWriter, orderWriterCards } from '../lib/writer-pages.ts';
 
 interface Props {
   title?: string;
@@ -66,9 +66,8 @@ const READING_VIEWS = [
   { key: 'voices', href: '/section/voices/', code: 'In their own words', name: 'Voices' },
 ] as const;
 
-/** The named AI writers lead the station links, each at their own page (ADR 0012). */
-const writerLinks = (await getCollection('authors'))
-  .filter((a) => a.data.kind === WRITER_PAGE_KIND)
+/** Featured writers lead the station links in the same order as homepage cards (ADR 0032). */
+const writerLinks = orderWriterCards((await getCollection('authors')).filter(isFeaturedWriter))
   .map((a) => ({ href: `/${a.id}/`, label: a.data.name }));
 
 /** Station links: the top bar on wide screens, the menu on phones. */

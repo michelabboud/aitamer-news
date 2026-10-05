@@ -336,12 +336,15 @@ export function comparableName(name) {
 
 /**
  * The top-level keys an author file may have in the lane: the `authors` collection's schema in
- * `src/content.config.ts`, and nothing else (a test pins the two together). An unknown key is
+ * `src/content/author-schema.ts`, and nothing else (a test pins the two together). An unknown key is
  * refused because Astro gives some meaning (`slug` moves the entry's id; review of PR #46, B2)
  * and the lane cannot vouch for what it does not know.
  */
-export const AUTHOR_KEYS = Object.freeze(['name', 'kind', 'bio', 'avatar', 'portrait', 'portraitAlt', 'beats']);
-/** The one key whose value is a list (of strings); every other key's value is a string. */
+export const AUTHOR_KEYS = Object.freeze(['name', 'kind', 'bio', 'featured', 'writerOrder', 'personalOpinion', 'website', 'avatar', 'portrait', 'portraitAlt', 'beats']);
+/** Editorial presentation policy is maintainer-owned, never changed by the author App. */
+const AUTHOR_EDITORIAL_KEYS = ['featured', 'writerOrder', 'personalOpinion'];
+const AUTHOR_BOOLEAN_KEYS = ['featured', 'personalOpinion'];
+/** The one list key; editorial toggles and ranks are typed scalars, remaining values strings. */
 const AUTHOR_LIST_KEY = 'beats';
 /** The fence both readers agree on, when it is the only line of its kind: exactly `---`. */
 const FENCE_LINE = '---';
@@ -378,7 +381,8 @@ function isPlainScalarText(value) {
  * is not `key: <one-line scalar>`, `beats:` or `  - <one-line scalar>` under it (so no merge key,
  * anchor, alias, tag, flow collection, block scalar, comment or continuation line); a key outside
  * `AUTHOR_KEYS`; a key twice. Then both readers parse the file and must return the same data, and
- * every value must be a string (the list key: a list of strings). Pure: the readers are passed in.
+ * every value must have its schema type: strings, editorial booleans, integer rank or beats list.
+ * Pure: the readers are passed in.
  * @param {string} text the whole file
  * @param {{ site: (text: string) => ({ data: Record<string, unknown> } | null), astro: (text: string) => Record<string, unknown> }} readers
  * @returns {{ data: Record<string, unknown> } | { problem: string }}
@@ -432,10 +436,22 @@ export function readAuthorFile(text, readers) {
   if (!site) return { problem: 'the site\'s reader finds no frontmatter' };
   if (!isDeepStrictEqual(site, astro)) return { problem: 'the site\'s reader and Astro\'s read different data from it' };
   for (const [key, value] of Object.entries(site)) {
-    const ok = key === AUTHOR_LIST_KEY
-      ? Array.isArray(value) && value.length > 0 && value.every((entry) => typeof entry === 'string')
-      : typeof value === 'string';
-    if (!ok) return { problem: `the value of ${key} is not ${key === AUTHOR_LIST_KEY ? 'a list of strings' : 'a string'}` };
+    let ok;
+    let expected;
+    if (key === AUTHOR_LIST_KEY) {
+      ok = Array.isArray(value) && value.length > 0 && value.every((entry) => typeof entry === 'string');
+      expected = 'a list of strings';
+    } else if (AUTHOR_BOOLEAN_KEYS.includes(key)) {
+      ok = typeof value === 'boolean';
+      expected = 'a boolean';
+    } else if (key === 'writerOrder') {
+      ok = Number.isInteger(value) && value >= 0;
+      expected = 'a nonnegative integer';
+    } else {
+      ok = typeof value === 'string';
+      expected = 'a string';
+    }
+    if (!ok) return { problem: `the value of ${key} is not ${expected}` };
   }
   return { data: site };
 }
@@ -503,6 +519,11 @@ export function authorContentProblems({ status, path, baseText, mainText, headTe
       if (!isDeepStrictEqual(before.kind, after.kind)) {
         problems.push(`${path}: ${where}, its kind is ${JSON.stringify(before.kind)}, and the head's is ${JSON.stringify(after.kind)}; an author's kind never changes in the authors lane`);
       }
+      for (const key of AUTHOR_EDITORIAL_KEYS) {
+        if (!isDeepStrictEqual(before[key], after[key])) {
+          problems.push(`${path}: ${where}, ${key} changes at the head; editorial writer policy changes only through the maintainer`);
+        }
+      }
       if (!isDeepStrictEqual(before.name, after.name)) {
         problems.push(`${path}: ${where}, its name is ${JSON.stringify(before.name)}, and the head's is ${JSON.stringify(after.name)}; an author of kind ${JSON.stringify(before.kind)} keeps its name`);
       }
@@ -511,6 +532,11 @@ export function authorContentProblems({ status, path, baseText, mainText, headTe
   }
   if (mainText !== null) return [`${path}: added, but main has it now; the change would replace that author`];
   const problems = [];
+  for (const key of AUTHOR_EDITORIAL_KEYS) {
+    if (after[key] !== undefined) {
+      problems.push(`${path}: ${key} is set on a new author; editorial writer policy is the maintainer's to set`);
+    }
+  }
   if (!AUTHOR_LANE_KINDS.includes(/** @type {string} */ (after.kind))) {
     problems.push(`${path}: a new author of kind ${JSON.stringify(after.kind)}; the authors lane adds only ${kinds} (a new human is the maintainer's to add)`);
   }

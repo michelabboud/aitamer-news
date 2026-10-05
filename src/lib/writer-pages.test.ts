@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
-import { introParagraphs, orderWriterCards, reservedTopLevelNames, splitPoems, writerPageIds } from './writer-pages.ts';
+import { introParagraphs, orderWriterCards, reservedTopLevelNames, splitPoems, writerPageIds, isFeaturedWriter, writerAuthorPath, writerRole, writerNoun, personalOpinionDisclosure } from './writer-pages.ts';
 
 const author = (id: string, kind: 'human' | 'bot' | 'ai') => ({ id, data: { kind } });
 
@@ -18,7 +18,7 @@ test('the first segment of every _redirects source is reserved; comments and bla
   assert.deepEqual([...reserved].sort(), ['heroes', 'section']);
 });
 
-test('only AI writers get a page at their own name', () => {
+test('existing AI writers get own-name pages while unfeatured humans and bots stay profiles', () => {
   const ids = writerPageIds([author('mai', 'ai'), author('desk-bot', 'bot'), author('wiz-cat', 'human')], new Set(['about']));
   assert.deepEqual(ids, ['mai']);
 });
@@ -58,4 +58,57 @@ test('writer cards follow the editor\'s order; unlisted writers come last in id 
   assert.deepEqual(orderWriterCards(input).map((w) => w.id), ['mai', 'quill', 'foxy', 'ari', 'abe', 'zed']);
   assert.equal(input[0].id, 'ari');
   assert.deepEqual(orderWriterCards([]), []);
+});
+
+
+test('human writers opt in, AI writers default in and may opt out, bots never get own-name pages', () => {
+  const writers = [
+    author('mai', 'ai'),
+    { id: 'new-human', data: { kind: 'human' as const, featured: true } },
+    author('wiz-cat', 'human'),
+    { id: 'private-ai', data: { kind: 'ai' as const, featured: false } },
+    { id: 'desk-bot', data: { kind: 'bot' as const, featured: true } },
+  ];
+  assert.deepEqual(writers.filter(isFeaturedWriter).map((a) => a.id), ['mai', 'new-human']);
+  assert.deepEqual(writerPageIds(writers, new Set()), ['mai', 'new-human']);
+  assert.deepEqual(writers.map(writerAuthorPath), ['/mai/', '/new-human/', '/authors/wiz-cat/', '/authors/private-ai/', '/authors/desk-bot/']);
+  assert.deepEqual(writers.map(writerRole), ['Featured writer', 'Human writer', 'Human editor', 'Featured writer', 'News bot']);
+  assert.equal(writerNoun(writers[1]), 'a human writer');
+  assert.equal(writerNoun(writers[2]), 'a human editor');
+});
+
+test('an opted-in human writer receives the same route collision protection as an AI writer', () => {
+  assert.throws(
+    () => writerPageIds([{ id: 'about', data: { kind: 'human', featured: true } }], new Set(['about'])),
+    /about would collide/,
+  );
+  assert.deepEqual(writerPageIds([{ id: 'about', data: { kind: 'human' } }], new Set(['about'])), []);
+});
+
+test('editorial ranks insert a human immediately after Mai while preserving all existing AI positions', () => {
+  const input = [
+    { id: 'ari' }, { id: 'quill' }, { id: 'zed' }, { id: 'foxy' }, { id: 'mai' },
+    { id: 'new-human', data: { writerOrder: 1 } }, { id: 'abe' },
+  ];
+  assert.deepEqual(orderWriterCards(input).map((a) => a.id), ['mai', 'new-human', 'quill', 'foxy', 'ari', 'abe', 'zed']);
+  assert.equal(input[0].id, 'ari');
+  assert.deepEqual(orderWriterCards([
+    { id: 'mai', data: { writerOrder: 25 } }, { id: 'foxy' }, { id: 'quill' },
+  ]).map((a) => a.id), ['quill', 'foxy', 'mai']);
+  assert.deepEqual(orderWriterCards([
+    { id: 'z', data: { writerOrder: 0 } }, { id: 'a', data: { writerOrder: 0 } },
+  ]).map((a) => a.id), ['a', 'z']);
+});
+
+test('opinion disclosure defaults off and explicit opt-in is reusable across author kinds and posts', () => {
+  assert.equal(personalOpinionDisclosure(undefined), undefined);
+  assert.equal(personalOpinionDisclosure({ data: { name: 'Human author' } }), undefined);
+  assert.equal(personalOpinionDisclosure({ data: { name: 'AI writer', personalOpinion: false } }), undefined);
+  for (const name of ['A human contributor', 'A named AI writer']) {
+    const opinion = personalOpinionDisclosure({ data: { name, personalOpinion: true } });
+    assert.equal(opinion?.label, 'Personal opinion');
+    assert.ok(opinion?.disclaimer.includes(`${name}’s personal views`));
+    assert.ok(opinion?.disclaimer.includes('do not necessarily reflect AI Tamer'));
+    assert.ok(opinion?.disclaimer.includes('sourcing and correction standards'));
+  }
 });

@@ -1,7 +1,7 @@
 ---
 import { toJsonLd } from '../../lib/json-ld';
-import { jsonLdAuthorType, kindNoun } from '../../lib/author-kinds.ts';
-import { WRITER_PAGE_KIND } from '../../lib/writer-pages.ts';
+import { jsonLdAuthorType } from '../../lib/author-kinds.ts';
+import { writerAuthorPath, writerNoun, personalOpinionDisclosure } from '../../lib/writer-pages.ts';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorBadge from '../../components/AuthorBadge.astro';
@@ -17,7 +17,6 @@ import WildnessPanel from '../../components/WildnessPanel.astro';
 import {
   SECTION_LABELS,
   SITE,
-  authorHref,
   canonicalUrlFor,
   formatDate,
   formatDateTime,
@@ -81,8 +80,9 @@ const shareSrc = data.heroImage?.trim() ? heroSrc : resolveMedia(DEFAULT_SOCIAL_
 const heroAlt = data.heroAlt ?? `Generated cover art for: ${data.title}`;
 const canonical = canonicalUrlFor(`/posts/${post.id}/`);
 const published = archiveMonthOf(data.pubDate);
-// An AI writer's own page (/mai/, ADR 0012) is the fuller introduction; everyone else has a profile.
-const signoffAuthorHref = author.data.kind === WRITER_PAGE_KIND ? withBase(`/${author.id}/`) : authorHref(author.id);
+// Featured writers use their fuller introduction; other contributors keep their author profile.
+const signoffAuthorHref = withBase(writerAuthorPath(author));
+const opinion = personalOpinionDisclosure(author);
 const withdrawn = data.withdrawn;
 // Newest correction first, so a reader sees the latest change at the top of the list.
 const corrections = [...data.corrections].sort((a, b) => b.date.valueOf() - a.date.valueOf());
@@ -110,7 +110,7 @@ const jsonLd = withdrawn
       author: {
         '@type': jsonLdAuthorType(author.data.kind),
         name: author.data.name,
-        url: canonicalUrlFor(`/authors/${author.id}/`),
+        url: canonicalUrlFor(writerAuthorPath(author)),
       },
       publisher: { '@type': 'Organization', name: SITE.title, url: SITE.url },
       citation: data.sources?.map((source) => source.url),
@@ -159,12 +159,13 @@ const breadcrumbs = {
       <h1 class="article__title">{data.title}</h1>
       {!withdrawn && <p class="lede">{data.description}</p>}
       <div class="byline">
-        <a href={authorHref(author.id)} style="text-decoration: none">
+        <a href={signoffAuthorHref} style="text-decoration: none">
           <AuthorBadge kind={author.data.kind} name={author.data.name} />
         </a>
         <a class="byline__date" href={archiveHref(published.year, published.month)} title="More stories from this month">
           <time datetime={data.pubDate.toISOString()}>{formatDateTime(data.pubDate)}</time>
         </a>
+        {!withdrawn && opinion && <span class="tag tag--plain">{opinion.label}</span>}
         {!withdrawn && <span>{readingMinutes(post.body)} MIN</span>}
         {!withdrawn && <CommentCount id={post.id} count={comments.length} />}
         {!withdrawn && <ShareLinks url={canonical} title={data.title} summary={data.description} placement="top" />}
@@ -255,9 +256,15 @@ const breadcrumbs = {
           </aside>
         )}
 
+        {opinion && (
+          <aside class="notice" aria-label="Personal opinion disclaimer">
+            <p>{opinion.disclaimer}</p>
+          </aside>
+        )}
+
         {/* The sign-off: who wrote it and when, again at the end, for the reader who got here. */}
         <p class="signoff">
-          Written by <a href={signoffAuthorHref}>{author.data.name}</a>, {kindNoun(author.data.kind)}. Published{' '}
+          Written by <a href={signoffAuthorHref}>{author.data.name}</a>, {writerNoun(author)}. Published{' '}
           <a href={archiveHref(published.year, published.month)} title="More stories from this month"><time datetime={data.pubDate.toISOString()}>{formatDateTime(data.pubDate)}</time></a>
           {data.updatedDate && (
             <>; updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time></>

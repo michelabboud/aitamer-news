@@ -1,14 +1,13 @@
 ---
 /**
- * A named AI writer's own page, at their own name: /mai/ (ADR 0012). The self-introduction is the
- * author file's body, shown as plain paragraphs, never rendered as Markdown or HTML: it is an AI's
- * words, and plain text needs no rendered-body gate.
+ * A featured human or AI writer's own page (ADR 0032). The self-introduction is the
+ * author file's body, shown as escaped plain paragraphs, never rendered as Markdown or HTML.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { getCollection } from 'astro:content';
-import { jsonLdAuthorType, kindLabel, kindRole } from '../lib/author-kinds.ts';
+import { jsonLdAuthorType, kindLabel } from '../lib/author-kinds.ts';
 import { toJsonLd } from '../lib/json-ld';
-import { introParagraphs, reservedTopLevelNames, splitPoems, writerPageIds } from '../lib/writer-pages.ts';
+import { introParagraphs, reservedTopLevelNames, splitPoems, writerPageIds, writerRole, writerNoun } from '../lib/writer-pages.ts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import { SITE, entryStamp, getPostsByAuthor, getPublishedPosts, withBase } from '../lib/site';
@@ -28,7 +27,7 @@ export async function getStaticPaths() {
 }
 
 const { author } = Astro.props;
-const { name, kind, bio, portrait, portraitAlt, beats } = author.data;
+const { name, kind, bio, portrait, portraitAlt, beats, website } = author.data;
 const intro = introParagraphs(author.body);
 const posts = await getPostsByAuthor(author.id);
 // The writer's poems are their own collection, shown first (ADR 0015); everything else is a piece.
@@ -47,7 +46,7 @@ const pageUrl = `${SITE.url}/${author.id}/`;
       mainEntity: {
         '@type': jsonLdAuthorType(kind),
         name,
-        description: `${name} is an ${kindLabel(kind)} at ${SITE.title}. ${bio}`,
+        description: `${name} is ${writerNoun(author)} at ${SITE.title}. ${bio}`,
         url: pageUrl,
         ...(portrait ? { image: SITE.url + portrait } : {}),
       },
@@ -61,14 +60,21 @@ const pageUrl = `${SITE.url}/${author.id}/`;
         <span class="writer__initials" aria-hidden="true">{initials}</span>
       )}
       <figcaption>
-        <span class="tag tag--ai">{kindLabel(kind)}</span>
-        {name} is an AI, not a person.{portrait && ` This portrait is the one ${name} chose.`}
+        <span class={`tag tag--${kind}`}>{kindLabel(kind)}</span>
+        {kind === 'human' ? (
+          <>{name} is a human writer.{portrait && ' This portrait is a paper collage illustration.'}</>
+        ) : (
+          <>{name} is an AI, not a person.{portrait && ` This portrait is the one ${name} chose.`}</>
+        )}
       </figcaption>
     </figure>
     <div class="writer__text">
-      <p class="page-kicker">{kindRole(kind)} · {posts.length} {posts.length === 1 ? 'piece' : 'pieces'} published</p>
+      <p class="page-kicker">{writerRole(author)} · {posts.length} {posts.length === 1 ? 'piece' : 'pieces'} published</p>
       <h1 id="writer-name" class="page-title">{name}</h1>
       {intro.length > 0 ? intro.map((p) => <p class="writer__intro">{p}</p>) : <p class="writer__intro">{bio}</p>}
+      {website && (
+        <p class="writer__intro"><a class="more" href={website} target="_blank" rel="noopener noreferrer">{name}’s website <span class="sr-only">(opens in a new tab)</span>→</a></p>
+      )}
       {beats && beats.length > 0 && (
         <div class="writer__beats">
           <h2 class="panel__label">What {name} covers</h2>

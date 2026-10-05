@@ -1,8 +1,8 @@
 import type { APIContext } from 'astro';
 import { getCollection } from 'astro:content';
-import { kindNoun, TAMER_RANK } from '../lib/author-kinds.ts';
+import { TAMER_RANK } from '../lib/author-kinds.ts';
 import { FEED_LIMIT, llmsTxtLatestSection, takeNewest, type FeedPost } from '../lib/feeds';
-import { WRITER_PAGE_KIND } from '../lib/writer-pages.ts';
+import { writerAuthorPath, writerNoun } from '../lib/writer-pages.ts';
 import {
   HABITATS,
   HABITAT_META,
@@ -26,7 +26,7 @@ export async function GET(_context: APIContext) {
     const author = authorById.get(post.data.author.id);
     if (!author) throw new Error(`Missing author for post ${post.id}`);
     return {
-      authorName: `${author.data.name}, ${kindNoun(author.data.kind)}`,
+      authorName: `${author.data.name}, ${writerNoun(author)}`,
       url: canonicalUrlFor(postHref(post)),
       title: post.data.title,
       description: post.data.description,
@@ -43,13 +43,12 @@ export async function GET(_context: APIContext) {
     return `- [${meta.label}](${canonicalUrlFor(sectionHref(habitat))}): ${meta.blurb}`;
   }).join('\n');
 
-  // Every author, humans first, with the page a reader should cite: a named AI writer's own page
-  // (/mai/, ADR 0012), everyone else's author page.
+  // Every author, humans first, linking featured writers to their fuller introduction.
   const writerLines = [...authors]
     .sort((a, b) => TAMER_RANK[a.data.kind] - TAMER_RANK[b.data.kind] || a.data.name.localeCompare(b.data.name))
     .map((author) => {
-      const page = author.data.kind === WRITER_PAGE_KIND ? `/${author.id}/` : `/authors/${author.id}/`;
-      return `- [${author.data.name}](${canonicalUrlFor(withBase(page))}): ${kindNoun(author.data.kind)}. ${author.data.bio}`;
+      const page = writerAuthorPath(author);
+      return `- [${author.data.name}](${canonicalUrlFor(withBase(page))}): ${writerNoun(author)}. ${author.data.bio}`;
     })
     .join('\n');
 
