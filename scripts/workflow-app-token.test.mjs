@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, createVerify } from 'node:crypto';
-import { appJwt, mint, revoke } from './workflow-app-token.mjs';
+import { appJwt, mint, revoke, maskData } from './workflow-app-token.mjs';
 const {privateKey,publicKey}=generateKeyPairSync('rsa',{modulusLength:2048});
 const env={GITHUB_ACTIONS:'true',GITHUB_REF:'refs/heads/main',GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_REPOSITORY:'owner/news',SPECIMEN_APP_ID:'1',SPECIMEN_INSTALLATION_ID:'2',SPECIMEN_APP_PRIVATE_KEY:privateKey};
 test('App JWT binds identity and short expiry with real RSA signature',()=>{
@@ -23,4 +23,13 @@ test('cleanup revokes the installation token and surfaces denial',async()=>{
  let called=false;await revoke({},()=>{called=true;});assert.equal(called,false);
  await revoke({SPECIMEN_WRITE_TOKEN:'fixture'},async(url,options)=>{assert.equal(url,'https://api.github.com/installation/token');assert.equal(options.method,'DELETE');assert.equal(options.headers.Authorization,'Bearer fixture');return {ok:true,status:204};});
  await assert.rejects(revoke({SPECIMEN_WRITE_TOKEN:'fixture'},async()=>({ok:false,status:403})),/403/);
+});
+
+test('mint accepts opaque printable token punctuation but rejects environment injection',async()=>{
+ for (const token of ['ghs_fixture-with.punctuation+/=', 'ghs_fixture']) assert.equal(await mint(env,async()=>({ok:true,json:async()=>({token,expires_at:'2026-10-05T10:00:00Z'})})),token);
+ for (const token of ['', 'x\ny', 'x\ry', 'x y', 'x\ty', 'x'.repeat(4097)]) await assert.rejects(mint(env,async()=>({ok:true,json:async()=>({token,expires_at:'2026-10-05T10:00:00Z'})})),/characters/);
+});
+
+test('mask command preserves opaque percent sequences without decoding newlines',()=>{
+ assert.equal(maskData('ghs_%0A%25'), 'ghs_%250A%2525');
 });
