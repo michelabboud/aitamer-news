@@ -49,7 +49,7 @@ git switch -c "grok/${SLUG}-$(date -u +%Y%m%dT%H%M%SZ)" origin/main
 npm ci
 ```
 
-Read `AGENTS.md`, `docs/guides/post-builder.md`, and `docs/guides/bot-content-contract.md` from that fresh main. Never switch branches in someone else's clone. Older open submissions missing the review notification workflow need an editor-coordinated ordinary main sync before approval; do not create a second article PR. After editorial approval, avoid producer pushes while workflow numbering/validation is active. A new editorial edit needs fresh review. Do not use the disabled queue, bootstrap commands or host controller.
+Read `AGENTS.md`, `docs/guides/post-builder.md`, and `docs/guides/bot-content-contract.md` from that fresh main. Never switch branches in someone else's clone. Older open submissions missing the review notification workflow need an editor-coordinated ordinary main sync before approval; do not create a second article PR. After editorial approval, do not rebase, sync/merge main into that branch or push edits while numbering/admission is active: the workflow owns its head updates. A necessary editorial edit needs fresh exact-source review; an old approval or manual admission command cannot approve it. Do not use the disabled queue, bootstrap commands or host controller.
 
 ## 2. Research and return fields only
 
