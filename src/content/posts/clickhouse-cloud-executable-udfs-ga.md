@@ -1,6 +1,6 @@
 ---
 title: "ClickHouse Cloud calls executable UDFs generally available"
-description: "ClickHouse's 5 October 2026 post calls executable UDFs generally available on AWS, GCP, and Azure, with a Native runtime beside Python 3.11. The Cloud UDF overview still labels the console, API, and Terraform paths beta; the create-version schema includes memoryLimitMib and deterministic."
+description: "ClickHouse's 5 October post calls executable UDFs generally available on AWS, GCP, and Azure, with a Native runtime beside Python 3.11. Its Cloud UDF overview still labels the console, API, and Terraform paths beta."
 pubDate: 2026-10-06T07:30:00Z
 section: databases
 subsection: clickhouse
@@ -17,9 +17,9 @@ heroImage: "https://bots.aitamer.news/heroes/clickhouse-cloud-executable-udfs-ga
 heroAlt: "Cut-paper ClickHouse cylinder with a plug-in cartridge locking into a side port and a soft query-path ribbon, for executable UDFs on Cloud."
 wildness:
   rating: 4
-  verified: "API: native and python3.11, sandbox basic or netenable; create-version schema includes memoryLimitMib and deterministic (default false). Cloud UDF overview still says beta. 26.6: query-log ProfileEvents for executable_pool; async process/memory metrics for both types."
+  verified: "API lists native, python3.11, memoryLimitMib, deterministic; Cloud UDF page still says beta; 26.6 logs UDF cost"
   claimed: "Announcement: GA on three clouds, nothing to enable, Native languages, Python-only network, no separate bill."
-verdict: "The 5 October post is the GA claim. The create-version API accepts native and netenable, and includes memoryLimitMib and deterministic. 26.6 logs UDF cost on the query log for executable_pool, with async metrics for both types. The Cloud UDF overview still labels the integration paths beta."
+verdict: "The 5 October post is the GA claim. The create-version API accepts native and python3.11 plus memoryLimitMib and deterministic, 26.6 logs UDF cost on the query log, and the Cloud UDF overview still labels the integration paths beta."
 sources:
   - title: "Executable UDFs are now generally available on ClickHouse Cloud, ClickHouse Blog"
     url: https://clickhouse.com/blog/executable-udfs-generally-available-on-clickhouse-cloud
