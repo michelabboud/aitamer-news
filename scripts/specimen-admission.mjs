@@ -32,6 +32,7 @@ const REQUEST_NAME = /^Specimen request pr=(\d+) head=([a-f0-9]{40}) recovery=(\
 const RETRY_MARKER = 'specimen-reconciliation:';
 const ADMISSION_PATH = '.github/workflows/specimen-admission.yml';
 const DEPLOY_PATH = '.github/workflows/deploy-pages.yml';
+const SERVER_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
 function workflowPath(run, expected) {
   return [expected, `${expected}@main`, `${expected}@refs/heads/main`].includes(run?.path);
 }
@@ -66,9 +67,12 @@ export async function approvedRequest(api, run, owner) {
     run = predecessor;
   }
 }
+function assertSourceApproval(pr, repo) {
+  if (pr?.state!=='open' || pr.draft || pr.head?.repo?.full_name!==repo || pr.base?.ref!=='main' || (pr.base.repo && pr.base.repo.full_name!==repo)) throw new Error('source approval withdrawn or moved');
+}
 async function approvalStillValid(api, request, owner, { current, digest, collect = collectAdmission, fetchCommits = fetchObjects } = {}) {
   const pr = await api.request(`/pulls/${request.pr}`);
-  if (pr.state !== 'open' || pr.draft || pr.head.repo?.full_name !== api.repo || pr.base.ref !== 'main' || (pr.base.repo && pr.base.repo.full_name !== api.repo)) throw new Error('source approval withdrawn or moved');
+  assertSourceApproval(pr,api.repo);
   const head = sha(pr.head.sha);
   if (head !== request.source) {
     if (!current || !digest) throw new Error('source editorial head changed');
@@ -88,6 +92,9 @@ function mainHistory(base, current) {
 }
 async function approvalPlan(api, run, owner, { collect = collectAdmission, fetchCommits = fetchObjects, verifyBase = mainHistory } = {}) {
   const request = await approvedRequest(api, run, owner);
+  // Withdrawn or merged source requests enter a durable hold before Git reads.
+  // A repaired head remains eligible; the later digest/review check still binds it.
+  assertSourceApproval(await api.request(`/pulls/${request.pr}`),api.repo);
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
   fetchCommits(...new Set([...request.bases, current, request.source]));
   for (const base of request.bases) verifyBase(base, current);
@@ -131,16 +138,25 @@ async function containsMerge(api, merge, head) {
 function trustedDeployment(run, repo) {
   return workflowPath(run, DEPLOY_PATH) && run.head_branch==='main' && ['push','workflow_dispatch'].includes(run.event) && run.repository?.full_name===repo && (!run.head_repository || run.head_repository.full_name===repo);
 }
+function serverTimestamp(value, label) {
+  const time=typeof value==='string' ? Date.parse(value) : NaN;
+  if (!Number.isFinite(time) || !SERVER_TIMESTAMP.test(value) || /[\r\n]/.test(value)) throw new Error(`invalid ${label} server timestamp`);
+  return time;
+}
 export async function reconcileDeployment(api, pr, { now = Date.now(), completion } = {}) {
   const merge = sha(pr.merge_commit_sha);
+  const earliest=serverTimestamp(pr.created_at,'generated PR creation');
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
   if (!await containsMerge(api, merge, current)) throw new Error('admission merge is no longer in main history');
   const receipts = await retryReceipts(api, pr.number);
-  // Unfiltered streaming avoids GitHub's 1,000-result search cap. The first actual
-  // success is enough; there is no reason to load the whole deployment history.
+  // GitHub returns runs newest first. A run created before this generated PR
+  // cannot have deployed its future merge. Use that server timestamp, not a Git
+  // author/committer date. Keep the stream unfiltered to avoid the 1,000-search cap.
   let pending = false;
   for await (const run of stream(api, '/actions/workflows/deploy-pages.yml/runs', 'workflow_runs')) {
-    if (!trustedDeployment(run, api.repo) || (run.status==='completed' && run.conclusion!=='success')) continue;
+    if (!trustedDeployment(run, api.repo)) continue;
+    if (serverTimestamp(run.created_at,'deployment creation')<earliest) break;
+    if (run.status==='completed' && run.conclusion!=='success') continue;
     if (!await containsMerge(api, merge, run.head_sha)) continue;
     if (run.status==='completed') {
       if (completion && !receipts.some(r=>r.kind==='completed' && r.merge===merge && r.admissionRun===completion.admissionRun && r.deploymentRun===run.id)) {

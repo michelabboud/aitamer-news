@@ -22,7 +22,7 @@ const ENV = { MAINTAINER_ID:String(OWNER), GITHUB_REF:'refs/heads/main', ADMISSI
 const COMMENT_MARKER = 'specimen-reconciliation:';
 const run = (id = 10, overrides = {}) => ({ id, actor:{id:OWNER}, repository:{full_name:REPO}, head_repository:{full_name:REPO}, head_sha:BASE, path:'.github/workflows/specimen-admission.yml', event:'workflow_dispatch', head_branch:'main', status:'completed', conclusion:'success', display_title:`Specimen request pr=7 head=${SOURCE} recovery=0`, ...overrides });
 const sourcePR = (overrides = {}) => ({ number:7, state:'open', draft:false, head:{sha:SOURCE,repo:{full_name:REPO}}, base:{ref:'main',repo:{full_name:REPO}}, ...overrides });
-const generatedPR = (overrides = {}) => ({ number:100, state:'open', merged:false, user:{id:BOT}, head:{sha:HEAD,ref:'specimens/run-10',repo:{full_name:REPO}}, base:{ref:'main',repo:{full_name:REPO}}, ...overrides });
+const generatedPR = (overrides = {}) => ({ number:100, created_at:new Date(NOW).toISOString(), state:'open', merged:false, user:{id:BOT}, head:{sha:HEAD,ref:'specimens/run-10',repo:{full_name:REPO}}, base:{ref:'main',repo:{full_name:REPO}}, ...overrides });
 const dependencies = { collect:()=>({editorialDigest:DIGEST}), fetchCommits:()=>{}, verifyBase:()=>{} };
 
 class API {
@@ -96,7 +96,7 @@ const finalDependencies = (overrides = {}) => ({ ...dependencies,
     if (args.includes('--format=%T')) return 'same-tree\n';
     throw new Error('Unexpected Git fixture');
   }, ...overrides });
-const deployRun = (id = 200, overrides = {}) => ({ id, head_sha:MERGE, head_branch:'main', path:'.github/workflows/deploy-pages.yml', event:'workflow_dispatch', repository:{full_name:REPO}, head_repository:{full_name:REPO}, status:'completed', conclusion:'success', ...overrides });
+const deployRun = (id = 200, overrides = {}) => ({ id, created_at:new Date(NOW+1000).toISOString(), head_sha:MERGE, head_branch:'main', path:'.github/workflows/deploy-pages.yml', event:'workflow_dispatch', repository:{full_name:REPO}, head_repository:{full_name:REPO}, status:'completed', conclusion:'success', ...overrides });
 
 test('durable run titles retain PR/source without API inputs and reject unsafe identifiers', () => {
   assert.deepEqual(requestOf(run()), {pr:7,source:SOURCE,recovery:0});
@@ -571,4 +571,101 @@ test('admission proof accepts GitHub canonical check URL while rejecting mismatc
 test('state certificate accepts only its exact canonical GitHub check URL',async()=>{
  const api=new StateAPI();api.certificate.id=901;api.certificate.details_url=`https://github.com/${REPO}/runs/901`;assert.equal((await loadState(api,STATE_ENV)).head,HEAD);
  api.certificate.details_url=`https://github.com/${REPO}/runs/902`;await assert.rejects(loadState(api,STATE_ENV),/independent/);
+});
+
+
+test('withdrawn or moved source approval refuses recovery before any Git fetch or collection',async()=>{
+  for(const change of ['closed','merged','draft','fork','base','base-repository']) {
+    const api=new API();
+    if(change==='closed' || change==='merged') api.source.state='closed';
+    if(change==='merged') api.source.merged=true;
+    if(change==='draft') api.source.draft=true;
+    if(change==='fork') api.source.head.repo.full_name='fork/site';
+    if(change==='base') api.source.base.ref='other';
+    if(change==='base-repository') api.source.base.repo.full_name='fork/site';
+    const forbidden={fetchCommits:()=>assert.fail(`Git fetch before ${change} approval rejection`),collect:()=>assert.fail(`Git collection before ${change} approval rejection`),verifyBase:()=>assert.fail(`Git provenance before ${change} approval rejection`)};
+    await assert.rejects(recoverRequest(api,run(),ENV,{now:NOW,...forbidden}),/source approval withdrawn or moved/,change);
+    assert.deepEqual(api.mutations(),[]);
+    assert.ok(!api.calls.some(call=>call.path==='/git/ref/heads/main'));
+  }
+});
+
+test('indexed recovery durably holds a closed merged source and next sweep performs no expensive proof',async()=>{
+  const api=new API();api.prs=[];api.runs=[run(10,{conclusion:'failure'})];api.source.state='closed';api.source.merged=true;
+  const index=memoryIndex(stateOf({pending:[{id:10,status:'pending',reason:''}]}));
+  const recover=(api,run,env)=>recoverRequest(api,run,env,{now:NOW,fetchCommits:()=>assert.fail('closed source must not fetch Git'),collect:()=>assert.fail('closed source must not collect already-admitted content'),verifyBase:()=>assert.fail('closed source must not inspect Git provenance')});
+  await assert.rejects(indexedSweep(api,STATE_ENV,{...index,recover}),/protected state retained/);
+  assert.equal(index.get().state.pending[0].status,'held');
+  assert.match(index.get().state.pending[0].reason,/source approval withdrawn or moved/);
+  const writes=index.writes.length;api.calls=[];
+  await indexedSweep(api,STATE_ENV,{...index,recover,completed:async()=>assert.fail('held source must not recheck deployment proofs'),finalizeRun:async()=>assert.fail('held source must not finalize')});
+  assert.equal(api.calls.length,1);
+  assert.equal(api.calls[0].path,'/actions/workflows/specimen-admission.yml/runs');
+  assert.equal(index.writes.length,writes);
+});
+
+test('merged admission finalization still proves deployment when the original source PR is closed',async()=>{
+  const api=new API();api.source.state='closed';api.source.merged=true;
+  api.prs[0]=generatedPR({merged:true,state:'closed',merge_commit_sha:MERGE});
+  let proofs=0;
+  const outcome=await finalize(api,ENV,finalDependencies({deploy:async()=>{proofs++;return'deployed';}}));
+  assert.equal(outcome,'deployed');assert.equal(proofs,1);
+});
+
+
+function pagedDeployments(api) {
+  let pages=0;
+  api.iterate=async function* (path) {
+    assert.equal(path,'/actions/workflows/deploy-pages.yml/runs');
+    for(let offset=0;offset<this.deployRuns.length;offset+=100) {pages++;yield* this.deployRuns.slice(offset,offset+100);}
+  };
+  return ()=>pages;
+}
+
+test('active deployment recovery stops before 1,200 historical runs without historical comparisons',async()=>{
+  const api=new API();api.current=MERGE;
+  api.deployRuns=[deployRun(200,{status:'in_progress',conclusion:null}),...Array.from({length:1200},(_,i)=>deployRun(300+i,{created_at:new Date(NOW-(i+1)*1000).toISOString(),head_sha:SOURCE}))];
+  api.comparisons.set(`${MERGE}:${SOURCE}`,{status:'behind',merge_base_commit:{sha:SOURCE}});
+  const pages=pagedDeployments(api);
+  assert.equal(await reconcileDeployment(api,generatedPR({merged:true,merge_commit_sha:MERGE}),{now:NOW}),'pending');
+  assert.equal(pages(),1);
+  assert.equal(api.calls.filter(call=>call.path.startsWith('/compare/')).length,0);
+  assert.deepEqual(api.mutations(),[]);
+});
+
+test('deployments strictly older than generated PR creation never provide publication success',async()=>{
+  const api=new API();api.current=MERGE;
+  api.deployRuns=[deployRun(200,{created_at:new Date(NOW-1000).toISOString(),head_sha:MERGE})];
+  assert.equal(await reconcileDeployment(api,generatedPR({merged:true,merge_commit_sha:MERGE}),{now:NOW}),'dispatched');
+  assert.equal(api.calls.filter(call=>call.path.startsWith('/compare/')).length,0);
+});
+
+test('equal and later deployment creation dates still require exact descendant head proof',async()=>{
+  for(const created_at of [new Date(NOW).toISOString(),new Date(NOW+1000).toISOString()]) {
+    const api=new API();api.current=MERGE;api.deployRuns=[deployRun(200,{created_at,head_sha:CURRENT})];
+    assert.equal(await reconcileDeployment(api,generatedPR({merged:true,merge_commit_sha:MERGE}),{now:NOW}),'deployed');
+    assert.equal(api.calls.filter(call=>call.path===`/compare/${MERGE}...${CURRENT}`).length,1);
+    const unrelated=new API();unrelated.current=MERGE;unrelated.deployRuns=api.deployRuns;
+    unrelated.comparisons.set(`${MERGE}:${CURRENT}`,{status:'diverged',merge_base_commit:{sha:BASE}});
+    assert.equal(await reconcileDeployment(unrelated,generatedPR({merged:true,merge_commit_sha:MERGE}),{now:NOW}),'dispatched');
+  }
+});
+
+test('recent deployment discovery remains unfiltered beyond 1,000 results',async()=>{
+  const api=new API();api.current=MERGE;
+  api.deployRuns=[...Array.from({length:1200},(_,i)=>deployRun(300+i,{created_at:new Date(NOW+(1200-i)*1000).toISOString(),conclusion:'failure',head_sha:SOURCE})),deployRun(200,{created_at:new Date(NOW).toISOString()})];
+  const pages=pagedDeployments(api);
+  assert.equal(await reconcileDeployment(api,generatedPR({merged:true,merge_commit_sha:MERGE}),{now:NOW}),'deployed');
+  assert.equal(pages(),13);
+});
+
+test('malformed trusted PR or deployment creation dates fail closed without dispatch',async()=>{
+  for(const value of [undefined,'','Monday','2026-99-05T12:00:00Z','2026-10-05','2026-10-05T12:00:00Z\n']) {
+    const api=new API();api.current=MERGE;api.deployRuns=[deployRun(200)];
+    await assert.rejects(reconcileDeployment(api,generatedPR({merged:true,merge_commit_sha:MERGE,created_at:value}),{now:NOW}),/invalid.*timestamp/);
+    assert.deepEqual(api.mutations(),[]);
+    const invalidRun=new API();invalidRun.current=MERGE;invalidRun.deployRuns=[deployRun(200,{created_at:value})];
+    await assert.rejects(reconcileDeployment(invalidRun,generatedPR({merged:true,merge_commit_sha:MERGE}),{now:NOW}),/invalid.*timestamp/);
+    assert.deepEqual(invalidRun.mutations(),[]);
+  }
 });
