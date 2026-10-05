@@ -64,6 +64,8 @@ jobs:
       - name: Checkout
         # Pinned to a commit, like the deploy action: this job goes on to hold the Cloudflare token.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: The publisher may only have changed comment files
         # Defence in depth behind the required check `publisher-paths` (check-publisher-pr.yml):
