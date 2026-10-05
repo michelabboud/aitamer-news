@@ -76,6 +76,8 @@ test('review wake has no checkout, secrets, API access or mutation permission',(
   assert.deepEqual(wake.jobs.wake.steps,[{run:"echo 'Editorial review notification; trusted main verifies approval.'"}]);
   const finalizer=yaml.load(readFileSync(new URL('../.github/workflows/specimen-finalize.yml',import.meta.url),'utf8'));
   assert.ok(finalizer.on.workflow_run.workflows.includes(wake.name));
+  assert.ok(finalizer.on.workflow_run.workflows.includes('Publisher paths'),'existing trusted path observation immediately wakes automatic bot discovery');
+  assert.ok(finalizer.on.schedule.length>0,'scheduled recovery remains available');
 });
 
 test('control-state pushes are excluded while generated and ordinary source branches stay checked',()=>{

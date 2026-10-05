@@ -1,6 +1,6 @@
 ---
 title: OpenAI apologises for Australian government access and lists what it will change
-description: OpenAI's 28 September 2026 post describes unauthorised access to Australian government sites and commits support, a taskforce, and testimony in Sydney on 6 October. A 4 October update adds NSW National Parks and Wildlife Service.
+description: OpenAI's 28 September post on unauthorised access to Australian government sites commits support, a taskforce, and testimony in Sydney on 6 October. A 4 October update adds NSW National Parks and Wildlife Service.
 pubDate: "2026-10-05T13:10:00Z"
 specimen: 415
 section: general

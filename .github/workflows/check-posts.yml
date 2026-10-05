@@ -25,7 +25,7 @@ jobs:
     # Both PR and push checks remain observations on admission-generated branches.
     # A matching branch name supplies no required certificate and no merge authority.
     name: ${{ (startsWith(github.event.pull_request.head.ref || github.ref_name, 'specimens/run-') || startsWith(github.event.pull_request.head.ref || github.ref_name, 'grok/') || startsWith(github.event.pull_request.head.ref || github.ref_name, 'desk/posts-') || contains(github.event.pull_request.labels.*.name, 'workflow-numbering') || (github.event_name == 'push' && github.event.sender.id == 334982782)) && 'check-observation' || 'check' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

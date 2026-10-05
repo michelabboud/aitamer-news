@@ -1,7 +1,7 @@
 name: Finalize specimen admissions
 on:
   workflow_run:
-    workflows: [Specimen admission, Specimen editorial review]
+    workflows: [Specimen admission, Specimen editorial review, Publisher paths]
     types: [completed]
   schedule:
     - cron: '*/5 * * * *'
@@ -18,8 +18,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   reconcile:
-    if: vars.SPECIMEN_ADMISSION_ENABLED == 'true'
-    runs-on: ubuntu-latest
+    # A completion wake inherits its upstream actor. Other callers use the schedule fallback.
+    if: vars.SPECIMEN_ADMISSION_ENABLED == 'true' && (github.event_name != 'workflow_run' || github.event.workflow_run.actor.id == vars.MAINTAINER_ID || contains(fromJSON('[41898282,334982782,337850229]'), github.event.workflow_run.actor.id))
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
       pull-requests: write
@@ -48,7 +49,7 @@ jobs:
           SPECIMEN_APP_ID: ${{ vars.SPECIMEN_APP_ID }}
           SPECIMEN_INSTALLATION_ID: ${{ vars.SPECIMEN_INSTALLATION_ID }}
           SPECIMEN_APP_PRIVATE_KEY: ${{ secrets.SPECIMEN_APP_PRIVATE_KEY }}
-      - name: Discover owner approvals and reconcile admissions against current main
+      - name: Discover authorized bot PRs and owner approvals against current main
         run: node scripts/specimen-admission.mjs sweep
         env:
           GH_TOKEN: ${{ github.token }}

@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: Editorially approved source PR
+        description: Authorized Grok or owner-reviewed source PR
         required: true
         type: string
       head_sha:
-        description: Exact reviewed source head
+        description: Exact source head to number
         required: true
         type: string
       recovery_run:
@@ -17,12 +17,12 @@ on:
         default: ''
         type: string
       same_pr:
-        description: Keep the original reviewed PR
+        description: Keep the original source PR
         required: false
         default: 'true'
         type: string
       review_id:
-        description: Exact owner approval review for automatic same-PR admission
+        description: Zero for authorized Grok numbering; exact owner review for other producers
         required: false
         default: '0'
         type: string
@@ -38,7 +38,7 @@ concurrency:
 jobs:
   prepare:
     if: vars.SPECIMEN_ADMISSION_ENABLED == 'true' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
       pull-requests: write
@@ -82,7 +82,7 @@ jobs:
         run: node scripts/workflow-app-token.mjs revoke
   validate:
     needs: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -114,7 +114,7 @@ jobs:
       - run: npm run check:diagrams:dist
   certify:
     needs: [prepare, validate]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       checks: write

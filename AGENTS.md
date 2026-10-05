@@ -19,7 +19,7 @@ For article submissions: `npm run preflight -- --files <files>` (add `--news` fo
 ## Git
 - Never push to `main` directly; open a pull request from a branch. Never `gh pr edit` an open pull request (it breaks a path check); push a new commit instead.
 - Commit identity `29182417+michelabboud@users.noreply.github.com`; end the message with a `Co-Authored-By:` line naming the model.
-- Article submission PRs are admitted through the trusted workflow after owner editorial approval of their exact head; producers never merge an unnumbered source PR. The workflow appends numbering to that same PR; the finalizer normally merges it under strict current-base required certificates. An authorized merge identity may merge only that certified numbered head, never an unnumbered submission.
+- Authorized Grok App article PRs on same-repository `grok/*` branches start trusted numbering automatically, without owner editorial approval; other publisher lanes retain their existing admission rules. producers never merge an unnumbered source PR. The workflow appends numbering to that same PR; the finalizer normally merges it under strict current-base required certificates. An authorized merge identity may merge only that certified numbered head, never an unnumbered submission.
 - For other PRs, merge only when the owner has authorized this agent to merge, and only after checks pass, as a merge commit, never `--admin`. Otherwise stop at the open pull request and report its number.
 - Never rewrite published history; never delete files, branches or data you did not create this session without asking.
 
