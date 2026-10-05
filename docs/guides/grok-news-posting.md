@@ -9,7 +9,7 @@ Publication uses `draft: false` and `pubDate`; the reviewed-publication queue re
 - Required tools: Bash, Git, Node 24, npm, Python 3 + Pillow, AWS CLI v2 and curl. `gh` is needed for App or maintainer PR submission.
 - Use existing author ID `desk-bot` until Michel adds individual bot profiles. Do not impersonate another writer.
 - The dedicated `grok-bots-app` GitHub App has its own content PR lane (ADR 0030) after this guard is merged. Michel must install it for the selected repository `michelabboud/aitamer-news` and provide an installation-token credential to the private publishing environment. Public App metadata and configured repository rules do not prove an installation or a working token. Do not use a personal owner's token or add credentials to a clone, document, chat or log.
-- Both PR author and event sender must be the App's numeric bot account (`GROK_ACTOR_ID`), on `opened`/`synchronize`, from a valid `grok/` branch in this repository. Only added/modified plain `.md` post submissions qualify; permanent specimen numbers and the ledger belong exclusively to the admission workflow. The separate workflow-generated PR carries allocation, never the App's source PR; author profiles, MDX, scripts, workflows and template files are refused. R2 credentials remain separate. Missing installation credentials mean prepare a handoff bundle; they do not permit impersonating the maintainer.
+- Both PR author and event sender must be the App's numeric bot account (`GROK_ACTOR_ID`), on `opened`/`synchronize`, from a valid `grok/` branch in this repository. Only added/modified plain `.md` post submissions qualify; permanent specimen numbers and the ledger belong exclusively to the admission workflow. The trusted workflow appends allocation to that same PR branch; author profiles, MDX, scripts, workflows and template files are refused. R2 credentials remain separate. Missing installation credentials mean prepare a handoff bundle; they do not permit impersonating the maintainer.
 
 Owner-provided credentials can be configured in a private terminal, never in repository files or chat:
 
@@ -244,10 +244,10 @@ with its full SHA, check:media and npm test. Commit fixes and repeat checks.
 Push after gates pass. Include source/visual/timing and actual command evidence
 in a nonempty PR description; retain failures and label browser review pending
 until the validated workflow-generated tree is inspected at desktop/mobile.
-Michel approves the exact PR head and dispatches specimen-admission.yml.
+Michel approves the exact PR head with a review; admission starts automatically.
 The trusted workflow repairs submitted numbering, allocates from main, validates
-its generated PR and merges only through enforced current-base checks.
-Green CI is not editorial approval. Never merge the source PR, push main,
+the same PR and merges only through enforced current-base required certificates.
+Green observations are not editorial approval. Never merge an unnumbered PR, push main,
 force-push, use --admin or borrow personal credentials.
 A merge is not proof of publication: verify the matching deployment, article
 HTTP 200, expected specimen and live hero. Future pubDate remains scheduled.
@@ -304,14 +304,14 @@ gh pr checks "$PR" -R michelabboud/aitamer-news || PR_CHECK_STATUS=$?
 # Pending numbering is recorded; never treat a failing source as mergeable.
 ```
 
-Keep the App's source PR open and record its checks. It cannot update main and never merges its own unnumbered submission. Missing numbering or a rejected legacy ledger is not a reason for a producer to allocate locally. Michel reviews the exact source head and dispatches the trusted admission workflow; see the [operator procedure](workflow-owned-specimens.md#operator-admission).
+Keep the App's source PR open and record its checks. It cannot update main and never merges its own unnumbered submission. Missing numbering or a rejected legacy ledger is not a reason for a producer to allocate locally. Michel approves the exact source head in a review, which wakes trusted admission automatically; see the [operator procedure](workflow-owned-specimens.md#operator-admission).
 
-The workflow creates a separate `specimens/run-<run-id>` PR, verifies its deterministic allocation and runs strict checks. Its finalizer merges only with current-base rules enforced. Record the source PR, source SHA, admission run, generated PR/head and merge SHA. A failed or stale attempt remains pending, with evidence retained; this guide grants no automatic news approval.
+The workflow appends a non-force numbering commit to the original branch, verifies deterministic allocation and runs strict checks without write credentials. Its finalizer merges only with current-base rules enforced. Record the original PR, reviewed source SHA, owner review ID, admission run, numbered head and merge SHA. A failed or stale attempt remains pending, with evidence retained; this guide grants no automatic news approval.
 
-After the generated PR is merged, inspect its merge commit and deployment runs:
+After the original certified PR is merged, inspect its merge commit and deployment runs:
 
 ```bash
-ADMITTED_PR='replace-with-workflow-generated-PR-number'
+ADMITTED_PR="$PR"
 gh pr view "$ADMITTED_PR" -R michelabboud/aitamer-news --json mergeCommit
 gh run list -R michelabboud/aitamer-news --workflow deploy-pages.yml \
   --limit 10 --json databaseId,headSha,status,conclusion

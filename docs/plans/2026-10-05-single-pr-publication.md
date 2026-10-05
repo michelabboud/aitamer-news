@@ -59,7 +59,7 @@ Add a narrow same-PR adapter to the current admission controller. New admissions
 
 - Ruleset24469063 currently permits admin role5 + Grok App5189850 on grok/*: add publishing App5107739, retaining existing actors/restrictions.
 - Ruleset24115823 already permits publishing App5107739 on desk/posts-* and desk/authors-*: no expansion needed there.
-- Generic non-default namespace rule24029856 currently permits only admin5 and excludes the named bot/state namespaces. Add publishing App5107739 if supporting arbitrary manual source branches; this is a real branch-write expansion and must be documented. It grants no workflow-edit permission, owner approval, numbering certificate or merge-check bypass. All meaningful main admission protection must remain independently enforced by main's trusted checks.
+- Generic non-default namespace rule24029856 keeps creation/deletion administrator-only. Root added update-only rule24520133 with identical generic selectors, permitting admin5 and publishing App5107739 for arbitrary manual source branches; this is a real branch-update expansion and is documented. It grants no workflow-edit permission, owner approval, numbering certificate or merge-check bypass. All meaningful main admission protection must remain independently enforced by main's trusted checks.
 - If a separately protected producer namespace (such as cursor/*) is supported, its own ruleset needs the same narrow publishing App addition; do not assume the generic rule covers excluded namespaces.
 - Keep main update rule24468307, strict PR/check rule24029855, protected specimens/* rule24488522, and App permissions unchanged. No Grok/Desk Actions permission or human private key is required. Read back effective rules; never print App secrets.
 
