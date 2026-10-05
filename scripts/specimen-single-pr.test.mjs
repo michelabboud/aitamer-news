@@ -57,6 +57,7 @@ class API {
     this.calls.push({path,method,body});if(this.before) await this.before(path,method,body);
     let result;
     if(path==='/git/ref/heads/main') result={object:{sha:this.current}};
+    else if(path.startsWith('/git/ref/heads/')) result={object:{sha:this.pr.head.sha}};
     else if(path==='/pulls/7') result=this.pr;
     else if(path.startsWith('/actions/runs/')) result=this.runs.find(run=>run.id===Number(path.split('/').at(-1)));
     else if(path.startsWith('/git/commits/')) {
@@ -195,6 +196,80 @@ test('lost numbering response and failed validation reuse same deterministic hea
   assert.equal(f.api.pr.head.sha,head);assert.equal(f.api.mutations().filter(call=>call.path==='/git/commits').length,commits);
   f.api.runs[0].conclusion='failure';await assert.rejects(finalize(f.api,{...f.env,ADMISSION_RUN_ID:'10'},dependencies),/failed admission/);
   assert.ok(!f.api.mutations().some(call=>call.path==='/pulls/7/merge' || call.path==='/pulls'));
+});
+
+test('numbering waits for cached PR metadata only while its authoritative ref stays exact',async t=>{
+  const f=fixture(t), request=f.api.request.bind(f.api), pauses=[];
+  let written=false, reads=0;
+  f.api.request=async(path,method='GET',body)=>{
+    const result=await request(path,method,body);
+    if(method==='PATCH') written=true;
+    if(written && path==='/pulls/7' && reads++<2) result.head.sha=f.source;
+    return result;
+  };
+  await prepare(f.api,f.env,{...dependencies,pause:async ms=>pauses.push(ms)});
+  assert.deepEqual(pauses,[1000,2000]);
+  assert.notEqual(f.api.pr.head.sha,f.source);
+  assert.equal(f.api.mutations().filter(call=>call.method==='PATCH').length,1);
+  assert.ok(f.api.calls.filter(call=>call.path==='/git/ref/heads/grok%2Farticle').length===6);
+});
+
+test('producer push during numbering readback rejects immediately without waiting or forcing',async t=>{
+  const f=fixture(t), pauses=[];
+  const producer=f.commit(f.git('show','-s','--format=%T',f.source),[f.source],'concurrent producer');
+  let reads=0;
+  f.api.after=path=>{if(path==='/git/ref/heads/grok%2Farticle' && ++reads===1) f.api.pr.head.sha=producer;};
+  await assert.rejects(prepare(f.api,f.env,{...dependencies,pause:async ms=>pauses.push(ms)}),/source branch changed after numbering/);
+  assert.deepEqual(pauses,[]);
+  assert.equal(f.api.pr.head.sha,producer);
+  assert.ok(f.api.mutations().filter(call=>call.method==='PATCH').every(call=>call.body.force===false));
+});
+
+test('unrecognized cached PR head is never treated as permissible convergence',async t=>{
+  const f=fixture(t), request=f.api.request.bind(f.api), pauses=[];
+  let written=false;
+  f.api.request=async(path,method='GET',body)=>{
+    const result=await request(path,method,body);
+    if(method==='PATCH') written=true;
+    if(written && path==='/pulls/7') result.head.sha=f.base;
+    return result;
+  };
+  await assert.rejects(prepare(f.api,f.env,{...dependencies,pause:async ms=>pauses.push(ms)}),/source head changed after numbering/);
+  assert.deepEqual(pauses,[]);
+});
+
+test('permanently stale PR metadata fails within the bound and later retry reuses its commit',async t=>{
+  const f=fixture(t), request=f.api.request.bind(f.api), pauses=[];
+  let written=false, reads=0;
+  f.api.request=async(path,method='GET',body)=>{
+    const result=await request(path,method,body);
+    if(method==='PATCH') written=true;
+    if(written && path==='/pulls/7') {result.head.sha=f.source;reads++;}
+    return result;
+  };
+  await assert.rejects(prepare(f.api,f.env,{...dependencies,pause:async ms=>pauses.push(ms)}),/bounded readback/);
+  assert.equal(reads,6);assert.deepEqual(pauses,[1000,2000,3000,4000,5000]);
+  const head=f.api.pr.head.sha, commits=f.api.mutations().filter(call=>call.path==='/git/commits').length;
+  f.api.request=request;
+  await prepare(f.api,f.env,dependencies);
+  assert.equal(f.api.pr.head.sha,head);
+  assert.equal(f.api.mutations().filter(call=>call.path==='/git/commits').length,commits);
+});
+
+test('readback refuses changed PR scope and propagates transport errors without waiting',async t=>{
+  const f=fixture(t);
+  for(const change of [pr=>pr.state='closed',pr=>pr.draft=true,pr=>pr.base.ref='other',pr=>pr.head.ref='other',pr=>pr.head.repo.full_name='fork/site',()=>{throw Object.assign(new Error('transport unavailable'),{status:503});}]) {
+    const api=new API(f), request=api.request.bind(api), pauses=[];
+    let written=false;
+    api.request=async(path,method='GET',body)=>{
+      const result=await request(path,method,body);
+      if(method==='PATCH') written=true;
+      if(written && path==='/pulls/7') change(result);
+      return result;
+    };
+    await assert.rejects(prepare(api,f.env,{...dependencies,pause:async ms=>pauses.push(ms)}),/matches approval|transport unavailable/);
+    assert.deepEqual(pauses,[]);
+  }
 });
 
 test('stale main recovery reallocates on same original PR carrying immutable source and owner review',async t=>{

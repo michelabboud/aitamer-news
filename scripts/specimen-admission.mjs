@@ -317,7 +317,22 @@ export async function admissionProof(api, base, head, actorId, expectedRun) {
   }
   throw new Error('no successful trusted-main allocation proof for this exact base/head');
 }
-export async function prepare(api, env, {collect=collectAdmission,fetchCommits=fetchObjects,verifyBase=mainHistory}={}) {
+async function confirmNumberedHead(api, number, branch, previous, expected, pause) {
+  // PR metadata can lag a successful ref write. Wait only for the exact known
+  // predecessor while the branch itself still names our deterministic commit.
+  const path=`/git/ref/heads/${encodeURIComponent(branch)}`;
+  for (let attempt=0; attempt<6; attempt++) {
+    if ((await api.request(path)).object.sha!==expected) throw new Error('source branch changed after numbering write');
+    const current=await api.request(`/pulls/${number}`);
+    if (current.state!=='open' || current.draft || current.head?.repo?.full_name!==api.repo || current.head.ref!==branch || current.base?.ref!=='main') throw new Error('PR/head/repository no longer matches approval');
+    if ((await api.request(path)).object.sha!==expected) throw new Error('source branch changed after numbering write');
+    if (current.head.sha===expected) return;
+    if (current.head.sha!==previous) throw new Error('source head changed after numbering write');
+    if (attempt<5) await pause((attempt+1)*1000);
+  }
+  throw new Error('numbered source head not visible after bounded readback');
+}
+export async function prepare(api, env, {collect=collectAdmission,fetchCommits=fetchObjects,verifyBase=mainHistory,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}) {
   const number = integer(env.PR_NUMBER); const source = sha(env.SOURCE_SHA); const base = sha(env.GITHUB_SHA);
   if (env.GITHUB_REF !== 'refs/heads/main' || env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || ![integer(env.MAINTAINER_ID), ACTIONS_ACTOR].includes(integer(env.GITHUB_ACTOR_ID))) throw new Error('admission is trusted dispatch on main only');
   if ((await api.request('/git/ref/heads/main')).object.sha !== base) throw new Error('main advanced; redispatch against current main');
@@ -353,7 +368,7 @@ export async function prepare(api, env, {collect=collectAdmission,fetchCommits=f
       // allocation or merge permission. Add it before the synchronization event.
       await api.request(`/issues/${number}/labels`,'POST',{labels:[ADMISSION_LABEL]});
       await api.request(`/git/refs/heads/${encodeURIComponent(pr.head.ref)}`,'PATCH',{sha:generatedHead,force:false});
-      if ((await api.request(`/pulls/${number}`)).head.sha!==generatedHead) throw new Error('source head changed after numbering write');
+      await confirmNumberedHead(api,number,pr.head.ref,observedHead,generatedHead,pause);
     }
     output('head',generatedHead);output('base',base);output('pr',number);output('source_pr',number);output('source_sha',source);output('observed_head',parent);output('editorial_digest',digest);
     console.log(`Admission prepared on original PR #${number}; ${plan.repairs.length} numbering corrections recorded.`);
