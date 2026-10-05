@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { approvedRequest, collectAdmission, GitHub, finalize, prepare, recoverRequest, reconcileDeployment, requestOf, sweepHistory as sweep, sweep as indexedSweep, loadState, saveState, validateState, terminalCompletion } from './specimen-admission.mjs';
+import { approvedRequest, collectAdmission, GitHub, finalize, prepare, recoverRequest, reconcileDeployment, requestOf, sweepHistory as sweep, sweep as indexedSweep, loadState, saveState, validateState, verifyStateProtection, terminalCompletion } from './specimen-admission.mjs';
 
 const REPO = 'owner/site';
 const OWNER = 42;
@@ -413,7 +413,7 @@ function memoryIndex(initial) {
 class StateAPI extends API {
   constructor(state=stateOf()) {
     super(); this.state=state; this.stateHead=HEAD; this.stateContent=JSON.stringify(state)+'\n'; this.stateTree='3'.repeat(40); this.stateBlob='4'.repeat(40); this.stateCommit='5'.repeat(40); this.certificates=[];
-    this.ruleset={id:24488522,target:'branch',enforcement:'active',bypass_actors:[{actor_type:'Integration',actor_id:5107739,bypass_mode:'always'},{actor_type:'RepositoryRole',actor_id:5,bypass_mode:'always'}]};
+    this.ruleset={id:24488522,target:'branch',enforcement:'active',updated_at:'2026-10-05T10:59:20.822+03:00',bypass_actors:[{actor_type:'Integration',actor_id:5107739,bypass_mode:'always'},{actor_type:'RepositoryRole',actor_id:5,bypass_mode:'always'}]};
     this.stateRules=['creation','update','deletion','non_fast_forward'].map(type=>({type,ruleset_id:24488522}));
     this.finalizer={id:500,path:'.github/workflows/specimen-finalize.yml',head_sha:BASE,head_branch:'main',event:'schedule',actor:{id:OWNER},repository:{full_name:REPO},status:'in_progress',conclusion:null};
     this.certificate={name:'specimen-control-state',head_sha:HEAD,status:'completed',conclusion:'success',app:{id:15368},external_id:`${REPO}:${HEAD}:${createHash('sha256').update(this.stateContent).digest('hex')}:500`,details_url:`https://github.com/${REPO}/actions/runs/500`};
@@ -517,4 +517,42 @@ test('revoked/exhausted requests are durably held without repeated API proof unt
   api.calls=[];await indexedSweep(api,STATE_ENV,index);assert.equal(api.calls.length,1);
   api.runs.unshift(run(11,{conclusion:'failure'}));let recovered=0;
   await indexedSweep(api,STATE_ENV,{...index,recover:async()=>{recovered++;return'dispatched';}});assert.equal(recovered,1);
+});
+
+
+test('read-only protection metadata accepts omitted bypass actors only for the trusted-main pinned snapshot',async()=>{
+  const api=new StateAPI();delete api.ruleset.bypass_actors;
+  await verifyStateProtection(api,STATE_ENV);
+  assert.deepEqual(api.mutations(),[]);
+  for(const alter of [
+    ruleset=>{delete ruleset.updated_at;},
+    ruleset=>{ruleset.updated_at='2026-10-05T10:59:20.823+03:00';},
+    ruleset=>{ruleset.updated_at='';},
+    ruleset=>{ruleset.id=24488523;},
+    ruleset=>{ruleset.enforcement='evaluate';},
+    ruleset=>{ruleset.target='tag';},
+  ]) {
+    const api=new StateAPI();delete api.ruleset.bypass_actors;alter(api.ruleset);
+    await assert.rejects(verifyStateProtection(api,STATE_ENV),/trusted-main snapshot/);
+    assert.deepEqual(api.mutations(),[]);
+  }
+  await assert.rejects(verifyStateProtection(new StateAPI(),{...STATE_ENV,SPECIMEN_STATE_RULESET_ID:'24488523'}),/ID differs/);
+});
+
+test('a pinned snapshot never admits explicit malformed or unsafe bypass metadata',async()=>{
+  const permitted=[{actor_type:'Integration',actor_id:5107739,bypass_mode:'always'},{actor_type:'RepositoryRole',actor_id:5,bypass_mode:'always'}];
+  for(const bypass of [null,undefined,{},[],[...permitted,{actor_type:'Integration',actor_id:99,bypass_mode:'always'}],[permitted[0],permitted[0]],[permitted[0],{...permitted[1],actor_id:4}],[{...permitted[0],bypass_mode:'exempt'},permitted[1]],[null,permitted[0]]]) {
+    const api=new StateAPI();api.ruleset.bypass_actors=bypass;
+    await assert.rejects(verifyStateProtection(api,STATE_ENV),/restricted to publishing App/);
+    assert.deepEqual(api.mutations(),[]);
+  }
+});
+
+test('omitted bypass metadata still requires all four effective constraints from the pinned ruleset',async()=>{
+  for(const type of ['creation','update','deletion','non_fast_forward']) {
+    const api=new StateAPI();delete api.ruleset.bypass_actors;api.stateRules=api.stateRules.filter(rule=>rule.type!==type);
+    await assert.rejects(verifyStateProtection(api,STATE_ENV),new RegExp(`lacks ${type}`));
+  }
+  const api=new StateAPI();delete api.ruleset.bypass_actors;api.stateRules[0].ruleset_id=99;
+  await assert.rejects(verifyStateProtection(api,STATE_ENV),/lacks creation/);
 });
