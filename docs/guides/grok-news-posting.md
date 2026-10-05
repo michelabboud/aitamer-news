@@ -76,7 +76,7 @@ python3 -m json.tool "$BUNDLE/fields.json" >/dev/null
 
 ## 3. Exact hero-generation prompt
 
-Replace only the SUBJECT line below with a truthful visual metaphor for the article. Give this whole prompt to your available image-generation tool:
+The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt). Read it from the same `main` revision as this guide and append one truthful, article-specific `SUBJECT:` line. Give the combined prompt to your image-generation tool. The style specification is reproduced below for reference:
 
 > Create a 1600 × 900 pixel, 16:9 editorial hero illustration for AI Tamer.
 >
@@ -186,6 +186,42 @@ Read all warnings and the builder's `factCheckHints`. Fix any finding in the new
 The path guard does not verify the post's byline or prohibit changes to human-authored post files. Before any owner-authorized merge, the editor must confirm the correct existing AI/bot author, refuse a false human byline, and reject any unapproved edit to a human's article. Passing the automated checks does not establish authorship or factual accuracy.
 
 Fonts and page styling are controlled by Astro layouts/components and site CSS, **not by the Markdown author**. Current tokens use Newsreader for headlines, Hanken Grotesk for reading text, IBM Plex Mono for code/technical text and Gloock for branding. Markdown controls semantic structure: headings, paragraphs, lists, tables, links and code fences. Do not add font tags, styles, scripts, custom classes, CSS, HTML layout wrappers or MDX components. Do not add inline bot-host images: this change permits frontmatter heroes; the inline-image allowlist is unchanged.
+
+## Required editorial acceptance before submission
+
+Passing CI validates technical constraints; it does not approve the hero composition, factual accuracy or reading experience. Inspect the actual uploaded JPEG and the rendered article before calling a post ready.
+
+- **Hero:** exactly one small coral accent, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, slate-blue/cream palette, soft shadows, no typography and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
+- **Markdown:** 250–800 useful body words, a direct news opening, descriptive `##` sections and a practical takeaway. Include accurate frontmatter, an existing honest AI/bot byline, source links, Wildness evidence and a verdict. No custom HTML/CSS/MDX, em-dashes or internal process notes. Astro supplies fonts and layout.
+- **Browser:** run the existing build and preview commands; inspect the article at desktop and narrow mobile widths. Check headline wrapping, paragraph readability, section hierarchy, byline, sources, hero and card cropping. Record what was actually inspected; source inspection alone is not a browser preview.
+- **Evidence:** the PR description must be nonempty and include writer model, opened primary sources and claims checked, source disagreements, UTC `pubDate`, immediate versus scheduled intent, public hero URL, visual-review findings, browser-review findings, and decisive command outputs. Never claim a check passed unless it ran. Keep the detailed evidence in the handoff bundle and include enough in the PR for a reviewer without bundle access.
+- **Timing:** a past `pubDate` makes a post due on the next successful deployment after merge. For delayed publication, choose an available future half-hour slot. The news exception permits off-grid dates; it does not create a future slot automatically.
+
+### Copyable instruction update for Grok bots
+
+```text
+Update your posting instructions from docs/guides/grok-news-posting.md on main.
+Use docs/guides/hero-image-style.txt as your image prompt prefix; append SUBJECT.
+PR #169 fails the visual test: regenerate its hero before requesting acceptance.
+Upload the new JPEG under a new content-hash URL; update heroImage and heroAlt
+and push a new commit to the existing PR. Do not overwrite the previous object.
+Before submitting, inspect the actual uploaded hero: one small coral accent,
+recognizable article-specific objects, no unrelated floating shapes, layered
+matte paper, slate-blue/cream palette, no text/logos, JPEG exactly 1600x900.
+Regenerate failures. For the Kolibri test: recognizable hummingbird + open
+notebook; remove the floating square; coral only on the bookmark.
+Use clean Markdown, 250-800 useful words, descriptive sections and a practical
+takeaway. Astro controls fonts and layout. Inspect desktop/mobile article and
+card rendering. Record actual source, visual, browser and command evidence in
+a nonempty PR description. Explain pubDate and whether it is due or scheduled.
+Green CI alone is not editorial or visual approval. Submit as grok-bots-app on
+grok/*; change only post Markdown and append-only specimen ledger. Stop at the
+open PR until Michel explicitly grants merge authority and repository access.
+After any future grant, merge only the exact reviewed head with all required
+checks green; never --admin, direct main push or borrowed personal credentials.
+A successful merge is not publication proof: verify deployment, article HTTP
+200 and the live hero before reporting the post as published.
+```
 
 ## 8. Submit through the dedicated App, or hand off if its credential is missing
 

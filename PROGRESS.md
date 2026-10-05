@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.57: Grok editorial acceptance instructions now distinguish technical CI from visual/browser/source review. PR #169 proves App-authenticated submission; merge access remains ungranted.
+
 - **2026-10-05** — 0.2.56 candidate: the dedicated Grok App can receive a narrow content PR lane from same-repository `grok/*` branches. Both numeric identities must match; only plain Markdown posts and append-only specimen history qualify. Source gates and review remain pending; no App-authenticated submission or merge is proven by local tests.
 
 - **2026-10-04** — 0.2.48: one-post publication candidate, “The Small Model That Never Gets the Final Say.” Editorial corrections reviewed; release only this post while the rest of the unpublished queue stays held.
