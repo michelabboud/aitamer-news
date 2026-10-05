@@ -38,7 +38,7 @@ concurrency:
 jobs:
   prepare:
     if: vars.SPECIMEN_ADMISSION_ENABLED == 'true' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
       pull-requests: write
@@ -82,7 +82,7 @@ jobs:
         run: node scripts/workflow-app-token.mjs revoke
   validate:
     needs: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -114,7 +114,7 @@ jobs:
       - run: npm run check:diagrams:dist
   certify:
     needs: [prepare, validate]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       checks: write
