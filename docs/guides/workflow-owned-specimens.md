@@ -27,7 +27,9 @@ Grok submits through its dedicated installation identity on `grok/*`, with only 
 
 ## Operator admission
 
-The editorial admission authority is the account whose numeric ID is configured as `MAINTAINER_ID`. Review article facts, sources, byline, hero, timing and intended edits, then submit an APPROVED PR review for that exact source head. Its credential-free review notification wakes the trusted main finalizer, which independently checks the review author, ID, state and commit. Bots require no Actions-write token or manual workflow dispatch. Passing tests or a label is not editorial approval.
+The editorial admission authority is the account whose numeric ID is configured as `MAINTAINER_ID`. Review article facts, sources, byline, hero, timing and intended edits, then submit an APPROVED PR review for that exact source head. Its credential-free notification records the event-time reviewed source and review ID. Trusted main independently authenticates that receipt, the immutable run head, current owner review ID/state, trusted workflow and article-only source. Bots require no Actions-write token or manual workflow dispatch. Passing tests or a label is not editorial approval.
+
+GitHub may move an approved review's REST `commit_id` after numbering. That field cannot approve a new body or start another root. The earliest authenticated request retains its original source; later heads must be independently proved deterministic workflow numbering descendants with the same editorial digest. Withdrawal, dismissal, a newer decisive review or a content edit stops that lineage. A COMMENTED or edited wake never approves changed content. Legacy roots retain their original proof and request formats. For an old anchor-check hold, an owner review wake can retry the verified original request without resetting retry exhaustion. See [source-binding rationale](../adr/0034-immutable-owner-review-source.md).
 
 Get the source SHA without displaying credentials:
 
