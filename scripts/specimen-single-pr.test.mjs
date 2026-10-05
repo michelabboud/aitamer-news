@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { approvedRequest, admissionProof, collectAdmission, certify, discoverApprovedRequests, finalize, materialize, observePaths, prepare, recoverRequest, requestOf, sweep, terminalCompletion } from './specimen-admission.mjs';
+import { approvedRequest, admissionProof, collectAdmission, certify, discoverApprovedRequests, finalize, materialize, observePaths, prepare, recoverRequest, requestOf, reviewReceipt, sweep, terminalCompletion } from './specimen-admission.mjs';
 import { stripSpecimen } from './specimen-admission-data.mjs';
 
 const REPO='owner/site', OWNER=42, ACTIONS=41898282, BOT=334982782;
@@ -18,8 +18,10 @@ function fixture(t) {
   const cwd=mkdtempSync(join(tmpdir(),'specimen-same-pr-'));
   const git=(...args)=>execFileSync('git',args,{cwd,encoding:'utf8'}).trim();
   git('init','-q','-b','main');git('config','user.name','Fixture');git('config','user.email','fixture@example.invalid');
+  git('remote','add','origin',cwd);
   mkdirSync(join(cwd,'src/content/posts'),{recursive:true});mkdirSync(join(cwd,'.github/workflows'),{recursive:true});
   writeFileSync(join(cwd,'.github/workflows/specimen-admission.yml'),'name: Trusted fixture\n');
+  writeFileSync(join(cwd,'.github/workflows/specimen-editorial-review.yml'),readFileSync(new URL('../.github/workflows/specimen-editorial-review.yml',import.meta.url),'utf8'));
   writeFileSync(join(cwd,'src/content/specimen-ledger.txt'),'# Retained history\n0007 old\n');
   writeFileSync(join(cwd,'src/content/posts/old.md'),article('specimen: 7\n'));
   git('add','.');git('commit','-qm','baseline');const base=git('rev-parse','HEAD');
@@ -41,16 +43,17 @@ function fixture(t) {
     {path:'src/content/posts/new.md',mode:'100644',content:article('specimen: "fake"\n')},
     {path:'src/content/specimen-ledger.txt',mode:'100644',content:'9999 invented\n'},
   ]),[base],'producer submission');
-  f.run=(id=10,overrides={})=>({id,path:'.github/workflows/specimen-admission.yml',event:'workflow_dispatch',head_branch:'main',head_sha:base,actor:{id:ACTIONS},repository:{full_name:REPO},head_repository:{full_name:REPO},status:'completed',conclusion:'success',display_title:`Specimen same-pr pr=7 head=${f.source} review=1 recovery=0`,...overrides});
+  f.run=(id=10,overrides={})=>({id,path:'.github/workflows/specimen-admission.yml',event:'workflow_dispatch',head_branch:'main',head_sha:base,created_at:'2026-10-05T12:00:01Z',actor:{id:ACTIONS},repository:{full_name:REPO},head_repository:{full_name:REPO},status:'completed',conclusion:'success',display_title:`Specimen same-pr pr=7 head=${f.source} review=1 recovery=0`,...overrides});
+  f.wake=(id=20,overrides={})=>({id,path:'.github/workflows/specimen-editorial-review.yml',event:'pull_request_review',head_branch:'grok/article',head_sha:f.source,created_at:'2026-10-05T12:00:00Z',actor:{id:OWNER},repository:{full_name:REPO},head_repository:{full_name:REPO},status:'completed',conclusion:'success',pull_requests:[{number:7,head:{sha:f.source}}],display_title:`Specimen review pr=7 review=1 action=submitted state=approved source=${f.source}`,...overrides});
   f.env={GITHUB_SHA:base,GITHUB_REF:'refs/heads/main',GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_ACTOR_ID:String(ACTIONS),GITHUB_RUN_ID:'10',MAINTAINER_ID:String(OWNER),PR_NUMBER:'7',SOURCE_SHA:f.source,SAME_PR:'true',REVIEW_ID:'1'};
   f.api=new API(f);
   return f;
 }
 class API {
   constructor(f) {
-    this.f=f;this.repo=REPO;this.current=f.base;this.calls=[];this.runs=[f.run()];this.checks=[];this.comments=[];
+    this.f=f;this.repo=REPO;this.current=f.base;this.calls=[];this.runs=[f.run()];this.wakes=[f.wake()];this.checks=[];this.comments=[];
     this.pr={number:7,state:'open',draft:false,created_at:'2026-10-05T12:00:00Z',head:{sha:f.source,ref:'grok/article',repo:{full_name:REPO}},base:{ref:'main',repo:{full_name:REPO}}};
-    this.reviews=[{id:1,user:{id:OWNER},state:'APPROVED',commit_id:f.source}];
+    this.reviews=[{id:1,user:{id:OWNER},state:'APPROVED',commit_id:f.source,submitted_at:'2026-10-05T12:00:00Z'}];
     this.before=null;this.after=null;
   }
   async request(path,method='GET',body) {
@@ -59,7 +62,7 @@ class API {
     if(path==='/git/ref/heads/main') result={object:{sha:this.current}};
     else if(path.startsWith('/git/ref/heads/')) result={object:{sha:this.pr.head.sha}};
     else if(path==='/pulls/7') result=this.pr;
-    else if(path.startsWith('/actions/runs/')) result=this.runs.find(run=>run.id===Number(path.split('/').at(-1)));
+    else if(path.startsWith('/actions/runs/')) result=[...this.runs,...this.wakes].find(run=>run.id===Number(path.split('/').at(-1)));
     else if(path.startsWith('/git/commits/')) {
       const hash=path.split('/').at(-1);
       result={sha:hash,tree:{sha:this.f.git('show','-s','--format=%T',hash)},parents:this.f.git('show','-s','--format=%P',hash).split(' ').filter(Boolean).map(sha=>({sha})),message:this.f.git('show','-s','--format=%B',hash)};
@@ -91,6 +94,7 @@ class API {
     if(path==='/pulls/7/reviews') return structuredClone(this.reviews);
     if(path==='/pulls?state=open&sort=created&direction=asc') return this.pr.state==='open' ? [structuredClone(this.pr)] : [];
     if(path==='/actions/workflows/specimen-admission.yml/runs') return structuredClone(this.runs);
+    if(path==='/actions/workflows/specimen-editorial-review.yml/runs') return structuredClone(this.wakes);
     if(path.startsWith('/commits/') && path.endsWith('/check-runs')) return structuredClone(this.checks.filter(check=>check.head_sha===path.split('/')[2]));
     if(path==='/issues/7/comments') return structuredClone(this.comments);
     throw new Error(`Unexpected fixture list ${path}`);
@@ -102,7 +106,7 @@ test('same-PR requests require actual exact owner review; forged actor, wake and
   const f=fixture(t);
   assert.equal((await approvedRequest(f.api,f.run(),OWNER)).source,f.source);
   assert.deepEqual(requestOf(f.run()),{pr:7,source:f.source,review:1,recovery:0,samePR:true});
-  for(const mutate of [api=>api.reviews[0].user.id=999,api=>api.reviews[0].commit_id=f.base,api=>api.reviews[0].state='DISMISSED',api=>api.reviews.push({id:2,user:{id:OWNER},state:'CHANGES_REQUESTED',commit_id:f.source})]) {
+  for(const mutate of [api=>api.reviews[0].user.id=999,api=>api.reviews[0].state='DISMISSED',api=>api.reviews.push({id:2,user:{id:OWNER},state:'CHANGES_REQUESTED',commit_id:f.source})]) {
     const api=new API(f);mutate(api);await assert.rejects(approvedRequest(api,f.run(),OWNER),/approval/);assert.deepEqual(api.mutations(),[]);
   }
   await assert.rejects(approvedRequest(f.api,f.run(10,{event:'pull_request_review'}),OWNER),/ancestry/);
@@ -114,7 +118,7 @@ test('same-PR requests require actual exact owner review; forged actor, wake and
 test('automatic owner approval dispatches once and queued/cancelled attempts remain in existing recovery',async t=>{
   const f=fixture(t);f.api.runs=[];
   assert.equal(await discoverApprovedRequests(f.api,f.env,dependencies),'dispatched');
-  const dispatch=f.api.mutations().at(-1);assert.deepEqual(dispatch.body.inputs,{pr_number:'7',head_sha:f.source,review_id:'1',same_pr:'true',recovery_run:'0'});
+  const dispatch=f.api.mutations().at(-1);assert.deepEqual(dispatch.body.inputs,{pr_number:'7',head_sha:f.source,review_id:'1',same_pr:'true',recovery_run:'0',wake_run:'20'});
   f.api.runs=[f.run(10,{status:'queued',conclusion:null})];
   assert.equal(await discoverApprovedRequests(f.api,f.env,{...dependencies,knownRuns:f.api.runs}),'pending');
   f.api.runs[0].status='completed';f.api.runs[0].conclusion='cancelled';
@@ -126,7 +130,7 @@ test('automatic owner approval dispatches once and queued/cancelled attempts rem
 
 test('closed, draft, fork, moved, stale and non-owner reviews do not launch automatic admission',async t=>{
   const f=fixture(t);
-  for(const mutate of [api=>api.pr.state='closed',api=>api.pr.draft=true,api=>api.pr.head.repo.full_name='fork/site',api=>api.pr.base.ref='feature',api=>api.reviews[0].commit_id=f.base,api=>api.reviews[0].user.id=999,api=>api.reviews[0].state='DISMISSED']) {
+  for(const mutate of [api=>api.pr.state='closed',api=>api.pr.draft=true,api=>api.pr.head.repo.full_name='fork/site',api=>api.pr.base.ref='feature',api=>api.wakes=[],api=>api.reviews[0].user.id=999,api=>api.reviews[0].state='DISMISSED']) {
     const api=new API(f);api.runs=[];mutate(api);
     assert.equal(await discoverApprovedRequests(api,f.env,dependencies),'idle');assert.deepEqual(api.mutations(),[]);
   }
@@ -340,7 +344,8 @@ test('revoked or superseded owner reviews become durable holds; transport failur
   await assert.rejects(sweep(f.api,f.env,index),/protected state retained/);assert.equal(state.pending[0].status,'held');
   f.api.calls=[];await sweep(f.api,f.env,index);
   assert.ok(!f.api.calls.some(call=>call.path==='/actions/runs/10'),'withdrawn request skips further run proof');
-  f.api.reviews.push({id:3,user:{id:OWNER},state:'APPROVED',commit_id:f.source});
+  f.api.reviews.push({id:3,user:{id:OWNER},state:'APPROVED',commit_id:f.source,submitted_at:'2026-10-05T12:00:00Z'});
+  f.api.wakes=[f.wake(21,{display_title:`Specimen review pr=7 review=3 action=submitted state=approved source=${f.source}`})];
   await sweep(f.api,f.env,index);assert.equal(f.api.mutations().at(-1).body.inputs.review_id,'3');
   assert.equal(state.pending[0].status,'held','fresh approval never erases obsolete evidence');
   state.pending[0].status='pending';state.pending[0].reason='';
@@ -354,4 +359,109 @@ test('source path observations are read-only while unexpected code violations st
   assert.equal(f.api.pr.head.sha,original);assert.deepEqual(f.api.mutations(),[]);
   const unsafe=f.commit(f.tree(f.git('show','-s','--format=%T',f.source),[{path:'package.json',mode:'100644',content:'untrusted code'}]),[f.source],'unsafe');
   assert.throws(()=>observePaths({BASE_SHA:f.base,HEAD_SHA:unsafe},dependencies),/outside admission lane/);
+});
+
+test('mutable review anchor cannot replace the earliest source or create another approval root',async t=>{
+  const f=fixture(t);await prepare(f.api,f.env,dependencies);const numbered=f.api.pr.head.sha;
+  f.api.reviews[0].commit_id=numbered;
+  assert.equal((await approvedRequest(f.api,f.run(),OWNER)).source,f.source);
+  assert.equal(await discoverApprovedRequests(f.api,f.env,{...dependencies,knownRuns:f.api.runs}),'idle');
+  f.api.runs.unshift(f.run(11,{display_title:`Specimen same-pr pr=7 head=${numbered} review=1 recovery=0`}));
+  await assert.rejects(approvedRequest(f.api,f.api.runs[0],OWNER),/approval source rebound/);
+  assert.equal((await approvedRequest(f.api,f.api.runs[1],OWNER)).rootRun,10);
+  assert.equal(await recoverRequest(f.api,f.api.runs[1],f.env,{...dependencies,now:Date.parse('2026-10-05T12:10:00Z')}),'dispatched');
+  const dispatch=f.api.mutations().at(-1);
+  assert.equal(dispatch.body.inputs.head_sha,f.source);assert.equal(dispatch.body.inputs.recovery_run,'10');
+  assert.equal(f.api.mutations().some(call=>call.path==='/pulls'),false);
+});
+
+test('new approval discovery requires the exact immutable submitted receipt, never current REST anchor',async t=>{
+  const f=fixture(t);f.api.runs=[];f.api.reviews[0].commit_id=f.base;
+  assert.equal(await discoverApprovedRequests(f.api,f.env,dependencies),'dispatched');
+  assert.equal(f.api.mutations().at(-1).body.inputs.head_sha,f.source);
+  const request={pr:7,review:1,source:f.source,approvedBase:f.base};
+  const invalid=[
+    {actor:{id:999}}, {head_repository:{full_name:'fork/site'}}, {repository:{full_name:'other/site'}},
+    {event:'workflow_dispatch'}, {path:'.github/workflows/forged.yml'}, {head_sha:f.base},
+    {pull_requests:[{number:8}]}, {status:'in_progress',conclusion:null},
+    {display_title:`Specimen review pr=7 review=1 action=edited state=approved source=${f.source}`},
+    {display_title:`Specimen review pr=7 review=1 action=submitted state=commented source=${f.source}`},
+    {display_title:`Specimen review pr=7 review=2 action=submitted state=approved source=${f.source}`},
+    {display_title:`Specimen review pr=7 review=1 action=submitted state=approved source=${f.base}`},
+  ];
+  for (const change of invalid) {
+    const api=new API(f);api.wakes=[f.wake(20,change)];api.runs=[];
+    await assert.rejects(reviewReceipt(api,20,request,OWNER,dependencies),/approval receipt/);
+    assert.equal(await discoverApprovedRequests(api,f.env,dependencies),'idle');assert.deepEqual(api.mutations(),[]);
+  }
+  // Nested PR metadata can move; the immutable top-level head and receipt cannot.
+  f.api.wakes[0].pull_requests[0].head.sha=f.base;
+  assert.equal((await reviewReceipt(f.api,20,request,OWNER,dependencies)).head_sha,f.source);
+});
+
+test('forged review workflow bytes or changed article after COMMENTED wake do not authorize',async t=>{
+  const f=fixture(t);
+  const unsafe=f.commit(f.tree(f.git('show','-s','--format=%T',f.source),[{path:'.github/workflows/specimen-editorial-review.yml',mode:'100644',content:'name: forged\nrun-name: forged\n'}]),[f.source],'forged receipt workflow');
+  f.api.runs=[];f.api.pr.head.sha=unsafe;f.api.reviews[0].commit_id=unsafe;
+  f.api.wakes=[f.wake(20,{head_sha:unsafe,display_title:`Specimen review pr=7 review=1 action=submitted state=approved source=${unsafe}`})];
+  assert.equal(await discoverApprovedRequests(f.api,f.env,dependencies),'idle');assert.deepEqual(f.api.mutations(),[]);
+  const changed=f.commit(f.tree(f.git('show','-s','--format=%T',f.source),[{path:'src/content/posts/new.md',mode:'100644',content:article('','Unreviewed edited text')}]),[f.source],'producer edit');
+  f.api.pr.head.sha=changed;f.api.reviews[0].commit_id=changed;
+  f.api.wakes=[f.wake(20,{head_sha:changed,display_title:`Specimen review pr=7 review=2 action=submitted state=commented source=${changed}`}),f.wake(19)];
+  await assert.rejects(discoverApprovedRequests(f.api,f.env,dependencies),/editorial head changed/);
+  assert.deepEqual(f.api.mutations(),[]);
+});
+
+test('review-anchor drift during full successful validation still normally merges the original PR',async t=>{
+  const f=fixture(t);f.api.runs[0].display_title+=' wake=20';
+  await prepare(f.api,{...f.env,REVIEW_WAKE_RUN:'20'},dependencies);const head=f.api.pr.head.sha;
+  f.api.reviews[0].commit_id=head;
+  const digest=collectAdmission(f.base,f.source).editorialDigest;
+  await certify(f.api,{...f.env,BASE_SHA:f.base,HEAD_SHA:head,EDITORIAL_DIGEST:digest});
+  assert.equal(await finalize(f.api,{...f.env,ADMISSION_RUN_ID:'10'},{...dependencies,deploy:async()=> 'deployed'}),'deployed');
+  assert.equal(f.api.mutations().filter(call=>call.path==='/pulls/7/merge').length,1);
+  assert.equal(f.api.mutations().filter(call=>call.path==='/pulls').length,0);
+});
+
+test('a forged numbering commit cannot carry approval even with unchanged editorial digest',async t=>{
+  const f=fixture(t);
+  const plan=collectAdmission(f.base,f.source);
+  const entries=[...plan.posts].map(([slug,content])=>({path:`src/content/posts/${slug}.md`,mode:'100644',content}));
+  entries.push({path:'src/content/specimen-ledger.txt',mode:'100644',content:plan.ledgerText});
+  f.api.pr.head.sha=f.commit(f.tree(f.git('show','-s','--format=%T',f.base),entries),[f.base,f.source],`Workflow admission same PR #7 source ${f.source} run 999`);
+  f.api.reviews[0].commit_id=f.api.pr.head.sha;
+  await assert.rejects(recoverRequest(f.api,f.run(),f.env,dependencies),/Missing fixture|trusted numbering/);
+  assert.deepEqual(f.api.mutations(),[]);
+});
+
+test('an authenticated owner edited wake revives only the verified original held lineage',async t=>{
+  const f=fixture(t);await prepare(f.api,f.env,dependencies);const numbered=f.api.pr.head.sha;
+  f.api.reviews[0].commit_id=numbered;
+  f.api.runs.unshift(f.run(11,{display_title:`Specimen same-pr pr=7 head=${numbered} review=1 recovery=0`}));
+  f.api.wakes=[f.wake(21,{head_sha:numbered,display_title:'Specimen editorial review'})];
+  let state={schemaVersion:1,repository:REPO,policySHA:f.base,cursor:11,pending:[
+    {id:10,status:'held',reason:'owner editorial approval withdrawn or changed'},
+    {id:11,status:'pending',reason:''},
+  ]};
+  const index={load:async()=>({head:f.source,state:structuredClone(state)}),save:async(_api,_observed,next)=>{state=structuredClone(next);return{head:f.source,state:structuredClone(state)};},completed:async()=>false,finalizeRun:async()=> 'pending'};
+  await assert.rejects(sweep(f.api,{...f.env,EDITORIAL_WAKE_RUN:'21'},index),/protected state retained/);
+  assert.equal(state.pending.find(e=>e.id===10).status,'pending');
+  assert.equal(state.pending.find(e=>e.id===11).status,'held');
+  assert.match(state.pending.find(e=>e.id===11).reason,/source rebound/);
+  f.api.calls=[];await sweep(f.api,f.env,index);
+  assert.ok(!f.api.calls.some(call=>call.path==='/actions/runs/11'),'bad rebound request is not hot-polled again');
+  assert.equal(await discoverApprovedRequests(f.api,f.env,{...dependencies,pending:state.pending}),'idle');
+  assert.equal(f.api.mutations().filter(c=>c.path.endsWith('/dispatches')).length,0);
+});
+
+test('source observations compare the actual trusted checkout instead of a stale event base',t=>{
+  const f=fixture(t);
+  const current=f.commit(f.tree(f.git('show','-s','--format=%T',f.base),[{path:'.github/workflows/specimen-admission.yml',mode:'100644',content:'name: Updated trusted main\n'}]),[f.base],'trusted workflow update');
+  const refreshed=f.commit(f.tree(f.git('show','-s','--format=%T',current),[{path:'src/content/posts/new.md',mode:'100644',content:article()}]),[current,f.source],'main sync');
+  assert.throws(()=>collectAdmission(f.base,refreshed),/outside admission lane/);
+  let compared;
+  observePaths({BASE_SHA:f.base,HEAD_SHA:refreshed},{...dependencies,readGit:()=>current,collect:(base,head)=>{compared=base;return collectAdmission(base,head);}});
+  assert.equal(compared,current);
+  const unsafe=f.commit(f.tree(f.git('show','-s','--format=%T',refreshed),[{path:'package.json',mode:'100644',content:'producer code'}]),[refreshed],'unsafe');
+  assert.throws(()=>observePaths({BASE_SHA:f.base,HEAD_SHA:unsafe},{...dependencies,readGit:()=>current}),/outside admission lane/);
 });
