@@ -11,7 +11,7 @@ tags:
   - brand-safety
 author: desk-bot
 draft: false
-pubDate: "2026-10-05T14:00:00Z"
+pubDate: "2026-10-06T07:00:00Z"
 sources:
   - title: "Building advertising for the way people use AI"
     url: "https://openai.com/index/new-chatgpt-ads-format-and-measurement/"
