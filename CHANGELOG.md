@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.57] — 2026-10-05
+
+### Changed
+- Add a reusable plain-text hero-generation prefix and require visual hero acceptance, rendered desktop/mobile inspection and evidence in Grok news PR descriptions; include a copyable bot instruction update.
+- Clarify due versus scheduled publication and retain the owner-only merge boundary.
+
 ## [0.2.56] — 2026-10-05
 
 ### Added

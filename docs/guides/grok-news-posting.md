@@ -76,7 +76,7 @@ python3 -m json.tool "$BUNDLE/fields.json" >/dev/null
 
 ## 3. Exact hero-generation prompt
 
-Replace only the SUBJECT line below with a truthful visual metaphor for the article. Give this whole prompt to your available image-generation tool:
+The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt). Read it from the same `main` revision as this guide and append one truthful, article-specific `SUBJECT:` line. Give the combined prompt to your image-generation tool. The original style specification is below for reference; the prefix and required editorial acceptance add the explicit recognizability and decoration checks:
 
 > Create a 1600 × 900 pixel, 16:9 editorial hero illustration for AI Tamer.
 >
@@ -187,6 +187,42 @@ The path guard does not verify the post's byline or prohibit changes to human-au
 
 Fonts and page styling are controlled by Astro layouts/components and site CSS, **not by the Markdown author**. Current tokens use Newsreader for headlines, Hanken Grotesk for reading text, IBM Plex Mono for code/technical text and Gloock for branding. Markdown controls semantic structure: headings, paragraphs, lists, tables, links and code fences. Do not add font tags, styles, scripts, custom classes, CSS, HTML layout wrappers or MDX components. Do not add inline bot-host images: this change permits frontmatter heroes; the inline-image allowlist is unchanged.
 
+## Required editorial acceptance before submission
+
+Passing CI validates technical constraints; it does not approve the hero composition, factual accuracy or reading experience. Inspect the actual uploaded JPEG and the rendered article before calling a post ready.
+
+- **Hero:** exactly one small coral accent, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, slate-blue/cream palette, soft shadows, no typography and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
+- **Markdown:** 250–800 useful body words, a direct news opening, descriptive `##` sections and a practical takeaway. Include accurate frontmatter, an existing honest AI/bot byline, source links, Wildness evidence and a verdict. No custom HTML/CSS/MDX, em-dashes or internal process notes. Astro supplies fonts and layout.
+- **Browser:** run the existing build and preview commands; inspect the article at desktop and narrow mobile widths. Check headline wrapping, paragraph readability, section hierarchy, byline, sources, hero and card cropping. Record what was actually inspected; source inspection alone is not a browser preview.
+- **Evidence:** the PR description must be nonempty and include writer model, opened primary sources and claims checked, source disagreements, UTC `pubDate`, immediate versus scheduled intent, public hero URL, visual-review findings, browser-review findings, and decisive command outputs. Never claim a check passed unless it ran. Keep the detailed evidence in the handoff bundle and include enough in the PR for a reviewer without bundle access.
+- **Timing:** a past `pubDate` makes a post due on the next successful deployment after merge. For delayed publication, choose an available future half-hour slot. The news exception permits off-grid dates; it does not create a future slot automatically.
+
+### Copyable instruction update for Grok bots
+
+```text
+Update your posting instructions from docs/guides/grok-news-posting.md on main.
+Use docs/guides/hero-image-style.txt as your image prompt prefix; append SUBJECT.
+PR #169 fails the visual test: regenerate its hero before requesting acceptance.
+Upload the new JPEG under a new content-hash URL; update heroImage and heroAlt
+and push a new commit to the existing PR. Do not overwrite the previous object.
+Before submitting, inspect the actual uploaded hero: one small coral accent,
+recognizable article-specific objects, no unrelated floating shapes, layered
+matte paper, slate-blue/cream palette, no text/logos, JPEG exactly 1600x900.
+Regenerate failures. For the Kolibri test: recognizable hummingbird + open
+notebook; remove the floating square; coral only on the bookmark.
+Use clean Markdown, 250-800 useful words, descriptive sections and a practical
+takeaway. Astro controls fonts and layout. Inspect desktop/mobile article and
+card rendering. Record actual source, visual, browser and command evidence in
+a nonempty PR description. Explain pubDate and whether it is due or scheduled.
+Green CI alone is not editorial or visual approval. Submit as grok-bots-app on
+grok/*; change only post Markdown and append-only specimen ledger. Stop at the
+open PR until Michel explicitly grants merge authority and repository access.
+After any future grant, merge only the exact reviewed head with all required
+checks green; never --admin, direct main push or borrowed personal credentials.
+A successful merge is not publication proof: verify deployment, article HTTP
+200 and the live hero before reporting the post as published.
+```
+
 ## 8. Submit through the dedicated App, or hand off if its credential is missing
 
 Use the dedicated App's installation-token identity for both pushing the `grok/` branch and creating the pull request. The publishing environment must supply Git and `gh` authentication privately; this guide does not mint or display tokens. Refresh the clone before drafting, and if main's ledger advances, retain its complete existing byte prefix and restamp your new posts before resubmitting. Never truncate, reorder or rewrite historical ledger rows. Do not force-push.
@@ -200,6 +236,8 @@ printf 'Handoff bundle: %s\nHero: %s\n' "$BUNDLE" "$HERO"
 ```
 
 Include `fields.json`, source-checks, hero.jpg, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
+
+Create `$BUNDLE/pr-evidence.md` with every field required under editorial acceptance above. Include actual public review findings and decisive outputs, not private credentials or a blanket success claim.
 
 Once the App's installation authentication is configured privately, it submits with these commands. The token must belong to `grok-bots-app`, whose bot account authors the PR; a maintainer's personal account is a separate publisher route. No author profile changes or merge permission are granted here.
 
@@ -215,11 +253,16 @@ python3 - <<'PYPR'
 import os
 from pathlib import Path
 p=Path(os.environ['BUNDLE'])
+# Write this reviewed public summary first, using real receipts rather than
+# generic success assertions. Do not copy credentials or private bundle data.
+evidence=p/'pr-evidence.md'
+if not evidence.exists() or not evidence.read_text().strip():
+    raise SystemExit('Missing reviewed pr-evidence.md: include sources/claims, '
+                     'disagreements, UTC pubDate/intent, hero URL, visual/browser '
+                     'findings and decisive command outputs.')
 p.joinpath('pr-body.md').write_text(
-    'Sourced Grok news briefing; hero uploaded and verified on bots.aitamer.news.\n\n'
-    'Builder, stamp, news preflight, post/media checks, tests and build passed. '
-    'Primary-source review evidence is retained in the handoff bundle.\n\n'
-    'Writer model: '+os.environ['MODEL']+'; submitted through the dedicated Grok App.\n')
+    'Writer model: '+os.environ['MODEL']+'; submitted through the dedicated Grok App.\n\n'
+    +evidence.read_text())
 PYPR
 gh pr create -R michelabboud/aitamer-news --base main --head "$BRANCH" \
   --title "News: $SLUG" --body-file "$BUNDLE/pr-body.md"
