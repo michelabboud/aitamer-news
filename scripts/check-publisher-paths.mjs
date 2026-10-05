@@ -11,6 +11,9 @@
  *     MAINTAINER_ID    the maintainer's numeric account id (repository variable)
  *     PR_HEAD_REF      github.event.pull_request.head.ref (the authors lane's branch)
  *     POSTS_ACTOR_ID   the posts App's numeric bot account id (repository variable)
+ *     GROK_ACTOR_ID    the Grok App's numeric bot account id (repository variable)
+ *     PR_HEAD_REPO     github.event.pull_request.head.repo.full_name
+ *     PR_BASE_REPO     github.repository (trusted repository hosting the check)
  *
  *   node scripts/check-publisher-paths.mjs push --before <sha> --after <sha>
  *     always enforced: the deploy runs it when the pusher is the publisher
@@ -72,6 +75,13 @@
  * pull request whose author is the posts App. A missing reader fails the check. Everything else about an author file (its schema, a writer page's name
  * clash) stays with the required check `check`, which builds the site.
  *
+ * The Grok App's content lane (ADR 0030), pull requests only: author AND sender match numeric
+ * `GROK_ACTOR_ID`, opened/synchronize, a valid nonempty grok/ branch in this repository. Only
+ * added/modified plain src/content/posts/<slug>.md and src/content/specimen-ledger.txt may change.
+ * The head ledger must preserve the exact byte prefix at both the merge base and current base.
+ * No MDX, nested posts, author profiles, deletions, renames, copies or executable files. Content
+ * checks/build still judge schema and rendered output; factual/editorial review remains separate.
+ *
  * `.github/workflows/check-publisher-pr.yml` runs the `pr` mode from main's own copy of this file
  * (`pull_request_target`), as the required check `publisher-paths`; `.github/workflows/deploy-pages.yml`
  * runs the `push` mode, from the copy in the commit before the push, when the publisher pushed.
@@ -130,6 +140,79 @@ const GIT_MAX_BUFFER = 256 * 1024 * 1024;
 
 /** A problem with the inputs that means the change cannot be judged: it fails, never passes. */
 export class UnjudgeableError extends Error {}
+
+// ---- the Grok App's content lane (ADR 0030) ----
+
+const GROK_POST_PATH = new RegExp(`^src/content/posts/${SLUG.source.slice(1, -1)}\\.md$`);
+export const SPECIMEN_LEDGER_PATH = 'src/content/specimen-ledger.txt';
+const GROK_ALLOWED_TEXT = 'src/content/posts/<slug>.md or append-only src/content/specimen-ledger.txt';
+const GROK_STATUSES = new Set(['A', 'M']);
+const REPOSITORY_NAME = /^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9_.-]+$/;
+
+/** Git's ref syntax, with a required nonempty grok/ prefix; never accepts revision expressions. */
+export function isGrokBranch(ref) {
+  return typeof ref === 'string' && ref.startsWith('grok/') && ref.length > 'grok/'.length
+    && !/[\x00-\x20\x7f~^:?*\[\\]/.test(ref) && !ref.includes('..') && !ref.includes('@{')
+    && !ref.endsWith('.') && ref.split('/').every((part) => part !== '' && !part.startsWith('.') && !part.endsWith('.lock'));
+}
+
+/** No login fallback: absent or malformed configuration never grants the Grok content lane. */
+export function grokLaneScope({ action, authorId, senderId, headRef, grokActorId, headRepo, baseRepo }) {
+  const grok = accountId(grokActorId);
+  if (grok === null) return { applies: false, grokApp: false, reason: 'GROK_ACTOR_ID is unset or not a numeric account id, so no pull request gets the Grok lane' };
+  if (accountId(authorId) !== grok) return { applies: false, grokApp: false, reason: 'the author is not the Grok App' };
+  if (accountId(senderId) !== grok) return { applies: false, grokApp: true, reason: 'the Grok App’s pull request, but this event’s sender is someone else' };
+  if (!EXEMPTING_ACTIONS.has(action ?? '')) return { applies: false, grokApp: true, reason: `a ${JSON.stringify(action ?? '')} event does not show who pushed the head, so it opens no lane` };
+  if (!isGrokBranch(headRef)) return { applies: false, grokApp: true, reason: `the head branch ${JSON.stringify(headRef ?? '')} is not a valid nonempty grok/ branch` };
+  if (typeof baseRepo !== 'string' || !REPOSITORY_NAME.test(baseRepo) || headRepo !== baseRepo) {
+    return { applies: false, grokApp: true, reason: 'the head repository does not match the trusted base repository' };
+  }
+  return { applies: true, grokApp: true, reason: `the author and this event’s sender are the Grok App (account ${grok}), on ${headRef} in ${baseRepo}` };
+}
+
+/** The Grok lane accepts plain Markdown posts and the ledger, added or modified only. */
+export function grokPathProblems({ changes, modes }) {
+  return changes.flatMap(({ status, path }) => {
+    const shown = JSON.stringify(path);
+    const problems = [];
+    if (typeof path !== 'string' || (!(GROK_POST_PATH.test(path) && path.endsWith('.md')) && path !== SPECIMEN_LEDGER_PATH)) {
+      problems.push(`${shown}: outside the Grok lane; only ${GROK_ALLOWED_TEXT} may change`);
+    }
+    if (!GROK_STATUSES.has(status)) problems.push(`${shown}: status ${JSON.stringify(status)} is refused; the Grok lane only adds or modifies files`);
+    if (status !== 'D' && modes.get(path) !== MODE_FILE) {
+      problems.push(`${shown}: mode ${JSON.stringify(modes.get(path))} is refused; only a plain file (${MODE_FILE}) may be added or changed`);
+    }
+    return problems;
+  });
+}
+
+/** Read raw bytes from a plain Git blob so invalid UTF-8 cannot hide an edit to ledger history. */
+function ledgerAt(cwd, commit) {
+  const entries = parseHeadModes(git(cwd, ['ls-tree', '-z', '--full-tree', commit, '--', SPECIMEN_LEDGER_PATH]));
+  if (!entries.has(SPECIMEN_LEDGER_PATH)) return null;
+  if (entries.get(SPECIMEN_LEDGER_PATH) !== MODE_FILE) throw new UnjudgeableError(`${SPECIMEN_LEDGER_PATH}: not a plain file at ${commit}`);
+  try {
+    return execFileSync('git', ['cat-file', 'blob', `${commit}:${SPECIMEN_LEDGER_PATH}`], {
+      cwd, maxBuffer: GIT_MAX_BUFFER, stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch {
+    throw new UnjudgeableError(`${SPECIMEN_LEDGER_PATH}: its bytes cannot be read at ${commit}`);
+  }
+}
+
+/** Preserve ledger history at both comparison commits, even when the branch did not edit it. */
+export function grokLaneProblems({ cwd, collected }) {
+  const problems = grokPathProblems(collected);
+  if (problems.length > 0) return problems;
+  const head = ledgerAt(cwd, collected.head);
+  for (const [commit, where] of [[collected.mergeBase, 'at the merge base'], [collected.base, 'on main now']]) {
+    const before = ledgerAt(cwd, commit);
+    if (before !== null && (head === null || !head.subarray(0, before.length).equals(before))) {
+      problems.push(`${SPECIMEN_LEDGER_PATH}: does not preserve the exact byte prefix ${where}; only appending to ledger history is allowed`);
+    }
+  }
+  return problems;
+}
 
 // ---- the posts App's authors lane (ADR 0018) ----
 
@@ -708,7 +791,7 @@ export function collectPush({ cwd, before, after }) {
 }
 
 const USAGE = [
-  'usage: check-publisher-paths.mjs pr --base <sha> --head <sha>   (env: PR_ACTION, PR_AUTHOR_ID, EVENT_SENDER_ID, MAINTAINER_ID, PR_HEAD_REF, POSTS_ACTOR_ID)',
+  'usage: check-publisher-paths.mjs pr --base <sha> --head <sha>   (env: PR_ACTION, PR_AUTHOR_ID, EVENT_SENDER_ID, MAINTAINER_ID, PR_HEAD_REF, POSTS_ACTOR_ID, GROK_ACTOR_ID, PR_HEAD_REPO, PR_BASE_REPO)',
   '       check-publisher-paths.mjs push --before <sha> --after <sha>',
 ].join('\n');
 
@@ -745,6 +828,7 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   let subject;
   let why;
   let lane = { applies: false };
+  let grok = { applies: false };
   if (mode === 'pr') {
     const { enforced, reason } = pullRequestScope({
       action: env.PR_ACTION,
@@ -764,8 +848,19 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
       headRef: env.PR_HEAD_REF,
       postsActorId: env.POSTS_ACTOR_ID,
     });
-    if (lane.applies) why = `in the posts App's authors lane because ${lane.reason}`;
+    grok = grokLaneScope({
+      action: env.PR_ACTION,
+      authorId: env.PR_AUTHOR_ID,
+      senderId: env.EVENT_SENDER_ID,
+      headRef: env.PR_HEAD_REF,
+      grokActorId: env.GROK_ACTOR_ID,
+      headRepo: env.PR_HEAD_REPO,
+      baseRepo: env.PR_BASE_REPO,
+    });
+    if (grok.applies) why = `in the Grok App's content lane because ${grok.reason}`;
+    else if (lane.applies) why = `in the posts App's authors lane because ${lane.reason}`;
     else if (lane.postsApp) why = `held to the rule because ${reason}, and not in the authors lane because ${lane.reason}`;
+    else if (grok.grokApp) why = `held to the rule because ${reason}, and not in the Grok lane because ${grok.reason}`;
     else why = `held to the rule because ${reason}`;
   } else {
     subject = 'push';
@@ -776,9 +871,9 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   let problems;
   try {
     collected = mode === 'pr'
-      ? collectPullRequest({ cwd, base: options.base, head: options.head, copies: lane.applies })
+      ? collectPullRequest({ cwd, base: options.base, head: options.head, copies: lane.applies || grok.applies })
       : collectPush({ cwd, before: options.before, after: options.after });
-    problems = lane.applies
+    problems = grok.applies ? grokLaneProblems({ cwd, collected }) : lane.applies
       ? authorsLaneProblems({ cwd, collected, headRef: env.PR_HEAD_REF, readers: await loadFrontmatterReaders() })
       : changeProblems(collected);
   } catch (error) {
@@ -788,11 +883,11 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   }
   const count = collected.changes.length;
   if (problems.length === 0) {
-    const what = lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `all ${LANES_TEXT}`;
+    const what = grok.applies ? `all ${GROK_ALLOWED_TEXT}` : lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `all ${LANES_TEXT}`;
     console.log(`check:publisher: ${count} changed file${count === 1 ? '' : 's'} in this ${subject}, ${what} (${why}).`);
     return 0;
   }
-  const who = lane.applies ? 'the posts App' : 'the publisher';
+  const who = grok.applies ? 'the Grok App' : lane.applies ? 'the posts App' : 'the publisher';
   console.error(`check:publisher: this ${subject} changes what ${who} may not (${why}):`);
   for (const problem of problems) console.error(`  ${problem}`);
   return 1;

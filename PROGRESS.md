@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.56 candidate: the dedicated Grok App can receive a narrow content PR lane from same-repository `grok/*` branches. Both numeric identities must match; only plain Markdown posts and append-only specimen history qualify. Source gates and review remain pending; no App-authenticated submission or merge is proven by local tests.
+
 - **2026-10-04** — 0.2.48: one-post publication candidate, “The Small Model That Never Gets the Final Say.” Editorial corrections reviewed; release only this post while the rest of the unpublished queue stays held.
 
 - **2026-09-28** — 0.2.47: reading typography. Bigger body and article text with more line spacing, an article column of about 70 characters a line (was 80), brighter secondary greys, 28 px card titles (26 px three across), card and lead art at its drawn 16:9 with a mild dim that lifts on hover. Then, at Michel's choice, headlines moved from Gloock to Newsreader (ADR 0021): Gloock's letters touched in three of four pairs. Checked in the browser at 390, 820 and 1280 px, with the WCAG text-spacing overrides.

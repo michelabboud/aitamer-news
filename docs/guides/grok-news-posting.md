@@ -6,9 +6,10 @@ Current procedure: publish by `draft: false` and `pubDate`. Queue admission rema
 
 - Use R2 **S3 Access Key ID + Secret Access Key**, scoped to the bot bucket. A Cloudflare REST API token alone is not an S3 credential. Never use our main media bucket's credential.
 - Configure AWS CLI v2 profile `aitamer-grok` privately. Michel must supply the exact bucket name as `R2_BOT_BUCKET` and private S3 endpoint as `R2_ENDPOINT_URL`. Do not guess the bucket name from the custom domain.
-- Required tools: Bash, Git, Node 24, npm, Python 3 + Pillow, AWS CLI v2 and curl. `gh` is needed only for a permitted PR publisher.
+- Required tools: Bash, Git, Node 24, npm, Python 3 + Pillow, AWS CLI v2 and curl. `gh` is needed for App or maintainer PR submission.
 - Use existing author ID `desk-bot` until Michel adds individual bot profiles. Do not impersonate another writer.
-- A separate bot GitHub account is not automatically allowed to open a post PR by the current `publisher-paths` check. Prepare and validate the post, then hand it to the permitted publisher if your GitHub identity is not admitted. R2 permission does not grant GitHub publishing permission.
+- The dedicated `grok-bots-app` GitHub App has its own content PR lane (ADR 0030) after this guard is merged. Michel must install it for the selected repository `michelabboud/aitamer-news` and provide an installation-token credential to the private publishing environment. Public App metadata and configured repository rules do not prove an installation or a working token. Do not use a personal owner's token or add credentials to a clone, document, chat or log.
+- Both PR author and event sender must be the App's numeric bot account (`GROK_ACTOR_ID`), on `opened`/`synchronize`, from a valid `grok/` branch in this repository. Only added/modified plain `.md` posts and append-only specimen history qualify; author profiles, MDX, scripts, workflows and template files are refused. R2 credentials remain separate. Missing installation credentials mean prepare a handoff bundle; they do not permit impersonating the maintainer.
 
 Owner-provided credentials can be configured in a private terminal, never in repository files or chat:
 
@@ -40,7 +41,7 @@ aws --version
 python3 -c 'from PIL import Image'
 git clone https://github.com/michelabboud/aitamer-news.git "$CLONE"
 cd "$CLONE"
-git switch -c "posts/grok-${SLUG}-$(date -u +%Y%m%dT%H%M%SZ)"
+git switch -c "grok/${SLUG}-$(date -u +%Y%m%dT%H%M%SZ)"
 npm ci
 ```
 
@@ -182,11 +183,15 @@ Read all warnings and the builder's `factCheckHints`. Fix any finding in the new
 
 `--author` is an existing profile ID, not a display name. `desk-bot` currently resolves to **Desk Bot**. A distinct bot such as `grok-news-bot` needs `src/content/authors/grok-news-bot.md` created through the permitted maintainer/author-profile workflow first. Use a lowercase hyphenated ID (the author App lane allows at most 64 characters), an honest `kind: bot` or `kind: ai`, and a distinct displayed name. Do not create a human identity, reuse another author's name or change a profile in a post PR.
 
+The path guard does not verify the post's byline or prohibit changes to human-authored post files. Before any owner-authorized merge, the editor must confirm the correct existing AI/bot author, refuse a false human byline, and reject any unapproved edit to a human's article. Passing the automated checks does not establish authorship or factual accuracy.
+
 Fonts and page styling are controlled by Astro layouts/components and site CSS, **not by the Markdown author**. Current tokens use Newsreader for headlines, Hanken Grotesk for reading text, IBM Plex Mono for code/technical text and Gloock for branding. Markdown controls semantic structure: headings, paragraphs, lists, tables, links and code fences. Do not add font tags, styles, scripts, custom classes, CSS, HTML layout wrappers or MDX components. Do not add inline bot-host images: this change permits frontmatter heroes; the inline-image allowlist is unchanged.
 
-## 8. Handoff or PR: follow the actual GitHub identity boundary
+## 8. Submit through the dedicated App, or hand off if its credential is missing
 
-If your GitHub identity is not admitted by the repository's existing path guard, do not attempt to weaken it or ask for the owner's token. Save a patch and hand it plus the bundle to the permitted publisher:
+Use the dedicated App's installation-token identity for both pushing the `grok/` branch and creating the pull request. The publishing environment must supply Git and `gh` authentication privately; this guide does not mint or display tokens. Refresh the clone before drafting, and if main's ledger advances, retain its complete existing byte prefix and restamp your new posts before resubmitting. Never truncate, reorder or rewrite historical ledger rows. Do not force-push.
+
+If the App is not installed for this repository, its installation credential is unavailable, or the guard is not merged, save a patch and hand it plus the bundle to the permitted publisher:
 
 ```bash
 git add -- "$POST" src/content/specimen-ledger.txt
@@ -196,11 +201,11 @@ printf 'Handoff bundle: %s\nHero: %s\n' "$BUNDLE" "$HERO"
 
 Include `fields.json`, source-checks, hero.jpg, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
 
-Only the permitted publisher proceeds with these commands. This verifies the current maintainer identity, it does not grant the bot that identity:
+Once the App's installation authentication is configured privately, it submits with these commands. The token must belong to `grok-bots-app`, whose bot account authors the PR; a maintainer's personal account is a separate publisher route. No author profile changes or merge permission are granted here.
 
 ```bash
-test "$(gh api user --jq .login)" = michelabboud
 BRANCH=$(git branch --show-current)
+case "$BRANCH" in grok/?*) ;; *) printf 'Expected a grok/ branch\n' >&2; exit 1 ;; esac
 git add -- "$POST" src/content/specimen-ledger.txt
 git -c user.email=29182417+michelabboud@users.noreply.github.com \
   commit -m "news: $SLUG" \
@@ -214,7 +219,7 @@ p.joinpath('pr-body.md').write_text(
     'Sourced Grok news briefing; hero uploaded and verified on bots.aitamer.news.\n\n'
     'Builder, stamp, news preflight, post/media checks, tests and build passed. '
     'Primary-source review evidence is retained in the handoff bundle.\n\n'
-    'Writer model: '+os.environ['MODEL']+'; submitted through the permitted publisher.\n')
+    'Writer model: '+os.environ['MODEL']+'; submitted through the dedicated Grok App.\n')
 PYPR
 gh pr create -R michelabboud/aitamer-news --base main --head "$BRANCH" \
   --title "News: $SLUG" --body-file "$BUNDLE/pr-body.md"
@@ -227,7 +232,7 @@ PR='replace-with-returned-PR-number'
 gh pr checks "$PR" -R michelabboud/aitamer-news --watch
 ```
 
-Merge only with Michel's explicit merge authority and all required checks green:
+Stop App submission at the open PR and record its checks. The App's branch rules do not permit updating main. A separately authorized maintainer merges only with Michel's explicit merge authority and all required checks green:
 
 ```bash
 HEAD_SHA=$(git rev-parse HEAD)
@@ -316,4 +321,4 @@ A permitted posts App can use its existing special author-profile workflow inste
 - Conditional PutObject support: https://developers.cloudflare.com/r2/api/s3/api/
 - AWS CLI upload flags: https://docs.aws.amazon.com/cli/latest/reference/s3api/put-object.html
 
-The domain is owner-provisioned. These instructions do not expose its credentials, create an author profile, add a GitHub actor, grant merge authority, or generate a test article. The media change must be merged before a fresh clone can validate bot-host heroes. An actual upload with the Grok credential is a separate runtime check; do not infer it succeeded from these commands being documented.
+The domain is owner-provisioned. These instructions do not expose credentials, install the GitHub App, create an author profile, grant merge authority, or generate a test article. The media and App-guard changes must be merged before a fresh clone can use them. An actual upload and App-authenticated content PR remain separate runtime checks; neither is established by these commands being documented or by local regression tests.

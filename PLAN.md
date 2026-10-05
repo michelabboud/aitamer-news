@@ -18,3 +18,4 @@ Three plans are running. Their documents live in the private operations reposito
 When a plan is written it goes under `docs/plans/YYYY-MM-DD-slug.md` and gets a row here. A plan not listed here as approved has no go.
 
 | [Bot hero origin](docs/adr/0028-isolated-bot-hero-origin.md) | Support Michel's isolated bot-media domain and provide exact Grok posting/image/author instructions | implementation checked; review and deployment pending | 2026-10-04 | 2026-10-04 (Michel) | 2026-10-04 |
+| [Grok App content pull requests](docs/plans/2026-10-05-grok-app-pr-access.md) | Admit the dedicated Grok App's content PRs from same-repository grok/ branches with append-only specimen history | running; focused tests passed, repository gates/review/PR pending; merge requires explicit owner authorization | 2026-10-05 | 2026-10-05 (Michel) | 2026-10-05 |

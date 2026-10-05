@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.56] — 2026-10-05
+
+### Added
+- Give the configured Grok GitHub App a content pull request lane from valid same-repository `grok/*` branches when both numeric event identities match.
+- Limit that lane to added/modified plain Markdown posts and a specimen ledger retaining the exact byte history from both the merge base and current main.
+- Document App installation-token submission separately from maintainer-only author creation and owner-authorized merging.
+
 ## [0.2.54] — 2026-10-04
 
 ### Added
