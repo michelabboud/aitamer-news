@@ -1,11 +1,17 @@
 name: Finalize specimen admissions
 on:
   workflow_run:
-    workflows: [Specimen admission]
+    workflows: [Specimen admission, Specimen editorial review]
     types: [completed]
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
+    inputs:
+      admission_run:
+        description: Exact admission completion wake; grants no approval or merge authority
+        required: false
+        default: ''
+        type: string
 permissions: {}
 concurrency:
   group: specimen-admission-merge
@@ -29,18 +35,26 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Await exact admission completion before reconciliation
+        if: github.event_name == 'workflow_dispatch' && inputs.admission_run != ''
+        run: node scripts/specimen-admission.mjs await-completion
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
+          WAKE_RUN_ID: ${{ inputs.admission_run }}
       - name: Mint repository-scoped publishing App token
         run: node scripts/workflow-app-token.mjs
         env:
           SPECIMEN_APP_ID: ${{ vars.SPECIMEN_APP_ID }}
           SPECIMEN_INSTALLATION_ID: ${{ vars.SPECIMEN_INSTALLATION_ID }}
           SPECIMEN_APP_PRIVATE_KEY: ${{ secrets.SPECIMEN_APP_PRIVATE_KEY }}
-      - name: Reconcile successful admissions against current main
+      - name: Discover owner approvals and reconcile admissions against current main
         run: node scripts/specimen-admission.mjs sweep
         env:
           GH_TOKEN: ${{ github.token }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
           SPECIMEN_STATE_RULESET_ID: ${{ vars.SPECIMEN_STATE_RULESET_ID }}
+          EDITORIAL_WAKE_RUN: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request_review' && github.event.workflow_run.id || '' }}
       - name: Revoke run-local publishing token
         if: always()
         run: node scripts/workflow-app-token.mjs revoke

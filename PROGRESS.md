@@ -8,6 +8,12 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.73 source: immutable owner-review receipts and original-root binding repair; deterministic numbering descendants carry approval, rebound roots are held, and observation bases use actual trusted checkout. Focused96/96, full933/933 and production build passed; both independent core reviews accepted. Normal CI/deploy and original197 runtime acceptance remain separate. [Report](docs/reports/2026-10-05-review-source-binding.md).
+
+- **2026-10-05** — 0.2.72 source: repair stale PR readback after successful numbering; trusted certification explicitly wakes existing finalization, which waits for exact authenticated completion before unchanged proof/recovery. Bounded waits never grant approval or merge authority. [Report](docs/reports/2026-10-05-numbered-pr-readback.md).
+
+- **2026-10-05** — 0.2.71 source: same-PR workflow admission with automatic owner-review discovery, deterministic branch updates, isolated validation and strict certificates. Legacy state/proofs remain; independent review and controlled PR #197 rollout are separate evidence. [Report](docs/reports/2026-10-05-single-pr-publication.md).
+
 - **2026-10-05** — 0.2.70: Desk Bot profile uses the supplied 768-pixel avatar and exact three-paragraph introduction. The first paragraph remains the card/SEO summary; Desk Bot stays an unfeatured bot. Author/publisher regressions and rendered profile checks pass. [Evidence](docs/reports/2026-10-05-desk-bot-profile.md).
 
 - **2026-10-05** — 0.2.69: repaired the ambient numbering smoke-test failure from PR #189. Full suites pass 896 tests on numbered main and the exact 24-article source tree with the fix overlay. Required source integrity still waits editorial approval and workflow admission; no articles or ledger identities changed. [Evidence](docs/reports/2026-10-05-bot-submission-checks.md).

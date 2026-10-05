@@ -13,7 +13,7 @@ concurrency:
 jobs:
   specimen-integrity:
     # Keep PR observations separate from the trusted allocation certificate.
-    name: ${{ startsWith(github.event.pull_request.head.ref, 'specimens/run-') && 'specimen-integrity-observation' || 'specimen-integrity' }}
+    name: ${{ (startsWith(github.event.pull_request.head.ref, 'specimens/run-') || startsWith(github.event.pull_request.head.ref, 'grok/') || startsWith(github.event.pull_request.head.ref, 'desk/posts-') || contains(github.event.pull_request.labels.*.name, 'workflow-numbering')) && 'specimen-integrity-observation' || 'specimen-integrity' }}
     if: vars.SPECIMEN_ADMISSION_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -32,3 +32,4 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
+          ADMISSION_OBSERVATION: ${{ startsWith(github.event.pull_request.head.ref, 'specimens/run-') || startsWith(github.event.pull_request.head.ref, 'grok/') || startsWith(github.event.pull_request.head.ref, 'desk/posts-') || contains(github.event.pull_request.labels.*.name, 'workflow-numbering') }}

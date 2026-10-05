@@ -1,0 +1,13 @@
+name: Specimen editorial review
+run-name: "Specimen review pr=${{ github.event.pull_request.number }} review=${{ github.event.review.id }} action=${{ github.event.action }} state=${{ github.event.review.state }} source=${{ github.event.review.commit_id }}"
+on:
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+permissions: {}
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      # This PR-side workflow has no authority. Trusted-main reconciliation
+      # independently reads the current PR and exact owner review from GitHub.
+      - run: echo 'Editorial review notification; trusted main verifies approval.'

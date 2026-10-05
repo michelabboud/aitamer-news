@@ -1,5 +1,5 @@
 name: Specimen admission
-run-name: "Specimen request pr=${{ inputs.pr_number }} head=${{ inputs.head_sha }} recovery=${{ inputs.recovery_run || '0' }}"
+run-name: "${{ inputs.same_pr == 'true' && format('Specimen same-pr pr={0} head={1} review={2} recovery={3}{4}', inputs.pr_number, inputs.head_sha, inputs.review_id, inputs.recovery_run || '0', inputs.wake_run != '' && format(' wake={0}', inputs.wake_run) || '') || format('Specimen request pr={0} head={1} recovery={2}', inputs.pr_number, inputs.head_sha, inputs.recovery_run || '0') }}"
 on:
   workflow_dispatch:
     inputs:
@@ -16,7 +16,25 @@ on:
         required: false
         default: ''
         type: string
+      same_pr:
+        description: Keep the original reviewed PR
+        required: false
+        default: 'true'
+        type: string
+      review_id:
+        description: Exact owner approval review for automatic same-PR admission
+        required: false
+        default: '0'
+        type: string
+      wake_run:
+        description: Immutable submitted owner approval receipt; empty retains legacy recovery format
+        required: false
+        default: ''
+        type: string
 permissions: {}
+concurrency:
+  group: specimen-admission-allocation
+  cancel-in-progress: false
 jobs:
   prepare:
     if: vars.SPECIMEN_ADMISSION_ENABLED == 'true' && github.ref == 'refs/heads/main'
@@ -31,6 +49,7 @@ jobs:
       base: ${{ steps.prepare.outputs.base }}
       source_sha: ${{ steps.prepare.outputs.source_sha }}
       editorial_digest: ${{ steps.prepare.outputs.editorial_digest }}
+      observed_head: ${{ steps.prepare.outputs.observed_head }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -54,6 +73,9 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
           SOURCE_SHA: ${{ inputs.head_sha }}
           RECOVERY_RUN: ${{ inputs.recovery_run }}
+          SAME_PR: ${{ inputs.same_pr }}
+          REVIEW_ID: ${{ inputs.review_id }}
+          REVIEW_WAKE_RUN: ${{ inputs.wake_run }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
       - name: Revoke run-local publishing token
         if: always()
@@ -80,6 +102,8 @@ jobs:
           HEAD_SHA: ${{ needs.prepare.outputs.head }}
           SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
           EDITORIAL_DIGEST: ${{ needs.prepare.outputs.editorial_digest }}
+          SAME_PR: ${{ inputs.same_pr }}
+          OBSERVED_HEAD: ${{ needs.prepare.outputs.observed_head }}
       - run: npm test
       - run: npm run check:posts
       - run: npm run check:media
@@ -94,6 +118,7 @@ jobs:
     permissions:
       contents: read
       checks: write
+      actions: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -109,3 +134,8 @@ jobs:
           BASE_SHA: ${{ needs.prepare.outputs.base }}
           HEAD_SHA: ${{ needs.prepare.outputs.head }}
           EDITORIAL_DIGEST: ${{ needs.prepare.outputs.editorial_digest }}
+      - name: Wake finalizer after successful certification
+        run: node scripts/specimen-admission.mjs wake-finalizer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}

@@ -15,24 +15,25 @@ const required = ['publisher-paths','specimen-integrity','check'];
 // These workflow expressions use GitHub's &&/|| string-selection idiom. Evaluate
 // the actual YAML expression against event fixtures; startsWith is case insensitive
 // in GitHub Actions. Branch values remain data and never become executable source.
-function jobName(job,key,{branch,event='pull_request',author=334982782,repository='owner/site',headRepository=repository}) {
+function jobName(job,key,{branch,event='pull_request',author=334982782,sender=42,labels=[],repository='owner/site',headRepository=repository}) {
   if (!job.name) return key;
   const match = /^\$\{\{\s*([\s\S]+?)\s*\}\}$/.exec(job.name);
   if (!match) return job.name;
-  const github={event_name:event,ref_name:event==='push' ? branch : '123/merge',repository,event:{}};
-  if (event!=='push') github.event.pull_request={head:{ref:branch,repo:{full_name:headRepository}},user:{id:author}};
+  const github={event_name:event,ref_name:event==='push' ? branch : '123/merge',repository,event:{sender:{id:sender}}};
+  if (event!=='push') github.event.pull_request={head:{ref:branch,repo:{full_name:headRepository}},user:{id:author},labels:labels.map(name=>({name}))};
   // GitHub returns an empty value for absent event properties; the push fixture
   // models that property so the same fallback expression can be evaluated in JS.
-  else github.event.pull_request={head:{ref:''}};
-  return runInNewContext(match[1],{github,startsWith:(value,prefix)=>String(value ?? '').toLowerCase().startsWith(prefix.toLowerCase())},{timeout:100});
+  else github.event.pull_request={head:{ref:''},labels:[]};
+  const expression=match[1].replaceAll('github.event.pull_request.labels.*.name','github.event.pull_request.labels.map(label=>label.name)');
+  return runInNewContext(expression,{github,contains:(values,value)=>values.includes(value),startsWith:(value,prefix)=>String(value ?? '').toLowerCase().startsWith(prefix.toLowerCase())},{timeout:100});
 }
 const namesFor=values=>workflows.map(({workflow,key})=>jobName(workflow.jobs[key],key,values));
 
-test('ordinary owner, App, Grok and fork PRs retain the required check contexts',()=>{
+test('ordinary owner, author, comment and unrelated fork PRs retain required check contexts',()=>{
   for (const values of [
     {branch:'fix/site',author:42},
     {branch:'desk/authors-editor-0123456789abcdef-ari'},
-    {branch:'grok/a-new-article',author:999},
+    {branch:'desk/comments-editor-0123456789abcdef-post',author:999},
     {branch:'feature/post',author:999,headRepository:'fork/site'},
   ]) assert.deepEqual(namesFor(values),required,values.branch);
 });
@@ -53,8 +54,28 @@ test('generated and spoofed admission prefixes emit only observations, regardles
 test('push checks isolate generated refs and retain ordinary branch check names',()=>{
   const {workflow,key}=workflows.find(w=>w.file==='check-posts.yml');
   assert.equal(jobName(workflow.jobs[key],key,{branch:'specimens/run-123',event:'push'}),'check-observation');
-  assert.equal(jobName(workflow.jobs[key],key,{branch:'grok/article',event:'push'}),'check');
+  assert.equal(jobName(workflow.jobs[key],key,{branch:'grok/article',event:'push'}),'check-observation');
   assert.equal(jobName(workflow.jobs[key],key,{branch:'fix/site',event:'push'}),'check');
+  assert.equal(jobName(workflow.jobs[key],key,{branch:'feature/manual-article',event:'push',sender:334982782}),'check-observation');
+});
+
+test('same-PR source namespaces and manual labels isolate all contexts without granting required success',()=>{
+  for (const fixture of [
+    {branch:'grok/article',author:999},
+    {branch:'desk/posts-editor-0123456789abcdef-article'},
+    {branch:'feature/manual-article',labels:['workflow-numbering']},
+    {branch:'grok/spoof',headRepository:'fork/site',author:999},
+    {branch:'feature/forged-label',labels:['workflow-numbering'],headRepository:'fork/site'},
+  ]) assert.deepEqual(namesFor(fixture),['publisher-paths-observation','specimen-integrity-observation','check-observation']);
+});
+
+test('review wake has no checkout, secrets, API access or mutation permission',()=>{
+  const wake=yaml.load(readFileSync(new URL('../.github/workflows/specimen-editorial-review.yml',import.meta.url),'utf8'));
+  assert.deepEqual(wake.permissions,{});
+  assert.deepEqual(wake.on.pull_request_review.types,['submitted','edited','dismissed']);
+  assert.deepEqual(wake.jobs.wake.steps,[{run:"echo 'Editorial review notification; trusted main verifies approval.'"}]);
+  const finalizer=yaml.load(readFileSync(new URL('../.github/workflows/specimen-finalize.yml',import.meta.url),'utf8'));
+  assert.ok(finalizer.on.workflow_run.workflows.includes(wake.name));
 });
 
 test('control-state pushes are excluded while generated and ordinary source branches stay checked',()=>{
