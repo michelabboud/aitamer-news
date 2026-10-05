@@ -462,6 +462,19 @@ test('state accepts only bounded exact schema and regular blob authenticated by 
   api.certificate.app.id=15368;api.finalizer.head_branch='feature';await assert.rejects(loadState(api,STATE_ENV),/Actions certificate/);
 });
 
+test('state certificates accept authorized App actors only for trusted-main workflow completion wakes',async()=>{
+  for(const id of [334982782,337850229]) {
+    const api=new StateAPI();api.finalizer.event='workflow_run';api.finalizer.actor={id};
+    assert.equal((await loadState(api,STATE_ENV)).head,HEAD);
+    assert.deepEqual(api.mutations(),[]);
+    for(const alter of [run=>{run.event='workflow_dispatch';},run=>{run.event='schedule';},run=>{run.actor.id=999;},run=>{run.path='.github/workflows/check-publisher-pr.yml';},run=>{run.head_branch='grok/article';},run=>{run.head_sha=SOURCE;},run=>{run.repository.full_name='fork/site';},run=>{run.head_repository={full_name:'fork/site'};}]) {
+      const refused=new StateAPI();refused.finalizer.event='workflow_run';refused.finalizer.actor={id};alter(refused.finalizer);
+      await assert.rejects(loadState(refused,STATE_ENV),/Actions certificate/);
+      assert.deepEqual(refused.mutations(),[]);
+    }
+  }
+});
+
 test('state initialization requires actual protected namespace before any write', async () => {
   const api=new StateAPI();api.stateHead=null;
   const fresh=await loadState(api,STATE_ENV);assert.equal(fresh.head,null);assert.equal(fresh.state.cursor,0);

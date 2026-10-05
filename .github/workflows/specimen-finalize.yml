@@ -18,7 +18,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   reconcile:
-    if: vars.SPECIMEN_ADMISSION_ENABLED == 'true'
+    # A completion wake inherits its upstream actor. Other callers use the schedule fallback.
+    if: vars.SPECIMEN_ADMISSION_ENABLED == 'true' && (github.event_name != 'workflow_run' || github.event.workflow_run.actor.id == vars.MAINTAINER_ID || contains(fromJSON('[41898282,334982782,337850229]'), github.event.workflow_run.actor.id))
     runs-on: ubuntu-26.04
     permissions:
       contents: write
