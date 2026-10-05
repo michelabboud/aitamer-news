@@ -27,9 +27,12 @@ const PAGE_SIZE = 100;
 const MAX_BLOB_BYTES = 1024 * 1024;
 const MAX_RECOVERY_ATTEMPTS = 3;
 const MAX_RECOVERY_DEPTH = 8;
+const MAX_NUMBERING_DESCENDANTS = 32;
 const RETRY_COOLDOWN_MS = 5 * 60 * 1000;
 const REQUEST_NAME = /^Specimen request pr=(\d+) head=([a-f0-9]{40}) recovery=(\d+)$/;
-const SINGLE_REQUEST_NAME = /^Specimen same-pr pr=(\d+) head=([a-f0-9]{40}) review=(\d+) recovery=(\d+)$/;
+const SINGLE_REQUEST_NAME = /^Specimen same-pr pr=(\d+) head=([a-f0-9]{40}) review=(\d+) recovery=(\d+)(?: wake=(\d+))?$/;
+const REVIEW_PATH = '.github/workflows/specimen-editorial-review.yml';
+const REVIEW_RECEIPT = /^Specimen review pr=(\d+) review=(\d+) action=(submitted|edited|dismissed) state=(approved|commented|changes_requested|dismissed) source=([a-f0-9]{40})$/i;
 const RETRY_MARKER = 'specimen-reconciliation:';
 const ADMISSION_LABEL = 'workflow-numbering';
 const ADMISSION_PATH = '.github/workflows/specimen-admission.yml';
@@ -49,13 +52,48 @@ export function requestOf(run) {
   if (!Number.isSafeInteger(recovery) || recovery < 0) throw new Error('invalid recovery run ID');
   const review=single ? Number(match[3]) : undefined;
   if (single && (!Number.isSafeInteger(review) || review<0)) throw new Error('invalid owner review ID');
-  return { pr: integer(match[1]), source: sha(match[2]), recovery, ...(single ? { review, samePR:true } : {}) };
+  const wake=single && match[5]!==undefined ? Number(match[5]) : undefined;
+  if (wake!==undefined && (!Number.isSafeInteger(wake) || wake<0)) throw new Error('invalid editorial wake ID');
+  return { pr: integer(match[1]), source: sha(match[2]), recovery, ...(single ? { review, samePR:true, ...(wake!==undefined ? {wake} : {}) } : {}) };
 }
 async function approvedReview(api, request, owner) {
   const reviews=await api.list(`/pulls/${request.pr}/reviews`);
   const decisive=reviews.filter(review=>review.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(review.state)).sort((a,b)=>a.id-b.id).at(-1);
-  if (!decisive || decisive.id!==request.review || decisive.state!=='APPROVED' || decisive.commit_id!==request.source) throw new Error('owner editorial approval withdrawn or changed');
+  // GitHub can move commit_id when an approved PR is updated. The durable main
+  // request and owner event receipt bind the source; this live review only revokes.
+  if (!decisive || decisive.id!==request.review || decisive.state!=='APPROVED') throw new Error('owner editorial approval withdrawn or changed');
   return decisive;
+}
+function ownerReviewWake(run, repo, owner, number) {
+  return run?.event==='pull_request_review' && run.actor?.id===owner && run.repository?.full_name===repo && run.head_repository?.full_name===repo && run.status==='completed' && run.conclusion==='success' && run.path?.split('@')[0]===REVIEW_PATH && run.pull_requests?.some(pr=>pr.number===number) && SHA.test(run.head_sha ?? '');
+}
+/** Event-time receipt is an immutable source locator. A mutable REST review
+ * commit_id, a COMMENTED wake or a PR label can never provide initial approval. */
+export async function reviewReceipt(api, id, request, owner, {fetchCommits=fetchObjects,collect=collectAdmission}={}) {
+  const run=await api.request(`/actions/runs/${integer(id)}`), match=REVIEW_RECEIPT.exec(run.display_title ?? '');
+  if (run.id!==Number(id) || !ownerReviewWake(run,api.repo,owner,request.pr) || !match || Number(match[1])!==request.pr || Number(match[2])!==request.review || match[3].toLowerCase()!=='submitted' || match[4].toLowerCase()!=='approved' || match[5]!==request.source || run.head_sha!==request.source) throw new Error('invalid immutable owner approval receipt');
+  const base=sha(request.approvedBase ?? (await api.request('/git/ref/heads/main')).object.sha);
+  fetchCommits(base,request.source);
+  const ancestor=git('merge-base',base,request.source).trim();
+  mainHistory(ancestor,base);
+  const modes=parseHeadModes(git('ls-tree','-r','-z',request.source));
+  if (modes.get(REVIEW_PATH)!=='100644' || blob(request.source,REVIEW_PATH)!==blob(ancestor,REVIEW_PATH) || !blob(ancestor,REVIEW_PATH).includes('run-name: "Specimen review pr=${{ github.event.pull_request.number }} review=${{ github.event.review.id }} action=${{ github.event.action }} state=${{ github.event.review.state }} source=${{ github.event.review.commit_id }}"')) throw new Error('approval receipt workflow differs from trusted main');
+  collect(base,request.source);
+  return run;
+}
+async function earliestReviewRoot(api, request, owner, review) {
+  let earliest;
+  // This is a creation-time discovery boundary, never approval authority. No
+  // filtered search or arbitrary history cap can drop an outstanding old root.
+  const since=review.submitted_at ? serverTimestamp(review.submitted_at,'owner review submission') : null;
+  for await (const run of stream(api,'/actions/workflows/specimen-admission.yml/runs','workflow_runs')) {
+    if (since!==null && run.created_at && serverTimestamp(run.created_at,'admission creation')<since) break;
+    if (!trustedRun(run,api.repo,owner)) continue;
+    let candidate; try { candidate=requestOf(run); } catch { continue; }
+    if (!candidate.samePR || candidate.pr!==request.pr || candidate.review!==request.review || candidate.recovery!==0) continue;
+    if (!earliest || run.id<earliest.id) earliest=run;
+  }
+  return earliest;
 }
 export async function approvedRequest(api, run, owner) {
   integer(owner);
@@ -67,10 +105,20 @@ export async function approvedRequest(api, run, owner) {
     seen.add(integer(run.id));
     bases.push(sha(run.head_sha));
     const request = requestOf(run);
-    if (request.pr !== latest.pr || request.source !== latest.source || request.review !== latest.review) throw new Error('recovery changed approved request');
+    if (request.pr !== latest.pr || request.source !== latest.source || request.review !== latest.review || request.wake!==latest.wake) throw new Error('recovery changed approved request');
     if (request.samePR && request.recovery===0) {
       if (request.review===0) { if (run.actor.id!==owner) throw new Error('owner dispatch required without review'); }
-      else await approvedReview(api,request,owner);
+      else {
+        const review=await approvedReview(api,request,owner);
+        const earliest=await earliestReviewRoot(api,request,owner,review);
+        if (!earliest) throw new Error('owner approval has no immutable root');
+        const original=requestOf(earliest);
+        if (original.source!==request.source || original.wake!==request.wake) throw new Error('owner approval source rebound; original request retained');
+        // Old trusted-main roots remain readable. A new format requires the
+        // event receipt; wake=0 cannot turn an Actions dispatch into approval.
+        if (request.wake!==undefined && request.wake===0 && run.actor.id!==owner) throw new Error('immutable owner approval receipt required');
+        if (earliest.id!==run.id) { run=earliest; bases.push(sha(run.head_sha)); }
+      }
       return { ...request, rootRun:run.id, approvedBase:sha(run.head_sha), bases };
     }
     if (run.actor.id === owner) {
@@ -93,14 +141,40 @@ async function approvalStillValid(api, request, owner, { current, digest, collec
   if (head !== request.source) {
     if (!current || !digest) throw new Error('source editorial head changed');
     fetchCommits(head);
+    if (request.samePR) {
+      try { git('merge-base','--is-ancestor',request.source,head); }
+      catch(error) { if (error.status!==1) throw error;throw new Error('source editorial content changed outside approved ancestry'); }
+    }
     const currentDigest=request.samePR ? approvedHeadDigest(current,head,request.source,collect) : collect(current,head).editorialDigest;
     if (currentDigest!==digest) throw new Error('source editorial content changed after approval');
+    if (request.samePR) await verifyNumberingDescendants(api,request,head,current,owner,{collect,fetchCommits});
   }
   const reviews = await api.list(`/pulls/${request.pr}/reviews`);
   const review = reviews.filter(r=>r.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(r.state)).sort((a,b)=>a.id-b.id).at(-1);
   if (review && review.state !== 'APPROVED') throw new Error('owner review revoked');
   if (request.samePR && request.review>0) await approvedReview(api,request,owner);
   return pr;
+}
+async function verifyNumberingDescendants(api,request,head,current,owner,{collect,fetchCommits}) {
+  // Approval survives only independently authenticated deterministic workflow
+  // transforms, including provisional writes whose later validation failed.
+  for (let depth=0; head!==request.source; depth++) {
+    if (depth>=MAX_NUMBERING_DESCENDANTS) throw new Error('numbered approval lineage exceeds bound');
+    fetchCommits(head);
+    const commit=await api.request(`/git/commits/${head}`);
+    const match=/^Workflow admission same PR #(\d+) source ([a-f0-9]{40}) run (\d+)$/.exec(commit.message ?? '');
+    if (commit.sha!==head || commit.parents?.length!==2 || !match || Number(match[1])!==request.pr) throw new Error('source editorial content changed outside trusted numbering');
+    const run=await api.request(`/actions/runs/${integer(match[3])}`), actual=requestOf(run);
+    const base=sha(commit.parents[0].sha), previous=sha(commit.parents[1].sha);
+    if (!trustedRun(run,api.repo,owner) || run.id!==Number(match[3]) || run.head_sha!==base || !actual.samePR || actual.pr!==request.pr || actual.review!==request.review || actual.source!==match[2]) throw new Error('source editorial content changed outside trusted numbering');
+    fetchCommits(base,previous,actual.source,current);
+    mainHistory(base,current);
+    git('merge-base','--is-ancestor',request.source,actual.source);
+    const digest=collect(base,request.source).editorialDigest;
+    if (collect(base,actual.source).editorialDigest!==digest) throw new Error('source editorial content changed after approval');
+    materialize({GITHUB_ACTIONS:'true',GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_REF:'refs/heads/main',SAME_PR:'true',BASE_SHA:base,HEAD_SHA:head,SOURCE_SHA:actual.source,OBSERVED_HEAD:previous,EDITORIAL_DIGEST:digest},{collect,fetchCommits,write:()=>{}});
+    head=previous;
+  }
 }
 function mainHistory(base, current) {
   // A run title cannot make code from a fork or an unrelated commit trusted.
@@ -116,6 +190,8 @@ async function approvalPlan(api, run, owner, { collect = collectAdmission, fetch
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
   fetchCommits(...new Set([...request.bases, current, request.source]));
   for (const base of request.bases) verifyBase(base, current);
+  if (request.samePR && request.review>0 && request.wake===undefined && blob(request.approvedBase,ADMISSION_PATH).includes('wake_run:')) throw new Error('immutable owner approval receipt required for new roots');
+  if (request.wake) await reviewReceipt(api,request.wake,request,owner,{collect,fetchCommits});
   const digest = collect(request.approvedBase, request.source).editorialDigest;
   if (!DIGEST.test(digest)) throw new Error('invalid original approval digest');
   if (collect(current, request.source).editorialDigest !== digest) throw new Error('recovery changed editorial content');
@@ -144,7 +220,7 @@ export async function recoverRequest(api, run, env, { now = Date.now(), ...depen
   // The serialized reconciler records intent before dispatch. A lost response or crash
   // cannot erase the request or permit unlimited retries. Keep original source immutable.
   await recordAttempt(api, request.pr, { kind:'admission', rootRun:request.rootRun, previousRun:run.id, source:request.source, digest }, now);
-  await api.request('/actions/workflows/specimen-admission.yml/dispatches', 'POST', { ref:'main', inputs:{pr_number:String(request.pr),head_sha:request.source,recovery_run:String(run.id),same_pr:request.samePR ? 'true' : 'false',...(request.samePR ? {review_id:String(request.review)} : {})} });
+  await api.request('/actions/workflows/specimen-admission.yml/dispatches', 'POST', { ref:'main', inputs:{pr_number:String(request.pr),head_sha:request.source,recovery_run:String(run.id),same_pr:request.samePR ? 'true' : 'false',...(request.samePR ? {review_id:String(request.review),...(request.wake!==undefined ? {wake_run:String(request.wake)} : {})} : {})} });
   return 'dispatched';
 }
 async function containsMerge(api, merge, head) {
@@ -341,7 +417,7 @@ export async function prepare(api, env, {collect=collectAdmission,fetchCommits=f
   const activeRun = await api.request(`/actions/runs/${integer(env.GITHUB_RUN_ID)}`);
   if (!trustedRun(activeRun, api.repo, integer(env.MAINTAINER_ID)) || activeRun.id !== integer(env.GITHUB_RUN_ID) || activeRun.head_sha !== base || activeRun.actor.id !== integer(env.GITHUB_ACTOR_ID)) throw new Error('prepare run identity mismatch');
   const activeRequest = requestOf(activeRun);
-  if (activeRequest.pr !== number || activeRequest.source !== source || activeRequest.recovery !== Number(env.RECOVERY_RUN || 0) || Boolean(activeRequest.samePR)!==(env.SAME_PR==='true') || (activeRequest.samePR && activeRequest.review!==Number(env.REVIEW_ID))) throw new Error('prepare inputs differ from durable request');
+  if (activeRequest.pr !== number || activeRequest.source !== source || activeRequest.recovery !== Number(env.RECOVERY_RUN || 0) || Boolean(activeRequest.samePR)!==(env.SAME_PR==='true') || (activeRequest.samePR && (activeRequest.review!==Number(env.REVIEW_ID) || (activeRequest.wake!==undefined && activeRequest.wake!==Number(env.REVIEW_WAKE_RUN || 0))))) throw new Error('prepare inputs differ from durable request');
   const { digest } = await approvalPlan(api, activeRun, integer(env.MAINTAINER_ID),{collect,fetchCommits,verifyBase});
   const plan = collect(base, source);
   if (plan.editorialDigest !== digest) throw new Error('recovery would change approved content');
@@ -467,6 +543,7 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
   fetchCommits(...new Set([...request.bases, base, head, current, request.source]));
   for (const approvedBase of request.bases) verifyBase(approvedBase, current);
+  if (request.wake) await reviewReceipt(api,request.wake,request,owner,{collect,fetchCommits});
   const parents = readGit('show', '-s', '--format=%P', head).trim().split(' ');
   if (parents.length!==2 || parents[0]!==base || (!request.samePR && parents[1]!==request.source)) throw new Error('generated parents differ from immutable approved source');
   const message=readGit('show','-s','--format=%B',head).trim();
@@ -515,7 +592,7 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   return deployment;
 }
 export async function gate(api, env) {
-  const base = sha(env.BASE_SHA), head = sha(env.HEAD_SHA); fetchObjects(base, head);
+  const base = sha(env.ADMISSION_OBSERVATION==='true' ? git('rev-parse','HEAD').trim() : env.BASE_SHA), head = sha(env.HEAD_SHA); fetchObjects(base, head);
   if (env.ADMISSION_OBSERVATION==='true') {
     collectAdmission(base,head); // Same narrow data lane and safe repair parsing.
     try { await admissionProof(api,base,head,integer(env.MAINTAINER_ID)); }
@@ -533,8 +610,8 @@ export async function gate(api, env) {
   if (result.requiresAdmission) await admissionProof(api, base, head, integer(env.MAINTAINER_ID));
   console.log(result.requiresAdmission ? 'Workflow-owned numbering proof accepted.' : 'No workflow-owned numbering changes.');
 }
-export function observePaths(env,{fetchCommits=fetchObjects,collect=collectAdmission}={}) {
-  const base=sha(env.BASE_SHA),head=sha(env.HEAD_SHA);fetchCommits(base,head);
+export function observePaths(env,{fetchCommits=fetchObjects,collect=collectAdmission,readGit=git}={}) {
+  const base=sha(readGit('rev-parse','HEAD').trim()),head=sha(env.HEAD_SHA);fetchCommits(base,head);
   collect(base,head);
   const summary='Article paths and repairable numbering checked. Waiting for trusted owner-approved admission; source observations grant no required success or merge permission.';
   console.log(`::notice::${summary}`);
@@ -593,7 +670,7 @@ function exactKeys(value, keys) {
 function heldApproval(error) {
   // Transport/API errors retain pending status. Only controller safety and
   // explicit owner-approval failures stop expensive automatic reconciliation.
-  return !error.status && /approval withdrawn|review revoked|editorial content changed|approved content changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
+  return !error.status && /approval withdrawn|approval source rebound|review revoked|editorial content changed|approved content changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
 }
 export function validateState(state, repo) {
   if (!exactKeys(state,['schemaVersion','repository','policySHA','cursor','pending']) || state.schemaVersion!==STATE_SCHEMA || state.repository!==repo || !SHA.test(state.policySHA ?? '') || !Number.isSafeInteger(state.cursor) || state.cursor<0 || !Array.isArray(state.pending) || state.pending.length>MAX_PENDING_RUNS) throw new Error('invalid protected reconciliation state');
@@ -683,25 +760,40 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
     if (pr.state!=='open' || pr.draft || pr.head?.repo?.full_name!==api.repo || pr.base?.ref!=='main' || (pr.base.repo && pr.base.repo.full_name!==api.repo) || !pr.head.ref || /^(?:main$|specimens\/)/.test(pr.head.ref)) continue;
     const reviews=await api.list(`/pulls/${integer(pr.number)}/reviews`);
     const review=reviews.filter(r=>r.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(r.state)).sort((a,b)=>a.id-b.id).at(-1);
-    if (!review || review.state!=='APPROVED' || review.commit_id!==pr.head.sha) continue;
+    if (!review || review.state!=='APPROVED') continue;
     candidates.push({pr,review});
   }
   if (!candidates.length) return 'idle';
   const runs=new Map(knownRuns.map(run=>[run.id,run]));
-  for (const entry of pending) if (!runs.has(entry.id)) runs.set(entry.id,await api.request(`/actions/runs/${entry.id}`));
+  for (const entry of pending) if (entry.status!=='held' && !runs.has(entry.id)) runs.set(entry.id,await api.request(`/actions/runs/${entry.id}`));
   if ([...runs.values()].some(run=>trustedRun(run,api.repo,owner) && run.status!=='completed')) return 'pending';
   for (const {pr,review} of candidates) {
     if ([...runs.values()].some(run=>{
       if (!trustedRun(run,api.repo,owner)) return false;
-      try { const request=requestOf(run); return request.samePR && request.pr===pr.number && request.source===review.commit_id && request.review===review.id; } catch { return false; }
+      try { const request=requestOf(run); return request.samePR && request.pr===pr.number && request.review===review.id; } catch { return false; }
     })) continue;
-    const base=sha((await api.request('/git/ref/heads/main')).object.sha), source=sha(review.commit_id);
-    fetchCommits(base,source);
-    try { collect(base,source); } catch(error) { console.log(`PR #${pr.number} is not an admissible article submission: ${error.message}`);continue; }
+    // Lost dispatch responses may fall outside the current index page. Find an
+    // existing root before looking for an initial event receipt, keyed by ID.
+    if (await earliestReviewRoot(api,{pr:pr.number,review:review.id},owner,review)) continue;
+    const base=sha((await api.request('/git/ref/heads/main')).object.sha);
+    let receipt;
+    const since=serverTimestamp(review.submitted_at,'owner review submission');
+    for await (const wake of stream(api,'/actions/workflows/specimen-editorial-review.yml/runs','workflow_runs')) {
+      if (serverTimestamp(wake.created_at,'owner wake creation')<since) break;
+      const match=REVIEW_RECEIPT.exec(wake.display_title ?? '');
+      if (!match || Number(match[1])!==pr.number || Number(match[2])!==review.id || match[3].toLowerCase()!=='submitted' || match[4].toLowerCase()!=='approved') continue;
+      const request={pr:pr.number,review:integer(review.id),source:match[5],approvedBase:base};
+      try { await reviewReceipt(api,wake.id,request,owner,{collect,fetchCommits}); }
+      catch(error) { if (error.status) throw error;console.log(`Owner approval receipt ${wake.id} refused: ${error.message}`);continue; }
+      if (receipt && receipt.head_sha!==wake.head_sha) throw new Error('ambiguous immutable owner approval receipts');
+      receipt=wake;
+    }
+    if (!receipt) continue;
+    const source=sha(receipt.head_sha);
     await approvedReview(api,{pr:pr.number,source,review:integer(review.id)},owner);
     const currentPR=await api.request(`/pulls/${pr.number}`);assertSourceApproval(currentPR,api.repo);
     if (currentPR.head.sha!==source) throw new Error('source editorial head changed before automatic admission');
-    await api.request('/actions/workflows/specimen-admission.yml/dispatches','POST',{ref:'main',inputs:{pr_number:String(pr.number),head_sha:source,review_id:String(review.id),same_pr:'true',recovery_run:'0'}});
+    await api.request('/actions/workflows/specimen-admission.yml/dispatches','POST',{ref:'main',inputs:{pr_number:String(pr.number),head_sha:source,review_id:String(review.id),same_pr:'true',recovery_run:'0',wake_run:String(receipt.id)}});
     console.log(`Owner-approved original PR #${pr.number} dispatched automatically.`);
     return 'dispatched';
   }
@@ -733,6 +825,22 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
   if (!reached) throw new Error('workflow history did not reach discovery cursor');
   state.cursor=highWater ?? state.cursor; state.pending=[...pending.values()].sort((a,b)=>a.id-b.id);
   if (!observed.head || JSON.stringify(state)!==JSON.stringify(observed.state)) observed=await save(api,observed,state,env);
+  if (env.EDITORIAL_WAKE_RUN) {
+    // An owner event only wakes a held legacy lineage. It never replaces its
+    // source binding, revives exhaustion, or supplies first-discovery approval.
+    const wake=await api.request(`/actions/runs/${integer(env.EDITORIAL_WAKE_RUN)}`);
+    if (wake.id!==Number(env.EDITORIAL_WAKE_RUN)) throw new Error('editorial wake identity mismatch');
+    let changed=false;
+    for (const entry of state.pending.filter(e=>e.status==='held' && e.reason==='owner editorial approval withdrawn or changed')) {
+      const run=await api.request(`/actions/runs/${entry.id}`), request=requestOf(run);
+      if (!request.samePR || !ownerReviewWake(wake,api.repo,owner,request.pr)) continue;
+      try {
+        await approvalPlan(api,run,owner);
+        entry.status='pending';entry.reason='';changed=true;knownRuns.set(entry.id,run);
+      } catch(error) { if (error.status) throw error; }
+    }
+    if (changed) observed=await save(api,observed,state,env);
+  }
   const groups=new Map();
   let failed=false;
   for (const entry of state.pending.filter(entry=>entry.status==='pending')) {
@@ -745,7 +853,7 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
       const prs=request.samePR ? [await api.request(`/pulls/${request.pr}`)] : await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${run.id}`)}`);
       if (prs.length>1) throw new Error('ambiguous generated admission PRs');
       const pr=prs[0];
-      const key=`${request.pr}:${request.source}:${request.review ?? 'legacy'}`;
+      const key=request.samePR && request.review ? `${request.pr}:review:${request.review}` : `${request.pr}:${request.source}:${request.review ?? 'legacy'}`;
       if (!groups.has(key)) groups.set(key,[]);
       groups.get(key).push({entry,run,request,pr});
     } catch(error) {

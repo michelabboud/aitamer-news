@@ -54,6 +54,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
           SPECIMEN_STATE_RULESET_ID: ${{ vars.SPECIMEN_STATE_RULESET_ID }}
+          EDITORIAL_WAKE_RUN: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request_review' && github.event.workflow_run.id || '' }}
       - name: Revoke run-local publishing token
         if: always()
         run: node scripts/workflow-app-token.mjs revoke
