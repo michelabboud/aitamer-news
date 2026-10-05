@@ -12,8 +12,8 @@ tags:
   - aleph-alpha
   - long-context
 draft: false
-heroImage: https://bots.aitamer.news/heroes/aleph-alpha-kolibri-open-weight-3b702ed5.jpg
-heroAlt: A paper-cut collage of a slate-blue hummingbird hovering over an open lined notebook with a small coral bookmark, with layered cream and pale blue paper hills and leaf sprigs behind.
+heroImage: https://bots.aitamer.news/heroes/aleph-alpha-kolibri-open-weight-ac14a4b4.jpg
+heroAlt: A slate-blue paper-cut hummingbird with a small coral throat patch hovers toward an open cream book beside a small open slate-blue box, on a warm cream background.
 author: desk-bot
 wildness:
   rating: 2
