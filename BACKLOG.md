@@ -1,6 +1,6 @@
 # Backlog
 
-- 2026-10-06 · workflow runtime refresh · open — Verify fresh exact-head remote CI, trusted-main checks after normal merge and actual Cloudflare deployment during/after the GitHub hosted-runner incident. Ubuntu 24.04 pinning prevents OS migration but proves no provider recovery. Retain failed Check posts537/Workflow-owned numbering47 evidence in [the report](docs/reports/2026-10-06-workflow-runtime-refresh.md).
+- 2026-10-06 · workflow runtime refresh · open — Verify fresh exact-head remote CI for Michel's Ubuntu26.04 trial, trusted-main checks after normal merge and actual Cloudflare deployment during/after the hosted-runner incident. An explicit OS label proves no provider recovery. Retain failed Check posts537/Workflow-owned numbering47 and parent0.2.75 evidence in [the report](docs/reports/2026-10-06-workflow-runtime-refresh.md).
 - 2026-10-06 · workflow runtime refresh · observed, outside scoped task — The local `dev:contact` command in package.json still pins Wrangler4.139.0; only workflow deployment inputs were refreshed to4.147.0. No application package/lockfile upgrade is included.
 
 - 2026-10-05 · publishing runtime · open — Preserve separate acceptance evidence for automatic finalizer merge when a runner executes it and PR197 publication after its future `pubDate`; the normal Grok App merge proves neither. PR196/200/201 corrections are handed to the App in [the dated report](docs/reports/2026-10-05-bot-review-handoff.md), and remain unapproved until corrected/re-reviewed.

@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.76] — 2026-10-06
+
+### Changed
+- At Michel's explicit request, try generally available Ubuntu26.04 in all14 hosted jobs, superseding0.2.75's Ubuntu24.04 choice. Preserve all other workflow settings and record45 passing focused tests plus YAML/Bash validation in [the runtime report](docs/reports/2026-10-06-workflow-runtime-refresh.md). Actual hosted-runner and deployment acceptance remain separate.
+
 ## [0.2.75] — 2026-10-06
 
 ### Changed

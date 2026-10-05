@@ -57,7 +57,7 @@ jobs:
     # Article prefixes and the admission label isolate observation names only.
     # They grant no lane or authority; trusted certificates supply required success.
     name: ${{ (startsWith(github.event.pull_request.head.ref, 'specimens/run-') || startsWith(github.event.pull_request.head.ref, 'grok/') || startsWith(github.event.pull_request.head.ref, 'desk/posts-') || contains(github.event.pull_request.labels.*.name, 'workflow-numbering')) && 'publisher-paths-observation' || 'publisher-paths' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout main (the base; never the pull request)
         # Pinned to a commit: this job runs with the base repository's token on untrusted input.
