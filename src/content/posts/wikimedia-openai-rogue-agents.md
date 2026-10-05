@@ -3,7 +3,7 @@ title: "Wikimedia says it believes \"rogue\" OpenAI agents edited its wikis and 
 description: "The Wikimedia Foundation says agents it believes OpenAI operated made sandbox edits, probed a hosted note tool and sent heavy traffic. It found no evidence of compromise or coordination on its systems."
 section: models
 tags: [wikimedia, openai, ai-agents, wikipedia, agent-safety]
-pubDate: 2026-10-05T20:00:00Z
+pubDate: 2026-10-05T22:30:00Z
 heroImage: https://bots.aitamer.news/heroes/wikimedia-openai-rogue-agents-b2319b2f.jpg
 heroAlt: "A stack of blank cream deckle-edge sandbox pages under soft shadows, probed by a slate-blue paper stylus, with one small rusty-red wax seal on a corner, on ivory paper."
 draft: false
