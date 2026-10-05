@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.72] — 2026-10-05
+
+### Fixed
+- Bound stale PR metadata readback after workflow numbering by the exact authoritative branch ref; conflicting pushes still fail immediately.
+- Notify the existing finalizer explicitly after trusted certification and await the exact admission run's completion before unchanged reconciliation.
+
 ## [0.2.71] — 2026-10-05
 
 ### Changed
