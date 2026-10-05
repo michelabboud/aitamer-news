@@ -1,14 +1,19 @@
 # Backlog
 
+- 2026-10-06 · workflow runtime refresh · open — Verify fresh exact-head remote CI for Michel's Ubuntu26.04 trial, trusted-main checks after normal merge and actual Cloudflare deployment during/after the hosted-runner incident. An explicit OS label proves no provider recovery. Retain failed Check posts537/Workflow-owned numbering47 and parent0.2.75 evidence in [the report](docs/reports/2026-10-06-workflow-runtime-refresh.md).
+- 2026-10-06 · workflow runtime refresh · observed, outside scoped task — The local `dev:contact` command in package.json still pins Wrangler4.139.0; only workflow deployment inputs were refreshed to4.147.0. No application package/lockfile upgrade is included.
+
+- 2026-10-05 · publishing runtime · open — Preserve separate acceptance evidence for automatic finalizer merge when a runner executes it and PR197 publication after its future `pubDate`; the normal Grok App merge proves neither. PR196/200/201 corrections are handed to the App in [the dated report](docs/reports/2026-10-05-bot-review-handoff.md), and remain unapproved until corrected/re-reviewed.
+
 - 2026-10-05 · Michel · planned, design later — Add editor-controlled article pinning: select a specific article for the homepage hero; interleave the scrolling list in repeating groups of two new articles followed by two pinned articles. Design selection, ordering, deduplication, fallback when fewer pins exist, unpinning and withdrawal behavior later. Preserve publication dates and archive ordering. Backlog only; no implementation in the current publishing task.
 
 Dated one-liners for everything deferred or spotted and not done. Format: `date · source · status — item`.
 
 - 2026-09-25 · publish times · open — Three launch posts went live on 2026-09-23 but are dated earlier, so they carry 00:00 UTC: `welcome-to-aitamer`, `open-weights-roundup`, `policy-watch-transparency`. An editor should set the real time or correct the date.
-- 2026-09-25 · publish times · open — The bot pipeline must run `npm run stamp` before committing a published post, and commit the specimen ledger with it, or the checks stop at `check:posts` (on the pull request, and again in the deploy).
+- 2026-09-25 · publish times · superseded 2026-10-05 — Producers now omit new specimen values and never stamp or edit the permanent ledger. Trusted owner-reviewed admission numbers and certifies the original PR; see [workflow-owned specimens](docs/guides/workflow-owned-specimens.md).
 - 2026-09-25 · contact form · done 2026-09-25 — the branch re-allocated to 0.1.5 when it merged.
 - 2026-09-25 · archive · open — A month page lists every story that month; paginate it (and the desk and author pages) before a month holds a few hundred posts. Number archive pages oldest-first so old pages stay cached.
-- 2026-09-25 · pipeline · idea — The posts MCP (new / update / remove) should implement `POST.md` exactly: immutable slug, `npm run stamp` on publish, `updatedDate` on edit, hero JPEG at `public/heroes/<slug>.jpg` (since 0.2.45: uploaded to R2 and written as `https://media.aitamer.news/heroes/<slug>.jpg`, POST.md §3).
+- 2026-09-25 · pipeline · superseded 2026-10-05 — Posts MCP producers preserve published slugs/dates and use verified public hero URLs, but no longer stamp or write the permanent ledger. Workflow-only allocation replaces that part of the former `POST.md` integration idea.
 - 2026-09-25 · CI · idea — Add Dependabot for GitHub Actions and npm so version bumps arrive as pull requests instead of by hand.
 - 2026-09-25 · contact form · open — Turn on Turnstile: create a widget for aitamer.news, set `TURNSTILE_SITE_KEY` in `src/lib/site.ts` and the Worker secret `TURNSTILE_SECRET_KEY` together. The code is ready and tested.
 - 2026-09-25 · contact form · done 2026-09-26 (first deploy accepted both bindings) — Confirm on the first deploy that the free plan accepts the Workers rate-limit binding. If not, add a WAF rate-limiting rule on `contact.aitamer.news` and revisit the fail-closed check.

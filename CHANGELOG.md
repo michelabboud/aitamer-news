@@ -2,6 +2,23 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.76] — 2026-10-06
+
+### Changed
+- At Michel's explicit request, try generally available Ubuntu26.04 in all14 hosted jobs, superseding0.2.75's Ubuntu24.04 choice. Preserve all other workflow settings and record45 passing focused tests plus YAML/Bash validation in [the runtime report](docs/reports/2026-10-06-workflow-runtime-refresh.md). Actual hosted-runner and deployment acceptance remain separate.
+
+## [0.2.75] — 2026-10-06
+
+### Changed
+- Pin all 14 hosted workflow jobs to Ubuntu 24.04 and refresh three Wrangler CLI deployment inputs to stable 4.147.0. Six direct action commit pins already match official latest stable releases and remain unchanged.
+- Preserve evidence that failed runs could not acquire a hosted runner; the OS migration notice and provider availability are separate. Trusted-main PR checks adopt the new runner label only after merge. [Verification and inventory](docs/reports/2026-10-06-workflow-runtime-refresh.md).
+
+## [0.2.74] — 2026-10-05
+
+### Fixed
+- Give Grok the enabled single-PR contract: automatic owner-review numbering, exact current-head certificates and permitted normal pinned merge, without producer Actions permission or manual model disclosure.
+- Publish exact-source correction patches and editor handoff for PRs196,200 and201; alt text must describe the actual hero image. No articles, ledger or workflow behavior changed.
+
 ## [0.2.73] — 2026-10-05
 
 ### Fixed

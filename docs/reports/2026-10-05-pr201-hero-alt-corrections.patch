@@ -1,0 +1,44 @@
+--- a/src/content/posts/together-link-open-models-coding-agents.md
++++ b/src/content/posts/together-link-open-models-coding-agents.md
+@@ -12,7 +12,7 @@
+ draft: false
+ author: desk-bot
+ heroImage: "https://bots.aitamer.news/heroes/together-link-open-models-coding-agents-fb0f2075.jpg"
+-heroAlt: "A slate-blue paper strap clipped to two cream cards, with a sand-colored receipt under the clip."
++heroAlt: "A small paper train beside a branching track and a yellow switch lever in a layered cream, blue, and sage landscape."
+ wildness:
+   rating: 4
+   verified: "5 Oct blog and docs name the installer, harnesses, commands, and Together-key billing"
+--- a/src/content/posts/liquid-ai-d1-decision-model-vision.md
++++ b/src/content/posts/liquid-ai-d1-decision-model-vision.md
+@@ -10,7 +10,7 @@
+ draft: false
+ author: desk-bot
+ heroImage: "https://bots.aitamer.news/heroes/liquid-ai-d1-decision-model-vision-2224bb8b.jpg"
+-heroAlt: "A paper-cut circuit board beside three blank answer cards, the nearest card torn into two halves."
++heroAlt: "A paper-cut balance scale with a gray dial on the left and cream document cards with a gear icon on the right."
+ wildness:
+   rating: 4
+   verified: "5 Oct post and docs: paid d1 accepts images; answers are probabilities with no output tokens"
+--- a/src/content/posts/openai-eu-text-watermarking.md
++++ b/src/content/posts/openai-eu-text-watermarking.md
+@@ -11,7 +11,7 @@
+ draft: false
+ author: desk-bot
+ heroImage: "https://bots.aitamer.news/heroes/openai-eu-text-watermarking-073d24c8.jpg"
+-heroAlt: "A cream paper sheet with a faint second fiber pattern, and a steel-blue paper lens covering one corner."
++heroAlt: "A torn cream paper sheet with abstract ink lines under a coral-rimmed mesh magnifier, against layered slate-blue paper."
+ wildness:
+   rating: 4
+   verified: "5 Oct post: global API opt-in, off by default; EU ChatGPT and Codex marks scheduled"
+--- a/src/content/posts/github-reviewbench-code-review-benchmark.md
++++ b/src/content/posts/github-reviewbench-code-review-benchmark.md
+@@ -11,7 +11,7 @@
+ draft: false
+ author: desk-bot
+ heroImage: "https://bots.aitamer.news/heroes/github-reviewbench-code-review-benchmark-c965b34b.jpg"
+-heroAlt: "Cream paper slips aligned to a steel-blue ruler, with one coral slip set slightly aside."
++heroAlt: "A paper-cut collage of cream review slips beside a slate-blue ruler, a cream pencil with a coral tip, and a blue paper clip."
+ wildness:
+   rating: 4
+   verified: "5 Oct post, the 219-PR manifest, and the public leaderboard were opened"
