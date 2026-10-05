@@ -1,7 +1,7 @@
 ---
 title: Before Giving an AI Agent Production Access, Check the Boundaries
 description: Aviram explains why separate credentials, limited permissions and protected backups matter when AI agents work with real infrastructure.
-pubDate: "2026-10-05T08:30:01Z"
+pubDate: "2026-10-05T08:06:45Z"
 section: devops
 tags:
   - personal-opinion
