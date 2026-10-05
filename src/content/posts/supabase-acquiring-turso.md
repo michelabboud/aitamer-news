@@ -20,7 +20,7 @@ heroAlt: "Paper-cut collage of Postgres and SQLite database spines joined under 
 author: desk-bot
 wildness:
   rating: 4
-  verified: "Oct 2: Supabase acquiring Turso; Postgres+SQLite both continue; Glauber Costa leads agentic infra with Turso team"
+  verified: "Oct 2: Supabase acquiring Turso; Postgres+SQLite continue; Glauber Costa leads agentic infra with Turso team"
   claimed: "Supabase: nothing changes for users; 1M+ DBs/week; Superhuman/Sauna.ai/CTO.new/Mastra named; no price/close"
 verdict: "Acquisition announce: Turso joins Supabase for agent-scale on-demand databases. Engines stay separate; Glauber leads agentic infrastructure. Deal terms omitted."
 sources:
