@@ -418,6 +418,32 @@ export async function certify(api, env) {
   for (const name of ['publisher-paths', 'check', 'specimen-integrity']) await api.request('/check-runs', 'POST', { name, head_sha: head, status: 'completed', conclusion: 'success', completed_at: new Date().toISOString(), details_url: detail, external_id: `${api.repo}:${base}:${head}:${env.EDITORIAL_DIGEST}:${runId}`, output: { title: 'Trusted workflow admission verified', summary: 'Exact deterministic allocator tree, full tests, post/media checks, build, rendered-body/CSP/link/diagram gates passed in the credential-free validation job.' } });
   console.log(`Admission checks certified for ${head}; merge awaits successful completion of this workflow.`);
 }
+function assertMainDispatch(env) {
+  if (env.GITHUB_REF!=='refs/heads/main' || env.GITHUB_EVENT_NAME!=='workflow_dispatch' || ![integer(env.MAINTAINER_ID),ACTIONS_ACTOR].includes(integer(env.GITHUB_ACTOR_ID))) throw new Error('completion wake is trusted dispatch on main only');
+}
+export async function wakeFinalizer(api, env) {
+  assertMainDispatch(env);
+  const id=integer(env.GITHUB_RUN_ID), run=await api.request(`/actions/runs/${id}`);
+  if (run.id!==id || !trustedRun(run,api.repo,integer(env.MAINTAINER_ID)) || run.head_sha!==sha(env.GITHUB_SHA) || run.actor.id!==integer(env.GITHUB_ACTOR_ID)) throw new Error('completion wake run identity mismatch');
+  requestOf(run);
+  await api.request('/actions/workflows/specimen-finalize.yml/dispatches','POST',{ref:'main',inputs:{admission_run:String(id)}});
+  console.log(`Finalizer notified automatically for admission run ${id}.`);
+}
+export async function awaitAdmissionCompletion(api, env, {pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}) {
+  assertMainDispatch(env);
+  const id=integer(env.WAKE_RUN_ID), owner=integer(env.MAINTAINER_ID);
+  for (let attempt=0; attempt<30; attempt++) {
+    const run=await api.request(`/actions/runs/${id}`);
+    if (run.id!==id || !trustedRun(run,api.repo,owner)) throw new Error('completion wake run identity mismatch');
+    sha(run.head_sha);requestOf(run);
+    if (run.status==='completed') {
+      console.log(`Admission run ${id} completed; unchanged proof and recovery checks follow.`);
+      return run.conclusion;
+    }
+    if (attempt<29) await pause(1000);
+  }
+  throw new Error('admission completion wait exceeded bound; pending evidence retained');
+}
 export async function finalize(api, env, { collect = collectAdmission, fetchCommits = fetchObjects, readGit = git, verifyBase = mainHistory, proofFor = admissionProof, recover = recoverRequest, deploy = reconcileDeployment } = {}) {
   const runId = integer(env.ADMISSION_RUN_ID), owner = integer(env.MAINTAINER_ID);
   const run = await api.request(`/actions/runs/${runId}`);
@@ -767,6 +793,8 @@ export async function main(args, env = process.env) {
     case 'prepare': return prepare(api, env);
     case 'materialize': return materialize(env);
     case 'certify': return certify(api, env);
+    case 'wake-finalizer': return wakeFinalizer(api, env);
+    case 'await-completion': return awaitAdmissionCompletion(api, env);
     case 'finalize': return finalize(api, env);
     case 'gate': return gate(api, env);
     case 'observe-paths': return observePaths(env);

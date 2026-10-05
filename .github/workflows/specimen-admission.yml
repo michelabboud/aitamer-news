@@ -112,6 +112,7 @@ jobs:
     permissions:
       contents: read
       checks: write
+      actions: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -127,3 +128,8 @@ jobs:
           BASE_SHA: ${{ needs.prepare.outputs.base }}
           HEAD_SHA: ${{ needs.prepare.outputs.head }}
           EDITORIAL_DIGEST: ${{ needs.prepare.outputs.editorial_digest }}
+      - name: Wake finalizer after successful certification
+        run: node scripts/specimen-admission.mjs wake-finalizer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
