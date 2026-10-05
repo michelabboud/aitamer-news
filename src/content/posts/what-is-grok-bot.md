@@ -41,7 +41,6 @@ wildness:
 verdict: "A Cursor desktop client plus one shared cloud computer. Read each approval, and read the plans page before quoting a price."
 ---
 
-
 Grok Bot is a desktop app you sign in to with a Cursor account. The chat assigns the work. The work runs on a computer Cursor hosts for that account: a browser, a filesystem, and a terminal that keep going after the laptop closes. The [overview](https://docs.x.ai/grok-bot/overview) says so. The [teams guide](https://docs.x.ai/grok-bot/teams-and-enterprises), updated October 1, 2026, calls the desktop and mobile apps thin clients for chat, review, and approvals.
 
 That guide names the hosted computer as one persistent Firecracker microVM per person, with its own kernel, memory, and virtual devices, and with hardware-level separation from other users. The architecture section does not name the guest operating system. Check the current teams page, and the running computer, before a policy calls the guest Linux. This series calls that computer the box: one machine for the account, used by every Bot on it. The Mac, Windows, or Linux app is a client on a different machine. The [computer guide](https://docs.x.ai/grok-bot/computer-and-apps) keeps the two apart.
