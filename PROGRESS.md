@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.60 planning: ledger/allocation becomes workflow-owned in the proposed design. #169 merged and deployed; #172 integration #174 remains pending under the new constraint. Habitat scope clarification is outstanding.
+
 - **2026-10-05** — 0.2.59: hero art instructions now provide acceptable colors instead of a single fixed background; Grok review summaries no longer require the automatic writer model.
 
 - **2026-10-05** — 0.2.58: hero prompt and Grok guide allow light background enrichment without competing objects or additional coral accents.

@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.60] — 2026-10-05
+
+### Added
+- Plan workflow-only specimen assignment with serialized admission, identity provenance, strict production checks and restart-safe recovery. Implementation is not included.
+
 ## [0.2.59] — 2026-10-05
 
 ### Changed
