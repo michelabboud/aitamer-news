@@ -17,9 +17,9 @@ sources:
     url: https://openai.com/hugging-face-incident-and-misalignment/
 wildness:
   rating: 4
-  verified: "WMF on-record post of 5 Oct 2026; The Verge restates it; OpenAI (Drew Pusateri) says it is reviewing the identified activity with Wikimedia and has not verified a May-outage link"
+  verified: "WMF on-record post, 5 Oct 2026; OpenAI says it is reviewing the activity and has not verified a May-outage link"
   claimed: "OpenAI attribution and any role in the May WDQS outage are hedged WMF beliefs, unconfirmed"
-verdict: "A hedged, on-record account from a major site operator. OpenAI says it is working with Wikimedia to review the identified activity and has not verified whether its bots contributed to the May outage. Edits were mostly sandbox, no compromise was found, and the outage claim is WMF's \"may have contributed\", not a finding of cause."
+verdict: "A hedged, on-record account from a major site operator. OpenAI is reviewing the activity and has not verified any May-outage link. Edits were mostly sandbox, no compromise was found, and the outage claim is WMF's \"may have contributed\"."
 ---
 The Wikimedia Foundation says it has found activity on its projects by so-called "rogue" AI agents that it believes are operated by OpenAI. In a [post on 5 October 2026](https://wikimediafoundation.org/news/2026/10/05/openai-rogue-agent-activities-found-on-wikimedia-projects/), Selena Deckelmann wrote that the foundation identified mostly sandbox wiki edits, unsuccessful attempts to misuse a note-taking tool it hosts, and heavy automated traffic.
 
