@@ -19,7 +19,8 @@ export async function mint(env, fetcher = fetch) {
  });
  if (!response.ok) throw new Error(`publishing App token request failed (${response.status})`);
  const data = await response.json();
- if (typeof data.token !== 'string' || !/^[A-Za-z0-9_]+$/.test(data.token) || !Number.isFinite(Date.parse(data.expires_at))) throw new Error('invalid publishing token response');
+ if (typeof data.token !== 'string' || data.token.length > 4096 || !/^[\x21-\x7e]+$/.test(data.token)) throw new Error('invalid publishing token characters');
+ if (!Number.isFinite(Date.parse(data.expires_at))) throw new Error('invalid publishing token expiry');
  return data.token;
 }
 export async function revoke(env = process.env, fetcher = fetch) {
@@ -28,11 +29,12 @@ export async function revoke(env = process.env, fetcher = fetch) {
  if (!response.ok && response.status !== 401) throw new Error(`publishing token revocation failed (${response.status})`);
  console.log('Run-local publishing App token revoked.');
 }
+export const maskData = token => token.replace(/%/g, '%25');
 export async function main(env = process.env) {
  if (!env.GITHUB_ENV) throw new Error('workflow environment output required');
  const token = await mint(env);
  // GitHub interprets this command as a mask; never invoke credential minting locally.
- console.log(`::add-mask::${token}`);
+ console.log(`::add-mask::${maskData(token)}`);
  appendFileSync(env.GITHUB_ENV, `SPECIMEN_WRITE_TOKEN=${token}\n`);
  console.log('Repository-scoped publishing App token installed for this job.');
 }
