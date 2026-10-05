@@ -1,6 +1,6 @@
 ---
 title: Anthropic puts $100 million behind a program for 10,000 deployment engineers
-description: Anthropic's 2 October 2026 announcement commits $100 million to Claude Frontier Academy and aims to train 10,000 Frontier Deployed Engineers by the end of 2027. Participation is by nomination through Anthropic's account teams or partner managers.
+description: Anthropic is committing $100 million to Claude Frontier Academy to train 10,000 Frontier Deployed Engineers by the end of 2027. Participation is by nomination through Anthropic's account teams or partner managers.
 pubDate: "2026-10-05T10:00:00Z"
 specimen: 396
 section: general
