@@ -83,3 +83,10 @@ test('only the trusted admission certifier supplies all required names on a gene
   assert.equal(new Set([...certified,...observations]).size,6,'automatic jobs and certificates never duplicate a required context');
   assert.ok(checks.every(check=>check.head_sha==='b'.repeat(40) && check.conclusion==='success' && check.external_id===`owner/site:${'a'.repeat(40)}:${'b'.repeat(40)}:${'c'.repeat(64)}:123`));
 });
+
+test('production admission verification receives full checkout ancestry',()=>{
+ const workflow=yaml.load(readFileSync(new URL('../.github/workflows/deploy-pages.yml',import.meta.url),'utf8'));
+ const checkout=workflow.jobs.deploy.steps.find(step=>String(step.uses ?? '').startsWith('actions/checkout@'));
+ assert.equal(checkout.with['fetch-depth'],0);
+ assert.deepEqual(workflow.jobs.deploy.concurrency,{group:'pages-production','cancel-in-progress':false});
+});
