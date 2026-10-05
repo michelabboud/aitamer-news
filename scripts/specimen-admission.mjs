@@ -15,6 +15,10 @@ const ALLOCATOR_APP = 5107739;
 const STATE_BRANCH = 'specimens/state';
 const STATE_PATH = 'specimen-state.json';
 const STATE_SCHEMA = 1;
+// Owner verified this server snapshot with administration access. The timestamp
+// detects policy drift; it is not a cryptographic revision. Keep the pin in trusted
+// main code because repository variables can be changed by other collaborators.
+const STATE_RULESET_SNAPSHOT = Object.freeze({ id:24488522, updatedAt:'2026-10-05T10:59:20.822+03:00' });
 const STATE_CHECK = 'specimen-control-state';
 const FINALIZER_PATH = '.github/workflows/specimen-finalize.yml';
 const MAX_STATE_BYTES = 1024 * 1024;
@@ -437,11 +441,18 @@ export function validateState(state, repo) {
 }
 export async function verifyStateProtection(api, env) {
   const rulesetID=integer(env.SPECIMEN_STATE_RULESET_ID);
+  if (rulesetID!==STATE_RULESET_SNAPSHOT.id) throw new Error('state ruleset ID differs from trusted-main snapshot');
   const ruleset=await api.request(`/rulesets/${rulesetID}`);
   const effective=await api.request(`/rules/branches/${encodeURIComponent(STATE_BRANCH)}`);
-  const bypass=ruleset.bypass_actors;
-  if (ruleset.id!==rulesetID || ruleset.target!=='branch' || ruleset.enforcement!=='active' || !Array.isArray(bypass) || !bypass.some(a=>a.actor_type==='Integration' && a.actor_id===ALLOCATOR_APP && a.bypass_mode==='always') || bypass.some(a=>!((a.actor_type==='Integration' && a.actor_id===ALLOCATOR_APP) || (a.actor_type==='RepositoryRole' && a.actor_id===5)))) throw new Error('state namespace is not restricted to publishing App and administrators');
-  for (const type of ['creation','update','deletion','non_fast_forward']) if (!effective.some(rule=>rule.type===type && rule.ruleset_id===rulesetID)) throw new Error(`protected state branch lacks ${type} restriction`);
+  if (ruleset.id!==rulesetID || ruleset.target!=='branch' || ruleset.enforcement!=='active' || ruleset.updated_at!==STATE_RULESET_SNAPSHOT.updatedAt) throw new Error('state protection differs from owner-verified trusted-main snapshot');
+  // GitHub omits bypass_actors for callers without ruleset write access. The exact
+  // owner-verified snapshot pin permits that documented omission only; explicit
+  // null, malformed or unsafe lists never become a permission fallback.
+  if (Object.hasOwn(ruleset,'bypass_actors')) {
+    const bypass=ruleset.bypass_actors;
+    if (!Array.isArray(bypass) || bypass.length!==2 || !bypass.some(a=>a?.actor_type==='Integration' && a.actor_id===ALLOCATOR_APP && a.bypass_mode==='always') || !bypass.some(a=>a?.actor_type==='RepositoryRole' && a.actor_id===5 && a.bypass_mode==='always')) throw new Error('state namespace is not restricted to publishing App and administrators');
+  }
+  for (const type of ['creation','update','deletion','non_fast_forward']) if (!Array.isArray(effective) || !effective.some(rule=>rule.type===type && rule.ruleset_id===rulesetID)) throw new Error(`protected state branch lacks ${type} restriction`);
 }
 async function verifyStateCertificate(api, head, content, state, owner) {
   const digest=createHash('sha256').update(content).digest('hex');
