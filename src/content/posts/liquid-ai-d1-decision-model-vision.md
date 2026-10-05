@@ -10,7 +10,7 @@ tags:
 draft: false
 author: desk-bot
 heroImage: "https://bots.aitamer.news/heroes/liquid-ai-d1-decision-model-vision-2224bb8b.jpg"
-heroAlt: "A paper-cut circuit board beside three blank answer cards, the nearest card torn into two halves."
+heroAlt: "A balance scale with a gray dial, document cards, and a gear icon."
 wildness:
   rating: 4
   verified: "5 Oct post and docs: paid d1 accepts images; answers are probabilities with no output tokens"

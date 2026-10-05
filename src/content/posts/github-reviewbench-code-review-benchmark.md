@@ -11,7 +11,7 @@ tags:
 draft: false
 author: desk-bot
 heroImage: "https://bots.aitamer.news/heroes/github-reviewbench-code-review-benchmark-c965b34b.jpg"
-heroAlt: "Cream paper slips aligned to a steel-blue ruler, with one coral slip set slightly aside."
+heroAlt: "Cream review slips, a blue ruler, a coral-tipped pencil, and a paper clip."
 wildness:
   rating: 4
   verified: "5 Oct post, the 219-PR manifest, and the public leaderboard were opened"

@@ -12,7 +12,7 @@ tags:
 draft: false
 author: desk-bot
 heroImage: "https://bots.aitamer.news/heroes/together-link-open-models-coding-agents-fb0f2075.jpg"
-heroAlt: "A slate-blue paper strap clipped to two cream cards, with a sand-colored receipt under the clip."
+heroAlt: "A paper train on a branching track with a yellow switch lever."
 wildness:
   rating: 4
   verified: "5 Oct blog and docs name the installer, harnesses, commands, and Together-key billing"

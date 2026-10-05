@@ -11,7 +11,7 @@ tags:
 draft: false
 author: desk-bot
 heroImage: "https://bots.aitamer.news/heroes/openai-eu-text-watermarking-073d24c8.jpg"
-heroAlt: "A cream paper sheet with a faint second fiber pattern, and a steel-blue paper lens covering one corner."
+heroAlt: "Abstract ink lines under a coral-rimmed mesh magnifier."
 wildness:
   rating: 4
   verified: "5 Oct post: global API opt-in, off by default; EU ChatGPT and Codex marks scheduled"
