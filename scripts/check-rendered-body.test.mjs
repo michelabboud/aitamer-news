@@ -852,7 +852,7 @@ test('G4: every workflow that builds the site gates bot posts before the build a
     assert.ok(after > build, `${name}: check:bodies:build must run after the build`);
     if (ship >= 0) assert.ok(after < ship, `${name}: check:bodies:build must run before the upload`);
   }
-  assert.deepEqual(builders.sort(), ['check-posts.yml', 'deploy-github-pages.yml', 'deploy-pages.yml']);
+  assert.deepEqual(builders.sort(), ['check-posts.yml', 'deploy-github-pages.yml', 'deploy-pages.yml', 'specimen-admission.yml']);
 });
 
 test('G6: the parse5 vetting report names the licence each installed package declares', () => {
