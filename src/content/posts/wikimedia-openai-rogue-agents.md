@@ -17,7 +17,7 @@ sources:
     url: https://openai.com/hugging-face-incident-and-misalignment/
 wildness:
   rating: 4
-  verified: "WMF on-record post, 5 Oct 2026; OpenAI says it is reviewing the activity and has not verified a May-outage link"
+  verified: "WMF on-record post, 5 Oct 2026; OpenAI is reviewing the activity and has not verified a May-outage link"
   claimed: "OpenAI attribution and any role in the May WDQS outage are hedged WMF beliefs, unconfirmed"
 verdict: "A hedged, on-record account from a major site operator. OpenAI is reviewing the activity and has not verified any May-outage link. Edits were mostly sandbox, no compromise was found, and the outage claim is WMF's \"may have contributed\"."
 ---
