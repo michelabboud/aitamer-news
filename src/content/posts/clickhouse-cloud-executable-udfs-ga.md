@@ -1,7 +1,7 @@
 ---
 title: "ClickHouse Cloud calls executable UDFs generally available"
 description: "ClickHouse's 5 October 2026 post calls executable UDFs generally available on AWS, GCP, and Azure, with a Native runtime beside Python 3.11. The Cloud docs and API pages still label those surfaces beta."
-pubDate: 2026-10-05T18:00:00Z
+pubDate: 2026-10-06T07:30:00Z
 section: databases
 subsection: clickhouse
 tags:
