@@ -1,6 +1,6 @@
 ---
 title: "What Grok Bot is: a desktop app and one shared computer"
-description: "Grok Bot is a Cursor-signed-in desktop app. Its Bots share one hosted computer, keep separate chats, and stop for a person before a consequential send."
+description: "Grok Bot is a Cursor-signed-in desktop app. Its Bots share one hosted computer, keep separate chats, and offer configurable approval rules for consequential actions."
 pubDate: 2026-10-08T05:00:00Z
 section: tools
 subsection: grok-bot
@@ -58,7 +58,7 @@ Create another Bot when the goal, the tools, the style, the approval line, or th
 
 Hide leaves routines running. Delete removes the profile, conversation, and routines, and leaves files and sign-ins on the box. Duplicate copies the profile, settings, skills, routines, and avatar, and drops the conversation, the learned memory, and the attachments. Rename the copy and state the new scope before you assign work.
 
-## A person still approves the send
+## Set approval controls before a send
 
 Write the stop into the task. The approvals guide's example:
 
@@ -68,7 +68,7 @@ Fence off sending, publishing, purchases, deletes, permission changes, productio
 
 Secrets are a takeover. For a password, passkey, two-factor code, CAPTCHA, or payment, the Bot gives you the computer. Finish the step and return control. Keep the secret out of chat. A connector's secret request is masked and stays out of the transcript. The approvals guide says it is not a password manager.
 
-Auto Review, when on, checks tool calls and computer actions before they run. Rules sit under Settings → General → Auto-review. Ask first wins over Allow automatically. Team-locked rules remain, and personal rules can only be stricter. The page warns against a rule that allows the whole browser.
+Turn on Auto Review under Settings → General → Auto-review and add a narrow Ask first rule for a sending action. With Auto Review on, tool calls and computer actions are checked before they run. Ask first wins over Allow automatically. If your team admin enforces Auto Review, locked team rules remain, and personal rules can only be stricter. The page warns against a rule that allows the whole browser and says model-based review should complement scoped permissions and explicit boundaries.
 
 Execution on Local Computer governs commands on the machine in front of you and defaults to Ask every time. It does not govern the box. The next post opens the hosted desktop.
 
@@ -102,7 +102,7 @@ A skill is how to do a task. A routine is one Bot running that skill on a schedu
 
 Plugins are how a connector shows up. The [work guide](https://cursor.com/docs/grok-bot/work) names Gmail, Notion, and Slack. A plugin you install is available to every Bot on the account, and the OAuth token stays on Cursor's connector backend. Blocking the plugin leaves the service's website open unless Enterprise Network Controls close that path. Gmail is a later post, and this one does not connect it.
 
-A group holds two to six Bots and one outcome you can watch. `@` assigns the next step. Bots can message each other. A send still waits on the approval in the Bot's description.
+A group holds two to six Bots and one outcome you can watch. `@` assigns the next step. Bots can message each other. Put the send boundary in each Bot's description, then enable Auto Review and add a narrow Ask first rule for the sending action.
 
 Cursor coding leaves the box. The teams guide says Grok Bot can delegate to Cursor Cloud Agents on separate computers, under the Cloud Agent controls you already have. Admins can turn spawning off, and on a team the switch starts on. Commands on your own machine stay behind Execution on Local Computer.
 
