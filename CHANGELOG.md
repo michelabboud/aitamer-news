@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.69] — 2026-10-05
+
+### Fixed
+- Isolate command-line smoke tests from source submissions that correctly omit specimen numbers; retain strict refusal and read-only checks on disposable fixtures.
+
 ## [0.2.62] — 2026-10-05
 
 ### Added
