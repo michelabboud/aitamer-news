@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.69: repaired the ambient numbering smoke-test failure from PR #189. Full suites pass 896 tests on numbered main and the exact 24-article source tree with the fix overlay. Required source integrity still waits editorial approval and workflow admission; no articles or ledger identities changed. [Evidence](docs/reports/2026-10-05-bot-submission-checks.md).
+
 - **2026-10-05** — 0.2.62 source: workflow numbering implemented, tested and reviewed. Live enforcement and controlled admissions pending. Recovery regression61 tests passed; full baseline suite841 tests passed before final streaming delta.
 - **2026-10-05** — 0.2.61: reusable human writer onboarding and Aviram profile prepared; 797 tests pass, author and opinion rendered fixtures pass. Article publication waits workflow-only numbering; not yet live.
 
