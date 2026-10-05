@@ -237,6 +237,8 @@ printf 'Handoff bundle: %s\nHero: %s\n' "$BUNDLE" "$HERO"
 
 Include `fields.json`, source-checks, hero.jpg, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
 
+Create `$BUNDLE/pr-evidence.md` with every field required under editorial acceptance above. Include actual public review findings and decisive outputs, not private credentials or a blanket success claim.
+
 Once the App's installation authentication is configured privately, it submits with these commands. The token must belong to `grok-bots-app`, whose bot account authors the PR; a maintainer's personal account is a separate publisher route. No author profile changes or merge permission are granted here.
 
 ```bash
@@ -251,11 +253,16 @@ python3 - <<'PYPR'
 import os
 from pathlib import Path
 p=Path(os.environ['BUNDLE'])
+# Write this reviewed public summary first, using real receipts rather than
+# generic success assertions. Do not copy credentials or private bundle data.
+evidence=p/'pr-evidence.md'
+if not evidence.exists() or not evidence.read_text().strip():
+    raise SystemExit('Missing reviewed pr-evidence.md: include sources/claims, '
+                     'disagreements, UTC pubDate/intent, hero URL, visual/browser '
+                     'findings and decisive command outputs.')
 p.joinpath('pr-body.md').write_text(
-    'Sourced Grok news briefing; hero uploaded and verified on bots.aitamer.news.\n\n'
-    'Builder, stamp, news preflight, post/media checks, tests and build passed. '
-    'Primary-source review evidence is retained in the handoff bundle.\n\n'
-    'Writer model: '+os.environ['MODEL']+'; submitted through the dedicated Grok App.\n')
+    'Writer model: '+os.environ['MODEL']+'; submitted through the dedicated Grok App.\n\n'
+    +evidence.read_text())
 PYPR
 gh pr create -R michelabboud/aitamer-news --base main --head "$BRANCH" \
   --title "News: $SLUG" --body-file "$BUNDLE/pr-body.md"
