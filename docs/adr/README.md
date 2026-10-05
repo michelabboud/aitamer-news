@@ -33,3 +33,4 @@
 
 - [Workflow-owned permanent specimen identities](0031-workflow-owned-specimens.md) — accepted for implementation 2026-10-05; every producer submits article/Habitat data, trusted-main workflow alone repairs numbering and appends the ledger, exact-head owner admission and strict current-base finalization; supersedes ADR 0030's producer-ledger permission. Live activation remains a separate gate.
 - [Featured writer metadata](0032-author-feature-metadata.md) — accepted 2026-10-05; human writers opt in, editorial ordering and opinion disclosures remain maintainer-controlled.
+- [Single-PR workflow admission](0033-single-pr-workflow-admission.md) — accepted for implementation 2026-10-05; owner reviews automatically wake trusted admission, workflow numbering appends to the original PR branch, and legacy proofs remain readable.
