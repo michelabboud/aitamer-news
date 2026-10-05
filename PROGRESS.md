@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-06** — 0.2.75 workflow candidate: all 14 hosted jobs pin Ubuntu 24.04; three Wrangler deployment inputs use stable 4.147.0; six action SHAs verified current. Full 933-test suite, production build/post/media/rendered checks, YAML/Bash validation and Worker dry-run passed. PR204 auto-merge disabled; independent reviews, exact-head remote CI, normal merge and deployment remain separate. [Inventory and retained runner failures](docs/reports/2026-10-06-workflow-runtime-refresh.md).
+
 - **2026-10-05** — 0.2.74 docs: enabled Grok single-PR instructions and exact-source correction handoff are published for bot use; producers need no manual admission dispatch, Actions-write permission or model disclosure. PR197 automatically numbered/certified then normally App-merged; queued finalizer auto-merge and its future publication are separate. Patch application, preflight and candidate checks passed in isolated source fixtures. [Bot handoff](docs/reports/2026-10-05-bot-review-handoff.md).
 
 - **2026-10-05** — 0.2.73 source: immutable owner-review receipts and original-root binding repair; deterministic numbering descendants carry approval, rebound roots are held, and observation bases use actual trusted checkout. Focused96/96, full933/933 and production build passed; both independent core reviews accepted. Normal CI/deploy and original197 runtime acceptance remain separate. [Report](docs/reports/2026-10-05-review-source-binding.md).

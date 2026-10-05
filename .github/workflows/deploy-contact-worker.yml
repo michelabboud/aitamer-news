@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -45,5 +45,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "4.139.0"
+          wranglerVersion: "4.147.0"
           command: deploy --config workers/contact/wrangler.toml

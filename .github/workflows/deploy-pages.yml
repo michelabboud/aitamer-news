@@ -21,7 +21,7 @@ on:
 
 jobs:
   settle:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions: {}
     # A newer run cancels an older one still waiting here: that is the whole debounce. Nothing else
     # happens in this job, so cancelling it never interrupts a deploy.
@@ -45,7 +45,7 @@ jobs:
 
   deploy:
     needs: settle
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
@@ -217,7 +217,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "4.139.0"
+          wranglerVersion: "4.147.0"
           command: pages deploy dist --project-name=aitamer-news --branch=deploy-candidate
 
       - name: Smoke-test the preview
@@ -232,7 +232,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "4.139.0"
+          wranglerVersion: "4.147.0"
           command: pages deploy dist --project-name=aitamer-news --branch=main
 
       - name: Smoke-test production

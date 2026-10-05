@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.75] — 2026-10-06
+
+### Changed
+- Pin all 14 hosted workflow jobs to Ubuntu 24.04 and refresh three Wrangler CLI deployment inputs to stable 4.147.0. Six direct action commit pins already match official latest stable releases and remain unchanged.
+- Preserve evidence that failed runs could not acquire a hosted runner; the OS migration notice and provider availability are separate. Trusted-main PR checks adopt the new runner label only after merge. [Verification and inventory](docs/reports/2026-10-06-workflow-runtime-refresh.md).
+
 ## [0.2.74] — 2026-10-05
 
 ### Fixed

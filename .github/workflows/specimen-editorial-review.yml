@@ -6,7 +6,7 @@ on:
 permissions: {}
 jobs:
   wake:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       # This PR-side workflow has no authority. Trusted-main reconciliation
       # independently reads the current PR and exact owner review from GitHub.
