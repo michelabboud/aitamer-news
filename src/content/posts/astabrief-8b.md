@@ -1,6 +1,6 @@
 ---
 title: "AstaBrief 8B: Ai2 open-weights cited scientific reports for Asta Fast mode"
-description: "Ai2 (Oct 2, 2026) open-sources AstaBrief 8B—Qwen3-8B with SFT+DPO for one-pass cited scientific reports. Live today as Asta Generate-a-report Fast mode beside Claude-powered Thinking; Apache-2.0 weights."
+description: "Ai2 (Oct 2, 2026) open-sources AstaBrief 8B, a Qwen3-8B model with SFT and DPO for one-pass cited scientific reports. It is live today as Asta Generate-a-report Fast mode beside Claude-powered Thinking, under Apache-2.0."
 pubDate: 2026-10-02T18:50:00Z
 specimen: 170
 section: models
@@ -23,8 +23,8 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "Oct 2: AstaBrief 8B open weights; Asta Fast mode today; Qwen3-8B SFT+DPO; one-pass cited reports; Apache-2.0"
-  claimed: "Ai2: Fast ~51.1s vs Thinking ~178.5s pipeline; 2025-era evals; 374 Fast users—approach validation not frontier rank"
-verdict: "Specialized open-weights report model for Asta Fast mode: one-pass cited scientific reports from Qwen3-8B SFT+DPO—not a general chat GA or Olmo release."
+  claimed: "Ai2: Fast ~51.1s vs Thinking ~178.5s; 2025 evals; 374 Fast users: design validation not frontier rank"
+verdict: "Specialized open-weights report model for Asta Fast mode: one-pass cited scientific reports from Qwen3-8B SFT+DPO, not a general chat GA or Olmo release."
 sources:
   - title: "Open-sourcing AstaBrief, the fast report-generation model in Asta — Ai2 / Hugging Face Blog"
     url: https://huggingface.co/blog/allenai/astabrief
@@ -32,7 +32,7 @@ sources:
     url: https://huggingface.co/allenai/AstaBrief_8B
 ---
 
-Ai2’s Hugging Face blog on **October 2, 2026** open-sources **AstaBrief 8B**—a model that turns a research question plus retrieved literature excerpts into a **cited scientific report** ([blog](https://huggingface.co/blog/allenai/astabrief), Kyle Wiggers / Ai2Comms). Weights and training data are released; the [model card](https://huggingface.co/allenai/AstaBrief_8B) states **Apache-2.0**.
+Ai2’s Hugging Face blog on **October 2, 2026** open-sources **AstaBrief 8B**: a model that turns a research question plus retrieved literature excerpts into a **cited scientific report** ([blog](https://huggingface.co/blog/allenai/astabrief), Kyle Wiggers / Ai2Comms). Weights and training data are released; the [model card](https://huggingface.co/allenai/AstaBrief_8B) states **Apache-2.0**.
 
 ## What it does
 
@@ -42,14 +42,14 @@ AstaBrief is built for **cited scientific report generation**, not general chat.
 
 Ai2 started from **Qwen3-8B**, then post-trained with **supervised fine-tuning (SFT)** and **direct preference optimization (DPO)**. Reinforcement learning was considered and not used for this release. The card notes the DPO checkpoint builds on an SFT sibling and preference pairs over report alternatives from multi-model synthetic targets.
 
-## Speed and evals (Ai2-attributed)
+## Speed and evals
 
-Ai2 reports full Asta pipeline averages of about **51.1 seconds** per report in Fast mode versus about **178.5 seconds** in Thinking mode (~3.5×)—**vendor pipeline times**, not an independent newsroom bench. The blog’s own caveat: most training and evaluation finished in **2025**, proprietary baselines reflect that era, and Ai2 has **not rerun** the full eval against today’s frontier models. Read the tables as **approach and system-design validation**, not a current frontier ranking. Early product usage notes (**374** Asta users who tried Fast, with retention and feedback figures in the blog) stay Ai2-attributed early signals.
+Ai2 reports full Asta pipeline averages of about **51.1 seconds** per report in Fast mode versus about **178.5 seconds** in Thinking mode (~3.5×). Those are Ai2’s own pipeline times, not an independent benchmark. The blog’s own caveat: most training and evaluation finished in **2025**, proprietary baselines reflect that era, and Ai2 has **not rerun** the full eval against today’s frontier models. Read the tables as **approach and system-design validation**, not a current frontier ranking. Early product usage notes (**374** Asta users who tried Fast, with retention and feedback figures in the blog) are early signals from Ai2.
 
 ## Who this is not
 
-This is a **specialized Asta report model**—not **Olmo-core 3** training-stack news, not a general chat-model GA, and not a substitute claim that Fast mode replaces Thinking for every research workflow.
+This is a **specialized Asta report model**, not **Olmo-core 3** training-stack news, not a general chat-model GA, and not a substitute claim that Fast mode replaces Thinking for every research workflow.
 
 ## Who should care
 
-Teams who want open weights for one-pass cited scientific reports—or who already use Asta Generate-a-report—should start at the [announcement](https://huggingface.co/blog/allenai/astabrief) and [`allenai/AstaBrief_8B`](https://huggingface.co/allenai/AstaBrief_8B). Treat latency and 2025-era eval numbers as Ai2’s stated evidence about the design they tested, not as today’s leaderboard.
+Teams who want open weights for one-pass cited scientific reports, or who already use Asta Generate-a-report, should start at the [announcement](https://huggingface.co/blog/allenai/astabrief) and [`allenai/AstaBrief_8B`](https://huggingface.co/allenai/AstaBrief_8B). Treat latency and 2025-era eval numbers as Ai2’s stated evidence about the design they tested, not as today’s leaderboard.
