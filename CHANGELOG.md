@@ -2,6 +2,24 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.73] — 2026-10-05
+
+### Fixed
+- Bind each owner review to its original trusted source despite GitHub moving its REST anchor after numbering; authenticate event receipts for new approvals and hold rebound roots.
+- Preserve original approval only through independently verified workflow numbering, and compare source observations against the actual trusted checkout instead of cached PR base metadata.
+
+## [0.2.72] — 2026-10-05
+
+### Fixed
+- Bound stale PR metadata readback after workflow numbering by the exact authoritative branch ref; conflicting pushes still fail immediately.
+- Notify the existing finalizer explicitly after trusted certification and await the exact admission run's completion before unchanged reconciliation.
+
+## [0.2.71] — 2026-10-05
+
+### Changed
+- Owner approval reviews automatically start workflow-only numbering and validation on the original PR; strict certified merge, legacy recovery and scheduled publication remain.
+- Source observations explain pending admission; withdrawn or superseded reviews enter durable holds.
+
 ## [0.2.70] — 2026-10-05
 
 ### Changed

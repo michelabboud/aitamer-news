@@ -1,8 +1,7 @@
 // The `publisher-paths` workflow (`.github/workflows/check-publisher-pr.yml`) installs main's
-// lockfile only for the posts App's pull requests, whose authors lane reads frontmatter with
-// js-yaml (ADR 0018); every other pull request is judged by the script with a bare `node`, as
-// before. This test runs that step's own shell, taken from the workflow file, with `npm` replaced
-// by a stub that records its arguments, and pins what the check step is given.
+// lockfile for the posts App's pull requests and article observations, whose trusted parsers
+// read frontmatter with js-yaml; ordinary pull requests retain the bare-node path guard.
+// These tests execute the workflow shell with stubbed commands and verify its routing.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -30,10 +29,28 @@ function runInstall(values) {
   chmodSync(join(bin, 'npm'), 0o755);
   const result = spawnSync('bash', ['-c', install.run], {
     encoding: 'utf8',
-    env: { PATH: `${bin}:${process.env.PATH}`, STUB_LOG: log, PR_AUTHOR_ID: '', POSTS_ACTOR_ID: '', ...values },
+    env: { PATH: `${bin}:${process.env.PATH}`, STUB_LOG: log, PR_AUTHOR_ID: '', POSTS_ACTOR_ID: '', ADMISSION_OBSERVATION: 'false', ...values },
   });
   const calls = existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').filter(Boolean) : [];
   return { status: result.status, output: `${result.stdout}${result.stderr}`, calls };
+}
+
+function runCheck(values) {
+  const dir = tempDir('publisher-check-');
+  const bin = join(dir, 'bin');
+  mkdirSync(bin);
+  const log = join(dir, 'calls.log');
+  writeFileSync(join(bin, 'node'), `#!/usr/bin/env bash\nprintf 'node %s\\n' "$*" >> "$STUB_LOG"\nexit "\${STUB_NODE_EXIT:-0}"\n`);
+  chmodSync(join(bin, 'node'), 0o755);
+  const result = spawnSync('bash', ['-c', check.run], {
+    encoding: 'utf8',
+    env: { PATH: `${bin}:${process.env.PATH}`, STUB_LOG: log, BASE_SHA: 'base', HEAD_SHA: 'head', ADMISSION_OBSERVATION: 'false', ...values },
+  });
+  return {
+    status: result.status,
+    output: `${result.stdout}${result.stderr}`,
+    calls: existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').filter(Boolean) : [],
+  };
 }
 
 test('the install step comes after setup-node and before the check, and reads ids from the environment only', () => {
@@ -50,7 +67,24 @@ test('the check step is given the head branch and the posts App’s id, next to 
   assert.equal(check.env.PR_HEAD_REF, '${{ github.event.pull_request.head.ref }}');
   assert.equal(check.env.POSTS_ACTOR_ID, '${{ vars.POSTS_ACTOR_ID }}');
   assert.equal(check.env.MAINTAINER_ID, '${{ vars.MAINTAINER_ID }}');
-  assert.equal(check.run, 'node scripts/check-publisher-paths.mjs pr --base "$BASE_SHA" --head "$HEAD_SHA"');
+  const run = runCheck({});
+  assert.equal(run.status, 0, run.output);
+  assert.deepEqual(run.calls, ['node scripts/check-publisher-paths.mjs pr --base base --head head']);
+});
+
+test('article observations use the trusted admission path parser and propagate unexpected failure', () => {
+  for (const status of [0, 1]) {
+    const run = runCheck({ ADMISSION_OBSERVATION: 'true', STUB_NODE_EXIT: String(status) });
+    assert.equal(run.status, status, run.output);
+    assert.deepEqual(run.calls, ['node scripts/specimen-admission.mjs observe-paths']);
+  }
+  assert.equal(runCheck({ STUB_NODE_EXIT: '1' }).status, 1);
+});
+
+test('article observations install trusted main dependencies without install scripts for any author', () => {
+  const run = runInstall({ ADMISSION_OBSERVATION: 'true', PR_AUTHOR_ID: '4242' });
+  assert.equal(run.status, 0, run.output);
+  assert.deepEqual(run.calls, ['npm ci --ignore-scripts --no-audit --no-fund']);
 });
 
 test('the Grok check gets trusted repository metadata and installs no proposal dependencies', () => {

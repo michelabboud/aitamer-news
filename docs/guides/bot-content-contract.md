@@ -63,7 +63,7 @@ title 200, description 400, heroAlt 300, verdict 240, wildness.verified and wild
 3. **`npm run preflight`**: the bots' own gate. It checks every post your branch adds or changes: hero present, on the media host, with `heroAlt`; `pubDate` on the grid and free; no em-dashes in the prose; title under 120, description under 260 and each wildness line under 110 characters; sources present. It also prints notes on "not X, but Y" sentences, question headings and hype words: read them and fix any that is a real break. It exits 1 on a problem. Fix every line before going on.
 4. Run `npm run check:candidate -- --base "$(git rev-parse origin/main)"` and `npm test`, with no unresolved reader-text warnings. The candidate check examines committed changes; commit corrections and repeat it before pushing. It issues no number.
 5. `npm run check:media` shows your hero answering 200, and `npm run check:times` passes (it is the check that refuses a repo hero path).
-6. Read the post and hero as a reader would and submit source/visual evidence. The owner admits the exact reviewed head through the workflow; technical green does not grant editorial or merge approval. Only the workflow-generated numbered PR may merge after strict checks.
+6. Read the post and hero as a reader would and submit source/visual evidence. The owner admits the exact reviewed head through the workflow; technical green does not grant editorial or merge approval. The owner approval review automatically starts admission on the same PR. Only its trusted certified numbered head may merge after strict current-base checks.
 
 ## 7. After the posts MCP is live
 
