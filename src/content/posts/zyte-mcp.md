@@ -56,7 +56,7 @@ Zyte cites an **internal** Markdown cleanup benchmark (35 HTML cleanup / HTML-to
 
 ## Who this is not
 
-This is **hosted Zyte API + Scrapy Cloud over MCP, not a Firecrawl scrape MCP lead, not Bright Data’s MCP story, not a local Scrapy MCP package as the primary path, and not a generic browser MCP.
+This is **hosted Zyte API + Scrapy Cloud over MCP**, not a Firecrawl scrape MCP lead, not Bright Data’s MCP story, not a local Scrapy MCP package as the primary path, and not a generic browser MCP.
 
 ## Who should care
 

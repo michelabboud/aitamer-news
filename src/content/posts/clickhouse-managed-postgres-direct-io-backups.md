@@ -28,7 +28,7 @@ sources:
     url: https://clickhouse.com/blog/direct-io-managed-postgres-backups
 ---
 
-ClickHouse Engineering on **October 2, 2026** explains why **ClickHouse Managed Postgres** uses **Direct I/O** for live base backups ([blog](https://clickhouse.com/blog/direct-io-managed-postgres-backups), Kaushik Iska). The lead is **Managed Postgres + wal-g backup I/O, not a ClickHouse analytics-engine product launch.
+ClickHouse Engineering on **October 2, 2026** explains why **ClickHouse Managed Postgres** uses **Direct I/O** for live base backups ([blog](https://clickhouse.com/blog/direct-io-managed-postgres-backups), Kaushik Iska). The lead is **Managed Postgres + wal-g backup I/O**, not a ClickHouse analytics-engine product launch.
 
 ## The problem Direct I/O targets
 
