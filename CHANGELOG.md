@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.78 — Publishing-App completion wakes (2026-10-06)
+
+- Verify recovery checkpoints from trusted-main finalizers triggered by authorized publishing Apps. Keep other actors on the scheduled fallback. Remove stale owner-approval wording from the path observation.
+
 ## 0.2.77 — Independent Grok numbering (2026-10-06)
 
 - Authorized Grok App article PRs start workflow numbering without owner editorial approval. Preserve technical checks, exact-source binding, normal same-PR merge and date-based publication.

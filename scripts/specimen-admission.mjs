@@ -626,7 +626,7 @@ export async function gate(api, env) {
 export function observePaths(env,{fetchCommits=fetchObjects,collect=collectAdmission,readGit=git}={}) {
   const base=sha(readGit('rev-parse','HEAD').trim()),head=sha(env.HEAD_SHA);fetchCommits(base,head);
   collect(base,head);
-  const summary='Article paths and repairable numbering checked. Waiting for trusted owner-approved admission; source observations grant no required success or merge permission.';
+  const summary='Article paths and repairable numbering checked. Waiting for trusted workflow numbering; source observations grant no required success or merge permission.';
   console.log(`::notice::${summary}`);
   if(process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
 }
@@ -721,7 +721,10 @@ async function verifyStateCertificate(api, head, content, state, owner) {
     const run=await api.request(`/actions/runs/${runID}`);
     // Each checkpoint is independently validated and certified before CAS. A later
     // unrelated failure in the same reconciler run does not undo that transition.
-    if (run.id===runID && workflowPath(run,FINALIZER_PATH) && run.head_branch==='main' && run.head_sha===state.policySHA && ['schedule','workflow_dispatch','workflow_run'].includes(run.event) && run.repository?.full_name===api.repo && (!run.head_repository || run.head_repository.full_name===api.repo) && [owner,ACTIONS_ACTOR].includes(run.actor?.id)) return;
+    // Completion wakes inherit the upstream publishing App actor even though the
+    // checkpoint is certified by Actions executing this trusted-main finalizer.
+    const trustedActor=[owner,ACTIONS_ACTOR].includes(run.actor?.id) || (run.event==='workflow_run' && [ALLOCATOR_ACTOR,GROK_ACTOR].includes(run.actor?.id));
+    if (run.id===runID && workflowPath(run,FINALIZER_PATH) && run.head_branch==='main' && run.head_sha===state.policySHA && ['schedule','workflow_dispatch','workflow_run'].includes(run.event) && run.repository?.full_name===api.repo && (!run.head_repository || run.head_repository.full_name===api.repo) && trustedActor) return;
   }
   throw new Error('protected state lacks independent trusted-main Actions certificate');
 }
