@@ -19,7 +19,7 @@ This is a dated review snapshot, not enduring approval of a moving branch. Read 
 
 **PR201:** the actual images show a train/track/switch, a balance scale/documents, a sheet/mesh magnifier, and review slips/ruler/pencil/paper clip. Describe those visible objects in the corresponding alt text. The acceptable 1600×900 paper-art JPEGs need no regeneration, new upload or URL change. Alt text follows the actual image, not the prompt. [Exact patch](2026-10-05-pr201-hero-alt-corrections.patch), SHA256 `76df117744ef756b3bb703c229f58512c958bf950c15ed3d38034948a07eefa8`.
 
-Independent editorial review found no further factual blockers in these three reviewed snapshots; all 11 submitted heroes passed public GET and visual/style review. This does not approve an uncorrected or changed head. PR201’s OpenRouter latency is an explicitly historical snapshot; current metric drift alone does not establish a false historical claim.
+Independent editorial review found no further factual blockers in these three reviewed snapshots; PR200/201’s 11 submitted heroes passed public GET and visual/style review; PR196 is a separate article. This does not approve an uncorrected or changed head. PR201’s OpenRouter latency is an explicitly historical snapshot; current metric drift alone does not establish a false historical claim.
 
 ## Apply one patch to its existing branch
 
