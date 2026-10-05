@@ -31,3 +31,9 @@ Operational activation requires verified identity/permissions, strict GitHub Act
 ## Status
 
 Accepted for implementation 2026-10-05 at the owner's request. Implementation/review and live activation evidence are recorded separately; this decision does not claim a deployed workflow or automatic editorial approval. See [the operator guide](../guides/workflow-owned-specimens.md) and [running plan](../plans/2026-10-05-workflow-owned-specimens.md).
+
+## Deployment refinement, October 5
+
+Live GitHub rejects built-in Actions integration15368 as a repository ruleset bypass actor. Reuse installed publishing App5107739, with repository-scoped contents/PR writes, for trusted workflow mutations. Keep Actions tokens for check/dispatch operations and keep main PR/check enforcement outside the App update-only bypass. Protect `specimens/*` before initialization.
+
+To keep reconciliation bounded, persist workflow-owned control state on `specimens/state`, with pending requests and a discovery cursor. Verify deployment completion once; preserve terminal evidence in history while excluding completed entries from hot polling. This is recovery metadata and introduces no queue.json admission requirement.

@@ -12,6 +12,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   specimen-integrity:
+    # Keep PR observations separate from the trusted allocation certificate.
+    name: ${{ startsWith(github.event.pull_request.head.ref, 'specimens/run-') && 'specimen-integrity-observation' || 'specimen-integrity' }}
     if: vars.SPECIMEN_ADMISSION_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:

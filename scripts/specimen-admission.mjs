@@ -1,5 +1,6 @@
 /** Trusted-main admission orchestration. Never executes code from a submitted tree. */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { planAdmission } from './specimen-admission-data.mjs';
@@ -9,6 +10,15 @@ const SHA = /^[a-f0-9]{40}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
 const POST = /^src\/content\/posts\/([a-z0-9]+(?:-[a-z0-9]+)*)\.md$/;
 const ACTIONS_ACTOR = 41898282;
+const ALLOCATOR_ACTOR = 334982782;
+const ALLOCATOR_APP = 5107739;
+const STATE_BRANCH = 'specimens/state';
+const STATE_PATH = 'specimen-state.json';
+const STATE_SCHEMA = 1;
+const STATE_CHECK = 'specimen-control-state';
+const FINALIZER_PATH = '.github/workflows/specimen-finalize.yml';
+const MAX_STATE_BYTES = 1024 * 1024;
+const MAX_PENDING_RUNS = 10000;
 const PAGE_SIZE = 100;
 const MAX_BLOB_BYTES = 1024 * 1024;
 const MAX_RECOVERY_ATTEMPTS = 3;
@@ -84,7 +94,7 @@ async function approvalPlan(api, run, owner, { collect = collectAdmission, fetch
   return { request, current, digest };
 }
 async function retryReceipts(api, pr) {
-  return (await api.list(`/issues/${integer(pr)}/comments`)).filter(c=>c.user?.id===ACTIONS_ACTOR && String(c.body).startsWith(RETRY_MARKER)).map(c=>{
+  return (await api.list(`/issues/${integer(pr)}/comments`)).filter(c=>c.user?.id===ALLOCATOR_ACTOR && String(c.body).startsWith(RETRY_MARKER)).map(c=>{
     try { return JSON.parse(c.body.slice(RETRY_MARKER.length)); } catch { return null; }
   }).filter(Boolean);
 }
@@ -148,7 +158,7 @@ export async function reconcileDeployment(api, pr, { now = Date.now(), completio
  * admitted head, actual server merge and successful deployed descendant again. */
 export async function terminalCompletion(api, pr, run, request, owner) {
   if (!pr?.merged_at && !pr?.merged) return false;
-  if (pr.user?.id!==ACTIONS_ACTOR || pr.head.repo?.full_name!==api.repo || pr.head.ref!==`specimens/run-${run.id}` || pr.base.ref!=='main') return false;
+  if (pr.user?.id!==ALLOCATOR_ACTOR || pr.head.repo?.full_name!==api.repo || pr.head.ref!==`specimens/run-${run.id}` || pr.base.ref!=='main') return false;
   const merge = sha(pr.merge_commit_sha), head=sha(pr.head.sha), base=sha(run.head_sha);
   const receipts = (await retryReceipts(api, pr.number)).filter(r=>r.kind==='completed' && r.merge===merge && r.admissionRun===run.id && r.head===head && r.base===base && r.rootRun===request.rootRun && r.source===request.source && DIGEST.test(r.digest));
   if (!receipts.length) return false;
@@ -172,10 +182,13 @@ const sha = value => { if (!SHA.test(value ?? '')) throw new Error('invalid comm
 const integer = value => { const n = Number(value); if (!Number.isSafeInteger(n) || n < 1) throw new Error('invalid positive ID'); return n; };
 export function repository(value) { if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value ?? '')) throw new Error('invalid repository'); return value; }
 export class GitHub {
-  constructor(repo, token, fetcher = fetch) { this.repo = repository(repo); this.token = token; this.fetcher = fetcher; }
+  constructor(repo, token, fetcher = fetch, writerToken) { this.repo = repository(repo); this.token = token; this.writerToken = writerToken; this.fetcher = fetcher; }
   async request(path, method = 'GET', body) {
     if (!path.startsWith('/')) throw new Error('invalid API path');
-    const response = await this.fetcher(`https://api.github.com/repos/${this.repo}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(30000), headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+    const privileged = method!=='GET' && !path.startsWith('/actions/') && !path.startsWith('/check-runs');
+    const token = privileged ? this.writerToken : this.token;
+    if (privileged && !token) throw new Error('publishing App token required for repository writes');
+    const response = await this.fetcher(`https://api.github.com/repos/${this.repo}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(30000), headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
     if (!response.ok) { const error = new Error(`GitHub ${method} ${path.split('?')[0]} failed (${response.status})`); error.status = response.status; throw error; }
     return response.status === 204 ? null : response.json();
   }
@@ -314,7 +327,7 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   const prs = await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${runId}`)}`);
   if (prs.length !== 1) throw new Error('expected exactly one generated admission PR');
   const pr = await api.request(`/pulls/${integer(prs[0].number)}`);
-  if (pr.user?.id !== ACTIONS_ACTOR || pr.head.repo?.full_name !== api.repo || pr.head.ref !== `specimens/run-${runId}` || pr.base.ref !== 'main' || (pr.base.repo && pr.base.repo.full_name !== api.repo)) throw new Error('generated PR identity mismatch');
+  if (pr.user?.id !== ALLOCATOR_ACTOR || pr.head.repo?.full_name !== api.repo || pr.head.ref !== `specimens/run-${runId}` || pr.base.ref !== 'main' || (pr.base.repo && pr.base.repo.full_name !== api.repo)) throw new Error('generated PR identity mismatch');
   const head = sha(pr.head.sha), base = sha(run.head_sha);
   const proof = await proofFor(api, base, head, owner, runId);
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
@@ -363,14 +376,14 @@ export async function gate(api, env) {
   if (result.requiresAdmission) await admissionProof(api, base, head, integer(env.MAINTAINER_ID));
   console.log(result.requiresAdmission ? 'Workflow-owned numbering proof accepted.' : 'No workflow-owned numbering changes.');
 }
-export async function sweep(api, env, { finalizeRun = finalize, recover = recoverRequest, completed = terminalCompletion } = {}) {
+export async function sweepHistory(api, env, { finalizeRun = finalize, recover = recoverRequest, completed = terminalCompletion } = {}) {
   if (env.GITHUB_REF !== 'refs/heads/main') throw new Error('sweep runs on main only');
   const owner = integer(env.MAINTAINER_ID);
   // Closed/merged PRs are included: a merge is not proof of deployment. Run titles
   // independently retain approved requests that failed before creating any PR.
   const byRun = new Map();
   for await (const pr of stream(api, '/pulls?state=all&sort=created&direction=desc')) {
-    if (pr.user?.id!==ACTIONS_ACTOR || pr.head.repo?.full_name!==api.repo || pr.base.ref!=='main' || !/^specimens\/run-\d+$/.test(pr.head.ref)) continue;
+    if (pr.user?.id!==ALLOCATOR_ACTOR || pr.head.repo?.full_name!==api.repo || pr.base.ref!=='main' || !/^specimens\/run-\d+$/.test(pr.head.ref)) continue;
     const id=integer(pr.head.ref.split('-').at(-1));
     if (byRun.has(id) && byRun.get(id).number!==pr.number) throw new Error('ambiguous generated admission PRs');
     byRun.set(id,pr);
@@ -410,8 +423,154 @@ export async function sweep(api, env, { finalizeRun = finalize, recover = recove
   }
   if (failed) throw new Error('one or more admissions blocked; evidence preserved');
 }
+function exactKeys(value, keys) {
+  return value && typeof value==='object' && !Array.isArray(value) && Object.keys(value).sort().join(',')===keys.slice().sort().join(',');
+}
+export function validateState(state, repo) {
+  if (!exactKeys(state,['schemaVersion','repository','policySHA','cursor','pending']) || state.schemaVersion!==STATE_SCHEMA || state.repository!==repo || !SHA.test(state.policySHA ?? '') || !Number.isSafeInteger(state.cursor) || state.cursor<0 || !Array.isArray(state.pending) || state.pending.length>MAX_PENDING_RUNS) throw new Error('invalid protected reconciliation state');
+  const seen=new Set();
+  for (const entry of state.pending) {
+    if (!exactKeys(entry,['id','status','reason']) || !Number.isSafeInteger(entry.id) || entry.id<1 || seen.has(entry.id) || !['pending','held'].includes(entry.status) || typeof entry.reason!=='string' || entry.reason.length>300 || /[\r\n]/.test(entry.reason)) throw new Error('invalid pending reconciliation entry');
+    seen.add(entry.id);
+  }
+  return state;
+}
+export async function verifyStateProtection(api, env) {
+  const rulesetID=integer(env.SPECIMEN_STATE_RULESET_ID);
+  const ruleset=await api.request(`/rulesets/${rulesetID}`);
+  const effective=await api.request(`/rules/branches/${encodeURIComponent(STATE_BRANCH)}`);
+  const bypass=ruleset.bypass_actors;
+  if (ruleset.id!==rulesetID || ruleset.target!=='branch' || ruleset.enforcement!=='active' || !Array.isArray(bypass) || !bypass.some(a=>a.actor_type==='Integration' && a.actor_id===ALLOCATOR_APP && a.bypass_mode==='always') || bypass.some(a=>!((a.actor_type==='Integration' && a.actor_id===ALLOCATOR_APP) || (a.actor_type==='RepositoryRole' && a.actor_id===5)))) throw new Error('state namespace is not restricted to publishing App and administrators');
+  for (const type of ['creation','update','deletion','non_fast_forward']) if (!effective.some(rule=>rule.type===type && rule.ruleset_id===rulesetID)) throw new Error(`protected state branch lacks ${type} restriction`);
+}
+async function verifyStateCertificate(api, head, content, state, owner) {
+  const digest=createHash('sha256').update(content).digest('hex');
+  const checks=await api.list(`/commits/${head}/check-runs`,'check_runs');
+  for (const check of checks) {
+    if (check.name!==STATE_CHECK || check.app?.id!==15368 || check.head_sha!==head || check.status!=='completed' || check.conclusion!=='success') continue;
+    const parts=String(check.external_id ?? '').split(':');
+    if (parts.length!==4 || parts[0]!==api.repo || parts[1]!==head || parts[2]!==digest || !/^[1-9]\d*$/.test(parts[3])) continue;
+    const runID=integer(parts[3]);
+    if (check.details_url!==`https://github.com/${api.repo}/actions/runs/${runID}`) continue;
+    const run=await api.request(`/actions/runs/${runID}`);
+    // Each checkpoint is independently validated and certified before CAS. A later
+    // unrelated failure in the same reconciler run does not undo that transition.
+    if (run.id===runID && workflowPath(run,FINALIZER_PATH) && run.head_branch==='main' && run.head_sha===state.policySHA && ['schedule','workflow_dispatch','workflow_run'].includes(run.event) && run.repository?.full_name===api.repo && (!run.head_repository || run.head_repository.full_name===api.repo) && [owner,ACTIONS_ACTOR].includes(run.actor?.id)) return;
+  }
+  throw new Error('protected state lacks independent trusted-main Actions certificate');
+}
+export async function loadState(api, env) {
+  await verifyStateProtection(api,env);
+  let ref;
+  try { ref=await api.request(`/git/ref/heads/${STATE_BRANCH}`); }
+  catch(error) { if (error.status!==404) throw error; return {head:null,state:{schemaVersion:STATE_SCHEMA,repository:api.repo,policySHA:sha(env.GITHUB_SHA),cursor:0,pending:[]}}; }
+  const head=sha(ref.object?.sha);
+  const commit=await api.request(`/git/commits/${head}`);
+  if (commit.sha!==head || commit.parents?.length!==1) throw new Error('invalid state commit ancestry');
+  const tree=await api.request(`/git/trees/${sha(commit.tree?.sha)}`);
+  if (tree.truncated || !Array.isArray(tree.tree) || tree.tree.length!==1 || tree.tree[0].path!==STATE_PATH || tree.tree[0].mode!=='100644' || tree.tree[0].type!=='blob') throw new Error('state tree must contain one regular state blob');
+  const blob=await api.request(`/git/blobs/${sha(tree.tree[0].sha)}`);
+  if (blob.encoding!=='base64' || !Number.isSafeInteger(blob.size) || blob.size<1 || blob.size>MAX_STATE_BYTES || typeof blob.content!=='string') throw new Error('invalid state blob');
+  const bytes=Buffer.from(blob.content,'base64'), text=bytes.toString('utf8');
+  if (bytes.length!==blob.size || !bytes.equals(Buffer.from(text))) throw new Error('invalid state encoding');
+  const state=validateState(JSON.parse(text),api.repo);
+  await verifyStateCertificate(api,head,bytes,state,integer(env.MAINTAINER_ID));
+  const current=sha((await api.request('/git/ref/heads/main')).object.sha);
+  if (!await containsMerge(api,state.policySHA,current)) throw new Error('state policy is outside trusted main history');
+  return {head,state};
+}
+export async function saveState(api, observed, state, env) {
+  state={...state,policySHA:sha(env.GITHUB_SHA)};
+  validateState(state,api.repo);
+  const content=JSON.stringify(state)+'\n';
+  if (Buffer.byteLength(content)>MAX_STATE_BYTES) throw new Error('protected state exceeds size bound');
+  const parent=observed.head ?? sha(env.GITHUB_SHA);
+  const tree=await api.request('/git/trees','POST',{tree:[{path:STATE_PATH,mode:'100644',type:'blob',content}]});
+  const commit=await api.request('/git/commits','POST',{message:`Specimen reconciliation state from trusted main ${state.policySHA}`,tree:sha(tree.sha),parents:[parent]});
+  const head=sha(commit.sha);
+  const runID=integer(env.GITHUB_RUN_ID);
+  const digest=createHash('sha256').update(content).digest('hex');
+  await api.request('/check-runs','POST',{name:STATE_CHECK,head_sha:head,status:'completed',conclusion:'success',external_id:`${api.repo}:${head}:${digest}:${runID}`,details_url:`https://github.com/${api.repo}/actions/runs/${runID}`,output:{title:'Protected specimen reconciliation checkpoint',summary:`Validated schema ${STATE_SCHEMA}; cursor ${state.cursor}; pending ${state.pending.length}; source ${state.policySHA}. Checkpoint completion is independent of later reconciliation outcomes.`}});
+  // Each new commit descends only from the observed head. A concurrent writer's
+  // different commit makes this non-force update fail instead of overwriting it.
+  if (observed.head) await api.request(`/git/refs/heads/${STATE_BRANCH}`,'PATCH',{sha:head,force:false});
+  else await api.request('/git/refs','POST',{ref:`refs/heads/${STATE_BRANCH}`,sha:head});
+  return {head,state};
+}
+export async function sweep(api, env, { finalizeRun=finalize, recover=recoverRequest, completed=terminalCompletion, load=loadState, save=saveState }={}) {
+  if (env.GITHUB_REF!=='refs/heads/main') throw new Error('sweep runs on main only');
+  const owner=integer(env.MAINTAINER_ID);
+  let observed=await load(api,env);
+  const state=structuredClone(observed.state);
+  const pending=new Map(state.pending.map(entry=>[entry.id,entry]));
+  let highWater=null, reached=state.cursor===0;
+  // Runs are listed newest first. Queued/running trusted requests are enrolled
+  // before the cursor moves, so their later completion cannot fall behind it.
+  for await (const run of stream(api,'/actions/workflows/specimen-admission.yml/runs','workflow_runs')) {
+    const id=integer(run.id);
+    if (highWater===null) highWater=id;
+    if (id===state.cursor) { reached=true; break; }
+    if (!trustedRun(run,api.repo,owner)) continue;
+    if (!pending.has(id)) {
+      let status='pending', reason='';
+      try { requestOf(run); } catch(error) { status='held'; reason=error.message.slice(0,300).replace(/[\r\n]/g,' '); }
+      pending.set(id,{id,status,reason});
+    }
+    if (pending.size>MAX_PENDING_RUNS) throw new Error('pending reconciliation capacity exceeded');
+  }
+  if (!reached) throw new Error('workflow history did not reach discovery cursor');
+  state.cursor=highWater ?? state.cursor; state.pending=[...pending.values()].sort((a,b)=>a.id-b.id);
+  if (!observed.head || JSON.stringify(state)!==JSON.stringify(observed.state)) observed=await save(api,observed,state,env);
+  const groups=new Map();
+  let failed=false;
+  for (const entry of state.pending.filter(entry=>entry.status==='pending')) {
+    try {
+      const run=await api.request(`/actions/runs/${entry.id}`);
+      if (run.id!==entry.id || !trustedRun(run,api.repo,owner)) throw new Error('pending run identity changed');
+      if (run.status!=='completed') continue;
+      const request=await approvedRequest(api,run,owner);
+      const prs=await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${run.id}`)}`);
+      if (prs.length>1) throw new Error('ambiguous generated admission PRs');
+      const pr=prs[0];
+      const key=`${request.pr}:${request.source}`;
+      if (!groups.has(key)) groups.set(key,[]);
+      groups.get(key).push({entry,run,request,pr});
+    } catch(error) {
+      // API/transient failures remain pending. Only explicit safety/approval holds
+      // below are retired from hot polling; their prior state commits retain evidence.
+      failed=true; console.error(`Admission run ${entry.id}: ${error.message}`);
+    }
+  }
+  for (const candidates of groups.values()) {
+    candidates.sort((a,b)=>a.run.id-b.run.id);
+    const latestRoot=Math.max(...candidates.map(c=>c.request.rootRun));
+    const active=candidates.filter(c=>c.request.rootRun===latestRoot);
+    const selected=candidates.findLast(c=>c.pr?.merged_at || c.pr?.merged) ?? active.findLast(c=>c.run.conclusion==='success' && c.pr?.state==='open') ?? active.at(-1);
+    const {run,request,pr}=selected;
+    try {
+      let outcome;
+      if (run.conclusion==='success' && pr && (pr.state==='open' || pr.merged_at || pr.merged)) {
+        outcome=await completed(api,pr,run,request,owner) ? 'deployed' : await finalizeRun(api,{...env,ADMISSION_RUN_ID:String(run.id)});
+      } else if (!pr || pr.state==='open') outcome=await recover(api,run,env);
+      else throw new Error('generated admission was withdrawn; owner intervention required');
+      if (outcome==='deployed') {
+        const ids=new Set(candidates.map(c=>c.entry.id));
+        state.pending=state.pending.filter(entry=>!ids.has(entry.id));
+        observed=await save(api,observed,state,env);
+      }
+    } catch(error) {
+      const held=/approval withdrawn|review revoked|editorial content changed|approved content changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
+      if (held) {
+        for (const candidate of candidates) { candidate.entry.status='held'; candidate.entry.reason=error.message.slice(0,300).replace(/[\r\n]/g,' '); }
+        observed=await save(api,observed,state,env);
+      }
+      failed=true; console.error(`Admission run ${run.id}: ${error.message}`);
+    }
+  }
+  if (failed) throw new Error('one or more admissions blocked; protected state retained');
+}
 export async function main(args, env = process.env) {
-  const api = new GitHub(env.GITHUB_REPOSITORY, env.GH_TOKEN);
+  const api = new GitHub(env.GITHUB_REPOSITORY, env.GH_TOKEN, fetch, env.SPECIMEN_WRITE_TOKEN);
   switch (args[0]) {
     case 'prepare': return prepare(api, env);
     case 'materialize': return materialize(env);

@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { approvedRequest, collectAdmission, GitHub, finalize, prepare, recoverRequest, reconcileDeployment, requestOf, sweep, terminalCompletion } from './specimen-admission.mjs';
+import { approvedRequest, collectAdmission, GitHub, finalize, prepare, recoverRequest, reconcileDeployment, requestOf, sweepHistory as sweep, sweep as indexedSweep, loadState, saveState, validateState, terminalCompletion } from './specimen-admission.mjs';
 
 const REPO = 'owner/site';
 const OWNER = 42;
-const BOT = 41898282;
+const BOT = 334982782;
+const ACTIONS = 41898282;
 const BASE = 'a'.repeat(40);
 const SOURCE = 'b'.repeat(40);
 const CURRENT = 'c'.repeat(40);
@@ -103,7 +105,7 @@ test('durable run titles retain PR/source without API inputs and reject unsafe i
 
 test('automatic recovery authenticates the full ancestry to an immutable owner request', async () => {
   const api = new API();
-  const retry = run(11,{actor:{id:BOT},head_sha:CURRENT,display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`});
+  const retry = run(11,{actor:{id:ACTIONS},head_sha:CURRENT,display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`});
   api.runs.push(retry);
   const approved = await approvedRequest(api,retry,OWNER);
   assert.equal((await approvedRequest(api,run(10,{path:'.github/workflows/specimen-admission.yml@main'}),OWNER)).rootRun,10);
@@ -117,13 +119,13 @@ test('automatic recovery authenticates the full ancestry to an immutable owner r
 
 test('forged recovery roots, cycles and incomplete predecessors fail closed', async () => {
   const api = new API();
-  await assert.rejects(approvedRequest(api,run(11,{actor:{id:BOT}}),OWNER),/no owner request/);
+  await assert.rejects(approvedRequest(api,run(11,{actor:{id:ACTIONS}}),OWNER),/no owner request/);
   await assert.rejects(approvedRequest(api,run(11,{display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}),OWNER),/owner request/);
-  const retry = run(11,{actor:{id:BOT},display_title:`Specimen request pr=7 head=${SOURCE} recovery=11`});
+  const retry = run(11,{actor:{id:ACTIONS},display_title:`Specimen request pr=7 head=${SOURCE} recovery=11`});
   api.runs.push(retry);
   await assert.rejects(approvedRequest(api,retry,OWNER),/ancestry/);
   api.runs[0].status='in_progress';
-  await assert.rejects(approvedRequest(api,run(12,{actor:{id:BOT},display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}),OWNER),/did not complete/);
+  await assert.rejects(approvedRequest(api,run(12,{actor:{id:ACTIONS},display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}),OWNER),/did not complete/);
 });
 
 test('lost dispatch responses retain bounded retry intent and use the original source', async () => {
@@ -157,7 +159,7 @@ test('accepted dispatch with lost response does not dispatch again while success
   const api = new API();
   api.after = path=>{
     if (!path.endsWith('/dispatches')) return;
-    api.runs.push(run(11,{actor:{id:BOT},status:'queued',conclusion:null,display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+    api.runs.push(run(11,{actor:{id:ACTIONS},status:'queued',conclusion:null,display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
     throw new Error('lost after accepted');
   };
   await assert.rejects(recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),/lost after/);
@@ -192,9 +194,9 @@ test('stale finalized predecessor remains open across dispatch and replacement p
   const api = new API();
   assert.equal(await finalize(api,ENV,finalDependencies({recover:(a,r,e,d)=>recoverRequest(a,r,e,{now:NOW,...d})})),'dispatched');
   assert.equal(api.prs[0].state,'open');
-  api.runs.push(run(11,{actor:{id:BOT},conclusion:'failure',head_sha:CURRENT,display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  api.runs.push(run(11,{actor:{id:ACTIONS},conclusion:'failure',head_sha:CURRENT,display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
   api.current='9'.repeat(40);
-  await assert.rejects(prepare(api,{...ENV,PR_NUMBER:'7',SOURCE_SHA:SOURCE,GITHUB_SHA:CURRENT,GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_ACTOR_ID:String(BOT),GITHUB_RUN_ID:'11',RECOVERY_RUN:'10'}),/main advanced/);
+  await assert.rejects(prepare(api,{...ENV,PR_NUMBER:'7',SOURCE_SHA:SOURCE,GITHUB_SHA:CURRENT,GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_ACTOR_ID:String(ACTIONS),GITHUB_RUN_ID:'11',RECOVERY_RUN:'10'}),/main advanced/);
   let reconciled=0;
   await sweep(api,ENV,{finalizeRun:async(a,e)=>{
     reconciled++; assert.equal(e.ADMISSION_RUN_ID,'10');
@@ -259,7 +261,7 @@ test('wrong repository/workflow/branch/event or unrelated successful deploy cann
 
 test('sweep discovers failed/cancelled/no-PR requests and reconciles one action per source', async () => {
   const api = new API(); api.prs=[];
-  api.runs=[run(10,{conclusion:'failure'}),run(11,{actor:{id:BOT},conclusion:'cancelled',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}),run(12,{conclusion:'failure',display_title:`Specimen request pr=8 head=${HEAD} recovery=0`}),run(13,{actor:{id:999}})];
+  api.runs=[run(10,{conclusion:'failure'}),run(11,{actor:{id:ACTIONS},conclusion:'cancelled',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}),run(12,{conclusion:'failure',display_title:`Specimen request pr=8 head=${HEAD} recovery=0`}),run(13,{actor:{id:999}})];
   const recovered=[];
   await sweep(api,ENV,{recover:async(_api,r)=>recovered.push(r.id),finalizeRun:async()=>assert.fail('no generated PR')});
   assert.deepEqual(recovered,[11,12]);
@@ -275,7 +277,7 @@ test('an explicit new owner request restores a fresh bounded retry lineage', asy
 
 test('merged successor takes priority over stale predecessors and failed attempts', async () => {
   const api = new API();
-  api.runs.push(run(11,{actor:{id:BOT},display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}),run(12,{actor:{id:BOT},conclusion:'failure',display_title:`Specimen request pr=7 head=${SOURCE} recovery=11`}));
+  api.runs.push(run(11,{actor:{id:ACTIONS},display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}),run(12,{actor:{id:ACTIONS},conclusion:'failure',display_title:`Specimen request pr=7 head=${SOURCE} recovery=11`}));
   api.prs.push(generatedPR({number:101,head:{sha:HEAD,ref:'specimens/run-11',repo:{full_name:REPO}},state:'closed',merged_at:'2026-10-05T12:00:00Z',merge_commit_sha:MERGE}));
   const finalized=[];
   await sweep(api,ENV,{finalizeRun:async(_api,e)=>finalized.push(e.ADMISSION_RUN_ID),recover:async()=>assert.fail('merged admission must not allocate again')});
@@ -394,4 +396,125 @@ test('old unresolved pre-PR requests remain discoverable beyond a thousand newer
   const recovered=[];
   await sweep(api,ENV,{recover:async(_api,r)=>recovered.push(r.id)});
   assert.deepEqual(recovered,[10]);
+});
+
+
+const STATE_ENV={...ENV,GITHUB_SHA:BASE,GITHUB_RUN_ID:'500',SPECIMEN_STATE_RULESET_ID:'24488522'};
+const stateOf=(overrides={})=>({schemaVersion:1,repository:REPO,policySHA:BASE,cursor:10,pending:[],...overrides});
+function memoryIndex(initial) {
+  let record={head:initial ? HEAD : null,state:structuredClone(initial ?? stateOf({cursor:0}))};
+  const writes=[];
+  return {writes,get:()=>structuredClone(record),load:async()=>structuredClone(record),save:async(_api,observed,state)=>{
+    assert.equal(observed.head,record.head);
+    record={head:HEAD,state:structuredClone(state)}; writes.push(structuredClone(record)); return structuredClone(record);
+  }};
+}
+
+class StateAPI extends API {
+  constructor(state=stateOf()) {
+    super(); this.state=state; this.stateHead=HEAD; this.stateContent=JSON.stringify(state)+'\n'; this.stateTree='3'.repeat(40); this.stateBlob='4'.repeat(40); this.stateCommit='5'.repeat(40); this.certificates=[];
+    this.ruleset={id:24488522,target:'branch',enforcement:'active',bypass_actors:[{actor_type:'Integration',actor_id:5107739,bypass_mode:'always'},{actor_type:'RepositoryRole',actor_id:5,bypass_mode:'always'}]};
+    this.stateRules=['creation','update','deletion','non_fast_forward'].map(type=>({type,ruleset_id:24488522}));
+    this.finalizer={id:500,path:'.github/workflows/specimen-finalize.yml',head_sha:BASE,head_branch:'main',event:'schedule',actor:{id:OWNER},repository:{full_name:REPO},status:'in_progress',conclusion:null};
+    this.certificate={name:'specimen-control-state',head_sha:HEAD,status:'completed',conclusion:'success',app:{id:15368},external_id:`${REPO}:${HEAD}:${createHash('sha256').update(this.stateContent).digest('hex')}:500`,details_url:`https://github.com/${REPO}/actions/runs/500`};
+  }
+  async request(path,method='GET',body) {
+    const own=path.startsWith('/rulesets/') || path==='/rules/branches/specimens%2Fstate' || path==='/git/ref/heads/specimens/state' || path===`/git/commits/${HEAD}` || path===`/git/trees/${this.stateTree}` || path===`/git/blobs/${this.stateBlob}` || path==='/actions/runs/500' || (['/git/trees','/git/commits','/git/refs','/git/refs/heads/specimens/state','/check-runs'].includes(path) && method!=='GET');
+    if (!own) return super.request(path,method,body);
+    this.calls.push({path,method,body}); if(this.before) await this.before(path,method,body);
+    let result;
+    if(path.startsWith('/rulesets/')) result=this.ruleset;
+    else if(path==='/rules/branches/specimens%2Fstate') result=this.stateRules;
+    else if(path==='/git/ref/heads/specimens/state') {if(!this.stateHead){const error=new Error('missing');error.status=404;throw error;} result={object:{sha:this.stateHead}};}
+    else if(path===`/git/commits/${HEAD}`) result={sha:HEAD,tree:{sha:this.stateTree},parents:[{sha:BASE}]};
+    else if(path===`/git/trees/${this.stateTree}`) result={truncated:false,tree:[{path:'specimen-state.json',mode:this.badMode ?? '100644',type:'blob',sha:this.stateBlob}]};
+    else if(path===`/git/blobs/${this.stateBlob}`) result={encoding:'base64',size:Buffer.byteLength(this.stateContent),content:Buffer.from(this.stateContent).toString('base64')};
+    else if(path==='/actions/runs/500') result=this.finalizer;
+    else if(path==='/git/trees' && method==='POST') {this.savedTree=body;result={sha:this.stateTree};}
+    else if(path==='/git/commits' && method==='POST') {this.savedCommit=body;result={sha:this.stateCommit};}
+    else if(path==='/check-runs' && method==='POST') {this.certificates.push(body);result={id:900};}
+    else if(path==='/git/refs/heads/specimens/state' && method==='PATCH') {
+      if(body.force!==false || this.savedCommit.parents[0]!==this.stateHead){const error=new Error('non-fast-forward');error.status=422;throw error;} this.stateHead=body.sha;result={object:{sha:body.sha}};
+    } else if(path==='/git/refs' && method==='POST') {if(this.stateHead){const error=new Error('exists');error.status=422;throw error;}this.stateHead=body.sha;result={object:{sha:body.sha}};}
+    else throw new Error('Unexpected state fixture request');
+    if(this.after) await this.after(path,method,body); return result;
+  }
+  async list(path,key) {if(path===`/commits/${HEAD}/check-runs`){this.calls.push({path,method:'LIST'});return[this.certificate];}return super.list(path,key);}
+}
+
+test('dual credentials route repository writes to publishing App while Actions/checks/reads keep GHA', async () => {
+  const calls=[];
+  const client=new GitHub(REPO,'actions-token',async(address,options)=>{calls.push({path:new URL(address).pathname,token:options.headers.Authorization});return new Response('{}',{status:200});},'app-token');
+  for(const [path,method] of [['/pulls/7','GET'],['/pulls','POST'],['/git/trees','POST'],['/issues/7/comments','POST'],['/actions/workflows/specimen-admission.yml/dispatches','POST'],['/check-runs','POST']]) await client.request(path,method,{});
+  assert.deepEqual(calls.map(c=>c.token),['Bearer actions-token','Bearer app-token','Bearer app-token','Bearer app-token','Bearer actions-token','Bearer actions-token']);
+  await assert.rejects(new GitHub(REPO,'actions-token',async()=>assert.fail()).request('/git/refs','POST',{}),/publishing App token required/);
+});
+
+test('state accepts only bounded exact schema and regular blob authenticated by trusted-main Actions', async () => {
+  const api=new StateAPI();
+  const loaded=await loadState(api,STATE_ENV); assert.equal(loaded.head,HEAD); assert.deepEqual(loaded.state,stateOf());
+  api.finalizer.status='completed';api.finalizer.conclusion='failure';
+  assert.equal((await loadState(api,STATE_ENV)).head,HEAD,'later unrelated run failure does not undo certified checkpoint');
+  for(const alter of [state=>{state.extra=true;},state=>{state.schemaVersion=2;},state=>{state.repository='fork/site';},state=>{state.pending=[{id:1,status:'pending',reason:''},{id:1,status:'held',reason:'x'}];},state=>{state.pending=[{id:1,status:'completed',reason:''}];}]) {const state=stateOf();alter(state);assert.throws(()=>validateState(state,REPO));}
+  api.badMode='100755';await assert.rejects(loadState(api,STATE_ENV),/regular state blob/);
+  api.badMode=undefined;api.certificate.app.id=5107739;await assert.rejects(loadState(api,STATE_ENV),/Actions certificate/);
+  api.certificate.app.id=15368;api.finalizer.head_branch='feature';await assert.rejects(loadState(api,STATE_ENV),/Actions certificate/);
+});
+
+test('state initialization requires actual protected namespace before any write', async () => {
+  const api=new StateAPI();api.stateHead=null;
+  const fresh=await loadState(api,STATE_ENV);assert.equal(fresh.head,null);assert.equal(fresh.state.cursor,0);
+  api.ruleset.bypass_actors.push({actor_type:'Integration',actor_id:99,bypass_mode:'always'});
+  await assert.rejects(loadState(api,STATE_ENV),/restricted to publishing App/);
+  assert.deepEqual(api.mutations(),[]);
+});
+
+test('state certifies exact blob before non-force CAS and rejects stale concurrent writers', async () => {
+  const api=new StateAPI();const loaded=await loadState(api,STATE_ENV);
+  const next=stateOf({cursor:11,pending:[{id:11,status:'pending',reason:''}]});
+  const saved=await saveState(api,loaded,next,STATE_ENV);assert.equal(saved.head,api.stateCommit);
+  assert.deepEqual(api.savedCommit.parents,[HEAD]);
+  const mut=api.mutations();assert.equal(mut.at(-2).path,'/check-runs');assert.equal(mut.at(-1).body.force,false);
+  const certificate=api.certificates[0];const content=api.savedTree.tree[0].content;
+  assert.equal(certificate.external_id,`${REPO}:${api.stateCommit}:${createHash('sha256').update(content).digest('hex')}:500`);
+  await assert.rejects(saveState(api,loaded,next,STATE_ENV),/non-fast-forward/);
+});
+
+test('cursor enrollment is durable before dispatch and retains queued runs until completion', async () => {
+  const api=new API();api.prs=[];api.runs=[run(12,{status:'queued',conclusion:null}),run(11,{conclusion:'failure'}),run(10)];
+  const index=memoryIndex(stateOf());
+  const recovered=[];
+  await indexedSweep(api,STATE_ENV,{...index,recover:async(_api,r)=>{assert.equal(index.get().state.cursor,12);assert.ok(index.get().state.pending.some(p=>p.id===r.id));recovered.push(r.id);return'dispatched';}});
+  assert.deepEqual(recovered,[11]);assert.deepEqual(index.get().state.pending.map(p=>p.id),[11,12]);
+  api.runs[0].status='completed';api.runs[0].conclusion='failure';
+  await indexedSweep(api,STATE_ENV,{...index,recover:async(_api,r)=>{recovered.push(r.id);return'dispatched';}});
+  assert.ok(recovered.includes(12));
+});
+
+test('idle index performs constant discovery work and never reproves retired completed history', async () => {
+  const api=new API();api.runs=[run(9999),...Array.from({length:1200},(_,i)=>run(i+1))];
+  const index=memoryIndex(stateOf({cursor:9999}));
+  for(let i=0;i<12;i++) await indexedSweep(api,STATE_ENV,{...index,completed:async()=>assert.fail('retired completion must not be reproved'),finalizeRun:async()=>assert.fail(),recover:async()=>assert.fail()});
+  assert.equal(api.calls.length,12);assert.equal(index.writes.length,0);
+  assert.ok(api.calls.every(c=>c.path==='/actions/workflows/specimen-admission.yml/runs'));
+});
+
+test('verified deployment retires pending IDs once; failed CAS cannot erase outstanding evidence', async () => {
+  const api=new API();api.runs=[run()];
+  const index=memoryIndex(stateOf({pending:[{id:10,status:'pending',reason:''}]}));
+  await indexedSweep(api,STATE_ENV,{...index,completed:async()=>false,finalizeRun:async()=> 'deployed'});
+  assert.deepEqual(index.get().state.pending,[]);
+  const retryIndex=memoryIndex(stateOf({pending:[{id:10,status:'pending',reason:''}]}));
+  await assert.rejects(indexedSweep(api,STATE_ENV,{...retryIndex,completed:async()=>false,finalizeRun:async()=> 'deployed',save:async()=>{throw new Error('CAS refused');}}),/protected state retained/);
+  assert.equal(retryIndex.get().state.pending.length,1);
+});
+
+test('revoked/exhausted requests are durably held without repeated API proof until fresh owner dispatch', async () => {
+  const api=new API();api.prs=[];api.runs=[run()];
+  const index=memoryIndex(stateOf({pending:[{id:10,status:'pending',reason:''}]}));
+  await assert.rejects(indexedSweep(api,STATE_ENV,{...index,recover:async()=>{throw new Error('owner review revoked');}}),/protected state retained/);
+  assert.equal(index.get().state.pending[0].status,'held');
+  api.calls=[];await indexedSweep(api,STATE_ENV,index);assert.equal(api.calls.length,1);
+  api.runs.unshift(run(11,{conclusion:'failure'}));let recovered=0;
+  await indexedSweep(api,STATE_ENV,{...index,recover:async()=>{recovered++;return'dispatched';}});assert.equal(recovered,1);
 });

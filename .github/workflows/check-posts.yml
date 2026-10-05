@@ -10,7 +10,8 @@ name: Check posts
 on:
   pull_request:
   push:
-    branches-ignore: [main]
+    # The protected control-state branch has no application tree or package manifest.
+    branches-ignore: [main, specimens/state]
 
 permissions:
   contents: read
@@ -21,6 +22,9 @@ concurrency:
 
 jobs:
   check:
+    # Both PR and push checks remain observations on admission-generated branches.
+    # A matching branch name supplies no required certificate and no merge authority.
+    name: ${{ startsWith(github.event.pull_request.head.ref || github.ref_name, 'specimens/run-') && 'check-observation' || 'check' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

@@ -18,7 +18,7 @@ jobs:
       contents: write
       pull-requests: write
       actions: write
-      checks: read
+      checks: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -29,8 +29,18 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Mint repository-scoped publishing App token
+        run: node scripts/workflow-app-token.mjs
+        env:
+          SPECIMEN_APP_ID: ${{ vars.SPECIMEN_APP_ID }}
+          SPECIMEN_INSTALLATION_ID: ${{ vars.SPECIMEN_INSTALLATION_ID }}
+          SPECIMEN_APP_PRIVATE_KEY: ${{ secrets.SPECIMEN_APP_PRIVATE_KEY }}
       - name: Reconcile successful admissions against current main
         run: node scripts/specimen-admission.mjs sweep
         env:
           GH_TOKEN: ${{ github.token }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
+          SPECIMEN_STATE_RULESET_ID: ${{ vars.SPECIMEN_STATE_RULESET_ID }}
+      - name: Revoke run-local publishing token
+        if: always()
+        run: node scripts/workflow-app-token.mjs revoke

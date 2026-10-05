@@ -41,6 +41,12 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Mint repository-scoped publishing App token
+        run: node scripts/workflow-app-token.mjs
+        env:
+          SPECIMEN_APP_ID: ${{ vars.SPECIMEN_APP_ID }}
+          SPECIMEN_INSTALLATION_ID: ${{ vars.SPECIMEN_INSTALLATION_ID }}
+          SPECIMEN_APP_PRIVATE_KEY: ${{ secrets.SPECIMEN_APP_PRIVATE_KEY }}
       - id: prepare
         run: node scripts/specimen-admission.mjs prepare
         env:
@@ -49,6 +55,9 @@ jobs:
           SOURCE_SHA: ${{ inputs.head_sha }}
           RECOVERY_RUN: ${{ inputs.recovery_run }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
+      - name: Revoke run-local publishing token
+        if: always()
+        run: node scripts/workflow-app-token.mjs revoke
   validate:
     needs: prepare
     runs-on: ubuntu-latest
