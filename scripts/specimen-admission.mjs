@@ -255,12 +255,16 @@ export function receiptOf(check) {
   if (parts.length !== 5) return null;
   return { repository: parts[0], base: parts[1], head: parts[2], editorialDigest: parts[3], runId: Number(parts[4]) };
 }
+// GitHub Actions may replace supplied details_url with the check's canonical URL.
+function checkDetailsMatch(check, repo, runID) {
+ return check.details_url===`https://github.com/${repo}/actions/runs/${runID}` || (Number.isSafeInteger(check.id) && check.id>0 && check.details_url===`https://github.com/${repo}/runs/${check.id}`);
+}
 export async function admissionProof(api, base, head, actorId, expectedRun) {
   const checks = await api.list(`/commits/${sha(head)}/check-runs`, 'check_runs');
   for (const check of checks.filter(c => c.name === 'specimen-integrity').reverse()) {
     const proof = receiptOf(check); if (!proof || (expectedRun && proof.runId !== expectedRun)) continue;
     const run = await api.request(`/actions/runs/${integer(proof.runId)}`);
-    if (check.details_url !== `https://github.com/${api.repo}/actions/runs/${run.id}`) continue;
+    if (!checkDetailsMatch(check,api.repo,run.id)) continue;
     const result = verifyAdmissionProof({ proof, expectedHead: head, expectedBase: base, repository: api.repo, allocatorActorId: [actorId, ACTIONS_ACTOR].includes(run.actor?.id) ? run.actor.id : actorId, run, check });
     if (result.valid) return proof;
   }
@@ -462,7 +466,7 @@ async function verifyStateCertificate(api, head, content, state, owner) {
     const parts=String(check.external_id ?? '').split(':');
     if (parts.length!==4 || parts[0]!==api.repo || parts[1]!==head || parts[2]!==digest || !/^[1-9]\d*$/.test(parts[3])) continue;
     const runID=integer(parts[3]);
-    if (check.details_url!==`https://github.com/${api.repo}/actions/runs/${runID}`) continue;
+    if (!checkDetailsMatch(check,api.repo,runID)) continue;
     const run=await api.request(`/actions/runs/${runID}`);
     // Each checkpoint is independently validated and certified before CAS. A later
     // unrelated failure in the same reconciler run does not undo that transition.
