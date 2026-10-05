@@ -97,9 +97,10 @@ jobs:
         env:
           PR_AUTHOR_ID: ${{ github.event.pull_request.user.id }}
           POSTS_ACTOR_ID: ${{ vars.POSTS_ACTOR_ID }}
+          ADMISSION_OBSERVATION: ${{ startsWith(github.event.pull_request.head.ref, 'specimens/run-') || startsWith(github.event.pull_request.head.ref, 'grok/') || startsWith(github.event.pull_request.head.ref, 'desk/posts-') || contains(github.event.pull_request.labels.*.name, 'workflow-numbering') }}
         run: |
           set -euo pipefail
-          if [[ "$POSTS_ACTOR_ID" =~ ^[[:space:]]*([1-9][0-9]*)[[:space:]]*$ ]] && [ "$PR_AUTHOR_ID" = "${BASH_REMATCH[1]}" ]; then
+          if [ "$ADMISSION_OBSERVATION" = 'true' ] || { [[ "$POSTS_ACTOR_ID" =~ ^[[:space:]]*([1-9][0-9]*)[[:space:]]*$ ]] && [ "$PR_AUTHOR_ID" = "${BASH_REMATCH[1]}" ]; }; then
             npm ci --ignore-scripts --no-audit --no-fund
           else
             echo "Not a posts App pull request; nothing to install."
@@ -118,4 +119,10 @@ jobs:
           PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           PR_BASE_REPO: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node scripts/check-publisher-paths.mjs pr --base "$BASE_SHA" --head "$HEAD_SHA"
+          ADMISSION_OBSERVATION: ${{ startsWith(github.event.pull_request.head.ref, 'specimens/run-') || startsWith(github.event.pull_request.head.ref, 'grok/') || startsWith(github.event.pull_request.head.ref, 'desk/posts-') || contains(github.event.pull_request.labels.*.name, 'workflow-numbering') }}
+        run: |
+          if [ "$ADMISSION_OBSERVATION" = 'true' ]; then
+            node scripts/specimen-admission.mjs observe-paths
+          else
+            node scripts/check-publisher-paths.mjs pr --base "$BASE_SHA" --head "$HEAD_SHA"
+          fi

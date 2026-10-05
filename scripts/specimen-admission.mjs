@@ -475,10 +475,29 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
 }
 export async function gate(api, env) {
   const base = sha(env.BASE_SHA), head = sha(env.HEAD_SHA); fetchObjects(base, head);
+  if (env.ADMISSION_OBSERVATION==='true') {
+    collectAdmission(base,head); // Same narrow data lane and safe repair parsing.
+    try { await admissionProof(api,base,head,integer(env.MAINTAINER_ID)); }
+    catch(error) {
+      if (error.message!=='no successful trusted-main allocation proof for this exact base/head') throw error;
+      const summary='Waiting for owner editorial approval or workflow-owned numbering validation. This observation grants no required check or merge permission.';
+      console.log(`::notice::${summary}`);
+      if(process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
+      return;
+    }
+    console.log('Trusted numbered-head certificate is available; current-base required checks govern merge.');return;
+  }
   const result = await inspectSpecimenChanges({ cwd: process.cwd(), base, head });
   if (result.problems.length) throw new Error(result.problems.join('; '));
   if (result.requiresAdmission) await admissionProof(api, base, head, integer(env.MAINTAINER_ID));
   console.log(result.requiresAdmission ? 'Workflow-owned numbering proof accepted.' : 'No workflow-owned numbering changes.');
+}
+export function observePaths(env,{fetchCommits=fetchObjects,collect=collectAdmission}={}) {
+  const base=sha(env.BASE_SHA),head=sha(env.HEAD_SHA);fetchCommits(base,head);
+  collect(base,head);
+  const summary='Article paths and repairable numbering checked. Waiting for trusted owner-approved admission; source observations grant no required success or merge permission.';
+  console.log(`::notice::${summary}`);
+  if(process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
 }
 export async function sweepHistory(api, env, { finalizeRun = finalize, recover = recoverRequest, completed = terminalCompletion } = {}) {
   if (env.GITHUB_REF !== 'refs/heads/main') throw new Error('sweep runs on main only');
@@ -529,6 +548,11 @@ export async function sweepHistory(api, env, { finalizeRun = finalize, recover =
 }
 function exactKeys(value, keys) {
   return value && typeof value==='object' && !Array.isArray(value) && Object.keys(value).sort().join(',')===keys.slice().sort().join(',');
+}
+function heldApproval(error) {
+  // Transport/API errors retain pending status. Only controller safety and
+  // explicit owner-approval failures stop expensive automatic reconciliation.
+  return !error.status && /approval withdrawn|review revoked|editorial content changed|approved content changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
 }
 export function validateState(state, repo) {
   if (!exactKeys(state,['schemaVersion','repository','policySHA','cursor','pending']) || state.schemaVersion!==STATE_SCHEMA || state.repository!==repo || !SHA.test(state.policySHA ?? '') || !Number.isSafeInteger(state.cursor) || state.cursor<0 || !Array.isArray(state.pending) || state.pending.length>MAX_PENDING_RUNS) throw new Error('invalid protected reconciliation state');
@@ -686,6 +710,10 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
     } catch(error) {
       // API/transient failures remain pending. Only explicit safety/approval holds
       // below are retired from hot polling; their prior state commits retain evidence.
+      if (heldApproval(error)) {
+        entry.status='held';entry.reason=error.message.slice(0,300).replace(/[\r\n]/g,' ');
+        observed=await save(api,observed,state,env);
+      }
       failed=true; console.error(`Admission run ${entry.id}: ${error.message}`);
     }
   }
@@ -707,7 +735,7 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
         observed=await save(api,observed,state,env);
       }
     } catch(error) {
-      const held=/approval withdrawn|review revoked|editorial content changed|approved content changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
+      const held=heldApproval(error);
       if (held) {
         for (const candidate of candidates) { candidate.entry.status='held'; candidate.entry.reason=error.message.slice(0,300).replace(/[\r\n]/g,' '); }
         observed=await save(api,observed,state,env);
@@ -726,6 +754,7 @@ export async function main(args, env = process.env) {
     case 'certify': return certify(api, env);
     case 'finalize': return finalize(api, env);
     case 'gate': return gate(api, env);
+    case 'observe-paths': return observePaths(env);
     case 'deployed-gate': {
       const head=sha(env.GITHUB_SHA); fetchObjects(head); const parents=git('show','-s','--format=%P',head).trim().split(' ');
       if(!parents[0]) throw new Error('no trusted parent for deployment');

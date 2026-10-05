@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { approvedRequest, admissionProof, collectAdmission, certify, discoverApprovedRequests, finalize, materialize, prepare, recoverRequest, requestOf, sweep, terminalCompletion } from './specimen-admission.mjs';
+import { approvedRequest, admissionProof, collectAdmission, certify, discoverApprovedRequests, finalize, materialize, observePaths, prepare, recoverRequest, requestOf, sweep, terminalCompletion } from './specimen-admission.mjs';
 import { stripSpecimen } from './specimen-admission-data.mjs';
 
 const REPO='owner/site', OWNER=42, ACTIONS=41898282, BOT=334982782;
@@ -255,4 +255,28 @@ test('same-PR indexed completion keeps legacy state schema and retires deploymen
   assert.equal(proofs,1);assert.equal(writes,1);assert.deepEqual(state.pending,[]);
   f.api.calls=[];await sweep(f.api,f.env,{...index,completed:async()=>assert.fail('retired proof must stay retired')});
   assert.equal(f.api.calls.length,2);assert.equal(writes,1);
+});
+
+test('revoked or superseded owner reviews become durable holds; transport failure remains pending',async t=>{
+  const f=fixture(t);
+  let state={schemaVersion:1,repository:REPO,policySHA:f.base,cursor:10,pending:[{id:10,status:'pending',reason:''}]};
+  const index={load:async()=>({head:f.source,state:structuredClone(state)}),save:async(_api,_observed,next)=>{state=structuredClone(next);return{head:f.source,state:structuredClone(state)};}};
+  f.api.reviews.push({id:2,user:{id:OWNER},state:'CHANGES_REQUESTED',commit_id:f.source});
+  await assert.rejects(sweep(f.api,f.env,index),/protected state retained/);assert.equal(state.pending[0].status,'held');
+  f.api.calls=[];await sweep(f.api,f.env,index);
+  assert.ok(!f.api.calls.some(call=>call.path==='/actions/runs/10'),'withdrawn request skips further run proof');
+  f.api.reviews.push({id:3,user:{id:OWNER},state:'APPROVED',commit_id:f.source});
+  await sweep(f.api,f.env,index);assert.equal(f.api.mutations().at(-1).body.inputs.review_id,'3');
+  assert.equal(state.pending[0].status,'held','fresh approval never erases obsolete evidence');
+  state.pending[0].status='pending';state.pending[0].reason='';
+  f.api.before=path=>{if(path==='/actions/runs/10'){const error=new Error('GitHub request unavailable');error.status=503;throw error;}};
+  await assert.rejects(sweep(f.api,f.env,{...index,discover:async()=> 'idle'}),/protected state retained/);assert.equal(state.pending[0].status,'pending');
+});
+
+test('source path observations are read-only while unexpected code violations still fail',t=>{
+  const f=fixture(t);const original=f.api.pr.head.sha;
+  observePaths({BASE_SHA:f.base,HEAD_SHA:f.source},dependencies);
+  assert.equal(f.api.pr.head.sha,original);assert.deepEqual(f.api.mutations(),[]);
+  const unsafe=f.commit(f.tree(f.git('show','-s','--format=%T',f.source),[{path:'package.json',mode:'100644',content:'untrusted code'}]),[f.source],'unsafe');
+  assert.throws(()=>observePaths({BASE_SHA:f.base,HEAD_SHA:unsafe},dependencies),/outside admission lane/);
 });
