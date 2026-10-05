@@ -444,7 +444,7 @@ export async function verifyStateProtection(api, env) {
   if (rulesetID!==STATE_RULESET_SNAPSHOT.id) throw new Error('state ruleset ID differs from trusted-main snapshot');
   const ruleset=await api.request(`/rulesets/${rulesetID}`);
   const effective=await api.request(`/rules/branches/${encodeURIComponent(STATE_BRANCH)}`);
-  if (ruleset.id!==rulesetID || ruleset.target!=='branch' || ruleset.enforcement!=='active' || ruleset.updated_at!==STATE_RULESET_SNAPSHOT.updatedAt) throw new Error('state protection differs from owner-verified trusted-main snapshot');
+  if (ruleset.id!==rulesetID || ruleset.target!=='branch' || ruleset.enforcement!=='active' || (typeof ruleset.updated_at!=='string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(ruleset.updated_at) || Date.parse(ruleset.updated_at)!==Date.parse(STATE_RULESET_SNAPSHOT.updatedAt))) throw new Error('state protection differs from owner-verified trusted-main snapshot');
   // GitHub omits bypass_actors for callers without ruleset write access. The exact
   // owner-verified snapshot pin permits that documented omission only; explicit
   // null, malformed or unsafe lists never become a permission fallback.

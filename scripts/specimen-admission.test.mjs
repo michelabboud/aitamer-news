@@ -556,3 +556,9 @@ test('omitted bypass metadata still requires all four effective constraints from
   const api=new StateAPI();delete api.ruleset.bypass_actors;api.stateRules[0].ruleset_id=99;
   await assert.rejects(verifyStateProtection(api,STATE_ENV),/lacks creation/);
 });
+
+test('protection pin compares exact instants across owner and public API timezones',async()=>{
+ const api=new StateAPI();delete api.ruleset.bypass_actors;
+ for(const updated_at of ['2026-10-05T07:59:20.822Z','2026-10-05T10:59:20.822+03:00']) {api.ruleset.updated_at=updated_at;await verifyStateProtection(api,STATE_ENV);}
+ for(const updated_at of ['2026-10-05T07:59:20.823Z','2026-10-05T10:59:20.822Z','invalid',null,0,'2026-10-05']) {api.ruleset.updated_at=updated_at;await assert.rejects(verifyStateProtection(api,STATE_ENV),/trusted-main snapshot/);}
+});
