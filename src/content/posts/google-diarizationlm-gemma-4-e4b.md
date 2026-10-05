@@ -2,7 +2,7 @@
 title: Google moves DiarizationLM to Gemma 4 E4B, an open model that fixes speaker labels in transcripts
 description: "Google posted DiarizationLM-Gemma-4-E4B-v1 on Hugging Face on 4 October 2026: an Apache 2.0 model that corrects which speaker said which words in ASR transcripts, fine-tuned on four diarization corpora."
 pubDate: "2026-10-05T03:00:00Z"
-specimen: 393
+specimen: 394
 section: models
 subsection: speech
 tags:
