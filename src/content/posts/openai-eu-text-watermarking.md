@@ -1,7 +1,7 @@
 ---
 title: "OpenAI offers opt-in API text watermarks and plans EU ChatGPT marks"
 description: "OpenAI's 5 October 2026 post says API customers worldwide can opt in to text watermarks on select models, off by default. Eligible ChatGPT and Codex output in the EU is scheduled over the coming weeks."
-pubDate: "2026-10-05T19:00:00Z"
+pubDate: "2026-10-06T08:00:00Z"
 section: models
 tags:
   - openai

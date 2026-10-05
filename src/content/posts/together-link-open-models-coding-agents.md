@@ -1,7 +1,7 @@
 ---
 title: "Together Link points existing coding agents at open models"
 description: "Together AI's 5 October 2026 post says one install command connects Claude Code, Claude Desktop, Codex, OpenCode, and Pi to Together models, with an Auto route and a per-session cost compared with Opus 5.5."
-pubDate: "2026-10-05T19:10:00Z"
+pubDate: "2026-10-06T08:10:00Z"
 section: tools
 subsection: cli
 tags:

@@ -1,7 +1,7 @@
 ---
 title: "GitHub publishes ReviewBench for AI code review"
 description: "GitHub's 5 October 2026 post introduces ReviewBench: 219 public pull requests shaped against 103.9 million GitHub PRs, with multi-source labels and a leaderboard that includes Copilot code review."
-pubDate: "2026-10-05T19:20:00Z"
+pubDate: "2026-10-06T08:20:00Z"
 section: tools
 tags:
   - github

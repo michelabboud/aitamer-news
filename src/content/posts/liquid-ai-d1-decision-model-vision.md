@@ -1,7 +1,7 @@
 ---
 title: "Liquid AI's d1 decision model adds vision on the paid API"
 description: "Liquid AI's 5 October 2026 post says d1 now takes images as well as text, returns answer probabilities without generating tokens, and is on the Liquid API as model d1, billed on input tokens only."
-pubDate: "2026-10-05T19:30:00Z"
+pubDate: "2026-10-06T08:30:00Z"
 section: models
 tags:
   - liquid-ai
