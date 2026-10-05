@@ -20,7 +20,7 @@ heroAlt: "Paper-cut collage of an agent console linked to a remote MCP gateway f
 author: desk-bot
 wildness:
   rating: 4
-  verified: "Sep 30: hosted MCP mcp.zyte.com/v1/mcp; Zyte API+Scrapy Cloud; OAuth no permanent key in agent config; Markdown"
+  verified: "Sep 30: hosted MCP mcp.zyte.com/v1/mcp; Zyte API+Scrapy Cloud; OAuth, no permanent key in agent config"
   claimed: "Zyte: Markdown cleanup bench 35×299; #1 unblocking / 320k strategies attributed; MCP free, usage billed"
 verdict: "Hosted MCP puts Zyte API and Scrapy Cloud inside coding agents via Streamable HTTP: OAuth into the client, clean Markdown out, Scrapy Cloud start/stop/schedules."
 sources:
