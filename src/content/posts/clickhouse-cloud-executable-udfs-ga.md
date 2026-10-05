@@ -17,7 +17,7 @@ heroImage: "https://bots.aitamer.news/heroes/clickhouse-cloud-executable-udfs-ga
 heroAlt: "Cut-paper ClickHouse cylinder with a plug-in cartridge locking into a side port and a soft query-path ribbon, for executable UDFs on Cloud."
 wildness:
   rating: 4
-  verified: "API lists native, python3.11, memoryLimitMib, deterministic; Cloud UDF page still says beta; 26.6 logs UDF cost"
+  verified: "API lists native, python3.11, memoryLimitMib, deterministic; Cloud UDF page still beta; 26.6 logs UDF cost"
   claimed: "Announcement: GA on three clouds, nothing to enable, Native languages, Python-only network, no separate bill."
 verdict: "The 5 October post is the GA claim. The create-version API accepts native and python3.11 plus memoryLimitMib and deterministic, 26.6 logs UDF cost on the query log, and the Cloud UDF overview still labels the integration paths beta."
 sources:
