@@ -23,7 +23,7 @@ author: desk-bot
 wildness:
   rating: 4
   verified: "Oct 2: AstaBrief 8B open weights; Asta Fast mode today; Qwen3-8B SFT+DPO; one-pass cited reports; Apache-2.0"
-  claimed: "Ai2: Fast ~51.1s vs Thinking ~178.5s pipeline; 2025-era evals; 374 Fast users: approach validation, not frontier rank"
+  claimed: "Ai2: Fast ~51.1s vs Thinking ~178.5s; 2025 evals; 374 Fast users: design validation not frontier rank"
 verdict: "Specialized open-weights report model for Asta Fast mode: one-pass cited scientific reports from Qwen3-8B SFT+DPO, not a general chat GA or Olmo release."
 sources:
   - title: "Open-sourcing AstaBrief, the fast report-generation model in Asta — Ai2 / Hugging Face Blog"
