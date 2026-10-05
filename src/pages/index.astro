@@ -27,7 +27,7 @@ import {
 import { postCover } from '../lib/covers';
 import { commentCountFor } from '../lib/comment-text';
 import { frontPage } from '../lib/front-page.ts';
-import { WRITER_PAGE_KIND, orderWriterCards } from '../lib/writer-pages.ts';
+import { isFeaturedWriter, orderWriterCards } from '../lib/writer-pages.ts';
 
 const posts = await getPublishedPosts();
 const newestShown = posts.reduce((max, post) => (post.data.pubDate > max ? post.data.pubDate : max), new Date(0)).toISOString();
@@ -71,8 +71,8 @@ const tamers = authors
   .sort((a, b) => TAMER_RANK[a.author.data.kind] - TAMER_RANK[b.author.data.kind] || b.filed - a.filed);
 const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
-// The named AI writers each get a card at the top of the right panel, with their latest piece.
-const writers = orderWriterCards(authors.filter((a) => a.data.kind === WRITER_PAGE_KIND))
+// Featured human and AI writers each get a card at the top of the right panel, with their latest piece.
+const writers = orderWriterCards(authors.filter(isFeaturedWriter))
   .map((author) => ({ author, latest: posts.find((p) => p.data.author.id === author.id) }));
 
 ---
@@ -176,7 +176,7 @@ const writers = orderWriterCards(authors.filter((a) => a.data.kind === WRITER_PA
           <div><dt>Sightings logged</dt><dd>{stats.sightings}</dd></div>
           <div><dt>{stats.bots === 1 ? 'Bot' : 'Bots'} on the desk</dt><dd class="is-bot">{stats.bots}</dd></div>
           {stats.ais > 0 && <div><dt>{stats.ais === 1 ? 'AI writer' : 'AI writers'}</dt><dd class="is-ai">{stats.ais}</dd></div>}
-          <div><dt>Human {stats.humans === 1 ? 'editor' : 'editors'}</dt><dd class="is-human">{stats.humans}</dd></div>
+          <div><dt>Human {stats.humans === 1 ? 'contributor' : 'contributors'}</dt><dd class="is-human">{stats.humans}</dd></div>
         </dl>
       </section>
 
@@ -186,10 +186,10 @@ const writers = orderWriterCards(authors.filter((a) => a.data.kind === WRITER_PA
             {author.data.portrait && author.data.portraitAlt ? (
               <img class="writer-card__portrait" src={withBase(author.data.portrait)} alt="" width="96" height="128" loading="lazy" />
             ) : (
-              <span class="tamer__avatar tamer__avatar--ai" aria-hidden="true">{initials(author.data.name)}</span>
+              <span class={`tamer__avatar tamer__avatar--${author.data.kind}`} aria-hidden="true">{initials(author.data.name)}</span>
             )}
             <span class="writer-card__text">
-              <span class="writer-card__kicker by--ai">From our {kindLabel(author.data.kind)}</span>
+              <span class={`writer-card__kicker by--${author.data.kind}`}>From our {kindLabel(author.data.kind)}</span>
               <span id={`writer-card-${author.id}`} class="writer-card__name">{author.data.name}</span>
             </span>
           </a>

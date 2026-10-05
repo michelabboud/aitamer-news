@@ -1,5 +1,7 @@
 # Backlog
 
+- 2026-10-05 · Michel · planned, design later — Add editor-controlled article pinning: select a specific article for the homepage hero; interleave the scrolling list in repeating groups of two new articles followed by two pinned articles. Design selection, ordering, deduplication, fallback when fewer pins exist, unpinning and withdrawal behavior later. Preserve publication dates and archive ordering. Backlog only; no implementation in the current publishing task.
+
 Dated one-liners for everything deferred or spotted and not done. Format: `date · source · status — item`.
 
 - 2026-09-25 · publish times · open — Three launch posts went live on 2026-09-23 but are dated earlier, so they carry 00:00 UTC: `welcome-to-aitamer`, `open-weights-roundup`, `policy-watch-transparency`. An editor should set the real time or correct the date.

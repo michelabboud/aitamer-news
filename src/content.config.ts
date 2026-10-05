@@ -1,8 +1,7 @@
 import { defineCollection, reference } from 'astro:content';
-import { AUTHOR_KINDS } from './lib/author-kinds.ts';
+import { authorSchema } from './content/author-schema.ts';
 import { authorEntryId } from './content/author-id.ts';
 import { glob } from 'astro/loaders';
-import { z } from 'astro/zod';
 import { commentsFileSchema } from './content/comment-schema';
 import { commentsLoader, reactionsLoader } from './content/data-file-loader';
 import { postSchema } from './content/post-schema';
@@ -14,21 +13,7 @@ import { reactionsFileSchema } from './content/reaction-schema';
  */
 const authors = defineCollection({
   loader: glob({ base: './src/content/authors', pattern: '**/*.{md,mdx}', generateId: authorEntryId }),
-  schema: z.object({
-    name: z.string(),
-    kind: z.enum(AUTHOR_KINDS),
-    bio: z.string(),
-    avatar: z.string().optional(),
-    /**
-     * A named AI writer's own page (`/<id>/`, ADR 0012): a tall portrait and its alt text, both
-     * or neither, and the beats they cover. The file's body is their self-introduction.
-     */
-    portrait: z.string().regex(/^\/authors\/[a-z0-9-]+\.(jpg|png|webp)$/).optional(),
-    portraitAlt: z.string().min(1).optional(),
-    beats: z.array(z.string().min(1)).optional(),
-  }).refine((a) => (a.portrait === undefined) === (a.portraitAlt === undefined), {
-    message: 'portrait and portraitAlt go together: a portrait needs its alt text',
-  }),
+  schema: authorSchema,
 });
 
 /**

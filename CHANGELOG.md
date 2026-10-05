@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.61] — 2026-10-05
+
+### Added
+- Reusable featured human writer profiles and ordering, safe website links, and author-wide personal-opinion labeling with a closing disclaimer.
+- Aviram’s paper-art portrait and GizmoJack-sourced biography, immediately after Mai.
+- Backlog proposal for a pinned hero and two-new/two-pinned article groups.
+
 ## [0.2.60] — 2026-10-05
 
 ### Added
