@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.77 — Independent Grok numbering (2026-10-06)
+
+- Authorized Grok App article PRs start workflow numbering without owner editorial approval. Preserve technical checks, exact-source binding, normal same-PR merge and date-based publication.
+
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
 ## [0.2.76] — 2026-10-06

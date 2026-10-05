@@ -11,6 +11,14 @@ const REPO='owner/site', OWNER=42, ACTIONS=41898282, BOT=334982782;
 const DATE='2026-10-08T11:00:00Z';
 const article=(number='',body='Original editorial bytes')=>`---\ntitle: A useful story\npubDate: "${DATE}"\n${number}section: models\ndraft: false\nsources:\n  - https://example.com/primary\n---\n\n${body}\n`;
 const dependencies={fetchCommits:()=>{}};
+const GROK=337850229;
+function independent(f) {
+  f.api.pr.user={id:GROK,type:'Bot'};
+  f.api.reviews=[];f.api.wakes=[];
+  f.api.runs=[f.run(10,{display_title:`Specimen same-pr pr=7 head=${f.source} review=0 recovery=0`})];
+  f.env.REVIEW_ID='0';
+  return f;
+}
 
 // Real immutable Git trees/commits behind a mocked GitHub transport. These are
 // run-owned fixture repositories, never application posts or permanent ledgers.
@@ -302,6 +310,61 @@ test('owner-authored exceptional dispatch uses same PR; an Actions actor cannot 
   const ownerRun=f.run(10,{actor:{id:OWNER},display_title:`Specimen same-pr pr=7 head=${f.source} review=0 recovery=0`});
   assert.equal((await approvedRequest(f.api,ownerRun,OWNER)).source,f.source);
   await assert.rejects(approvedRequest(f.api,{...ownerRun,actor:{id:ACTIONS}},OWNER),/owner dispatch/);
+});
+
+test('authorized Grok PRs automatically dispatch exact-head numbering without editorial reviews',async t=>{
+  const f=independent(fixture(t));f.api.runs=[];
+  assert.equal(await discoverApprovedRequests(f.api,f.env,dependencies),'dispatched');
+  assert.deepEqual(f.api.mutations().at(-1).body.inputs,{pr_number:'7',head_sha:f.source,review_id:'0',same_pr:'true',recovery_run:'0'});
+  assert.ok(!f.api.calls.some(call=>call.path==='/pulls/7/reviews'));
+  f.api.runs=[f.run(10,{display_title:`Specimen same-pr pr=7 head=${f.source} review=0 recovery=0`})];
+  assert.equal(await discoverApprovedRequests(f.api,f.env,dependencies),'idle');
+});
+
+test('independent Grok numbering and certified merge ignore editorial holds and do not redispatch numbered heads',async t=>{
+  const f=independent(fixture(t));
+  f.api.reviews=[{id:2,user:{id:OWNER},state:'CHANGES_REQUESTED',commit_id:f.source}];
+  await prepare(f.api,f.env,dependencies);const head=f.api.pr.head.sha;
+  const digest=collectAdmission(f.base,f.source).editorialDigest;
+  assert.equal(await discoverApprovedRequests(f.api,f.env,dependencies),'idle');
+  await certify(f.api,{...f.env,BASE_SHA:f.base,HEAD_SHA:head,EDITORIAL_DIGEST:digest});
+  assert.equal(await finalize(f.api,{...f.env,ADMISSION_RUN_ID:'10'},{...dependencies,deploy:async()=> 'deployed'}),'deployed');
+  assert.ok(!f.api.calls.some(call=>call.path==='/pulls/7/reviews'));
+  for(const slug of ['old','new']) assert.equal(stripSpecimen(f.git('show',`${head}:src/content/posts/${slug}.md`)+'\n').text,stripSpecimen(f.git('show',`${f.source}:src/content/posts/${slug}.md`)+'\n').text);
+});
+
+test('automatic Grok roots reject unauthorized identities, forks, branches and moved source heads',async t=>{
+  const f=independent(fixture(t));
+  for(const mutate of [api=>api.pr.user.id=999,api=>api.pr.head.repo.full_name='fork/site',api=>api.pr.head.ref='feature/article',api=>api.pr.head.ref='grok/../attack',api=>api.pr.draft=true,api=>api.pr.base.ref='feature']) {
+    const api=new API(f);api.pr.user={id:GROK,type:'Bot'};api.reviews=[];api.runs=[];mutate(api);
+    assert.equal(await discoverApprovedRequests(api,f.env,dependencies),'idle');assert.deepEqual(api.mutations(),[]);
+    api.runs=f.api.runs;
+    await assert.rejects(approvedRequest(api,api.runs[0],OWNER),/owner dispatch|identity/);
+  }
+  f.api.pr.head.sha=f.commit(f.tree(f.git('show','-s','--format=%T',f.source),[{path:'src/content/posts/new.md',mode:'100644',content:article('','Producer correction')}]),[f.source],'producer correction');
+  await assert.rejects(prepare(f.api,f.env,dependencies),/editorial content changed/);assert.deepEqual(f.api.mutations(),[]);
+});
+
+test('automatic Grok stale-base recovery retains immutable source without consulting reviews',async t=>{
+  const f=independent(fixture(t));await prepare(f.api,f.env,dependencies);
+  f.api.reviews=[{id:2,user:{id:OWNER},state:'DISMISSED',commit_id:f.source}];
+  const current=f.commit(f.git('show','-s','--format=%T',f.base),[f.base],'main advanced');f.api.current=current;
+  assert.equal(await recoverRequest(f.api,f.api.runs[0],f.env,{...dependencies,now:Date.parse('2026-10-05T12:00:00Z')}),'dispatched');
+  const inputs=f.api.mutations().at(-1).body.inputs;
+  assert.deepEqual(inputs,{pr_number:'7',head_sha:f.source,recovery_run:'10',same_pr:'true',review_id:'0'});
+  f.api.runs.push(f.run(11,{head_sha:current,display_title:`Specimen same-pr pr=7 head=${f.source} review=0 recovery=10`}));
+  await prepare(f.api,{...f.env,GITHUB_SHA:current,GITHUB_RUN_ID:'11',RECOVERY_RUN:'10'},dependencies);
+  assert.ok(!f.api.calls.some(call=>call.path==='/pulls/7/reviews'));
+});
+
+test('merged owner-review receipts retain immutable PR binding when GitHub drops pull_requests',async t=>{
+  const f=fixture(t),request={pr:7,review:1,source:f.source,approvedBase:f.base};
+  f.api.wakes[0].pull_requests=[];
+  assert.equal((await reviewReceipt(f.api,20,request,OWNER,dependencies)).head_sha,f.source);
+  f.api.wakes[0].display_title=`Specimen review pr=8 review=1 action=submitted state=approved source=${f.source}`;
+  await assert.rejects(reviewReceipt(f.api,20,request,OWNER,dependencies),/approval receipt/);
+  f.api.wakes[0]=f.wake(20,{pull_requests:[],head_sha:f.base});
+  await assert.rejects(reviewReceipt(f.api,20,request,OWNER,dependencies),/approval receipt/);
 });
 
 test('untrusted source workflow/package/code changes cannot enter privileged preparation',async t=>{

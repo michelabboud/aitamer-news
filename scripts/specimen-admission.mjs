@@ -5,13 +5,16 @@ import { appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { editorialDigest, planAdmission } from './specimen-admission-data.mjs';
 import { inspectSpecimenChanges, verifyAdmissionProof, SPECIMEN_LEDGER } from './specimen-integrity.mjs';
-import { parseNameStatus, parseHeadModes } from './check-publisher-paths.mjs';
+import { parseNameStatus, parseHeadModes, isGrokBranch } from './check-publisher-paths.mjs';
 const SHA = /^[a-f0-9]{40}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
 const POST = /^src\/content\/posts\/([a-z0-9]+(?:-[a-z0-9]+)*)\.md$/;
 const ACTIONS_ACTOR = 41898282;
 const ALLOCATOR_ACTOR = 334982782;
 const ALLOCATOR_APP = 5107739;
+// grok-bots-app (App 5189850): the same numeric identity as the publisher's
+// GROK_ACTOR_ID. Trusted main pins automatic admission authority, never a login.
+const GROK_ACTOR = 337850229;
 const STATE_BRANCH = 'specimens/state';
 const STATE_PATH = 'specimen-state.json';
 const STATE_SCHEMA = 1;
@@ -44,6 +47,9 @@ function workflowPath(run, expected) {
 function trustedRun(run, repo, owner) {
   return workflowPath(run, ADMISSION_PATH) && run.event === 'workflow_dispatch' && run.head_branch === 'main' && run.repository?.full_name === repo && (!run.head_repository || run.head_repository.full_name === repo) && [owner, ACTIONS_ACTOR].includes(run.actor?.id);
 }
+function independentGrokPR(pr,repo) {
+  return pr?.user?.id===GROK_ACTOR && pr.user.type==='Bot' && !pr.draft && isGrokBranch(pr.head?.ref) && pr.head?.repo?.full_name===repo && pr.base?.ref==='main' && pr.base?.repo?.full_name===repo;
+}
 export function requestOf(run) {
   const single = SINGLE_REQUEST_NAME.exec(run.display_title ?? '');
   const match = single ?? REQUEST_NAME.exec(run.display_title ?? '');
@@ -65,7 +71,11 @@ async function approvedReview(api, request, owner) {
   return decisive;
 }
 function ownerReviewWake(run, repo, owner, number) {
-  return run?.event==='pull_request_review' && run.actor?.id===owner && run.repository?.full_name===repo && run.head_repository?.full_name===repo && run.status==='completed' && run.conclusion==='success' && run.path?.split('@')[0]===REVIEW_PATH && run.pull_requests?.some(pr=>pr.number===number) && SHA.test(run.head_sha ?? '');
+  // GitHub drops pull_requests after merge. The immutable event title retains
+  // its PR locator; reviewReceipt separately binds review, source and code bytes.
+  const receipt=REVIEW_RECEIPT.exec(run?.display_title ?? '');
+  const matchesPR=run?.pull_requests?.length ? run.pull_requests.some(pr=>pr.number===number) : receipt && Number(receipt[1])===number;
+  return run?.event==='pull_request_review' && run.actor?.id===owner && run.repository?.full_name===repo && run.head_repository?.full_name===repo && run.status==='completed' && run.conclusion==='success' && run.path?.split('@')[0]===REVIEW_PATH && matchesPR && SHA.test(run.head_sha ?? '');
 }
 /** Event-time receipt is an immutable source locator. A mutable REST review
  * commit_id, a COMMENTED wake or a PR label can never provide initial approval. */
@@ -99,6 +109,7 @@ export async function approvedRequest(api, run, owner) {
   integer(owner);
   const seen = new Set();
   const latest = requestOf(run);
+  const independent=latest.samePR && independentGrokPR(await api.request(`/pulls/${latest.pr}`),api.repo);
   const bases = [];
   while (true) {
     if (!trustedRun(run, api.repo, owner) || seen.has(run.id) || seen.size >= MAX_RECOVERY_DEPTH) throw new Error('invalid recovery ancestry');
@@ -107,9 +118,9 @@ export async function approvedRequest(api, run, owner) {
     const request = requestOf(run);
     if (request.pr !== latest.pr || request.source !== latest.source || request.review !== latest.review || request.wake!==latest.wake) throw new Error('recovery changed approved request');
     if (request.samePR && request.recovery===0) {
-      if (request.review===0) { if (run.actor.id!==owner) throw new Error('owner dispatch required without review'); }
+      if (request.review===0) { if (run.actor.id!==owner && (!independent || request.wake)) throw new Error('owner dispatch or authorized Grok identity required without review'); }
       else {
-        const review=await approvedReview(api,request,owner);
+        const review=independent ? {} : await approvedReview(api,request,owner);
         const earliest=await earliestReviewRoot(api,request,owner,review);
         if (!earliest) throw new Error('owner approval has no immutable root');
         const original=requestOf(earliest);
@@ -119,7 +130,7 @@ export async function approvedRequest(api, run, owner) {
         if (request.wake!==undefined && request.wake===0 && run.actor.id!==owner) throw new Error('immutable owner approval receipt required');
         if (earliest.id!==run.id) { run=earliest; bases.push(sha(run.head_sha)); }
       }
-      return { ...request, rootRun:run.id, approvedBase:sha(run.head_sha), bases };
+      return { ...request, ...(independent ? {independent:true} : {}), rootRun:run.id, approvedBase:sha(run.head_sha), bases };
     }
     if (run.actor.id === owner) {
       if (request.recovery !== 0) throw new Error('owner request unexpectedly claims recovery');
@@ -137,6 +148,7 @@ function assertSourceApproval(pr, repo) {
 async function approvalStillValid(api, request, owner, { current, digest, collect = collectAdmission, fetchCommits = fetchObjects } = {}) {
   const pr = await api.request(`/pulls/${request.pr}`);
   assertSourceApproval(pr,api.repo);
+  if (request.independent && !independentGrokPR(pr,api.repo)) throw new Error('independent source identity changed');
   const head = sha(pr.head.sha);
   if (head !== request.source) {
     if (!current || !digest) throw new Error('source editorial head changed');
@@ -149,6 +161,7 @@ async function approvalStillValid(api, request, owner, { current, digest, collec
     if (currentDigest!==digest) throw new Error('source editorial content changed after approval');
     if (request.samePR) await verifyNumberingDescendants(api,request,head,current,owner,{collect,fetchCommits});
   }
+  if (independentGrokPR(pr,api.repo)) return pr;
   const reviews = await api.list(`/pulls/${request.pr}/reviews`);
   const review = reviews.filter(r=>r.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(r.state)).sort((a,b)=>a.id-b.id).at(-1);
   if (review && review.state !== 'APPROVED') throw new Error('owner review revoked');
@@ -190,8 +203,8 @@ async function approvalPlan(api, run, owner, { collect = collectAdmission, fetch
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
   fetchCommits(...new Set([...request.bases, current, request.source]));
   for (const base of request.bases) verifyBase(base, current);
-  if (request.samePR && request.review>0 && request.wake===undefined && blob(request.approvedBase,ADMISSION_PATH).includes('wake_run:')) throw new Error('immutable owner approval receipt required for new roots');
-  if (request.wake) await reviewReceipt(api,request.wake,request,owner,{collect,fetchCommits});
+  if (!request.independent && request.samePR && request.review>0 && request.wake===undefined && blob(request.approvedBase,ADMISSION_PATH).includes('wake_run:')) throw new Error('immutable owner approval receipt required for new roots');
+  if (!request.independent && request.wake) await reviewReceipt(api,request.wake,request,owner,{collect,fetchCommits});
   const digest = collect(request.approvedBase, request.source).editorialDigest;
   if (!DIGEST.test(digest)) throw new Error('invalid original approval digest');
   if (collect(current, request.source).editorialDigest !== digest) throw new Error('recovery changed editorial content');
@@ -543,7 +556,7 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
   fetchCommits(...new Set([...request.bases, base, head, current, request.source]));
   for (const approvedBase of request.bases) verifyBase(approvedBase, current);
-  if (request.wake) await reviewReceipt(api,request.wake,request,owner,{collect,fetchCommits});
+  if (!request.independent && request.wake) await reviewReceipt(api,request.wake,request,owner,{collect,fetchCommits});
   const parents = readGit('show', '-s', '--format=%P', head).trim().split(' ');
   if (parents.length!==2 || parents[0]!==base || (!request.samePR && parents[1]!==request.source)) throw new Error('generated parents differ from immutable approved source');
   const message=readGit('show','-s','--format=%B',head).trim();
@@ -598,7 +611,7 @@ export async function gate(api, env) {
     try { await admissionProof(api,base,head,integer(env.MAINTAINER_ID)); }
     catch(error) {
       if (error.message!=='no successful trusted-main allocation proof for this exact base/head') throw error;
-      const summary='Waiting for owner editorial approval or workflow-owned numbering validation. This observation grants no required check or merge permission.';
+      const summary='Waiting for workflow-owned numbering validation. Authorized Grok PRs are admitted automatically; other producers retain their owner review. This observation grants no required check or merge permission.';
       console.log(`::notice::${summary}`);
       if(process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
       return;
@@ -670,7 +683,7 @@ function exactKeys(value, keys) {
 function heldApproval(error) {
   // Transport/API errors retain pending status. Only controller safety and
   // explicit owner-approval failures stop expensive automatic reconciliation.
-  return !error.status && /approval withdrawn|approval source rebound|review revoked|editorial content changed|approved content changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
+  return !error.status && /approval withdrawn|approval source rebound|review revoked|editorial content changed|approved content changed|independent source identity changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
 }
 export function validateState(state, repo) {
   if (!exactKeys(state,['schemaVersion','repository','policySHA','cursor','pending']) || state.schemaVersion!==STATE_SCHEMA || state.repository!==repo || !SHA.test(state.policySHA ?? '') || !Number.isSafeInteger(state.cursor) || state.cursor<0 || !Array.isArray(state.pending) || state.pending.length>MAX_PENDING_RUNS) throw new Error('invalid protected reconciliation state');
@@ -750,7 +763,7 @@ export async function saveState(api, observed, state, env) {
   else await api.request('/git/refs','POST',{ref:`refs/heads/${STATE_BRANCH}`,sha:head});
   return {head,state};
 }
-/** A PR-side wake conveys no authorization. Read current owner reviews and
+/** A PR-side wake conveys no authorization. Read trusted bot identity or owner reviews and
  * immutable Git objects independently; existing run/state discovery deduplicates
  * requests and retains cancelled or failed attempts for bounded recovery. */
 export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],collect=collectAdmission,fetchCommits=fetchObjects}={}) {
@@ -758,6 +771,7 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
   const candidates=[];
   for await (const pr of stream(api,'/pulls?state=open&sort=created&direction=asc')) {
     if (pr.state!=='open' || pr.draft || pr.head?.repo?.full_name!==api.repo || pr.base?.ref!=='main' || (pr.base.repo && pr.base.repo.full_name!==api.repo) || !pr.head.ref || /^(?:main$|specimens\/)/.test(pr.head.ref)) continue;
+    if (independentGrokPR(pr,api.repo)) { candidates.push({pr,independent:true});continue; }
     const reviews=await api.list(`/pulls/${integer(pr.number)}/reviews`);
     const review=reviews.filter(r=>r.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(r.state)).sort((a,b)=>a.id-b.id).at(-1);
     if (!review || review.state!=='APPROVED') continue;
@@ -767,7 +781,30 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
   const runs=new Map(knownRuns.map(run=>[run.id,run]));
   for (const entry of pending) if (entry.status!=='held' && !runs.has(entry.id)) runs.set(entry.id,await api.request(`/actions/runs/${entry.id}`));
   if ([...runs.values()].some(run=>trustedRun(run,api.repo,owner) && run.status!=='completed')) return 'pending';
-  for (const {pr,review} of candidates) {
+  for (const {pr,review,independent} of candidates) {
+    if (independent) {
+      const base=sha((await api.request('/git/ref/heads/main')).object.sha),source=sha(pr.head.sha);
+      fetchCommits(base,source);collect(base,source);
+      let existing=false;
+      // Include historical roots so a lost dispatch response or a numbered head
+      // cannot create another request. Producer corrections get a new exact root.
+      for await (const run of stream(api,'/actions/workflows/specimen-admission.yml/runs','workflow_runs')) {
+        if (run.created_at && serverTimestamp(run.created_at,'admission creation')<serverTimestamp(pr.created_at,'source PR creation')) break;
+        if (!trustedRun(run,api.repo,owner)) continue;
+        let request;try { request=requestOf(run); } catch { continue; }
+        if (!request.samePR || request.pr!==pr.number || request.review!==0) continue;
+        try {
+          await approvalPlan(api,run,owner,{collect,fetchCommits});
+          existing=true;break;
+        } catch(error) { if (error.status) throw error; }
+      }
+      if (existing) continue;
+      const currentPR=await api.request(`/pulls/${pr.number}`);assertSourceApproval(currentPR,api.repo);
+      if (!independentGrokPR(currentPR,api.repo) || currentPR.head.sha!==source) throw new Error('independent source identity or editorial head changed before automatic admission');
+      await api.request('/actions/workflows/specimen-admission.yml/dispatches','POST',{ref:'main',inputs:{pr_number:String(pr.number),head_sha:source,review_id:'0',same_pr:'true',recovery_run:'0'}});
+      console.log(`Authorized Grok PR #${pr.number} dispatched automatically for numbering.`);
+      return 'dispatched';
+    }
     if ([...runs.values()].some(run=>{
       if (!trustedRun(run,api.repo,owner)) return false;
       try { const request=requestOf(run); return request.samePR && request.pr===pr.number && request.review===review.id; } catch { return false; }

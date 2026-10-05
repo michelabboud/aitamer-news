@@ -35,3 +35,5 @@
 - [Featured writer metadata](0032-author-feature-metadata.md) — accepted 2026-10-05; human writers opt in, editorial ordering and opinion disclosures remain maintainer-controlled.
 - [Single-PR workflow admission](0033-single-pr-workflow-admission.md) — accepted for implementation 2026-10-05; owner reviews automatically wake trusted admission, workflow numbering appends to the original PR branch, and legacy proofs remain readable.
 - [Immutable owner-review source binding](0034-immutable-owner-review-source.md) — accepted 2026-10-05; event-time receipts and earliest trusted-main roots preserve approval through proven numbering when GitHub moves the REST anchor.
+
+- [Independent Grok numbering](0035-independent-grok-numbering.md) — accepted 2026-10-06; authorized Grok submissions start numbering automatically without owner editorial approval.

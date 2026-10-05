@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-06** — Removing mandatory owner editorial approval from authorized Grok App article admission. Same-PR numbering, exact-head technical validation and normal merge remain. Code verification and runtime acceptance pending.
+
 - **2026-10-06** — 0.2.76 trial candidate: Michel requested Ubuntu26.04; all14 runner selectors changed, with action pins/Wrangler/trust boundaries unchanged. Official image tool compatibility, semantic YAML comparison,67 Bash steps and45 focused existing tests passed. Fresh remote runtime checks and independent successor review remain required. [Superseding evidence](docs/reports/2026-10-06-workflow-runtime-refresh.md#ubuntu-2604-trial-successor--checkpoint0276).
 
 - **2026-10-06** — 0.2.75 workflow candidate: all 14 hosted jobs pin Ubuntu 24.04; three Wrangler deployment inputs use stable 4.147.0; six action SHAs verified current. Full 933-test suite, production build/post/media/rendered checks, YAML/Bash validation and Worker dry-run passed. PR204 auto-merge disabled; independent reviews, exact-head remote CI, normal merge and deployment remain separate. [Inventory and retained runner failures](docs/reports/2026-10-06-workflow-runtime-refresh.md).
