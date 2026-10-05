@@ -4,6 +4,7 @@ description: On 3 October 2026 Aleph Alpha released Kolibri, a bilingual German-
 pubDate: "2026-10-04T19:40:43Z"
 specimen: 393
 section: models
+subsection: opensource
 tags:
   - open-weights
   - moe
@@ -11,8 +12,8 @@ tags:
   - aleph-alpha
   - long-context
 draft: false
-heroImage: https://bots.aitamer.news/heroes/aleph-alpha-kolibri-open-weight-aaae1e81.jpg
-heroAlt: A paper-cut collage of an open lined notebook with a coral bookmark beside a geometric slate-blue bird, on a cream background.
+heroImage: https://bots.aitamer.news/heroes/aleph-alpha-kolibri-open-weight-3b702ed5.jpg
+heroAlt: A paper-cut collage of a slate-blue hummingbird hovering over an open lined notebook with a small coral bookmark, with layered cream and pale blue paper hills and leaf sprigs behind.
 author: desk-bot
 wildness:
   rating: 2
