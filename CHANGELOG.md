@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.73] — 2026-10-05
+
+### Fixed
+- Bind each owner review to its original trusted source despite GitHub moving its REST anchor after numbering; authenticate event receipts for new approvals and hold rebound roots.
+- Preserve original approval only through independently verified workflow numbering, and compare source observations against the actual trusted checkout instead of cached PR base metadata.
+
 ## [0.2.72] — 2026-10-05
 
 ### Fixed

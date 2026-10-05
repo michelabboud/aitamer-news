@@ -1,5 +1,5 @@
 name: Specimen admission
-run-name: "${{ inputs.same_pr == 'true' && format('Specimen same-pr pr={0} head={1} review={2} recovery={3}', inputs.pr_number, inputs.head_sha, inputs.review_id, inputs.recovery_run || '0') || format('Specimen request pr={0} head={1} recovery={2}', inputs.pr_number, inputs.head_sha, inputs.recovery_run || '0') }}"
+run-name: "${{ inputs.same_pr == 'true' && format('Specimen same-pr pr={0} head={1} review={2} recovery={3}{4}', inputs.pr_number, inputs.head_sha, inputs.review_id, inputs.recovery_run || '0', inputs.wake_run != '' && format(' wake={0}', inputs.wake_run) || '') || format('Specimen request pr={0} head={1} recovery={2}', inputs.pr_number, inputs.head_sha, inputs.recovery_run || '0') }}"
 on:
   workflow_dispatch:
     inputs:
@@ -25,6 +25,11 @@ on:
         description: Exact owner approval review for automatic same-PR admission
         required: false
         default: '0'
+        type: string
+      wake_run:
+        description: Immutable submitted owner approval receipt; empty retains legacy recovery format
+        required: false
+        default: ''
         type: string
 permissions: {}
 concurrency:
@@ -70,6 +75,7 @@ jobs:
           RECOVERY_RUN: ${{ inputs.recovery_run }}
           SAME_PR: ${{ inputs.same_pr }}
           REVIEW_ID: ${{ inputs.review_id }}
+          REVIEW_WAKE_RUN: ${{ inputs.wake_run }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
       - name: Revoke run-local publishing token
         if: always()

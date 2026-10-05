@@ -1,5 +1,7 @@
 # Single-PR publication implementation plan — 2026-10-05
 
+Runtime repair, 2026-10-05: GitHub moved a review's REST commit anchor after numbering. The authorized [immutable source binding decision](../adr/0034-immutable-owner-review-source.md) preserves the original trusted root, proves numbering descendants, adds event-time receipts for first discovery, and corrects observation comparisons to the actual trusted checkout. Versions 0.2.71/72 deployed successfully; original PR197 remains held pending the reviewed repair and automatic recovery proof. Root owns readiness/review edits; implementation owns the scoped source/test/docs checkpoint. No new approval or manual admission dispatch replaces the original reviewed source.
+
 Dev mode: production. Tasks run back to back. Authorized by Michel's current request; no additional approval gate. Root coordinates implementation and live proof; admission_recovery owns source changes; specimen_security_review owns this plan and independent frozen-candidate review. Native collaboration messages carry findings and commit/hash receipts. This plan changes no repository or GitHub settings itself.
 
 ## Threat sketch
