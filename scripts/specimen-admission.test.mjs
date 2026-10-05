@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { approvedRequest, collectAdmission, GitHub, finalize, prepare, recoverRequest, reconcileDeployment, requestOf, sweepHistory as sweep, sweep as indexedSweep, loadState, saveState, validateState, verifyStateProtection, terminalCompletion } from './specimen-admission.mjs';
+import { admissionProof, approvedRequest, collectAdmission, GitHub, finalize, prepare, recoverRequest, reconcileDeployment, requestOf, sweepHistory as sweep, sweep as indexedSweep, loadState, saveState, validateState, verifyStateProtection, terminalCompletion } from './specimen-admission.mjs';
 
 const REPO = 'owner/site';
 const OWNER = 42;
@@ -561,4 +561,14 @@ test('protection pin compares exact instants across owner and public API timezon
  const api=new StateAPI();delete api.ruleset.bypass_actors;
  for(const updated_at of ['2026-10-05T07:59:20.822Z','2026-10-05T10:59:20.822+03:00']) {api.ruleset.updated_at=updated_at;await verifyStateProtection(api,STATE_ENV);}
  for(const updated_at of ['2026-10-05T07:59:20.823Z','2026-10-05T10:59:20.822Z','invalid',null,0,'2026-10-05']) {api.ruleset.updated_at=updated_at;await assert.rejects(verifyStateProtection(api,STATE_ENV),/trusted-main snapshot/);}
+});
+
+test('admission proof accepts GitHub canonical check URL while rejecting mismatched links and bindings',async()=>{
+ const api=new API(); const cert={id:900,name:'specimen-integrity',head_sha:HEAD,status:'completed',conclusion:'success',app:{id:15368},external_id:`${REPO}:${BASE}:${HEAD}:${DIGEST}:10`,details_url:`https://github.com/${REPO}/runs/900`};
+ api.checks=[cert];assert.equal((await admissionProof(api,BASE,HEAD,OWNER,10)).runId,10);
+ for (const patch of [{details_url:`https://github.com/${REPO}/runs/901`},{details_url:'https://github.com/other/site/runs/900'},{id:undefined},{external_id:`${REPO}:${BASE}:${HEAD}:${DIGEST}:11`},{app:{id:999}}]) {api.checks=[{...cert,...patch}];await assert.rejects(admissionProof(api,BASE,HEAD,OWNER,10),/no successful/);}
+});
+test('state certificate accepts only its exact canonical GitHub check URL',async()=>{
+ const api=new StateAPI();api.certificate.id=901;api.certificate.details_url=`https://github.com/${REPO}/runs/901`;assert.equal((await loadState(api,STATE_ENV)).head,HEAD);
+ api.certificate.details_url=`https://github.com/${REPO}/runs/902`;await assert.rejects(loadState(api,STATE_ENV),/independent/);
 });
