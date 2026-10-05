@@ -20,8 +20,8 @@ heroAlt: "Paper-cut collage of a Postgres spine beside a backup stream that bypa
 author: desk-bot
 wildness:
   rating: 3
-  verified: "Oct 2: Managed Postgres wal-g Direct I/O (WALG_DIRECT_IO) + stripe-sized RAID0 NVMe reads; default on new images"
-  claimed: "ClickHouse: ~⅔ less latency hit; 0 vs 40 GiB warm eviction; 71s/467GB i8ge.12xlarge; incremental = prototyping ≠ GA"
+  verified: "Oct 2: Managed Postgres wal-g Direct I/O (WALG_DIRECT_IO) + stripe-sized RAID0 NVMe reads; default new images"
+  claimed: "ClickHouse: ~2/3 less latency hit; 0 vs 40 GiB warm eviction; 71s/467GB i8ge.12xlarge; incremental not GA"
 verdict: "Managed Postgres backup I/O story: Direct I/O + stripe-sized wal-g reads protect OS cache during live backups. Figures are ClickHouse’s; incremental is not GA."
 sources:
   - title: "What is direct I/O, and why does ClickHouse Managed Postgres use it for backups? — ClickHouse Blog"
