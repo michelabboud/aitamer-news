@@ -415,7 +415,7 @@ test('only authors marked kind: human are read as human editors; an unreadable f
 });
 
 test('the real site: the human editors are exactly the authors marked human', () => {
-  assert.deepEqual([...loadHumanAuthors('src/content/authors')], ['wiz-cat']);
+  assert.deepEqual([...loadHumanAuthors('src/content/authors')], ['aviram', 'wiz-cat']);
 });
 
 test('the real site: the AI writers are exactly the authors marked ai', () => {

@@ -1025,7 +1025,7 @@ test('review B1: when the two readers disagree, or either throws, the file is re
   assert.match(readAuthorFile(ok, { site: () => null, astro: READERS.astro }).problem, /finds no frontmatter/);
 });
 
-test('review B1: the site’s four real author files, and the posts MCP’s writing style, read cleanly', async () => {
+test('review B1: the site’s real author files, and the posts MCP’s writing style, read cleanly', async () => {
   const { readdirSync, readFileSync } = await import('node:fs');
   const dir = new URL('../src/content/authors/', import.meta.url);
   for (const name of readdirSync(dir).filter((file) => file.endsWith('.md'))) {
@@ -1037,12 +1037,8 @@ test('review B1: the site’s four real author files, and the posts MCP’s writ
 });
 
 test('review B1: the lane’s keys are exactly the authors collection’s schema', async () => {
-  const { readFileSync } = await import('node:fs');
-  const config = readFileSync(new URL('../src/content.config.ts', import.meta.url), 'utf8');
-  const block = /const authors = defineCollection\(\{[\s\S]*?schema: z\.object\(\{([\s\S]*?)\n  \}\)/.exec(config);
-  assert.ok(block, 'the authors schema is found in src/content.config.ts');
-  const keys = [...block[1].matchAll(/^ {4}([A-Za-z]+):/gm)].map((match) => match[1]);
-  assert.deepEqual([...keys].sort(), [...AUTHOR_KEYS].sort());
+  const { authorSchema } = await import('../src/content/author-schema.ts');
+  assert.deepEqual(Object.keys(authorSchema.shape).sort(), [...AUTHOR_KEYS].sort());
 });
 
 test('review B1: another author’s names are read leniently, by either reader', () => {
@@ -1203,4 +1199,46 @@ test('Ari re-check B2: a YAML comment after a plain value is refused; a literal 
     assert.match(readAuthorFile(text, READERS).problem ?? '', problem, label);
   }
   assert.deepEqual(readAuthorFile('---\nname: C#Writer\nkind: ai\nbio: "a # in quotes"\n---\n', READERS), { data: { name: 'C#Writer', kind: 'ai', bio: 'a # in quotes' } });
+});
+
+
+test('author metadata uses schema types and rejects string toggles or invalid ordering', () => {
+  const text = '---\nname: Nova\nkind: ai\nbio: Biography\nfeatured: true\nwriterOrder: 1\npersonalOpinion: false\nwebsite: https://example.com/\n---\n';
+  assert.deepEqual(readAuthorFile(text, READERS).data, {
+    name: 'Nova', kind: 'ai', bio: 'Biography', featured: true,
+    writerOrder: 1, personalOpinion: false, website: 'https://example.com/',
+  });
+  for (const [before, after, expected] of [
+    ['featured: true', 'featured: "true"', /featured is not a boolean/],
+    ['personalOpinion: false', 'personalOpinion: "false"', /personalOpinion is not a boolean/],
+    ['writerOrder: 1', 'writerOrder: -1', /value of writerOrder is not a one-line value/],
+    ['writerOrder: 1', 'writerOrder: 1.5', /writerOrder is not a nonnegative integer/],
+  ]) assert.match(readAuthorFile(text.replace(before, after), READERS).problem, expected);
+});
+
+test('author App cannot change editorial placement or remove an opinion disclosure, including stale branches', () => {
+  const withPolicy = author({ name: 'Quill', kind: 'ai', bio: 'Biography', featured: true, writerOrder: 10, personalOpinion: true });
+  assert.deepEqual(content('M', withPolicy, withPolicy), []);
+  for (const extra of [
+    { featured: false, writerOrder: 10, personalOpinion: true },
+    { featured: true, writerOrder: 0, personalOpinion: true },
+    { featured: true, writerOrder: 10, personalOpinion: false },
+    {},
+  ]) {
+    const changed = author({ name: 'Quill', kind: 'ai', bio: 'Biography', ...extra });
+    assert.match(content('M', withPolicy, changed).join('\n'), /editorial writer policy changes only through the maintainer/);
+    assert.match(authorContentProblems({
+      status: 'M', path: QUILL, baseText: QUILL_TEXT, mainText: withPolicy,
+      headText: QUILL_TEXT, otherNames: [], readers: READERS,
+    }).join('\n'), /on main now.*editorial writer policy/);
+  }
+});
+
+test('author App cannot set editorial policy on a new profile or add a featured human identity', () => {
+  for (const extra of [{ featured: true }, { writerOrder: 1 }, { personalOpinion: true }]) {
+    const added = author({ name: 'Nova', kind: 'ai', bio: 'Biography', ...extra });
+    assert.match(content('A', null, added, [], `${AUTHORS_LANE}nova.md`).join('\n'), /editorial writer policy is the maintainer's to set/);
+  }
+  const human = author({ name: 'Nova', kind: 'human', bio: 'Biography', featured: true, personalOpinion: true });
+  assert.match(content('A', null, human, [], `${AUTHORS_LANE}nova.md`).join('\n'), /a new human is the maintainer's to add/);
 });

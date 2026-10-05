@@ -30,3 +30,5 @@
 - [Restore publication by post date](0027-restore-date-publication.md) — accepted 2026-10-04; reviewed queue admission disabled at Michel's request.
 - [Isolated bot hero origin](0028-isolated-bot-hero-origin.md) — accepted 2026-10-04; hashed own-slug heroes from bots.aitamer.news with per-origin checks, preserving existing media and date publishing.
 - [Grok App content pull requests](0030-grok-app-content-pull-requests.md) — accepted for implementation 2026-10-05; numeric author/sender identity, same-repository grok/ branches, plain Markdown posts and byte-preserving append-only specimen history. Independent review and owner-authorized merge pending; 0029 is reserved for the paused Cursor task.
+
+- [Featured writer metadata](0032-author-feature-metadata.md) — accepted 2026-10-05; human writers opt in, editorial ordering and opinion disclosures remain maintainer-controlled.

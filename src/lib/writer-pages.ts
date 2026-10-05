@@ -1,25 +1,60 @@
-/**
- * Named AI writers get a page at their own name, `/<id>/` (ADR 0012): Mai is known as Mai, not as
- * one author id among the Tamers. Pure, so it runs under `node:test`.
- */
-import type { AuthorKind } from './author-kinds.ts';
+/** Featured writer selection and presentation, shared by all writer links (ADR 0032). */
+import { kindRole, kindNoun, type AuthorKind } from './author-kinds.ts';
 
-/** The kind that earns a page at its own name. Bots stay under `/authors/`. */
-export const WRITER_PAGE_KIND: AuthorKind = 'ai';
-
-/**
- * The order of the writer cards in the front page's right panel, set by the editor. A writer not
- * listed follows the listed ones, in id order.
- */
-export const WRITER_CARD_ORDER: readonly string[] = ['mai', 'quill', 'foxy', 'ari'];
-
-/** Sorts writers into the card order, without changing the input. */
-export function orderWriterCards<T extends { id: string }>(writers: readonly T[]): T[] {
-  const rank = (id: string) => {
-    const at = WRITER_CARD_ORDER.indexOf(id);
-    return at === -1 ? WRITER_CARD_ORDER.length : at;
+export interface WriterAuthor {
+  id: string;
+  data: {
+    kind: AuthorKind;
+    featured?: boolean;
+    writerOrder?: number;
   };
-  return [...writers].sort((a, b) => rank(a.id) - rank(b.id) || a.id.localeCompare(b.id));
+}
+
+/** Existing AI writers keep their card positions; integer gaps admit editorial additions. */
+export const WRITER_CARD_ORDER: readonly string[] = ['mai', 'quill', 'foxy', 'ari'];
+const DEFAULT_ORDER_STEP = 10;
+
+/** AI writers default in, human writers explicitly opt in, and desk bots stay profiles. */
+export function isFeaturedWriter(author: WriterAuthor): boolean {
+  return author.data.kind !== 'bot' && (author.data.featured ?? author.data.kind === 'ai');
+}
+
+/** The fuller introduction for featured writers, otherwise their ordinary author profile. */
+export function writerAuthorPath(author: WriterAuthor): string {
+  return isFeaturedWriter(author) ? `/${author.id}/` : `/authors/${author.id}/`;
+}
+
+/** Featured human contributors are writers; unfeatured humans retain the editor role. */
+export function writerRole(author: WriterAuthor): string {
+  return author.data.kind === 'human' && isFeaturedWriter(author) ? 'Human writer' : kindRole(author.data.kind);
+}
+
+/** Matching noun phrase for article signoffs and machine-readable author descriptions. */
+export function writerNoun(author: WriterAuthor): string {
+  return author.data.kind === 'human' && isFeaturedWriter(author) ? 'a human writer' : kindNoun(author.data.kind);
+}
+
+/** Sorts cards and menu links without changing the input; tied ranks use author IDs. */
+export function orderWriterCards<T extends { id: string; data?: { writerOrder?: number } }>(writers: readonly T[]): T[] {
+  const rank = (writer: T) => {
+    if (writer.data?.writerOrder !== undefined) return writer.data.writerOrder;
+    const at = WRITER_CARD_ORDER.indexOf(writer.id);
+    return at === -1 ? Number.POSITIVE_INFINITY : at * DEFAULT_ORDER_STEP;
+  };
+  return [...writers].sort((a, b) => {
+    const aRank = rank(a);
+    const bRank = rank(b);
+    return (aRank === bRank ? 0 : aRank < bRank ? -1 : 1) || a.id.localeCompare(b.id);
+  });
+}
+
+/** No disclosure without explicit opt-in, regardless of author kind. */
+export function personalOpinionDisclosure(author: { data: { name: string; personalOpinion?: boolean } } | undefined): { label: string; disclaimer: string } | undefined {
+  if (author?.data.personalOpinion !== true) return undefined;
+  return {
+    label: 'Personal opinion',
+    disclaimer: `This article expresses ${author.data.name}’s personal views. These opinions are the author’s own and do not necessarily reflect AI Tamer’s views. Factual claims remain subject to our sourcing and correction standards.`,
+  };
 }
 
 /**
@@ -54,10 +89,10 @@ export function reservedTopLevelNames(
  * build error: Astro would let the static page win silently, and the writer's page would vanish.
  */
 export function writerPageIds(
-  authors: readonly { id: string; data: { kind: AuthorKind } }[],
+  authors: readonly WriterAuthor[],
   reserved: ReadonlySet<string>,
 ): string[] {
-  const ids = authors.filter((a) => a.data.kind === WRITER_PAGE_KIND).map((a) => a.id);
+  const ids = authors.filter(isFeaturedWriter).map((a) => a.id);
   const clashes = ids.filter((id) => reserved.has(id));
   if (clashes.length > 0) {
     throw new Error(
