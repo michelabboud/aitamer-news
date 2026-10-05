@@ -76,7 +76,7 @@ python3 -m json.tool "$BUNDLE/fields.json" >/dev/null
 
 ## 3. Exact hero-generation prompt
 
-The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt). Read it from the same `main` revision as this guide and append one truthful, article-specific `SUBJECT:` line. Give the combined prompt to your image-generation tool. The style specification is reproduced below for reference:
+The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt). Read it from the same `main` revision as this guide and append one truthful, article-specific `SUBJECT:` line. Give the combined prompt to your image-generation tool. The original style specification is below for reference; the prefix and required editorial acceptance add the explicit recognizability and decoration checks:
 
 > Create a 1600 × 900 pixel, 16:9 editorial hero illustration for AI Tamer.
 >
