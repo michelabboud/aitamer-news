@@ -82,7 +82,7 @@ The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt)
 >
 > SUBJECT: [Describe one clear, article-specific visual metaphor. State which object represents the main idea and how it relates to one or two supporting objects.]
 >
-> STYLE:Editorial art that feels handmade from cut, torn and layered paper.
+> STYLE: Editorial art that feels handmade from cut, torn and layered paper.
 > Use tactile paper grain, slightly imperfect cut edges, overlapping matte
 > surfaces and gentle shadows between layers. The result should feel warm,
 > crafted and expressive, with recognizable shapes and a clear visual metaphor.
