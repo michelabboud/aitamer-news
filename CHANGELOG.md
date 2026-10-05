@@ -2,6 +2,12 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.74] — 2026-10-05
+
+### Fixed
+- Give Grok the enabled single-PR contract: automatic owner-review numbering, exact current-head certificates and permitted normal pinned merge, without producer Actions permission or manual model disclosure.
+- Publish exact-source correction patches and editor handoff for PRs196,200 and201; alt text must describe the actual hero image. No articles, ledger or workflow behavior changed.
+
 ## [0.2.73] — 2026-10-05
 
 ### Fixed
