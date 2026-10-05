@@ -82,17 +82,20 @@ The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt)
 >
 > SUBJECT: [Describe one clear, article-specific visual metaphor. State which object represents the main idea and how it relates to one or two supporting objects.]
 >
-> STYLE: Handmade layered paper-cut collage. Build objects from visibly cut,
-> overlapping matte paper shapes. Show subtle paper grain, tactile edges and
-> shallow soft shadows between layers. Choose a harmonious palette from these
-> acceptable colors: slate blue, steel blue, dusty blue, blue-grey, muted teal,
-> deep navy, warm cream, ivory, soft sand, rusty red, sulfur yellow and coral.
-> Do not force every image to use one fixed background color. Choose a small,
-> coherent subset of the approved colors for background, objects and accents.
-> Rusty red and sulfur yellow are valid palette colors, not mandatory additions.
-> Balance warm and cool tones; avoid neon or oversaturation. Keep the overall
-> composition calm and maintain clear subject/background contrast.
-> Use crisp silhouettes, a clear focal subject and generous negative space.
+> STYLE:Editorial art that feels handmade from cut, torn and layered paper.
+> Use tactile paper grain, slightly imperfect cut edges, overlapping matte
+> surfaces and gentle shadows between layers. The result should feel warm,
+> crafted and expressive, with recognizable shapes and a clear visual metaphor.
+> Avoid glossy surfaces, plastic-looking objects and polished 3D rendering.
+>
+> COLOR PROFILE: Muted, earthy, ink-and-paper colors. Acceptable colors include
+> slate blue, steel blue, dusty blue, blue-grey, muted teal, deep navy, warm cream,
+> ivory, soft sand, rusty reds, sulfur yellows and coral. Choose a harmonious
+> subset that suits the story rather than using every color or repeating one
+> fixed background. Balance cool blues with warm paper tones and restrained
+> rust, yellow or coral accents. Colors should feel softly weathered and
+> pigmented, not neon, oversaturated or fluorescent. Keep enough contrast for
+> the subject to read clearly at article-card size.
 >
 > BACKGROUND: Enrich the chosen background lightly with fine paper grain,
 > faint overlapping paper layers in related tones, and one or two low-contrast
@@ -209,7 +212,7 @@ Fonts and page styling are controlled by Astro layouts/components and site CSS, 
 
 Passing CI validates technical constraints; it does not approve the hero composition, factual accuracy or reading experience. Inspect the actual uploaded JPEG and the rendered article before calling a post ready.
 
-- **Hero:** restrained warm accents within the approved palette, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, slate-blue/cream palette, soft shadows, no typography and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
+- **Hero:** restrained warm accents within the approved palette, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, approved color profile, soft shadows, no typography and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
 - **Markdown:** 250–800 useful body words, a direct news opening, descriptive `##` sections and a practical takeaway. Include accurate frontmatter, an existing honest AI/bot byline, source links, Wildness evidence and a verdict. No custom HTML/CSS/MDX, em-dashes or internal process notes. Astro supplies fonts and layout.
 - **Browser:** run the existing build and preview commands; inspect the article at desktop and narrow mobile widths. Check headline wrapping, paragraph readability, section hierarchy, byline, sources, hero and card cropping. Record what was actually inspected; source inspection alone is not a browser preview.
 - **Evidence:** the PR description must be nonempty and include opened primary sources and claims checked, source disagreements, UTC `pubDate`, immediate versus scheduled intent, public hero URL, visual-review findings, browser-review findings, and decisive command outputs. Never claim a check passed unless it ran. Keep the detailed evidence in the handoff bundle and include enough in the PR for a reviewer without bundle access.
@@ -225,7 +228,7 @@ Upload the new JPEG under a new content-hash URL; update heroImage and heroAlt
 and push a new commit to the existing PR. Do not overwrite the previous object.
 Before submitting, inspect the actual uploaded hero: restrained warm accents,
 recognizable article-specific objects, no unrelated floating shapes, layered
-matte paper, approved blue/teal/neutral palette, no text/logos, JPEG exactly 1600x900.
+matte paper, approved color profile, no text/logos, JPEG exactly 1600x900.
 Regenerate failures. For the Kolibri test: recognizable hummingbird + open
 notebook; remove the floating square; coral only on the bookmark.
 Use clean Markdown, 250-800 useful words, descriptive sections and a practical
