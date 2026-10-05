@@ -5,7 +5,7 @@ Status: plan requested 2026-10-05; implementation not authorized by this plannin
 ## Owner requirements
 
 - Only the workflow writes `src/content/specimen-ledger.txt` and assigns permanent `specimen` values. Bots, people and local agents never edit that file or run allocation locally.
-- Posting PRs carry the article and Habitat classification; the workflow supplies publication numbering. Clarification pending: whether “PR should ONLY update Habitat in the post” means the classification choice on new articles or strictly Habitat-only edits to existing articles. This changes the submission contract and must be resolved before implementation.
+- Confirmed submission contract: bots submit the article and choose Habitat (`section`/`subsection`); the workflow alone supplies `specimen` and updates the ledger. Bots do not submit ledger changes or choose permanent numbers.
 - Preserve all historical ledger bytes and published numbers. Keep `pubDate` publishing and the scheduled publisher; do not reinstate `queue.json` admission.
 
 ## Problem and evidence
@@ -18,13 +18,13 @@ This is a production publishing workflow. Protect permanent identities, ledger h
 
 ## Proposed flow
 
-1. A bot submits a new Markdown article with valid Habitat (`section`, optional `subsection`) and other required editorial content, but no permanent specimen and no ledger change. Keep ordinary article metadata unless the owner clarifies otherwise.
+1. A bot submits a new Markdown article with valid Habitat (`section`, optional `subsection`) and other required editorial content, but no permanent specimen and no ledger change. Keep normal required article metadata; Habitat is the classification chosen by the bot, not a restriction that removes article content.
 2. A credential-free candidate check validates the full article, sources, media and render. A narrowly scoped pending-submission mode permits missing specimen only for new candidate articles; ordinary main checks and production builds still require permanent numbers. Existing articles never lose their specimen. Preview displays pending identity without inventing a permanent number.
 3. Editorial approval binds the content to the exact PR head. Initially only Michel/the authorized publisher may admit it. Green technical checks do not grant bots editorial or merge authority.
 4. A trusted main workflow receives admission of that exact PR/head. One repository-wide serial admission worker handles eligible requests, in deterministic order, without cancellation. GitHub concurrency alone is not a reliable FIFO queue: persist safe request/run receipts and reconcile outstanding approved PRs after every admission and on recovery. This is orchestration state, not a content `queue.json` requirement.
 5. Refresh main, verify the approved article bytes and allowed paths, then use the trusted stamper to allocate from the current ledger. Generate a commit that changes only the admitted post's specimen and the expected append-only ledger entries. Preserve existing numbers and content. Handle legacy numbered pending PRs with the documented append-only collision/void repair, performed solely by workflow code.
 6. Push using the workflow's narrowly scoped App identity. Validate the exact generated commit without secrets, including ledger prefix, one allocation, article/render/media tests and original editorial content binding. Check provenance so a bot cannot manufacture an apparently workflow-owned ledger edit. Plain commit author names are not proof.
-7. Before merging, re-read main SHA, PR head, approval and required check results. If main moved or content changed, recompute/revalidate; never merge stale allocation. Merge with a pinned head as a merge commit. Never force-push, use admin merge, or change a guard merely to turn a check green.
+7. Before merging, re-read main SHA, PR head, approval and required check results. If main moved or content changed, recompute/revalidate; never merge stale allocation. Pin the head and require server-enforced current-base validation at merge (strict required checks against current main or a trusted merge queue). A client-side reread followed by a pinned-head merge is insufficient: it leaves a base-update race. Verify enforcement for the actual merge identity; fail closed if unavailable. Owner/admin bypass remains an explicit policy exception, not a claimed atomic guarantee. Merge as a merge commit. Never force-push, use admin merge, or change a guard merely to turn a check green.
 8. Wait for the normal deploy and verify article HTTP 200, expected specimen, content and hero. Respect future pubDate: a future post stays scheduled, and its absence is expected. Record pending versus published truthfully.
 
 ## Identity and permissions design
@@ -35,7 +35,7 @@ Keep allocation separate from the privileged merge identity. Reuse an existing a
 
 ## Implementation batches
 
-1. **Contract:** update builder, preflight, candidate checks and bot instructions for unnumbered submissions; preserve strict main checks. Add Habitat-only correction handling if that is the clarified contract.
+1. **Contract:** update builder, preflight, candidate checks and bot instructions for unnumbered submissions; preserve strict main checks. Bots choose Habitat and supply article content; workflow alone supplies numbering.
 2. **Allocator:** trusted deterministic stamping, immutable receipts, exact-content binding, idempotent retry and legacy collision migration. No new external datastore.
 3. **Admission:** workflow-only identity/provenance checks, serial reconciliation, fresh-base/head checks and authorized pinned merge. Configure App/ruleset permissions only as part of implementation.
 4. **Acceptance:** frozen-SHA independent security/code review, isolated concurrent-PR tests, one controlled publication, then enable the workflow. Do not grant unrestricted Grok merge permission as a shortcut.
@@ -56,4 +56,4 @@ Keep a durable run record with PR, approved head, base, generated head, allocati
 
 ## Current boundary
 
-This document changes no workflows, Apps, permissions, schema or posting policy enforcement. #169 is merged and its deployment succeeded; #172's content is prepared in #174 and remains pending while the new constraint is resolved. Implementation and completion of that outstanding admission require the clarified contract and the future workflow.
+This document changes no workflows, Apps, permissions, schema or posting policy enforcement. #169 is merged and its deployment succeeded; #172's content is prepared in #174 and remains pending pending workflow-owned admission. Implementation and completion of that outstanding admission require the future workflow. The Habitat contract is confirmed.
