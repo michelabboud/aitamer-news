@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.62 source: workflow numbering implemented, tested and reviewed. Live enforcement and controlled admissions pending. Recovery regression61 tests passed; full baseline suite841 tests passed before final streaming delta.
+
 - **2026-10-05** — 0.2.60 planning: ledger/allocation becomes workflow-owned in the proposed design. #169 merged and deployed; #172 integration #174 remains pending under the new constraint. Confirmed site-wide: bots, our writers, the Desk and manual publishers choose Habitat and submit the article; workflow alone supplies numbering and automatically repairs unauthorized submitted number/ledger changes.
 
 - **2026-10-05** — 0.2.59: hero art instructions now provide acceptable colors instead of a single fixed background; Grok review summaries no longer require the automatic writer model.

@@ -2,6 +2,13 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.62] — 2026-10-05
+
+### Added
+- Trusted workflow-only specimen assignment, exact-content approval, automatic number repair and current-main merge checks.
+- Recovery of stale/failed requests and deployment dispatches, preserving all approval and failure evidence.
+- Unnumbered candidate checks and migrated producer instructions; date publication and 60-second deployment batching remain.
+
 ## [0.2.60] — 2026-10-05
 
 ### Added

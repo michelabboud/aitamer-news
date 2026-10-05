@@ -1,0 +1,36 @@
+name: Finalize specimen admissions
+on:
+  workflow_run:
+    workflows: [Specimen admission]
+    types: [completed]
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: specimen-admission-merge
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    if: vars.SPECIMEN_ADMISSION_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+      checks: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Reconcile successful admissions against current main
+        run: node scripts/specimen-admission.mjs sweep
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}

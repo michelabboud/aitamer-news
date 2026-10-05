@@ -1,0 +1,102 @@
+name: Specimen admission
+run-name: "Specimen request pr=${{ inputs.pr_number }} head=${{ inputs.head_sha }} recovery=${{ inputs.recovery_run || '0' }}"
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Editorially approved source PR
+        required: true
+        type: string
+      head_sha:
+        description: Exact reviewed source head
+        required: true
+        type: string
+      recovery_run:
+        description: Trusted prior run for automatic stale-base recovery
+        required: false
+        default: ''
+        type: string
+permissions: {}
+jobs:
+  prepare:
+    if: vars.SPECIMEN_ADMISSION_ENABLED == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      checks: read
+    outputs:
+      head: ${{ steps.prepare.outputs.head }}
+      base: ${{ steps.prepare.outputs.base }}
+      source_sha: ${{ steps.prepare.outputs.source_sha }}
+      editorial_digest: ${{ steps.prepare.outputs.editorial_digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - id: prepare
+        run: node scripts/specimen-admission.mjs prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          SOURCE_SHA: ${{ inputs.head_sha }}
+          RECOVERY_RUN: ${{ inputs.recovery_run }}
+          MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
+  validate:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.base }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify deterministic allocation and copy only content data
+        run: node scripts/specimen-admission.mjs materialize
+        env:
+          BASE_SHA: ${{ needs.prepare.outputs.base }}
+          HEAD_SHA: ${{ needs.prepare.outputs.head }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+          EDITORIAL_DIGEST: ${{ needs.prepare.outputs.editorial_digest }}
+      - run: npm test
+      - run: npm run check:posts
+      - run: npm run check:media
+      - run: npm run build
+      - run: npm run check:bodies:build
+      - run: npm run check:csp
+      - run: npm run check:links
+      - run: npm run check:diagrams:dist
+  certify:
+    needs: [prepare, validate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.base }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node scripts/specimen-admission.mjs certify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ needs.prepare.outputs.base }}
+          HEAD_SHA: ${{ needs.prepare.outputs.head }}
+          EDITORIAL_DIGEST: ${{ needs.prepare.outputs.editorial_digest }}

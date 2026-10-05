@@ -1,6 +1,6 @@
 # Content contract for the bots (for their Chief of staff)
 
-Written 2026-10-01 for the desk bots' Chief of staff. Michel's standing rule: the bots are allowed to publish, and nothing here blocks them. Until the posts MCP is live they open pull requests; once it is live, nobody but the MCP publishes. The same contract then applies to what the MCP accepts.
+Written 2026-10-01 for the desk bots' Chief of staff. Michel's standing rule: the bots are allowed to publish, and nothing here blocks them. Until the posts MCP is live they open pull requests; once it is live, nobody but the MCP publishes. The same article contract then applies to what the MCP accepts. **Specimen ownership changed 2026-10-05:** every producer, including the Desk, MCP integrations, our writers, Grok and manual publishers, submits article content and chooses Habitat; normal editorial metadata is still required. Only the trusted site workflow supplies permanent specimen numbers and writes the specimen ledger. The [admission guide](workflow-owned-specimens.md) records rollout status; never resume local numbering while activation is pending.
 
 **What the bots are (Michel, 2026-10-02):** helpers that keep the site publishing when the editor is out of tokens. Three rules follow from that:
 
@@ -12,7 +12,7 @@ Written 2026-10-01 for the desk bots' Chief of staff. Michel's standing rule: th
 
 On 2026-10-02 five bot posts (`litellm-lens`, `zyte-mcp`, `astabrief-8b`, `supabase-acquiring-turso`, `clickhouse-managed-postgres-direct-io-backups`) were merged with `heroImage: /heroes/<slug>.jpg` and the image committed under `public/heroes/`. The check refused it (section 3 already said so), the pull requests were merged anyway, and **every deploy failed for about an hour**: the site stayed on its last good version, but no new post and no fix shipped. The editor repaired it by hand (uploading the images to the media host). The rules that would have prevented it:
 
-1. **A red check means do not merge.** The required work is `npm run check:posts`, `npm run check:media` and `npm test`, all green, before the pull request opens, and the pull request's own `check` job green before it merges. If it is red, fix the cause or hand the post to the editor. Never merge on red, and never "merge now, fix later": a red `main` stops publishing for everyone, Mai, Foxy, Quill and the other bots included.
+1. **A red check means do not merge.** The required source work is preflight, `npm run check:candidate -- --base <full-origin-main-SHA>`, `npm run check:media` and `npm test`, with truthful evidence. Strict `check:posts` and the build must pass on the workflow-generated numbered tree before its merge. A source PR pending numbering is never merged directly. If it is red, fix the cause or hand the post to the editor. Never merge on red, and never "merge now, fix later": a red `main` stops publishing for everyone, Mai, Foxy, Quill and the other bots included.
 2. **Heroes live on the media host, never in the repository.** Upload first, then write `heroImage: https://media.aitamer.news/heroes/<slug>.jpg` (or the hashed form `<slug>-<8 lowercase hex>.jpg`). `public/heroes/` must not exist. Section 3 has the routes.
 3. **Every post has a hero.** It is the site's signature (Michel, 2026-10-02). A short post gets one too. A post without a hero shows an old generic cover and a poor share card.
 4. **Evergreen posts take a free half-hour slot; news does not wait for one.** The scheduled evergreen queue publishes one post every 30 minutes (checked at :07 and :37), so for an evergreen post run `npm run preflight -- --next-slot` and use a free time on the grid; never a slot the schedule note (`docs/plans/`) reserves for a named writer. **News bursts (from the backoffice or the desk bots) are separate:** set `pubDate` to the time the news should go live (now, at most three hours ahead), off the grid if you like, and run `npm run preflight -- --news`. The publisher takes every post due at a check in one deploy, so a burst never has to wait for the evergreen queue and never pushes it.
@@ -23,6 +23,7 @@ On 2026-10-02 five bot posts (`litellm-lens`, `zyte-mcp`, `astabrief-8b`, `supab
 ## 1. Your lane
 
 - You write **posts and their hero images** only. You never touch the template: no pages, layouts, components, styles, scripts, workflows or configuration. A required check (`publisher-paths`) fails any pull request that does.
+- Omit `specimen` for new articles and never change `src/content/specimen-ledger.txt`. Choose valid Habitat (`section`, optional `subsection`) and supply all required article fields, including author, sources, hero and full UTC `pubDate`. Workflow admission alone allocates and repairs permanent identities.
 - One pull request per post or per small batch. Do not edit other people's posts (Mai, Quill, Foxy, Ari, Michel).
 
 ## 2. What readers see: no working notes
@@ -48,7 +49,7 @@ Everything in a post is read by the public: title, description, verdict, wildnes
 
 ## 4. Frontmatter limits (the build fails past these)
 
-title 200, description 400, heroAlt 300, verdict 240, wildness.verified and wildness.claimed 120 each, each tag 60. An unknown field fails the build. Do not write `specimen` by hand; the stamper assigns it (`npm run stamp`).
+title 200, description 400, heroAlt 300, verdict 240, wildness.verified and wildness.claimed 120 each, each tag 60. An unknown field fails the build. Do not submit a new `specimen` or alter an existing identity or the specimen ledger. The trusted admission workflow assigns and repairs numbering. `npm run stamp` is reserved for that workflow, never a producer command.
 
 ## 5. Words that break the deploy
 
@@ -58,12 +59,12 @@ title 200, description 400, heroAlt 300, verdict 240, wildness.verified and wild
 ## 6. Before you open the pull request
 
 1. Pick the publish time with `npm run preflight -- --next-slot` (add a number for several). It prints the next free half hours in UTC. Slots are one per half hour, on :00 or :30, shared by every writer.
-2. `npm run stamp`
+2. Run `npm run preflight -- --files <post-files>` (add `--news` for news), commit only the article files, then `git fetch origin main`. Do not stage the specimen ledger.
 3. **`npm run preflight`**: the bots' own gate. It checks every post your branch adds or changes: hero present, on the media host, with `heroAlt`; `pubDate` on the grid and free; no em-dashes in the prose; title under 120, description under 260 and each wildness line under 110 characters; sources present. It also prints notes on "not X, but Y" sentences, question headings and hype words: read them and fix any that is a real break. It exits 1 on a problem. Fix every line before going on.
-4. `npm run check:posts` and `npm test` pass, with no reader-text warnings.
+4. Run `npm run check:candidate -- --base "$(git rev-parse origin/main)"` and `npm test`, with no unresolved reader-text warnings. The candidate check examines committed changes; commit corrections and repeat it before pushing. It issues no number.
 5. `npm run check:media` shows your hero answering 200, and `npm run check:times` passes (it is the check that refuses a repo hero path).
-6. Read the front-page card and the post once as a reader would.
+6. Read the post and hero as a reader would and submit source/visual evidence. The owner admits the exact reviewed head through the workflow; technical green does not grant editorial or merge approval. Only the workflow-generated numbered PR may merge after strict checks.
 
 ## 7. After the posts MCP is live
 
-Only the MCP publishes. Bots hand drafts to the MCP; no pull requests, no direct pushes. The MCP applies sections 2 to 5 as hard rules on input.
+Once the MCP publishing integration is live, bots hand drafts to it rather than submitting directly. The MCP must follow the same workflow-only identity contract: it submits article data, never writes the permanent ledger or allocates specimens itself. Integration activation is separate evidence; these instructions do not claim it is live.

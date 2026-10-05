@@ -270,7 +270,7 @@ test('every workflow that builds the site runs the guard after the build and bef
     assert.ok(guard > build, `${name}: check:csp must run after the build`);
     if (ship >= 0) assert.ok(guard < ship, `${name}: check:csp must run before the upload`);
   }
-  assert.deepEqual(builders.sort(), ['check-posts.yml', 'deploy-github-pages.yml', 'deploy-pages.yml']);
+  assert.deepEqual(builders.sort(), ['check-posts.yml', 'deploy-github-pages.yml', 'deploy-pages.yml', 'specimen-admission.yml']);
 });
 
 test('the build writes the policy after Pagefind, and check:csp is the guard', () => {

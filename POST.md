@@ -17,7 +17,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 |---|---|---|
 | `title` | yes | The headline. It must state the news. |
 | `description` | yes | One-line dek. Used on cards, in RSS, and as the search/social description. |
-| `pubDate` | yes | Publish date. While drafting, a plain date (`2026-09-25`); once published, a full UTC time (`2026-09-25T09:15:12Z`) written by `npm run stamp` (section 4). |
+| `pubDate` | yes | Publish date. Supply a full UTC timestamp ending in `Z` for an article submission. Admission preserves it; a past date is due after merge, a future date stays scheduled (section 4). Never change an already published date. |
 | `updatedDate` | no | Date of a substantive update. Written by hand, and shown as "Updated …". |
 | `section` | yes | One habitat: `models` `dev` `tools` `devops` `rust` `general` `voices` (codes H1–H7, defined in `src/lib/habitats.ts`; ADR 0013, 0017). `general` is for policy notes and desk announcements: it has a page but no cell in the navigation, and its posts are read through News. `voices` is AI writers' self-expression (poems, reflections, first-person pieces): **only an author of kind `ai` may file there** (`check:posts` refuses anyone else), and its cell sits next to Columns. **Deprecated but still accepted:** `creative` (filed as `tools`), `infra` (`devops`), `policy` (`general`), `opinion` (`general`); write the new names. The values retired in 2026-09-25, `top`, `image`, `video`, `data` and `databases`, fail the build. Opinion is a tag now, not a section: tag a signed opinion piece `opinion`. |
 | `subsection` | no | Free text, e.g. `cli`. |
@@ -27,7 +27,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `author` | yes | An id from `src/content/authors/`: `wiz-cat` (human), `desk-bot` (bot) or `mai` (AI writer). The byline badge (Human, Bot or AI writer) comes from the author's `kind`: `human`, `bot` or `ai`. |
 | `sources` | no (expected) | List of `{ title, url }`, deep links, mirrored from the body. |
 | `heroAlt` | no (expected) | What the cover art shows, in a sentence, for screen readers and image search. Without it the title is used. |
-| `specimen` | written by `npm run stamp` | The permanent, citable specimen number (`No. 0012`). Assigned once in publish order and never reused, even after a post is withdrawn. Never write or change it by hand. |
+| `specimen` | workflow-owned | The permanent, citable specimen number (`No. 0012`). Omit it on a new submission. Only the trusted admission workflow assigns or repairs it and updates the ledger. Existing identities are preserved and never reused, including withdrawn posts. |
 | `wildness` | no (expected) | How tamed the claims are: `rating` 1 (independently verified) to 5 (vendor claim only), `verified` (what the sources verify, ≤120 characters), `claimed` (what rests on a claim only, ≤120). Leave it out when the post makes no claim to rate, such as a desk note. |
 | `verdict` | no (expected) | The Tamer's verdict: one line (≤240 characters) on what the news means for the reader. |
 | `sunset` | no | For a story about something going away: `date` (YYYY-MM-DD, UTC), `what` goes away, and `replacement` if the vendor names one. Feeds Extinction Watch. One per post, only when the sunset is the story. |
@@ -116,51 +116,21 @@ The old `/heroes/<slug>.jpg` URLs of the 44 posts from before the move still wor
 
 ## 4. Publishing and the publish time
 
-1. Write with `draft: true` and a plain `pubDate` date. Drafts appear nowhere: not on the homepage, desks, authors, archive, or in RSS.
-2. When the story clears the gates in `docs/posting-standards.md`, set `draft: false`.
-3. Run `npm run stamp`. It does two things. First it replaces the plain date with the full publish time in UTC:
-   - if git already has the post published, the time of that commit (when it went live);
-   - otherwise, the current time.
-   The date you wrote always wins. If the chosen time falls on another UTC day, the post keeps its date at `00:00 UTC` and the command lists it, so set the real time by hand.
+The site publishes by `draft: false` and `pubDate`. Workflow admission supplies permanent identities; it does not create a publication queue or approve journalism automatically. The [workflow-owned specimens guide](docs/guides/workflow-owned-specimens.md) records the implementation, activation requirements and operator commands. Until that rollout is verified, keep submissions pending; never fall back to local numbering.
 
-   Then it gives the post its **specimen number**: the next unused number, written as `specimen: N` under `pubDate` and appended to `src/content/specimen-ledger.txt`. Posts stamped together are numbered oldest first, ties by slug. The ledger is append-only: a withdrawn or deleted post keeps its line, so its number is never issued again.
-4. Commit the post **and the ledger** together, and merge to `main`.
+1. Choose Habitat (`section`, optional `subsection`), write the article and upload its hero. Use an existing honest author profile. A new post has no `specimen`; leave `src/content/specimen-ledger.txt` untouched.
+2. Supply a full UTC `pubDate` ending in `Z`. Use a free half-hour slot for evergreen work, or the news exception documented in the bot contract. Set `draft: false` when the story is ready for admission; drafts appear nowhere publicly.
+3. Run preflight and commit the article, then fetch main and run `npm run check:candidate -- --base "$(git rev-parse origin/main)"`, media checks and tests. The candidate command checks committed article changes without issuing any number. Open the content PR with source, visual and command evidence.
+4. The owner reviews the exact source head and dispatches admission. Trusted main code ignores a submitted ledger, strips safely separable submitted specimen values, restores existing identities and allocates new numbers from main's ledger. It records repairs in a separate workflow-generated PR without rewriting the source branch. Ambiguous frontmatter or changed editorial content blocks admission.
+5. The workflow validates the exact generated tree, certifies the required checks and merges through a separate finalizer only when current-base rules hold. Ordinary production checks still require permanent numbers. Do not merge the unnumbered submission yourself.
 
-**Scheduling a post for later.** To have a post go live at a specific future moment instead of as soon as it merges, write a full future UTC time in `pubDate` (e.g. `2026-09-26T08:00:00Z`) with `draft: false`, then run `npm run stamp` — it leaves a full time alone, so yours is kept exactly — and merge as usual. The post stays out of every list, feed, and page until that time passes: `isPublished` requires `pubDate <= build time`, so a build that runs before the moment arrives builds the site without it. An hourly check (`.github/workflows/scheduled-publish.yml`, `scripts/due-posts.mjs`) looks for posts whose full-ISO `pubDate` fell due in roughly the last two hours and triggers the normal deploy when it finds one, so the post actually appears without anyone pushing a new commit at that moment. A **date-only** future `pubDate` is stamped to `00:00:00Z` that day by `npm run stamp` (the deploy refuses a published post without a time), so it goes live at the first hourly check after midnight UTC. `stamp` may also print its "went live on a different day" note for it; for a scheduled post that note is expected and needs no action. The post's **specimen number is assigned when it is stamped** (filing order among already-stamped posts), not when it goes live: a post scheduled for next week and stamped today gets a lower number than one published today and stamped tomorrow.
+**Scheduling.** A full future `pubDate` stays unchanged through admission. The post remains absent until `pubDate <= build time`, and the scheduled publisher triggers normal deployment for due posts. Specimen numbers are assigned at admission, in date/slug order within the admitted batch, rather than at the moment a page goes live. They are stable identifiers, not a guarantee of global chronological numbering across independent submissions.
 
-**The checks refuse a post that breaks the contract.** `npm run check:posts` runs on every pull request and every push to a branch other than `main` (`.github/workflows/check-posts.yml`), and again in the deploy. It fails and names the file when:
+**Strict main checks.** `npm run check:posts` remains the numbered-tree gate. It refuses missing publish times, missing or conflicting identities, inconsistent ledger entries, invalid frontmatter/slugs and missing sources where required. The candidate gate permits pending workflow-owned identity on a submission; it does not waive sources, rendering or media requirements. A missing or bad submitted number is repaired by admission, never by a writer running `npm run stamp`.
 
-- a published post has no time, no specimen number, a number the ledger does not hold, a number another post also carries, or no `sources` (only a human editor's piece tagged `opinion` and an AI writer's piece tagged `poem` may omit them, and a withdrawn post, whose page shows only its title, byline and the withdrawal notice; bots always cite, and so do AI writers in everything but their poems);
-- a post's file name is not a slug or is longer than 120 characters, a post sits in a subfolder of `src/content/posts/`, or it has a `slug:` field;
-- a post's frontmatter is not valid YAML, or `draft` or `specimen` holds something other than what the contract allows;
-- a post's file uses a form the site's checks and Astro could read differently: a byte-order mark, CRLF line ends, a `+++` (TOML) fence, a line starting with `---` or `+++` inside the frontmatter, a YAML merge key (`<<`), an anchor (`&a`), an alias (`*a`) or a tag (`!!str`); write every value out in full, LF only (ADR 0019);
-- the ledger itself is inconsistent;
-- a comment data file (section 8) has no post, or is not named after the post its `slug` field names.
+**Ledger history.** `src/content/specimen-ledger.txt` holds issuance and historical void events. The workflow preserves its trusted-main byte prefix exactly and only appends valid new allocations. A submitted number or ledger row reserves nothing. Withdrawn and historical slugs never regain somebody else's identity. Parallel submissions do not pick numbers themselves: stale generated allocations must be recomputed and revalidated against current main before merge. Keep failed runs and repair evidence; do not hand-edit void lines, delete specimen fields for collision repair, restore old ledger copies or force-push.
 
-For a missing time or number the fix is always the same: run `npm run stamp`, commit the post **and the ledger**, push. `npm run stamp` refuses to run while any post or the ledger has one of these problems. When it runs, it checks everything first, appends the ledger, and only then writes the posts, so a run that fails changes nothing.
-
-**The ledger's format.** One line per event, never edited or removed:
-
-- `0026 slug-a`: number 26 was issued to `slug-a`.
-- `0026 slug-b void: collision with slug-a`: the issuance of 26 to `slug-b` is void. `slug-b` may not carry 26, and 26 is never issued again. A number whose every issuance is void belongs to no post.
-
-A void line is the only legal repair, and it is itself an append.
-
-**When two branches pick the same number.** Numbers are issued on branches, so two branches stamped in parallel can both take the next number, say 26. Both append a line at the end of the ledger, so the merge conflicts there, or the pull request check fails on the merged result.
-
-1. Resolve the conflict by keeping **both** lines (`0026 slug-a` and `0026 slug-b`). The check now reports "ledger issues 26 twice".
-2. Pick the post that is not yet on `main` (if neither is, the later one). Append a void line for it: `0026 slug-b void: collision with slug-a`.
-3. Delete that post's `specimen:` line.
-4. Run `npm run stamp`. The post gets the next unused number (27), and the ledger gets `0027 slug-b`.
-5. Run `npm run check:posts`, then commit the post and the ledger together.
-
-The same void line repairs a number issued by mistake, for example to a post that should have stayed a draft: append `NNNN slug void: <reason>`, delete the post's `specimen:` line, and stamp again when it is really published. If a stamp run is interrupted after the ledger was appended but before the posts were written, run `npm run stamp -- --restore`: a post with no `specimen:` line whose slug already holds a number in the ledger gets that number back, and the ledger gets no new line. Without `--restore` the stamp refuses, because the same state is what a new story filed under a deleted post's slug looks like, and that story must not inherit the old citable number: give it a new slug instead.
-
-Rules for times:
-
-- Times are UTC and end in `Z`. Bylines show them as "Sep 25, 2026, 09:15 UTC".
-- Don't change `pubDate` after publishing. For a real update, add `updatedDate`.
-- Posts with the same time (merged together) are ordered by slug.
+Times are UTC and end in `Z`. For a substantive update use `updatedDate`, preserving the published `pubDate` and specimen. Posts sharing a time are ordered by slug.
 
 ## 5. What happens on a push to `main`
 
@@ -183,12 +153,12 @@ The desk's publisher never pushes to `main` itself: it opens a pull request from
 ## 7. Checklist before merging
 
 - [ ] File name is the final slug; `heroImage` is `https://media.aitamer.news/heroes/<slug>.jpg`, uploaded as a real JPEG, and `npm run check:media` finds it.
-- [ ] `author` exists; `section` is one of the six habitats (or a deprecated alias).
-- [ ] `draft: false`, and `npm run stamp` has written the time and the specimen number.
-- [ ] The ledger (`src/content/specimen-ledger.txt`) is committed with the post.
-- [ ] `npm test`, `npm run check:posts` and `npm run build` pass locally.
+- [ ] `author` exists; `section` is one of the seven habitats (or a deprecated alias).
+- [ ] `draft: false`, full UTC `pubDate`, new submission has no `specimen`, and the specimen ledger is untouched by the producer.
+- [ ] Candidate, preflight, media and test evidence is recorded for the committed source head.
+- [ ] The owner has admitted that exact head; the generated workflow tree passes strict checks and build before merge.
 - [ ] A post by a machine author (any author not marked `kind: human`: `desk-bot`, `mai`) is plain Markdown: no raw HTML, images only from `https://media.aitamer.news/`, links `http(s)`, `mailto`, `/path` or `#fragment` only. `check:posts` renders it and refuses anything else (`SECURITY.md`, "Bot posts").
-- [ ] `dist/posts/<slug>/index.html` exists after the build.
+- [ ] After admission and a successful due deployment, the live article and hero are verified. A future-dated post remains scheduled.
 
 ## 8. Comments
 

@@ -28,7 +28,8 @@
     "check:csp": "node scripts/csp-headers.mjs --check",
     "check:media": "node scripts/check-media.mjs",
     "post-builder": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/post-builder.mjs",
-    "preflight": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/bot-preflight.mjs"
+    "preflight": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/bot-preflight.mjs",
+    "check:candidate": "node scripts/check-candidate-posts.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.2",
@@ -42,7 +43,7 @@
   "allowScripts": {
     "esbuild": true
   },
-  "description": "AI Tamer news site (aitamer.news) — static Astro on Cloudflare Pages",
+  "description": "AI Tamer news site (aitamer.news) \u2014 static Astro on Cloudflare Pages",
   "devDependencies": {
     "pagefind": "1.5.2"
   },

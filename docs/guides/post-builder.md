@@ -4,7 +4,7 @@
 
 ## What a writer sends
 
-One JSON object of fields, nothing else. No YAML, no `pubDate`, no `author`, no hero, no `specimen`: code sets those.
+One JSON object of fields, nothing else. No YAML, no `pubDate`, no `author`, no hero, no `specimen`: producer options set normal metadata; the trusted admission workflow alone supplies the permanent specimen.
 
 ```json
 { "title": "...", "description": "...", "section": "devops", "tags": ["a", "b"],
@@ -40,6 +40,6 @@ Fields a writer may not set are dropped; the section is mapped to a habitat; em-
 
 ## The misstep ledger
 
-`--ledger` appends one JSON line per repair, problem, warning and result: `{ts, post_type, slug, model, vendor, stage, rule, action, field, attempt}`. The backoffice reads it to see how often each model slips and where. It joins with the posts MCP audit log on `slug`.
+`--ledger` names the builder's private JSONL misstep log, **not** `src/content/specimen-ledger.txt`. Never pass the permanent specimen ledger here. It appends one JSON line per repair, problem, warning and result: `{ts, post_type, slug, model, vendor, stage, rule, action, field, attempt}`. The backoffice reads it to see how often each model slips and where. It joins with the posts MCP audit log on `slug`.
 
-After the builder, run the repo's own checks (`npm run preflight`, `check:posts`, `check:media`, `npm test`), then open the pull request.
+After the builder, run preflight for the selected article files (add `--news` for news), commit only the article files, fetch main, and run `npm run check:candidate -- --base "$(git rev-parse origin/main)"`, `npm run check:media` and `npm test`. Commit corrections before repeating candidate checks. Do not run local specimen stamping or stage the permanent ledger. Open the source PR with review evidence; the owner admits its exact head through the [trusted workflow](workflow-owned-specimens.md). Strict `check:posts` and build validate the generated numbered tree before its merge. Activation is separate from having these commands documented.
