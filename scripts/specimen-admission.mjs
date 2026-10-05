@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { planAdmission } from './specimen-admission-data.mjs';
+import { editorialDigest, planAdmission } from './specimen-admission-data.mjs';
 import { inspectSpecimenChanges, verifyAdmissionProof, SPECIMEN_LEDGER } from './specimen-integrity.mjs';
 import { parseNameStatus, parseHeadModes } from './check-publisher-paths.mjs';
 const SHA = /^[a-f0-9]{40}$/;
@@ -29,7 +29,9 @@ const MAX_RECOVERY_ATTEMPTS = 3;
 const MAX_RECOVERY_DEPTH = 8;
 const RETRY_COOLDOWN_MS = 5 * 60 * 1000;
 const REQUEST_NAME = /^Specimen request pr=(\d+) head=([a-f0-9]{40}) recovery=(\d+)$/;
+const SINGLE_REQUEST_NAME = /^Specimen same-pr pr=(\d+) head=([a-f0-9]{40}) review=(\d+) recovery=(\d+)$/;
 const RETRY_MARKER = 'specimen-reconciliation:';
+const ADMISSION_LABEL = 'workflow-numbering';
 const ADMISSION_PATH = '.github/workflows/specimen-admission.yml';
 const DEPLOY_PATH = '.github/workflows/deploy-pages.yml';
 const SERVER_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
@@ -40,11 +42,20 @@ function trustedRun(run, repo, owner) {
   return workflowPath(run, ADMISSION_PATH) && run.event === 'workflow_dispatch' && run.head_branch === 'main' && run.repository?.full_name === repo && (!run.head_repository || run.head_repository.full_name === repo) && [owner, ACTIONS_ACTOR].includes(run.actor?.id);
 }
 export function requestOf(run) {
-  const match = REQUEST_NAME.exec(run.display_title ?? '');
+  const single = SINGLE_REQUEST_NAME.exec(run.display_title ?? '');
+  const match = single ?? REQUEST_NAME.exec(run.display_title ?? '');
   if (!match) throw new Error('run lacks durable admission request');
-  const recovery = Number(match[3]);
+  const recovery = Number(match[single ? 4 : 3]);
   if (!Number.isSafeInteger(recovery) || recovery < 0) throw new Error('invalid recovery run ID');
-  return { pr: integer(match[1]), source: sha(match[2]), recovery };
+  const review=single ? Number(match[3]) : undefined;
+  if (single && (!Number.isSafeInteger(review) || review<0)) throw new Error('invalid owner review ID');
+  return { pr: integer(match[1]), source: sha(match[2]), recovery, ...(single ? { review, samePR:true } : {}) };
+}
+async function approvedReview(api, request, owner) {
+  const reviews=await api.list(`/pulls/${request.pr}/reviews`);
+  const decisive=reviews.filter(review=>review.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(review.state)).sort((a,b)=>a.id-b.id).at(-1);
+  if (!decisive || decisive.id!==request.review || decisive.state!=='APPROVED' || decisive.commit_id!==request.source) throw new Error('owner editorial approval withdrawn or changed');
+  return decisive;
 }
 export async function approvedRequest(api, run, owner) {
   integer(owner);
@@ -56,7 +67,12 @@ export async function approvedRequest(api, run, owner) {
     seen.add(integer(run.id));
     bases.push(sha(run.head_sha));
     const request = requestOf(run);
-    if (request.pr !== latest.pr || request.source !== latest.source) throw new Error('recovery changed approved request');
+    if (request.pr !== latest.pr || request.source !== latest.source || request.review !== latest.review) throw new Error('recovery changed approved request');
+    if (request.samePR && request.recovery===0) {
+      if (request.review===0) { if (run.actor.id!==owner) throw new Error('owner dispatch required without review'); }
+      else await approvedReview(api,request,owner);
+      return { ...request, rootRun:run.id, approvedBase:sha(run.head_sha), bases };
+    }
     if (run.actor.id === owner) {
       if (request.recovery !== 0) throw new Error('owner request unexpectedly claims recovery');
       return { ...request, rootRun: run.id, approvedBase: sha(run.head_sha), bases };
@@ -77,11 +93,13 @@ async function approvalStillValid(api, request, owner, { current, digest, collec
   if (head !== request.source) {
     if (!current || !digest) throw new Error('source editorial head changed');
     fetchCommits(head);
-    if (collect(current, head).editorialDigest !== digest) throw new Error('source editorial content changed after approval');
+    const currentDigest=request.samePR ? approvedHeadDigest(current,head,request.source,collect) : collect(current,head).editorialDigest;
+    if (currentDigest!==digest) throw new Error('source editorial content changed after approval');
   }
   const reviews = await api.list(`/pulls/${request.pr}/reviews`);
   const review = reviews.filter(r=>r.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(r.state)).sort((a,b)=>a.id-b.id).at(-1);
   if (review && review.state !== 'APPROVED') throw new Error('owner review revoked');
+  if (request.samePR && request.review>0) await approvedReview(api,request,owner);
   return pr;
 }
 function mainHistory(base, current) {
@@ -126,7 +144,7 @@ export async function recoverRequest(api, run, env, { now = Date.now(), ...depen
   // The serialized reconciler records intent before dispatch. A lost response or crash
   // cannot erase the request or permit unlimited retries. Keep original source immutable.
   await recordAttempt(api, request.pr, { kind:'admission', rootRun:request.rootRun, previousRun:run.id, source:request.source, digest }, now);
-  await api.request('/actions/workflows/specimen-admission.yml/dispatches', 'POST', { ref:'main', inputs:{pr_number:String(request.pr),head_sha:request.source,recovery_run:String(run.id)} });
+  await api.request('/actions/workflows/specimen-admission.yml/dispatches', 'POST', { ref:'main', inputs:{pr_number:String(request.pr),head_sha:request.source,recovery_run:String(run.id),same_pr:request.samePR ? 'true' : 'false',...(request.samePR ? {review_id:String(request.review)} : {})} });
   return 'dispatched';
 }
 async function containsMerge(api, merge, head) {
@@ -178,14 +196,17 @@ export async function reconcileDeployment(api, pr, { now = Date.now(), completio
  * admitted head, actual server merge and successful deployed descendant again. */
 export async function terminalCompletion(api, pr, run, request, owner) {
   if (!pr?.merged_at && !pr?.merged) return false;
-  if (pr.user?.id!==ALLOCATOR_ACTOR || pr.head.repo?.full_name!==api.repo || pr.head.ref!==`specimens/run-${run.id}` || pr.base.ref!=='main') return false;
+  if (pr.head.repo?.full_name!==api.repo || pr.base.ref!=='main' || (request.samePR ? pr.number!==request.pr : pr.user?.id!==ALLOCATOR_ACTOR || pr.head.ref!==`specimens/run-${run.id}`)) return false;
   const merge = sha(pr.merge_commit_sha), head=sha(pr.head.sha), base=sha(run.head_sha);
   const receipts = (await retryReceipts(api, pr.number)).filter(r=>r.kind==='completed' && r.merge===merge && r.admissionRun===run.id && r.head===head && r.base===base && r.rootRun===request.rootRun && r.source===request.source && DIGEST.test(r.digest));
   if (!receipts.length) return false;
   const proof = await admissionProof(api,base,head,owner,run.id);
   const generated = await api.request(`/git/commits/${head}`);
   const merged = await api.request(`/git/commits/${merge}`);
-  if (generated.sha!==head || merged.sha!==merge || generated.parents.map(p=>p.sha).join(',')!==[base,request.source].join(',') || merged.parents.map(p=>p.sha).join(',')!==[base,head].join(',') || merged.tree.sha!==generated.tree.sha) return false;
+  if (generated.sha!==head || merged.sha!==merge || generated.parents?.length!==2 || generated.parents[0].sha!==base || merged.parents.map(p=>p.sha).join(',')!==[base,head].join(',') || merged.tree.sha!==generated.tree.sha) return false;
+  if (request.samePR) {
+    if (generated.message!==`Workflow admission same PR #${request.pr} source ${request.source} run ${run.id}` || !await containsMerge(api,request.source,generated.parents[1].sha)) return false;
+  } else if (generated.parents[1].sha!==request.source) return false;
   for (const receipt of receipts) {
     if (receipt.digest!==proof.editorialDigest || !SHA.test(receipt.deploymentHead ?? '') || !Number.isSafeInteger(receipt.deploymentRun) || receipt.deploymentRun<1) continue;
     const deployment = await api.request(`/actions/runs/${receipt.deploymentRun}`);
@@ -238,7 +259,7 @@ function blob(commit, path) {
   const raw = execFileSync('git', ['show', ref], { maxBuffer: MAX_BLOB_BYTES });
   const text = raw.toString('utf8'); if (!raw.equals(Buffer.from(text))) throw new Error('invalid UTF-8 blob'); return text;
 }
-export function collectAdmission(base, source) {
+export function collectAdmission(base, source, {allowEmpty=false}={}) {
   sha(base); sha(source);
   const ancestor = git('merge-base', base, source).trim(); sha(ancestor);
   const modes = parseHeadModes(git('ls-tree', '-r', '-z', source));
@@ -260,9 +281,19 @@ export function collectAdmission(base, source) {
     }
     candidatePosts.set(match[1], blob(source, change.path));
   }
-  if (!candidatePosts.size) throw new Error('admission needs an article');
+  if (!candidatePosts.size && !allowEmpty) throw new Error('admission needs an article');
   const plan = planAdmission({ basePosts, candidatePosts, ledgerText: blob(base, SPECIMEN_LEDGER) });
   return { ...plan, candidatePosts, changes };
+}
+function approvedHeadDigest(base,head,source,collect=collectAdmission) {
+  const approved=collect(base,source), observed=collect(base,head,{allowEmpty:true});
+  // Restoring a number may make an approved existing article byte-identical to
+  // main and remove it from the diff. Bind the original approved slug set, while
+  // rejecting any additional editorial changes on the observed branch.
+  if ([...observed.candidatePosts.keys()].some(slug=>!approved.candidatePosts.has(slug))) throw new Error('source editorial content changed after approval');
+  const modes=parseHeadModes(git('ls-tree','-r','-z',head));
+  if ([...approved.candidatePosts.keys()].some(slug=>modes.get(`src/content/posts/${slug}.md`)!=='100644')) throw new Error('source editorial content changed after approval');
+  return editorialDigest(new Map([...approved.candidatePosts.keys()].map(slug=>[slug,blob(head,`src/content/posts/${slug}.md`)])));
 }
 function fetchObjects(...commits) { for (const commit of commits) git('fetch', '--no-tags', 'origin', sha(commit)); }
 function output(name, value) { if (!/^[a-z_]+$/.test(name) || /[\r\n]/.test(String(value))) throw new Error('unsafe output'); if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`); }
@@ -286,7 +317,7 @@ export async function admissionProof(api, base, head, actorId, expectedRun) {
   }
   throw new Error('no successful trusted-main allocation proof for this exact base/head');
 }
-export async function prepare(api, env) {
+export async function prepare(api, env, {collect=collectAdmission,fetchCommits=fetchObjects,verifyBase=mainHistory}={}) {
   const number = integer(env.PR_NUMBER); const source = sha(env.SOURCE_SHA); const base = sha(env.GITHUB_SHA);
   if (env.GITHUB_REF !== 'refs/heads/main' || env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || ![integer(env.MAINTAINER_ID), ACTIONS_ACTOR].includes(integer(env.GITHUB_ACTOR_ID))) throw new Error('admission is trusted dispatch on main only');
   if ((await api.request('/git/ref/heads/main')).object.sha !== base) throw new Error('main advanced; redispatch against current main');
@@ -295,12 +326,39 @@ export async function prepare(api, env) {
   const activeRun = await api.request(`/actions/runs/${integer(env.GITHUB_RUN_ID)}`);
   if (!trustedRun(activeRun, api.repo, integer(env.MAINTAINER_ID)) || activeRun.id !== integer(env.GITHUB_RUN_ID) || activeRun.head_sha !== base || activeRun.actor.id !== integer(env.GITHUB_ACTOR_ID)) throw new Error('prepare run identity mismatch');
   const activeRequest = requestOf(activeRun);
-  if (activeRequest.pr !== number || activeRequest.source !== source || activeRequest.recovery !== Number(env.RECOVERY_RUN || 0)) throw new Error('prepare inputs differ from durable request');
-  const { digest } = await approvalPlan(api, activeRun, integer(env.MAINTAINER_ID));
-  const plan = collectAdmission(base, source);
+  if (activeRequest.pr !== number || activeRequest.source !== source || activeRequest.recovery !== Number(env.RECOVERY_RUN || 0) || Boolean(activeRequest.samePR)!==(env.SAME_PR==='true') || (activeRequest.samePR && activeRequest.review!==Number(env.REVIEW_ID))) throw new Error('prepare inputs differ from durable request');
+  const { digest } = await approvalPlan(api, activeRun, integer(env.MAINTAINER_ID),{collect,fetchCommits,verifyBase});
+  const plan = collect(base, source);
   if (plan.editorialDigest !== digest) throw new Error('recovery would change approved content');
+  if (activeRequest.samePR && (!pr.head.ref || /^(?:main$|specimens\/)/.test(pr.head.ref))) throw new Error('source branch is reserved');
+  const observedHead=sha(pr.head.sha);
+  fetchCommits(observedHead);
+  if (activeRequest.samePR && approvedHeadDigest(base,observedHead,source,collect)!==digest) throw new Error('source editorial content changed after approval');
   const baseCommit = await api.request(`/git/commits/${base}`);
   const tree = await api.request('/git/trees', 'POST', { base_tree: baseCommit.tree.sha, tree: [...plan.posts].map(([slug, content]) => ({ path: `src/content/posts/${slug}.md`, mode: '100644', type: 'blob', content })).concat([{ path: SPECIMEN_LEDGER, mode: '100644', type: 'blob', content: plan.ledgerText }]) });
+  if (activeRequest.samePR) {
+    // Messages locate repeated work; matching deterministic tree and ancestry,
+    // isolated validation and independent Actions proof supply its authority.
+    const message=`Workflow admission same PR #${number} source ${source} run ${integer(env.GITHUB_RUN_ID)}`;
+    const existing=await api.request(`/git/commits/${observedHead}`);
+    let generatedHead=observedHead, parent=observedHead;
+    const reusable=existing.message===message && existing.tree?.sha===tree.sha && existing.parents?.length===2 && existing.parents[0].sha===base;
+    if (reusable) parent=sha(existing.parents[1].sha);
+    else {
+      const commit=await api.request('/git/commits','POST',{message,tree:sha(tree.sha),parents:[base,observedHead]});
+      generatedHead=sha(commit.sha);
+      await approvalStillValid(api,await approvedRequest(api,activeRun,integer(env.MAINTAINER_ID)),integer(env.MAINTAINER_ID),{current:base,digest,collect,fetchCommits});
+      if ((await api.request(`/pulls/${number}`)).head.sha!==observedHead || (await api.request('/git/ref/heads/main')).object.sha!==base) throw new Error('source head or main changed before numbering write');
+      // The label isolates automatic observation names only; it grants no lane,
+      // allocation or merge permission. Add it before the synchronization event.
+      await api.request(`/issues/${number}/labels`,'POST',{labels:[ADMISSION_LABEL]});
+      await api.request(`/git/refs/heads/${encodeURIComponent(pr.head.ref)}`,'PATCH',{sha:generatedHead,force:false});
+      if ((await api.request(`/pulls/${number}`)).head.sha!==generatedHead) throw new Error('source head changed after numbering write');
+    }
+    output('head',generatedHead);output('base',base);output('pr',number);output('source_pr',number);output('source_sha',source);output('observed_head',parent);output('editorial_digest',digest);
+    console.log(`Admission prepared on original PR #${number}; ${plan.repairs.length} numbering corrections recorded.`);
+    return;
+  }
   const commit = await api.request('/git/commits', 'POST', { message: `Workflow admission of PR #${number}\n\nNumbering and ledger updated by trusted workflow run ${env.GITHUB_RUN_ID}.`, tree: tree.sha, parents: [base, source] });
   const branch = `specimens/run-${integer(env.GITHUB_RUN_ID)}`;
   let generatedHead = commit.sha;
@@ -317,14 +375,16 @@ export async function prepare(api, env) {
   output('head', generatedHead); output('base', base); output('pr', created.number); output('source_pr', number); output('source_sha', source); output('editorial_digest', plan.editorialDigest);
   console.log(`Admission prepared: source #${number}, generated #${created.number}; ${plan.repairs.length} numbering corrections recorded.`);
 }
-export function materialize(env) {
+export function materialize(env,{fetchCommits=fetchObjects,collect=collectAdmission,write=writeFileSync}={}) {
   if (env.GITHUB_ACTIONS !== 'true' || env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || env.GITHUB_REF !== 'refs/heads/main') throw new Error('materialization is allocation-workflow only');
   const base = sha(env.BASE_SHA), head = sha(env.HEAD_SHA), source = sha(env.SOURCE_SHA);
-  fetchObjects(base, head, source); const plan = collectAdmission(base, source);
+  const observed=env.SAME_PR==='true' ? sha(env.OBSERVED_HEAD) : source;
+  fetchCommits(base, head, source, observed); const plan = collect(base, source);
   if (!DIGEST.test(env.EDITORIAL_DIGEST ?? '') || plan.editorialDigest !== env.EDITORIAL_DIGEST) throw new Error('editorial binding mismatch');
   const expected = new Map([...plan.posts].map(([slug, text]) => [`src/content/posts/${slug}.md`, text])); expected.set(SPECIMEN_LEDGER, plan.ledgerText);
   const parents = git('show', '-s', '--format=%P', head).trim().split(' ');
-  if (parents.length !== 2 || parents[0] !== base || parents[1] !== source) throw new Error('generated commit ancestry mismatch');
+  if (parents.length !== 2 || parents[0] !== base || parents[1] !== observed) throw new Error('generated commit ancestry mismatch');
+  if (env.SAME_PR==='true' && approvedHeadDigest(base,observed,source,collect)!==plan.editorialDigest) throw new Error('observed source editorial binding mismatch');
   const changes = parseNameStatus(git('diff', '--name-status', '--no-renames', '-z', base, head));
   const modes = parseHeadModes(git('ls-tree', '-r', '-z', head));
   for (const change of changes) {
@@ -332,7 +392,7 @@ export function materialize(env) {
   }
   for (const [path, text] of expected) {
     if (blob(head, path) !== text) throw new Error('generated tree differs from deterministic allocator');
-    writeFileSync(path, text); // This mode is invoked only by the allocation workflow.
+    write(path, text); // This mode is invoked only by the allocation workflow.
   }
   console.log(`Deterministic workflow tree verified and materialized: ${head}`);
 }
@@ -348,21 +408,37 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   const run = await api.request(`/actions/runs/${runId}`);
   if (run.id !== runId || !trustedRun(run, api.repo, owner) || run.status !== 'completed' || run.conclusion !== 'success') throw new Error('untrusted or failed admission run');
   const request = await approvedRequest(api, run, owner);
-  const prs = await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${runId}`)}`);
-  if (prs.length !== 1) throw new Error('expected exactly one generated admission PR');
-  const pr = await api.request(`/pulls/${integer(prs[0].number)}`);
-  if (pr.user?.id !== ALLOCATOR_ACTOR || pr.head.repo?.full_name !== api.repo || pr.head.ref !== `specimens/run-${runId}` || pr.base.ref !== 'main' || (pr.base.repo && pr.base.repo.full_name !== api.repo)) throw new Error('generated PR identity mismatch');
+  let number=request.pr;
+  if (!request.samePR) {
+    const prs=await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${runId}`)}`);
+    if (prs.length!==1) throw new Error('expected exactly one generated admission PR');
+    number=integer(prs[0].number);
+  }
+  const pr=await api.request(`/pulls/${number}`);
+  if (pr.head.repo?.full_name!==api.repo || pr.base.ref!=='main' || (pr.base.repo && pr.base.repo.full_name!==api.repo) || (!request.samePR && (pr.user?.id!==ALLOCATOR_ACTOR || pr.head.ref!==`specimens/run-${runId}`))) throw new Error('generated PR identity mismatch');
   const head = sha(pr.head.sha), base = sha(run.head_sha);
-  const proof = await proofFor(api, base, head, owner, runId);
+  let proof;
+  try { proof=await proofFor(api,base,head,owner,runId); }
+  catch(error) {
+    if (!request.samePR || pr.merged || pr.state!=='open' || error.status) throw error;
+    return recover(api,run,env,{collect,fetchCommits,verifyBase});
+  }
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
   fetchCommits(...new Set([...request.bases, base, head, current, request.source]));
   for (const approvedBase of request.bases) verifyBase(approvedBase, current);
   const parents = readGit('show', '-s', '--format=%P', head).trim().split(' ');
-  if (parents.length !== 2 || parents[0] !== base || parents[1] !== request.source) throw new Error('generated parents differ from immutable approved source');
-  const originalNumber = integer(/^Workflow admission of PR #(\d+)/.exec(readGit('show','-s','--format=%B',head))?.[1]);
+  if (parents.length!==2 || parents[0]!==base || (!request.samePR && parents[1]!==request.source)) throw new Error('generated parents differ from immutable approved source');
+  const message=readGit('show','-s','--format=%B',head).trim();
+  const originalNumber=integer((request.samePR ? /^Workflow admission same PR #(\d+) source [a-f0-9]{40} run \d+$/ : /^Workflow admission of PR #(\d+)/).exec(message)?.[1]);
   if (originalNumber !== request.pr) throw new Error('generated source PR differs from approved request');
+  if (request.samePR && message!==`Workflow admission same PR #${request.pr} source ${request.source} run ${run.id}`) throw new Error('numbered commit differs from approved request');
   const digest = collect(request.approvedBase, request.source).editorialDigest;
   if (collect(base, request.source).editorialDigest !== digest || digest !== proof.editorialDigest) throw new Error('approved content changed');
+  if (request.samePR) {
+    fetchCommits(parents[1]);
+    if (approvedHeadDigest(base,parents[1],request.source,collect)!==digest || approvedHeadDigest(base,head,request.source,collect)!==digest) throw new Error('observed source editorial content changed');
+    readGit('merge-base','--is-ancestor',request.source,parents[1]);
+  }
   if (pr.merged) {
     const merge = sha(pr.merge_commit_sha);
     fetchCommits(merge);
@@ -386,6 +462,10 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   if (!rules.some(r => r.type === 'required_status_checks' && r.parameters?.strict_required_status_checks_policy === true)) throw new Error('server-enforced current-base checks are required');
   const required = rules.filter(r => r.type === 'required_status_checks').flatMap(r => r.parameters?.required_status_checks ?? []);
   if (!['publisher-paths','check','specimen-integrity'].every(name => required.some(c => c.context === name && c.integration_id === 15368))) throw new Error('required admission checks are not enforced');
+  if (request.samePR) {
+    await approvalStillValid(api,request,owner,{current:base,digest,collect,fetchCommits});
+    if ((await api.request(`/pulls/${pr.number}`)).head.sha!==head || (await api.request('/git/ref/heads/main')).object.sha!==base) throw new Error('source head or main changed before merge');
+  }
   // Normal merge API, pinned head. No bypass of PR/check rules is granted to this identity.
   const merged = await api.request(`/pulls/${pr.number}/merge`, 'PUT', { merge_method: 'merge', sha: head });
   if (!merged.merged) throw new Error('server refused admission merge');
@@ -528,12 +608,47 @@ export async function saveState(api, observed, state, env) {
   else await api.request('/git/refs','POST',{ref:`refs/heads/${STATE_BRANCH}`,sha:head});
   return {head,state};
 }
-export async function sweep(api, env, { finalizeRun=finalize, recover=recoverRequest, completed=terminalCompletion, load=loadState, save=saveState }={}) {
+/** A PR-side wake conveys no authorization. Read current owner reviews and
+ * immutable Git objects independently; existing run/state discovery deduplicates
+ * requests and retains cancelled or failed attempts for bounded recovery. */
+export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],collect=collectAdmission,fetchCommits=fetchObjects}={}) {
+  const owner=integer(env.MAINTAINER_ID);
+  const candidates=[];
+  for await (const pr of stream(api,'/pulls?state=open&sort=created&direction=asc')) {
+    if (pr.state!=='open' || pr.draft || pr.head?.repo?.full_name!==api.repo || pr.base?.ref!=='main' || (pr.base.repo && pr.base.repo.full_name!==api.repo) || !pr.head.ref || /^(?:main$|specimens\/)/.test(pr.head.ref)) continue;
+    const reviews=await api.list(`/pulls/${integer(pr.number)}/reviews`);
+    const review=reviews.filter(r=>r.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(r.state)).sort((a,b)=>a.id-b.id).at(-1);
+    if (!review || review.state!=='APPROVED' || review.commit_id!==pr.head.sha) continue;
+    candidates.push({pr,review});
+  }
+  if (!candidates.length) return 'idle';
+  const runs=new Map(knownRuns.map(run=>[run.id,run]));
+  for (const entry of pending) if (!runs.has(entry.id)) runs.set(entry.id,await api.request(`/actions/runs/${entry.id}`));
+  if ([...runs.values()].some(run=>trustedRun(run,api.repo,owner) && run.status!=='completed')) return 'pending';
+  for (const {pr,review} of candidates) {
+    if ([...runs.values()].some(run=>{
+      if (!trustedRun(run,api.repo,owner)) return false;
+      try { const request=requestOf(run); return request.samePR && request.pr===pr.number && request.source===review.commit_id && request.review===review.id; } catch { return false; }
+    })) continue;
+    const base=sha((await api.request('/git/ref/heads/main')).object.sha), source=sha(review.commit_id);
+    fetchCommits(base,source);
+    try { collect(base,source); } catch(error) { console.log(`PR #${pr.number} is not an admissible article submission: ${error.message}`);continue; }
+    await approvedReview(api,{pr:pr.number,source,review:integer(review.id)},owner);
+    const currentPR=await api.request(`/pulls/${pr.number}`);assertSourceApproval(currentPR,api.repo);
+    if (currentPR.head.sha!==source) throw new Error('source editorial head changed before automatic admission');
+    await api.request('/actions/workflows/specimen-admission.yml/dispatches','POST',{ref:'main',inputs:{pr_number:String(pr.number),head_sha:source,review_id:String(review.id),same_pr:'true',recovery_run:'0'}});
+    console.log(`Owner-approved original PR #${pr.number} dispatched automatically.`);
+    return 'dispatched';
+  }
+  return 'idle';
+}
+export async function sweep(api, env, { finalizeRun=finalize, recover=recoverRequest, completed=terminalCompletion, load=loadState, save=saveState,discover=discoverApprovedRequests }={}) {
   if (env.GITHUB_REF!=='refs/heads/main') throw new Error('sweep runs on main only');
   const owner=integer(env.MAINTAINER_ID);
   let observed=await load(api,env);
   const state=structuredClone(observed.state);
   const pending=new Map(state.pending.map(entry=>[entry.id,entry]));
+  const knownRuns=new Map();
   let highWater=null, reached=state.cursor===0;
   // Runs are listed newest first. Queued/running trusted requests are enrolled
   // before the cursor moves, so their later completion cannot fall behind it.
@@ -542,6 +657,7 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
     if (highWater===null) highWater=id;
     if (id===state.cursor) { reached=true; break; }
     if (!trustedRun(run,api.repo,owner)) continue;
+    knownRuns.set(id,run);
     if (!pending.has(id)) {
       let status='pending', reason='';
       try { requestOf(run); } catch(error) { status='held'; reason=error.message.slice(0,300).replace(/[\r\n]/g,' '); }
@@ -557,13 +673,14 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
   for (const entry of state.pending.filter(entry=>entry.status==='pending')) {
     try {
       const run=await api.request(`/actions/runs/${entry.id}`);
+      knownRuns.set(entry.id,run);
       if (run.id!==entry.id || !trustedRun(run,api.repo,owner)) throw new Error('pending run identity changed');
       if (run.status!=='completed') continue;
       const request=await approvedRequest(api,run,owner);
-      const prs=await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${run.id}`)}`);
+      const prs=request.samePR ? [await api.request(`/pulls/${request.pr}`)] : await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${run.id}`)}`);
       if (prs.length>1) throw new Error('ambiguous generated admission PRs');
       const pr=prs[0];
-      const key=`${request.pr}:${request.source}`;
+      const key=`${request.pr}:${request.source}:${request.review ?? 'legacy'}`;
       if (!groups.has(key)) groups.set(key,[]);
       groups.get(key).push({entry,run,request,pr});
     } catch(error) {
@@ -576,7 +693,7 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
     candidates.sort((a,b)=>a.run.id-b.run.id);
     const latestRoot=Math.max(...candidates.map(c=>c.request.rootRun));
     const active=candidates.filter(c=>c.request.rootRun===latestRoot);
-    const selected=candidates.findLast(c=>c.pr?.merged_at || c.pr?.merged) ?? active.findLast(c=>c.run.conclusion==='success' && c.pr?.state==='open') ?? active.at(-1);
+    const selected=candidates.findLast(c=>c.run.conclusion==='success' && (c.pr?.merged_at || c.pr?.merged)) ?? active.findLast(c=>c.run.conclusion==='success' && c.pr?.state==='open') ?? active.at(-1);
     const {run,request,pr}=selected;
     try {
       let outcome;
@@ -598,6 +715,7 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
       failed=true; console.error(`Admission run ${run.id}: ${error.message}`);
     }
   }
+  await discover(api,env,{knownRuns:[...knownRuns.values()],pending:state.pending});
   if (failed) throw new Error('one or more admissions blocked; protected state retained');
 }
 export async function main(args, env = process.env) {

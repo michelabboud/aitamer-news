@@ -1,7 +1,7 @@
 name: Finalize specimen admissions
 on:
   workflow_run:
-    workflows: [Specimen admission]
+    workflows: [Specimen admission, Specimen editorial review]
     types: [completed]
   schedule:
     - cron: '*/5 * * * *'
@@ -35,7 +35,7 @@ jobs:
           SPECIMEN_APP_ID: ${{ vars.SPECIMEN_APP_ID }}
           SPECIMEN_INSTALLATION_ID: ${{ vars.SPECIMEN_INSTALLATION_ID }}
           SPECIMEN_APP_PRIVATE_KEY: ${{ secrets.SPECIMEN_APP_PRIVATE_KEY }}
-      - name: Reconcile successful admissions against current main
+      - name: Discover owner approvals and reconcile admissions against current main
         run: node scripts/specimen-admission.mjs sweep
         env:
           GH_TOKEN: ${{ github.token }}

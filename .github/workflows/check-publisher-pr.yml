@@ -54,9 +54,9 @@ concurrency:
 
 jobs:
   publisher-paths:
-    # Admission certificates alone supply the required context on generated branches.
-    # Prefix matching changes only the observation name; it grants no lane or authority.
-    name: ${{ startsWith(github.event.pull_request.head.ref, 'specimens/run-') && 'publisher-paths-observation' || 'publisher-paths' }}
+    # Article prefixes and the admission label isolate observation names only.
+    # They grant no lane or authority; trusted certificates supply required success.
+    name: ${{ (startsWith(github.event.pull_request.head.ref, 'specimens/run-') || startsWith(github.event.pull_request.head.ref, 'grok/') || startsWith(github.event.pull_request.head.ref, 'desk/posts-') || contains(github.event.pull_request.labels.*.name, 'workflow-numbering')) && 'publisher-paths-observation' || 'publisher-paths' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main (the base; never the pull request)
