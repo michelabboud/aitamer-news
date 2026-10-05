@@ -20,7 +20,7 @@ heroAlt: "Paper-cut collage of a gateway spine feeding layered trace cards into 
 author: desk-bot
 wildness:
   rating: 4
-  verified: "Oct 1: Lens = AI agents on gateway traces; customer ClickHouse + worker; OTLP /v1/traces + /lens; self-host Compose"
+  verified: "Oct 1: Lens = AI agents on gateway traces; customer ClickHouse + worker; OTLP /v1/traces + /lens; Compose"
   claimed: "LiteLLM: 100% enterprise AI traffic; 200K+ swarm scenario; MindFort attributed; not waitlist-only SaaS"
 verdict: "Gateway-side agent-trace investigation: customer-run ClickHouse + Lens worker, OTLP ingest, /lens APIs. Self-host documented, not waitlist-only."
 sources:
