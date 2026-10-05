@@ -84,6 +84,8 @@ The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt)
 >
 > STYLE: A handmade layered paper-cut collage. Build the objects from visibly cut, overlapping matte paper shapes. Show subtle paper grain, tactile edges and shallow soft shadows between layers. Use a restrained slate-blue and warm-cream palette with a single small coral accent. Keep the background simple, spacious and primarily cream. Use crisp silhouettes, a clear focal subject and generous negative space. The illustration must remain legible at a small article-card size; keep important objects away from the outer edges so cropping preserves the idea.
 >
+> BACKGROUND: Enrich the cream background lightly with fine paper grain, faint overlapping cream-on-cream paper layers, and one or two low-contrast slate-blue environmental details grounded in the article's metaphor. Keep these details smaller, softer and quieter than the main subject. Preserve generous negative space. No extra coral accents, unrelated floating objects, busy patterns or background elements that compete with the focal subject.
+>
 > COMPOSITION: One main metaphor, supported by at most two secondary elements. Make the relationship between them visually clear. Use depth through paper layering rather than glossy lighting. Make the image specific to this article, not a generic robot, brain or network wallpaper.
 >
 > EXCLUDE: All text, letters, numbers, captions, labels, watermarks, signatures, company logos, product UI screenshots, flags and recognizable people. No photorealism, glossy 3D rendering, neon cyberpunk effects, busy circuitry or dramatic gradients. Do not depict a vendor feature as tested or proven when the article only reports an announcement.

@@ -2,6 +2,11 @@
 
 All notable changes to aitamer.news. The version lives in `VERSION`; each task is tagged `checkpoint/<VERSION>`.
 
+## [0.2.58] — 2026-10-05
+
+### Changed
+- Enrich hero backgrounds lightly with subtle paper layers and restrained subject-related environmental details, preserving negative space and the single coral accent.
+
 ## [0.2.57] — 2026-10-05
 
 ### Changed

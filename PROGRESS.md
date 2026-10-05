@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.58: hero prompt and Grok guide allow light background enrichment without competing objects or additional coral accents.
+
 - **2026-10-05** — 0.2.57: Grok editorial acceptance instructions now distinguish technical CI from visual/browser/source review. PR #169 proves App-authenticated submission; merge access remains ungranted.
 
 - **2026-10-05** — 0.2.56 candidate: the dedicated Grok App can receive a narrow content PR lane from same-repository `grok/*` branches. Both numeric identities must match; only plain Markdown posts and append-only specimen history qualify. Source gates and review remain pending; no App-authenticated submission or merge is proven by local tests.
