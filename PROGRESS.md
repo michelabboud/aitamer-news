@@ -8,6 +8,8 @@
 
 ## Log
 
+- **2026-10-05** — 0.2.59: hero art instructions now provide acceptable colors instead of a single fixed background; Grok review summaries no longer require the automatic writer model.
+
 - **2026-10-05** — 0.2.58: hero prompt and Grok guide allow light background enrichment without competing objects or additional coral accents.
 
 - **2026-10-05** — 0.2.57: Grok editorial acceptance instructions now distinguish technical CI from visual/browser/source review. PR #169 proves App-authenticated submission; merge access remains ungranted.

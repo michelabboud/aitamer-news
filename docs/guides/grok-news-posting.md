@@ -82,9 +82,25 @@ The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt)
 >
 > SUBJECT: [Describe one clear, article-specific visual metaphor. State which object represents the main idea and how it relates to one or two supporting objects.]
 >
-> STYLE: A handmade layered paper-cut collage. Build the objects from visibly cut, overlapping matte paper shapes. Show subtle paper grain, tactile edges and shallow soft shadows between layers. Use a restrained slate-blue and warm-cream palette with a single small coral accent. Keep the background simple, spacious and primarily cream. Use crisp silhouettes, a clear focal subject and generous negative space. The illustration must remain legible at a small article-card size; keep important objects away from the outer edges so cropping preserves the idea.
+> STYLE: Handmade layered paper-cut collage. Build objects from visibly cut,
+> overlapping matte paper shapes. Show subtle paper grain, tactile edges and
+> shallow soft shadows between layers. Choose a harmonious palette from these
+> acceptable colors: slate blue, steel blue, dusty blue, blue-grey, muted teal,
+> deep navy, warm cream, ivory, soft sand, rusty red, sulfur yellow and coral.
+> Do not force every image to use one fixed background color. Choose a small,
+> coherent subset of the approved colors for background, objects and accents.
+> Rusty red and sulfur yellow are valid palette colors, not mandatory additions.
+> Balance warm and cool tones; avoid neon or oversaturation. Keep the overall
+> composition calm and maintain clear subject/background contrast.
+> Use crisp silhouettes, a clear focal subject and generous negative space.
 >
-> BACKGROUND: Enrich the cream background lightly with fine paper grain, faint overlapping cream-on-cream paper layers, and one or two low-contrast slate-blue environmental details grounded in the article's metaphor. Keep these details smaller, softer and quieter than the main subject. Preserve generous negative space. No extra coral accents, unrelated floating objects, busy patterns or background elements that compete with the focal subject.
+> BACKGROUND: Enrich the chosen background lightly with fine paper grain,
+> faint overlapping paper layers in related tones, and one or two low-contrast
+> environmental details grounded in the article's metaphor. Keep these details
+> smaller, softer and quieter than the main subject. Preserve generous negative
+> space. Avoid unrelated floating objects, busy patterns and background elements
+> that compete with the focal subject. Maintain clear subject/background
+> contrast rather than applying one identical palette to every article.
 >
 > COMPOSITION: One main metaphor, supported by at most two secondary elements. Make the relationship between them visually clear. Use depth through paper layering rather than glossy lighting. Make the image specific to this article, not a generic robot, brain or network wallpaper.
 >
@@ -193,10 +209,10 @@ Fonts and page styling are controlled by Astro layouts/components and site CSS, 
 
 Passing CI validates technical constraints; it does not approve the hero composition, factual accuracy or reading experience. Inspect the actual uploaded JPEG and the rendered article before calling a post ready.
 
-- **Hero:** exactly one small coral accent, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, slate-blue/cream palette, soft shadows, no typography and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
+- **Hero:** restrained warm accents within the approved palette, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, slate-blue/cream palette, soft shadows, no typography and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
 - **Markdown:** 250–800 useful body words, a direct news opening, descriptive `##` sections and a practical takeaway. Include accurate frontmatter, an existing honest AI/bot byline, source links, Wildness evidence and a verdict. No custom HTML/CSS/MDX, em-dashes or internal process notes. Astro supplies fonts and layout.
 - **Browser:** run the existing build and preview commands; inspect the article at desktop and narrow mobile widths. Check headline wrapping, paragraph readability, section hierarchy, byline, sources, hero and card cropping. Record what was actually inspected; source inspection alone is not a browser preview.
-- **Evidence:** the PR description must be nonempty and include writer model, opened primary sources and claims checked, source disagreements, UTC `pubDate`, immediate versus scheduled intent, public hero URL, visual-review findings, browser-review findings, and decisive command outputs. Never claim a check passed unless it ran. Keep the detailed evidence in the handoff bundle and include enough in the PR for a reviewer without bundle access.
+- **Evidence:** the PR description must be nonempty and include opened primary sources and claims checked, source disagreements, UTC `pubDate`, immediate versus scheduled intent, public hero URL, visual-review findings, browser-review findings, and decisive command outputs. Never claim a check passed unless it ran. Keep the detailed evidence in the handoff bundle and include enough in the PR for a reviewer without bundle access.
 - **Timing:** a past `pubDate` makes a post due on the next successful deployment after merge. For delayed publication, choose an available future half-hour slot. The news exception permits off-grid dates; it does not create a future slot automatically.
 
 ### Copyable instruction update for Grok bots
@@ -207,9 +223,9 @@ Use docs/guides/hero-image-style.txt as your image prompt prefix; append SUBJECT
 PR #169 fails the visual test: regenerate its hero before requesting acceptance.
 Upload the new JPEG under a new content-hash URL; update heroImage and heroAlt
 and push a new commit to the existing PR. Do not overwrite the previous object.
-Before submitting, inspect the actual uploaded hero: one small coral accent,
+Before submitting, inspect the actual uploaded hero: restrained warm accents,
 recognizable article-specific objects, no unrelated floating shapes, layered
-matte paper, slate-blue/cream palette, no text/logos, JPEG exactly 1600x900.
+matte paper, approved blue/teal/neutral palette, no text/logos, JPEG exactly 1600x900.
 Regenerate failures. For the Kolibri test: recognizable hummingbird + open
 notebook; remove the floating square; coral only on the bookmark.
 Use clean Markdown, 250-800 useful words, descriptive sections and a practical
@@ -263,7 +279,7 @@ if not evidence.exists() or not evidence.read_text().strip():
                      'disagreements, UTC pubDate/intent, hero URL, visual/browser '
                      'findings and decisive command outputs.')
 p.joinpath('pr-body.md').write_text(
-    'Writer model: '+os.environ['MODEL']+'; submitted through the dedicated Grok App.\n\n'
+    'Submitted through the dedicated Grok App.\n\n'
     +evidence.read_text())
 PYPR
 gh pr create -R michelabboud/aitamer-news --base main --head "$BRANCH" \
