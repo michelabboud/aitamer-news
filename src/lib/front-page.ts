@@ -8,7 +8,7 @@
  */
 
 /** The front page features every post from this many days before the newest one. */
-export const FRONT_WINDOW_DAYS = 7;
+export const FRONT_WINDOW_DAYS = 3;
 /** On a quiet week, older posts fill the front page up to this many (lead included). */
 export const FRONT_MINIMUM = 7;
 /** The right panel's Field log lists this many posts after the featured ones. */
