@@ -1,6 +1,6 @@
 ---
 title: "OpenAI will test labeled visual ads during ChatGPT image generation in the US"
-description: "OpenAI will test labeled visual ads during ChatGPT image generation in the US later this month. Ads stay separate from the generated image and are not described as live. Figures are partner or OpenAI results. Brand-safety pilots do not see private chats."
+description: "OpenAI will test labeled visual ads during ChatGPT image generation in the US later this month. The ads stay separate from the generated image, and brand-safety pilots do not see private chats."
 section: models
 tags:
   - openai
