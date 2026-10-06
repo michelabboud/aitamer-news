@@ -32,15 +32,23 @@ legible at a small article-card size. Use depth through paper layering rather
 than glossy lighting. Avoid generic robot, brain or network wallpaper.
 
 EXCLUDE: All text, letters, numbers, captions, labels, watermarks, signatures,
-company logos, product UI screenshots, flags and recognizable people. No
+company logos, product UI screenshots, flags and recognizable people. The
+image model must not draw any typography, watermark, or signature into the
+art — generative watermarks and model-drawn credits remain forbidden. No
 photorealism, glossy 3D rendering, neon cyberpunk effects, busy circuitry or
 dramatic gradients. Do not depict a vendor feature as tested or proven when
 the article only reports an announcement.
 
-OUTPUT: Clean illustration with no typography. The final upload must be a
-genuine JPEG exactly 1600 x 900 pixels. Inspect the actual image before upload;
-regenerate if it violates these requirements. Automated file checks do not
-approve visual style.
+SITE CREDIT: After generation (never by prompting the model), burn a small
+muted credit line exactly "© https://aitamer.news" along the bottom edge —
+right-aligned, ~14px inset, quiet slate ~18px DejaVu or Liberation Sans.
+Apply with the ship stamp helper before R2 upload. Do not ask the image model
+to draw this text. New heroes only; never re-stamp already-live hero URLs.
+
+OUTPUT: Clean illustration with no model-drawn typography. The final upload
+must be a genuine JPEG exactly 1600 x 900 pixels after the site-credit stamp.
+Inspect the actual image before upload; regenerate if it violates these
+requirements. Automated file checks do not approve visual style.
 
 The caller appends SUBJECT: with one truthful article-specific metaphor,
 identifying the main object and its relation to any supporting objects.
