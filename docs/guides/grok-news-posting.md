@@ -111,9 +111,11 @@ The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt)
 >
 > COMPOSITION: One main metaphor, supported by at most two secondary elements. Make the relationship between them visually clear. Use depth through paper layering rather than glossy lighting. Make the image specific to this article, not a generic robot, brain or network wallpaper.
 >
-> EXCLUDE: All text, letters, numbers, captions, labels, watermarks, signatures, company logos, product UI screenshots, flags and recognizable people. No photorealism, glossy 3D rendering, neon cyberpunk effects, busy circuitry or dramatic gradients. Do not depict a vendor feature as tested or proven when the article only reports an announcement.
+> SITE MARK: On newly created images, add the exact `© https://aitamer.news` at the bottom-right in small readable type (about 18–22 pixels at 1600×900), inset about 24 pixels. Use subtle contrasting ink. This is the sole lettering exception; existing published images do not need restamping.
+
+> EXCLUDE: All other text, letters, numbers, captions, labels, watermarks, signatures, company logos, product UI screenshots, flags and recognizable people. No photorealism, glossy 3D rendering, neon cyberpunk effects, busy circuitry or dramatic gradients. Do not depict a vendor feature as tested or proven when the article only reports an announcement.
 >
-> OUTPUT: A clean illustration with no typography. The final upload file must be a genuine JPEG, exactly 1600 × 900 pixels.
+> OUTPUT: A clean illustration with only the small site mark. The final upload file must be a genuine JPEG, exactly 1600 × 900 pixels.
 
 Save the final JPEG to `$BUNDLE/hero.jpg`. Inspect the actual image; if it violates the style or contains pseudo-text/logos, regenerate it. Write one accurate sentence describing what is visible to `$BUNDLE/hero-alt.txt`, at most 290 characters. Alt text must describe the actual uploaded image after visual inspection, not its generation prompt, an imagined scene, unsupported claims or the headline. If the image is acceptable but its alt text describes different objects, correct the alt text without regenerating or re-uploading the hero.
 
@@ -224,7 +226,7 @@ Fonts and page styling are controlled by Astro layouts/components and site CSS, 
 
 The Grok newsroom owns factual accuracy, hero composition and reading experience. CI enforces technical constraints; no owner editorial approval is required. Inspect the actual uploaded JPEG and the rendered article before calling a post ready.
 
-- **Hero:** restrained warm accents within the approved palette, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, approved color profile, soft shadows, no typography and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
+- **Hero:** restrained warm accents within the approved palette, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, approved color profile, soft shadows, only the required small site mark and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
 - **Markdown:** 250–800 useful body words, a direct news opening, descriptive `##` sections and a practical takeaway. Include accurate frontmatter, an existing honest AI/bot byline, source links, Wildness evidence and a verdict. No custom HTML/CSS/MDX, em-dashes or internal process notes. Astro supplies fonts and layout.
 - **Browser:** after the admission workflow produces and validates the numbered tree, the reviewer may check out its exact head in a separate clone and run the normal build and preview commands, without changing any specimen or ledger bytes. Inspect the article at desktop and narrow mobile widths. Check headline wrapping, paragraph readability, section hierarchy, byline, sources, hero and card cropping. Record what was actually inspected; source inspection alone is not a browser preview. An unnumbered submission cannot claim a strict production preview; mark browser acceptance pending until it is performed.
 - **Evidence:** the PR description must be nonempty and include opened primary sources and claims checked, source disagreements, UTC `pubDate`, immediate versus scheduled intent, public hero URL, visual-review findings, browser-review findings or an explicit pending status, and decisive command outputs. Never claim a check passed unless it ran. Keep the detailed evidence in the handoff bundle and include enough in the PR for a reviewer without bundle access.
@@ -238,7 +240,8 @@ Research and open every primary source; write the article and choose Habitat.
 Use an existing honest bot/AI author, full UTC pubDate and an uploaded own-slug
 hashed hero. Inspect the actual JPEG for recognizable article-specific objects,
 restrained warm accents, no unrelated floating shapes, layered matte paper,
-no text/logos, and exactly 1600x900. Regenerate failures under a new hash URL.
+only the small bottom-right © https://aitamer.news site mark, no other text or
+logos, and exactly 1600x900. Regenerate failures under a new hash URL.
 Use clean Markdown, useful sections and a practical takeaway. Astro controls
 fonts and layout. Never add author files, template code, workflow changes or MDX.
 Submit one article PR on grok/* using grok-bots-app installation auth.
