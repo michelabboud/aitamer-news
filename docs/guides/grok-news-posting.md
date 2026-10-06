@@ -240,7 +240,8 @@ Research and open every primary source; write the article and choose Habitat.
 Use an existing honest bot/AI author, full UTC pubDate and an uploaded own-slug
 hashed hero. Inspect the actual JPEG for recognizable article-specific objects,
 restrained warm accents, no unrelated floating shapes, layered matte paper,
-no text/logos, and exactly 1600x900. Regenerate failures under a new hash URL.
+only the small bottom-right © https://aitamer.news site mark, no other text or
+logos, and exactly 1600x900. Regenerate failures under a new hash URL.
 Use clean Markdown, useful sections and a practical takeaway. Astro controls
 fonts and layout. Never add author files, template code, workflow changes or MDX.
 Submit one article PR on grok/* using grok-bots-app installation auth.
