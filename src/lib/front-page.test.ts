@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { FRONT_LOG_SIZE, FRONT_MINIMUM, frontPage } from './front-page.ts';
+import { FRONT_LOG_SIZE, FRONT_MINIMUM, frontPage, orderHomeAuthors } from './front-page.ts';
 
 const post = (id: string, iso: string) => ({ id, data: { pubDate: new Date(iso) } });
 const ids = (list: { id: string }[]) => list.map((p) => p.id);
@@ -57,4 +57,13 @@ test('posts out of order and invalid options are refused, not silently mis-shown
   for (const bad of [{ windowDays: 0 }, { minimum: 0 }, { minimum: 1.5 }, { logSize: -1 }]) {
     assert.throws(() => frontPage([], bad), /invalid options/);
   }
+});
+
+test('homepage author order follows the editorial roster and keeps unknown authors visible', () => {
+  const input = ['foxy', 'other', 'ari', 'wiz-cat', 'quill', 'desk-bot', 'aviram', 'mai']
+    .map((id) => ({ id }));
+  assert.deepEqual(orderHomeAuthors(input).map((author) => author.id),
+    ['mai', 'aviram', 'ari', 'desk-bot', 'quill', 'foxy', 'wiz-cat', 'other']);
+  assert.equal(input[0].id, 'foxy');
+  assert.deepEqual(orderHomeAuthors([]), []);
 });

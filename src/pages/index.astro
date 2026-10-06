@@ -1,6 +1,6 @@
 ---
 import { toJsonLd } from '../lib/json-ld';
-import { TAMER_RANK, isColumnist, kindLabel } from '../lib/author-kinds.ts';
+import { isColumnist, kindLabel } from '../lib/author-kinds.ts';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AuthorBadge from '../components/AuthorBadge.astro';
@@ -26,8 +26,8 @@ import {
 } from '../lib/site';
 import { postCover } from '../lib/covers';
 import { commentCountFor } from '../lib/comment-text';
-import { frontPage } from '../lib/front-page.ts';
-import { isFeaturedWriter, orderWriterCards } from '../lib/writer-pages.ts';
+import { frontPage, orderHomeAuthors } from '../lib/front-page.ts';
+import { isFeaturedWriter } from '../lib/writer-pages.ts';
 
 const posts = await getPublishedPosts();
 const newestShown = posts.reduce((max, post) => (post.data.pubDate > max ? post.data.pubDate : max), new Date(0)).toISOString();
@@ -65,14 +65,13 @@ const stats = {
   ais: authors.filter((a) => a.data.kind === 'ai').length,
   humans: authors.filter((a) => a.data.kind === 'human').length,
 };
-const tamers = authors
-  .map((author) => ({ author, filed: posts.filter((p) => p.data.author.id === author.id).length }))
-  // Humans first, then the named AI writers, then the desk bots; within a kind, most filed first.
-  .sort((a, b) => TAMER_RANK[a.author.data.kind] - TAMER_RANK[b.author.data.kind] || b.filed - a.filed);
+const orderedAuthors = orderHomeAuthors(authors);
+const tamers = orderedAuthors
+  .map((author) => ({ author, filed: posts.filter((p) => p.data.author.id === author.id).length }));
 const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
 // Featured human and AI writers each get a card at the top of the right panel, with their latest piece.
-const writers = orderWriterCards(authors.filter(isFeaturedWriter))
+const writers = orderedAuthors.filter(isFeaturedWriter)
   .map((author) => ({ author, latest: posts.find((p) => p.data.author.id === author.id) }));
 
 ---
