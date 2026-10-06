@@ -432,3 +432,5 @@
 0429 anthropic-claude-cowork-cloud-tasks
 0430 reflection-beam-open-weight-model
 0431 amazon-nova-2-5-sonic-ga
+0432 openai-gpt-6-astra-sol-day1-speed
+0433 cursor-sdk-run-steer-background-subagents
