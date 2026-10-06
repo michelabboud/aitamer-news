@@ -457,3 +457,5 @@
 0454 hark-pro-launch
 0455 openai-chatgpt-pro-500
 0456 burn-0-22-cubecl-0-11
+0457 livesvg-zero-shot-svg-animation
+0458 diffvg-differentiable-rasterizer
