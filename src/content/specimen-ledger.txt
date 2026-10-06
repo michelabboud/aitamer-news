@@ -445,3 +445,12 @@
 0442 openai-codex-auto-review-free
 0443 polars-2-0-out-of-core-sql
 0444 openai-30b-round-mgx-blackrock
+0445 stack-overflow-developer-survey-2026
+0446 erdos-problems-ai-proof-freeze
+0447 south-korea-frontier-ai-model-program
+0448 embeddinggemma-2
+0449 nano-banana-2-1-gemini-api-ga
+0450 atlassian-openai-partnership-mcp
+0451 island-fake-ai-ad-portals-phishing
+0452 anthropic-claude-startups-program
+0453 moonshot-ai-50b-pre-ipo
