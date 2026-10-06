@@ -14,6 +14,8 @@ sources:
     url: https://docs.x.ai/grok-bot/computer-and-apps
   - title: "Grok Bot for teams and enterprises"
     url: https://docs.x.ai/grok-bot/teams-and-enterprises
+  - title: "Grok Bot security FAQ"
+    url: https://docs.x.ai/grok-bot/security-faq
   - title: "Grok Bot FAQ"
     url: https://docs.x.ai/grok-bot/faq
   - title: "Grok Bot for Mobile"
