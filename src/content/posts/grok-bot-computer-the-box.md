@@ -1,7 +1,7 @@
 ---
 title: "The cloud computer your Grok Bots share"
 description: "Every Grok Bot on your account works on one cloud computer: a desktop, a browser, and /workspace. This tutorial shows what stays on your laptop, how to watch that computer, and where a file belongs."
-pubDate: 2026-10-09T05:00:00Z
+pubDate: 2026-10-07T08:10:00Z
 specimen: 428
 section: tools
 subsection: grok-bot
