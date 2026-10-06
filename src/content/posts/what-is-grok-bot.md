@@ -1,7 +1,7 @@
 ---
 title: "What Grok Bot is: a desktop app and one shared computer"
 description: "Grok Bot is a Cursor-signed-in desktop app. Its Bots share one hosted computer, keep separate chats, and offer configurable approval rules for consequential actions."
-pubDate: 2026-10-08T05:00:00Z
+pubDate: 2026-10-06T05:10:00Z
 specimen: 420
 section: tools
 subsection: grok-bot
