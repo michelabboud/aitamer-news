@@ -434,3 +434,6 @@
 0431 amazon-nova-2-5-sonic-ga
 0432 openai-gpt-6-astra-sol-day1-speed
 0433 cursor-sdk-run-steer-background-subagents
+0434 gemini-app-model-access-oct-9
+0435 openai-australia-inquiry-kwon-testimony
+0436 deepseek-funding-round-tencent-catl
