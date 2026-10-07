@@ -33,7 +33,7 @@ sources:
 
 Google is opening Playground, a browser tool for making games by describing them. The [7 October post](https://blog.google/innovation-and-ai/technology/ai/playground-experimental-gaming-platform/) by Maryam Karimzadehgan, a software engineer in AI innovation and research, calls it "an experimental gaming platform that lets you create, play, and share custom games." The post says it launches today "for users in the U.S. (18+) at playground.google, with tiered creation access rolling out based on your Google AI subscription."
 
-Eligibility, the prompt workflow, and the Unity timing below are from Google's blog, with outlet wording marked when it goes further. Google's blog does not name the models behind Playground.
+Google's post does not say which models power Playground.
 
 ## What Google says you can do
 
@@ -49,7 +49,7 @@ The Unity page title reads "Unity Spark: AI Game Maker with a Real Editor (close
 
 [The Verge](https://www.theverge.com/tech/1006477/google-playground-unity-spark-ai) says a closed beta for Spark is scheduled to kick off later this year, and that games made with Unity Spark will be shareable on Playground. [GamesBeat](https://gamesbeat.com/google-playground-and-unity-spark-will-enable-creators-to-easily-generate-3d-games/) also places a closed beta later this year, and it quotes Unity chief executive Matt Bromberg describing Spark as a way to make and share games in the browser with no prior Unity or game-development experience. Those "later this year" lines are the outlets'. Google's own sentence is "currently in testing, with closed beta coming soon."
 
-The Verge adds a detail that is not in the blog post it quotes. It says Google spokesperson Nia Carter told The Verge that Playground is free to use, and that a Google One subscription raises weekly token limits by plan. Google's blog instead says "tiered creation access" based on a "Google AI subscription." This article keeps those as two wordings: the blog's, and Carter's as The Verge reports it.
+The Verge adds a detail that is not in the blog post it quotes. It says Google spokesperson Nia Carter told The Verge that Playground is free to use, and that a Google One subscription raises weekly token limits by plan. Google's blog instead says "tiered creation access" based on a "Google AI subscription."
 
 [9to5Google](https://9to5google.com/2026/10/07/google-labs-playground/) tracks the same blog on prompts, private or public sharing, phone or laptop play, safety screening, and a U.S. rollout.
 

@@ -42,7 +42,7 @@ sources:
 
 OpenAI has published a large set of mathematical manuscripts on GitHub. The [repository README](https://github.com/openai/math) says the current catalogue contains 722 manuscripts organized into 372 families, produced by "an unreleased internal OpenAI model." A family, in that README, groups related papers: a principal result, companion arguments, consequences, or alternative proofs. The license file in the repository is the [Apache License, Version 2.0](https://raw.githubusercontent.com/openai/math/main/LICENSE).
 
-OpenAI's announcement page did not open for this article. The counts, the procedure, and the caveats below are the README's.
+The counts, the procedure, and the caveats below come from that README.
 
 ## What the README says was run
 
@@ -56,13 +56,13 @@ The README names two exceptions to that fixed procedure: work on a zero-free reg
 
 Lean is a proof assistant. A claim is rewritten in a language a computer can check, step by step, so a finished formalization is a machine-checked version of that claim. The README says: "Not all have accompanying Lean formalizations." It also says: "Many, but not all, of the manuscripts have been formalized." Then: "Some of the unformalized results could have issues. We will endeavor to fix any such issues quickly."
 
-That gap is the bottleneck for a reader. A formalized result can be rechecked by anyone who can run the Lean library in the repository. An unformalized manuscript still needs a person who can read the write-up, and the model that produced it is not available to rerun. This article calls the files manuscripts, claimed results, and write-ups.
+That gap is the bottleneck for a reader. A formalized result can be rechecked by anyone who can run the Lean library in the repository. An unformalized manuscript still needs a person who can read the write-up, and the model that produced it is not available to rerun.
 
 ## 372 families, and a headline that says 377
 
 The README's count is 372 families and 722 manuscripts. [Gizmodo's headline](https://gizmodo.com/openai-dumps-377-new-math-results-on-github-publishes-hand-wringing-blog-post-2000822613) says OpenAI released 377 new math results. On the [manuscript map](https://raw.githubusercontent.com/openai/math/main/CONTENTS.md), the family headings run from 001 through 377, and five numbers do not appear: 045, 061, 070, 123, and 163. That is 372 headings. The highest family number on the map is 377. The README's family count is 372.
 
-A New York Times page for this release did not open. This article does not treat 377 as wording confirmed on nytimes.com. The difference the repository supports is between the manuscript count, the family count, and the highest family number.
+So the numbers measure different things: 722 is the manuscript count, 372 is the family count, and 377 is the highest family number on the map.
 
 ## What mathematicians told reporters
 

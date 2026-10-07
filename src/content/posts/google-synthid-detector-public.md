@@ -40,11 +40,11 @@ SynthID is an invisible watermark Google embeds in AI output. Kohli writes that 
 
 Kohli writes that anyone can check whether an image, a video, or an audio file "was made with AI from Google or our partners, including OpenAI, NVIDIA, Kakao, and soon, Apple." Those four names, with Apple marked "soon," are on Google's page. The post does not say Apple Intelligence by name, and it does not give a date for Apple.
 
-[The Verge](https://www.theverge.com/tech/1006640/google-ai-content-detector-launch) says anyone can use the tool by logging in at [synthid.com](https://synthid.com/). That site is the link on Google's post. File types below are TechCrunch's account of the detector, not a line printed in the 7 October post.
+[The Verge](https://www.theverge.com/tech/1006640/google-ai-content-detector-launch) says anyone can use the tool by logging in at [synthid.com](https://synthid.com/). That is the site Google's post links to.
 
-[TechCrunch](https://techcrunch.com/2026/10/07/googles-new-synthid-website-can-identify-ai-generated-media/) lists the formats it says the site accepts. For images: JPG, JPEG, PNG, BMP, WEBP, AVIF, HEIC, HEIF, TIFF, TIF, and GIF. For video: MP4, MOV, and WEBM. For audio: WAV, MP3, OGG, FLAC, AAC, and M4A. Those extensions are TechCrunch's list. Google's post names the media types (images, video, and audio) and does not print the extension list.
+[TechCrunch](https://techcrunch.com/2026/10/07/googles-new-synthid-website-can-identify-ai-generated-media/) lists the formats it says the site accepts. For images: JPG, JPEG, PNG, BMP, WEBP, AVIF, HEIC, HEIF, TIFF, TIF, and GIF. For video: MP4, MOV, and WEBM. For audio: WAV, MP3, OGG, FLAC, AAC, and M4A. Google's post itself names only the media types: images, video, and audio.
 
-TechCrunch also writes that Google's own generators, including Nano Banana, Veo, and Lyria, plus Gemini, Flow, ProducerAI, and Vids, watermark with SynthID. That product list is TechCrunch's, tied to Google's watermark, and it is not a sentence on the 7 October post.
+TechCrunch also writes that Google's own generators, including Nano Banana, Veo, and Lyria, plus Gemini, Flow, ProducerAI, and Vids, watermark with SynthID.
 
 ## Who had it before today
 
@@ -56,7 +56,7 @@ Google's post also says built-in checks in Search, the Gemini app, and Chrome "n
 
 A watermark detector can report a mark it knows how to read. If a file has no SynthID mark, that result does not show the file was made by a person. A tool that never embeds SynthID, or a file whose mark was stripped, can still be synthetic. [9to5Google](https://9to5google.com/2026/10/07/google-synthid-ai-image-detector-launches-globally/) makes the same point in its own words: detection works when the generator inserted the watermark to begin with. TechCrunch adds that watermark checks are fallible and often miss content from the maker's own models, pointing at other companies' systems as well as this kind of tool.
 
-Google's post does not print that limitation as a numbered caveat. It does describe the detector as a way to check whether a file was made with AI from Google or the named partners. The partner list is the scope.
+Google describes the detector as a way to check whether a file was made with AI from Google or the named partners, so that partner list is the tool's scope.
 
 ## What to do with a result
 
