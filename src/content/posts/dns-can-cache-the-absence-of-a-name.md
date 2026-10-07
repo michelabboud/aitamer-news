@@ -1,7 +1,7 @@
 ---
 title: DNS Can Cache the Absence of a Name
 description: Creating a DNS record for a new voice endpoint does not clear earlier negative answers. Learn how NXDOMAIN, NODATA and SOA-derived lifetimes affect rollout checks.
-pubDate: "2026-10-09T00:00:00Z"
+pubDate: "2026-10-08T23:30:00Z"
 section: devops
 tags:
   - dns

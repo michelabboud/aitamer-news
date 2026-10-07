@@ -1,7 +1,7 @@
 ---
 title: Speech Marks Describe Audio Without Carrying Audio
 description: Amazon Polly speech marks give timing and UTF-8 byte ranges for synthesized words and sentences. Audio and marks require separate output choices, so a highlighting UI must keep their inputs aligned.
-pubDate: "2026-10-08T22:30:00Z"
+pubDate: "2026-10-08T22:00:00Z"
 section: dev
 tags:
   - amazon-polly

@@ -1,7 +1,7 @@
 ---
 title: Cargo Can Prefer Dependencies Compatible With Your Rust Version
 description: Cargo's Rust-version-aware resolver can favor dependency releases that fit a project's minimum compiler, but its fallback policy and shared lockfile leave real compatibility checks to the build matrix.
-pubDate: "2026-10-09T01:00:00Z"
+pubDate: "2026-10-09T00:30:00Z"
 section: rust
 tags:
   - rust

@@ -1,7 +1,7 @@
 ---
 title: A Workspace Dependency Is Inherited Explicitly
 description: Cargo workspace.dependencies centralizes dependency declarations, but each member opts in through its own manifest. See how that keeps an AI application's crates honest about what they use.
-pubDate: "2026-10-08T23:00:00Z"
+pubDate: "2026-10-08T22:30:00Z"
 section: rust
 tags:
   - rust

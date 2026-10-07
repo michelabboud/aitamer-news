@@ -1,7 +1,7 @@
 ---
 title: Compose Expands Variables Before Starting the Container
 description: A voice service can receive a different setting from the one Compose used to build its configuration. Learn how defaults, host inputs and escaped dollar signs cross that boundary.
-pubDate: "2026-10-08T23:30:00Z"
+pubDate: "2026-10-08T23:00:00Z"
 section: devops
 tags:
   - docker-compose

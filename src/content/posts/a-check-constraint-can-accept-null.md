@@ -1,7 +1,7 @@
 ---
 title: A CHECK Constraint Can Accept NULL
 description: PostgreSQL accepts a CHECK expression that evaluates to NULL. Make optional positive quotas explicit, and pair CHECK with NOT NULL when a value is required.
-pubDate: "2026-10-09T03:00:00Z"
+pubDate: "2026-10-09T02:30:00Z"
 section: dev
 tags:
   - postgresql

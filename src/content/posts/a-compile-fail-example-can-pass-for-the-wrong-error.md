@@ -1,7 +1,7 @@
 ---
 title: A Compile-Fail Example Can Pass for the Wrong Error
 description: Rust doctests can demonstrate forbidden API use, but compile_fail only checks that compilation fails. A misspelled import can make the lesson appear tested.
-pubDate: "2026-10-09T02:30:00Z"
+pubDate: "2026-10-09T02:00:00Z"
 section: rust
 tags:
   - rust

@@ -1,7 +1,7 @@
 ---
 title: A Build Script Must Tell Cargo What Can Change Its Output
 description: Generated Rust bindings can go stale when a build script watches too few inputs. Declare the files and external environment variables that affect generation, and keep diagnostics separate from Cargo directives.
-pubDate: "2026-10-09T01:30:00Z"
+pubDate: "2026-10-09T01:00:00Z"
 section: rust
 tags:
   - rust

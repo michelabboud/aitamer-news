@@ -1,7 +1,7 @@
 ---
 title: A Synthesis Output Format Includes More Than a File Extension
 description: Azure Speech lets applications choose encoded audio characteristics. Match the codec, sample rate, channels, and header format to the browser or phone pipeline before naming or forwarding the bytes.
-pubDate: "2026-10-09T02:00:00Z"
+pubDate: "2026-10-09T01:30:00Z"
 section: dev
 tags:
   - azure-speech

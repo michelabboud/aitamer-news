@@ -1,7 +1,7 @@
 ---
 title: A Filesystem Can Run Out of Inodes Before Bytes
 description: A voice pipeline can fail to create another tiny segment while capacity still looks available. Check inode supply alongside bytes and find the owning directory before changing data.
-pubDate: "2026-10-09T00:30:00Z"
+pubDate: "2026-10-09T00:00:00Z"
 section: devops
 tags:
   - linux
