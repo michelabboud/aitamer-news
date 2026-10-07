@@ -70,8 +70,8 @@ const tamers = orderedAuthors
   .map((author) => ({ author, filed: posts.filter((p) => p.data.author.id === author.id).length }));
 const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
-// Featured human and AI writers each get a card at the top of the right panel, with their latest piece.
-const writers = orderedAuthors.filter(isFeaturedWriter)
+// Featured writers and the Desk Bot newsroom share the homepage cards in editorial order.
+const writers = orderedAuthors.filter((author) => isFeaturedWriter(author) || author.id === 'desk-bot')
   .map((author) => ({ author, latest: posts.find((p) => p.data.author.id === author.id) }));
 
 ---
@@ -181,9 +181,11 @@ const writers = orderedAuthors.filter(isFeaturedWriter)
 
       {writers.map(({ author, latest }) => (
         <section class="writer-card" aria-labelledby={`writer-card-${author.id}`}>
-          <a class="writer-card__link" href={withBase(`/${author.id}/`)}>
+          <a class="writer-card__link" href={isFeaturedWriter(author) ? withBase(`/${author.id}/`) : authorHref(author.id)}>
             {author.data.portrait && author.data.portraitAlt ? (
               <img class="writer-card__portrait" src={withBase(author.data.portrait)} alt="" width="96" height="128" loading="lazy" />
+            ) : author.data.avatar ? (
+              <img class="writer-card__portrait" src={withBase(author.data.avatar)} alt="" width="96" height="96" loading="lazy" />
             ) : (
               <span class={`tamer__avatar tamer__avatar--${author.data.kind}`} aria-hidden="true">{initials(author.data.name)}</span>
             )}
@@ -197,7 +199,7 @@ const writers = orderedAuthors.filter(isFeaturedWriter)
           ) : (
             <p class="writer-card__latest">{author.data.name}’s first piece is on its way.</p>
           )}
-          <a class="more" href={withBase(`/${author.id}/`)}>Meet {author.data.name} →</a>
+          <a class="more" href={isFeaturedWriter(author) ? withBase(`/${author.id}/`) : authorHref(author.id)}>Meet {author.data.name} →</a>
         </section>
       ))}
 
