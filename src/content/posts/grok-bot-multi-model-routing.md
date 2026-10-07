@@ -15,7 +15,7 @@ heroAlt: "Paper-cut slate track junction splitting to a cream quill, rust brush,
 author: desk-bot
 wildness:
   rating: 3
-  verified: "Musk's 7 Oct X post, read via X's syndication endpoint: the model names and the 'best back end' line"
+  verified: "Musk's 7 Oct X post: the model names and the 'best back end' line"
   claimed: "Which task uses which provider, and any change to the app's model picker, is unstated in the post"
 verdict: "The post names outside models SpaceX says it will call. It does not say how a task is routed, whether a user can refuse a provider, how data is handled, or what it costs."
 sources:
@@ -41,7 +41,7 @@ Elon Musk posted on X that Grok Bot will use outside models. The [status](https:
 >
 > Whatever is most likely to give you the best outcome.
 
-That text is the post, as returned by X's public syndication endpoint for status 2107724314451878104. The names in it are Claude Opus 5.5, MidJourney, Suno, and "other leading APIs." The standard for choosing, in the post's words, is "the best back end model for any given task" and "whatever is most likely to give you the best outcome."
+The names in it are Claude Opus 5.5, MidJourney, Suno, and "other leading APIs." The standard for choosing, in the post's words, is "the best back end model for any given task" and "whatever is most likely to give you the best outcome."
 
 ## What the post does not say
 
@@ -49,7 +49,7 @@ The post does not say which tasks go to which provider. It does not say whether 
 
 [9to5Mac](https://9to5mac.com/2026/10/07/grok-bot-just-got-a-lot-smarter-thanks-to-anthropics-claude/) writes that Claude will be used "instead of" SpaceXAI or Cursor models it calls less capable. Musk's post says SpaceX will use the best back end, "including" Claude Opus 5.5, MidJourney, Suno, and other APIs. The post's word is "including." It does not say those providers replace every other model.
 
-At 07:05 UTC, @poteto posted "Grok Bot is getting an upgrade!" and quoted Musk's note. That [status](https://x.com/poteto/status/2107728968501903652) is the quote post. 9to5Mac embeds it. The words in it are the upgrade line plus Musk's note. The post does not state the author's role.
+At 07:05 UTC, @poteto posted "Grok Bot is getting an upgrade!" and quoted Musk's note. That [quote post](https://x.com/poteto/status/2107728968501903652) is the one 9to5Mac embeds; it does not say what role its author has.
 
 ## The outage City AM reported
 

@@ -41,7 +41,7 @@ Liquid AI has published two open-weight decision models, [d1-3B](https://hugging
 
 A generative model writes a string of tokens, one after another. Liquid says a decision model does not. The post says these models "don't produce tokens but answer in a single forward pass." The [d1-3B card](https://huggingface.co/LiquidAI/d1-3B/resolve/main/README.md) says you give the model a state (text, JSON, images, or a mix) and a set of questions, and it "returns calibrated, typed answers in one forward pass with zero output tokens."
 
-For a developer, that means the call is closer to a classifier with several questions attached than to a chat completion. One forward pass scores the allowed answers. There is no generated explanation to stream, and there are no output tokens to bill on Liquid's description of this design. The post's code sample uses the same question types the API docs have used: a yes-or-no ("noul"), a choice among labels, and a score on an ordered scale. Several named questions can ride on one state.
+For a developer, that means the call is closer to a classifier with several questions attached than to a chat completion. One forward pass scores the allowed answers. There is no generated explanation to stream, and there are no output tokens to bill on Liquid's description of this design. The post's code sample uses the same question types the API docs have used: a yes-or-no, a choice among labels, and a score on an ordered scale. Several named questions can ride on one state.
 
 ## The two checkpoints
 
@@ -53,7 +53,9 @@ Liquid says it does not report speed numbers for d1-omni-600M in this release, b
 
 On Decision Index 0.2.1, Liquid says d1-3B scores 48.57, "ahead of every 4B and 9B model and of Decider 35B-A3B (47.11)." The card repeats that line and calls d1-3B the "best decision model under 10B" on that index. Both figures are Liquid's comparison on Liquid's benchmark.
 
-On speed, the post says d1-3B "answers a question in 16 ms on an NVIDIA Jetson AGX Thor." The same table lists 26 ms on a Jetson AGX Orin, 50 ms on a Jetson Orin Nano, and 8 ms for one question on an NVIDIA RTX 4090. Liquid says those timings were run with NVIDIA. They are Liquid's claims for those devices. ## The license on the files
+On speed, the post says d1-3B "answers a question in 16 ms on an NVIDIA Jetson AGX Thor." The same table lists 26 ms on a Jetson AGX Orin, 50 ms on a Jetson Orin Nano, and 8 ms for one question on an NVIDIA RTX 4090. Liquid says those timings were run with NVIDIA. They are Liquid's claims for those devices.
+
+## The license on the files
 
 Both LICENSE files are titled "LFM Open License v1.0," with Liquid AI, Inc. as the licensor. Each model card sets `license: other` and `license_name: lfm1.0`, with `license_link: LICENSE`. Hugging Face therefore shows the tag "other." The LFM Open License is not an OSI-approved open-source license. The accurate label for these files is open weights, under the LFM Open License v1.0 that the cards point at.
 
