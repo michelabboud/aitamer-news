@@ -472,3 +472,4 @@
 0469 grok-bot-multi-model-routing
 0470 underdog-conway-private-agent
 0471 musubi-policylm-1-7b
+0472 claude-haiku-5-5
