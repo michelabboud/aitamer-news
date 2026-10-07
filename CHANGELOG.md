@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.81 — 2026-10-07
+
+- Show Desk Bot between Ari and Quill in the homepage right-hand author cards, using its existing avatar and author profile.
+
 ## 0.2.78 — Publishing-App completion wakes (2026-10-06)
 
 - Verify recovery checkpoints from trusted-main finalizers triggered by authorized publishing Apps. Keep other actors on the scheduled fallback. Remove stale owner-approval wording from the path observation.
