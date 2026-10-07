@@ -34,7 +34,9 @@ sources:
     url: https://pypi.org/project/diarizationlm/
 ---
 
-Google published [`google/DiarizationLM-Gemma-4-E4B-v1`](https://huggingface.co/google/DiarizationLM-Gemma-4-E4B-v1) on Hugging Face on 4 October 2026. It is a speech post-processing model: it takes a transcript that already carries speaker labels and moves words that were assigned to the wrong speaker. The weights are under Apache 2.0 and the repository is not gated. The model card opens with a plain caveat: "This is not an officially supported Google product."
+Google published [`google/DiarizationLM-Gemma-4-E4B-v1`](https://huggingface.co/google/DiarizationLM-Gemma-4-E4B-v1) on Hugging Face on 4 October 2026. It is a speech post-processing model: it takes a transcript that already carries speaker labels and moves words that were assigned to the wrong speaker. The weights were released under Apache 2.0, and the repository was not gated when it went up. The model card opens with a plain caveat: "This is not an officially supported Google product."
+
+Update, 7 October 2026: the google/DiarizationLM-Gemma-4-E4B-v1 repository is no longer publicly reachable on Hugging Face. Google's DiarizationLM README on GitHub still lists it, and we will update this post if it returns.
 
 ## What DiarizationLM does
 

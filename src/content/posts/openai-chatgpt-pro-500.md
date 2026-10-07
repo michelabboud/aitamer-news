@@ -25,7 +25,7 @@ sources:
     url: "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
   - title: "Pricing"
     url: "https://chatgpt.com/pricing"
-  - title: "ChatGPT — Release Notes"
+  - title: "ChatGPT release notes"
     url: "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
   - title: "DevDay 2026"
     url: "https://learn.chatgpt.com/docs/whats-new/devday-2026"
