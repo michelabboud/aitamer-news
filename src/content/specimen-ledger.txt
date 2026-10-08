@@ -544,3 +544,14 @@
 0541 doubleai-girth-8-5-lean-bound
 0542 keeex-c2pa-upc-patent-trial
 0543 flathub-ai-disclosure-policy
+0544 uk-ico-foundation-model-changes-agentic-ai-call
+0545 talos-ai-analysis-evasion-malware
+0546 meta-muse-undeclared-agent-cequence-fingerprint
+0547 mas-ai-risk-management-guidelines-final
+0548 google-cloud-gemini-agent-gemini-at-work
+0549 jetbrains-mellum2-1-open-coding-agent-model
+0550 scale-elorian-humanitys-sixth-sense-benchmark
+0551 ai2-byteification-nature-byte-level-checkpoints
+0552 navier-stokes-lost-in-translation-lean
+0553 google-sashiko-kernel-review-metrics
+0554 tinygrad-tinybox-configurable
