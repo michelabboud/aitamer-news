@@ -534,3 +534,13 @@
 0531 neon-lakebase-tokenizer-bm25-dictionaries
 0532 cantwell-ai-framework-trahan-claim-act
 0533 arizona-appeals-ai-victim-video-horcasitas
+0534 openai-math-withdraws-three-manuscripts
+0535 state-of-ai-report-2026
+0536 denmark-likeness-bill-ai-deepfakes
+0537 manus-butterfly-effect-500m-round
+0538 android-on-device-ai-enclave-pkvm
+0539 cisco-webex-claude-managed-agents
+0540 bolzano-open-problem-prover-arxiv
+0541 doubleai-girth-8-5-lean-bound
+0542 keeex-c2pa-upc-patent-trial
+0543 flathub-ai-disclosure-policy
