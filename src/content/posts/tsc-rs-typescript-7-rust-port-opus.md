@@ -1,7 +1,7 @@
 ---
 title: "tsc-rs is Theo Browne's early Rust port of the TypeScript 7 compiler"
 description: "Theo Browne says tsc-rs 0.1.0, a Rust port of Microsoft's Go TypeScript compiler, is an early release he has not read. The README's costs, tests, and speeds are his account."
-pubDate: "2026-10-08T07:17:00Z"
+pubDate: "2026-10-08T08:47:00Z"
 section: rust
 subsection: ai
 tags:

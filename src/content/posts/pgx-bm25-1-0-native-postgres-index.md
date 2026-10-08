@@ -1,7 +1,7 @@
 ---
 title: "pgx-bm25 1.0 adds BM25 as a native PostgreSQL index"
 description: "PGX says pgx-bm25 1.0 is a PostgreSQL-licensed BM25 index for PostgreSQL 17 and 18. The index lives in the server's own pages, so it gets WAL, crash recovery, and VACUUM."
-pubDate: "2026-10-08T07:47:00Z"
+pubDate: "2026-10-08T09:17:00Z"
 section: devops
 subsection: postgres
 tags:

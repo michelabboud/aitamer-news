@@ -1,7 +1,7 @@
 ---
 title: "Cantwell's AI principles and Trahan's CLAIM draft are proposals, not law"
 description: "Sen. Maria Cantwell published six principles for frontier AI, not a bill. Rep. Lori Trahan released the CLAIM Act as a discussion draft. Neither text is law today."
-pubDate: "2026-10-08T08:07:00Z"
+pubDate: "2026-10-08T09:37:00Z"
 section: general
 subsection: policy
 tags:

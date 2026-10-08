@@ -1,7 +1,7 @@
 ---
 title: "Perplexity publishes pplx-embed-v2-late, a pair of late-interaction embedders"
 description: "Perplexity's model cards describe pplx-embed-v2-late 0.6B and 9B as MIT-licensed ColBERT-style embedders, one 128-wide vector per token, sharing one embedding space."
-pubDate: "2026-10-08T07:37:00Z"
+pubDate: "2026-10-08T09:07:00Z"
 section: dev
 subsection: rag
 tags:

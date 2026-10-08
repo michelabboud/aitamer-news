@@ -1,7 +1,7 @@
 ---
 title: "Neon puts Lakebase Search synonyms and stop words in SQL tables"
 description: "Neon says the lakebase_tokenizer extension, packaged with Lakebase Search, stores synonyms and stop words in SQL tables. The post does not name a new plan or region."
-pubDate: "2026-10-08T07:57:00Z"
+pubDate: "2026-10-08T09:27:00Z"
 section: devops
 subsection: postgres
 tags:

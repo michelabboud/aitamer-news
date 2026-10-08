@@ -1,7 +1,7 @@
 ---
 title: "Weaviate 1.40 ships namespaces as generally available, if you have a license"
 description: "Weaviate 1.40.0 marks namespaces generally available. A merged pull request says namespaced endpoints return 403 without a license. The notes do not name a plan."
-pubDate: "2026-10-08T07:27:00Z"
+pubDate: "2026-10-08T08:57:00Z"
 section: dev
 subsection: rag
 tags:

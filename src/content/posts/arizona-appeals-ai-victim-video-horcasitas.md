@@ -1,7 +1,7 @@
 ---
 title: "Arizona appeals court vacates a sentence that relied on an AI victim video"
 description: "Arizona's Court of Appeals affirmed a manslaughter conviction and vacated the manslaughter sentence because an AI video of the victim was not reliable. The ruling was filed on 30 September."
-pubDate: "2026-10-08T08:17:00Z"
+pubDate: "2026-10-08T09:47:00Z"
 section: general
 subsection: policy
 tags:
