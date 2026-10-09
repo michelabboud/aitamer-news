@@ -50,7 +50,7 @@ Run these from a worktree that has its own `npm ci`, never through a shared `nod
 
 House style is a **paper-cut collage**: layered cut paper with visible edges and soft shadows, slate blue and cream with one coral accent, a simple central metaphor for the topic. No text, logos, real people or recognisable interfaces.
 
-1. **Hero** (one per post), 16:9. Generate it, then crop and resize to a 1600x900 JPEG (quality about 85, progressive). Write `heroAlt` from what the image really shows, after looking at it.
+1. **Hero** (one per post), 16:9. Generate it, then crop and resize to a 1600x900 JPEG (quality about 85, progressive). The steps from the generated image to the uploaded file (the site mark, packing to exactly 1600x900, keeping the original, uploading only the final file) are one procedure, written once in `docs/guides/hero-procedure.md`: follow it instead of cropping and resizing by hand. Write `heroAlt` from what the image really shows, after looking at it.
 2. **In-body images** (usually 2 to 4): same style, one idea each, never a repeat of the hero.
 3. **Diagrams**: plain SVG at `public/diagrams/<post-slug>/<name>.svg` with a `viewBox`, its own background and a dark-mode media query; no links, scripts or embedded images. `npm run check:diagrams` names any problem. Draw what the sources say, and no more.
 4. **Upload** with the wrangler login on the editor's machine:

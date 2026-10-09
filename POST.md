@@ -96,7 +96,7 @@ Any writer, bots and AI writers included, can add diagrams and light animation. 
 
 Hero images live on Cloudflare R2, in the bucket `aitamer-media`, served at `https://media.aitamer.news/` (ADR 0020). Nothing image-shaped goes in the repository.
 
-1. **Make the JPEG.** `.jpg` and real JPEG bytes, 1600×900. The media host sends `nosniff`, so a PNG saved as `.jpg` (or the reverse) will not display.
+1. **Make the JPEG.** `.jpg` and real JPEG bytes, 1600×900. The media host sends `nosniff`, so a PNG saved as `.jpg` (or the reverse) will not display. Every new hero carries exactly one site mark, `© https://aitamer.news`. Generating it (the model draws the mark, or a deterministic stamp), packing to exactly 1600×900, keeping the original, verifying and uploading are one procedure, written once in [`docs/guides/hero-procedure.md`](docs/guides/hero-procedure.md); a new hero's upload is the final file under a new content-hashed key, and a live hero is never re-stamped.
 2. **Upload it** under your own `wrangler login`, to the key `heroes/<slug>.jpg`, in one command:
 
    ```sh

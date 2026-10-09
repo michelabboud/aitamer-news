@@ -51,3 +51,37 @@ approve visual style.
 
 The caller appends SUBJECT: with one truthful article-specific metaphor,
 identifying the main object and its relation to any supporting objects.
+
+======================================================================================
+CALLER INSTRUCTIONS. Send NOTHING from this line down to the image model.
+======================================================================================
+
+Two supported ways to get the site mark into a hero. The ordered steps for both, and
+what is shared (one mark only, exactly 1600 x 900, keep the original, upload the
+final file only), are written once in docs/guides/hero-procedure.md. Follow it.
+
+PATH A, the model draws the mark in the same generation (Codex imagegen and any
+model that can do it reliably): send everything above this line, as it stands, with
+your SUBJECT line. The SITE MARK paragraph is the mark's specification.
+
+PATH B, a deterministic stamp (the Grok bots, Claude, Cursor, anyone whose model
+cannot draw the mark reliably, and the fallback for path A): the model must draw NO
+lettering and must never see the site address. Send everything above this line EXCEPT
+the three paragraphs that start SITE MARK:, EXCLUDE: and OUTPUT:, and send these
+three paragraphs in their place, then your SUBJECT line:
+
+    NO LETTERING: Draw no lettering of any kind: no text, letters, numbers,
+    symbols, captions, labels, watermarks, signatures, site name, web address or
+    copyright sign. Where the scene would normally show writing (a sign, a screen,
+    a book, a badge), leave that surface blank or show plain shapes. A site mark
+    is not your job: it is added to the finished file afterwards by other means.
+
+    EXCLUDE: Company logos, product UI screenshots, flags and recognizable
+    people. No photorealism, glossy 3D rendering, neon cyberpunk effects, busy
+    circuitry or dramatic gradients. Do not depict a vendor feature as tested or
+    proven when the article only reports an announcement.
+
+    OUTPUT: A clean illustration with no lettering at all. A genuine JPEG exactly
+    1600 x 900 pixels. Inspect the actual image before use and regenerate it if it
+    contains any lettering, pseudo-text or logo. Automated file checks do not
+    approve visual style.

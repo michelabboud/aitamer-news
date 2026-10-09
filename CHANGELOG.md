@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.82 — 2026-10-09
+
+- Add `scripts/stamp-hero.mjs`: a deterministic ffmpeg tool that burns `© https://aitamer.news` into the bottom-right of a 1600 x 900 hero (DejaVu Sans, 20 px, 24 px inset, ink chosen from the picture), refuses an image that already carries a mark, and writes a receipt. It refuses by marker, by the exact box, and by a corner search for lettering of any size, place and ink, so a mark an image model drew itself is caught (0 false refusals on 239 old heroes, 29 of 29 model marks refused; `docs/reports/2026-10-09-stamp-detection-calibration.md`). Tests in `scripts/stamp-hero.test.mjs` need ffmpeg and fail loudly without it.
+- One hero procedure, written once in `docs/guides/hero-procedure.md` and pointed to from the Grok guide, `POST.md`, the bot contract, the Codex guide, onboarding, the posting standards, README and CONTRIBUTING. Path A: the model draws the mark in the same generation (Codex imagegen; `hero-image-style.txt` keeps its SITE MARK paragraph), verified by eye, up to three tries. Path B: clean art, pack to exactly 1600 x 900, stamp with the tool (the Grok bots, Claude, Cursor, and path A's fallback). Shared rules: exactly one mark, keep the raw original and its SHA-256, upload only the final file under a new content-hashed key and read the public URL back, never re-stamp a live hero. Supersedes the unmerged PR 212.
+- Five workflows that run `npm test` (check-posts, deploy-pages, deploy-github-pages, deploy-contact-worker, specimen-admission) install ffmpeg and `fonts-dejavu-core` first; the hosted runners ship neither.
+- README and CONTRIBUTING list ffmpeg (drawtext), ffprobe and a DejaVu or Liberation font as requirements.
+
 ## 0.2.81 — 2026-10-07
 
 - Show Desk Bot between Ari and Quill in the homepage right-hand author cards, using its existing avatar and author profile.

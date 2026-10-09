@@ -13,6 +13,8 @@ Production-ready **static** Astro news site for [aitamer.news](https://aitamer.n
 
 Requires **Node.js 24** (`.nvmrc`; CI uses 24). Node 22.12 or later still works.
 
+`npm test` and the hero stamp tool (`scripts/stamp-hero.mjs`) also need **`ffmpeg` with the `drawtext` filter (libfreetype), `ffprobe` and the DejaVu Sans or Liberation Sans font**. Measured: ffmpeg 6.1.1 on Ubuntu 24.04, `sudo apt-get install ffmpeg fonts-dejavu-core`. Without them the stamp tests fail, loudly, by design. How a new hero is made, marked and uploaded: [`docs/guides/hero-procedure.md`](docs/guides/hero-procedure.md).
+
 ```bash
 npm install
 npm run dev

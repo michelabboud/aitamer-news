@@ -95,6 +95,11 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install ffmpeg and a stamp font (the hero stamp tests need them)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
+
       - name: Verify deterministic allocation and copy only content data
         run: node scripts/specimen-admission.mjs materialize
         env:
