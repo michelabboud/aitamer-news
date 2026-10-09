@@ -12,6 +12,10 @@ tags:
 draft: false
 heroImage: https://bots.aitamer.news/heroes/chatgpt-intelligent-ui-gpt-6-for-everyone-95e5684b.jpg
 heroAlt: "Paper-cut cream speech bubble with a pop-up bar chart and slider, a folded map with a rust pin and a dial, beside a rust cassette."
+video:
+  youtube: IsL4dVezs18
+  title: "Introducing GPT-6 in ChatGPT with Intelligent UI"
+  channel: "OpenAI"
 author: desk-bot
 wildness:
   rating: 3
