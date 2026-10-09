@@ -22,6 +22,10 @@ verdict: "Two beta features with clear plan limits and two GA ones. Dashboards a
 sources:
   - title: "Build live dashboards and animate explainers with Claude (Claude, 8 October 2026)"
     url: https://claude.com/resources/articles/dashboards-and-motion
+  - title: "Introducing Higgsfield Katana, powered by Claude Motion (Higgsfield on X, 8 October 2026)"
+    url: https://x.com/higgsfield/status/2108294775644585998
+  - title: "Katana (Higgsfield)"
+    url: https://higgsfield.ai/katana
 ---
 
 Anthropic added two beta features to Claude on 8 October 2026 and took three others out of beta. Per the [Claude announcement](https://claude.com/resources/articles/dashboards-and-motion), Claude Dashboards is in beta on paid plans, Claude Motion is in beta on Team and Enterprise, and Claude Docs, Slides and Design are "out of beta and available on every plan, including Free."
@@ -37,6 +41,10 @@ A typical first prompt from the article: "Build a dashboard of this quarter's re
 ## Claude Motion
 
 Motion makes short animated explainers, such as a 30-second summary of a quarterly report or a moving chart for a board deck. It is not a video model. Anthropic says Claude "writes code that animates your text, charts, shapes, and images," so every word, number and timing stays editable, and "there's no generated footage and no AI-generated people." Clips download as MP4, or open in tools including Adobe, Descript, HeyGen, Higgsfield, invideo, Luma AI and Runway, with Canva and Captions coming soon.
+
+### Update, 9 October 2026: Higgsfield Katana
+
+One of those partners has already built a product on top of Motion. On 8 October, Higgsfield [announced Katana](https://x.com/higgsfield/status/2108294775644585998), which it calls "our most powerful AI video editing tool, inside Claude" and describes as "powered by Claude Motion." Per the post, you upload a reference and create "editable motion graphics, product launch videos, or aura-farming edits," and it is "available now in Claude via Higgsfield MCP." The [Katana page](https://higgsfield.ai/katana) says to install Higgsfield in Claude and then type /katana. Higgsfield's post does not list plan requirements or pricing, and Anthropic lists Motion itself as a beta on Team and Enterprise plans.
 
 ## Docs, Slides and Design leave beta
 
