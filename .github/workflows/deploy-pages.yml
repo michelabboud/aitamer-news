@@ -145,6 +145,11 @@ jobs:
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+      - name: Install ffmpeg and a stamp font (the hero stamp tests need them)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
+
       - name: Check scripts and post times
         run: |
           npm test
