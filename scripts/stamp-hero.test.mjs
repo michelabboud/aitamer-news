@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { execFile, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -207,6 +207,149 @@ test('a second stamp is refused even when a re-encode stripped the marker (the p
     assert.match(res.stderr, /already shows the site mark/, name);
     assert.deepEqual(files(dir), ['once.jpg', 'stripped.jpg'], name);
   }
+});
+
+/** Draw an existing mark onto a fixture the way an image model would: any place, size, ink or face, not the tool's box. */
+function withModelMark(dir, name, base, { size, dx, dy, ink, face = 'DejaVuSans.ttf', text = STAMP_TEXT }) {
+  const file = join(dir, name);
+  const fontfile = `/usr/share/fonts/truetype/dejavu/${face}`;
+  const escaped = text.replace(/:/g, '\\:');
+  const filter = `drawtext=fontfile=${fontfile}:text='${escaped}':fontsize=${size}:fontcolor=${ink}:x=w-tw-${24 + dx}:y=h-th-${24 + dy}`;
+  execFileSync('ffmpeg', ['-v', 'error', '-nostdin', '-y', '-i', base, '-vf', filter, '-frames:v', '1', '-q:v', '2', '-update', '1', file]);
+  return file;
+}
+
+/** What image models drew under the old guide: the same words, near the corner, but never in the tool's exact box. */
+const MODEL_MARKS = [
+  { name: 'white 16px, 10 px up and left', base: 'dark', size: 16, dx: 10, dy: 10, ink: 'white' },
+  { name: 'white 18px, 20 left 14 up', base: 'grain', size: 18, dx: 20, dy: 14, ink: 'white@0.9' },
+  { name: 'white 24px, 40 left 30 up', base: 'dark', size: 24, dx: 40, dy: 30, ink: 'white' },
+  { name: 'dark 17px, 20 left 12 up, flat light picture', base: 'light', size: 17, dx: 20, dy: 12, ink: '0x1e293b' },
+  { name: 'dark 20px, same place as the tool, flat light picture', base: 'light', size: 20, dx: 0, dy: 0, ink: '0x1e293b' },
+  { name: 'dark 22px, 35 left 40 up, grain picture', base: 'grain', size: 22, dx: 35, dy: 40, ink: 'black@0.85' },
+  { name: 'grey 18px on cream, 15 left 10 up', base: 'light', size: 18, dx: 15, dy: 10, ink: '0x7a7a7a' },
+  { name: 'white 18px on the busy test pattern', base: 'pattern', size: 18, dx: 22, dy: 11, ink: 'white' },
+  { name: 'dark 16px on the busy test pattern', base: 'pattern', size: 16, dx: 12, dy: 20, ink: 'black' },
+  { name: 'white 20px bold face, 10 left 10 up', base: 'dark', size: 20, dx: 10, dy: 10, ink: 'white', face: 'DejaVuSans-Bold.ttf' },
+  { name: 'dark 16px monospaced face, 25 left 15 up', base: 'light', size: 16, dx: 25, dy: 15, ink: '0x1e293b', face: 'DejaVuSansMono.ttf' },
+  { name: 'white 21px serif face, 30 left 25 up', base: 'grain', size: 21, dx: 30, dy: 25, ink: 'white', face: 'DejaVuSerif.ttf' },
+];
+
+test('a mark an image model already drew, anywhere near the corner, is refused and nothing is written', async () => {
+  const dir = outDir('model-mark');
+  const missed = [];
+  for (const spec of MODEL_MARKS) {
+    const marked = withModelMark(dir, 'marked.jpg', fixtures[spec.base], spec);
+    const before = sha256(marked);
+    const res = await cli(['--in', marked, '--out', join(dir, 'stamped.jpg')]);
+    if (res.code !== 2 || !/already (shows|carries)/.test(res.stderr)) missed.push(`${spec.name} (exit ${res.code})`);
+    assert.equal(sha256(marked), before, spec.name);
+    assert.ok(!existsSync(join(dir, 'stamped.jpg')) || res.code === 0, `${spec.name}: a refusal writes nothing`);
+    rmSync(marked);
+    rmSync(join(dir, 'stamped.jpg'), { force: true });
+  }
+  assert.deepEqual(missed, [], 'every existing mark must be refused, not stamped over');
+});
+
+test('the refusal names the cause and the way out, and the same picture without the mark is stamped', async () => {
+  const dir = outDir('model-mark-clean');
+  const spec = { size: 18, dx: 20, dy: 14, ink: 'white' };
+  const marked = withModelMark(dir, 'marked.jpg', fixtures.grain, spec);
+  const res = await cli(['--in', marked, '--out', join(dir, 'stamped.jpg')]);
+  assert.equal(res.code, 2, res.stderr);
+  assert.match(res.stderr, /CLEAN original: regenerate the art with no lettering/);
+  const clean = await cli(['--in', fixtures.grain, '--out', join(dir, 'clean-stamped.jpg')]);
+  assert.equal(clean.code, 0, clean.stderr);
+});
+
+test('any lettering in the corner is refused, not only the site words: the tool wants a clean original', async () => {
+  const dir = outDir('other-words');
+  const other = withModelMark(dir, 'other.jpg', fixtures.light, { size: 18, dx: 20, dy: 14, ink: '0x1e293b', text: 'Figure 3: latency by region' });
+  const res = await cli(['--in', other, '--out', join(dir, 'out.jpg')]);
+  assert.equal(res.code, 2, res.stderr);
+  assert.match(res.stderr, /CLEAN original/);
+  assert.deepEqual(files(dir), ['other.jpg']);
+});
+
+test('art that merely looks busy in the corner is not mistaken for lettering: bar rows, dot grids, window rows', async () => {
+  const dir = outDir('lookalikes');
+  const boxes = (cells) => cells.map(([x, y, w, h]) => `drawbox=x=${x}:y=${y}:w=${w}:h=${h}:color=0x2b3a55:t=fill`).join(',');
+  const bars = [];
+  for (let i = 0; i < 9; i += 1) bars.push([1250 + i * 16, 820, 3, 28]);
+  const dots = [];
+  for (let r = 0; r < 4; r += 1) for (let c = 0; c < 6; c += 1) dots.push([1300 + c * 20, 800 + r * 18, 6, 6]);
+  const windows = [];
+  for (let r = 0; r < 2; r += 1) for (let c = 0; c < 5; c += 1) windows.push([1280 + c * 36, 810 + r * 30, 20, 16]);
+  const cases = { bars, dots, windows };
+  for (const [name, cells] of Object.entries(cases)) {
+    const input = makeImage(dir, `${name}.jpg`, 'color=c=0xf2ead8:s=SIZE:d=1', { extra: ['-vf', boxes(cells)] });
+    const res = await cli(['--in', input, '--out', join(dir, `${name}-out.jpg`)]);
+    assert.equal(res.code, 0, `${name}: ${res.stderr}`);
+  }
+});
+
+/**
+ * The documented pack command for a 16:9 source (docs/guides/hero-procedure.md, the block after the
+ * `test:pack-command` marker), run exactly as written through a shell with ORIGINAL and PACKED set. Image
+ * models return 1672 x 941 and 1280 x 720; the stamp tool takes only 1600 x 900.
+ */
+const PACK_COMMAND = (() => {
+  const doc = readFileSync(new URL('../docs/guides/hero-procedure.md', import.meta.url), 'utf8');
+  const at = doc.indexOf('<!-- test:pack-command');
+  assert.ok(at >= 0, 'hero-procedure.md carries the pack-command marker');
+  const block = /```bash\n([\s\S]*?)\n\s*```/.exec(doc.slice(at));
+  assert.ok(block, 'the pack command block follows the marker');
+  return block[1].trim();
+})();
+
+/** Run the documented command; returns { code, stderr }. */
+function pack(original, packed) {
+  try {
+    execFileSync('sh', ['-c', PACK_COMMAND], { env: { ...process.env, ORIGINAL: original, PACKED: packed }, stdio: 'pipe' });
+    return { code: 0, stderr: '' };
+  } catch (error) {
+    return { code: error.status, stderr: String(error.stderr) };
+  }
+}
+
+test('the packed output of a 1672 x 941 and of a 1280 x 720 source is accepted and stamped; the original is untouched', async () => {
+  const dir = outDir('pack');
+  for (const size of ['1672x941', '1280x720', '1920x1080']) {
+    const original = makeImage(dir, `original-${size}.jpg`, 'gradients=s=SIZE:d=1:c0=0x2f4858:c1=0xe9dcc3:seed=11', { size, extra: ['-vf', 'noise=alls=10:allf=t+u'] });
+    const originalBytes = sha256(original);
+    // As delivered the tool refuses it: it is not 1600 x 900.
+    const direct = await cli(['--in', original, '--out', join(dir, `direct-${size}.jpg`)]);
+    assert.equal(direct.code, 2, `${size} unpacked`);
+    assert.match(direct.stderr, /exactly 1600 x 900/);
+
+    const packed = join(dir, `packed-${size}.jpg`);
+    assert.equal(pack(original, packed).code, 0, `${size}: the documented pack command succeeds`);
+    assert.deepEqual(probe(packed), { codec: 'mjpeg', width: 1600, height: 900 }, `${size} packed`);
+    assert.equal(sha256(original), originalBytes, `${size}: the original is not touched`);
+
+    const stamped = join(dir, `stamped-${size}.jpg`);
+    const res = await cli(['--in', packed, '--out', stamped, '--receipt', join(dir, `receipt-${size}.json`)]);
+    assert.equal(res.code, 0, `${size}: ${res.stderr}`);
+    assert.deepEqual(probe(stamped), { codec: 'mjpeg', width: 1600, height: 900 });
+    assert.ok(findMarker(readFileSync(stamped)));
+  }
+});
+
+test('the pack command never overwrites an existing file and never stretches: a 16:9 source keeps its centre', () => {
+  const dir = outDir('pack-safe');
+  const original = makeImage(dir, 'original.jpg', 'color=c=black:s=SIZE:d=1', { size: '1672x941', extra: ['-vf', 'drawbox=x=826:y=0:w=20:h=941:color=white:t=fill'] });
+  const packed = join(dir, 'packed.jpg');
+  assert.equal(pack(original, packed).code, 0);
+  const raw = pixels(packed);
+  // The white bar was centred at x=836 of 1672 (the middle): it must still be at the middle of 1600.
+  const row = 450 * 1600 * 3;
+  let first = -1, last = -1;
+  for (let x = 0; x < 1600; x += 1) if (raw[row + x * 3] > 128) { if (first < 0) first = x; last = x; }
+  assert.ok(Math.abs((first + last) / 2 - 800) <= 2, `bar centre ${(first + last) / 2}`);
+  assert.ok(last - first + 1 >= 18 && last - first + 1 <= 22, `bar is ${last - first + 1} px wide (scaled by 0.957, not stretched)`);
+  const before = sha256(packed);
+  assert.notEqual(pack(original, packed).code, 0, 'the command refuses to replace an existing packed file');
+  assert.equal(sha256(packed), before, 'an existing packed file is never overwritten');
 });
 
 test('a receipt that already exists is refused before anything is written', async () => {

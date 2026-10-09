@@ -31,44 +31,57 @@ away from outer edges so cropping preserves the idea. The image must remain
 legible at a small article-card size. Use depth through paper layering rather
 than glossy lighting. Avoid generic robot, brain or network wallpaper.
 
-NO LETTERING: Draw no lettering of any kind: no text, letters, numbers, symbols,
-captions, labels, watermarks, signatures, site name, web address or copyright
-sign. Where the scene would normally show writing (a sign, a screen, a book, a
-badge), leave that surface blank or show plain shapes. A site mark is not your
-job: it is added to the finished file afterwards by other means.
+SITE MARK: For newly created images, add the exact text © https://aitamer.news
+at the bottom-right in small, readable type (about 18–22 pixels at 1600 x 900),
+inset about 24 pixels from both edges. Use subtle contrasting ink so the mark
+is legible without competing with the subject. This site mark is the only
+permitted text or watermark. Existing published images do not need restamping.
 
-EXCLUDE: Company logos, product UI screenshots, flags and recognizable people.
-No photorealism, glossy 3D rendering, neon cyberpunk effects, busy circuitry or
+EXCLUDE: All other text, letters, numbers, captions, labels, watermarks, signatures,
+company logos, product UI screenshots, flags and recognizable people. No
+photorealism, glossy 3D rendering, neon cyberpunk effects, busy circuitry or
 dramatic gradients. Do not depict a vendor feature as tested or proven when
 the article only reports an announcement.
 
-OUTPUT: A clean illustration with no lettering at all. A genuine JPEG exactly
-1600 x 900 pixels. Inspect the actual image before upload and regenerate it
-if it contains any lettering, pseudo-text or logo. Automated file checks do not
+OUTPUT: Clean illustration with only the small site mark. The final upload must be a
+genuine JPEG exactly 1600 x 900 pixels. Inspect the actual image before upload;
+check the exact © symbol, URL, placement and readability, and regenerate if
+it violates these requirements. Automated file checks do not
 approve visual style.
 
 The caller appends SUBJECT: with one truthful article-specific metaphor,
 identifying the main object and its relation to any supporting objects.
 
 ======================================================================================
-CALLER INSTRUCTIONS. Send NOTHING from this line down to the image model: the model
-must never see the site address, or it may draw it. Everything above is the prompt.
+CALLER INSTRUCTIONS. Send NOTHING from this line down to the image model.
 ======================================================================================
 
-AFTER RENDERING. This is the one place the hero stamp rule is written down; every
-other guide points here.
+Two supported ways to get the site mark into a hero. The ordered steps for both, and
+what is shared (one mark only, exactly 1600 x 900, keep the original, upload the
+final file only), are written once in docs/guides/hero-procedure.md. Follow it.
 
-1. Keep the unstamped original exactly as the image model produced it, and its
-   SHA-256 (sha256sum). Never edit or delete it.
-2. As the LAST step, burn the site mark into a copy:
-     node scripts/stamp-hero.mjs --in <original.jpg> --out <stamped.jpg> --receipt <receipt.json>
-   It writes the exact text "© https://aitamer.news" at the bottom-right (20 px,
-   inset 24 px, white or dark ink chosen from the picture under it). It refuses a
-   file that is not a 1600 x 900 JPEG, an --out or --receipt that already exists,
-   and a picture that already carries the mark. Inspect the stamped file: the mark
-   must be readable and cover nothing important.
-3. Upload only the stamped file, under a new content-hashed key
-   (heroes/<slug>-<first 8 hex of the stamped file's sha256>.jpg). The final
-   upload is a genuine JPEG, exactly 1600 x 900 pixels.
-4. A hero that is already live is never re-stamped, and never re-uploaded to add
-   the mark. Only new heroes get it.
+PATH A, the model draws the mark in the same generation (Codex imagegen and any
+model that can do it reliably): send everything above this line, as it stands, with
+your SUBJECT line. The SITE MARK paragraph is the mark's specification.
+
+PATH B, a deterministic stamp (the Grok bots, Claude, Cursor, anyone whose model
+cannot draw the mark reliably, and the fallback for path A): the model must draw NO
+lettering and must never see the site address. Send everything above this line EXCEPT
+the three paragraphs that start SITE MARK:, EXCLUDE: and OUTPUT:, and send these
+three paragraphs in their place, then your SUBJECT line:
+
+    NO LETTERING: Draw no lettering of any kind: no text, letters, numbers,
+    symbols, captions, labels, watermarks, signatures, site name, web address or
+    copyright sign. Where the scene would normally show writing (a sign, a screen,
+    a book, a badge), leave that surface blank or show plain shapes. A site mark
+    is not your job: it is added to the finished file afterwards by other means.
+
+    EXCLUDE: Company logos, product UI screenshots, flags and recognizable
+    people. No photorealism, glossy 3D rendering, neon cyberpunk effects, busy
+    circuitry or dramatic gradients. Do not depict a vendor feature as tested or
+    proven when the article only reports an announcement.
+
+    OUTPUT: A clean illustration with no lettering at all. A genuine JPEG exactly
+    1600 x 900 pixels. Inspect the actual image before use and regenerate it if it
+    contains any lettering, pseudo-text or logo. Automated file checks do not
+    approve visual style.

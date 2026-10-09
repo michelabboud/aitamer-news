@@ -7,13 +7,14 @@
  * Exit 0 stamped; 2 refused (nothing written); 1 an unexpected failure (nothing written, except that a
  * receipt that cannot be written rolls the new stamped file back).
  *
- * The rules this tool carries out (Michel, 2026-10-09; the one statement of them for writers is
- * docs/guides/hero-image-style.txt):
- *   1. The image model draws NO lettering at all.
- *   2. The unstamped original of every hero is kept, with its SHA-256 (the receipt records it).
- *   3. As the last step this tool burns "© https://aitamer.news" into the bottom-right corner, so a copied
- *      image still carries the address. The stamped file is uploaded under a NEW content-hashed key.
- *   4. A hero that is already live is never re-stamped.
+ * Where it fits (the one ordered procedure for writers is docs/guides/hero-procedure.md): every hero carries
+ * exactly ONE site mark, `© https://aitamer.news`. Path A: the image model draws it in the same generation (Codex
+ * imagegen), and this tool is never run on that file. Path B: the model draws NO lettering and this tool burns the
+ * mark in as the last step (the Grok bots, Claude, Cursor, and the fallback for path A). Shared rules this tool
+ * serves: never stamp an image that already carries a mark (so it refuses one, including a model-drawn mark of
+ * any size, place or colour); the final file is exactly 1600 x 900; the raw original is kept with its SHA-256
+ * (the receipt records it); the stamped file is uploaded under a NEW content-hashed key; a live hero is never
+ * re-stamped.
  *
  * What it does. It runs the system `ffmpeg` (drawtext) and `ffprobe` through `execFile`, never through a
  * shell: 20 px DejaVu Sans (Liberation Sans if DejaVu is missing; no font, no stamp), inset 24 px from the
@@ -26,18 +27,25 @@
  * JPEG of exactly 1600 x 900; the input already carries the mark; ffmpeg/ffprobe is missing or ffmpeg has no
  * `drawtext`; no font file is installed.
  *
- * How a double stamp is detected (two independent lines, either one refuses):
+ * How an existing mark is detected (three independent lines; any one refuses):
  *   a. The marker. Every stamped file gets a JPEG comment segment (COM) right after its JFIF header:
  *      `aitamer-hero-stamp v1 ...` with the text and the SHA-256 of the original. It is lossless and
  *      deterministic, and survives a copy. It does NOT survive a re-encode that drops metadata.
- *   b. The pixels. The tool draws the stamp in white on black to get the exact glyph mask, then measures
- *      the Pearson correlation between that mask and the input's luma in the stamp box. Natural pictures
- *      (paper grain, shapes, flat colour) have a correlation near 0 with the shape of the letters; a
- *      picture that already shows this text in this place has one near +-1, whichever ink it was drawn
- *      in (white text is positive, dark text negative) and however often it was re-encoded. At or above
- *      0.5 the input is refused. This catches a stamped image whose marker was stripped by a re-encode.
- *   Neither is a lock: a different mark, or the same text moved, is not recognised. The receipt and "never
- *   re-stamp a live hero" (rule 4) remain the writer's discipline; this tool refuses the accident.
+ *   b. The exact box. The tool draws the stamp in white on black to get the glyph mask, then measures the
+ *      Pearson correlation between that mask and the input's luma in the stamp box (at or above 0.5 the
+ *      input is refused). That catches this tool's own mark, whatever ink and however often re-encoded.
+ *   c. The corner search. Image models drew the mark themselves under the old guide, in any place, size and
+ *      ink. So the right 700 x bottom 140 pixels are searched for a line of text: boxes of 14-26 px height
+ *      and about the width of the site words (0.9-1.2 of the DejaVu width), every 2 px. A box is a
+ *      candidate when its horizontal-edge energy (|dx| of the luma) stands well above the ring around it
+ *      (contrast >= RING_MIN), and it counts as text when its edge energy is spread over most of its columns
+ *      (>= COLUMN_ACTIVITY_MIN of them active, which a dot grid, a window row or a paper edge are not) without
+ *      being periodic (autocorrelation at lags 6-40 <= PERIODICITY_MAX, which a dot grid or a bar row is).
+ *      The thresholds come from real art: see docs/reports/2026-10-09-stamp-detection-calibration.md.
+ *   The search cannot read the words, so any line of lettering in that corner refuses the input.
+ *   None of these is a lock: a different mark in another corner, or a mark too faint to stand out, is not
+ *   recognised. The tool wants a CLEAN original (no lettering drawn by the image model); when it refuses,
+ *   regenerate the art without lettering, never work around the refusal.
  *
  * Verified before anything is published to `--out`: the result is a 1600 x 900 JPEG, every pixel outside
  * the stamp box (the text box grown to whole 16 px JPEG blocks plus one block of margin) is within JPEG
@@ -59,7 +67,7 @@ const execFileAsync = promisify(execFile);
 
 /** The exact words burnt into the image. */
 export const STAMP_TEXT = '© https://aitamer.news';
-/** The only size a hero may have (docs/guides/hero-image-style.txt, POST.md §3). */
+/** The only size a hero may have (docs/guides/hero-procedure.md, POST.md §3). */
 export const WIDTH = 1600;
 export const HEIGHT = 900;
 /** Distance of the text from the right and bottom edges, in pixels at 1600 x 900. */
@@ -88,6 +96,25 @@ export const GLYPH_DIFF = 64;
 export const GLYPH_SHARE_MIN = 0.02;
 /** |correlation| between the glyph mask and the input's luma in the stamp box at which the input is taken to be stamped already. */
 export const ALREADY_STAMPED_CORRELATION = 0.5;
+/** The corner searched for a mark the image model drew itself: the right 700 x bottom 140 pixels. */
+export const SEARCH = Object.freeze({ x: WIDTH - 700, y: HEIGHT - 140, w: 700, h: 140 });
+/** Box heights (px) and width factors (against the site words' width in the stamp font) tried by the search. */
+export const SEARCH_HEIGHTS = Object.freeze([14, 16, 18, 20, 22, 24, 26]);
+export const SEARCH_WIDTH_FACTORS = Object.freeze([0.9, 1.0, 1.1, 1.2]);
+/** Search step in pixels. */
+export const SEARCH_STEP = 2;
+/** The ring around a candidate box is this share of the box height wide. */
+export const RING_WIDTH = 0.6;
+/** Added to the ring's mean edge energy so a perfectly flat ring cannot make any speck a mark. */
+export const RING_FLOOR = 3;
+/** A candidate's edge energy over its ring must stand this far above the ring (contrast = (in - ring) / (ring + floor)). */
+export const RING_MIN = 1.5;
+/** Share of a candidate's columns that must carry edge energy (above half the box mean) to count as text. */
+export const COLUMN_ACTIVITY_MIN = 0.6;
+/** Highest autocorrelation of the column energy at lags 6-40 for text; dots, bars and windows repeat more than that. */
+export const PERIODICITY_MAX = 0.4;
+/** Candidates examined per image, strongest first. */
+const MAX_CANDIDATES = 40;
 /** Prefix of the JPEG comment segment that marks a stamped file. */
 export const MARKER_PREFIX = 'aitamer-hero-stamp v1';
 const SAMPLING_FORMATS = new Set(['yuvj420p', 'yuvj422p', 'yuvj444p']);
@@ -311,6 +338,91 @@ export function maskCorrelation(rgb, box, mask) {
   return varL < 1e-9 || varM < 1e-9 ? 0 : cov / Math.sqrt(varL * varM);
 }
 
+/**
+ * Look for lettering that looks like the site words anywhere in the bottom-right corner, at any ink and a
+ * range of sizes. Deterministic. See the header for the method and docs/reports for the thresholds.
+ * @param {Buffer} rgb 1600 x 900 rgb24 @param {number} aspect width / height of the site words in the stamp font
+ * @returns {{ found: boolean, hit: null | { x: number, y: number, w: number, h: number, contrast: number, columnActivity: number, periodicity: number }, topContrast: number }}
+ */
+export function searchForMark(rgb, aspect) {
+  const { w: RW, h: RH } = SEARCH;
+  const luma = new Float32Array(RW * RH);
+  for (let y = 0; y < RH; y += 1) {
+    for (let x = 0; x < RW; x += 1) {
+      const at = ((SEARCH.y + y) * WIDTH + SEARCH.x + x) * 3;
+      luma[y * RW + x] = (299 * rgb[at] + 587 * rgb[at + 1] + 114 * rgb[at + 2]) / 1000;
+    }
+  }
+  const edge = new Float32Array(RW * RH);
+  for (let y = 0; y < RH; y += 1) {
+    for (let x = 1; x < RW - 1; x += 1) edge[y * RW + x] = Math.abs(luma[y * RW + x + 1] - luma[y * RW + x - 1]);
+  }
+  const stride = RW + 1;
+  const integral = new Float64Array(stride * (RH + 1));
+  for (let y = 0; y < RH; y += 1) {
+    let row = 0;
+    for (let x = 0; x < RW; x += 1) {
+      row += edge[y * RW + x];
+      integral[(y + 1) * stride + x + 1] = integral[y * stride + x + 1] + row;
+    }
+  }
+  const area = (x, y, w, h) => {
+    const x0 = Math.max(0, x), y0 = Math.max(0, y), x1 = Math.min(RW, x + w), y1 = Math.min(RH, y + h);
+    if (x1 <= x0 || y1 <= y0) return [0, 0];
+    return [integral[y1 * stride + x1] - integral[y0 * stride + x1] - integral[y1 * stride + x0] + integral[y0 * stride + x0], (x1 - x0) * (y1 - y0)];
+  };
+
+  const candidates = [];
+  for (const h of SEARCH_HEIGHTS) {
+    for (const factor of SEARCH_WIDTH_FACTORS) {
+      const w = Math.round(h * aspect * factor);
+      const ring = Math.round(h * RING_WIDTH);
+      for (let y = 0; y + h <= RH; y += SEARCH_STEP) {
+        for (let x = 0; x + w <= RW; x += SEARCH_STEP) {
+          const [inside, insideN] = area(x, y, w, h);
+          const [outer, outerN] = area(x - ring, y - ring, w + 2 * ring, h + 2 * ring);
+          if (outerN - insideN < 0.5 * ((w + 2 * ring) * (h + 2 * ring) - w * h)) continue; // mostly outside the corner
+          const contrast = (inside / insideN - (outer - inside) / (outerN - insideN)) / ((outer - inside) / (outerN - insideN) + RING_FLOOR);
+          if (contrast >= RING_MIN) candidates.push({ x, y, w, h, contrast });
+        }
+      }
+    }
+  }
+  candidates.sort((a, b) => b.contrast - a.contrast || a.y - b.y || a.x - b.x);
+  const topContrast = candidates.length ? candidates[0].contrast : 0;
+
+  const examined = [];
+  for (const c of candidates) {
+    if (examined.length >= MAX_CANDIDATES) break;
+    if (examined.some((e) => Math.abs(e.x + e.w / 2 - c.x - c.w / 2) < c.w / 2 && Math.abs(e.y + e.h / 2 - c.y - c.h / 2) < c.h)) continue;
+    examined.push(c);
+    const columns = new Float64Array(c.w);
+    for (let x = 0; x < c.w; x += 1) {
+      let sum = 0;
+      for (let y = 0; y < c.h; y += 1) sum += edge[(c.y + y) * RW + c.x + x];
+      columns[x] = sum;
+    }
+    let mean = 0;
+    for (const v of columns) mean += v;
+    mean /= c.w;
+    let active = 0;
+    for (const v of columns) if (v > 0.5 * mean) active += 1;
+    const columnActivity = active / c.w;
+    let energy = 0;
+    for (const v of columns) energy += (v - mean) ** 2;
+    let periodicity = 0;
+    for (let lag = 6; lag <= 40 && lag < c.w; lag += 1) {
+      let sum = 0;
+      for (let i = 0; i + lag < c.w; i += 1) sum += (columns[i] - mean) * (columns[i + lag] - mean);
+      periodicity = Math.max(periodicity, energy > 0 ? sum / energy : 0);
+    }
+    if (columnActivity >= COLUMN_ACTIVITY_MIN && periodicity <= PERIODICITY_MAX) {
+      return { found: true, hit: { ...c, columnActivity, periodicity }, topContrast };
+    }
+  }
+  return { found: false, hit: null, topContrast };
+}
+
 /** How much of `box` differs strongly between two rgb24 frames, and the mean difference outside `outer`. */
 function compare(a, b, { box, outer }) {
   let strongInBox = 0;
@@ -401,6 +513,11 @@ export async function stampHero({ input, output, receipt, fontCandidates = FONT_
     if (Math.abs(correlation) >= ALREADY_STAMPED_CORRELATION) {
       throw new Refusal(`${input} already shows the site mark: the stamp box follows the letters' shape (correlation ${correlation.toFixed(2)}, limit ${ALREADY_STAMPED_CORRELATION}). A stamped hero is never stamped again.`);
     }
+    const search = searchForMark(before, box.text.w / box.text.h);
+    if (search.found) {
+      const { hit } = search;
+      throw new Refusal(`${input} already shows lettering near the bottom-right corner, taken to be a site mark (a text-like band at x ${SEARCH.x + hit.x}, y ${SEARCH.y + hit.y}, ${hit.w} x ${hit.h} px; edge contrast ${hit.contrast.toFixed(2)}, limit ${RING_MIN}). A stamped hero is never stamped again, and the tool needs a CLEAN original: regenerate the art with no lettering at all, then stamp that.`);
+    }
     const luma = await meanLuma(input, box.text);
     const ink = inkFor(luma);
     const filter = drawtextFilter({ fontfile, ink });
@@ -439,6 +556,7 @@ export async function stampHero({ input, output, receipt, fontCandidates = FONT_
         outsideMeanAbs: Number(verdict.outsideMeanAbs.toFixed(4)),
         outsideStrongShare: Number(verdict.outsideStrongShare.toFixed(6)),
         inputMaskCorrelation: Number(correlation.toFixed(4)),
+        inputCornerTopContrast: Number(search.topContrast.toFixed(3)),
       },
       marker: markerText,
       ffmpegVersion,

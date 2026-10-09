@@ -5,7 +5,7 @@ AI Tamer is a small, owner-run news site. Issues and pull requests for the **cod
 ## Setup
 
 - Node 22.12 or newer (CI uses Node 24).
-- `ffmpeg` built with the `drawtext` filter (libfreetype), `ffprobe`, and the DejaVu Sans (or Liberation Sans) font: `npm test` runs `scripts/stamp-hero.test.mjs` against them and fails, rather than skips, when they are missing. Measured: ffmpeg 6.1.1 on Ubuntu 24.04 (`sudo apt-get install ffmpeg fonts-dejavu-core`). The tool itself is described in [`docs/guides/hero-image-style.txt`](docs/guides/hero-image-style.txt).
+- `ffmpeg` built with the `drawtext` filter (libfreetype), `ffprobe`, and the DejaVu Sans (or Liberation Sans) font: `npm test` runs `scripts/stamp-hero.test.mjs` against them and fails, rather than skips, when they are missing. Measured: ffmpeg 6.1.1 on Ubuntu 24.04 (`sudo apt-get install ffmpeg fonts-dejavu-core`). The hero procedure that uses them is [`docs/guides/hero-procedure.md`](docs/guides/hero-procedure.md).
 - `npm ci`, then `npm run dev` for the site at http://localhost:4321. Search works only after a full build: `npm run build && npm run preview`.
 - The contact Worker runs separately: `npm run dev:contact` (see `README.md`).
 
