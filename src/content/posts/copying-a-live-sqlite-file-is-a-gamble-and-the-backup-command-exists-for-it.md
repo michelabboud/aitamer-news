@@ -50,7 +50,7 @@ sqlite3 app.db ".backup 'app-copy.db'"
 sqlite3 app.db "VACUUM INTO 'app-copy.db';"
 ```
 
-The [VACUUM page](https://www.sqlite.org/lang_vacuum.html) says the result "is a consistent snapshot of the original database", and warns that an interrupted run can leave an incomplete file. The page says the target must not exist or must be an empty file. On SQLite 3.50.6 an empty target was accepted, and a target with content was refused with `output file already exists`.
+The [VACUUM page](https://www.sqlite.org/lang_vacuum.html) says the result "is a consistent snapshot of the original database", and warns that an interrupted run can leave an incomplete file. The page says the target must not exist or must be an empty file. On SQLite 3.50.6 an empty target was accepted, and a target that is an existing database was refused with `output file already exists`.
 
 **sqlite3_rsync.** This is the separate utility, available from SQLite 3.47.0, which copies a live database to another machine over SSH.
 
