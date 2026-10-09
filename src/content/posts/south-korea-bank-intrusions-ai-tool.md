@@ -1,6 +1,6 @@
 ---
 title: "South Korea opens a police probe of AI-linked bank intrusions"
-description: "Police assigned 28 investigators after AI-linked intrusions at South Korean financial firms. Record counts differ by outlet and date. Officials say the tool and the IP addresses do not name an attacker."
+description: "Police assigned 28 investigators after AI-linked intrusions at South Korean financial firms. ARTEX's developer has since made the tool closed-source. Officials say the tool does not name an attacker."
 pubDate: "2026-10-06T14:57:00Z"
 specimen: 439
 section: general
@@ -20,6 +20,12 @@ wildness:
   claimed: "Per-firm counts, IP totals, and the tool name differ by outlet and by date"
 verdict: "The probe is real, and the public counts do not yet agree. Treat each figure as the outlet's, on the date it printed it, and do not read the tool as an identification of who broke in."
 sources:
+  - title: "ARTEX security statement by the developer Autumn-27 (GitHub profile, 8 October 2026, in Chinese)"
+    url: https://github.com/Autumn-27
+  - title: "Chinese AI tool pulled to prevent misuse after South Korea hacks (AFP via The Economic Times, 9 October 2026)"
+    url: https://economictimes.indiatimes.com/tech/artificial-intelligence/chinese-ai-tool-pulled-to-prevent-misuse-after-south-korea-hacks/articleshow/134821776.cms
+  - title: "ARTEX AI pentesting tool used in data theft at South Korean financial firms (The Hacker News, 8 October 2026)"
+    url: https://thehackernews.com/2026/10/artex-ai-pentesting-tool-used-in-data.html
   - title: "South Korea's Lee says AI appears to have been used in bank hacks (CNA, Reuters)"
     url: https://www.channelnewsasia.com/east-asia/south-korea-ai-bank-hanks-data-breach-6434861
   - title: "Police open formal AI bank hack probe (Korea JoongAng Daily)"
@@ -35,6 +41,18 @@ sources:
   - title: "AI-aided hacks hit seven South Korea financial firms, expose security gaps (Chosun Biz, 4 October)"
     url: https://biz.chosun.com/en/en-finance/2026/10/04/JULRT3U25NG47AICMCH76TE5TY/
 ---
+
+## Update, 9 October 2026: ARTEX goes closed-source
+
+The developer of ARTEX, the open-source AI penetration-testing tool that a Financial Security Institute official said showed up in Shinhan's logs, says the project will no longer be updated and is now closed-source. The developer, who uses the GitHub handle Autumn-27, posted a statement in Chinese dated 8 October on the [account's GitHub profile](https://github.com/Autumn-27). The ARTEX repository under that account now returns GitHub's "page not found" error. The account's other projects remain public.
+
+In the statement, the developer says the attacks are unrelated to the tool's author, and that ARTEX was built for learning and research, to help companies and organizations run security tests on assets they are authorized to test. Its third point, translated: "In view of the tool being abused, the ARTEX project will no longer be updated and will be converted to closed source. No further versions will be released to the public, and no maintenance support will be provided." [The Hacker News](https://thehackernews.com/2026/10/artex-ai-pentesting-tool-used-in-data.html) and [AFP](https://economictimes.indiatimes.com/tech/artificial-intelligence/chinese-ai-tool-pulled-to-prevent-misuse-after-south-korea-hacks/articleshow/134821776.cms) carried English versions of the same statement.
+
+A penetration-testing tool is software that security teams use to attack their own systems, with permission, to find weak points before someone else does. Closing the source stops new releases. It does not recall what was already published. AFP quotes Poe Zhao, founder of the analysis publication Hello China Tech, saying the decision "cannot remove copies already downloaded or prevent people from continuing to use them."
+
+AFP also reports a new total: South Korea's Financial Services Commission says more than 68,000 people have been affected. That figure is AFP's report of the commission's count on 9 October. It sits alongside the earlier outlet-by-outlet counts below.
+
+The developer's statement does not say who carried out the attacks, and nothing in it changes what the officials quoted below said: the tool does not identify an attacker.
 
 South Korean police have opened a formal investigation into intrusions at financial firms that officials and banks have tied to AI tools. [Yonhap](https://en.yna.co.kr/view/AEN20261006001500315), on 6 October, said the National Office of Investigation formed a 28-member team on suspicion of violations of the information and communications network law. [Korea JoongAng Daily](https://www.koreajoongangdaily.com/business/police-open-formal-ai-bank-hack-probe/12907472) the same day said the office booked the case under the Information and Communications Network Act and assigned four teams from its cyberterrorism investigation unit, 28 investigators in all. [The Korea Herald](https://www.koreaherald.com/article/10894542) reported the same assignment: 28 investigators across four teams.
 
