@@ -658,3 +658,14 @@
 0655 spacexai-omacom-grok-tokens-omarchy
 0656 photocraft-craft-apps-rust-clean-room-suite
 0657 gnu-guix-llm-contribution-ban
+0658 claude-science-uv-sky-map
+0659 google-amie-lancet-pre-visit-study
+0660 odyssey-3-world-model
+0661 lightonocr-3-ocr-layout-grounding
+0662 aws-physical-ai-toolchain-open-source
+0663 goodfire-activation-probe-monitors-baseten
+0664 planetscale-tin-v1-0-6-stemming-bm25
+0665 incident-io-postgres-queue-savepoints-multixact
+0666 postgres-19-beta-oltp-perf-check
+0667 harness-acquires-augment-code-cosmos
+0668 huggingface-carbon-a-gene-annotation

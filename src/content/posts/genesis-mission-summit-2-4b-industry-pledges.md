@@ -28,6 +28,10 @@ sources:
     url: https://www.globenewswire.com/news-release/2026/10/08/3377484/0/en/nvidia-commits-1-billion-to-advance-us-science-over-the-next-five-years.html
   - title: "Building on our commitment to American scientific discovery (Anthropic, 8 October 2026)"
     url: https://www.anthropic.com/news/genesis-mission-commitment
+  - title: "Commonwealth Fusion Systems to Lead AI-enabled Digital Twin Fusion Project in Second Phase of Genesis Mission (Commonwealth Fusion Systems, 8 October 2026)"
+    url: https://cfs.energy/news-and-media/commonwealth-fusion-systems-to-lead-ai-enabled-digital-twin-fusion-project-in-second-phase-of-genesis-mission/
+  - title: "PPPL data, simulation codes and compute power will be used in Phase II Genesis Mission project to build digital twin of fusion energy system (Princeton Plasma Physics Laboratory, 8 October 2026)"
+    url: https://www.pppl.gov/news/2026/pppl-data-simulation-codes-and-compute-power-will-be-used-phase-ii-genesis-mission
 ---
 
 The White House has put numbers on industry support for the Genesis Mission, its federal program for AI-driven science. A [fact sheet](https://www.whitehouse.gov/fact-sheets/2026/10/fact-sheet-trump-administration-announces-the-most-ambitious-set-of-science-initiatives-this-century/) issued for the "Science: A New Golden Age" summit in Washington on 8 October 2026 says eleven companies pledged "$2.4B in SI for science tools and compute credits for the Genesis Mission Consortium." SI is the administration's abbreviation for super intelligence.
@@ -63,6 +67,14 @@ Company announcements add the terms the fact sheet leaves out. [NVIDIA](https://
 ## The rest of the summit
 
 The $2.4 billion is one part of a larger package. The fact sheet puts the summit's total at "over $6 billion in investments across the Federal Government, industry, academia, and philanthropy." Other items include a $100 million Genesis Mission Fellowship for accelerated PhDs, a $215 million quantum computing competition from the Department of Energy, and a $1.8 billion virtual biology initiative from the NIH, DOE and Biohub announced the same week.
+
+## A Phase II project: a digital twin for a fusion machine
+
+The same day, Phase II awards for Genesis Mission science projects were announced. [Commonwealth Fusion Systems](https://cfs.energy/news-and-media/commonwealth-fusion-systems-to-lead-ai-enabled-digital-twin-fusion-project-in-second-phase-of-genesis-mission/) (CFS) says it is the only private company chosen to lead a Phase II project, and the only one in this round focused on fusion. The project will build an AI-enabled digital twin of SPARC, the prototype fusion machine CFS is assembling in Devens, Massachusetts.
+
+A digital twin here is a model connected to the real machine and updated from its data, so its predictions improve as the device runs. CFS says AI models trained on DOE supercomputers will help plan plasma pulses in the SPARC control room, and that the work includes surrogate models, reinforcement learning and agentic models for an operations co-pilot.
+
+The [Princeton Plasma Physics Laboratory](https://www.pppl.gov/news/2026/pppl-data-simulation-codes-and-compute-power-will-be-used-phase-ii-genesis-mission) (PPPL) says its simulation codes, including M3D-C1, TRANSP and XGC, will be used with AI surrogates trained on large simulation datasets to make full-pulse predictions in under 20 minutes, fast enough to return results between pulses. Its NSTX-U experiment will serve as a test bed before approaches are used on SPARC. Partners named by CFS and PPPL include Lawrence Livermore, Oak Ridge and SLAC national laboratories, MIT, Carnegie Mellon, General Atomics, NVIDIA, Google DeepMind and Synopsys. Neither release gives the award amount.
 
 ## How to read the figures
 
