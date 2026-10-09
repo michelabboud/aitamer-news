@@ -677,3 +677,15 @@
 0674 infisical-agent-vault-credential-proxy-preview
 0675 quake-srp-safe-rust-port-claude-code-agents
 0676 huggingface-trl-1-15-fused-lm-head
+0677 deno-team-joins-cloudflare
+0678 codex-windows-sandbox-mxc
+0679 nebula-fake-ai-sdk-npm-packages-rat
+0680 nvidia-dcgm-exporter-cve-2026-47483
+0681 strata-history-rewrite-claude-co-author-trailers
+0682 nvidia-boro-rust-kernel-review-cli
+0683 semianalysis-chinese-labs-safety-disclosure
+0684 claude-azure-foundry-startup-billing-dispute
+0685 uzu-rust-inference-apple-silicon-speculative-decoding
+0686 eisentraut-postgres-19-reverts
+0687 duckdb-cli-agent-mode
+0688 claude-code-hooks-onfailure-block-osc-7501
