@@ -36,9 +36,9 @@ Stopping the service first does not always remove the second problem. A process 
 
 ## Three supported ways
 
-The same corruption page lists safe approaches. Three need nothing but the `sqlite3` shell.
+The same corruption page lists safe approaches: the backup API, `VACUUM INTO` and `sqlite3_rsync`. The first two can be reached from the `sqlite3` shell, and the third is a separate utility.
 
-**The shell's backup command.** The [command line shell](https://www.sqlite.org/cli.html) has `.backup ?DB? FILE`. For programs, SQLite offers the [online backup API](https://www.sqlite.org/backup.html), and that page explains the gain over a file copy: the source "does not need to be locked for the duration of the copy, only for the brief periods of time when it is actually being read from."
+**The shell's backup command.** The [command line shell](https://www.sqlite.org/cli.html) has `.backup ?DB? FILE`. For programs, SQLite offers the [online backup API](https://www.sqlite.org/backup.html), and that page explains the gain over a file copy when the copy is done incrementally: the source "does not need to be locked for the duration of the copy, only for the brief periods of time when it is actually being read from."
 
 ```bash
 sqlite3 app.db ".backup 'app-copy.db'"
@@ -50,9 +50,9 @@ sqlite3 app.db ".backup 'app-copy.db'"
 sqlite3 app.db "VACUUM INTO 'app-copy.db';"
 ```
 
-The [VACUUM page](https://www.sqlite.org/lang_vacuum.html) says the result "is a consistent snapshot of the original database", and warns that an interrupted run can leave an incomplete file. On SQLite 3.50.6 it refuses a target file that already exists.
+The [VACUUM page](https://www.sqlite.org/lang_vacuum.html) says the result "is a consistent snapshot of the original database", and warns that an interrupted run can leave an incomplete file. The page says the target must not exist or must be an empty file. On SQLite 3.50.6 an empty target was accepted, and a target with content was refused with `output file already exists`.
 
-**sqlite3_rsync.** The corruption page also names this utility, available from SQLite 3.47.0, which copies a live database to another machine over SSH.
+**sqlite3_rsync.** This is the separate utility, available from SQLite 3.47.0, which copies a live database to another machine over SSH.
 
 Both of the first two read through SQLite itself, so they see the write-ahead log and return one consistent state.
 

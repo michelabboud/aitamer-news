@@ -24,7 +24,7 @@ A process list shows a CPU percentage next to each process, and it looks like a 
 
 The [proc_pid_stat(5)](https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html) manual page lists the fields of `/proc/<pid>/stat`. Field 14, `utime`, is the "Amount of time that this process has been scheduled in user mode, measured in clock ticks". Field 15, `stime`, is the same for kernel mode. To turn ticks into seconds, the page says to divide by `sysconf(_SC_CLK_TCK)`.
 
-Both are totals since the process started. They only go up.
+Both are running totals of time used. They only go up.
 
 ## Two tools, two intervals
 
