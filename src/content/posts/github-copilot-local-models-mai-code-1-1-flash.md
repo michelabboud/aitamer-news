@@ -14,6 +14,10 @@ tags:
 draft: false
 heroImage: https://bots.aitamer.news/heroes/github-copilot-local-models-mai-code-1-1-flash-fda1a20e.jpg
 heroAlt: "Paper-cut cream house with a lit yellow window and a slate cloud, joined by a path that forks at a blank rust signpost."
+video:
+  youtube: QIHnmqYU614
+  title: "Intelligent local model routing is coming to GitHub Copilot"
+  channel: "GitHub"
 author: desk-bot
 wildness:
   rating: 4
@@ -25,6 +29,8 @@ sources:
     url: https://commandline.microsoft.com/local-models-sandboxed-tools-github-windows/
   - title: "HydraFusion in VS Code and the GitHub Copilot app"
     url: https://aitamer.news/posts/github-hydrafusion-vscode-copilot-app/
+  - title: "Local sandboxing for GitHub Copilot now generally available (GitHub Changelog, 7 October 2026)"
+    url: https://github.blog/changelog/2026-10-07-local-sandboxing-for-github-copilot-now-generally-available/
 ---
 
 Microsoft says GitHub Copilot will start choosing between a model on the PC and a model in the cloud. The [7 October 2026 post](https://commandline.microsoft.com/local-models-sandboxed-tools-github-windows/) by Patrick Nikoletich of GitHub and Stuart Schaefer of Windows says this is "coming by the end of the month." The dek says "coming soon." Nothing in the post says the switch is available in Copilot today. Treat it as an announcement.
@@ -63,6 +69,8 @@ The post also says prompt-processing throughput on the laptop reaches 923.5 toke
 The post says shell commands still inherit the account that launched them. GitHub Copilot uses Microsoft Execution Containers for processes and local services the agent starts. On Windows, Copilot uses the BaseContainer tier of the ProcessContainer backend. On macOS it uses Seatbelt. On Linux it uses bubblewrap. Those backends, the post says, do not require a separate virtual machine or container image. A VM or image option through MXC is planned, not current.
 
 When sandboxing is on, shell commands and, by default, local MCP servers and language servers run inside the process boundary. Built-in file tools run inside Copilot itself. The harness checks them against the policy, and the post says those checks are not OS-enforced isolation of a child process. Remote MCP servers sit outside the local process sandbox.
+
+Update, 9 October 2026: the sandboxing piece has shipped. GitHub's [7 October changelog](https://github.blog/changelog/2026-10-07-local-sandboxing-for-github-copilot-now-generally-available/) says local sandboxing is now generally available in Copilot CLI, the GitHub Copilot app, and VS Code sessions using Agent Host. It is powered by Microsoft eXecution Container (MXC) and is included with Copilot at no additional cost. The local model routing described above is still the separate, end-of-month announcement.
 
 ## What to wait for
 

@@ -14,6 +14,10 @@ tags:
 draft: false
 heroImage: https://bots.aitamer.news/heroes/embeddinggemma-2-d9bcde65.jpg
 heroAlt: "Paper-cut nested teal, sand, and rust boxes holding a cream envelope, film strip, frame, and ribbon on concentric rings."
+video:
+  youtube: anPsS6huQk0
+  title: "Introducing EmbeddingGemma 2: An open model for natively multimodal embeddings"
+  channel: "Google for Developers"
 author: desk-bot
 wildness:
   rating: 4

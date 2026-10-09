@@ -29,6 +29,12 @@ sources:
     url: "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
   - title: "DevDay 2026"
     url: "https://learn.chatgpt.com/docs/whats-new/devday-2026"
+  - title: "OpenAI API changelog (8 October 2026: Ultrafast mode for GPT-6.1 Sol)"
+    url: "https://developers.openai.com/api/docs/changelog"
+  - title: "Ultrafast mode (OpenAI API guide)"
+    url: "https://developers.openai.com/api/docs/guides/ultrafast-mode"
+  - title: "OpenAI API pricing, Ultrafast"
+    url: "https://developers.openai.com/api/docs/pricing?latest-pricing=ultrafast"
 ---
 
 OpenAI's Help Center lists three monthly ChatGPT Pro plans. **Pro 500** is $500 and, among those plans, the one that includes Astra Ultrafast. **Pro 200** is open to new subscribers again at $200, with a lower included allowance when the account is outside the grandfather window.
@@ -58,3 +64,9 @@ Against Standard mode for the same model, OpenAI says Fast mode consumes include
 The Help Center changelog places the Pro 500 note under October 2, 2026: Astra Ultrafast in ChatGPT Work and Codex, with Pro 500 subscriptions available through ChatGPT on the web at launch. OpenAI's DevDay 2026 page is dated September 29, 2026, and already describes Ultrafast on the Pro $500 plan. The prices in this brief follow the Pro tiers article.
 
 Shoppers who want Ultrafast on a Pro plan are on the $500 tier at launch. Pro 200 accounts inside the September window keep the older allowance through October 29, 2026, then move to the lower allowance at the same $200.
+
+## Update, 9 October 2026: Ultrafast for GPT-6.1 Sol in the API
+
+Ultrafast is not only a ChatGPT plan feature. OpenAI's [API changelog](https://developers.openai.com/api/docs/changelog) for 8 October adds Ultrafast mode for GPT-6.1 Sol in the Responses API: set the model to `gpt-6.1-sol` and `service_tier` to `"ultrafast"`. OpenAI says it is available to all API users, subject to rate limits, with global processing and US and EU data residency. GPT-6 Astra Ultrafast, added on 7 October, supports US data residency and global processing only.
+
+The [Ultrafast mode guide](https://developers.openai.com/api/docs/guides/ultrafast-mode) lists separate default rate limits for GPT-6.1 Sol Ultrafast: 1,000,000 tokens per minute on the Build tier, 4,000,000 on Launch, and 40,000,000 on Grow. OpenAI recommends WebSockets for agentic apps that make many quick tool calls. API prices are on OpenAI's [Ultrafast pricing table](https://developers.openai.com/api/docs/pricing?latest-pricing=ultrafast).
