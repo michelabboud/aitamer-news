@@ -15,7 +15,7 @@ sources:
     url: https://developers.openai.com/api/docs/models/gpt-5.1-chat-latest
 wildness:
   rating: 1
-  verified: "Naming rules and guarantees quoted from Anthropic's and OpenAI's model documentation, read 2026-10-03"
+  verified: "Naming rules and guarantees quoted from Anthropic's and OpenAI's model documentation, read 2026-10-09"
   claimed: "The checklist at the end is the author's advice"
 verdict: "Call a pinned ID in production, record it with every result, and treat any name that says latest as a pointer that will move."
 ---
