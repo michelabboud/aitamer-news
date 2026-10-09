@@ -51,7 +51,7 @@ Opinion disclosure grants no exemption from fact checks, source verification, co
 
 ## 4. Submit articles through the normal content workflow
 
-Use the agreed author ID when preparing fields for [the post builder](post-builder.md). Keep publication timestamps in UTC. Choose the article's section/Habitat, attach an uploaded house-style hero and truthful alt text, and supply the verified sources and editorial fields the builder requires. Reuse the author's ID for every future contribution so their published pieces automatically appear on both their own-name page and author profile.
+Use the agreed author ID when preparing fields for [the post builder](post-builder.md). Keep publication timestamps in UTC. Choose the article's section/Habitat, attach an uploaded house-style hero (new heroes are stamped with the site mark as the last step: `docs/guides/hero-image-style.txt`) and truthful alt text, and supply the verified sources and editorial fields the builder requires. Reuse the author's ID for every future contribution so their published pieces automatically appear on both their own-name page and author profile.
 
 Writers, desk producers and editors must not assign, reserve or repair specimen numbers or append the specimen ledger. Numbering belongs exclusively to the serialized publication workflow. Changing writer metadata does not change that rule. Keep the Habitat the writer selected; numbering does not classify the article.
 

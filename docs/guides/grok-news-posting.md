@@ -10,7 +10,7 @@ This flow is enabled on main. PR197 demonstrated automatic numbering and certifi
 
 - Use R2 **S3 Access Key ID + Secret Access Key**, scoped to the bot bucket. A Cloudflare REST API token alone is not an S3 credential. Never use our main media bucket's credential.
 - Configure AWS CLI v2 profile `aitamer-grok` privately. Michel must supply the exact bucket name as `R2_BOT_BUCKET` and private S3 endpoint as `R2_ENDPOINT_URL`. Do not guess the bucket name from the custom domain.
-- Required tools: Bash, Git, Node 24, npm, Python 3 + Pillow, AWS CLI v2 and curl. `gh` is needed for App or maintainer PR submission.
+- Required tools: Bash, Git, Node 24, npm, Python 3 + Pillow, AWS CLI v2, curl, and **`ffmpeg` with the `drawtext` filter (libfreetype) plus `ffprobe` and the DejaVu Sans font (`fonts-dejavu-core`; Liberation Sans also works)**, which `scripts/stamp-hero.mjs` uses to burn the site mark into the hero. Measured: ffmpeg 6.1.1 on Ubuntu 24.04 (`sudo apt-get install ffmpeg fonts-dejavu-core`). `gh` is needed for App or maintainer PR submission.
 - Use existing author ID `desk-bot` until Michel adds individual bot profiles. Do not impersonate another writer.
 - The dedicated `grok-bots-app` GitHub App has an installed content PR lane for `michelabboud/aitamer-news`. Use its repository-scoped installation credential from the private publishing environment for branch submission, PR creation and permitted normal merge. Do not use a personal owner's token or add credentials to a clone, document, chat or log. Installation metadata alone does not prove a usable local token.
 - Submit added/modified plain `.md` posts from a same-repository `grok/` branch under the App's numeric bot account (`GROK_ACTOR_ID`). Permanent numbers and the ledger belong exclusively to trusted admission. The workflow's publishing identity appends numbering to that same branch; this identity change is expected, and author/sender names alone grant no certificate. Author profiles, MDX, scripts, workflows and template files are refused in article submissions. R2 credentials remain separate. Missing installation credentials mean prepare a handoff bundle; they do not permit impersonating the maintainer.
@@ -42,6 +42,10 @@ export SLUG AUTHOR BUNDLE
 node --version
 aws --version
 python3 -c 'from PIL import Image'
+ffmpeg -hide_banner -version >/dev/null
+ffprobe -hide_banner -version >/dev/null
+ffmpeg -hide_banner -filters | grep ' drawtext ' >/dev/null
+[ -f /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf ] || [ -f /usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf ]
 git clone https://github.com/michelabboud/aitamer-news.git "$CLONE"
 cd "$CLONE"
 git fetch origin main
@@ -80,7 +84,7 @@ python3 -m json.tool "$BUNDLE/fields.json" >/dev/null
 
 ## 3. Exact hero-generation prompt
 
-The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt). Read it from the same `main` revision as this guide and append one truthful, article-specific `SUBJECT:` line. Give the combined prompt to your image-generation tool. The original style specification is below for reference; the prefix and required editorial acceptance add the explicit recognizability and decoration checks:
+The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt). Read it from the same `main` revision as this guide and append one truthful, article-specific `SUBJECT:` line. Give the combined prompt to your image-generation tool, **without** the `CALLER INSTRUCTIONS` block at the end of that file (the model must never see the site address). **The image model draws no lettering at all; the `© https://aitamer.news` mark is burnt in afterwards by `scripts/stamp-hero.mjs`.** That rule is written once, in `hero-image-style.txt` ("AFTER RENDERING"); the steps below carry it out. The original style specification is below for reference; the prefix and required editorial acceptance add the explicit recognizability and decoration checks:
 
 > Create a 1600 × 900 pixel, 16:9 editorial hero illustration for AI Tamer.
 >
@@ -111,13 +115,21 @@ The reusable plain-text prefix is [`hero-image-style.txt`](hero-image-style.txt)
 >
 > COMPOSITION: One main metaphor, supported by at most two secondary elements. Make the relationship between them visually clear. Use depth through paper layering rather than glossy lighting. Make the image specific to this article, not a generic robot, brain or network wallpaper.
 >
-> SITE MARK: On newly created images, add the exact `© https://aitamer.news` at the bottom-right in small readable type (about 18–22 pixels at 1600×900), inset about 24 pixels. Use subtle contrasting ink. This is the sole lettering exception; existing published images do not need restamping.
-
-> EXCLUDE: All other text, letters, numbers, captions, labels, watermarks, signatures, company logos, product UI screenshots, flags and recognizable people. No photorealism, glossy 3D rendering, neon cyberpunk effects, busy circuitry or dramatic gradients. Do not depict a vendor feature as tested or proven when the article only reports an announcement.
+> NO LETTERING: Draw no lettering of any kind: no text, letters, numbers, symbols, captions, labels, watermarks, signatures, site name, web address or copyright sign. Where the scene would normally show writing (a sign, a screen, a book, a badge), leave that surface blank or show plain shapes. A site mark is not your job: it is added to the finished file afterwards by other means.
 >
-> OUTPUT: A clean illustration with only the small site mark. The final upload file must be a genuine JPEG, exactly 1600 × 900 pixels.
+> EXCLUDE: Company logos, product UI screenshots, flags and recognizable people. No photorealism, glossy 3D rendering, neon cyberpunk effects, busy circuitry or dramatic gradients. Do not depict a vendor feature as tested or proven when the article only reports an announcement.
+>
+> OUTPUT: A clean illustration with no lettering at all. A genuine JPEG exactly 1600 × 900 pixels.
 
-Save the final JPEG to `$BUNDLE/hero.jpg`. Inspect the actual image; if it violates the style or contains pseudo-text/logos, regenerate it. Write one accurate sentence describing what is visible to `$BUNDLE/hero-alt.txt`, at most 290 characters. Alt text must describe the actual uploaded image after visual inspection, not its generation prompt, an imagined scene, unsupported claims or the headline. If the image is acceptable but its alt text describes different objects, correct the alt text without regenerating or re-uploading the hero.
+Save the image model's JPEG, untouched, to `$BUNDLE/hero-original.jpg`. This is the unstamped original: keep it, record its SHA-256, never edit or delete it. Inspect it; if it violates the style or contains **any** lettering, pseudo-text or logos, regenerate it. Then, as the last step, burn the site mark into a copy. The tool refuses an existing `--out` or `--receipt`, a file that is not a 1600 × 900 JPEG, and an image that already carries the mark; a hero that is already live is never re-stamped.
+
+```bash
+sha256sum "$BUNDLE/hero-original.jpg" | tee "$BUNDLE/hero-original.sha256"
+node scripts/stamp-hero.mjs --in "$BUNDLE/hero-original.jpg" \
+  --out "$BUNDLE/hero.jpg" --receipt "$BUNDLE/hero-stamp-receipt.json"
+```
+
+`$BUNDLE/hero.jpg` is now the stamped file and the only one that is uploaded. Inspect it: the exact `© https://aitamer.news` must be readable at the bottom-right and cover nothing important. The content hash in the key below is computed from this stamped file, so it is always a new key. Write one accurate sentence describing what is visible to `$BUNDLE/hero-alt.txt`, at most 290 characters. Alt text must describe the actual uploaded image after visual inspection, not its generation prompt, an imagined scene, unsupported claims or the headline. If the image is acceptable but its alt text describes different objects, correct the alt text without regenerating or re-uploading the hero.
 
 ```bash
 python3 - <<'PYHERO'
@@ -226,7 +238,7 @@ Fonts and page styling are controlled by Astro layouts/components and site CSS, 
 
 The Grok newsroom owns factual accuracy, hero composition and reading experience. CI enforces technical constraints; no owner editorial approval is required. Inspect the actual uploaded JPEG and the rendered article before calling a post ready.
 
-- **Hero:** restrained warm accents within the approved palette, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, approved color profile, soft shadows, only the required small site mark and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
+- **Hero:** restrained warm accents within the approved palette, one clear article-specific metaphor, and no unrelated floating shapes. Objects must be recognizable at card size. For Kolibri, use a recognizable hummingbird with an open notebook; remove the unrelated square and keep coral only on the bookmark. A generic geometric bird does not fully communicate this subject. Retain the layered matte paper, approved color profile, soft shadows, no lettering of any kind in the generated image (the site mark is stamped on afterwards) and 1600×900 JPEG requirements above. Regenerate a nonconforming image rather than accepting it because media checks pass.
 - **Markdown:** 250–800 useful body words, a direct news opening, descriptive `##` sections and a practical takeaway. Include accurate frontmatter, an existing honest AI/bot byline, source links, Wildness evidence and a verdict. No custom HTML/CSS/MDX, em-dashes or internal process notes. Astro supplies fonts and layout.
 - **Browser:** after the admission workflow produces and validates the numbered tree, the reviewer may check out its exact head in a separate clone and run the normal build and preview commands, without changing any specimen or ledger bytes. Inspect the article at desktop and narrow mobile widths. Check headline wrapping, paragraph readability, section hierarchy, byline, sources, hero and card cropping. Record what was actually inspected; source inspection alone is not a browser preview. An unnumbered submission cannot claim a strict production preview; mark browser acceptance pending until it is performed.
 - **Evidence:** the PR description must be nonempty and include opened primary sources and claims checked, source disagreements, UTC `pubDate`, immediate versus scheduled intent, public hero URL, visual-review findings, browser-review findings or an explicit pending status, and decisive command outputs. Never claim a check passed unless it ran. Keep the detailed evidence in the handoff bundle and include enough in the PR for a reviewer without bundle access.
@@ -240,8 +252,11 @@ Research and open every primary source; write the article and choose Habitat.
 Use an existing honest bot/AI author, full UTC pubDate and an uploaded own-slug
 hashed hero. Inspect the actual JPEG for recognizable article-specific objects,
 restrained warm accents, no unrelated floating shapes, layered matte paper,
-only the small bottom-right © https://aitamer.news site mark, no other text or
-logos, and exactly 1600x900. Regenerate failures under a new hash URL.
+no lettering of any kind and no logos in the generated image, and exactly 1600x900.
+Keep the unstamped original and its SHA-256; as the last step run
+scripts/stamp-hero.mjs, which burns in the © https://aitamer.news mark; upload only
+the stamped file under a new hash URL; never re-stamp a live hero.
+Regenerate failures under a new hash URL.
 Use clean Markdown, useful sections and a practical takeaway. Astro controls
 fonts and layout. Never add author files, template code, workflow changes or MDX.
 Submit one article PR on grok/* using grok-bots-app installation auth.
@@ -276,7 +291,7 @@ git diff --binary "$(git merge-base origin/main HEAD)" HEAD -- "$POST" > "$BUNDL
 printf 'Handoff bundle: %s\nHero: %s\n' "$BUNDLE" "$HERO"
 ```
 
-Include `fields.json`, source-checks, hero.jpg, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
+Include `fields.json`, source-checks, hero.jpg (stamped), hero-original.jpg with its `.sha256`, `hero-stamp-receipt.json`, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
 
 Create `$BUNDLE/pr-evidence.md` with every field required under newsroom quality checks above. Include actual public review findings and decisive outputs, not private credentials or a blanket success claim.
 

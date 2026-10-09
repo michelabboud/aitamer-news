@@ -45,7 +45,7 @@ Everything in a post is read by the public: title, description, verdict, wildnes
   3. **If you hold no upload credential, do not open the pull request with a broken hero.** Put the finished 1600 x 900 JPEG where the editor collects it and say so in the hand-off; the editor uploads it and the pull request follows. A post whose hero is missing fails `check:media` and stops the deploy for the whole site.
 - Never write anything to `public/heroes/`, and never put the image in the pull request.
 - 1600 x 900, JPEG, 16:9.
-- House style: layered paper-cut collage, slate blue and cream with a single coral accent, no text, numbers or logos, no recognisable people. Add `heroAlt`: one true sentence saying what the picture shows.
+- House style: layered paper-cut collage, slate blue and cream with a single coral accent, no lettering of any kind (the image model draws none), numbers or logos, no recognisable people. The site mark `© https://aitamer.news` is burnt in afterwards by `scripts/stamp-hero.mjs`, as the last step; keep the unstamped original and its SHA-256, upload only the stamped file under a new content-hashed key, never re-stamp a live hero. The rule is written once in `docs/guides/hero-image-style.txt`. Add `heroAlt`: one true sentence saying what the picture shows.
 
 ## 4. Frontmatter limits (the build fails past these)
 

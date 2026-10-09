@@ -12,7 +12,7 @@ What every published story must meet. Site mechanics — file and slug, frontmat
 - **Dated corrections, never silent edits.** A correction is added as a new dated entry; an old one is never edited or removed.
 - **Withdrawal, not deletion.** A story that must come down keeps its URL and specimen number: a notice replaces the content instead of the page disappearing, and the story leaves every listing, feed, sitemap, and search result.
 - **AI vs human bylines.** Every byline is labelled Human or AI so readers always know who wrote a piece.
-- **Cover art is generated and labelled.** Hero and section art is original house-generated art, captioned as such — never a stock photo, and never a vendor's own image passed off as ours. How to upload a hero and where it lives: `POST.md` §3.
+- **Cover art is generated and labelled.** Hero and section art is original house-generated art, captioned as such — never a stock photo, and never a vendor's own image passed off as ours. How to upload a hero and where it lives: `POST.md` §3. The image carries no lettering; the site mark is burnt in as the last step (`docs/guides/hero-image-style.txt`).
 
 ## Wildness rating
 
