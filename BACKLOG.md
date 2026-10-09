@@ -9,7 +9,7 @@
 
 Dated one-liners for everything deferred or spotted and not done. Format: `date · source · status — item`.
 
-- 2026-10-09 · hero stamp tool · open — CI runners do not ship ffmpeg or DejaVu, and `npm test` now needs both (`scripts/stamp-hero.test.mjs` fails loudly without them). Every workflow that runs `npm test` (`check-posts.yml`, `deploy-pages.yml`, `deploy-github-pages.yml`, `deploy-contact-worker.yml`, `specimen-admission.yml`) needs an install step such as `sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core`; needs a token with the `workflow` scope.
+- 2026-10-09 · hero stamp tool · done 2026-10-09 (PR for 0.2.82) — Hosted runners ship neither ffmpeg nor DejaVu, and `npm test` now needs both (`scripts/stamp-hero.test.mjs` fails loudly without them). Added `sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core` before the tests in `check-posts.yml`, `deploy-pages.yml`, `deploy-github-pages.yml`, `deploy-contact-worker.yml` and `specimen-admission.yml`. Any new workflow that runs `npm test` needs the same step.
 - 2026-10-09 · hero stamp tool · proposal — `check:media` could also verify that a new hero carries the mark (the same glyph-mask correlation the stamp tool uses on the downloaded bytes, new heroes only). Not done: it would reject every hero that is already live.
 
 - 2026-09-25 · publish times · open — Three launch posts went live on 2026-09-23 but are dated earlier, so they carry 00:00 UTC: `welcome-to-aitamer`, `open-weights-roundup`, `policy-watch-transparency`. An editor should set the real time or correct the date.

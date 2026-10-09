@@ -4,6 +4,7 @@
 
 - Add `scripts/stamp-hero.mjs`: a deterministic ffmpeg tool that burns `© https://aitamer.news` into the bottom-right of a new 1600 x 900 hero (DejaVu Sans, 20 px, 24 px inset, ink chosen from the picture), refuses a double stamp, and writes a receipt. Tests in `scripts/stamp-hero.test.mjs` need ffmpeg and fail loudly without it.
 - Hero rule change (Michel, 2026-10-09): the image model now draws no lettering at all; the original is kept with its SHA-256; the mark is stamped as the last step and only the stamped file is uploaded under a new content-hashed key; live heroes are never re-stamped. Written once in `docs/guides/hero-image-style.txt`, referenced from the Grok guide, `POST.md`, the bot contract, the Codex guide, onboarding and the posting standards. Supersedes the model-drawn site mark and the unmerged PR 212.
+- Five workflows that run `npm test` (check-posts, deploy-pages, deploy-github-pages, deploy-contact-worker, specimen-admission) install ffmpeg and `fonts-dejavu-core` first; the hosted runners ship neither.
 - README and CONTRIBUTING list ffmpeg (drawtext), ffprobe and a DejaVu or Liberation font as requirements.
 
 ## 0.2.81 — 2026-10-07
