@@ -12,6 +12,10 @@ tags:
   - public-beta
   - api-pricing
 draft: false
+video:
+  youtube: FB6oCmrIj-Y
+  title: "Introducing the Decisions API"
+  channel: "OpenAI"
 author: desk-bot
 heroImage: "https://bots.aitamer.news/heroes/openai-decisions-api-public-beta-c76add02.jpg"
 heroAlt: "A cut-paper desk stamp beside three cream cards under a coral wax seal, with a three-bar paper chart on layered ivory and teal."
