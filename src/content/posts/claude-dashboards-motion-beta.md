@@ -26,6 +26,8 @@ sources:
     url: https://x.com/higgsfield/status/2108294775644585998
   - title: "Katana (Higgsfield)"
     url: https://higgsfield.ai/katana
+  - title: "Migrate from standalone Claude Design to Claude (Claude Help Center)"
+    url: https://support.claude.com/en/articles/17440474-migrate-from-standalone-claude-design-to-claude
 ---
 
 Anthropic added two beta features to Claude on 8 October 2026 and took three others out of beta. Per the [Claude announcement](https://claude.com/resources/articles/dashboards-and-motion), Claude Dashboards is in beta on paid plans, Claude Motion is in beta on Team and Enterprise, and Claude Docs, Slides and Design are "out of beta and available on every plan, including Free."
@@ -51,6 +53,15 @@ One of those partners has already built a product on top of Motion. On 8 October
 Anthropic says people have made more than 45 million docs, decks and designs in Claude since these arrived in every conversation. The GA release adds customer-managed encryption keys for artifacts, admin control over artifact templates, shared editing with teammates, external sharing when an admin allows it, PowerPoint and PDF exports that keep formatting, direct export to Google Slides, and editing in the mobile app.
 
 The standalone Claude Design site is being folded into Claude. It stays at claude.ai/design until 14 December 2026. Design systems can be moved with "Migrate team design systems" on the Artifacts page; chats and comments in the standalone version will not carry over, and public links to standalone projects stop working when it closes.
+
+### Update, 10 October 2026: migrating from standalone Claude Design
+
+A Claude Help Center article, [Migrate from standalone Claude Design to Claude](https://support.claude.com/en/articles/17440474-migrate-from-standalone-claude-design-to-claude), sets out the move. The standalone site at claude.ai/design closes on 14 December 2026 and after that redirects to Claude, where new designs, design systems and slide decks are created as artifacts. Anthropic says to migrate design systems now; projects need no action yet, stay in the standalone version until it closes, and more details on moving them are "coming soon."
+
+- One migration, started from the Artifacts page by anyone who can use Claude Design, brings over every design system in the organization. Each keeps its owner and sharing. Empty design systems and ones made from a built-in starter theme are not migrated.
+- "Published design systems that aren't private will be shared with everyone in your organization" and appear in their design system menu. On individual plans, nothing is shared.
+- Team and Enterprise owners should check that artifacts and design systems are turned on. Design systems, and Design and Slides templates, are on by default for Team and off by default for Enterprise. Organizations with zero data retention cannot turn on artifacts, so they cannot migrate and should download projects one at a time before the close.
+- Chats and comments are not carried over and are deleted after the standalone version closes, as are the originals.
 
 ## For admins
 
