@@ -12,6 +12,7 @@
  *     PR_HEAD_REF      github.event.pull_request.head.ref (the authors lane's branch)
  *     POSTS_ACTOR_ID   the posts App's numeric bot account id (repository variable)
  *     GROK_ACTOR_ID    the Grok App's numeric bot account id (repository variable)
+ *     QUILL_ACTOR_ID   the Quill App's numeric bot account id (repository variable; unset closes the Quill lane)
  *     PR_HEAD_REPO     github.event.pull_request.head.repo.full_name
  *     PR_BASE_REPO     github.repository (trusted repository hosting the check)
  *
@@ -86,6 +87,14 @@
  * (`pull_request_target`), as the required check `publisher-paths`; `.github/workflows/deploy-pages.yml`
  * runs the `push` mode, from the copy in the commit before the push, when the publisher pushed.
  * Exit 0 when the change passes, 1 when it does not (or cannot be judged), 2 on bad usage.
+ *
+ * The Quill App's content lane (ADR 0036), pull requests only: the Grok lane's rules, with the same
+ * fail-closed identity checks (numeric `QUILL_ACTOR_ID` equal to the author and the sender, opened or
+ * synchronize, a valid nonempty quill/ branch in this repository) and one addition, the byline. Every
+ * added or modified post must name an author in `QUILL_LANE_AUTHORS` (just `quill`), read by the
+ * site's frontmatter reader (which refuses any form Astro could read differently); a modified post
+ * must have named one at the merge base and on main now as well, so the lane can never edit, or
+ * claim, a human's or another writer's article. Unsetting `QUILL_ACTOR_ID` closes the lane.
  */
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -149,41 +158,73 @@ const GROK_ALLOWED_TEXT = 'src/content/posts/<slug>.md or append-only src/conten
 const GROK_STATUSES = new Set(['A', 'M']);
 const REPOSITORY_NAME = /^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9_.-]+$/;
 
-/** Git's ref syntax, with a required nonempty grok/ prefix; never accepts revision expressions. */
-export function isGrokBranch(ref) {
-  return typeof ref === 'string' && ref.startsWith('grok/') && ref.length > 'grok/'.length
+/** Git's ref syntax, with a required nonempty `prefix`; never accepts revision expressions. */
+function isLaneBranch(ref, prefix) {
+  return typeof ref === 'string' && ref.startsWith(prefix) && ref.length > prefix.length
     && !/[\x00-\x20\x7f~^:?*\[\\]/.test(ref) && !ref.includes('..') && !ref.includes('@{')
     && !ref.endsWith('.') && ref.split('/').every((part) => part !== '' && !part.startsWith('.') && !part.endsWith('.lock'));
 }
 
-/** No login fallback: absent or malformed configuration never grants the Grok content lane. */
-export function grokLaneScope({ action, authorId, senderId, headRef, grokActorId, headRepo, baseRepo }) {
-  const grok = accountId(grokActorId);
-  if (grok === null) return { applies: false, grokApp: false, reason: 'GROK_ACTOR_ID is unset or not a numeric account id, so no pull request gets the Grok lane' };
-  if (accountId(authorId) !== grok) return { applies: false, grokApp: false, reason: 'the author is not the Grok App' };
-  if (accountId(senderId) !== grok) return { applies: false, grokApp: true, reason: 'the Grok App’s pull request, but this event’s sender is someone else' };
-  if (!EXEMPTING_ACTIONS.has(action ?? '')) return { applies: false, grokApp: true, reason: `a ${JSON.stringify(action ?? '')} event does not show who pushed the head, so it opens no lane` };
-  if (!isGrokBranch(headRef)) return { applies: false, grokApp: true, reason: `the head branch ${JSON.stringify(headRef ?? '')} is not a valid nonempty grok/ branch` };
-  if (typeof baseRepo !== 'string' || !REPOSITORY_NAME.test(baseRepo) || headRepo !== baseRepo) {
-    return { applies: false, grokApp: true, reason: 'the head repository does not match the trusted base repository' };
-  }
-  return { applies: true, grokApp: true, reason: `the author and this event’s sender are the Grok App (account ${grok}), on ${headRef} in ${baseRepo}` };
+/** Git's ref syntax, with a required nonempty grok/ prefix; never accepts revision expressions. */
+export function isGrokBranch(ref) {
+  return isLaneBranch(ref, 'grok/');
 }
 
-/** The Grok lane accepts plain Markdown posts and the ledger, added or modified only. */
-export function grokPathProblems({ changes, modes }) {
+/** Git's ref syntax, with a required nonempty quill/ prefix; never accepts revision expressions. */
+export function isQuillBranch(ref) {
+  return isLaneBranch(ref, 'quill/');
+}
+
+/**
+ * The identity rules both App content lanes share. No login fallback: absent or malformed
+ * configuration never grants a lane. `app` names the App in the reasons, `variable` its repository variable.
+ */
+function appLaneScope({ app, variable, branchText, isBranch }, { action, authorId, senderId, headRef, actorId, headRepo, baseRepo }) {
+  const actor = accountId(actorId);
+  if (actor === null) return { applies: false, isApp: false, reason: `${variable} is unset or not a numeric account id, so no pull request gets the ${app} lane` };
+  if (accountId(authorId) !== actor) return { applies: false, isApp: false, reason: `the author is not the ${app} App` };
+  if (accountId(senderId) !== actor) return { applies: false, isApp: true, reason: `the ${app} App’s pull request, but this event’s sender is someone else` };
+  if (!EXEMPTING_ACTIONS.has(action ?? '')) return { applies: false, isApp: true, reason: `a ${JSON.stringify(action ?? '')} event does not show who pushed the head, so it opens no lane` };
+  if (!isBranch(headRef)) return { applies: false, isApp: true, reason: `the head branch ${JSON.stringify(headRef ?? '')} is not a valid nonempty ${branchText} branch` };
+  if (typeof baseRepo !== 'string' || !REPOSITORY_NAME.test(baseRepo) || headRepo !== baseRepo) {
+    return { applies: false, isApp: true, reason: 'the head repository does not match the trusted base repository' };
+  }
+  return { applies: true, isApp: true, reason: `the author and this event’s sender are the ${app} App (account ${actor}), on ${headRef} in ${baseRepo}` };
+}
+
+/** No login fallback: absent or malformed configuration never grants the Grok content lane. */
+export function grokLaneScope({ action, authorId, senderId, headRef, grokActorId, headRepo, baseRepo }) {
+  const { isApp, ...scope } = appLaneScope({ app: 'Grok', variable: 'GROK_ACTOR_ID', branchText: 'grok/', isBranch: isGrokBranch },
+    { action, authorId, senderId, headRef, actorId: grokActorId, headRepo, baseRepo });
+  return { ...scope, grokApp: isApp };
+}
+
+/** No login fallback: absent or malformed configuration never grants the Quill content lane. */
+export function quillLaneScope({ action, authorId, senderId, headRef, quillActorId, headRepo, baseRepo }) {
+  const { isApp, ...scope } = appLaneScope({ app: 'Quill', variable: 'QUILL_ACTOR_ID', branchText: 'quill/', isBranch: isQuillBranch },
+    { action, authorId, senderId, headRef, actorId: quillActorId, headRepo, baseRepo });
+  return { ...scope, quillApp: isApp };
+}
+
+/** An App content lane accepts plain Markdown posts and the ledger, added or modified only. */
+function lanePathProblems({ changes, modes }, lane) {
   return changes.flatMap(({ status, path }) => {
     const shown = JSON.stringify(path);
     const problems = [];
     if (typeof path !== 'string' || (!(GROK_POST_PATH.test(path) && path.endsWith('.md')) && path !== SPECIMEN_LEDGER_PATH)) {
-      problems.push(`${shown}: outside the Grok lane; only ${GROK_ALLOWED_TEXT} may change`);
+      problems.push(`${shown}: outside the ${lane} lane; only ${GROK_ALLOWED_TEXT} may change`);
     }
-    if (!GROK_STATUSES.has(status)) problems.push(`${shown}: status ${JSON.stringify(status)} is refused; the Grok lane only adds or modifies files`);
+    if (!GROK_STATUSES.has(status)) problems.push(`${shown}: status ${JSON.stringify(status)} is refused; the ${lane} lane only adds or modifies files`);
     if (status !== 'D' && modes.get(path) !== MODE_FILE) {
       problems.push(`${shown}: mode ${JSON.stringify(modes.get(path))} is refused; only a plain file (${MODE_FILE}) may be added or changed`);
     }
     return problems;
   });
+}
+
+/** The Grok lane accepts plain Markdown posts and the ledger, added or modified only. */
+export function grokPathProblems(collected) {
+  return lanePathProblems(collected, 'Grok');
 }
 
 /** Read raw bytes from a plain Git blob so invalid UTF-8 cannot hide an edit to ledger history. */
@@ -201,9 +242,8 @@ function ledgerAt(cwd, commit) {
 }
 
 /** Preserve ledger history at both comparison commits, even when the branch did not edit it. */
-export function grokLaneProblems({ cwd, collected }) {
-  const problems = grokPathProblems(collected);
-  if (problems.length > 0) return problems;
+function ledgerProblems({ cwd, collected }) {
+  const problems = [];
   const head = ledgerAt(cwd, collected.head);
   for (const [commit, where] of [[collected.mergeBase, 'at the merge base'], [collected.base, 'on main now']]) {
     const before = ledgerAt(cwd, commit);
@@ -212,6 +252,111 @@ export function grokLaneProblems({ cwd, collected }) {
     }
   }
   return problems;
+}
+
+/** Preserve ledger history at both comparison commits, even when the branch did not edit it. */
+export function grokLaneProblems({ cwd, collected }) {
+  const problems = grokPathProblems(collected);
+  return problems.length > 0 ? problems : ledgerProblems({ cwd, collected });
+}
+
+// ---- the Quill App's content lane (ADR 0036) ----
+
+/**
+ * The bylines the Quill lane may write or touch. A named constant, frozen: widening it is a reviewed
+ * code change, never configuration. Each is a frontmatter `author` value compared exactly.
+ */
+export const QUILL_LANE_AUTHORS = Object.freeze(['quill']);
+/** A post larger than this is not an article; it is refused before it is read (the admission lane's own bound). */
+export const POST_FILE_MAX_BYTES = 1024 * 1024;
+
+/** A post's text at a commit, from the clone's objects, never checked out; null when the commit has no such file. */
+function postTextAt(cwd, commit, path) {
+  if (git(cwd, ['ls-tree', '-z', '--full-tree', commit, '--', path]) === '') return null;
+  const spec = `${commit}:${path}`;
+  const size = Number(git(cwd, ['cat-file', '-s', spec]).trim());
+  if (!Number.isSafeInteger(size)) throw new UnjudgeableError(`${path}: its size cannot be read`);
+  if (size > POST_FILE_MAX_BYTES) throw new UnjudgeableError(`${path}: ${size} bytes, more than a post's ${POST_FILE_MAX_BYTES}`);
+  return git(cwd, ['cat-file', 'blob', spec]);
+}
+
+/**
+ * Why a post's byline is not the Quill lane's, or null when it is. `readPost` is the site's strict
+ * frontmatter reader (`readFrontmatter`): it returns `{ data }`, `null` for no frontmatter, and throws
+ * for any form Astro could read differently; every one of those but a plain author in the list is a problem.
+ * @param {string} text @param {(text: string) => ({ data: Record<string, unknown> } | null)} readPost
+ */
+function bylineProblem(text, readPost) {
+  let author;
+  try {
+    const read = readPost(text);
+    if (!read) return 'it has no frontmatter, so its author cannot be read';
+    author = read.data?.author;
+  } catch (error) {
+    return `its frontmatter cannot be read (${String(error.message).split('\n')[0]})`;
+  }
+  if (typeof author !== 'string') return `its author is not a single name (found ${JSON.stringify(author ?? null)}), and the Quill lane writes only as ${QUILL_LANE_AUTHORS.join(' or ')}`;
+  if (!QUILL_LANE_AUTHORS.includes(author)) return `its author is ${JSON.stringify(author)}, not ${QUILL_LANE_AUTHORS.join(' or ')}: the Quill lane writes and edits only its own articles`;
+  return null;
+}
+
+/**
+ * The byline rule for every post the change set adds or modifies, judged at the head, and for a
+ * modified post also at the merge base and on main now, so the lane cannot edit another writer's
+ * article, nor take one by changing its byline.
+ */
+function quillBylineProblems({ cwd, collected, readPost }) {
+  const problems = [];
+  for (const { status, path } of collected.changes) {
+    if (path === SPECIMEN_LEDGER_PATH) continue;
+    const places = [[collected.head, 'in the proposal']];
+    if (status === 'M') places.push([collected.mergeBase, 'at the merge base'], [collected.base, 'on main now']);
+    for (const [commit, where] of places) {
+      const text = postTextAt(cwd, commit, path);
+      if (text === null) continue;
+      const why = bylineProblem(text, readPost);
+      if (why !== null) problems.push(`${path}: ${where}, ${why}`);
+    }
+  }
+  return problems;
+}
+
+/**
+ * The same byline rule over article texts already in hand (trusted admission has them from
+ * `collectAdmission`): `candidatePosts` maps slug to the proposal's text, `existingPosts` maps the
+ * slug of each modified article to its text at the merge base and on main now (null when main no
+ * longer has it). Pure; `readPost` is the site's strict frontmatter reader.
+ * @param {{ candidatePosts: Map<string, string>, existingPosts?: Map<string, { ancestor: string | null, main: string | null }>, readPost: Parameters<typeof bylineProblem>[1] }} input
+ * @returns {string[]}
+ */
+export function quillPostProblems({ candidatePosts, existingPosts = new Map(), readPost }) {
+  const problems = [];
+  for (const [slug, text] of candidatePosts) {
+    const path = `src/content/posts/${slug}.md`;
+    const places = [['in the proposal', text]];
+    const old = existingPosts.get(slug);
+    if (old) places.push(['at the merge base', old.ancestor], ['on main now', old.main]);
+    for (const [where, body] of places) {
+      if (body === null || body === undefined) continue;
+      const why = bylineProblem(body, readPost);
+      if (why !== null) problems.push(`${path}: ${where}, ${why}`);
+    }
+  }
+  return problems;
+}
+
+/**
+ * Every problem with a pull request in the Quill App's content lane: the paths and the ledger as
+ * for Grok, then (only when they pass) the byline. Pure over the clone and the injected reader.
+ * @param {{ cwd: string, collected: ReturnType<typeof collectPullRequest>, readPost: Parameters<typeof bylineProblem>[1] }} input
+ * @returns {string[]}
+ */
+export function quillLaneProblems({ cwd, collected, readPost }) {
+  const problems = lanePathProblems(collected, 'Quill');
+  if (problems.length > 0) return problems;
+  const ledger = ledgerProblems({ cwd, collected });
+  if (ledger.length > 0) return ledger;
+  return quillBylineProblems({ cwd, collected, readPost });
 }
 
 // ---- the posts App's authors lane (ADR 0018) ----
@@ -817,7 +962,7 @@ export function collectPush({ cwd, before, after }) {
 }
 
 const USAGE = [
-  'usage: check-publisher-paths.mjs pr --base <sha> --head <sha>   (env: PR_ACTION, PR_AUTHOR_ID, EVENT_SENDER_ID, MAINTAINER_ID, PR_HEAD_REF, POSTS_ACTOR_ID, GROK_ACTOR_ID, PR_HEAD_REPO, PR_BASE_REPO)',
+  'usage: check-publisher-paths.mjs pr --base <sha> --head <sha>   (env: PR_ACTION, PR_AUTHOR_ID, EVENT_SENDER_ID, MAINTAINER_ID, PR_HEAD_REF, POSTS_ACTOR_ID, GROK_ACTOR_ID, QUILL_ACTOR_ID, PR_HEAD_REPO, PR_BASE_REPO)',
   '       check-publisher-paths.mjs push --before <sha> --after <sha>',
 ].join('\n');
 
@@ -855,6 +1000,7 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   let why;
   let lane = { applies: false };
   let grok = { applies: false };
+  let quill = { applies: false };
   if (mode === 'pr') {
     const { enforced, reason } = pullRequestScope({
       action: env.PR_ACTION,
@@ -883,10 +1029,21 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
       headRepo: env.PR_HEAD_REPO,
       baseRepo: env.PR_BASE_REPO,
     });
-    if (grok.applies) why = `in the Grok App's content lane because ${grok.reason}`;
+    quill = quillLaneScope({
+      action: env.PR_ACTION,
+      authorId: env.PR_AUTHOR_ID,
+      senderId: env.EVENT_SENDER_ID,
+      headRef: env.PR_HEAD_REF,
+      quillActorId: env.QUILL_ACTOR_ID,
+      headRepo: env.PR_HEAD_REPO,
+      baseRepo: env.PR_BASE_REPO,
+    });
+    if (quill.applies) why = `in the Quill App's content lane because ${quill.reason}`;
+    else if (grok.applies) why = `in the Grok App's content lane because ${grok.reason}`;
     else if (lane.applies) why = `in the posts App's authors lane because ${lane.reason}`;
     else if (lane.postsApp) why = `held to the rule because ${reason}, and not in the authors lane because ${lane.reason}`;
     else if (grok.grokApp) why = `held to the rule because ${reason}, and not in the Grok lane because ${grok.reason}`;
+    else if (quill.quillApp) why = `held to the rule because ${reason}, and not in the Quill lane because ${quill.reason}`;
     else why = `held to the rule because ${reason}`;
   } else {
     subject = 'push';
@@ -897,9 +1054,10 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   let problems;
   try {
     collected = mode === 'pr'
-      ? collectPullRequest({ cwd, base: options.base, head: options.head, copies: lane.applies || grok.applies })
+      ? collectPullRequest({ cwd, base: options.base, head: options.head, copies: lane.applies || grok.applies || quill.applies })
       : collectPush({ cwd, before: options.before, after: options.after });
-    problems = grok.applies ? grokLaneProblems({ cwd, collected }) : lane.applies
+    problems = quill.applies ? quillLaneProblems({ cwd, collected, readPost: (await loadFrontmatterReaders()).site })
+      : grok.applies ? grokLaneProblems({ cwd, collected }) : lane.applies
       ? authorsLaneProblems({ cwd, collected, headRef: env.PR_HEAD_REF, readers: await loadFrontmatterReaders() })
       : changeProblems(collected);
   } catch (error) {
@@ -909,11 +1067,11 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   }
   const count = collected.changes.length;
   if (problems.length === 0) {
-    const what = grok.applies ? `all ${GROK_ALLOWED_TEXT}` : lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `all ${LANES_TEXT}`;
+    const what = quill.applies ? `all ${GROK_ALLOWED_TEXT}, written as ${QUILL_LANE_AUTHORS.join(' or ')}` : grok.applies ? `all ${GROK_ALLOWED_TEXT}` : lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `all ${LANES_TEXT}`;
     console.log(`check:publisher: ${count} changed file${count === 1 ? '' : 's'} in this ${subject}, ${what} (${why}).`);
     return 0;
   }
-  const who = grok.applies ? 'the Grok App' : lane.applies ? 'the posts App' : 'the publisher';
+  const who = quill.applies ? 'the Quill App' : grok.applies ? 'the Grok App' : lane.applies ? 'the posts App' : 'the publisher';
   console.error(`check:publisher: this ${subject} changes what ${who} may not (${why}):`);
   for (const problem of problems) console.error(`  ${problem}`);
   return 1;

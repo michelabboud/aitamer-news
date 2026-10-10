@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.83 — 2026-10-11
+
+- Add the Quill App content lane (ADR 0036, `docs/guides/quill-posting.md`): `quill/*` pull requests from a dedicated `aitamer-quill-posts` App are numbered, certified and merged like Grok's, with no owner review, so the owner is no longer blocked from approving his own agent's batches. Fail closed: the publisher guard needs repository variable `QUILL_ACTOR_ID` (unset closes the lane) and trusted admission needs the id pinned in `laneActors.quill`, which ships `null`, so nothing changes until the owner creates the App.
+- The lane binds the byline: every added or modified post must be `author: quill` (`QUILL_LANE_AUTHORS`), and a modified post must have been quill's at the merge base and on main now, so it cannot edit or claim a human's or another writer's article. Checked in the guard, before dispatch (held, discovery continues) and at the certification gate.
+- Generalise the Grok-only helpers (`isLaneBranch`, `appLaneScope`, `lanePathProblems`, `independentLane`) with Grok's behavior unchanged; `collectAdmission` also returns the existing text of modified articles.
+
 ## 0.2.82 — 2026-10-09
 
 - Add `scripts/stamp-hero.mjs`: a deterministic ffmpeg tool that burns `© https://aitamer.news` into the bottom-right of a 1600 x 900 hero (DejaVu Sans, 20 px, 24 px inset, ink chosen from the picture), refuses an image that already carries a mark, and writes a receipt. It refuses by marker, by the exact box, and by a corner search for lettering of any size, place and ink, so a mark an image model drew itself is caught (0 false refusals on 239 old heroes, 29 of 29 model marks refused; `docs/reports/2026-10-09-stamp-detection-calibration.md`). Tests in `scripts/stamp-hero.test.mjs` need ffmpeg and fail loudly without it.

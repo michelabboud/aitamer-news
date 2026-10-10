@@ -37,3 +37,4 @@
 - [Immutable owner-review source binding](0034-immutable-owner-review-source.md) — accepted 2026-10-05; event-time receipts and earliest trusted-main roots preserve approval through proven numbering when GitHub moves the REST anchor.
 
 - [Independent Grok numbering](0035-independent-grok-numbering.md) — accepted 2026-10-06; authorized Grok submissions start numbering automatically without owner editorial approval.
+- [Quill App content pull requests](0036-quill-app-content-pull-requests.md) — accepted for implementation 2026-10-11; a `quill/` lane like Grok's, numbered and merged without owner review, with the byline bound to `quill` and an owner kill switch.

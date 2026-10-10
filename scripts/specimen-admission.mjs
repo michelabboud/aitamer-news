@@ -5,7 +5,8 @@ import { appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { editorialDigest, planAdmission } from './specimen-admission-data.mjs';
 import { inspectSpecimenChanges, verifyAdmissionProof, SPECIMEN_LEDGER } from './specimen-integrity.mjs';
-import { parseNameStatus, parseHeadModes, isGrokBranch } from './check-publisher-paths.mjs';
+import { parseNameStatus, parseHeadModes, isGrokBranch, isQuillBranch, quillPostProblems } from './check-publisher-paths.mjs';
+import { readFrontmatter } from './frontmatter.mjs';
 const SHA = /^[a-f0-9]{40}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
 const POST = /^src\/content\/posts\/([a-z0-9]+(?:-[a-z0-9]+)*)\.md$/;
@@ -15,6 +16,14 @@ const ALLOCATOR_APP = 5107739;
 // grok-bots-app (App 5189850): the same numeric identity as the publisher's
 // GROK_ACTOR_ID. Trusted main pins automatic admission authority, never a login.
 const GROK_ACTOR = 337850229;
+// aitamer-quill-posts (ADR 0036): the Quill App's bot account id, pinned here like Grok's because
+// repository variables can be changed by other collaborators. null until the owner has created the
+// App and this line is changed by a reviewed code PR; while null the Quill lane is inert at admission
+// (the publisher guard's lane has its own repository variable, QUILL_ACTOR_ID, and fails closed too).
+const QUILL_ACTOR = null;
+/** The pinned independent-lane identities. A plain object so a test can set one; production code never writes it. */
+export const laneActors = { grok: GROK_ACTOR, quill: QUILL_ACTOR };
+const LANE_BRANCH = { grok: isGrokBranch, quill: isQuillBranch };
 const STATE_BRANCH = 'specimens/state';
 const STATE_PATH = 'specimen-state.json';
 const STATE_SCHEMA = 1;
@@ -47,8 +56,22 @@ function workflowPath(run, expected) {
 function trustedRun(run, repo, owner) {
   return workflowPath(run, ADMISSION_PATH) && run.event === 'workflow_dispatch' && run.head_branch === 'main' && run.repository?.full_name === repo && (!run.head_repository || run.head_repository.full_name === repo) && [owner, ACTIONS_ACTOR].includes(run.actor?.id);
 }
-function independentGrokPR(pr,repo) {
-  return pr?.user?.id===GROK_ACTOR && pr.user.type==='Bot' && !pr.draft && isGrokBranch(pr.head?.ref) && pr.head?.repo?.full_name===repo && pr.base?.ref==='main' && pr.base?.repo?.full_name===repo;
+/** Which independent content lane (if any) a pull request belongs to: a pinned App identity, a bot, not a draft, a lane branch in this repository, into main. */
+export function independentLane(pr,repo,actors=laneActors) {
+  for (const [lane,id] of Object.entries(actors)) {
+    if (!Number.isSafeInteger(id) || id<1) continue;
+    if (pr?.user?.id===id && pr.user.type==='Bot' && !pr.draft && LANE_BRANCH[lane](pr.head?.ref) && pr.head?.repo?.full_name===repo && pr.base?.ref==='main' && pr.base?.repo?.full_name===repo) return lane;
+  }
+  return null;
+}
+const independentLanePR=(pr,repo)=>independentLane(pr,repo)!==null;
+/**
+ * The Quill lane's byline rule at admission: every added or modified article is written by a Quill
+ * lane author, and a modified one was, at the merge base and on main now. A pure read of what
+ * `collectAdmission` returned; the same wording as the publisher guard's lane (`quillPostProblems`).
+ */
+export function quillAdmissionProblems(plan,readPost=readFrontmatter) {
+  return quillPostProblems({candidatePosts:plan.candidatePosts,existingPosts:plan.existingPosts,readPost});
 }
 export function requestOf(run) {
   const single = SINGLE_REQUEST_NAME.exec(run.display_title ?? '');
@@ -109,7 +132,7 @@ export async function approvedRequest(api, run, owner) {
   integer(owner);
   const seen = new Set();
   const latest = requestOf(run);
-  const independent=latest.samePR && independentGrokPR(await api.request(`/pulls/${latest.pr}`),api.repo);
+  const independent=latest.samePR && independentLanePR(await api.request(`/pulls/${latest.pr}`),api.repo);
   const bases = [];
   while (true) {
     if (!trustedRun(run, api.repo, owner) || seen.has(run.id) || seen.size >= MAX_RECOVERY_DEPTH) throw new Error('invalid recovery ancestry');
@@ -145,10 +168,14 @@ export async function approvedRequest(api, run, owner) {
 function assertSourceApproval(pr, repo) {
   if (pr?.state!=='open' || pr.draft || pr.head?.repo?.full_name!==repo || pr.base?.ref!=='main' || (pr.base.repo && pr.base.repo.full_name!==repo)) throw new Error('source approval withdrawn or moved');
 }
-async function approvalStillValid(api, request, owner, { current, digest, collect = collectAdmission, fetchCommits = fetchObjects } = {}) {
+export async function approvalStillValid(api, request, owner, { current, digest, collect = collectAdmission, fetchCommits = fetchObjects } = {}) {
   const pr = await api.request(`/pulls/${request.pr}`);
   assertSourceApproval(pr,api.repo);
-  if (request.independent && !independentGrokPR(pr,api.repo)) throw new Error('independent source identity changed');
+  if (request.independent && !independentLanePR(pr,api.repo)) throw new Error('independent source identity changed');
+  if (request.independent && independentLane(pr,api.repo)==='quill') {
+    const problems=quillAdmissionProblems(collect(current ?? request.approvedBase,request.source));
+    if (problems.length) throw new Error(`Quill lane byline: ${problems.join('; ')}`);
+  }
   const head = sha(pr.head.sha);
   if (head !== request.source) {
     if (!current || !digest) throw new Error('source editorial head changed');
@@ -161,7 +188,7 @@ async function approvalStillValid(api, request, owner, { current, digest, collec
     if (currentDigest!==digest) throw new Error('source editorial content changed after approval');
     if (request.samePR) await verifyNumberingDescendants(api,request,head,current,owner,{collect,fetchCommits});
   }
-  if (independentGrokPR(pr,api.repo)) return pr;
+  if (independentLanePR(pr,api.repo)) return pr;
   const reviews = await api.list(`/pulls/${request.pr}/reviews`);
   const review = reviews.filter(r=>r.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(r.state)).sort((a,b)=>a.id-b.id).at(-1);
   if (review && review.state !== 'APPROVED') throw new Error('owner review revoked');
@@ -359,6 +386,7 @@ export function collectAdmission(base, source, {allowEmpty=false}={}) {
     if (match) basePosts.set(match[1], blob(base, path));
   }
   const candidatePosts = new Map();
+  const existingPosts = new Map();
   for (const change of changes) {
     if (change.path === SPECIMEN_LEDGER) continue; // Never read an untrusted ledger.
     const match = POST.exec(change.path);
@@ -368,11 +396,12 @@ export function collectAdmission(base, source, {allowEmpty=false}={}) {
       let old; try { old = blob(ancestor, change.path); } catch { throw new Error('post was independently added on main'); }
       if (old !== current) throw new Error('existing article changed on main; refresh source before admission');
     }
+    if (change.status === 'M') existingPosts.set(match[1], { ancestor: blob(ancestor, change.path), main: basePosts.get(match[1]) ?? null });
     candidatePosts.set(match[1], blob(source, change.path));
   }
   if (!candidatePosts.size && !allowEmpty) throw new Error('admission needs an article');
   const plan = planAdmission({ basePosts, candidatePosts, ledgerText: blob(base, SPECIMEN_LEDGER) });
-  return { ...plan, candidatePosts, changes };
+  return { ...plan, candidatePosts, existingPosts, changes };
 }
 function approvedHeadDigest(base,head,source,collect=collectAdmission) {
   const approved=collect(base,source), observed=collect(base,head,{allowEmpty:true});
@@ -611,7 +640,7 @@ export async function gate(api, env) {
     try { await admissionProof(api,base,head,integer(env.MAINTAINER_ID)); }
     catch(error) {
       if (error.message!=='no successful trusted-main allocation proof for this exact base/head') throw error;
-      const summary='Waiting for workflow-owned numbering validation. Authorized Grok PRs are admitted automatically; other producers retain their owner review. This observation grants no required check or merge permission.';
+      const summary='Waiting for workflow-owned numbering validation. Authorized Grok and Quill PRs are admitted automatically; other producers retain their owner review. This observation grants no required check or merge permission.';
       console.log(`::notice::${summary}`);
       if(process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
       return;
@@ -723,7 +752,7 @@ async function verifyStateCertificate(api, head, content, state, owner) {
     // unrelated failure in the same reconciler run does not undo that transition.
     // Completion wakes inherit the upstream publishing App actor even though the
     // checkpoint is certified by Actions executing this trusted-main finalizer.
-    const trustedActor=[owner,ACTIONS_ACTOR].includes(run.actor?.id) || (run.event==='workflow_run' && [ALLOCATOR_ACTOR,GROK_ACTOR].includes(run.actor?.id));
+    const trustedActor=[owner,ACTIONS_ACTOR].includes(run.actor?.id) || (run.event==='workflow_run' && [ALLOCATOR_ACTOR,...Object.values(laneActors).filter(id=>Number.isSafeInteger(id) && id>0)].includes(run.actor?.id));
     if (run.id===runID && workflowPath(run,FINALIZER_PATH) && run.head_branch==='main' && run.head_sha===state.policySHA && ['schedule','workflow_dispatch','workflow_run'].includes(run.event) && run.repository?.full_name===api.repo && (!run.head_repository || run.head_repository.full_name===api.repo) && trustedActor) return;
   }
   throw new Error('protected state lacks independent trusted-main Actions certificate');
@@ -774,7 +803,7 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
   const candidates=[];
   for await (const pr of stream(api,'/pulls?state=open&sort=created&direction=asc')) {
     if (pr.state!=='open' || pr.draft || pr.head?.repo?.full_name!==api.repo || pr.base?.ref!=='main' || (pr.base.repo && pr.base.repo.full_name!==api.repo) || !pr.head.ref || /^(?:main$|specimens\/)/.test(pr.head.ref)) continue;
-    if (independentGrokPR(pr,api.repo)) { candidates.push({pr,independent:true});continue; }
+    if (independentLanePR(pr,api.repo)) { candidates.push({pr,independent:true});continue; }
     const reviews=await api.list(`/pulls/${integer(pr.number)}/reviews`);
     const review=reviews.filter(r=>r.user?.id===owner && ['APPROVED','CHANGES_REQUESTED','DISMISSED'].includes(r.state)).sort((a,b)=>a.id-b.id).at(-1);
     if (!review || review.state!=='APPROVED') continue;
@@ -787,7 +816,11 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
   for (const {pr,review,independent} of candidates) {
     if (independent) {
       const base=sha((await api.request('/git/ref/heads/main')).object.sha),source=sha(pr.head.sha);
-      fetchCommits(base,source);collect(base,source);
+      fetchCommits(base,source);const sourcePlan=collect(base,source);
+      if (independentLane(pr,api.repo)==='quill') {
+        const problems=quillAdmissionProblems(sourcePlan);
+        if (problems.length) { console.log(`::warning::Quill PR #${pr.number} held, not dispatched: ${problems.join('; ')}`);continue; }
+      }
       let existing=false;
       // Include historical roots so a lost dispatch response or a numbered head
       // cannot create another request. Producer corrections get a new exact root.
@@ -803,9 +836,9 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
       }
       if (existing) continue;
       const currentPR=await api.request(`/pulls/${pr.number}`);assertSourceApproval(currentPR,api.repo);
-      if (!independentGrokPR(currentPR,api.repo) || currentPR.head.sha!==source) throw new Error('independent source identity or editorial head changed before automatic admission');
+      if (!independentLanePR(currentPR,api.repo) || currentPR.head.sha!==source) throw new Error('independent source identity or editorial head changed before automatic admission');
       await api.request('/actions/workflows/specimen-admission.yml/dispatches','POST',{ref:'main',inputs:{pr_number:String(pr.number),head_sha:source,review_id:'0',same_pr:'true',recovery_run:'0'}});
-      console.log(`Authorized Grok PR #${pr.number} dispatched automatically for numbering.`);
+      console.log(`Authorized ${independentLane(currentPR,api.repo)==='quill' ? 'Quill' : 'Grok'} PR #${pr.number} dispatched automatically for numbering.`);
       return 'dispatched';
     }
     if ([...runs.values()].some(run=>{
