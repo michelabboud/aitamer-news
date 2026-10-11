@@ -136,10 +136,21 @@ test('automatic owner approval dispatches once and queued/cancelled attempts rem
   assert.equal(f.api.mutations().at(-1).body.inputs.head_sha,f.source);assert.equal(f.api.mutations().at(-1).body.inputs.review_id,'1');
 });
 
-for(const lane of ['grok','owner']) test(`malformed older Grok does not starve ${lane} discovery after historical holds`,async t=>{
+for(const fault of ['malformed','oversize','utf8','independently-added','changed-on-main']) for(const lane of ['grok','owner']) test(`${fault} older Grok does not starve ${lane} discovery after historical holds`,async t=>{
   const f=fixture(t);if(lane==='grok') independent(f);
   f.api.runs=[];
-  const badHead=f.commit(f.tree(f.git('show','-s','--format=%T',f.base),[{path:'src/content/posts/bad.md',mode:'100644',content:'not frontmatter'}]),[f.base],'malformed producer submission');
+  const path=fault==='changed-on-main'?'src/content/posts/old.md':'src/content/posts/bad.md';
+  const content=fault==='oversize'?'x'.repeat(4*1024*1024+1):fault==='utf8'?Buffer.from([255]):fault==='malformed'?'not frontmatter':article();
+  const badHead=f.commit(f.tree(f.git('show','-s','--format=%T',f.base),[{path,mode:'100644',content}]),[f.base],'invalid producer submission');
+  if(fault==='independently-added' || fault==='changed-on-main') {
+    const entries=[{path,mode:'100644',content:article(fault==='changed-on-main'?'specimen: 7\n':'specimen: 8\n','Main editorial correction')}];
+    if(fault==='independently-added') entries.push({path:'src/content/specimen-ledger.txt',mode:'100644',content:'# Retained history\n0007 old\n0008 bad\n'});
+    f.api.current=f.commit(f.tree(f.git('show','-s','--format=%T',f.base),entries),[f.base],'main correction');
+    f.source=f.commit(f.tree(f.git('show','-s','--format=%T',f.api.current),[{path:'src/content/posts/new.md',mode:'100644',content:article()}]),[f.api.current],'fresh producer');
+    f.api.pr.head.sha=f.source;
+    f.api.reviews[0] && (f.api.reviews[0].commit_id=f.source);
+    if(lane==='owner') f.api.wakes=[f.wake()];
+  }
   const bad={...structuredClone(f.api.pr),number:6,user:{id:GROK,type:'Bot'},head:{...structuredClone(f.api.pr.head),sha:badHead,ref:'grok/bad'}};
   const list=f.api.list.bind(f.api);f.api.list=async path=>path==='/pulls?state=open&sort=created&direction=asc'?[bad,structuredClone(f.api.pr)]:list(path);
   const pending=[{id:99,status:'held',reason:'owner request unexpectedly claims recovery'}];
@@ -152,6 +163,13 @@ for(const lane of ['grok','owner']) test(`malformed older Grok does not starve $
 test('Grok discovery propagates generic infrastructure failures without dispatch',async t=>{
   const f=independent(fixture(t));f.api.runs=[];
   await assert.rejects(discoverApprovedRequests(f.api,f.env,{...dependencies,collect:()=>{throw new Error('Git read failed');}}),/Git read failed/);
+  assert.deepEqual(f.api.mutations(),[]);
+});
+
+for(const fault of ['oversize','utf8']) test(`trusted ${fault} baseline blob stays fatal during Grok discovery`,async t=>{
+  const f=independent(fixture(t));f.api.runs=[];
+  f.api.current=f.commit(f.tree(f.git('show','-s','--format=%T',f.base),[{path:'src/content/posts/old.md',mode:'100644',content:fault==='oversize'?'x'.repeat(1024*1024+1):Buffer.from([255])}]),[f.base],'invalid trusted fixture');
+  await assert.rejects(discoverApprovedRequests(f.api,f.env,dependencies),error=>error.name!=='CandidateAdmissionError' && /Git blob exceeds bound|invalid UTF-8 blob/.test(error.message));
   assert.deepEqual(f.api.mutations(),[]);
 });
 

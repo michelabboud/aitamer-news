@@ -359,17 +359,21 @@ export class GitHub {
     return all;
   }
 }
-function blob(commit, path) {
+function blob(commit, path, {candidate=false}={}) {
   const ref = `${sha(commit)}:${path}`;
   const size = Number(git('cat-file', '-s', ref));
-  if (!Number.isSafeInteger(size) || size > MAX_BLOB_BYTES) throw new Error('Git blob exceeds bound');
+  if (!Number.isSafeInteger(size)) throw new Error('invalid Git blob size');
+  if (size > MAX_BLOB_BYTES) throw (candidate ? new CandidateAdmissionError('Git blob exceeds bound') : new Error('Git blob exceeds bound'));
   const raw = execFileSync('git', ['show', ref], { maxBuffer: MAX_BLOB_BYTES });
-  const text = raw.toString('utf8'); if (!raw.equals(Buffer.from(text))) throw new Error('invalid UTF-8 blob'); return text;
+  const text = raw.toString('utf8');
+  if (!raw.equals(Buffer.from(text))) throw (candidate ? new CandidateAdmissionError('invalid UTF-8 blob') : new Error('invalid UTF-8 blob'));
+  return text;
 }
 export function collectAdmission(base, source, {allowEmpty=false}={}) {
   sha(base); sha(source);
   const ancestor = git('merge-base', base, source).trim(); sha(ancestor);
   const modes = parseHeadModes(git('ls-tree', '-r', '-z', source));
+  const ancestorModes = ancestor===base ? null : parseHeadModes(git('ls-tree', '-r', '-z', ancestor));
   const changes = parseNameStatus(git('diff', '--name-status', '--no-renames', '-z', ancestor, source));
   const basePosts = new Map();
   for (const path of parseHeadModes(git('ls-tree', '-r', '-z', base)).keys()) {
@@ -383,10 +387,12 @@ export function collectAdmission(base, source, {allowEmpty=false}={}) {
     if (!match || !['A', 'M'].includes(change.status) || modes.get(change.path) !== '100644') throw new CandidateAdmissionError(`outside admission lane: ${change.path}`);
     const current = basePosts.get(match[1]);
     if (ancestor !== base && current !== undefined) {
-      let old; try { old = blob(ancestor, change.path); } catch { throw new Error('post was independently added on main'); }
-      if (old !== current) throw new Error('existing article changed on main; refresh source before admission');
+      if (!ancestorModes.has(change.path)) throw new CandidateAdmissionError('post was independently added on main');
+      if (ancestorModes.get(change.path)!=='100644') throw new CandidateAdmissionError('ancestor article is not a regular source file');
+      const old=blob(ancestor, change.path);
+      if (old !== current) throw new CandidateAdmissionError('existing article changed on main; refresh source before admission');
     }
-    candidatePosts.set(match[1], blob(source, change.path));
+    candidatePosts.set(match[1], blob(source, change.path,{candidate:true}));
   }
   if (!candidatePosts.size && !allowEmpty) throw new CandidateAdmissionError('admission needs an article');
   const plan = planAdmission({ basePosts, candidatePosts, ledgerText: blob(base, SPECIMEN_LEDGER) });
