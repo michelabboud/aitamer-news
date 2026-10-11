@@ -699,3 +699,13 @@
 0696 ultra-62m-robots-as-a-service-physical-intelligence
 0697 anthropic-unintended-model-actions
 0698 grok-bot-routines-scheduler
+0699 force-or-forbid-a-tool-call-with-tool-choice
+0700 shorten-matryoshka-embeddings-without-retraining-and-measure-what-it-c
+0701 a-tool-result-must-come-right-after-the-call-it-answers
+0702 measure-quantization-damage-with-kl-divergence-alongside-perplexity
+0703 strict-schemas-accept-only-part-of-json-schema
+0704 budget-max-tokens-against-the-context-window-you-have-left
+0705 compute-pass-k-with-the-unbiased-estimator-from-the-codex-paper
+0706 test-pydantic-ai-agents-with-a-fake-model-instead-of-the-live-api
+0707 write-a-first-inspect-eval-dataset-solver-chain-and-scorer
+0708 split-one-data-center-gpu-into-isolated-slices-with-nvidia-mig
