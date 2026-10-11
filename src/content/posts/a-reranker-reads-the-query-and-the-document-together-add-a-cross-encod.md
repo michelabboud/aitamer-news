@@ -1,7 +1,7 @@
 ---
 title: "A reranker reads the query and the document together: add a cross-encoder after retrieval"
 description: Cross-encoders score a query and a document in one pass, which makes them more accurate than embedding search and too slow for a whole corpus. Use them to rerank the top hits.
-pubDate: "2026-10-11T16:00:00Z"
+pubDate: "2026-10-12T05:00:00Z"
 section: models
 tags:
   - rag

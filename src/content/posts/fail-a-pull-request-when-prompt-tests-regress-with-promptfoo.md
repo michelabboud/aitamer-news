@@ -1,7 +1,7 @@
 ---
 title: Fail a pull request when prompt tests regress, with promptfoo
 description: "Turn promptfoo assertions into a required GitHub check: deterministic tests, the action's failure rules, branch protection, and the path-filter trap that leaves checks pending."
-pubDate: "2026-10-11T09:30:00Z"
+pubDate: "2026-10-12T01:30:00Z"
 section: dev
 tags:
   - promptfoo

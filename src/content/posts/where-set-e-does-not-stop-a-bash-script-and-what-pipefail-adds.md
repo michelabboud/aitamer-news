@@ -1,7 +1,7 @@
 ---
 title: Where set -e does not stop a Bash script, and what pipefail adds
 description: Errexit skips failures in conditions, && and || lists, negated commands and early pipeline stages. Learn the rules from the Bash manual and POSIX, and how pipefail closes the pipeline gap.
-pubDate: "2026-10-11T11:00:00Z"
+pubDate: "2026-10-12T02:00:00Z"
 section: tools
 tags:
   - bash

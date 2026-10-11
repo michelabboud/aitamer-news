@@ -1,7 +1,7 @@
 ---
 title: Inspect a running Python process with py-spy
 description: Use py-spy dump, top and record to see what a stuck or slow Python process is doing without restarting it, and grant the ptrace access it needs on Linux, Docker and Kubernetes.
-pubDate: "2026-10-11T13:00:00Z"
+pubDate: "2026-10-12T03:00:00Z"
 section: tools
 tags:
   - python

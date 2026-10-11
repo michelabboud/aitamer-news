@@ -1,7 +1,7 @@
 ---
 title: A safety classifier can check both the prompt and the reply
 description: Llama Guard classifies user prompts and model replies against a hazard taxonomy. Here is where to place it in a request path and how to read its category labels.
-pubDate: "2026-10-11T14:30:00Z"
+pubDate: "2026-10-12T04:00:00Z"
 section: models
 tags:
   - safety

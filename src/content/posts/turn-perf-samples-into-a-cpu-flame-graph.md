@@ -1,7 +1,7 @@
 ---
 title: Turn perf samples into a CPU flame graph
 description: Record stack samples with perf record -g, fold them with stackcollapse-perf.pl, render an SVG with flamegraph.pl, and read the width of each box as time spent.
-pubDate: "2026-10-11T13:30:00Z"
+pubDate: "2026-10-12T03:30:00Z"
 section: tools
 tags:
   - perf

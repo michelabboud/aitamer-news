@@ -1,7 +1,7 @@
 ---
 title: Choose the debugger behind breakpoint() with PYTHONBREAKPOINT
 description: Send breakpoint() calls to pdb, another debugger, a custom hook, or nowhere, by setting one environment variable instead of editing code.
-pubDate: "2026-10-11T12:00:00Z"
+pubDate: "2026-10-12T02:30:00Z"
 section: tools
 tags:
   - python

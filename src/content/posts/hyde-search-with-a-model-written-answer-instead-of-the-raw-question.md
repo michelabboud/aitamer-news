@@ -1,7 +1,7 @@
 ---
 title: "HyDE: search with a model-written answer instead of the raw question"
 description: HyDE embeds a passage a language model writes in answer to the query, then searches with it. How to build it, and where it stops helping.
-pubDate: "2026-10-11T17:00:00Z"
+pubDate: "2026-10-12T05:30:00Z"
 section: models
 tags:
   - retrieval

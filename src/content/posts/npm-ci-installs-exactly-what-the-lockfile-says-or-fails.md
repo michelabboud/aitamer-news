@@ -1,7 +1,7 @@
 ---
 title: npm ci installs exactly what the lockfile says, or fails
 description: Use npm ci in CI so builds install the committed dependency tree, and learn why it errors when package.json and package-lock.json disagree.
-pubDate: "2026-10-11T15:00:00Z"
+pubDate: "2026-10-12T04:30:00Z"
 section: tools
 tags:
   - npm
