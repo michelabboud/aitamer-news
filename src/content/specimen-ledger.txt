@@ -709,3 +709,12 @@
 0706 test-pydantic-ai-agents-with-a-fake-model-instead-of-the-live-api
 0707 write-a-first-inspect-eval-dataset-solver-chain-and-scorer
 0708 split-one-data-center-gpu-into-isolated-slices-with-nvidia-mig
+0709 fail-a-pull-request-when-prompt-tests-regress-with-promptfoo
+0710 where-set-e-does-not-stop-a-bash-script-and-what-pipefail-adds
+0711 choose-the-debugger-behind-breakpoint-with-pythonbreakpoint
+0712 inspect-a-running-python-process-with-py-spy
+0713 turn-perf-samples-into-a-cpu-flame-graph
+0714 a-safety-classifier-can-check-both-the-prompt-and-the-reply
+0715 npm-ci-installs-exactly-what-the-lockfile-says-or-fails
+0716 a-reranker-reads-the-query-and-the-document-together-add-a-cross-encod
+0717 hyde-search-with-a-model-written-answer-instead-of-the-raw-question
