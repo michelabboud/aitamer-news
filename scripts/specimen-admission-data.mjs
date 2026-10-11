@@ -12,6 +12,11 @@ const MAX_CANDIDATES = 100;
 const FENCE = /^((?:[ \t]*\n)*---[ \t]*\n)(?:([\s\S]*?)\n)?---[ \t]*(?:\n|$)/;
 const SIMPLE_SCALAR = /^(?:[ \t]*(?:#.*)?|[ \t]*(?:"(?:[^"\\]|\\.)*"|'(?:[^']|'')*'|[^\s\[\]{}|>&!*'"#][^\[\]{}\n]*?)[ \t]*(?:#.*)?)$/;
 
+/** A rejected producer candidate, never a trusted-data or infrastructure failure. */
+export class CandidateAdmissionError extends Error {
+  constructor(message,options) { super(message,options);this.name='CandidateAdmissionError'; }
+}
+
 /** Remove only safely separable, plain top-level specimen scalar lines. */
 export function stripSpecimen(text) {
   if (typeof text !== 'string' || Buffer.byteLength(text) > MAX_POST_BYTES) throw new Error('post exceeds input limit');
@@ -77,7 +82,6 @@ export function editorialDigest(candidatePosts) {
  */
 export function planAdmission({ basePosts, candidatePosts, ledgerText }) {
   checkedMap(basePosts, MAX_POSTS, 'basePosts');
-  checkedMap(candidatePosts, MAX_CANDIDATES, 'candidatePosts');
   if (typeof ledgerText !== 'string' || Buffer.byteLength(ledgerText) > MAX_LEDGER_BYTES) throw new Error('ledger exceeds input limit');
   const ledger = parseLedger(ledgerText);
   if (ledger.errors.length) throw new Error(ledger.errors.join('; '));
@@ -89,14 +93,22 @@ export function planAdmission({ basePosts, candidatePosts, ledgerText }) {
   const problems = findProblems(baseline, ledger.entries).filter((p) => !p.includes('published with no sources') && !p.includes('files under `voices`'));
   if (baseline.some((p) => p.specimen !== null && !Number.isSafeInteger(p.specimen))) problems.push('unsafe baseline number');
   if (problems.length) throw new Error(`invalid trusted baseline: ${problems.join('; ')}`);
+  // Only pure producer-input validation is recoverable per candidate. Trusted
+  // baseline validation above and allocation/invariant failures below stay fatal.
+  const candidates=[];
+  try {
+    checkedMap(candidatePosts, MAX_CANDIDATES, 'candidatePosts');
+    for(const [slug,text] of candidatePosts) {
+      const clean=stripSpecimen(text),post=readPost(slug,clean.text);
+      if(post.errors.length) throw new Error(`${slug}: ${post.errors.join('; ')}`);
+      const base=baseline.find(p=>p.slug===slug);
+      if(!base && ledger.entries.some(e=>e.slug===slug)) throw new Error(`${slug}: historical slug cannot be reused`);
+      candidates.push({slug,text,clean,base});
+    }
+  } catch(error) { throw new CandidateAdmissionError(error.message,{cause:error}); }
   const posts = new Map();
   const repairs = [];
-  for (const [slug, text] of candidatePosts) {
-    const clean = stripSpecimen(text);
-    const post = readPost(slug, clean.text);
-    if (post.errors.length) throw new Error(`${slug}: ${post.errors.join('; ')}`);
-    const base = baseline.find((p) => p.slug === slug);
-    if (!base && ledger.entries.some((e) => e.slug === slug)) throw new Error(`${slug}: historical slug cannot be reused`);
+  for (const {slug,text,clean,base} of candidates) {
     let normalized = clean.text;
     if (base?.specimen !== null && base?.specimen !== undefined) normalized = withSpecimen(normalized, base.specimen);
     posts.set(slug, normalized);

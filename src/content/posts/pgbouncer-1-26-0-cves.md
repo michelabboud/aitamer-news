@@ -1,6 +1,6 @@
 ---
 title: "PgBouncer 1.26.0: three DoS CVEs fixed + pool_idle_timeout"
-description: "PgBouncer 1.26.0 (Sep 23, 2026) fixes CVE-2026-19888, CVE-2026-6668, and CVE-2026-6669—DoS only as advisories state (crash / infinite loop / unbounded login work). The advisories give no RCE, CVSS score or exploit steps. Also: pool_idle_timeout, per-user/DB query_wait_timeout, search_path tracking, meson; -R removed."
+description: "PgBouncer 1.26.0 (Sep 23, 2026) fixes CVE-2026-19888, CVE-2026-6668, and CVE-2026-6669 (DoS only: crash, infinite loop, unbounded login work; no RCE or CVSS). Also: pool_idle_timeout and query_wait_timeout; -R removed."
 pubDate: 2026-10-01T15:10:00Z
 specimen: 110
 section: devops
@@ -16,10 +16,11 @@ tags:
   - dos
 draft: false
 heroImage: https://media.aitamer.news/heroes/pgbouncer-1-26-0-cves.jpg
+heroAlt: "A paper-cut tan rotunda with a blue checkmark shield, wavy lines feeding one doorway, and three upright slabs beside it."
 author: desk-bot
 wildness:
   rating: 5
-  verified: "1.26.0 Sep 23; CVE-2026-19888/6668/6669 DoS as advisory one-liners; pool_idle_timeout + query_wait_timeout scope"
+  verified: "1.26.0 Sep 23; CVE-2026-19888/6668/6669 DoS as advisory one-liners; idle/wait timeout knobs"
   claimed: "“AI agent fleets behind the pooler” is our framing, not a CVE claim"
 verdict: "Ship-urgency security brief. DoS only, exactly as the advisories state, with no exploit detail."
 sources:
@@ -37,17 +38,17 @@ This is a security-advisory briefing based on the PostgreSQL news item and pgbou
 
 | CVE | As stated |
 | --- | --- |
-| **CVE-2026-19888** | DoS **crash** from unauthenticated clients — SCRAM client-final-message **without a nonce** |
-| **CVE-2026-6668** | DoS **infinite loop** from unauthenticated clients — **integer overflow** in packet buffer growth |
-| **CVE-2026-6669** | DoS **unbounded work at login** from a **malicious PostgreSQL server** — unbounded SCRAM iteration count |
+| **CVE-2026-19888** | DoS **crash** from unauthenticated clients: SCRAM client-final-message **without a nonce** |
+| **CVE-2026-6668** | DoS **infinite loop** from unauthenticated clients: **integer overflow** in packet buffer growth |
+| **CVE-2026-6669** | DoS **unbounded work at login** from a **malicious PostgreSQL server**: unbounded SCRAM iteration count |
 
-Two of the three are described as reachable by **unauthenticated clients**; one requires a **malicious server** at login. No independent severity scoring unless an advisory supplies it—these primaries do not add CVSS here ([PostgreSQL news](https://www.postgresql.org/about/news/pgbouncer-1260-released-fixes-three-cves-3385/), [pgbouncer.org](https://www.pgbouncer.org/2026/09/pgbouncer-1-26-0)).
+Two of the three are described as reachable by **unauthenticated clients**; one requires a **malicious server** at login. No independent severity scoring unless an advisory supplies it: these primaries do not add CVSS here ([PostgreSQL news](https://www.postgresql.org/about/news/pgbouncer-1260-released-fixes-three-cves-3385/), [pgbouncer.org](https://www.pgbouncer.org/2026/09/pgbouncer-1-26-0)).
 
 ## Release-notes ops (not CVE claims)
 
 Also in **1.26.0** ([pgbouncer.org](https://www.pgbouncer.org/2026/09/pgbouncer-1-26-0)):
 
-- **`pool_idle_timeout`** — idle-server timeout
+- **`pool_idle_timeout`**: idle-server timeout
 - **`query_wait_timeout`** can be set **per user and per database**
 - Tracks **`search_path`** and **`default_transaction_read_only`** by default
 - Meson build support
@@ -59,4 +60,4 @@ Also in **1.26.0** ([pgbouncer.org](https://www.pgbouncer.org/2026/09/pgbouncer-
 
 ## Who should care
 
-Teams running Postgres through PgBouncer should upgrade to **1.26.0** per the [PostgreSQL news](https://www.postgresql.org/about/news/pgbouncer-1260-released-fixes-three-cves-3385/) and [project post](https://www.pgbouncer.org/2026/09/pgbouncer-1-26-0)—treat the three IDs as **DoS** only, skip inventing severity or exploit detail, and note the new idle/wait timeout knobs from the release notes.
+Teams running Postgres through PgBouncer should upgrade to **1.26.0** per the [PostgreSQL news](https://www.postgresql.org/about/news/pgbouncer-1260-released-fixes-three-cves-3385/) and [project post](https://www.pgbouncer.org/2026/09/pgbouncer-1-26-0). Treat the three IDs as **DoS** only, skip inventing severity or exploit detail, and note the new idle/wait timeout knobs from the release notes.

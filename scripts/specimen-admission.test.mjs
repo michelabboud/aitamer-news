@@ -402,6 +402,35 @@ test('old unresolved pre-PR requests remain discoverable beyond a thousand newer
 
 const STATE_ENV={...ENV,GITHUB_SHA:BASE,GITHUB_RUN_ID:'500',SPECIMEN_STATE_RULESET_ID:'24488522'};
 const stateOf=(overrides={})=>({schemaVersion:1,repository:REPO,policySHA:BASE,cursor:10,pending:[],...overrides});
+test('invalid owner recovery is held durably without retrying its provenance',async()=>{
+  const api=new API();api.runs=[run(10,{conclusion:'failure',display_title:`Specimen request pr=7 head=${SOURCE} recovery=9`})];
+  const index=memoryIndex(stateOf({pending:[{id:10,status:'pending',reason:''}]}));
+  await assert.rejects(indexedSweep(api,STATE_ENV,index),/protected state retained/);
+  assert.deepEqual(index.get().state.pending,[{id:10,status:'held',reason:'owner request unexpectedly claims recovery'}]);
+  api.calls=[];await indexedSweep(api,STATE_ENV,index);
+  assert.ok(!api.calls.some(call=>call.path==='/actions/runs/10'));
+  assert.deepEqual(api.mutations(),[]);
+});
+
+test('missing exact proof holds merged history but keeps open or API failures pending',async()=>{
+  for(const variant of ['merged','open','api']) {
+    const api=new API();
+    api.prs[0]=generatedPR({merged:variant!=='open',state:variant==='open'?'open':'closed',merge_commit_sha:MERGE});
+    const index=memoryIndex(stateOf({pending:[{id:10,status:'pending',reason:''}]}));
+    const error=new Error('no successful trusted-main allocation proof for this exact base/head');
+    if(variant==='api') error.status=503;
+    const options={...index,completed:async()=>false,finalizeRun:(_api,env)=>finalize(_api,env,finalDependencies({proofFor:async()=>{throw error;}}))};
+    await assert.rejects(indexedSweep(api,STATE_ENV,options),/protected state retained/);
+    assert.equal(index.get().state.pending[0].status,variant==='merged'?'held':'pending');
+    if(variant==='merged') {
+      let discoveries=0;
+      await indexedSweep(api,STATE_ENV,{...index,completed:async()=>assert.fail('held history cannot claim completion'),finalizeRun:async()=>assert.fail('held history cannot finalize'),discover:async(_api,_env,{pending})=>{discoveries++;assert.equal(pending[0].status,'held');}});
+      assert.equal(discoveries,1);
+    }
+    assert.deepEqual(api.mutations(),[]);
+  }
+});
+
 function memoryIndex(initial) {
   let record={head:initial ? HEAD : null,state:structuredClone(initial ?? stateOf({cursor:0}))};
   const writes=[];
@@ -682,4 +711,31 @@ test('malformed trusted PR or deployment creation dates fail closed without disp
     await assert.rejects(reconcileDeployment(invalidRun,generatedPR({merged:true,merge_commit_sha:MERGE}),{now:NOW}),/invalid.*timestamp/);
     assert.deepEqual(invalidRun.mutations(),[]);
   }
+});
+
+
+test('GitHub retries transient GET transport failures without changing credentials or redirect policy', async () => {
+  let calls=0;
+  const client=new GitHub(REPO,'read-token',async(_address,options)=>{
+    calls++; assert.equal(options.redirect,'error'); assert.equal(options.headers.Authorization,'Bearer read-token');
+    if(calls<3) throw new TypeError('fetch failed',{cause:Object.assign(new Error('socket closed'),{code:'UND_ERR_SOCKET'})});
+    return new Response('{"id":7}',{status:200});
+  });
+  assert.deepEqual(await client.request('/pulls/7'),{id:7}); assert.equal(calls,3);
+});
+
+test('GitHub bounds GET retries and reports endpoint and transport code', async () => {
+  let calls=0;
+  const client=new GitHub(REPO,'secret-read-token',async()=>{calls++;throw new TypeError('fetch failed',{cause:Object.assign(new Error('closed'),{code:'ECONNRESET'})});});
+  await assert.rejects(client.request('/pulls/7?private=never-log'),error=> /GET \/pulls\/7/.test(error.message) && /ECONNRESET/.test(error.message) && !/secret|private|never-log/.test(error.message));
+  assert.equal(calls,3);
+});
+
+test('GitHub never retries writes, HTTP rejection, or forbidden redirects', async () => {
+  for(const [method,failure] of [['POST',new TypeError('fetch failed',{cause:{code:'ECONNRESET'}})],['GET',new TypeError('fetch failed',{cause:{code:'UND_ERR_REDIRECT'}})]]) {
+    let calls=0; const client=new GitHub(REPO,'read',async()=>{calls++;throw failure;},'writer');
+    await assert.rejects(client.request('/pulls',method)); assert.equal(calls,1);
+  }
+  let calls=0;const client=new GitHub(REPO,'read',async()=>{calls++;return new Response('{}',{status:403});});
+  await assert.rejects(client.request('/pulls/7'),/403/);assert.equal(calls,1);
 });

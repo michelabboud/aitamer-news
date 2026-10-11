@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { editorialDigest, planAdmission } from './specimen-admission-data.mjs';
+import { CandidateAdmissionError, editorialDigest, planAdmission } from './specimen-admission-data.mjs';
 import { inspectSpecimenChanges, verifyAdmissionProof, SPECIMEN_LEDGER } from './specimen-integrity.mjs';
 import { parseNameStatus, parseHeadModes, isGrokBranch, isQuillBranch, quillPostProblems } from './check-publisher-paths.mjs';
 import { readFrontmatter } from './frontmatter.mjs';
@@ -36,6 +36,9 @@ const FINALIZER_PATH = '.github/workflows/specimen-finalize.yml';
 const MAX_STATE_BYTES = 1024 * 1024;
 const MAX_PENDING_RUNS = 10000;
 const PAGE_SIZE = 100;
+const READ_TRANSPORT_ATTEMPTS = 3;
+const READ_RETRY_DELAY_MS = 250;
+const TRANSIENT_TRANSPORT_CODES = new Set(['ECONNRESET','EPIPE','ETIMEDOUT','EAI_AGAIN','ECONNREFUSED','UND_ERR_SOCKET','UND_ERR_CONNECT_TIMEOUT','UND_ERR_HEADERS_TIMEOUT','UND_ERR_BODY_TIMEOUT']);
 const MAX_BLOB_BYTES = 1024 * 1024;
 const MAX_RECOVERY_ATTEMPTS = 3;
 const MAX_RECOVERY_DEPTH = 8;
@@ -345,7 +348,22 @@ export class GitHub {
     const privileged = method!=='GET' && !path.startsWith('/actions/') && !path.startsWith('/check-runs');
     const token = privileged ? this.writerToken : this.token;
     if (privileged && !token) throw new Error('publishing App token required for repository writes');
-    const response = await this.fetcher(`https://api.github.com/repos/${this.repo}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(30000), headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+    let response;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        response = await this.fetcher(`https://api.github.com/repos/${this.repo}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(30000), headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+        break;
+      } catch (cause) {
+        const code = cause?.cause?.code ?? cause?.code ?? cause?.name;
+        const transient = TRANSIENT_TRANSPORT_CODES.has(code) || cause?.name === 'TimeoutError';
+        if (method !== 'GET' || !transient || attempt >= READ_TRANSPORT_ATTEMPTS) {
+          const safeCode = /^[A-Z_a-z0-9]+$/.test(code ?? '') ? code : 'transport_error';
+          throw new Error(`GitHub ${method} ${path.split('?')[0]} transport failed (${safeCode})`, { cause });
+        }
+        await new Promise(resolve => setTimeout(resolve, READ_RETRY_DELAY_MS * attempt));
+      }
+    }
+
     if (!response.ok) { const error = new Error(`GitHub ${method} ${path.split('?')[0]} failed (${response.status})`); error.status = response.status; throw error; }
     return response.status === 204 ? null : response.json();
   }
@@ -368,17 +386,21 @@ export class GitHub {
     return all;
   }
 }
-function blob(commit, path) {
+function blob(commit, path, {candidate=false}={}) {
   const ref = `${sha(commit)}:${path}`;
   const size = Number(git('cat-file', '-s', ref));
-  if (!Number.isSafeInteger(size) || size > MAX_BLOB_BYTES) throw new Error('Git blob exceeds bound');
+  if (!Number.isSafeInteger(size)) throw new Error('invalid Git blob size');
+  if (size > MAX_BLOB_BYTES) throw (candidate ? new CandidateAdmissionError('Git blob exceeds bound') : new Error('Git blob exceeds bound'));
   const raw = execFileSync('git', ['show', ref], { maxBuffer: MAX_BLOB_BYTES });
-  const text = raw.toString('utf8'); if (!raw.equals(Buffer.from(text))) throw new Error('invalid UTF-8 blob'); return text;
+  const text = raw.toString('utf8');
+  if (!raw.equals(Buffer.from(text))) throw (candidate ? new CandidateAdmissionError('invalid UTF-8 blob') : new Error('invalid UTF-8 blob'));
+  return text;
 }
 export function collectAdmission(base, source, {allowEmpty=false}={}) {
   sha(base); sha(source);
   const ancestor = git('merge-base', base, source).trim(); sha(ancestor);
   const modes = parseHeadModes(git('ls-tree', '-r', '-z', source));
+  const ancestorModes = ancestor===base ? null : parseHeadModes(git('ls-tree', '-r', '-z', ancestor));
   const changes = parseNameStatus(git('diff', '--name-status', '--no-renames', '-z', ancestor, source));
   const basePosts = new Map();
   for (const path of parseHeadModes(git('ls-tree', '-r', '-z', base)).keys()) {
@@ -390,16 +412,18 @@ export function collectAdmission(base, source, {allowEmpty=false}={}) {
   for (const change of changes) {
     if (change.path === SPECIMEN_LEDGER) continue; // Never read an untrusted ledger.
     const match = POST.exec(change.path);
-    if (!match || !['A', 'M'].includes(change.status) || modes.get(change.path) !== '100644') throw new Error(`outside admission lane: ${change.path}`);
+    if (!match || !['A', 'M'].includes(change.status) || modes.get(change.path) !== '100644') throw new CandidateAdmissionError(`outside admission lane: ${change.path}`);
     const current = basePosts.get(match[1]);
     if (ancestor !== base && current !== undefined) {
-      let old; try { old = blob(ancestor, change.path); } catch { throw new Error('post was independently added on main'); }
-      if (old !== current) throw new Error('existing article changed on main; refresh source before admission');
+      if (!ancestorModes.has(change.path)) throw new CandidateAdmissionError('post was independently added on main');
+      if (ancestorModes.get(change.path)!=='100644') throw new CandidateAdmissionError('ancestor article is not a regular source file');
+      const old=blob(ancestor, change.path);
+      if (old !== current) throw new CandidateAdmissionError('existing article changed on main; refresh source before admission');
     }
     if (change.status === 'M') existingPosts.set(match[1], { ancestor: blob(ancestor, change.path), main: basePosts.get(match[1]) ?? null });
-    candidatePosts.set(match[1], blob(source, change.path));
+    candidatePosts.set(match[1], blob(source, change.path,{candidate:true}));
   }
-  if (!candidatePosts.size && !allowEmpty) throw new Error('admission needs an article');
+  if (!candidatePosts.size && !allowEmpty) throw new CandidateAdmissionError('admission needs an article');
   const plan = planAdmission({ basePosts, candidatePosts, ledgerText: blob(base, SPECIMEN_LEDGER) });
   return { ...plan, candidatePosts, existingPosts, changes };
 }
@@ -712,7 +736,7 @@ function exactKeys(value, keys) {
 function heldApproval(error) {
   // Transport/API errors retain pending status. Only controller safety and
   // explicit owner-approval failures stop expensive automatic reconciliation.
-  return !error.status && /approval withdrawn|approval source rebound|review revoked|editorial content changed|approved content changed|independent source identity changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
+  return !error.status && (error.message==='owner request unexpectedly claims recovery' || /approval withdrawn|approval source rebound|review revoked|editorial content changed|approved content changed|independent source identity changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message));
 }
 export function validateState(state, repo) {
   if (!exactKeys(state,['schemaVersion','repository','policySHA','cursor','pending']) || state.schemaVersion!==STATE_SCHEMA || state.repository!==repo || !SHA.test(state.policySHA ?? '') || !Number.isSafeInteger(state.cursor) || state.cursor<0 || !Array.isArray(state.pending) || state.pending.length>MAX_PENDING_RUNS) throw new Error('invalid protected reconciliation state');
@@ -816,7 +840,14 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
   for (const {pr,review,independent} of candidates) {
     if (independent) {
       const base=sha((await api.request('/git/ref/heads/main')).object.sha),source=sha(pr.head.sha);
-      fetchCommits(base,source);const sourcePlan=collect(base,source);
+      fetchCommits(base,source);
+      let sourcePlan;
+      try { sourcePlan=collect(base,source); }
+      catch(error) {
+        if(!(error instanceof CandidateAdmissionError)) throw error;
+        console.log(`${independentLane(pr,api.repo)==='quill' ? 'Quill' : 'Grok'} PR #${pr.number} refused: ${error.message}`);
+        continue;
+      }
       if (independentLane(pr,api.repo)==='quill') {
         const problems=quillAdmissionProblems(sourcePlan);
         if (problems.length) { console.log(`::warning::Quill PR #${pr.number} held, not dispatched: ${problems.join('; ')}`);continue; }
@@ -957,7 +988,11 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
         observed=await save(api,observed,state,env);
       }
     } catch(error) {
-      const held=heldApproval(error);
+      // A merged historical head cannot acquire this run's missing exact
+      // certificate through retry. Preserve the request as held, without
+      // claiming its content was verified or its deployment completed. Open
+      // heads and API failures remain eligible for normal reconciliation.
+      const held=heldApproval(error) || (!error.status && (pr?.merged_at || pr?.merged) && error.message==='no successful trusted-main allocation proof for this exact base/head');
       if (held) {
         for (const candidate of candidates) { candidate.entry.status='held'; candidate.entry.reason=error.message.slice(0,300).replace(/[\r\n]/g,' '); }
         observed=await save(api,observed,state,env);

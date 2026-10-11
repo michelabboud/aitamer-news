@@ -14,6 +14,11 @@ test('allocates solely from historical maximum, retaining exact ledger prefix an
   assert.equal(stripSpecimen(result.posts.get('new')).text, stripSpecimen(text).text);
 });
 
+test('candidate refusal has a distinct type while invalid trusted baseline stays fatal',()=>{
+  assert.throws(()=>run([['new','malformed frontmatter']]),error=>error.name==='CandidateAdmissionError');
+  assert.throws(()=>run([['new','malformed frontmatter']],{...baseline(),ledgerText:'invalid ledger'}),error=>error.name!=='CandidateAdmissionError');
+});
+
 test('batch assignment orders by pubDate then slug, independently of Map order', () => {
   const result = run([['z', article()], ['a', article()], ['early', article({ date: '2026-10-04T12:00:00Z' })]]);
   assert.equal(result.ledgerText.slice(baseline().ledgerText.length), '0010 early\n0011 a\n0012 z\n');

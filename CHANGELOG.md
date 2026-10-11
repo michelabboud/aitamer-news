@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.86 · 2026-10-11
+
+Resolve PR 248 against current main, preserving the disabled Quill App lane and terminal-hold/candidate-isolation reliability safeguards. Quill byline checks retain both ancestor and current-main article text; submitted blobs retain typed candidate rejection while trusted data and infrastructure failures stay fatal. No identity activation, content or ledger changes.
+
+## 0.2.85 · 2026-10-11
+Repair admission availability for subsequent owner-backed and Grok PRs.
+- Preserve invalid owner-recovery attempts and superseded merged proof attempts as durable holds; open missing certificates and API failures stay pending.
+- Reject malformed Grok candidate data independently so later valid owner/Grok requests can be discovered; trusted baseline and infrastructure failures remain visible.
+- Add failing-first regression tests for terminal holds, both discovery lanes and failure classification. Keep exact approval, numbering, digest, strict current-base and certificate safeguards unchanged.
+
+## 0.2.84 · 2026-10-11
+Recover publication reads with up to three transport attempts for GET only and sanitized endpoint/code diagnostics. Check due posts every ten minutes for the separate news timeline; evergreen slots remain thirty minutes apart. Unpublished PRs 244, 245 and 249 rescheduled before admission. Version 0.2.83 is reserved by the existing Quill App-lane PR 248.
+
 ## 0.2.83 — 2026-10-11
 
 - Add the Quill App content lane (ADR 0036, `docs/guides/quill-posting.md`): `quill/*` pull requests from a dedicated `aitamer-quill-posts` App are numbered, certified and merged like Grok's, with no owner review, so the owner is no longer blocked from approving his own agent's batches. Fail closed: the publisher guard needs repository variable `QUILL_ACTOR_ID` (unset closes the lane) and trusted admission needs the id pinned in `laneActors.quill`, which ships `null`, so nothing changes until the owner creates the App.

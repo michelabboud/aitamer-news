@@ -91,7 +91,7 @@ function repository(t, { baseAuthor = 'quill', sourceAuthor = 'quill', modify = 
       throw new Error(`unexpected request ${method} ${path}`);
     },
   };
-  return { api, dispatched, base, source, env: { MAINTAINER_ID: String(OWNER) } };
+  return { api, dispatched, base, source, git, env: { MAINTAINER_ID: String(OWNER) } };
 }
 const dependencies = { fetchCommits: () => {} };
 const withQuillPinned = (t) => { laneActors.quill = QUILL; t.after(() => { laneActors.quill = null; }); };
@@ -131,6 +131,42 @@ test('a pinned Quill PR that corrects its own earlier article is dispatched', as
   withQuillPinned(t);
   const f = repository(t, { modify: true });
   assert.equal(await discoverApprovedRequests(f.api, f.env, dependencies), 'dispatched');
+});
+
+for (const fault of ['malformed', 'oversize', 'utf8']) for (const lane of ['quill', 'grok']) test(`${fault} older Quill does not starve ${lane} discovery`, async (t) => {
+  withQuillPinned(t);
+  const f = repository(t);
+  f.git('switch', '-q', '-c', 'quill/invalid', f.base);
+  writeFileSync('src/content/posts/bad.md', fault === 'malformed' ? 'not frontmatter' : fault === 'oversize' ? 'x'.repeat(1024 * 1024 + 1) : Buffer.from([255]));
+  f.git('add', '.'); f.git('commit', '-qm', 'invalid producer input');
+  const badHead = f.git('rev-parse', 'HEAD');
+  f.git('switch', '-q', 'main');
+  const bad = prOf({ number: 6, head: { sha: badHead, ref: 'quill/invalid', repo: { full_name: REPO } } });
+  const good = prOf({ user: { id: lane === 'quill' ? QUILL : GROK, type: 'Bot' }, head: { sha: f.source, ref: `${lane}/article`, repo: { full_name: REPO } } });
+  f.api.list = async (path) => path.startsWith('/pulls?state=open') ? [bad, good] : [];
+  const request = f.api.request.bind(f.api);
+  f.api.request = async (path, ...args) => path === '/pulls/7' ? good : request(path, ...args);
+  assert.equal(await discoverApprovedRequests(f.api, f.env, dependencies), 'dispatched');
+  assert.deepEqual(f.dispatched, [{ ref: 'main', inputs: { pr_number: '7', head_sha: f.source, review_id: '0', same_pr: 'true', recovery_run: '0' } }]);
+});
+
+test('Quill discovery propagates infrastructure failures without dispatch', async (t) => {
+  withQuillPinned(t);
+  const f = repository(t);
+  await assert.rejects(discoverApprovedRequests(f.api, f.env, { ...dependencies, collect: () => { throw new Error('Git read failed'); } }), /Git read failed/);
+  assert.deepEqual(f.dispatched, []);
+});
+
+for (const fault of ['oversize', 'utf8']) test(`trusted ${fault} baseline stays fatal during Quill discovery`, async (t) => {
+  withQuillPinned(t);
+  const f = repository(t);
+  writeFileSync('src/content/posts/old.md', fault === 'oversize' ? 'x'.repeat(1024 * 1024 + 1) : Buffer.from([255]));
+  f.git('add', '.'); f.git('commit', '-qm', 'invalid trusted fixture');
+  const current = f.git('rev-parse', 'HEAD');
+  const request = f.api.request.bind(f.api);
+  f.api.request = async (path, ...args) => path === '/git/ref/heads/main' ? { object: { sha: current } } : request(path, ...args);
+  await assert.rejects(discoverApprovedRequests(f.api, f.env, dependencies), error => error.name !== 'CandidateAdmissionError' && /Git blob exceeds bound|invalid UTF-8 blob/.test(error.message));
+  assert.deepEqual(f.dispatched, []);
 });
 
 test('certification re-checks the byline: an already-requested Quill head with a non-quill article is refused at the validity gate', async (t) => {

@@ -1,5 +1,14 @@
 # Progress
 
+## 0.2.86 · 2026-10-11 · Quill PR 248 conflict repair
+Current main merged into the Quill App-lane branch with terminal holds, typed producer-candidate rejection and Quill ancestor/current-main byline checks preserved. The identity remains unpinned and disabled. Focused 183/183 and full 1025/1025 tests passed; production build, post/media and built-output checks passed. Independent review, branch push/checkpoint and remote CI remain separate pending steps. [Resolution report](docs/reports/2026-10-11-quill-pr248-conflict-resolution.md).
+
+## 0.2.85 · 2026-10-11 · next publication reliability
+Both lane permissions and strict Actions-bound check rules verified live. Focused regression repairs isolate permanent historical holds and malformed Grok candidates. Source and regression evidence are in the linked plan and ADR0037; full automated validation, independent review, CI and live post-merge reconciliation are separate gates.
+
+## Publishing recovery · 2026-10-11
+Michel authorized agents to merge the repaired publishing PRs after checks. Quill batches rescheduled into nineteen future non-conflicting half-hour slots; Grok tutorial rescheduled separately to 10:07 UTC. Exact-head admission runs started. Repeated runner read failures have not reproduced locally; GET retries and endpoint diagnostics address transport recovery while preserving write and approval safeguards.
+
 ## Where the site is (2026-09-25)
 
 - **Live:** https://aitamer.news (Cloudflare Pages). A push to `main` deploys it. The GitHub Pages copy is retired: its workflow was disabled on 2026-09-25 and the last copy there is stale.

@@ -38,3 +38,5 @@
 
 - [Independent Grok numbering](0035-independent-grok-numbering.md) — accepted 2026-10-06; authorized Grok submissions start numbering automatically without owner editorial approval.
 - [Quill App content pull requests](0036-quill-app-content-pull-requests.md) — accepted for implementation 2026-10-11; a `quill/` lane like Grok's, numbered and merged without owner review, with the byline bound to `quill` and an owner kill switch.
+
+- [Isolate terminal admission failures](0037-isolate-terminal-admission-failures.md) — preserve irrecoverable historical attempts as held; refuse malformed candidates without starving later valid requests; infrastructure and trusted-baseline failures remain visible.

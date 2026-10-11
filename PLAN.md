@@ -24,3 +24,12 @@ When a plan is written it goes under `docs/plans/YYYY-MM-DD-slug.md` and gets a 
 | [Grok App content pull requests](docs/plans/2026-10-05-grok-app-pr-access.md) | Admit the dedicated Grok App's content PRs from same-repository grok/ branches with append-only specimen history | running; focused tests passed, repository gates/review/PR pending; merge requires explicit owner authorization | 2026-10-05 | 2026-10-05 (Michel) | 2026-10-05 |
 
 | [Workflow-owned specimens](docs/plans/2026-10-05-workflow-owned-specimens.md) | Workflow alone numbers all producers' posts and appends ledger; writers/Desk/bots choose Habitat | planning requested 2026-10-05; Habitat contract confirmed; implementation not started | 2026-10-05 | plan only (Michel) | 2026-10-05 |
+
+## Publishing recovery · 2026-10-11 · running
+Michel authorized publication repair and merging. [Plan](docs/plans/2026-10-11-publishing-recovery.md).
+
+## Next publication reliability · 2026-10-11 · running
+Michel authorized verifying and repairing both owner-backed and automatic Grok publication. [Plan](docs/plans/2026-10-11-next-publication-reliability.md).
+
+## Quill App lane · 2026-10-11 · PR 248 conflict repair
+Michel requested resolving PR 248's conflicts. The merge candidate preserves the disabled App route from [ADR 0036](docs/adr/0036-quill-app-content-pull-requests.md) and main's publication reliability fixes. Local checks passed at 0.2.86; independent review, branch push/checkpoint and remote CI are pending. The coordinator may merge the PR after accepted reviews and exact-head remote checks under Michel's subsequent instruction. App creation, identity pinning and activation remain outside this task. [Resolution report](docs/reports/2026-10-11-quill-pr248-conflict-resolution.md).
