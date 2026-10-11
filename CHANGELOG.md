@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.84 · 2026-10-11
+Recover publication reads with up to three transport attempts for GET only and sanitized endpoint/code diagnostics. Check due posts every ten minutes for the separate news timeline; evergreen slots remain thirty minutes apart. Unpublished PRs 244, 245 and 249 rescheduled before admission. Version 0.2.83 is reserved by the existing Quill App-lane PR 248.
+
 ## 0.2.82 — 2026-10-09
 
 - Add `scripts/stamp-hero.mjs`: a deterministic ffmpeg tool that burns `© https://aitamer.news` into the bottom-right of a 1600 x 900 hero (DejaVu Sans, 20 px, 24 px inset, ink chosen from the picture), refuses an image that already carries a mark, and writes a receipt. It refuses by marker, by the exact box, and by a corner search for lettering of any size, place and ink, so a mark an image model drew itself is caught (0 false refusals on 239 old heroes, 29 of 29 model marks refused; `docs/reports/2026-10-09-stamp-detection-calibration.md`). Tests in `scripts/stamp-hero.test.mjs` need ffmpeg and fail loudly without it.

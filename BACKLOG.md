@@ -139,3 +139,5 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - 2026-10-04 · dependency audit · open (high, unpatched) — `http-cache-semantics@4.2.0`, transitive through Astro, is covered by [GHSA-ch52-4w7c-c8xp](https://github.com/advisories/GHSA-ch52-4w7c-c8xp); the primary advisory lists no patched version. Here it is used by the build-time remote-image cache, and the published Pages artifact has no Node shared user/session cache runtime. Preserve the failed audit evidence and reassess when an upstream remedy is available; no clean-audit or package-release claim.
 
 - 2026-10-05 · workflow recovery review · open — Durable admission/deployment proof avoids the historical1000-item failure, but metadata discovery cost grows with repository age; design a verified outstanding-request index before operational volume makes historical scans expensive.
+
+- 2026-10-11 · publishing recovery review · open: evaluate read response-body transport recovery separately; current bounded GET retry covers fetch failures, not JSON body-consumption errors. GitHub cron remains best effort.
