@@ -19,6 +19,10 @@ wildness:
   verified: "Lifecycle terms, notice periods and dates quoted from both providers' pages, read on 2026-10-03"
   claimed: "The routine at the end is the author's advice"
 verdict: "Put every model ID your code calls in one list, and check it against the providers' deprecation pages every month."
+sunset:
+  date: "2026-11-30"
+  what: "Claude Sonnet 4.5 on the Claude API (claude-sonnet-4-5-20250929)"
+  replacement: "claude-sonnet-5-5"
 ---
 
 If your product calls a hosted model by name, that name has an end date. The providers publish it, usually months ahead. The teams that get surprised are the ones that never looked.

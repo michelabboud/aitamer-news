@@ -23,6 +23,10 @@ verdict: Update any workflow still pinned to those four ids. Enterprise accounts
 sources:
   - title: Selected models in GitHub Copilot deprecated (GitHub changelog, 2 October 2026)
     url: https://github.blog/changelog/2026-10-02-selected-models-in-github-copilot-deprecated
+sunset:
+  date: "2026-10-02"
+  what: "GitHub Copilot: Gemini 3.5 Flash, Gemini 3.6 Flash, Kimi K2.7 Code and Claude Opus 4.7"
+  replacement: "Gemini 3.8 Flash, Kimi K3 and Claude Opus 5.5"
 ---
 
 GitHub's changelog for [2 October 2026](https://github.blog/changelog/2026-10-02-selected-models-in-github-copilot-deprecated) says four models are deprecated across GitHub Copilot as of that day. The list covers Copilot Chat, inline edits, ask mode, agent mode, and code completions. GitHub's table pairs each retired model with a suggested alternative:
