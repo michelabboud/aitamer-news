@@ -719,3 +719,4 @@
 0716 a-reranker-reads-the-query-and-the-document-together-add-a-cross-encod
 0717 hyde-search-with-a-model-written-answer-instead-of-the-raw-question
 0718 grok-bot-connectors-channels
+0719 postgresql-19-ga-moves-to-nov-19
