@@ -143,3 +143,5 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - 2026-10-05 · workflow recovery review · open — Durable admission/deployment proof avoids the historical1000-item failure, but metadata discovery cost grows with repository age; design a verified outstanding-request index before operational volume makes historical scans expensive.
 
 - 2026-10-11 · publishing recovery review · open: evaluate read response-body transport recovery separately; current bounded GET retry covers fetch failures, not JSON body-consumption errors. GitHub cron remains best effort.
+
+- Quill activation gate (PR248 reviews, 2026-10-11): `QUILL_ACTOR_ID` unsetting is not an admission kill switch once the trusted code pin is enabled. Resolve the guard/observation bypass and misleading guide before activation; currently `QUILL_ACTOR=null`, so disabled. Reviews: `docs/reviews/2026-10-11-quill-pr248-conflict-resolution.md`.
