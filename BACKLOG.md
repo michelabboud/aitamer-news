@@ -1,5 +1,7 @@
 # Backlog
 
+- 2026-10-11 · PR 248 conflict verification · open, outside conflict-fix scope — `check:posts` warns about the unchanged working-note paragraph in `made-on-youtube-2026-gemini-ask-studio.md`. Its reader-text checker and article bytes equal current main; its two existing iframe grandfather exceptions also remain. Preserve published content pending a separately scoped editorial repair.
+
 - 2026-10-06 · workflow runtime refresh · open — Verify fresh exact-head remote CI for Michel's Ubuntu26.04 trial, trusted-main checks after normal merge and actual Cloudflare deployment during/after the hosted-runner incident. An explicit OS label proves no provider recovery. Retain failed Check posts537/Workflow-owned numbering47 and parent0.2.75 evidence in [the report](docs/reports/2026-10-06-workflow-runtime-refresh.md).
 - 2026-10-06 · workflow runtime refresh · observed, outside scoped task — The local `dev:contact` command in package.json still pins Wrangler4.139.0; only workflow deployment inputs were refreshed to4.147.0. No application package/lockfile upgrade is included.
 
@@ -141,3 +143,5 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - 2026-10-05 · workflow recovery review · open — Durable admission/deployment proof avoids the historical1000-item failure, but metadata discovery cost grows with repository age; design a verified outstanding-request index before operational volume makes historical scans expensive.
 
 - 2026-10-11 · publishing recovery review · open: evaluate read response-body transport recovery separately; current bounded GET retry covers fetch failures, not JSON body-consumption errors. GitHub cron remains best effort.
+
+- Quill activation gate (PR248 reviews, 2026-10-11): `QUILL_ACTOR_ID` unsetting is not an admission kill switch once the trusted code pin is enabled. Resolve the guard/observation bypass and misleading guide before activation; currently `QUILL_ACTOR=null`, so disabled. Reviews: `docs/reviews/2026-10-11-quill-pr248-conflict-resolution.md`.

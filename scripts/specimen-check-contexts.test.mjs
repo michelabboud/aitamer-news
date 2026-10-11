@@ -55,6 +55,7 @@ test('push checks isolate generated refs and retain ordinary branch check names'
   const {workflow,key}=workflows.find(w=>w.file==='check-posts.yml');
   assert.equal(jobName(workflow.jobs[key],key,{branch:'specimens/run-123',event:'push'}),'check-observation');
   assert.equal(jobName(workflow.jobs[key],key,{branch:'grok/article',event:'push'}),'check-observation');
+  assert.equal(jobName(workflow.jobs[key],key,{branch:'quill/article',event:'push'}),'check-observation');
   assert.equal(jobName(workflow.jobs[key],key,{branch:'fix/site',event:'push'}),'check');
   assert.equal(jobName(workflow.jobs[key],key,{branch:'feature/manual-article',event:'push',sender:334982782}),'check-observation');
 });
@@ -62,6 +63,8 @@ test('push checks isolate generated refs and retain ordinary branch check names'
 test('same-PR source namespaces and manual labels isolate all contexts without granting required success',()=>{
   for (const fixture of [
     {branch:'grok/article',author:999},
+    {branch:'quill/article',author:999},
+    {branch:'quill/spoof',headRepository:'fork/site',author:999},
     {branch:'desk/posts-editor-0123456789abcdef-article'},
     {branch:'feature/manual-article',labels:['workflow-numbering']},
     {branch:'grok/spoof',headRepository:'fork/site',author:999},
@@ -83,7 +86,7 @@ test('review wake has no checkout, secrets, API access or mutation permission',(
 test('control-state pushes are excluded while generated and ordinary source branches stay checked',()=>{
   const {workflow}=workflows.find(w=>w.file==='check-posts.yml');
   assert.deepEqual(workflow.on.push['branches-ignore'],['main','specimens/state']);
-  for (const branch of ['specimens/run-123','grok/article','fix/site']) assert.ok(!workflow.on.push['branches-ignore'].includes(branch));
+  for (const branch of ['specimens/run-123','grok/article','quill/article','fix/site']) assert.ok(!workflow.on.push['branches-ignore'].includes(branch));
 });
 
 test('observation naming does not add branch skips, permissions or producer exceptions',()=>{

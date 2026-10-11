@@ -30,3 +30,6 @@ Michel authorized publication repair and merging. [Plan](docs/plans/2026-10-11-p
 
 ## Next publication reliability · 2026-10-11 · running
 Michel authorized verifying and repairing both owner-backed and automatic Grok publication. [Plan](docs/plans/2026-10-11-next-publication-reliability.md).
+
+## Quill App lane · 2026-10-11 · PR 248 conflict repair
+Michel requested resolving PR 248's conflicts. The merge candidate preserves the disabled App route from [ADR 0036](docs/adr/0036-quill-app-content-pull-requests.md) and main's publication reliability fixes. Local checks passed at 0.2.86; independent review, branch push/checkpoint and remote CI are pending. The coordinator may merge the PR after accepted reviews and exact-head remote checks under Michel's subsequent instruction. App creation, identity pinning and activation remain outside this task. [Resolution report](docs/reports/2026-10-11-quill-pr248-conflict-resolution.md).

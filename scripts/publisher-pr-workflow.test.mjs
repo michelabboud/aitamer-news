@@ -89,6 +89,7 @@ test('article observations install trusted main dependencies without install scr
 
 test('the Grok check gets trusted repository metadata and installs no proposal dependencies', () => {
   assert.equal(check.env.GROK_ACTOR_ID, '${{ vars.GROK_ACTOR_ID }}');
+  assert.equal(check.env.QUILL_ACTOR_ID, '${{ vars.QUILL_ACTOR_ID }}', 'unsetting this repository variable closes the Quill lane');
   assert.equal(check.env.PR_HEAD_REPO, '${{ github.event.pull_request.head.repo.full_name }}');
   assert.equal(check.env.PR_BASE_REPO, '${{ github.repository }}');
   const run = runInstall({ POSTS_ACTOR_ID: POSTS, PR_AUTHOR_ID: '9900003' });
@@ -124,4 +125,12 @@ test('every other pull request installs nothing: another author, the variable un
 test('a failed install fails the step', () => {
   const run = runInstall({ POSTS_ACTOR_ID: POSTS, PR_AUTHOR_ID: POSTS, STUB_NPM_EXIT: '1' });
   assert.equal(run.status, 1);
+});
+
+test('quill/ pull requests are observed like grok/ ones: same names, and the install step runs for them', () => {
+  const job = yaml.load(readFileSync(WORKFLOW, 'utf8')).jobs['publisher-paths'];
+  const quill = /startsWith\(github\.event\.pull_request\.head\.ref, 'quill\/'\)/;
+  assert.match(String(install.env.ADMISSION_OBSERVATION), quill);
+  assert.match(String(check.env.ADMISSION_OBSERVATION), quill);
+  assert.match(job.name, quill);
 });

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: Authorized Grok or owner-reviewed source PR
+        description: Authorized Grok or Quill App PR, or owner-reviewed source PR
         required: true
         type: string
       head_sha:
@@ -22,7 +22,7 @@ on:
         default: 'true'
         type: string
       review_id:
-        description: Zero for authorized Grok numbering; exact owner review for other producers
+        description: Zero for authorized Grok or Quill numbering; exact owner review for other producers
         required: false
         default: '0'
         type: string
