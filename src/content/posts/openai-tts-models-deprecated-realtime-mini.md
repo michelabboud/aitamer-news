@@ -39,6 +39,10 @@ sources:
     url: https://developers.openai.com/api/docs/models/gpt-audio-mini
   - title: "WebRTC vs WebSockets for voice agents"
     url: https://aitamer.news/posts/webrtc-vs-websockets-for-voice/
+sunset:
+  date: "2027-01-06"
+  what: "OpenAI API: tts-1, tts-1-hd and the gpt-4o-mini-tts snapshots dated 2025-03-20 and 2025-12-15"
+  replacement: "gpt-realtime-2.1-mini (requires a realtime migration)"
 ---
 
 OpenAI's [deprecations page](https://developers.openai.com/api/docs/deprecations) has a section dated 2026-10-01, "Text-to-speech models." It says those models "will be removed from the API on January 6, 2027," with at least three months' notice. The named replacement for all four rows is `gpt-realtime-2.1-mini`.
