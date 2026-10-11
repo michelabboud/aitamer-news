@@ -1,7 +1,7 @@
 ---
 title: Measure quantization damage with KL divergence alongside perplexity
 description: Save full-precision logits once with llama.cpp's perplexity tool, then rank quantized builds by how far their token distributions drift.
-pubDate: "2026-10-11T03:00:00Z"
+pubDate: "2026-10-11T13:30:00Z"
 section: models
 tags:
   - quantization

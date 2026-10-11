@@ -1,7 +1,7 @@
 ---
 title: A tool result must come right after the call it answers
 description: Claude rejects requests whose history leaves a tool_use without its tool_result in the next user turn. Here is the shape the API expects and a loop that keeps it.
-pubDate: "2026-10-11T02:30:00Z"
+pubDate: "2026-10-11T13:00:00Z"
 section: dev
 tags:
   - claude-api

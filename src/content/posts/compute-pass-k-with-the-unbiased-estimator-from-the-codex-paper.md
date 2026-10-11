@@ -1,7 +1,7 @@
 ---
 title: Compute pass@k with the unbiased estimator from the Codex paper
 description: Generate n samples per problem, count the passes, and compute 1 - C(n-c,k)/C(n,k). The common 1-(1-p)^k shortcut underestimates pass@k.
-pubDate: "2026-10-11T05:30:00Z"
+pubDate: "2026-10-11T16:00:00Z"
 section: dev
 tags:
   - pass-at-k

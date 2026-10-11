@@ -1,7 +1,7 @@
 ---
 title: Split one data center GPU into isolated slices with NVIDIA MIG
 description: MIG cuts a supported NVIDIA GPU into up to seven instances with their own memory, cache and compute. How to create them and pick a profile for a model server.
-pubDate: "2026-10-11T08:00:00Z"
+pubDate: "2026-10-12T01:00:00Z"
 section: devops
 tags:
   - nvidia

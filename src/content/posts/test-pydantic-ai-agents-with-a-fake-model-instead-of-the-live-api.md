@@ -1,7 +1,7 @@
 ---
 title: Test Pydantic AI agents with a fake model instead of the live API
 description: Swap TestModel or FunctionModel in for the real model and block real model requests, so Pydantic AI agent tests run fast, free and the same way every time.
-pubDate: "2026-10-11T06:30:00Z"
+pubDate: "2026-10-11T17:00:00Z"
 section: dev
 tags:
   - pydantic-ai

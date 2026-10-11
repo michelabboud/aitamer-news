@@ -1,7 +1,7 @@
 ---
 title: Budget max_tokens against the context window you have left
 description: Input and output share one context window. Count the input, give max_tokens what remains, and handle the two stop reasons that mean the answer was cut short.
-pubDate: "2026-10-11T05:00:00Z"
+pubDate: "2026-10-11T15:00:00Z"
 section: dev
 tags:
   - claude-api

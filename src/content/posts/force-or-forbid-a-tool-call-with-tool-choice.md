@@ -1,7 +1,7 @@
 ---
 title: Force or forbid a tool call with tool_choice
 description: How to set tool_choice to auto, any, a named tool or none in the Claude and OpenAI APIs, and the costs of forcing a call.
-pubDate: "2026-10-11T01:00:00Z"
+pubDate: "2026-10-11T11:00:00Z"
 section: dev
 tags:
   - tool-use

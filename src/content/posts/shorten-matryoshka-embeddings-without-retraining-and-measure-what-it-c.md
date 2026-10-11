@@ -1,7 +1,7 @@
 ---
 title: Shorten Matryoshka embeddings without retraining, and measure what it costs
 description: Cut Matryoshka-trained embedding vectors to fewer dimensions, renormalize them, and measure the retrieval loss on your own queries before you commit.
-pubDate: "2026-10-11T01:30:00Z"
+pubDate: "2026-10-11T12:00:00Z"
 section: models
 tags:
   - embeddings

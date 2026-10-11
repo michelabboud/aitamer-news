@@ -1,7 +1,7 @@
 ---
 title: "Write a first Inspect eval: dataset, solver chain and scorer"
 description: Build a three-sample Inspect task with a solver chain and a built-in scorer, run it with inspect eval, and read the log to tell a wrong answer from a format mismatch.
-pubDate: "2026-10-11T07:00:00Z"
+pubDate: "2026-10-12T00:30:00Z"
 section: dev
 tags:
   - inspect

@@ -1,7 +1,7 @@
 ---
 title: Strict schemas accept only part of JSON Schema
 description: Before you reuse a JSON Schema with strict structured outputs, audit it against the supported keywords and move the rules that do not fit into your own validation code.
-pubDate: "2026-10-11T04:00:00Z"
+pubDate: "2026-10-11T14:30:00Z"
 section: dev
 tags:
   - structured-outputs
