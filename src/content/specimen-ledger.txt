@@ -699,3 +699,12 @@
 0696 ultra-62m-robots-as-a-service-physical-intelligence
 0697 anthropic-unintended-model-actions
 0698 grok-bot-routines-scheduler
+0699 fail-a-pull-request-when-prompt-tests-regress-with-promptfoo
+0700 where-set-e-does-not-stop-a-bash-script-and-what-pipefail-adds
+0701 choose-the-debugger-behind-breakpoint-with-pythonbreakpoint
+0702 inspect-a-running-python-process-with-py-spy
+0703 turn-perf-samples-into-a-cpu-flame-graph
+0704 a-safety-classifier-can-check-both-the-prompt-and-the-reply
+0705 npm-ci-installs-exactly-what-the-lockfile-says-or-fails
+0706 a-reranker-reads-the-query-and-the-document-together-add-a-cross-encod
+0707 hyde-search-with-a-model-written-answer-instead-of-the-raw-question
