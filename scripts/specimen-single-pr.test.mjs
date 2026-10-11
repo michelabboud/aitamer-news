@@ -136,6 +136,25 @@ test('automatic owner approval dispatches once and queued/cancelled attempts rem
   assert.equal(f.api.mutations().at(-1).body.inputs.head_sha,f.source);assert.equal(f.api.mutations().at(-1).body.inputs.review_id,'1');
 });
 
+for(const lane of ['grok','owner']) test(`malformed older Grok does not starve ${lane} discovery after historical holds`,async t=>{
+  const f=fixture(t);if(lane==='grok') independent(f);
+  f.api.runs=[];
+  const badHead=f.commit(f.tree(f.git('show','-s','--format=%T',f.base),[{path:'src/content/posts/bad.md',mode:'100644',content:'not frontmatter'}]),[f.base],'malformed producer submission');
+  const bad={...structuredClone(f.api.pr),number:6,user:{id:GROK,type:'Bot'},head:{...structuredClone(f.api.pr.head),sha:badHead,ref:'grok/bad'}};
+  const list=f.api.list.bind(f.api);f.api.list=async path=>path==='/pulls?state=open&sort=created&direction=asc'?[bad,structuredClone(f.api.pr)]:list(path);
+  const pending=[{id:99,status:'held',reason:'owner request unexpectedly claims recovery'}];
+  const state={schemaVersion:1,repository:REPO,policySHA:f.base,cursor:0,pending};
+  await sweep(f.api,f.env,{load:async()=>({head:f.base,state}),save:async()=>assert.fail('unchanged historical holds need no write'),discover:(api,env,options)=>discoverApprovedRequests(api,env,{...options,...dependencies}),finalizeRun:async()=>assert.fail('held history must not finalize'),recover:async()=>assert.fail('held history must not recover')});
+  assert.equal(f.api.mutations().length,1);assert.equal(f.api.mutations()[0].body.inputs.pr_number,'7');
+  assert.equal(f.api.mutations()[0].body.inputs.review_id,lane==='grok'?'0':'1');
+});
+
+test('Grok discovery propagates generic infrastructure failures without dispatch',async t=>{
+  const f=independent(fixture(t));f.api.runs=[];
+  await assert.rejects(discoverApprovedRequests(f.api,f.env,{...dependencies,collect:()=>{throw new Error('Git read failed');}}),/Git read failed/);
+  assert.deepEqual(f.api.mutations(),[]);
+});
+
 test('closed, draft, fork, moved, stale and non-owner reviews do not launch automatic admission',async t=>{
   const f=fixture(t);
   for(const mutate of [api=>api.pr.state='closed',api=>api.pr.draft=true,api=>api.pr.head.repo.full_name='fork/site',api=>api.pr.base.ref='feature',api=>api.wakes=[],api=>api.reviews[0].user.id=999,api=>api.reviews[0].state='DISMISSED']) {

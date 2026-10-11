@@ -1,5 +1,8 @@
 # Progress
 
+## 0.2.85 · 2026-10-11 · next publication reliability
+Both lane permissions and strict Actions-bound check rules verified live. Focused regression repairs isolate permanent historical holds and malformed Grok candidates. Source and regression evidence are in the linked plan and ADR0037; full automated validation, independent review, CI and live post-merge reconciliation are separate gates.
+
 ## Publishing recovery · 2026-10-11
 Michel authorized agents to merge the repaired publishing PRs after checks. Quill batches rescheduled into nineteen future non-conflicting half-hour slots; Grok tutorial rescheduled separately to 10:07 UTC. Exact-head admission runs started. Repeated runner read failures have not reproduced locally; GET retries and endpoint diagnostics address transport recovery while preserving write and approval safeguards.
 

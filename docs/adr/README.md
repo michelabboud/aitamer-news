@@ -37,3 +37,5 @@
 - [Immutable owner-review source binding](0034-immutable-owner-review-source.md) — accepted 2026-10-05; event-time receipts and earliest trusted-main roots preserve approval through proven numbering when GitHub moves the REST anchor.
 
 - [Independent Grok numbering](0035-independent-grok-numbering.md) — accepted 2026-10-06; authorized Grok submissions start numbering automatically without owner editorial approval.
+
+- [Isolate terminal admission failures](0037-isolate-terminal-admission-failures.md) — preserve irrecoverable historical attempts as held; refuse malformed candidates without starving later valid requests; infrastructure and trusted-baseline failures remain visible.

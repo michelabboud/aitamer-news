@@ -27,3 +27,6 @@ When a plan is written it goes under `docs/plans/YYYY-MM-DD-slug.md` and gets a 
 
 ## Publishing recovery · 2026-10-11 · running
 Michel authorized publication repair and merging. [Plan](docs/plans/2026-10-11-publishing-recovery.md).
+
+## Next publication reliability · 2026-10-11 · running
+Michel authorized verifying and repairing both owner-backed and automatic Grok publication. [Plan](docs/plans/2026-10-11-next-publication-reliability.md).

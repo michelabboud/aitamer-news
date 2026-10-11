@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { editorialDigest, planAdmission } from './specimen-admission-data.mjs';
+import { CandidateAdmissionError, editorialDigest, planAdmission } from './specimen-admission-data.mjs';
 import { inspectSpecimenChanges, verifyAdmissionProof, SPECIMEN_LEDGER } from './specimen-integrity.mjs';
 import { parseNameStatus, parseHeadModes, isGrokBranch } from './check-publisher-paths.mjs';
 const SHA = /^[a-f0-9]{40}$/;
@@ -380,7 +380,7 @@ export function collectAdmission(base, source, {allowEmpty=false}={}) {
   for (const change of changes) {
     if (change.path === SPECIMEN_LEDGER) continue; // Never read an untrusted ledger.
     const match = POST.exec(change.path);
-    if (!match || !['A', 'M'].includes(change.status) || modes.get(change.path) !== '100644') throw new Error(`outside admission lane: ${change.path}`);
+    if (!match || !['A', 'M'].includes(change.status) || modes.get(change.path) !== '100644') throw new CandidateAdmissionError(`outside admission lane: ${change.path}`);
     const current = basePosts.get(match[1]);
     if (ancestor !== base && current !== undefined) {
       let old; try { old = blob(ancestor, change.path); } catch { throw new Error('post was independently added on main'); }
@@ -388,7 +388,7 @@ export function collectAdmission(base, source, {allowEmpty=false}={}) {
     }
     candidatePosts.set(match[1], blob(source, change.path));
   }
-  if (!candidatePosts.size && !allowEmpty) throw new Error('admission needs an article');
+  if (!candidatePosts.size && !allowEmpty) throw new CandidateAdmissionError('admission needs an article');
   const plan = planAdmission({ basePosts, candidatePosts, ledgerText: blob(base, SPECIMEN_LEDGER) });
   return { ...plan, candidatePosts, changes };
 }
@@ -701,7 +701,7 @@ function exactKeys(value, keys) {
 function heldApproval(error) {
   // Transport/API errors retain pending status. Only controller safety and
   // explicit owner-approval failures stop expensive automatic reconciliation.
-  return !error.status && /approval withdrawn|approval source rebound|review revoked|editorial content changed|approved content changed|independent source identity changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message);
+  return !error.status && (error.message==='owner request unexpectedly claims recovery' || /approval withdrawn|approval source rebound|review revoked|editorial content changed|approved content changed|independent source identity changed|retry limit|withdrawn; owner intervention|closed without merge/.test(error.message));
 }
 export function validateState(state, repo) {
   if (!exactKeys(state,['schemaVersion','repository','policySHA','cursor','pending']) || state.schemaVersion!==STATE_SCHEMA || state.repository!==repo || !SHA.test(state.policySHA ?? '') || !Number.isSafeInteger(state.cursor) || state.cursor<0 || !Array.isArray(state.pending) || state.pending.length>MAX_PENDING_RUNS) throw new Error('invalid protected reconciliation state');
@@ -805,7 +805,13 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
   for (const {pr,review,independent} of candidates) {
     if (independent) {
       const base=sha((await api.request('/git/ref/heads/main')).object.sha),source=sha(pr.head.sha);
-      fetchCommits(base,source);collect(base,source);
+      fetchCommits(base,source);
+      try { collect(base,source); }
+      catch(error) {
+        if(!(error instanceof CandidateAdmissionError)) throw error;
+        console.log(`Grok PR #${pr.number} refused: ${error.message}`);
+        continue;
+      }
       let existing=false;
       // Include historical roots so a lost dispatch response or a numbered head
       // cannot create another request. Producer corrections get a new exact root.
@@ -942,7 +948,11 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
         observed=await save(api,observed,state,env);
       }
     } catch(error) {
-      const held=heldApproval(error);
+      // A merged historical head cannot acquire this run's missing exact
+      // certificate through retry. Preserve the request as held, without
+      // claiming its content was verified or its deployment completed. Open
+      // heads and API failures remain eligible for normal reconciliation.
+      const held=heldApproval(error) || (!error.status && (pr?.merged_at || pr?.merged) && error.message==='no successful trusted-main allocation proof for this exact base/head');
       if (held) {
         for (const candidate of candidates) { candidate.entry.status='held'; candidate.entry.reason=error.message.slice(0,300).replace(/[\r\n]/g,' '); }
         observed=await save(api,observed,state,env);

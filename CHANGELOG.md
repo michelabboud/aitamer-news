@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.85 · 2026-10-11
+Repair admission availability for subsequent owner-backed and Grok PRs.
+- Preserve invalid owner-recovery attempts and superseded merged proof attempts as durable holds; open missing certificates and API failures stay pending.
+- Reject malformed Grok candidate data independently so later valid owner/Grok requests can be discovered; trusted baseline and infrastructure failures remain visible.
+- Add failing-first regression tests for terminal holds, both discovery lanes and failure classification. Keep exact approval, numbering, digest, strict current-base and certificate safeguards unchanged.
+
 ## 0.2.84 · 2026-10-11
 Recover publication reads with up to three transport attempts for GET only and sanitized endpoint/code diagnostics. Check due posts every ten minutes for the separate news timeline; evergreen slots remain thirty minutes apart. Unpublished PRs 244, 245 and 249 rescheduled before admission. Version 0.2.83 is reserved by the existing Quill App-lane PR 248.
 

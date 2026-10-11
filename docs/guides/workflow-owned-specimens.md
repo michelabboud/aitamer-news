@@ -105,3 +105,11 @@ The publishing App is also used by the existing Desk integration, so its identit
 GitHub hides ruleset bypass lists from tokens without ruleset-write access. The recovery controller therefore pins the maintainer-verified namespace ruleset ID and server update timestamp in trusted main code. It still verifies active branch enforcement and all four effective restrictions; an explicitly returned unsafe bypass list is refused. A changed timestamp stops reconciliation until the protection snapshot is reverified and updated through a reviewed code PR. Repository variables alone do not attest this snapshot. This avoids adding administrator credentials to the runtime.
 
 Closed or withdrawn source requests are held before reading Git content; revoked or superseded owner reviews become durable holds. Already-merged admissions still prove deployment. Deployment scans stop before the admitted PR creation time, preserving equal-time runs and independently verifying later deployed-head ancestry. Pending discovery and the state schema remain compatible with historical generated admissions.
+
+## Isolated terminal failures (2026-10-11)
+
+The reconciler preserves invalid owner-recovery requests as held. It also holds old merged admission attempts whose exact-head allocation proof no longer exists after a later admission superseded them. These holds are unresolved evidence, never a successful proof or a deployment claim. Their original state commits and workflow runs remain available; later sweeps skip the permanent hold and continue discovering new requests.
+
+An open PR with missing certificates remains pending and may use bounded recovery. GitHub/API/Git failures and invalid trusted baseline data remain visible failures. During automatic Grok discovery, deterministic candidate-validation rejection refuses that candidate and continues to later valid candidates; it never dispatches, numbers or merges the rejected content.
+
+Our owner-authored content PRs still require an exact-head owner dispatch (`same_pr=true`, `review_id=0`, no `recovery_run` parameter). That is editorial admission, not a merge bypass. Authorized Grok App submissions need no owner dispatch: discovery and trusted numbering are automatic. Both routes require all three current-head certificates and a normal pinned merge.
