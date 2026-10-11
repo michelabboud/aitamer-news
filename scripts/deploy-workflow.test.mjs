@@ -98,5 +98,5 @@ test('the secondary schedule checks recently due posts before dispatching the no
   assert.equal(scheduledSteps[trigger].if, "steps.due.outputs.due == 'true'", 'empty due windows cause no deployment');
   assert.equal(scheduledSteps[trigger].run, 'gh workflow run deploy-pages.yml -R michelabboud/aitamer-news --ref main');
   assert.equal(scheduledSteps[trigger].env.GH_TOKEN, '${{ secrets.GITHUB_TOKEN }}');
-  assert.deepEqual(schedule.on.schedule, [{ cron: '7,37 * * * *' }]);
+  assert.deepEqual(schedule.on.schedule, [{ cron: '7,17,27,37,47,57 * * * *' }]);
 });

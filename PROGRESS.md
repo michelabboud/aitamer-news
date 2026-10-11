@@ -1,5 +1,8 @@
 # Progress
 
+## Publishing recovery · 2026-10-11
+Michel authorized agents to merge the repaired publishing PRs after checks. Quill batches rescheduled into nineteen future non-conflicting half-hour slots; Grok tutorial rescheduled separately to 10:07 UTC. Exact-head admission runs started. Repeated runner read failures have not reproduced locally; GET retries and endpoint diagnostics address transport recovery while preserving write and approval safeguards.
+
 ## Where the site is (2026-09-25)
 
 - **Live:** https://aitamer.news (Cloudflare Pages). A push to `main` deploys it. The GitHub Pages copy is retired: its workflow was disabled on 2026-09-25 and the last copy there is stale.

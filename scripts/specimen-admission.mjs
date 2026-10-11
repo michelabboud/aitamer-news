@@ -27,6 +27,9 @@ const FINALIZER_PATH = '.github/workflows/specimen-finalize.yml';
 const MAX_STATE_BYTES = 1024 * 1024;
 const MAX_PENDING_RUNS = 10000;
 const PAGE_SIZE = 100;
+const READ_TRANSPORT_ATTEMPTS = 3;
+const READ_RETRY_DELAY_MS = 250;
+const TRANSIENT_TRANSPORT_CODES = new Set(['ECONNRESET','EPIPE','ETIMEDOUT','EAI_AGAIN','ECONNREFUSED','UND_ERR_SOCKET','UND_ERR_CONNECT_TIMEOUT','UND_ERR_HEADERS_TIMEOUT','UND_ERR_BODY_TIMEOUT']);
 const MAX_BLOB_BYTES = 1024 * 1024;
 const MAX_RECOVERY_ATTEMPTS = 3;
 const MAX_RECOVERY_DEPTH = 8;
@@ -318,7 +321,22 @@ export class GitHub {
     const privileged = method!=='GET' && !path.startsWith('/actions/') && !path.startsWith('/check-runs');
     const token = privileged ? this.writerToken : this.token;
     if (privileged && !token) throw new Error('publishing App token required for repository writes');
-    const response = await this.fetcher(`https://api.github.com/repos/${this.repo}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(30000), headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+    let response;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        response = await this.fetcher(`https://api.github.com/repos/${this.repo}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(30000), headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+        break;
+      } catch (cause) {
+        const code = cause?.cause?.code ?? cause?.code ?? cause?.name;
+        const transient = TRANSIENT_TRANSPORT_CODES.has(code) || cause?.name === 'TimeoutError';
+        if (method !== 'GET' || !transient || attempt >= READ_TRANSPORT_ATTEMPTS) {
+          const safeCode = /^[A-Z_a-z0-9]+$/.test(code ?? '') ? code : 'transport_error';
+          throw new Error(`GitHub ${method} ${path.split('?')[0]} transport failed (${safeCode})`, { cause });
+        }
+        await new Promise(resolve => setTimeout(resolve, READ_RETRY_DELAY_MS * attempt));
+      }
+    }
+
     if (!response.ok) { const error = new Error(`GitHub ${method} ${path.split('?')[0]} failed (${response.status})`); error.status = response.status; throw error; }
     return response.status === 204 ? null : response.json();
   }

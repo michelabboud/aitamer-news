@@ -2,12 +2,10 @@ name: Scheduled publish
 
 on:
   schedule:
-    # :07, not :00 — GitHub's own docs flag the top of the hour as the most popular cron
-    # minute, so jobs scheduled there queue behind everyone else's and can start late.
-    # :07 avoids that congestion and keeps this job starting close to on time.
-    # Twice an hour so a post scheduled on the hour and one on the half hour each go live in their own slot
-    # (2026-10-02, Michel: one post every 30 minutes, around the clock). :07 and :37, never :00 or :30.
-    - cron: '7,37 * * * *'
+    # Check every ten minutes for the separate news timeline. Evergreen posts
+    # retain their half-hour dates. Offset :07 avoids the busiest minute.
+    # GitHub cron may run late; this interval is not a delivery-time guarantee.
+    - cron: '7,17,27,37,47,57 * * * *'
   workflow_dispatch:
 
 permissions:

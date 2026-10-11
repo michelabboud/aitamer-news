@@ -24,3 +24,6 @@ When a plan is written it goes under `docs/plans/YYYY-MM-DD-slug.md` and gets a 
 | [Grok App content pull requests](docs/plans/2026-10-05-grok-app-pr-access.md) | Admit the dedicated Grok App's content PRs from same-repository grok/ branches with append-only specimen history | running; focused tests passed, repository gates/review/PR pending; merge requires explicit owner authorization | 2026-10-05 | 2026-10-05 (Michel) | 2026-10-05 |
 
 | [Workflow-owned specimens](docs/plans/2026-10-05-workflow-owned-specimens.md) | Workflow alone numbers all producers' posts and appends ledger; writers/Desk/bots choose Habitat | planning requested 2026-10-05; Habitat contract confirmed; implementation not started | 2026-10-05 | plan only (Michel) | 2026-10-05 |
+
+## Publishing recovery · 2026-10-11 · running
+Michel authorized publication repair and merging. [Plan](docs/plans/2026-10-11-publishing-recovery.md).

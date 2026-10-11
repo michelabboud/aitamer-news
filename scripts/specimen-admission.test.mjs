@@ -683,3 +683,30 @@ test('malformed trusted PR or deployment creation dates fail closed without disp
     assert.deepEqual(invalidRun.mutations(),[]);
   }
 });
+
+
+test('GitHub retries transient GET transport failures without changing credentials or redirect policy', async () => {
+  let calls=0;
+  const client=new GitHub(REPO,'read-token',async(_address,options)=>{
+    calls++; assert.equal(options.redirect,'error'); assert.equal(options.headers.Authorization,'Bearer read-token');
+    if(calls<3) throw new TypeError('fetch failed',{cause:Object.assign(new Error('socket closed'),{code:'UND_ERR_SOCKET'})});
+    return new Response('{"id":7}',{status:200});
+  });
+  assert.deepEqual(await client.request('/pulls/7'),{id:7}); assert.equal(calls,3);
+});
+
+test('GitHub bounds GET retries and reports endpoint and transport code', async () => {
+  let calls=0;
+  const client=new GitHub(REPO,'secret-read-token',async()=>{calls++;throw new TypeError('fetch failed',{cause:Object.assign(new Error('closed'),{code:'ECONNRESET'})});});
+  await assert.rejects(client.request('/pulls/7?private=never-log'),error=> /GET \/pulls\/7/.test(error.message) && /ECONNRESET/.test(error.message) && !/secret|private|never-log/.test(error.message));
+  assert.equal(calls,3);
+});
+
+test('GitHub never retries writes, HTTP rejection, or forbidden redirects', async () => {
+  for(const [method,failure] of [['POST',new TypeError('fetch failed',{cause:{code:'ECONNRESET'}})],['GET',new TypeError('fetch failed',{cause:{code:'UND_ERR_REDIRECT'}})]]) {
+    let calls=0; const client=new GitHub(REPO,'read',async()=>{calls++;throw failure;},'writer');
+    await assert.rejects(client.request('/pulls',method)); assert.equal(calls,1);
+  }
+  let calls=0;const client=new GitHub(REPO,'read',async()=>{calls++;return new Response('{}',{status:403});});
+  await assert.rejects(client.request('/pulls/7'),/403/);assert.equal(calls,1);
+});
