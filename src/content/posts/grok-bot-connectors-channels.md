@@ -1,7 +1,7 @@
 ---
 title: "Grok Bot plugins: connect Slack, Gmail and an inbox of its own"
 description: "The fourth Grok Bot tutorial connects plugins: where the OAuth token lives, what Slack, Gmail and Calendar can do, the new mail.grokbot.com address, and how to cut access off again."
-pubDate: "2026-10-11T06:07:00Z"
+pubDate: "2026-10-11T10:07:00Z"
 specimen: 699
 section: tools
 subsection: grok-bot
