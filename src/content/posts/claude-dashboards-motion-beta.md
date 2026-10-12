@@ -19,6 +19,10 @@ wildness:
   verified: "Claude's 8 Oct article: plans, connectors, exports, admin defaults, Design migration date"
   claimed: "The 45 million docs, decks and designs figure is Anthropic's"
 verdict: "Two beta features with clear plan limits and two GA ones. Dashboards are for quick questions with visible queries; check the SQL before a chart leaves your team."
+sunset:
+  date: "2026-12-14"
+  what: "Standalone Claude Design site (claude.ai/design)"
+  replacement: "Claude artifacts (Design and design systems)"
 sources:
   - title: "Build live dashboards and animate explainers with Claude (Claude, 8 October 2026)"
     url: https://claude.com/resources/articles/dashboards-and-motion
