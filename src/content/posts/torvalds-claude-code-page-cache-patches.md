@@ -2,6 +2,7 @@
 title: "Torvalds published a page-cache branch and named Claude Code in the commit"
 description: "Linus Torvalds published a Linux branch for small reads that skip page-cache folio refcounts. The commit says Claude Code wrote the code and the first draft, and he does not schedule a merge."
 pubDate: "2026-10-12T06:20:00Z"
+updatedDate: "2026-10-12T14:21:00Z"
 specimen: 739
 section: dev
 tags:
@@ -25,6 +26,8 @@ sources:
     url: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/log/?h=noref-filemap-read-with-llm
   - title: "Linus Torvalds Working On A Hefty Linux Kernel Improvement With Claude Code (Phoronix, Michael Larabel, 11 October 2026)"
     url: https://www.phoronix.com/news/Linus-Torvalds-Claude-Code
+  - title: "torvalds/linux.git signed tag assoc-array-fixes (Linus Torvalds, 11 October 2026)"
+    url: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tag/?h=assoc-array-fixes
 ---
 
 Linus Torvalds has a branch in his Linux repository, `noref-filemap-read-with-llm`, for a narrow kind of slowness: many threads taking small reads of one cached file. The tip, [commit 4c0f3697118eb3a708ea79175f7f07c43339bfab](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?h=noref-filemap-read-with-llm&id=4c0f3697118eb3a708ea79175f7f07c43339bfab), is dated 10 October 2026, 07:05 +0200. That commit's tree matches its parent, so the write-up is the message and the code is the eight patches underneath, dated 8 to 10 October. He names the base as 7.3-rc6 plus fixes, commit 0c2669a9f4a1. On 12 October the repository's `master` ref was a different commit, 24a19b953e2a3d0ea5a8c4951a0ab8f32720c907. The series lives on [the branch](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/log/?h=noref-filemap-read-with-llm).
@@ -54,3 +57,10 @@ He lists the testing as those runs, an eviction race, a partial-fault test, a ho
 ## Where it stands
 
 [Michael Larabel at Phoronix](https://www.phoronix.com/news/Linus-Torvalds-Claude-Code), on 11 October 2026, reported the branch and wrote that we will see whether Torvalds merges it for the Linux 7.4 window. That window is Phoronix's. The commit does not put the series on a merge schedule. The cgit pages were behind a bot check on 12 October, so the text above is from a `git fetch` of the branch. The commit was not on the GitHub mirror of torvalds/linux. A search for the subject found the 2025 fast-short-reads thread the message already cites, and no October 2026 mailing of this series.
+
+## Update, 12 October: a second LLM-assisted branch
+
+A day later Torvalds pushed a second branch with the same kind of disclosure. His signed tag [`assoc-array-fixes`](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tag/?h=assoc-array-fixes), dated 11 October 2026, 12:54 -0700, is titled "Clean up assoc_array library". The tag message says Nils Ollrogge reported a bug in the kernel's assoc_array library and sent a fix, "but that code was too obscure for me to follow, so I did what I preach: use modern LLM tools to help make sense of it all."
+
+He describes it as "an LLM-assisted branch" that splits some of the larger, hard-to-read functions. The code was then run through a user-space test harness which, the tag says, "not only confirmed the bug Nils reported, but found three other bugs too - all going back to the very first commit adding this library back in 2013." The tag does not name the tool used, so this post does not assume it was Claude Code. The cgit page was again behind a bot check, so the quotes above are from the tag object fetched with git.
+
