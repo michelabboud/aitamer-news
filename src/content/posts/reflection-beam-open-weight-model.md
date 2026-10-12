@@ -3,6 +3,7 @@ title: "Reflection introduces Beam, a 501B open-weight model, weights still ahea
 description: "Reflection's 5 October 2026 post introduces Beam, a text-only 501B mixture-of-experts model with 23B active. The blog says effective context is 1M tokens. The API docs list a 256K window."
 pubDate: "2026-10-06T06:20:00Z"
 specimen: 430
+updatedDate: "2026-10-12T06:15:00Z"
 section: models
 tags:
   - reflection
@@ -29,7 +30,23 @@ sources:
     url: https://techcrunch.com/2026/10/05/reflection-debuts-beam-a-open-weight-ai-model-to-rival-chinese-models-at-lower-compute-cost/
   - title: "Reflection AI unveils an open-source answer to Chinese labs"
     url: https://www.semafor.com/article/10/05/2026/reflection-ai-unveils-an-open-source-answer-to-chinese-labs
+  - title: "Nvidia and Reflection talks (Financial Times, 10 October 2026)"
+    url: https://www.ft.com/content/052610c5-22b4-4dd4-932e-b7f9f0628b6a
+  - title: "Nvidia in talks to invest further in Reflection AI or buy it, FT reports (CNA, Reuters, 11 October 2026)"
+    url: https://www.channelnewsasia.com/business/nvidia-in-talks-invest-further-in-reflection-ai-or-buy-it-ft-reports-6449691
+  - title: "Nvidia weighs deeper ties with Reflection AI through investment or a computing deal (The Business Times, carrying Bloomberg, 11 October 2026)"
+    url: https://www.businesstimes.com.sg/international/global/nvidia-weighs-deeper-ties-open-model-developer-reflection-ai-through-investment-or-computing-deal
+  - title: "Nvidia in Talks to Acquire Reflection AI: FT (Bloomberg Law)"
+    url: https://news.bloomberglaw.com/mergers-and-acquisitions/nvidia-in-talks-to-acquire-reflection-ai-ft
 ---
+
+## Update, 12 October 2026: Nvidia is reported in early talks
+
+The [Financial Times reported](https://www.ft.com/content/052610c5-22b4-4dd4-932e-b7f9f0628b6a) on Saturday, 10 October 2026, that Nvidia is in early talks to deepen its investment in Reflection or to acquire it. [Reuters, carried by CNA](https://www.channelnewsasia.com/business/nvidia-in-talks-invest-further-in-reflection-ai-or-buy-it-ft-reports-6449691) on 11 October, says the paper cited people with direct knowledge, and that a deal could take several forms, including an acqui-hire in which Nvidia would hire staff and license technology rather than buy the company, a structure the paper said could avoid a lengthy regulatory review. That account says an agreement could come in the coming weeks, and that the talks could still fall apart. Reuters said it could not immediately verify the report, and that Nvidia and Reflection did not immediately respond outside regular business hours. It also says Nvidia has already invested $800 million, as the FT reported.
+
+[Bloomberg's follow-up, published by The Business Times](https://www.businesstimes.com.sg/international/global/nvidia-weighs-deeper-ties-open-model-developer-reflection-ai-through-investment-or-computing-deal) on 11 October, says Nvidia is in talks to boost its investment or offer Reflection computing power, according to a person familiar with the matter. No terms have been reached, that account says. Nvidia did not immediately respond, and Reflection declined to comment. The piece, credited to Bloomberg, says the FT had described possible structures that include an acqui-hire, more chips, or a larger equity stake. [Bloomberg Law](https://news.bloomberglaw.com/mergers-and-acquisitions/nvidia-in-talks-to-acquire-reflection-ai-ft), summarizing the FT, says deal terms could not be established.
+
+None of these reports says an agreement has been signed.
 
 On 5 October 2026 Reflection published [Introducing Beam](https://reflection.ai/blog/introducing-beam). Beam is Reflection's first open-weight model: a sparse mixture-of-experts model with 501 billion total parameters and 23 billion active, for coding, reasoning, and agentic work. The post says Beam is text-only, and that it can use information from other modalities when that information is already text. Beam is undergoing final red-teaming and evaluations.
 
