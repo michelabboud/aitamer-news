@@ -754,3 +754,8 @@
 0751 zod-malicious-commits-near-miss-npm-clean
 0752 cyberxero-claude-code-cluster-socradar
 0753 nvlabs-streamrender-h3-generative-renderer
+0754 microsoft-maia-300-inference-chip
+0755 qgis-bans-ai-assisted-contributions
+0756 uk-aisi-pre-release-access-narayan
+0757 raven-interior-photo-geolocation-police
+0758 memento-3-arc-agi-3-rulebook-agent
