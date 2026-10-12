@@ -739,3 +739,14 @@
 0736 adding-a-column-in-sqlite-does-not-rewrite-the-table
 0737 copying-a-live-sqlite-file-is-a-gamble-and-the-backup-command-exists-for-it
 0738 grok-bot-groups-teammates
+0739 torvalds-claude-code-page-cache-patches
+0740 opencode-2-0-background-server-code-mode
+0741 microsoft-office-in-copilot-app
+0742 yuji-horii-claude-artifact-mystery-game
+0743 tencent-yuanqi-agent-platform-shutdown
+0744 river-ai-river-inference-rust-stack
+0745 lmcache-cve-2026-105192-pickle-rce
+0746 gemini-api-flash-auto-routing-deep-research-shutdown
+0747 openai-grader-damaged-sandbox-reset-report
+0748 amazon-decart-7b-talks
+0749 nicolas-cage-amazon-ai-waiver-spider-noir
