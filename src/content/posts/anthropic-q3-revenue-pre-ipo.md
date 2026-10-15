@@ -1,7 +1,7 @@
 ---
 title: "Outlets put Anthropic's third-quarter revenue at $16.8 billion"
 description: "BBC, CNBC, a Reuters copy and a Bloomberg copy say Anthropic put third-quarter revenue at $16.8 billion. The figure is not an SEC filing."
-pubDate: "2026-10-15T09:07:00Z"
+pubDate: "2026-10-15T11:52:00Z"
 section: general
 subsection: ai-business
 tags:

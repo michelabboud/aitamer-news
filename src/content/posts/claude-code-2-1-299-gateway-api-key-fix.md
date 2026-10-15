@@ -1,7 +1,7 @@
 ---
 title: "Claude Code 2.1.299 stops sending a gateway key on some Anthropic requests"
 description: "Claude Code 2.1.299 stops some Anthropic requests from carrying a third-party gateway API key. The npm stable tag was still 2.1.292 on 15 October."
-pubDate: "2026-10-15T07:37:00Z"
+pubDate: "2026-10-15T10:22:00Z"
 section: tools
 subsection: cli
 tags:

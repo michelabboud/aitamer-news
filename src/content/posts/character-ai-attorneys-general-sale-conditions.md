@@ -1,7 +1,7 @@
 ---
 title: "Forty attorneys general ask for conditions on any Character.AI sale"
 description: "New York and 39 other attorneys general asked a Delaware court to set data and minor-safety conditions on any Character.AI sale."
-pubDate: "2026-10-15T09:37:00Z"
+pubDate: "2026-10-15T12:22:00Z"
 section: general
 subsection: policy
 tags:

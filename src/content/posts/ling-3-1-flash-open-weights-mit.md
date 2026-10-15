@@ -1,7 +1,7 @@
 ---
 title: "inclusionAI posts Ling-3.1-flash weights, and the card declares MIT"
 description: "Ant Group's inclusionAI posted Ling-3.1-flash weights. The card declares MIT, 560B total and 25B active. config.json's max length is 262,144."
-pubDate: "2026-10-15T08:22:00Z"
+pubDate: "2026-10-15T11:07:00Z"
 section: models
 subsection: opensource
 tags:

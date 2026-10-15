@@ -1,7 +1,7 @@
 ---
 title: "Tiger Data ships pg_vectorsearch, an alpha PRISM index for Postgres"
 description: "Tiger Data's 13 October post introduces pg_vectorsearch, an alpha Postgres extension with a PRISM index. The post says pgvectorscale moves to maintenance."
-pubDate: "2026-10-15T07:22:00Z"
+pubDate: "2026-10-15T10:07:00Z"
 section: devops
 subsection: postgres
 tags:

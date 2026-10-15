@@ -1,7 +1,7 @@
 ---
 title: "Cloudflare's API MCP server can push Workers Issues as events"
 description: "Cloudflare's 13 October changelog says the API MCP server posts Workers Issues to a client webhook. Issues is an open beta and free during the beta."
-pubDate: "2026-10-15T07:07:00Z"
+pubDate: "2026-10-15T09:52:00Z"
 section: devops
 subsection: observability
 tags:

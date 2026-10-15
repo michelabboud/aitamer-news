@@ -1,7 +1,7 @@
 ---
 title: "Fish Audio releases Drama 3 weights under a revenue-capped license"
 description: "Fish Audio released Drama 3 weights for scripted multi-speaker speech. Commercial use is free under a $500,000 revenue cap. It is not an OSI license."
-pubDate: "2026-10-15T08:37:00Z"
+pubDate: "2026-10-15T11:22:00Z"
 section: models
 subsection: speech
 tags:

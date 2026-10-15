@@ -1,7 +1,7 @@
 ---
 title: "YouTube Music is rolling out labels for primarily generative-AI tracks"
 description: "YouTube says YouTube Music is rolling out labels for tracks created primarily with generative AI, using partner disclosures and its own detection."
-pubDate: "2026-10-15T09:52:00Z"
+pubDate: "2026-10-15T12:37:00Z"
 section: general
 tags:
   - youtube

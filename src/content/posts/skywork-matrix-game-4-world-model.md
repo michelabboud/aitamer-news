@@ -1,7 +1,7 @@
 ---
 title: "Skywork releases Matrix-Game 4.0 weights and Apache-2.0 inference code"
 description: "Skywork released Matrix-Game 4.0, pairing a game engine with a causal video model. The weight LICENSE and the v4 code LICENSE both read Apache-2.0."
-pubDate: "2026-10-15T08:52:00Z"
+pubDate: "2026-10-15T11:37:00Z"
 section: models
 tags:
   - skywork

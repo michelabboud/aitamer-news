@@ -1,7 +1,7 @@
 ---
 title: "hipfire 0.4.2 runs Flash-Next trunk work on Strix Halo's NPU"
 description: "warpfront tagged hipfire 0.4.2 and a same-day 0.4.2.1 patch. The notes add a Strix Halo NPU trunk, opt-in expert parallel, and a calibration fix."
-pubDate: "2026-10-15T07:52:00Z"
+pubDate: "2026-10-15T10:37:00Z"
 section: rust
 subsection: ai
 tags:

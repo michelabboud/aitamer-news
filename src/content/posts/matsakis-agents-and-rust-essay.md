@@ -1,7 +1,7 @@
 ---
 title: "Niko Matsakis on what coding agents change about Rust"
 description: "Niko Matsakis's 14 October essay says Rust fits agentic coding and that types need proof tools. A Meta growth line in it is Tolnay's."
-pubDate: "2026-10-15T08:07:00Z"
+pubDate: "2026-10-15T10:52:00Z"
 section: rust
 tags:
   - rust

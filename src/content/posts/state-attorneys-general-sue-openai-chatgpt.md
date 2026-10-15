@@ -1,7 +1,7 @@
 ---
 title: "Eight states sued OpenAI over ChatGPT's safety for young users"
 description: "Eight states announced separate lawsuits on 14 October 2026, alleging OpenAI misled the public about ChatGPT's safety for young users."
-pubDate: "2026-10-15T09:22:00Z"
+pubDate: "2026-10-15T12:07:00Z"
 section: general
 subsection: policy
 tags:
