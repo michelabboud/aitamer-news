@@ -784,3 +784,9 @@
 0781 epic-games-ai-first-disney-shooter
 0782 codex-cli-background-daemon-default
 0783 ort-2-0-rc-14-explicit-environment
+0784 gemini-4-argon-general-availability
+0785 liquid-lfm2-5-24b-a2b-on-device-moe
+0786 nvidia-runai-open-source-dsx
+0787 character-ai-bankruptcy-filing
+0788 openai-apple-trade-secret-cases
+0789 xbox-labs-ai-game-decompilation
