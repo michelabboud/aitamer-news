@@ -791,3 +791,15 @@
 0788 openai-apple-trade-secret-cases
 0789 xbox-labs-ai-game-decompilation
 0790 grok-bot-cowork-with-cursor
+0791 cloudflare-mcp-events-workers-issues
+0792 tiger-data-pg-vectorsearch-alpha
+0793 claude-code-2-1-299-gateway-api-key-fix
+0794 hipfire-0-4-2-npu-trunk-dflash
+0795 matsakis-agents-and-rust-essay
+0796 ling-3-1-flash-open-weights-mit
+0797 fish-audio-drama-3-open-weight-tts
+0798 skywork-matrix-game-4-world-model
+0799 anthropic-q3-revenue-pre-ipo
+0800 state-attorneys-general-sue-openai-chatgpt
+0801 character-ai-attorneys-general-sale-conditions
+0802 youtube-music-ai-generated-labels
