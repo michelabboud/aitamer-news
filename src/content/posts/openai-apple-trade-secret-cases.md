@@ -1,7 +1,7 @@
 ---
 title: "Court orders hiring records in Apple's OpenAI case as OpenAI alleges a file transfer"
 description: "Judge Davila ordered limited early discovery in Apple's trade-secrets case against OpenAI. OpenAI then alleged a former employee took device files."
-pubDate: "2026-10-14T21:07:00Z"
+pubDate: "2026-10-15T06:37:00Z"
 section: general
 subsection: ai-business
 tags:

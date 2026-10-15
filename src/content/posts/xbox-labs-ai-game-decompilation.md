@@ -1,7 +1,7 @@
 ---
 title: "Xbox Labs will explore new ways of playing games, Microsoft's post says"
 description: "A 13 October Xbox post says a small Xbox Labs group will turn emerging ideas into things players can try. It also says Xbox will keep stewarding its IP."
-pubDate: "2026-10-14T21:22:00Z"
+pubDate: "2026-10-15T06:52:00Z"
 section: dev
 tags:
   - xbox

@@ -1,7 +1,7 @@
 ---
 title: "NVIDIA says the Run:ai platform is now open source"
 description: "NVIDIA's 13 October post says Run:ai is open source under DSX. The platform and its component repositories are under Apache 2.0."
-pubDate: "2026-10-14T20:37:00Z"
+pubDate: "2026-10-15T06:07:00Z"
 section: devops
 subsection: infra
 tags:

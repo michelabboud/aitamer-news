@@ -1,7 +1,7 @@
 ---
 title: "Liquid AI releases LFM2.5-24B-A2B for on-device agents"
 description: "Liquid AI released LFM2.5-24B-A2B on 13 October, a 24B on-device model it says uses 2.45B active parameters. Commercial use is license-limited."
-pubDate: "2026-10-14T20:22:00Z"
+pubDate: "2026-10-15T05:52:00Z"
 section: models
 tags:
   - liquid-ai

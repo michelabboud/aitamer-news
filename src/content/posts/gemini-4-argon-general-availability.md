@@ -1,7 +1,7 @@
 ---
 title: "Google says Gemini 4 Argon is now globally available"
 description: "Google's 13 October post says Gemini 4 Argon is globally available. The API id is gemini-4-argon, with introductory prices through 30 November."
-pubDate: "2026-10-14T20:07:00Z"
+pubDate: "2026-10-15T05:37:00Z"
 section: models
 tags:
   - google

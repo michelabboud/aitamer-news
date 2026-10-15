@@ -1,7 +1,7 @@
 ---
 title: "Character Technologies filed for Chapter 11 in Delaware on 12 October"
 description: "Character Technologies filed a voluntary Chapter 11 petition in Delaware on 12 October 2026. Cash and Disney figures are from its declaration."
-pubDate: "2026-10-14T20:52:00Z"
+pubDate: "2026-10-15T06:22:00Z"
 section: general
 subsection: ai-business
 tags:
