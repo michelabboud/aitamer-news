@@ -803,3 +803,8 @@
 0800 state-attorneys-general-sue-openai-chatgpt
 0801 character-ai-attorneys-general-sale-conditions
 0802 youtube-music-ai-generated-labels
+0803 claude-platform-otel-traces-desktop-sessions
+0804 claude-code-desktop-sneakpeek-preview-pane
+0805 hermes-agent-0-22-threshold-release
+0806 vercel-sandbox-challenge-findings
+0807 ultramarine-1-flash-paper-instruments
