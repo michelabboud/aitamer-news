@@ -808,3 +808,10 @@
 0805 hermes-agent-0-22-threshold-release
 0806 vercel-sandbox-challenge-findings
 0807 ultramarine-1-flash-paper-instruments
+0808 stanford-next-concept-modeling-ncm
+0809 stepfun-step-5-preview-official-weights
+0810 intern-s2-ghys-conjecture-lean
+0811 rig-harness-coding-agent-bevy-plugins
+0812 eu-ai-office-information-requests-openai-anthropic
+0813 tencent-cloud-agent-fleet-report
+0814 hiddenlayer-decision-model-prompt-injection
