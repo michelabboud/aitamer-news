@@ -815,3 +815,15 @@
 0812 eu-ai-office-information-requests-openai-anthropic
 0813 tencent-cloud-agent-fleet-report
 0814 hiddenlayer-decision-model-prompt-injection
+0815 jais-3-open-arabic-models
+0816 google-deep-review-public
+0817 cern-mistral-large-physics-model
+0818 theophyseval-physics-agents-benchmark
+0819 anthropic-scion-source-control
+0820 handwired-javascript-to-neural-net
+0821 amazon-bee-frontier-eclipse
+0822 bank-of-america-mythos-remediation-contractors
+0823 ftc-civil-investigative-demands-openai-anthropic
+0824 grok-bot-purchase-pledge-vs-terms
+0825 eiliko-ai-toy-data-exposure
+0826 nvidia-nemotron-3-5-super-vl-bolt-open-weights
