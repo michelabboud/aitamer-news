@@ -839,3 +839,15 @@
 0836 chatgpt-ads-target-email-phone-prompts
 0837 meta-muse-friends-data-consent
 0838 accenture-claude-29-monthly-spend-cap
+0839 meta-muse-spark-open-weights
+0840 ibm-granite-switch-4-1-one-endpoint
+0841 uzu-pi-extension-local-provider
+0842 chatgpt-chrome-extension-reads-tabs
+0843 anthropic-metr-employee-level-access
+0844 openai-rosalind-academic-plan
+0845 claude-code-review-generally-available
+0846 anthropic-opus-5-5-fast-mode-ga
+0847 flux-3-image-klein-open-weights
+0848 openai-misalignment-reports-oct15-cluster
+0849 mistral-timestral-time-series
+0850 anthropic-compliance-api-user-preferences
