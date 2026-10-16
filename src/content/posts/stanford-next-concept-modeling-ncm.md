@@ -21,8 +21,10 @@ verdict: "The paper, the MIT code, and the checkpoints are public. The 31x figur
 sources:
   - title: "Hermann Kumbong, Next-Concept Modeling post (X, 14 October 2026)"
     url: https://x.com/KumbongHermann/status/2110437870481834432
-  - title: "Stanford AI Lab, Next-Concept Modeling post (X, 14 October 2026)"
-    url: https://x.com/StanfordAILab/status/2110517407395860570
+  - title: "Ishan Khare, Next-Concept Modeling post (X, 14 October 2026)"
+    url: https://x.com/ishanskhare/status/2110447249901965495
+  - title: "Stanford AI Lab, Next-Concept Modeling quote post (X, 15 October 2026)"
+    url: https://x.com/StanfordAILab/status/2110853122138767540
   - title: "Kumbong et al., Next-Concept Modeling: Fast, Parallel Coarse-to-Fine Text Generation (arXiv:2610.14162, 9 October 2026)"
     url: https://arxiv.org/abs/2610.14162
   - title: "arXiv HTML for 2610.14162"
@@ -37,7 +39,7 @@ sources:
     url: https://huggingface.co/datasets/hazyresearch/ncm-datasets
 ---
 
-On 14 October 2026, Hermann Kumbong posted [Next-Concept Modeling](https://x.com/KumbongHermann/status/2110437870481834432), and the [Stanford AI Lab account](https://x.com/StanfordAILab/status/2110517407395860570) followed the same evening. The paper they point to was already on arXiv. [Next-Concept Modeling: Fast, Parallel Coarse-to-Fine Text Generation](https://arxiv.org/abs/2610.14162) is dated 9 October 2026 (arXiv:2610.14162v1). The authors are Hermann Kumbong, Ishan S. Khare, Iddah Mlauzi, Andrew Woen, Charles Ding, E. Kelly Buchanan, Simran Arora, Azalia Mirhoseini, and Christopher Ré, all listed with Stanford computer-science affiliations. The paper marks Kumbong and Khare as equal contributors. Kumbong's post also tags Hazy Research. The code lives at [HazyResearch/ncm](https://github.com/HazyResearch/ncm).
+On 14 October 2026, Hermann Kumbong posted [Next-Concept Modeling](https://x.com/KumbongHermann/status/2110437870481834432), co-author [Ishan Khare](https://x.com/ishanskhare/status/2110447249901965495) followed the same evening, and the [Stanford AI Lab account](https://x.com/StanfordAILab/status/2110853122138767540) shared it on 15 October. The paper they point to was already on arXiv. [Next-Concept Modeling: Fast, Parallel Coarse-to-Fine Text Generation](https://arxiv.org/abs/2610.14162) is dated 9 October 2026 (arXiv:2610.14162v1). The authors are Hermann Kumbong, Ishan S. Khare, Iddah Mlauzi, Andrew Woen, Charles Ding, E. Kelly Buchanan, Simran Arora, Azalia Mirhoseini, and Christopher Ré, all listed with Stanford computer-science affiliations. The paper marks Kumbong and Khare as equal contributors. Kumbong's post also tags Hazy Research. The code lives at [HazyResearch/ncm](https://github.com/HazyResearch/ncm).
 
 ## What the method is
 
