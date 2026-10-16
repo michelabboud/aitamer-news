@@ -828,3 +828,14 @@
 0825 eiliko-ai-toy-data-exposure
 0826 nvidia-nemotron-3-5-super-vl-bolt-open-weights
 0827 grok-bot-personal-use-cases
+0828 krea-3-image-editing-beta-api
+0829 google-universal-cart-us-launch
+0830 cloudflare-openai-search-crawler-discovery-pilot
+0831 github-agentic-autofix-code-scanning-ga
+0832 claude-code-reverse-engineers-scanner-sane-driver
+0833 decomp-dev-shuts-down-ai-decompilation
+0834 sonos-tract-0-23-9-moe-ffn
+0835 amazon-blocks-grok-bot-unauthorized-agent
+0836 chatgpt-ads-target-email-phone-prompts
+0837 meta-muse-friends-data-consent
+0838 accenture-claude-29-monthly-spend-cap
