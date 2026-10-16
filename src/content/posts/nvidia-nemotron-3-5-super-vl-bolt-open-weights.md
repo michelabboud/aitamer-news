@@ -49,8 +49,6 @@ sources:
     url: https://raw.githubusercontent.com/OpenMDW/OpenMDW/main/1.1/LICENSE.OpenMDW-1.1
   - title: "OSI licenses index"
     url: https://opensource.org/licenses
-  - title: "OSI license page requested for OpenMDW-1.1"
-    url: https://opensource.org/license/openmdw-1-1
   - title: "AI Tamer: NVIDIA reports Nemotron scores above 2026 IOI and IMO gold lines"
     url: https://aitamer.news/posts/nvidia-nemotron-ioi-imo-2026/
 ---
