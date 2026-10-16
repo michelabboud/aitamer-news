@@ -858,3 +858,14 @@
 0855 brave-leo-e2ee-tee-near-ai
 0856 openrouter-gemini-zdr-ends-oct-18
 0857 china-mofcom-ai-export-catalogue-2026-48
+0858 claude-code-2-1-301-model-switch-credit-fix
+0859 gemini-code-assist-sales-end-antigravity
+0860 linux-kernel-drops-assisted-by-tag
+0861 thesys-openui-1-0-agent-ui
+0862 elorian-glimpse-visual-reasoning-model
+0863 thinking-machines-tinker-one-year-serving
+0864 prismml-ternary-bonsai-2-on-device
+0865 pytorch-muse-spark-open-helion-torchtitan
+0866 zip-crate-yanks-128-versions-symlink-advisories
+0867 xerj-rc96-rust-local-search-coding-agents
+0868 meta-commercial-terms-crawl-train-ai
