@@ -889,3 +889,8 @@
 0886 anthropic-mythos-quantum-circuits-research
 0887 claude-haiku-4-5-leaves-consumer-model-selector
 0888 anthropic-blackstone-tpu-debt-project-north-star
+0889 iclr-2027-ai-submission-caps-peer-review
+0890 taiwan-ai-server-export-controls-china
+0891 anthropic-jack-clark-us-gdp-44t-imf
+0892 language-models-insecure-reporters-honesty-prompt
+0893 openai-apple-trade-secret-stipulation-approved
