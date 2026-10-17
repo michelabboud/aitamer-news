@@ -870,3 +870,14 @@
 0867 xerj-rc96-rust-local-search-coding-agents
 0868 meta-commercial-terms-crawl-train-ai
 0869 grok-bot-for-business
+0870 deepseek-search-fetch-api-for-agents
+0871 tencent-hy-memory-2-open-source-agent-memory
+0872 sair-open-math-os-terence-tao
+0873 nvidia-nemotron-labs-dory-4b-looped-model
+0874 moss-image-5b-layout-text-to-image
+0875 uzu-run-webgpu-browser-preview
+0876 respan-span-02-rust-cuda-inference-engine
+0877 anthropic-pitches-federal-ai-safety-bill
+0878 apple-app-review-ai-nudify-bait-and-switch-rules
+0879 cert-in-rogue-ai-agents-indian-firms
+0880 anthropic-employment-research-own-workforce
