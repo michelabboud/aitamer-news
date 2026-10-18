@@ -7,7 +7,7 @@ Static Astro site on Cloudflare Pages. Posts are Markdown in `src/content/posts/
 
 ## Posts
 - Valid `section` values: models, dev, tools, devops, rust, general, voices. `news` is not valid.
-- Every post needs a hero image (`heroImage`, hashed `heroes/<slug>-<hash>.jpg` on the media bucket). Never ship one without it.
+- Every new hero requires both JPEG and same-name WebP, uploaded create-only and publicly verified before submission. Keep the hashed JPEG URL in `heroImage`; posts select WebP by default and retain JPEG fallback/social images. Follow `docs/guides/hero-procedure.md`; a quality or missing-format failure holds publication. Never ship with only one format.
 - Producers choose Habitat (`section`, optional `subsection`) and submit article content. Only the trusted specimen-admission workflow writes permanent `specimen` values and `src/content/specimen-ledger.txt`; people, bots and local agents never allocate, stamp or repair these locally. Existing published identities and `pubDate` values stay fixed. See `docs/guides/workflow-owned-specimens.md` for admission and rollout status.
 - Build and validate post files with `scripts/post-builder.mjs`; writers return JSON fields only, code builds the frontmatter. Free slots: `npm run preflight -- --next-slot`.
 - A post goes live at the first publisher run after its `pubDate`. The publisher is a scheduled GitHub workflow that runs late; if a due post is not live, run `gh workflow run scheduled-publish.yml -R michelabboud/aitamer-news --ref main`.

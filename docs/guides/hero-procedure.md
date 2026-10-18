@@ -1,5 +1,7 @@
 # Hero image procedure
 
+**Current workflow (Michel, 2026-10-18): upload and verify both JPEG and WebP for every new hero. Posts display WebP by default; JPEG remains the format fallback and social/feed image. A failed quality or upload check holds publication.**
+
 **One procedure for every writer and bot** (Codex, Claude, Cursor, the Grok bots, a human with an image tool). It is the only place these steps are written; every other guide points here and must not carry its own copy. What the image model is told is [`hero-image-style.txt`](hero-image-style.txt). This file is what you do with the result.
 
 Every hero carries **exactly one** site mark, `© https://aitamer.news`, at the bottom-right, so a copied image still carries the address. There are two supported ways to get it there. Pick one per hero; the shared rules below apply to both.
@@ -88,7 +90,7 @@ A 1280 x 720 source is enlarged; if it looks soft, regenerate larger.
    KEY="heroes/${SLUG}-${HASH}.jpg"
    ```
 
-   How the bytes reach the bucket depends on your lane (the Grok bot bucket: [`grok-news-posting.md`](grok-news-posting.md) section 4; the main media bucket: `POST.md` section 3; the posts MCP uploads it itself).
+   How the bytes reach the bucket depends on your lane: the Grok bot bucket uses [`grok-news-posting.md`](grok-news-posting.md) section 4; the original media bucket uses [Upload both formats](#upload-both-formats-original-media-host) below. A posts uploader is qualified only when it supplies both formats and verified readbacks; do not assume a JPEG-only uploader meets this contract.
 5. **Read the public URL back before any post references it:** the same bytes, `image/jpeg`, 1600 x 900.
 
    ```bash
@@ -108,13 +110,15 @@ Michel, 2026-10-18: keep the JPEG where it is, put a WebP beside it with the sam
 
 | File | Format | Size | Weight | Used for |
 |---|---|---|---|---|
-| `heroes/<slug>-<hash8>.jpg` | JPEG, stamped | exactly 1600 x 900 | about 295 KB | social cards, feeds; `heroImage` on the original media host and when no WebP passes verification |
+| `heroes/<slug>-<hash8>.jpg` | JPEG, stamped | exactly 1600 x 900 | about 295 KB | canonical `heroImage`, social cards, feeds and the JPEG fallback |
 | `heroes/<slug>-<hash8>.webp` | WebP | 960 wide (960 x 540 for 16:9), never enlarged | about 58 KB (largest 116 KB), 81 percent smaller | the picture the page shows |
 
-- **Same name, same hash.** The WebP reuses the **JPEG's** 8-hex hash, so its address is the JPEG's address with `.jpg` swapped for `.webp`. Bot-host posts may select that `.webp` as `heroImage` after both files pass upload and public readback; their social cards and feeds use the JPEG twin. On the original media host, keep `heroImage` on JPEG; add the verified JPEG URL to `src/lib/hero-webp-catalog.ts` so the shared picture component selects its WebP. The current catalog covers every existing post. Unknown future JPEGs remain JPEG when no verified twin is declared. AVIF was tested and dropped.
-- **Make it from `$FINAL`, after the stamp**, never before, so the mark is burnt in once and never redrawn. Quality is the lowest of 78, 84, 90, 95 whose SSIM similarity to the JPEG scaled to the same width is at least **0.95** (1 is identical). Across the 903 heroes quality 78 was enough for 587, 84 for 316, none needed more. If no quality reaches 0.95 **do not ship a WebP**: ship the JPEG alone and say so in the hand-off. Never lower the floor in a lane.
+- **Same name, same hash.** The WebP reuses the **JPEG's** 8-hex hash, so its address is the JPEG's address with `.jpg` swapped for `.webp`. New posts keep the JPEG address in `heroImage`; the page, cards and homepage automatically select its WebP on either owned media host. No catalog registration or extra post field is required. Existing explicit bot WebP addresses remain supported and share their JPEG twin. AVIF was tested and dropped.
+- **Make it from `$FINAL`, after the stamp**, never before, so the mark is burnt in once and never redrawn. Quality is the lowest of 78, 84, 90, 95 whose SSIM similarity to the JPEG scaled to the same width is at least **0.95** (1 is identical). Across the 903 heroes quality 78 was enough for 587, 84 for 316, none needed more. If no quality reaches 0.95, **hold publication** and regenerate or retry in a fresh run path. Preserve the failed output and evidence. Do not publish a JPEG-only hero and never lower the floor in a lane.
 
   ```bash
+  set -euo pipefail
+  test ! -e "$WEBP" || { echo "WebP output already exists; use a fresh run path" >&2; exit 1; }
   W=960
 for Q in 78 84 90 95; do
   ffmpeg -v error -nostdin -y -i "$FINAL" -vf "scale=$W:-2:flags=lanczos" -c:v libwebp -quality $Q -compression_level 6 -map_metadata -1 -frames:v 1 -update 1 "$WEBP"
@@ -122,7 +126,7 @@ for Q in 78 84 90 95; do
   echo "q$Q ssim $SSIM bytes $(stat -c %s "$WEBP")"
   awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' && break
 done
-awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { rm -f "$WEBP"; echo "below the floor: ship the JPEG alone"; }
+awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { echo "WebP below the quality floor: hold publication and preserve this attempt" >&2; exit 1; }
   WEBP_KEY="heroes/${SLUG}-${HASH}.webp"      # the same HASH as the JPEG
   ```
 
@@ -131,6 +135,38 @@ awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { rm -f "$WEBP"; echo "below the fl
 - **Never request the WebP address (HEAD or GET) before you upload it.** Cloudflare's edge caches the "not found" for four hours (measured 2026-10-18) and hides the file after it exists. If you did, read it back with a throwaway `?verify=` query, which reaches the bucket, and recheck the plain address later.
 - **Read both back** from the public address: same bytes (`cmp`), `image/jpeg` and `image/webp`.
 - **Existing heroes** got their WebP in a one-time backfill (2026-10-18), uploaded beside each unchanged JPEG; rule 7 stands for the JPEG.
+
+## Upload both formats (original media host)
+
+After successful conversion and visual inspection, use the lane's already authorized bucket-scoped S3 profile. The operator supplies `AWS_PROFILE`, `R2_ENDPOINT_URL` and `R2_MEDIA_BUCKET` from the existing credential setup; never place their account details or credentials in this repository. The JPEG `KEY` and WebP `WEBP_KEY` come from the same JPEG hash above. Use a fresh private run folder, preserve receipts, and never blindly retry an upload whose outcome is unknown.
+
+```bash
+set -euo pipefail
+: "${AWS_PROFILE:?Select the authorized bucket-scoped S3 profile}"
+: "${R2_ENDPOINT_URL:?Set the authorized R2 S3 endpoint}"
+: "${R2_MEDIA_BUCKET:?Set the original media bucket}"
+test ! -e "$WORK/upload-jpeg.json" && test ! -e "$WORK/upload-webp.json" || { echo "Upload receipts already exist; inspect the prior attempt" >&2; exit 1; }
+export AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
+export AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
+aws --profile "$AWS_PROFILE" --region auto --endpoint-url "$R2_ENDPOINT_URL" s3api put-object \
+  --bucket "$R2_MEDIA_BUCKET" --key "$KEY" --body "$FINAL" \
+  --content-type image/jpeg --cache-control 'public, max-age=31536000, immutable' \
+  --if-none-match '*' --no-cli-pager > "$WORK/upload-jpeg.json"
+aws --profile "$AWS_PROFILE" --region auto --endpoint-url "$R2_ENDPOINT_URL" s3api put-object \
+  --bucket "$R2_MEDIA_BUCKET" --key "$WEBP_KEY" --body "$WEBP" \
+  --content-type image/webp --cache-control 'public, max-age=31536000, immutable' \
+  --if-none-match '*' --no-cli-pager > "$WORK/upload-webp.json"
+HERO="https://media.aitamer.news/$KEY"
+WEBP_URL="https://media.aitamer.news/$WEBP_KEY"
+curl --fail --silent --show-error --dump-header "$WORK/jpeg-headers.txt" "$HERO" -o "$WORK/readback-hero.jpg"
+cmp "$FINAL" "$WORK/readback-hero.jpg"
+grep -i '^content-type: image/jpeg' "$WORK/jpeg-headers.txt"
+curl --fail --silent --show-error --dump-header "$WORK/webp-headers.txt" "$WEBP_URL" -o "$WORK/readback-hero.webp"
+cmp "$WEBP" "$WORK/readback-hero.webp"
+grep -i '^content-type: image/webp' "$WORK/webp-headers.txt"
+```
+
+A 412 is a conflict, not permission to overwrite; stop and hand off the evidence. A failed or uncertain upload or readback holds the post. Neither public URL is requested before its object uploads successfully. Once both plain public URLs are verified, pass `HERO` (the JPEG URL) to the builder; production selects `WEBP_URL` automatically.
 
 ## Who keeps what
 
@@ -144,8 +180,10 @@ awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { rm -f "$WEBP"; echo "below the fl
 The Grok bots stamp today with their own post-render script on the Newsroom box, not with `scripts/stamp-hero.mjs` (their live heroes are identical in size, position and look). It is **not assumed** to match this repo's tool: either replace it with `node scripts/stamp-hero.mjs`, or make it match the spec (exact text `© https://aitamer.news`, 24 px inset, about 20 px type, bottom-right, 1600 x 900). Either way a hero is stamped once, and `stamp-hero.mjs` will refuse a picture that already carries such a mark. Tracked in `BACKLOG.md`.
 
 
-## Browser rollout and new pairs
+## Browser display and publication gate
 
-Article heroes, listing cards and the homepage lead use the shared `HeroImage` component. Verified catalog pairs use a WebP source and JPEG img fallback; social cards and feeds remain JPEG. The deploy media gate checks both objects for each live declared pair. Picture format fallback does not recover a missing supported WebP, so add a JPEG URL to `src/lib/hero-webp-catalog.ts` only after both create-only uploads and public byte/type readback succeed. Keep the list sorted and unique. If no WebP meets the quality floor, leave the JPEG out of the catalog and record that outcome; it continues to render as JPEG. Explicit valid bot WebP inputs are supported without a catalog entry.
+Article heroes, listing cards and the homepage lead automatically select the same-name WebP from either owned host, with the JPEG in the fallback img. Social cards and feeds use JPEG. The original rollout catalog is historical evidence; future posts do not need an entry. Every new hero must have both files uploaded and read back before submission.
 
-Local/offline previews with `PUBLIC_MEDIA_BASE` keep JPEG rendering because their local mirror may contain JPEG files alone. Production uses the verified WebP pairs.
+`npm run check:media` verifies both formats for every live hero. A missing WebP, missing JPEG or wrong content type blocks deployment; drafts and scheduled posts are checked again when due. A picture element does not recover a missing supported WebP by loading its JPEG, so never submit with only one format. If a producer or upload service cannot supply both, keep the post unpublished and hand off both files and the failure evidence.
+
+Local/offline previews with `PUBLIC_MEDIA_BASE` keep JPEG rendering because their mirror may contain JPEG files alone. Production always selects WebP for owned heroes.

@@ -53,8 +53,11 @@ async function host(objects, override = () => false) {
 }
 
 const run = (argv, options) => quietlyAsync(() => main(argv, { attempts: 2, attemptDelayMs: 1, siteImages: [], ...options }));
-const ALL = { 'heroes/a.jpg': 'AAAA', 'heroes/b.jpg': 'BBBBBB', 'heroes/c.jpg': 'CC' };
-// These JPEGs have verified twins in the source catalog, on each of the two media hosts.
+const ALL = {
+  'heroes/a.jpg': 'AAAA', 'heroes/b.jpg': 'BBBBBB', 'heroes/c.jpg': 'CC',
+  'heroes/a.webp': 'WEBP A', 'heroes/b.webp': 'WEBP B', 'heroes/c.webp': 'WEBP C',
+};
+// Previously verified pairs remain covered alongside the future heroes tested below.
 const CATALOGUED_HEROES = [
   { origin: MEDIA, slug: 'a-bind-mount-can-hide-files-already-in-an-image', key: 'heroes/a-bind-mount-can-hide-files-already-in-an-image-ee446035.jpg' },
   { origin: BOTS, slug: 'accenture-claude-29-monthly-spend-cap', key: 'heroes/accenture-claude-29-monthly-spend-cap-6a923dd2.jpg' },
@@ -117,25 +120,49 @@ test('a catalogued live JPEG fails when its declared WebP twin is missing or has
   }
 });
 
-test('an unknown future JPEG keeps its JPEG fallback without requiring an undeclared WebP', async () => {
-  const { postsDir } = fixture();
-  const key = 'heroes/future-post-0123abcd.jpg';
-  writeFileSync(join(postsDir, 'future-post.md'), post('future-post', { hero: `${BOTS}/${key}` }));
-  const media = await host(ALL);
-  const bots = await host({ [key]: 'JPEG' });
-  try {
-    const { result, output } = await run([], { postsDir, origin: media.origin, botOrigin: bots.origin });
-    assert.equal(result, 0, output);
-    assert.deepEqual(bots.seen, [`HEAD ${key}`]);
-    assert.ok(!collect({ postsDir }).targets.some((target) => target.key.endsWith('.webp')));
-  } finally {
-    await media.close();
-    await bots.close();
+test('every future JPEG requires its WebP twin, without catalog registration', async () => {
+  for (const [origin, key] of [
+    [MEDIA, 'heroes/future-post.jpg'],
+    [MEDIA, 'heroes/future-post-0123abcd.jpg'],
+    [BOTS, 'heroes/future-post-0123abcd.jpg'],
+  ]) {
+    const { postsDir } = fixture();
+    const webpKey = key.replace(/\.jpg$/, '.webp');
+    writeFileSync(join(postsDir, 'future-post.md'), post('future-post', { hero: `${origin}/${key}` }));
+    for (const twin of ['missing', 'wrong-type', 'valid']) {
+      const media = await host(ALL);
+      const own = await host({ ...ALL, [key]: 'JPEG', ...(twin === 'missing' ? {} : { [webpKey]: 'WEBP' }) }, (requested, res) => {
+        if (twin !== 'wrong-type' || requested !== webpKey) return false;
+        res.writeHead(200, { 'content-type': 'image/jpeg' }).end();
+        return true;
+      });
+      try {
+        const { result, output } = await run([], {
+          postsDir,
+          origin: origin === MEDIA ? own.origin : media.origin,
+          botOrigin: own.origin,
+        });
+        assert.equal(result, twin === 'valid' ? 0 : 1, output);
+        assert.ok(own.seen.includes(`HEAD ${key}`), 'canonical JPEG is checked');
+        assert.ok(own.seen.includes(`HEAD ${webpKey}`), 'future WebP is checked automatically');
+        assert.ok(!media.seen.includes(`HEAD ${webpKey}`), 'the twin stays on the owning host');
+        assert.ok(collect({ postsDir }).targets.some((target) => target.key === webpKey && target.required));
+        if (twin !== 'valid') {
+          assert.ok(output.includes(`${own.origin}/${webpKey}`), output);
+          assert.match(output, twin === 'missing' ? /answered 404, expected 200/ : /expected image\/webp/);
+        }
+      } finally {
+        await media.close();
+        await own.close();
+      }
+    }
   }
 });
 
-test('missing catalogued WebP twins warn for drafts and scheduled posts, then fail when the schedule is live', async () => {
-  const { origin, slug, key } = CATALOGUED_HEROES[0];
+test('missing future WebP twins warn for drafts and scheduled posts, then fail when the schedule is live', async () => {
+  const origin = MEDIA;
+  const slug = 'future-post';
+  const key = 'heroes/future-post-0123abcd.jpg';
   const { postsDir } = fixture();
   const file = join(postsDir, `${slug}.md`);
   const webpKey = key.replace(/\.jpg$/, '.webp');
@@ -167,7 +194,7 @@ test('every local file on the host byte for byte, and every post hero there: exi
     const { result, output } = await run(['--local', localDir], { postsDir, origin: media.origin });
     assert.equal(result, 0, output);
     assert.match(output, /2\/2 files in .* are on .* byte for byte/);
-    assert.match(output, /3\/3 post heroes on .* answer 200 image\/jpeg/);
+    assert.match(output, /6\/6 post heroes on .* answer 200 image\/jpeg/);
     assert.ok(media.seen.every((line) => line.startsWith('HEAD ')), 'only HEAD requests');
     assert.ok(!media.seen.some((line) => line.includes('d.jpg')), 'a hero off the media host is not requested');
   } finally {
@@ -198,7 +225,7 @@ test('a local file whose bytes differ on the host fails, naming the size or the 
 
 test('a published post whose hero is missing fails; a draft\'s missing hero is only listed', async () => {
   const { postsDir } = fixture();
-  const noC = await host({ 'heroes/a.jpg': 'AAAA', 'heroes/b.jpg': 'BBBBBB' });
+  const noC = await host({ 'heroes/a.jpg': 'AAAA', 'heroes/b.jpg': 'BBBBBB', 'heroes/a.webp': 'WEBP A', 'heroes/b.webp': 'WEBP B', 'heroes/c.webp': 'WEBP C' });
   try {
     const { result, output } = await run([], { postsDir, origin: noC.origin });
     assert.equal(result, 0, output);
@@ -206,7 +233,7 @@ test('a published post whose hero is missing fails; a draft\'s missing hero is o
   } finally {
     await noC.close();
   }
-  const noB = await host({ 'heroes/a.jpg': 'AAAA', 'heroes/c.jpg': 'CC' });
+  const noB = await host({ 'heroes/a.jpg': 'AAAA', 'heroes/c.jpg': 'CC', 'heroes/a.webp': 'WEBP A', 'heroes/b.webp': 'WEBP B', 'heroes/c.webp': 'WEBP C' });
   try {
     const { result, output } = await run([], { postsDir, origin: noB.origin });
     assert.equal(result, 1);
@@ -301,7 +328,7 @@ test('a scheduled post\'s missing hero is listed until its pubDate passes, then 
     const before = await run([], { postsDir, origin: media.origin, now: new Date('2026-10-01T08:59:59Z') });
     assert.equal(before.result, 0, before.output);
     assert.match(before.output, /not live yet .*heroes\/e\.jpg .*answered 404/);
-    assert.match(before.output, /3\/4 post heroes .*\(2 of them live\)/);
+    assert.match(before.output, /6\/8 post heroes .*\(4 of them live\)/);
     const after = await run([], { postsDir, origin: media.origin, now: new Date('2026-10-01T09:00:00Z') });
     assert.equal(after.result, 1);
     assert.match(after.output, /heroes\/e\.jpg \(.*e\.md\): answered 404, expected 200/);
@@ -334,17 +361,17 @@ test('mixed origins request bot heroes from the bot host and migration files and
   const botKey = 'heroes/b-0123abcd.jpg';
   writeFileSync(join(postsDir, 'b.md'), post('b', { hero: `${BOTS}/${botKey}` }));
   const media = await host({ ...ALL, 'site/share-card.jpg': 'CARD' });
-  const bots = await host({ [botKey]: 'BOT' });
+  const bots = await host({ [botKey]: 'BOT', [botKey.replace(/\.jpg$/, '.webp')]: 'WEBP' });
   try {
     const { targets } = collect({ postsDir });
     assert.equal(targets.find((target) => target.key === botKey)?.origin, BOTS);
     const { result, output } = await run(['--local', localDir], { postsDir, origin: media.origin, botOrigin: bots.origin, siteImages: SITE_IMAGES });
     assert.equal(result, 0, output);
-    assert.deepEqual(bots.seen, [`HEAD ${botKey}`]);
+    assert.deepEqual([...bots.seen].sort(), [`HEAD ${botKey}`, `HEAD ${botKey.replace(/\.jpg$/, '.webp')}`]);
     assert.ok(!media.seen.includes(`HEAD ${botKey}`), 'no request for a bot key on the main host');
     assert.ok(media.seen.includes('HEAD heroes/b.jpg'), 'legacy local migration still checks main host');
     assert.ok(media.seen.includes('HEAD site/share-card.jpg'));
-    assert.match(output, /4\/4 post heroes/);
+    assert.match(output, /7\/7 post heroes/);
     assert.ok(output.includes(media.origin) && output.includes(bots.origin), 'summary names both actual hosts');
   } finally {
     await media.close();
@@ -363,7 +390,7 @@ test('a missing live bot hero fails even when the same key exists on the main ho
     assert.equal(result, 1, output);
     assert.ok(output.includes(`${bots.origin}/${botKey}`));
     assert.match(output, /b-0123abcd\.jpg .*answered 404, expected 200/);
-    assert.deepEqual(bots.seen, [`HEAD ${botKey}`]);
+    assert.deepEqual([...bots.seen].sort(), [`HEAD ${botKey}`, `HEAD ${botKey.replace(/\.jpg$/, '.webp')}`]);
     assert.ok(!media.seen.includes(`HEAD ${botKey}`));
   } finally {
     await media.close();
@@ -416,7 +443,7 @@ test('lookalike hosts and malformed bot keys are never requested', async () => {
       assert.equal(result, 0, output); // check:posts reports these invalid URLs; media checks never request them.
     }
     assert.deepEqual(bots.seen, []);
-    assert.ok(media.seen.every((line) => ['HEAD heroes/a.jpg', 'HEAD heroes/b.jpg', 'HEAD heroes/c.jpg'].includes(line)));
+    assert.ok(media.seen.every((line) => Object.keys(ALL).some((key) => line === `HEAD ${key}`)));
   } finally {
     await media.close();
     await bots.close();

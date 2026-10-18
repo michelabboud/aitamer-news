@@ -4,8 +4,6 @@
  * consumer of `heroImage` resolves it the same way.
  */
 
-import { WEBP_HERO_JPEGS } from './hero-webp-catalog.ts';
-
 /** Where hero images are served from in production. */
 export const MEDIA_ORIGIN = 'https://media.aitamer.news';
 
@@ -56,16 +54,21 @@ export function shareImageUrl(value: string): string {
   return BOT_WEBP_HERO.test(value) ? `${value.slice(0, -'.webp'.length)}.jpg` : value;
 }
 
-/** Verified JPEG/WebP pairs; unknown JPEGs remain safe quality-floor fallbacks. */
-const webpHeroJpegs = new Set(WEBP_HERO_JPEGS);
+/** Original-host JPEG heroes include legacy unhashed names and content-addressed replacements. */
+const MEDIA_JPEG_HERO = /^https:\/\/media\.aitamer\.news\/heroes\/[a-z0-9][a-z0-9-]*\.jpg$/;
 
-/** Select only a declared twin or an explicitly submitted bot WebP, before local URL rewriting. */
+/** Bot JPEG heroes always carry the same eight-character lowercase hash as their WebP twins. */
+const BOT_JPEG_HERO = /^https:\/\/bots\.aitamer\.news\/heroes\/[a-z0-9][a-z0-9-]*-[0-9a-f]{8}\.jpg$/;
+
+/** Derive every owned JPEG's required twin, or retain an explicit bot WebP, before local rewriting. */
 export function webpHeroUrl(value: string): string | undefined {
   if (BOT_WEBP_HERO.test(value)) return value;
-  return webpHeroJpegs.has(value) ? `${value.slice(0, -'.jpg'.length)}.webp` : undefined;
+  // endsWith also rejects the trailing newline that a regular expression's $ anchor permits.
+  if (!value.endsWith('.jpg') || (!MEDIA_JPEG_HERO.test(value) && !BOT_JPEG_HERO.test(value))) return undefined;
+  return `${value.slice(0, -'.jpg'.length)}.webp`;
 }
 
-/** Browser sources for a hero: verified WebP when available, with JPEG as the image fallback. */
+/** Browser sources for a hero: its required WebP twin, with JPEG as the image fallback. */
 export function visualHeroSources(
   value: string,
   mediaBase: string | undefined = readMediaBase(),

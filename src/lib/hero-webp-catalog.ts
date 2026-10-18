@@ -1,8 +1,8 @@
 /**
- * JPEG heroes whose same-name WebP twins were verified as 200 image/webp on 2026-10-18.
- * Only public image URLs belong here; deployment checks revalidate every referenced twin.
- * Unknown future JPEGs keep their JPEG fallback until their twin is verified and added here.
- * Kept in src/lib so catalog changes invalidate Astro's rendered-page cache.
+ * Historical inventory: 907 JPEG heroes whose same-name WebP twins were verified as
+ * 200 image/webp on 2026-10-18. Only public image URLs belong here.
+ * Runtime selection and deployment checks derive every owned JPEG's twin automatically;
+ * new posts do not register here. Retain this inventory as evidence of the initial migration.
  */
 export const WEBP_HERO_JPEGS: readonly string[] = Object.freeze([
   "https://bots.aitamer.news/heroes/accenture-claude-29-monthly-spend-cap-6a923dd2.jpg",

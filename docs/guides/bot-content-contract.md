@@ -38,14 +38,11 @@ Everything in a post is read by the public: title, description, verdict, wildnes
 
 ## 3. Hero image
 
-- Heroes live on the media host (Cloudflare R2, bucket `aitamer-media`), never in the repository. A path such as `/heroes/<slug>.jpg`, or a `public/heroes/` folder, fails the deploy. The post then says `heroImage: https://media.aitamer.news/heroes/<slug>.jpg`, and `npm run check:media` must show it answering 200 before the pull request is opened.
-- **How the file gets there (two routes; use the first that you have):**
-  1. **The posts MCP** uploads the hero itself when it publishes a draft that carries one (`atn-ops` docs/runbooks/posts-mcp.md and ADR 0027: a signed S3 `PUT` of `heroes/<slug>.jpg` that never replaces an existing object). This is the route once the MCP is live, and then you do nothing else.
-  2. **Before the MCP, with credentials the bot holds**, upload the JPEG to the key `aitamer-media/heroes/<slug>.jpg` with R2's S3 API and a token scoped to that bucket (Object Read and Write). `wrangler r2 object put` will answer 403 with a bucket-scoped token, because Wrangler uses the REST API that such a token cannot call, so do not use it. The reference implementation is the S3 PUT in atn-ops (`posts_publish::r2`, ADR 0027). Send `Content-Type: image/jpeg`, `Cache-Control: public, max-age=86400` and `If-None-Match: *` so you never replace someone else's image.
-  3. **If you hold no upload credential, do not open the pull request with a broken hero.** Put the finished 1600 x 900 JPEG where the editor collects it and say so in the hand-off; the editor uploads it and the pull request follows. A post whose hero is missing fails `check:media` and stops the deploy for the whole site.
-- Never write anything to `public/heroes/`, and never put the image in the pull request.
-- 1600 x 900, JPEG, 16:9.
-- House style: layered paper-cut collage, slate blue and cream with a single coral accent, no other text, numbers or logos (the one site mark `© https://aitamer.news` is the only lettering), no recognisable people. How the mark gets there (the model draws it, or a deterministic stamp), packing to exactly 1600×900, keeping the original, and uploading is one procedure, written once in `docs/guides/hero-procedure.md`: follow it. Add `heroAlt`: one true sentence saying what the picture shows.
+Every new hero requires both a stamped 1600×900 JPEG and its 960-wide WebP, sharing the JPEG hash and basename on the same authorized media host. Follow the single [hero procedure](hero-procedure.md). Both uploads use `If-None-Match: *`; read both public objects back and verify their bytes and image types before submission. No images belong in the repository.
+
+Keep the JPEG URL in `heroImage`; the site automatically selects WebP for article heroes, cards and the homepage. JPEG remains the browser format fallback and social/feed image. `npm run check:media` must pass for both. A quality, upload or verification failure holds publication; there is no JPEG-only production exception. A producer or posts uploader that supplies only one format must hand off both files and failure evidence instead of proceeding.
+
+Every new hero carries one visible site mark and truthful `heroAlt` after visual inspection. The canonical procedure owns marking, style, originals and the conversion details. Use the appropriate owned media host and a new content-hashed key for both files. The Grok lane's authorized S3 upload is documented in [its guide](grok-news-posting.md#4-upload-to-the-bot-bucket-and-verify-the-public-url).
 
 ## 4. Frontmatter limits (the build fails past these)
 
@@ -62,7 +59,7 @@ title 200, description 400, heroAlt 300, verdict 240, wildness.verified and wild
 2. Run `npm run preflight -- --files <post-files>` (add `--news` for news), commit only the article files, then `git fetch origin main`. Do not stage the specimen ledger.
 3. **`npm run preflight`**: the bots' own gate. It checks every post your branch adds or changes: hero present, on the media host, with `heroAlt`; `pubDate` on the grid and free; no em-dashes in the prose; title under 120, description under 260 and each wildness line under 110 characters; sources present. It also prints notes on "not X, but Y" sentences, question headings and hype words: read them and fix any that is a real break. It exits 1 on a problem. Fix every line before going on.
 4. Run `npm run check:candidate -- --base "$(git rev-parse origin/main)"` and `npm test`, with no unresolved reader-text warnings. The candidate check examines committed changes; commit corrections and repeat it before pushing. It issues no number.
-5. `npm run check:media` shows your hero answering 200, and `npm run check:times` passes (it is the check that refuses a repo hero path).
+5. `npm run check:media` shows both your JPEG and WebP answering 200 with their correct types, and `npm run check:times` passes (it is the check that refuses a repo hero path).
 6. Read the post and hero as a reader would and submit source/visual evidence. The owner admits the exact reviewed head through the workflow; technical green does not grant editorial or merge approval. The owner approval review automatically starts admission on the same PR. Only its trusted certified numbered head may merge after strict current-base checks.
 
 ## 7. After the posts MCP is live

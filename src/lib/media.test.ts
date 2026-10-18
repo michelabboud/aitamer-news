@@ -177,13 +177,51 @@ test('verified hero pairs on either host select WebP and keep their exact JPEG f
   });
 });
 
-test('unknown JPEGs and unrelated images never infer an unverified WebP', () => {
+test('future owned JPEGs automatically select WebP on both hosts, including legacy media names', () => {
+  for (const jpeg of [
+    'https://media.aitamer.news/heroes/future-post.jpg',
+    'https://media.aitamer.news/heroes/future-post-0123abcd.jpg',
+    'https://bots.aitamer.news/heroes/future-post-0123abcd.jpg',
+    'https://media.aitamer.news/heroes/a--b-.jpg',
+    'https://bots.aitamer.news/heroes/a--b--0123abcd.jpg',
+  ]) {
+    const webp = jpeg.replace(/\.jpg$/, '.webp');
+    assert.equal(webpHeroUrl(jpeg), webp);
+    assert.deepEqual(visualHeroSources(jpeg), { src: jpeg, webp });
+    assert.equal(shareImageUrl(jpeg), jpeg, 'canonical JPEG remains the share image');
+    assert.deepEqual(visualHeroSources(jpeg, '/media-local/'), {
+      src: jpeg.replace(/^https:\/\/[^/]+/, '/media-local'),
+    });
+  }
+});
+
+test('unrelated and malformed images never infer a WebP', () => {
   for (const src of [
-    'https://media.aitamer.news/heroes/future-quality-fallback-0123abcd.jpg',
-    'https://bots.aitamer.news/heroes/future-quality-fallback-0123abcd.jpg',
     'https://media.aitamer.news.evil.example/heroes/welcome-to-aitamer.jpg',
     'https://user@media.aitamer.news/heroes/welcome-to-aitamer.jpg',
+    'https://media.aitamer.news@evil.example/heroes/welcome-to-aitamer.jpg',
+    'https://media.aitamer.news:443/heroes/welcome-to-aitamer.jpg',
+    'https://MEDIA.aitamer.news/heroes/welcome-to-aitamer.jpg',
+    'http://media.aitamer.news/heroes/welcome-to-aitamer.jpg',
     'https://media.aitamer.news/heroes/welcome-to-aitamer.jpg?v=1',
+    'https://media.aitamer.news/heroes/welcome-to-aitamer.jpg#top',
+    'https://media.aitamer.news/heroes/welcome-to-aitamer.jpg\n',
+    'https://media.aitamer.news/heroes/%77elcome-to-aitamer.jpg',
+    'https://media.aitamer.news/heroes/../heroes/welcome-to-aitamer.jpg',
+    'https://media.aitamer.news/heroes/Welcome-to-aitamer.jpg',
+    'https://media.aitamer.news/heroes/welcome-to-aitamer.JPG',
+    'https://media.aitamer.news/posts/welcome-to-aitamer.jpg',
+    'https://media.aitamer.news/heroes/welcome_to_aitamer.jpg',
+    'https://media.aitamer.news/heroes/welcome-to-aitamer.webp',
+    'https://bots.aitamer.news/heroes/future-post.jpg',
+    'https://bots.aitamer.news/heroes/future-post-0123ABCD.jpg',
+    'https://bots.aitamer.news/heroes/future-post-0123abc.jpg',
+    'https://bots.aitamer.news/heroes/future-post-0123abcde.jpg',
+    'https://bots.aitamer.news/heroes/future-post-0123abcd.jpg?v=1',
+    'https://bots.aitamer.news/heroes/future-post-0123abcd.jpg#top',
+    'https://bots.aitamer.news/heroes/%66uture-post-0123abcd.jpg',
+    'https://bots.aitamer.news.evil.example/heroes/future-post-0123abcd.jpg',
+    'https://user@bots.aitamer.news/heroes/future-post-0123abcd.jpg',
     '/covers/models.svg', DEFAULT_SOCIAL_IMAGE,
   ]) {
     assert.equal(webpHeroUrl(src), undefined);
