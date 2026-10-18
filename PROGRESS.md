@@ -2,7 +2,7 @@
 
 ## 0.2.90 · 2026-10-18 · future hero workflow
 
-Future owned JPEG heroes automatically select WebP and require their twin, with no catalog edit. Paired-upload/readback contract and quality-failure hold are recorded across active posting guides. Focused runtime/checker tests passed41/41 with red/green regressions. Full validation, independent review and protected deployment remain pending.
+Future owned JPEG heroes automatically select WebP and require their twin, with no catalog edit. Paired-upload/readback contract and quality-failure hold are recorded across active posting guides. Focused 41/41 and full 1038/1038 tests passed with red/green regressions; 1815 media checks, build and output checks passed. Both source reviews accepted, including the concrete original-media upload guide. PR290 owns final remote required checks, merge and deployment receipts.
 
 ## 0.2.89 · 2026-10-18 · all-post WebP rollout
 
