@@ -111,7 +111,7 @@ Michel, 2026-10-18: keep the JPEG where it is, put a WebP beside it with the sam
 | `heroes/<slug>-<hash8>.jpg` | JPEG, stamped | exactly 1600 x 900 | about 295 KB | social cards, feeds; `heroImage` on the original media host and when no WebP passes verification |
 | `heroes/<slug>-<hash8>.webp` | WebP | 960 wide (960 x 540 for 16:9), never enlarged | about 58 KB (largest 116 KB), 81 percent smaller | the picture the page shows |
 
-- **Same name, same hash.** The WebP reuses the **JPEG's** 8-hex hash, so its address is the JPEG's address with `.jpg` swapped for `.webp`. Bot-host posts may select that `.webp` as `heroImage` after both files pass upload and public readback; their social cards and feeds use the JPEG twin. On the original media host, keep `heroImage` on JPEG until its separate page rollout. AVIF was tested and dropped.
+- **Same name, same hash.** The WebP reuses the **JPEG's** 8-hex hash, so its address is the JPEG's address with `.jpg` swapped for `.webp`. Bot-host posts may select that `.webp` as `heroImage` after both files pass upload and public readback; their social cards and feeds use the JPEG twin. On the original media host, keep `heroImage` on JPEG; add the verified JPEG URL to `src/lib/hero-webp-catalog.ts` so the shared picture component selects its WebP. The current catalog covers every existing post. Unknown future JPEGs remain JPEG when no verified twin is declared. AVIF was tested and dropped.
 - **Make it from `$FINAL`, after the stamp**, never before, so the mark is burnt in once and never redrawn. Quality is the lowest of 78, 84, 90, 95 whose SSIM similarity to the JPEG scaled to the same width is at least **0.95** (1 is identical). Across the 903 heroes quality 78 was enough for 587, 84 for 316, none needed more. If no quality reaches 0.95 **do not ship a WebP**: ship the JPEG alone and say so in the hand-off. Never lower the floor in a lane.
 
   ```bash
@@ -142,3 +142,10 @@ awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { rm -f "$WEBP"; echo "below the fl
 ## Known gap: the Grok bots' Newsroom stamp script
 
 The Grok bots stamp today with their own post-render script on the Newsroom box, not with `scripts/stamp-hero.mjs` (their live heroes are identical in size, position and look). It is **not assumed** to match this repo's tool: either replace it with `node scripts/stamp-hero.mjs`, or make it match the spec (exact text `© https://aitamer.news`, 24 px inset, about 20 px type, bottom-right, 1600 x 900). Either way a hero is stamped once, and `stamp-hero.mjs` will refuse a picture that already carries such a mark. Tracked in `BACKLOG.md`.
+
+
+## Browser rollout and new pairs
+
+Article heroes, listing cards and the homepage lead use the shared `HeroImage` component. Verified catalog pairs use a WebP source and JPEG img fallback; social cards and feeds remain JPEG. The deploy media gate checks both objects for each live declared pair. Picture format fallback does not recover a missing supported WebP, so add a JPEG URL to `src/lib/hero-webp-catalog.ts` only after both create-only uploads and public byte/type readback succeed. Keep the list sorted and unique. If no WebP meets the quality floor, leave the JPEG out of the catalog and record that outcome; it continues to render as JPEG. Explicit valid bot WebP inputs are supported without a catalog entry.
+
+Local/offline previews with `PUBLIC_MEDIA_BASE` keep JPEG rendering because their local mirror may contain JPEG files alone. Production uses the verified WebP pairs.

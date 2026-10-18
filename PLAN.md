@@ -38,3 +38,8 @@ Michel requested resolving PR 248's conflicts. The merge candidate preserves the
 ## Reviewed WebP integration · 2026-10-18
 
 Dev mode: production. Authorized by Michel: validate the open PR code and allow it if correct. Integrate PRs284,285,261 through a maintainer code PR, preserving their commits and all required checks. Fix the reviewed fallback and guide inconsistencies, validate the combined candidate, merge normally and verify deployment. No workflow or trust-rule changes; no existing article, image object, date or specimen changes. Bot X PR283 is merged. Status: source validated and independently accepted at ad0537a6; maintainer PR288 is open for required current-head checks, normal merge and deployment. Remote receipts are recorded in GitHub and the private task receipt.
+
+
+## All post heroes use verified WebP · 2026-10-18
+
+[Execution plan](docs/plans/2026-10-18-all-posts-webp.md). Authorized by Michel to update all posts. Source complete and independently accepted at 5d20a6a7; all 907 post twins verified, 1037 tests and 1815 media checks passed. PR289 owns normal required-check merge and deployment; final receipts are in GitHub and the private run evidence.

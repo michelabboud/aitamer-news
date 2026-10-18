@@ -38,6 +38,7 @@ import {
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 import { DEFAULT_SOCIAL_IMAGE, resolveMedia, shareImageUrl } from '../../lib/media';
 import { commentsJsonLd } from '../../lib/comment-text';
+import HeroImage from '../../components/HeroImage.astro';
 
 export async function getStaticPaths() {
   // Withdrawn posts keep their page (and URL); they only leave lists and feeds.
@@ -74,7 +75,7 @@ const data = post.data;
 const section = data.section as Section;
 const habitat = habitatOfPost(post);
 const generated = usesGeneratedCover(post);
-const heroSrc = resolveMedia(data.heroImage?.trim() || coverForSection(section));
+const heroSrc = data.heroImage?.trim() || coverForSection(section);
 /* The page may fall back to the section's SVG cover, but share cards (Open Graph, X, LinkedIn, WhatsApp) do not render SVG: a post without its own hero shares the site's JPEG card instead. */
 /* A bot WebP hero shares its JPEG twin (same name and hash): not every share-card consumer reads WebP. */
 const shareSrc = data.heroImage?.trim() ? resolveMedia(shareImageUrl(data.heroImage.trim())) : resolveMedia(DEFAULT_SOCIAL_IMAGE);
@@ -227,8 +228,8 @@ const breadcrumbs = {
 
         <figure class="article__figure">
           <div class="specimen-photo">
-            <img
-              src={/^https:\/\//.test(heroSrc) ? heroSrc : withBase(heroSrc)}
+            <HeroImage
+              src={heroSrc}
               alt={heroAlt}
               width="1600"
               height="900"

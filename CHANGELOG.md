@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.89 · 2026-10-18
+
+All current post heroes select verified WebP on article pages, listing cards and the homepage lead through a shared picture component. A positive catalog covers 907 JPEG/WebP pairs on both owned hosts; live media checks require every advertised twin. JPEG remains the image fallback and social/feed image. Unknown future JPEGs remain valid quality-floor fallbacks. No published article source, date, specimen, ledger or image object changes.
+
 ## 0.2.88 · 2026-10-18
 
 Integrate reviewed WebP support and share-card metadata from PRs 285 and 261, plus the hero procedure from PR284, through a maintainer code branch. Bot WebP heroes keep JPEG social images and both objects are checked. Repeated/trailing-hyphen slugs retain that guarantee; section previews convert before local URL rewriting. New bot instructions select WebP only after verified upload, with JPEG retained when the quality floor fails. Existing post files, publication dates, specimen identities and workflow permissions are unchanged.

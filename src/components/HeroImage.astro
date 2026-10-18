@@ -1,0 +1,27 @@
+---
+import { visualHeroSources } from '../lib/media';
+import { withBase } from '../lib/site';
+
+interface Props {
+  /** Original production URL, before PUBLIC_MEDIA_BASE is applied. */
+  src: string;
+  alt: string;
+  width: number | string;
+  height: number | string;
+  loading?: 'eager' | 'lazy';
+  decoding?: 'async' | 'sync' | 'auto';
+  fetchpriority?: 'high' | 'low' | 'auto';
+}
+
+const { src, alt, width, height, loading, decoding = 'async', fetchpriority } = Astro.props;
+const sources = visualHeroSources(src);
+const image = withBase(sources.src);
+---
+{sources.webp ? (
+  <picture>
+    <source type="image/webp" srcset={withBase(sources.webp)} />
+    <img src={image} alt={alt} width={width} height={height} loading={loading} decoding={decoding} fetchpriority={fetchpriority} />
+  </picture>
+) : (
+  <img src={image} alt={alt} width={width} height={height} loading={loading} decoding={decoding} fetchpriority={fetchpriority} />
+)}
