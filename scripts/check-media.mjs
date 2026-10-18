@@ -2,7 +2,8 @@
 /**
  * Check that the hero images the posts point at are really on the media host (ADR 0020).
  *
- *   npm run check:media                          every post's hero answers 200 image/jpeg on its allowlisted media host
+ *   npm run check:media                          every post's hero answers 200 image/jpeg (image/webp for a .webp bot hero, whose
+ *                                                JPEG twin, the share image, must answer 200 image/jpeg too) on its allowlisted media host
  *   npm run check:media -- --local <dir>         and every <dir>/<slug>.jpg is there byte for byte (size, ETag = MD5)
  *
  * Exit 0 when everything checked is there, 1 when anything is missing or differs, 2 on a usage error.
@@ -29,7 +30,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BOT_MEDIA_ORIGIN, DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, isOwnHeroUrl, mediaOrigin } from '../src/lib/media.ts';
+import { BOT_MEDIA_ORIGIN, DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, isOwnHeroUrl, mediaOrigin, shareImageUrl } from '../src/lib/media.ts';
 import { isLive } from '../src/lib/schedule.ts';
 import { isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
 import { POSTS_DIR } from './stamp-post-times.mjs';
@@ -44,8 +45,12 @@ export const CONCURRENCY = 8;
 export const REQUEST_TIMEOUT_MS = 15_000;
 /** Identifies these requests in Cloudflare's logs. */
 export const USER_AGENT = 'aitamer-check-media/1 (+https://github.com/michelabboud/aitamer-news)';
-/** The one content type a hero is uploaded with (POST.md §3). */
+/** The content type a JPEG hero is uploaded with (POST.md §3). */
 export const HERO_CONTENT_TYPE = 'image/jpeg';
+/** The content type of a bot hero's WebP (same name and hash as its JPEG). */
+export const WEBP_CONTENT_TYPE = 'image/webp';
+/** The content type a key must be served with, from its extension. @param {string} key @returns {string} */
+export const contentTypeFor = (key) => (key.endsWith('.webp') ? WEBP_CONTENT_TYPE : HERO_CONTENT_TYPE);
 const POST_FILE = /\.mdx?$/;
 const HERO_FILE = /^[a-z0-9]+(?:-[a-z0-9]+)*\.jpg$/;
 
@@ -65,12 +70,13 @@ export const md5Hex = (bytes) => createHash('md5').update(bytes).digest('hex');
  * Compare a HEAD answer with the local file it should be.
  * @param {{ status: number, headers: Headers }} res
  * @param {{ size: number, md5: string } | null} local null when only presence is checked
+ * @param {string} [expected] the content type it must be served with (`contentTypeFor(key)`)
  * @returns {string | null} what is wrong, or null
  */
-export function judge(res, local) {
+export function judge(res, local, expected = HERO_CONTENT_TYPE) {
   if (res.status !== 200) return `answered ${res.status}, expected 200`;
   const type = (res.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();
-  if (type !== HERO_CONTENT_TYPE) return `served as ${JSON.stringify(res.headers.get('content-type'))}, expected ${HERO_CONTENT_TYPE}`;
+  if (type !== expected) return `served as ${JSON.stringify(res.headers.get('content-type'))}, expected ${expected}`;
   if (local === null) return null;
   const length = Number(res.headers.get('content-length'));
   if (length !== local.size) return `is ${res.headers.get('content-length') ?? 'of unknown size'} bytes, the local file ${local.size}`;
@@ -149,6 +155,9 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
     }
     const live = isPublishedDraftField(fm.data) === true && (date === null || isLive({ draft: false, pubDate: date }, now));
     targets.push({ origin, key: hero.slice(origin.length + 1), label: file, local: null, required: live });
+    // A WebP hero's share cards use its JPEG twin (src/lib/media.ts shareImageUrl), so that must be there too.
+    const share = shareImageUrl(hero);
+    if (share !== hero) targets.push({ origin, key: share.slice(origin.length + 1), label: `${file} (share image)`, local: null, required: live });
   }
   if (localDir !== null) {
     for (const name of readdirSync(localDir).sort()) {
@@ -199,7 +208,7 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
   const results = await pool(targets, concurrency, async (target) => {
     const url = `${target.origin === MEDIA_ORIGIN ? origin : botOrigin}/${target.key}`;
     const res = await head(url, { attempts, attemptDelayMs });
-    return { target, url, problem: 'error' in res ? res.error : judge(res, target.local) };
+    return { target, url, problem: 'error' in res ? res.error : judge(res, target.local, contentTypeFor(target.key)) };
   });
 
   const failing = results.filter((r) => r.problem !== null && r.target.required);
@@ -212,7 +221,7 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
   const ok = (list) => list.filter((r) => r.problem === null).length;
   if (localDir !== null) console.log(`check:media: ${ok(local)}/${local.length} files in ${localDir} are on ${origin} byte for byte (size and ETag = MD5).`);
   const checkedOrigins = [...new Set(posts.map((r) => new URL(r.url).origin))].join(', ') || origin;
-  console.log(`check:media: ${ok(posts)}/${posts.length} post heroes on ${checkedOrigins} answer 200 ${HERO_CONTENT_TYPE} (${posts.filter((r) => r.target.required).length} of them live).`);
+  console.log(`check:media: ${ok(posts)}/${posts.length} post heroes on ${checkedOrigins} answer 200 ${HERO_CONTENT_TYPE} or ${WEBP_CONTENT_TYPE} as named (${posts.filter((r) => r.target.required).length} of them live).`);
   return failing.length === 0 ? 0 : 1;
 }
 

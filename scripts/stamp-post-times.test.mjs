@@ -138,13 +138,16 @@ test('a published post\'s hero is its own image on the media host; no hero is fi
 test('published bot heroes accept only the hashed own-slug URL, with the correct remedy for invalid values', () => {
   const hero = 'https://bots.aitamer.news/heroes/a-0123abcd.jpg';
   assert.equal(heroProblem(post(`heroImage: "${hero}"`), 'a'), null);
+  assert.equal(heroProblem(post('heroImage: "https://bots.aitamer.news/heroes/a-0123abcd.webp"'), 'a'), null);
   for (const value of [
     'https://bots.aitamer.news/heroes/a.jpg',
+    'https://bots.aitamer.news/heroes/a.webp',
+    'https://media.aitamer.news/heroes/a-0123abcd.webp',
     'https://bots.aitamer.news/heroes/b-0123abcd.jpg',
     'https://bots.aitamer.news.evil.example/heroes/a-0123abcd.jpg',
     `${hero}?v=1`, `${hero}#top`,
   ]) {
-    assert.match(heroProblem(post(`heroImage: "${value}"`), 'a'), /or https:\/\/bots\.aitamer\.news\/heroes\/a-<8 lowercase hex>\.jpg, not/);
+    assert.match(heroProblem(post(`heroImage: "${value}"`), 'a'), /or https:\/\/bots\.aitamer\.news\/heroes\/a-<8 lowercase hex>\.jpg \(or \.webp\), not/);
   }
 });
 
