@@ -36,7 +36,7 @@ import {
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
-import { DEFAULT_SOCIAL_IMAGE, resolveMedia } from '../../lib/media';
+import { DEFAULT_SOCIAL_IMAGE, resolveMedia, shareImageUrl } from '../../lib/media';
 import { commentsJsonLd } from '../../lib/comment-text';
 
 export async function getStaticPaths() {
@@ -76,8 +76,14 @@ const habitat = habitatOfPost(post);
 const generated = usesGeneratedCover(post);
 const heroSrc = resolveMedia(data.heroImage?.trim() || coverForSection(section));
 /* The page may fall back to the section's SVG cover, but share cards (Open Graph, X, LinkedIn, WhatsApp) do not render SVG: a post without its own hero shares the site's JPEG card instead. */
-const shareSrc = data.heroImage?.trim() ? heroSrc : resolveMedia(DEFAULT_SOCIAL_IMAGE);
+/* A bot WebP hero shares its JPEG twin (same name and hash): not every share-card consumer reads WebP. */
+const shareSrc = data.heroImage?.trim() ? resolveMedia(shareImageUrl(data.heroImage.trim())) : resolveMedia(DEFAULT_SOCIAL_IMAGE);
 const heroAlt = data.heroAlt ?? `Generated cover art for: ${data.title}`;
+// Share-card metadata: heroes are 1600x900; a post without its own hero shares the 1200x630 site card.
+const hasHero = Boolean(data.heroImage?.trim());
+const shareWidth = hasHero ? 1600 : 1200;
+const shareHeight = hasHero ? 900 : 630;
+const shareAlt = hasHero ? heroAlt : `${SITE.title} share card`;
 const canonical = canonicalUrlFor(`/posts/${post.id}/`);
 const published = archiveMonthOf(data.pubDate);
 // Featured writers use their fuller introduction; other contributors keep their author profile.
@@ -142,6 +148,11 @@ const breadcrumbs = {
     <meta property="article:published_time" content={data.pubDate.toISOString()} />
     {data.updatedDate && <meta property="article:modified_time" content={data.updatedDate.toISOString()} />}
     <meta property="article:section" content={habitat.name} />
+    {data.tags.map((tag) => <meta property="article:tag" content={tag} />)}
+    <meta property="og:image:width" content={String(shareWidth)} />
+    <meta property="og:image:height" content={String(shareHeight)} />
+    <meta property="og:image:alt" content={shareAlt} />
+    <meta name="twitter:image:alt" content={shareAlt} />
   </Fragment>
 
   <article class="article" data-pagefind-body={withdrawn ? undefined : ''}>

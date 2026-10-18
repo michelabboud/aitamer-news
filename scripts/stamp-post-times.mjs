@@ -77,7 +77,7 @@ export function heroProblem(text, slug) {
   if (value === `/heroes/${slug}.jpg`) {
     return `heroImage ${value} is the retired repo path (heroes live on R2 now): upload the image as POST.md §3 says and write heroImage: ${expected}`;
   }
-  return `heroImage must be ${expected} (the post's own hero on the media host), or ${MEDIA_ORIGIN}/heroes/${slug}-<8 lowercase hex>.jpg, or ${BOT_MEDIA_ORIGIN}/heroes/${slug}-<8 lowercase hex>.jpg, not ${JSON.stringify(value)}`;
+  return `heroImage must be ${expected} (the post's own hero on the media host), or ${MEDIA_ORIGIN}/heroes/${slug}-<8 lowercase hex>.jpg, or ${BOT_MEDIA_ORIGIN}/heroes/${slug}-<8 lowercase hex>.jpg (or .webp), not ${JSON.stringify(value)}`;
 }
 
 /** @param {Date} date @returns {string} e.g. 2026-09-24T09:15:12Z */

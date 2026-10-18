@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
-import { SITE_IMAGES, bareEtag, collect, judge, main, md5Hex } from './check-media.mjs';
+import { SITE_IMAGES, bareEtag, collect, contentTypeFor, judge, main, md5Hex } from './check-media.mjs';
 import { quietlyAsync, tempDir } from './test-support.mjs';
 
 const MEDIA = 'https://media.aitamer.news';
@@ -45,7 +45,7 @@ async function host(objects, override = () => false) {
       return;
     }
     const body = objects[key];
-    res.writeHead(200, { 'content-type': 'image/jpeg', 'content-length': Buffer.byteLength(body), etag: `"${md5(body)}"` }).end();
+    res.writeHead(200, { 'content-type': key.endsWith('.webp') ? 'image/webp' : 'image/jpeg', 'content-length': Buffer.byteLength(body), etag: `"${md5(body)}"` }).end();
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
@@ -316,4 +316,49 @@ test('lookalike hosts and malformed bot keys are never requested', async () => {
     await media.close();
     await bots.close();
   }
+});
+
+test('a WebP bot hero must answer image/webp, and its JPEG twin (the share image) image/jpeg', async () => {
+  assert.equal(contentTypeFor('heroes/b-0123abcd.webp'), 'image/webp');
+  assert.equal(contentTypeFor('heroes/b-0123abcd.jpg'), 'image/jpeg');
+  const { postsDir } = fixture();
+  const webp = 'heroes/b-0123abcd.webp';
+  const jpg = 'heroes/b-0123abcd.jpg';
+  writeFileSync(join(postsDir, 'b.md'), post('b', { hero: `${BOTS}/${webp}` }));
+  const media = await host(ALL);
+  const both = await host({ [webp]: 'WEBP', [jpg]: 'JPEG' });
+  try {
+    const { result, output } = await run([], { postsDir, origin: media.origin, botOrigin: both.origin });
+    assert.equal(result, 0, output);
+    assert.deepEqual([...both.seen].sort(), [`HEAD ${jpg}`, `HEAD ${webp}`]);
+  } finally {
+    await both.close();
+  }
+  const noTwin = await host({ [webp]: 'WEBP' });
+  try {
+    const { result, output } = await run([], { postsDir, origin: media.origin, botOrigin: noTwin.origin });
+    assert.equal(result, 1, output);
+    assert.match(output, /b-0123abcd\.jpg \(.*b\.md \(share image\)\): answered 404/);
+  } finally {
+    await noTwin.close();
+  }
+  const wrongType = await host({ [webp]: 'WEBP', [jpg]: 'JPEG' }, (key, res) => {
+    if (key !== webp) return false;
+    res.writeHead(200, { 'content-type': 'image/jpeg' }).end();
+    return true;
+  });
+  try {
+    const { result, output } = await run([], { postsDir, origin: media.origin, botOrigin: wrongType.origin });
+    assert.equal(result, 1, output);
+    assert.match(output, /b-0123abcd\.webp .*expected image\/webp/);
+  } finally {
+    await wrongType.close();
+    await media.close();
+  }
+});
+
+test('the judge takes the expected type', () => {
+  const headers = (h) => new Headers(h);
+  assert.equal(judge({ status: 200, headers: headers({ 'content-type': 'image/webp' }) }, null, 'image/webp'), null);
+  assert.match(judge({ status: 200, headers: headers({ 'content-type': 'image/webp' }) }, null), /expected image\/jpeg/);
 });

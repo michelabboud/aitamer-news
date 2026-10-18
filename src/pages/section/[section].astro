@@ -19,6 +19,7 @@ import {
   type Section,
 } from '../../lib/site';
 import { postCover, coverForSection } from '../../lib/covers';
+import { resolveMedia, shareImageUrl } from '../../lib/media';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -66,7 +67,9 @@ const cards = await Promise.all(
 );
 const habitat = habitatOf(section);
 const newestShown = posts.reduce((max, post) => (post.data.pubDate > max ? post.data.pubDate : max), new Date(0)).toISOString();
-const ogImage = cards[0] ? postCover(cards[0].post) : coverForSection(section);
+/* Share cards keep JPEG: a bot WebP hero shares its same-name JPEG twin (src/lib/media.ts shareImageUrl). */
+const leadHero = cards[0]?.post.data.heroImage?.trim();
+const ogImage = leadHero ? resolveMedia(shareImageUrl(leadHero)) : coverForSection(section);
 ---
 {stub ? <Fragment set:html={stub} /> : (
 <BaseLayout

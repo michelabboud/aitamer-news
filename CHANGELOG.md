@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.88 · 2026-10-18
+
+Integrate reviewed WebP support and share-card metadata from PRs 285 and 261, plus the hero procedure from PR284, through a maintainer code branch. Bot WebP heroes keep JPEG social images and both objects are checked. Repeated/trailing-hyphen slugs retain that guarantee; section previews convert before local URL rewriting. New bot instructions select WebP only after verified upload, with JPEG retained when the quality floor fails. Existing post files, publication dates, specimen identities and workflow permissions are unchanged.
+
+## 0.2.87 · 2026-10-18
+
+Hero web version: every hero now also gets a WebP beside its JPEG, same name and only the extension changed (Michel: keep both in the same place, move and rename nothing). Docs only: `docs/guides/hero-procedure.md` gains rule 8 and the "Web version (WebP)" section (960 wide, quality ladder 78, 84, 90, 95, SSIM floor 0.95, make it from the stamped final, upload it with the JPEG create-only, never request its address before uploading, read both back); `docs/guides/grok-news-posting.md` gains the matching steps in sections 3 and 4 and the bundle list. The post file does not change. Measured on the 903 live heroes: the 960-pixel WebP averages 58 KB against about 295 KB; the 578 files for `media.aitamer.news` are uploaded and verified, the 325 for `bots.aitamer.news` are for the Grok bots to upload. The page change that uses the WebP is a later pull request. Source: `aitamer-uiux` `docs/guides/2026-10-18-hero-workflow.md` and ADR 0003. `npm test` 1025 of 1025.
+
 ## 0.2.86 · 2026-10-11
 
 Resolve PR 248 against current main, preserving the disabled Quill App lane and terminal-hold/candidate-isolation reliability safeguards. Quill byline checks retain both ancestor and current-main article text; submitted blobs retain typed candidate rejection while trusted data and infrastructure failures stay fatal. No identity activation, content or ledger changes.
