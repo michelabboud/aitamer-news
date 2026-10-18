@@ -145,3 +145,5 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - 2026-10-11 · publishing recovery review · open: evaluate read response-body transport recovery separately; current bounded GET retry covers fetch failures, not JSON body-consumption errors. GitHub cron remains best effort.
 
 - Quill activation gate (PR248 reviews, 2026-10-11): `QUILL_ACTOR_ID` unsetting is not an admission kill switch once the trusted code pin is enabled. Resolve the guard/observation bypass and misleading guide before activation; currently `QUILL_ACTOR=null`, so disabled. Reviews: `docs/reviews/2026-10-11-quill-pr248-conflict-resolution.md`.
+- 2026-10-18 | hero web version | Page change: `<picture>` with the WebP derived from `heroImage` (`.jpg` to `.webp`), JPEG as fallback and for social cards; a check that every hero's WebP answers 200 `image/webp`; amend ADR 0024 and `isOwnHeroUrl`/`check:media` as needed. Waits for all 903 WebP files (325 on the bots host are the Grok bots' to upload) and for new posts to produce them. | open
+
