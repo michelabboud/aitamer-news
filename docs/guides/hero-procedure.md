@@ -19,7 +19,8 @@ WORK=/path/the/run/states
 SLUG=your-post-slug
 ORIGINAL="$WORK/hero-original.jpg"   # path A: the generated file. Path B: the clean generated file.
 PACKED="$WORK/hero-packed.jpg"       # path B only
-FINAL="$WORK/hero.jpg"               # the one file that is uploaded: path B writes it; path A sets FINAL to $ORIGINAL, or to $PACKED if it had to be packed
+FINAL="$WORK/hero.jpg"               # the one JPEG that is uploaded: path B writes it; path A sets FINAL to $ORIGINAL, or to $PACKED if it had to be packed
+WEBP="$WORK/hero.webp"               # its web version, made from FINAL by the "Web version" section (rule 8)
 RECEIPT="$WORK/hero-stamp-receipt.json"
 ```
 
@@ -80,7 +81,7 @@ A 1280 x 720 source is enlarged; if it looks soft, regenerate larger.
 1. **Exactly one mark.** Never stamp an image that already carries a mark; never leave two. The tool refuses such an image, including marks an image model drew at another size, position or colour.
 2. **The final file is exactly 1600 x 900 and a genuine JPEG** (`ffprobe` prints `mjpeg,1600,900`).
 3. **Keep the raw original and its SHA-256.** Path A: the generated file. Path B: the clean generated file plus `$RECEIPT`. Originals are **never edited, overwritten or deleted**. Keep them where the editor collects them (a path the run states in its hand-off) until the editor says otherwise. Long-term storage for originals is an **open decision** (`BACKLOG.md`).
-4. **Upload only the final file** under a **new content-hashed key**, `heroes/<slug>-<first 8 hex of its SHA-256>.jpg`. Never overwrite or delete a prior object; never upload an original or a packed file.
+4. **Upload only the final file and its web version** (rule 8), the JPEG under a **new content-hashed key**, `heroes/<slug>-<first 8 hex of its SHA-256>.jpg`. Never overwrite or delete a prior object; never upload an original or a packed file.
 
    ```bash
    HASH=$(sha256sum "$FINAL" | cut -c1-8)
@@ -98,13 +99,44 @@ A 1280 x 720 source is enlarged; if it looks soft, regenerate larger.
    ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$WORK/downloaded-hero.jpg"   # must print 1600,900
    ```
 6. **Alt text** (`heroAlt`) is one true sentence describing what is visibly in the **uploaded** image, written after looking at it: not the prompt, not the headline, not an imagined scene.
-7. **A live hero is never re-stamped and never re-uploaded** to add, move or fix the mark.
+7. **A live hero is never re-stamped and never re-uploaded** to add, move or fix the mark. Its web version is a new object beside it and does not touch the JPEG.
+8. **Every hero also gets a web version** (WebP, next section). It is made from the stamped final, uploaded with it, and read back with it.
+
+## Web version (WebP)
+
+Michel, 2026-10-18: keep the JPEG where it is, put a WebP beside it with the same name and only the extension changed, move and rename nothing. Decision record: `docs/adr/0003` in `aitamer-uiux`; the numbers below are measured on the 903 live heroes.
+
+| File | Format | Size | Weight | Used for |
+|---|---|---|---|---|
+| `heroes/<slug>-<hash8>.jpg` | JPEG, stamped | exactly 1600 x 900 | about 295 KB | `heroImage`, social cards, feeds, the fallback image |
+| `heroes/<slug>-<hash8>.webp` | WebP | 960 wide (960 x 540 for 16:9), never enlarged | about 58 KB (largest 116 KB), 81 percent smaller | the picture the page shows |
+
+- **Same name, same hash.** The WebP reuses the **JPEG's** 8-hex hash, so its address is the JPEG's address with `.jpg` swapped for `.webp`. No post file records it and `heroImage` stays the `.jpg` address. AVIF was tested and dropped.
+- **Make it from `$FINAL`, after the stamp**, never before, so the mark is burnt in once and never redrawn. Quality is the lowest of 78, 84, 90, 95 whose SSIM similarity to the JPEG scaled to the same width is at least **0.95** (1 is identical). Across the 903 heroes quality 78 was enough for 587, 84 for 316, none needed more. If no quality reaches 0.95 **do not ship a WebP**: ship the JPEG alone and say so in the hand-off. Never lower the floor in a lane.
+
+  ```bash
+  W=960
+for Q in 78 84 90 95; do
+  ffmpeg -v error -nostdin -y -i "$FINAL" -vf "scale=$W:-2:flags=lanczos" -c:v libwebp -quality $Q -compression_level 6 -map_metadata -1 -frames:v 1 -update 1 "$WEBP"
+  SSIM=$(ffmpeg -nostdin -i "$WEBP" -i "$FINAL" -filter_complex "[1:v]scale=$W:-2:flags=lanczos,format=yuv420p[r];[0:v]format=yuv420p[t];[t][r]ssim" -f null - 2>&1 | grep -o 'All:[0-9.]*' | tail -1 | cut -d: -f2)
+  echo "q$Q ssim $SSIM bytes $(stat -c %s "$WEBP")"
+  awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' && break
+done
+awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { rm -f "$WEBP"; echo "below the floor: ship the JPEG alone"; }
+  WEBP_KEY="heroes/${SLUG}-${HASH}.webp"      # the same HASH as the JPEG
+  ```
+
+- **Look at it once**, full size and the bottom-right corner: the mark whole and legible, no tint, no visible blocking.
+- **Upload it with the JPEG, create-only, the JPEG first.** The WebP goes to `$WEBP_KEY` in the same bucket, with `--content-type image/webp`, `--cache-control 'public, max-age=31536000, immutable'` and the same conditional write (`If-None-Match: *`). A 412 means the key exists: stop and hand it to the publisher; never remove the condition, never overwrite, never delete.
+- **Never request the WebP address (HEAD or GET) before you upload it.** Cloudflare's edge caches the "not found" for four hours (measured 2026-10-18) and hides the file after it exists. If you did, read it back with a throwaway `?verify=` query, which reaches the bucket, and recheck the plain address later.
+- **Read both back** from the public address: same bytes (`cmp`), `image/jpeg` and `image/webp`.
+- **Existing heroes** got their WebP in a one-time backfill (2026-10-18), uploaded beside each unchanged JPEG; rule 7 stands for the JPEG.
 
 ## Who keeps what
 
 | File | Where it lives |
 |---|---|
-| The final `hero.jpg` | **The media host, and only it**, under its hashed key. |
+| The final `hero.jpg` and its `hero.webp` | **The media host, and only it**, under the same hashed name (`.jpg` and `.webp`). |
 | The original, its `.sha256`, the packed file, the stamp receipt, the verification crops | **With the run** (its bundle or hand-off), kept until the editor says otherwise. Never on the media host, never in the repository. |
 
 ## Known gap: the Grok bots' Newsroom stamp script

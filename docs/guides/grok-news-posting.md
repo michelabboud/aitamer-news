@@ -130,7 +130,7 @@ export WORK="$BUNDLE" ORIGINAL="$BUNDLE/hero-original.jpg" PACKED="$BUNDLE/hero-
 # stamp and verify blocks, unchanged.
 ```
 
-`$BUNDLE/hero.jpg` is then the stamped file and the only one that is uploaded; the original, its `.sha256`, the packed file and the receipt stay in the bundle. The content hash in the key below is computed from this stamped file, so it is always a new key. A refusal from the stamp tool means the art already carries lettering: regenerate it clean, never bypass. Write one accurate sentence describing what is visible to `$BUNDLE/hero-alt.txt`, at most 290 characters. Alt text must describe the actual uploaded image after visual inspection, not its generation prompt, an imagined scene, unsupported claims or the headline. If the image is acceptable but its alt text describes different objects, correct the alt text without regenerating or re-uploading the hero.
+`$BUNDLE/hero.jpg` is then the stamped file and, with its WebP web version (made below), the only files that are uploaded; the original, its `.sha256`, the packed file and the receipt stay in the bundle. The content hash in the key below is computed from this stamped file, so it is always a new key. A refusal from the stamp tool means the art already carries lettering: regenerate it clean, never bypass. Write one accurate sentence describing what is visible to `$BUNDLE/hero-alt.txt`, at most 290 characters. Alt text must describe the actual uploaded image after visual inspection, not its generation prompt, an imagined scene, unsupported claims or the headline. If the image is acceptable but its alt text describes different objects, correct the alt text without regenerating or re-uploading the hero.
 
 ```bash
 python3 - <<'PYHERO'
@@ -153,6 +153,24 @@ HERO="https://bots.aitamer.news/$KEY"
 ALT=$(cat "$BUNDLE/hero-alt.txt")
 export HASH KEY HERO
 ```
+
+**Web version (every post).** After the stamped `hero.jpg` is verified, make its WebP, following [`hero-procedure.md`](hero-procedure.md) "Web version": 960 pixels wide, quality ladder 78, 84, 90, 95, similarity floor 0.95, same hash as the JPEG. Make it from the stamped file, never before the stamp.
+
+```bash
+FINAL="$BUNDLE/hero.jpg"; WEBP="$BUNDLE/hero.webp"; W=960; rm -f "$WEBP"
+for Q in 78 84 90 95; do
+  ffmpeg -v error -nostdin -y -i "$FINAL" -vf "scale=$W:-2:flags=lanczos" -c:v libwebp -quality $Q -compression_level 6 -map_metadata -1 -frames:v 1 -update 1 "$WEBP"
+  SSIM=$(ffmpeg -nostdin -i "$WEBP" -i "$FINAL" -filter_complex "[1:v]scale=$W:-2:flags=lanczos,format=yuv420p[r];[0:v]format=yuv420p[t];[t][r]ssim" -f null - 2>&1 | grep -o 'All:[0-9.]*' | tail -1 | cut -d: -f2)
+  echo "q$Q ssim $SSIM bytes $(stat -c %s "$WEBP")"
+  awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' && break
+done
+awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { rm -f "$WEBP"; echo "below the floor: ship the JPEG alone"; }
+WEBP_KEY="heroes/${SLUG}-${HASH}.webp"      # the same HASH as the JPEG
+WEBP_URL="https://bots.aitamer.news/$WEBP_KEY"
+export WEBP WEBP_KEY WEBP_URL
+```
+
+Look at the WebP once, full size and the corner with the mark. If the loop ends below 0.95 there is no `hero.webp`: upload the JPEG alone and note it in the hand-off. The post file does not change: `heroImage` stays the `.jpg` address.
 
 ## 4. Upload to the bot bucket and verify the public URL
 
@@ -180,6 +198,27 @@ types=re.findall(r'^content-type:\s*([^;\r\n]+)',headers,re.I|re.M)
 assert types and types[-1].strip().lower()=='image/jpeg'
 PYTYPE
 ```
+
+**Then the web version, with the same conditional PUT and after the JPEG is uploaded and read back** (skip this block only if the loop above removed `hero.webp`):
+
+```bash
+AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED \
+AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED \
+aws --profile aitamer-grok --region auto \
+  --endpoint-url "$R2_ENDPOINT_URL" s3api put-object \
+  --bucket "$R2_BOT_BUCKET" --key "$WEBP_KEY" \
+  --body "$WEBP" --content-type image/webp \
+  --cache-control 'public, max-age=31536000, immutable' \
+  --if-none-match '*' --no-cli-pager \
+  > "$BUNDLE/upload-receipt-webp.json"
+
+curl --fail --silent --show-error --dump-header "$BUNDLE/webp-headers.txt" \
+  "$WEBP_URL" -o "$BUNDLE/downloaded-hero.webp"
+cmp "$WEBP" "$BUNDLE/downloaded-hero.webp"
+grep -i '^content-type: image/webp' "$BUNDLE/webp-headers.txt"
+```
+
+**Never request `$WEBP_URL` (HEAD or GET) before this upload**: Cloudflare caches the "not found" for four hours and hides the file after it exists. Never upload the WebP to `aitamer-media`, and never overwrite or delete.
 
 A 403 means fix the scoped credential/configuration with Michel. A 412 means the object key already exists: stop and hand the conflict to the publisher; do not remove `--if-none-match` or delete/rewrite the object. Successful public retrieval and matching bytes are required before continuing. Conditional writes are a client safeguard, not an enforced create-only permission: the underlying Read & Write key can alter objects in its bucket.
 
@@ -255,7 +294,7 @@ hashed hero. Inspect the actual JPEG for recognizable article-specific objects,
 restrained warm accents, no unrelated floating shapes, layered matte paper,
 no lettering and no logos in the generated image (hero-procedure.md path B), and
 exactly 1600x900. Keep the original and its SHA-256, pack to 1600x900, run
-scripts/stamp-hero.mjs as the last step, verify, upload only the stamped file under
+scripts/stamp-hero.mjs as the last step, verify, make the WebP web version, upload only the stamped file and its WebP under
 a new hash URL, never re-stamp a live hero. Regenerate failures under a new hash URL.
 Use clean Markdown, useful sections and a practical takeaway. Astro controls
 fonts and layout. Never add author files, template code, workflow changes or MDX.
@@ -291,7 +330,7 @@ git diff --binary "$(git merge-base origin/main HEAD)" HEAD -- "$POST" > "$BUNDL
 printf 'Handoff bundle: %s\nHero: %s\n' "$BUNDLE" "$HERO"
 ```
 
-Include `fields.json`, source-checks, hero.jpg (stamped), hero-original.jpg with its `.sha256`, `hero-stamp-receipt.json`, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
+Include `fields.json`, source-checks, hero.jpg (stamped), hero.webp and upload-receipt-webp.json (or the note that the WebP was below the floor), hero-original.jpg with its `.sha256`, `hero-stamp-receipt.json`, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
 
 Create `$BUNDLE/pr-evidence.md` with every field required under newsroom quality checks above. Include actual public review findings and decisive outputs, not private credentials or a blanket success claim.
 
