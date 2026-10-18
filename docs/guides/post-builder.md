@@ -14,6 +14,8 @@ One JSON object of fields, nothing else. No YAML, no `pubDate`, no `author`, no 
 
 ## Run it
 
+Before building a post, follow the [hero procedure](hero-procedure.md): upload and verify both the stamped JPEG and same-name WebP. Pass the JPEG URL below; production selects its WebP by default and keeps JPEG for fallback/sharing. A missing format or failed quality check holds publication. The builder does not upload images or prove their availability; `npm run check:media` checks both formats before submission and deployment.
+
 ```sh
 node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/post-builder.mjs \
   --fields fields.json --author quill --pubDate 2026-10-05T09:30:00Z \

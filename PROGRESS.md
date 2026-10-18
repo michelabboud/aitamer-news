@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.90 · 2026-10-18 · future hero workflow
+
+Future owned JPEG heroes automatically select WebP and require their twin, with no catalog edit. Paired-upload/readback contract and quality-failure hold are recorded across active posting guides. Focused runtime/checker tests passed41/41 with red/green regressions. Full validation, independent review and protected deployment remain pending.
+
 ## 0.2.89 · 2026-10-18 · all-post WebP rollout
 
 All 907 current hero twins verified (578 original media, 329 bot). Shared article/card/homepage picture rendering and the verified-pair media gate are implemented. Combined validation passed 1037 tests, 1815 media checks, production build and output checks. Independent mechanical/deep review and the focused offline fix review accepted source at 5d20a6a7. PR289 owns remote required-check merge and deployment receipts.

@@ -147,3 +147,5 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 - Quill activation gate (PR248 reviews, 2026-10-11): `QUILL_ACTOR_ID` unsetting is not an admission kill switch once the trusted code pin is enabled. Resolve the guard/observation bypass and misleading guide before activation; currently `QUILL_ACTOR=null`, so disabled. Reviews: `docs/reviews/2026-10-11-quill-pr248-conflict-resolution.md`.
 - 2026-10-18 | hero web version | Completed: shared picture rendering selects verified WebP for all 907 current post heroes on both owned hosts, preserving JPEG frontmatter, fallback and social images. Verified-pair catalog and deploy checks cover the rollout. | done 2026-10-18
 
+
+- 2026-10-18 | producer contract | External uploader services must supply both hero formats before publication; this site change enforces the media contract and updates guides but does not qualify or modify those services. | integration evidence required per producer

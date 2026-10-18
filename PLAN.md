@@ -43,3 +43,8 @@ Dev mode: production. Authorized by Michel: validate the open PR code and allow 
 ## All post heroes use verified WebP · 2026-10-18
 
 [Execution plan](docs/plans/2026-10-18-all-posts-webp.md). Authorized by Michel to update all posts. Source complete and independently accepted at 5d20a6a7; all 907 post twins verified, 1037 tests and 1815 media checks passed. PR289 owns normal required-check merge and deployment; final receipts are in GitHub and the private run evidence.
+
+
+## Future dual-format hero workflow · 2026-10-18
+
+[Plan](docs/plans/2026-10-18-dual-format-hero-workflow.md). Michel requires both uploads and WebP default display for future posts, plus a publisher procedure copy. Running: automatic derived WebP and mandatory paired-media checks; canonical procedure and posting entry points aligned. Validation, normal PR/deployment and publisher reference copy follow.

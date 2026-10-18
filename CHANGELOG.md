@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.90 · 2026-10-18
+
+Require JPEG and WebP for every future hero. Owned JPEG URLs automatically derive their same-name WebP, without catalog registration; live media validation requires both formats. JPEG remains canonical metadata, fallback, social and feed image; local previews remain JPEG-only. Canonical procedure and posting entry points require both create-only uploads/readbacks and hold publication on quality or upload failure. Existing posts, images and identities are unchanged.
+
 ## 0.2.89 · 2026-10-18
 
 All current post heroes select verified WebP on article pages, listing cards and the homepage lead through a shared picture component. A positive catalog covers 907 JPEG/WebP pairs on both owned hosts; live media checks require every advertised twin. JPEG remains the image fallback and social/feed image. Unknown future JPEGs remain valid quality-floor fallbacks. No published article source, date, specimen, ledger or image object changes.

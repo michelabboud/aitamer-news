@@ -158,20 +158,15 @@ export HASH KEY HERO HERO_FILE
 **Web version (every post).** After the stamped `hero.jpg` is verified, make its WebP, following [`hero-procedure.md`](hero-procedure.md) "Web version": 960 pixels wide, quality ladder 78, 84, 90, 95, similarity floor 0.95, same hash as the JPEG. Make it from the stamped file, never before the stamp.
 
 ```bash
-FINAL="$BUNDLE/hero.jpg"; WEBP="$BUNDLE/hero.webp"; W=960; rm -f "$WEBP"
-for Q in 78 84 90 95; do
-  ffmpeg -v error -nostdin -y -i "$FINAL" -vf "scale=$W:-2:flags=lanczos" -c:v libwebp -quality $Q -compression_level 6 -map_metadata -1 -frames:v 1 -update 1 "$WEBP"
-  SSIM=$(ffmpeg -nostdin -i "$WEBP" -i "$FINAL" -filter_complex "[1:v]scale=$W:-2:flags=lanczos,format=yuv420p[r];[0:v]format=yuv420p[t];[t][r]ssim" -f null - 2>&1 | grep -o 'All:[0-9.]*' | tail -1 | cut -d: -f2)
-  echo "q$Q ssim $SSIM bytes $(stat -c %s "$WEBP")"
-  awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' && break
-done
-awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { rm -f "$WEBP"; echo "below the floor: ship the JPEG alone"; }
-WEBP_KEY="heroes/${SLUG}-${HASH}.webp"      # the same HASH as the JPEG
+WORK="$BUNDLE"
+FINAL="$BUNDLE/hero.jpg"
+WEBP="$BUNDLE/hero.webp"
+WEBP_KEY="heroes/${SLUG}-${HASH}.webp"
 WEBP_URL="https://bots.aitamer.news/$WEBP_KEY"
-export WEBP WEBP_KEY WEBP_URL
+export WORK FINAL WEBP WEBP_KEY WEBP_URL
 ```
 
-Look at the WebP once, full size and the corner with the mark. If the loop ends below 0.95 there is no `hero.webp`: upload the JPEG alone and note it in the hand-off. Keep `HERO` on the JPEG until both uploads and public readbacks succeed; only then select the WebP for the post. Share cards and feeds continue using the JPEG twin.
+Run the conversion loop in the canonical [hero procedure, Web version](hero-procedure.md#web-version-webp), with `set -euo pipefail`. It must finish at SSIM 0.95 or better. If it fails, preserve the attempt and hold publication; do not upload or submit a JPEG-only hero. Look at the WebP at full size and inspect its mark. `HERO` and `HERO_FILE` stay on the JPEG: production derives the WebP automatically, while sharing uses JPEG. Both uploads and readbacks below are mandatory.
 
 ## 4. Upload to the bot bucket and verify the public URL
 
@@ -200,7 +195,7 @@ assert types and types[-1].strip().lower()=='image/jpeg'
 PYTYPE
 ```
 
-**Then the web version, with the same conditional PUT and after the JPEG is uploaded and read back** (skip this block only if the loop above removed `hero.webp`):
+**Then upload and verify the WebP, using the same conditional PUT after the JPEG readback. This block is mandatory:**
 
 ```bash
 AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED \
@@ -217,12 +212,9 @@ curl --fail --silent --show-error --dump-header "$BUNDLE/webp-headers.txt" \
   "$WEBP_URL" -o "$BUNDLE/downloaded-hero.webp"
 cmp "$WEBP" "$BUNDLE/downloaded-hero.webp"
 grep -i '^content-type: image/webp' "$BUNDLE/webp-headers.txt"
-HERO="$WEBP_URL"
-HERO_FILE="$WEBP"
-export HERO HERO_FILE
 ```
 
-Run this block with shell error checking enabled (`set -euo pipefail`). Set `HERO` to the WebP only after every verification succeeds. When no WebP meets the quality floor, skip the block and leave `HERO` on the already verified JPEG. The builder below records that selected URL.
+Run both upload/readback blocks with `set -euo pipefail`; any failure holds publication. The builder records the JPEG URL and the page selects its WebP by default. Run `npm run check:media` before submission to confirm both objects are available at their plain public URLs.
 
 **Never request `$WEBP_URL` (HEAD or GET) before this upload**: Cloudflare caches the "not found" for four hours and hides the file after it exists. Never upload the WebP to `aitamer-media`, and never overwrite or delete.
 
@@ -336,7 +328,7 @@ git diff --binary "$(git merge-base origin/main HEAD)" HEAD -- "$POST" > "$BUNDL
 printf 'Handoff bundle: %s\nHero: %s\n' "$BUNDLE" "$HERO"
 ```
 
-Include `fields.json`, source-checks, hero.jpg (stamped), hero.webp and upload-receipt-webp.json (or the note that the WebP was below the floor), hero-original.jpg with its `.sha256`, `hero-stamp-receipt.json`, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
+Include `fields.json`, source-checks, hero.jpg (stamped), hero.webp and upload-receipt-webp.json (both required), hero-original.jpg with its `.sha256`, `hero-stamp-receipt.json`, hero-alt, upload/builder receipts and decisive test results. A local bundle path only works on a shared filesystem; otherwise use the authorized transfer channel. A prepared bundle is not a live post.
 
 Create `$BUNDLE/pr-evidence.md` with every field required under newsroom quality checks above. Include actual public review findings and decisive outputs, not private credentials or a blanket success claim.
 
@@ -443,6 +435,9 @@ curl --fail --silent --show-error \
 grep -F "$HERO" "$BUNDLE/live-post.html"
 curl --fail --silent --show-error "$HERO" -o "$BUNDLE/live-hero"
 cmp "$HERO_FILE" "$BUNDLE/live-hero"
+grep -F "$WEBP_URL" "$BUNDLE/live-post.html"
+curl --fail --silent --show-error "$WEBP_URL" -o "$BUNDLE/live-hero.webp"
+cmp "$WEBP" "$BUNDLE/live-hero.webp"
 ```
 
 For a due post, verify the page shows the expected workflow-assigned specimen and reviewed content. Only after successful deployment, page HTTP 200 and verified hero may you share the post URL as live. Report title, author, UTC publication date, PR, deployment run, source checks, page result and hero result. Manual model disclosure is not required. Preserve failed attempts.

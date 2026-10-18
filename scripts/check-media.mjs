@@ -2,7 +2,7 @@
 /**
  * Check that the hero images the posts point at are really on the media host (ADR 0020).
  *
- *   npm run check:media                          every post's hero answers 200 with its named image type, including catalogued
+ *   npm run check:media                          every post's hero answers 200 with its named image type, including required
  *                                                WebP twins and the JPEG share twin of an explicit .webp bot hero
  *   npm run check:media -- --local <dir>         and every <dir>/<slug>.jpg is there byte for byte (size, ETag = MD5)
  *
@@ -47,7 +47,7 @@ export const REQUEST_TIMEOUT_MS = 15_000;
 export const USER_AGENT = 'aitamer-check-media/1 (+https://github.com/michelabboud/aitamer-news)';
 /** The content type a JPEG hero is uploaded with (POST.md §3). */
 export const HERO_CONTENT_TYPE = 'image/jpeg';
-/** The content type of a bot hero's WebP (same name and hash as its JPEG). */
+/** The content type of every hero's WebP twin (same name as its canonical JPEG). */
 export const WEBP_CONTENT_TYPE = 'image/webp';
 /** The content type a key must be served with, from its extension. @param {string} key @returns {string} */
 export const contentTypeFor = (key) => (key.endsWith('.webp') ? WEBP_CONTENT_TYPE : HERO_CONTENT_TYPE);
@@ -155,7 +155,7 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
     }
     const live = isPublishedDraftField(fm.data) === true && (date === null || isLive({ draft: false, pubDate: date }, now));
     targets.push({ origin, key: hero.slice(origin.length + 1), label: file, local: null, required: live });
-    // The catalog selects verified WebP twins for visual rendering. Unknown JPEGs keep their JPEG fallback.
+    // Every owned JPEG automatically selects its WebP twin for visual rendering, so both must exist.
     // Look up the original production URL, before any local host replacement done by main().
     const webp = webpHeroUrl(hero);
     if (webp && webp !== hero) targets.push({ origin, key: webp.slice(origin.length + 1), label: `${file} (WebP image)`, local: null, required: live });

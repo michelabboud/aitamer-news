@@ -42,3 +42,5 @@
 - [Isolate terminal admission failures](0037-isolate-terminal-admission-failures.md) — preserve irrecoverable historical attempts as held; refuse malformed candidates without starving later valid requests; infrastructure and trusted-baseline failures remain visible.
 
 - [Verified WebP hero pairs](0038-verified-webp-hero-pairs.md) — accepted 2026-10-18; all existing post heroes select verified WebP, with JPEG fallbacks and social images.
+
+- [Both hero formats, WebP display by default](0039-dual-format-heroes-by-default.md) — accepted2026-10-18; mandatory paired uploads and automatic WebP display for future posts, superseding the future JPEG-only exception.
