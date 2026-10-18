@@ -108,10 +108,10 @@ Michel, 2026-10-18: keep the JPEG where it is, put a WebP beside it with the sam
 
 | File | Format | Size | Weight | Used for |
 |---|---|---|---|---|
-| `heroes/<slug>-<hash8>.jpg` | JPEG, stamped | exactly 1600 x 900 | about 295 KB | `heroImage`, social cards, feeds, the fallback image |
+| `heroes/<slug>-<hash8>.jpg` | JPEG, stamped | exactly 1600 x 900 | about 295 KB | social cards, feeds; `heroImage` on the original media host and when no WebP passes verification |
 | `heroes/<slug>-<hash8>.webp` | WebP | 960 wide (960 x 540 for 16:9), never enlarged | about 58 KB (largest 116 KB), 81 percent smaller | the picture the page shows |
 
-- **Same name, same hash.** The WebP reuses the **JPEG's** 8-hex hash, so its address is the JPEG's address with `.jpg` swapped for `.webp`. No post file records it and `heroImage` stays the `.jpg` address. AVIF was tested and dropped.
+- **Same name, same hash.** The WebP reuses the **JPEG's** 8-hex hash, so its address is the JPEG's address with `.jpg` swapped for `.webp`. Bot-host posts may select that `.webp` as `heroImage` after both files pass upload and public readback; their social cards and feeds use the JPEG twin. On the original media host, keep `heroImage` on JPEG until its separate page rollout. AVIF was tested and dropped.
 - **Make it from `$FINAL`, after the stamp**, never before, so the mark is burnt in once and never redrawn. Quality is the lowest of 78, 84, 90, 95 whose SSIM similarity to the JPEG scaled to the same width is at least **0.95** (1 is identical). Across the 903 heroes quality 78 was enough for 587, 84 for 316, none needed more. If no quality reaches 0.95 **do not ship a WebP**: ship the JPEG alone and say so in the hand-off. Never lower the floor in a lane.
 
   ```bash

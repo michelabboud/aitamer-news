@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.88 · 2026-10-18 · reviewed WebP integration
+
+Bot X PR283 merged normally as `21fbcb94`. PRs 284, 285 and 261 are integrated with source history preserved on a maintainer code branch; the Grok article lane correctly refuses template changes. Independent review found and integration addressed slug fallback, offline section metadata and bot-guide selection inconsistencies. Final combined-candidate checks and normal protected merge remain pending.
+
 ## 0.2.86 · 2026-10-11 · Quill PR 248 conflict repair
 Current main merged into the Quill App-lane branch with terminal holds, typed producer-candidate rejection and Quill ancestor/current-main byline checks preserved. The identity remains unpinned and disabled. Focused 183/183 and full 1025/1025 tests passed; production build, post/media and built-output checks passed. Independent review, branch push/checkpoint and remote CI remain separate pending steps. [Resolution report](docs/reports/2026-10-11-quill-pr248-conflict-resolution.md).
 

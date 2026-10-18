@@ -148,3 +148,13 @@ test('shareImageUrl gives a bot WebP hero its JPEG twin and leaves everything el
     DEFAULT_SOCIAL_IMAGE,
   ]) assert.equal(shareImageUrl(value), value, value);
 });
+
+test('every accepted bot WebP slug keeps a JPEG share image, including repeated and trailing hyphens', () => {
+  for (const slug of ['a', 'a--b', 'a-', 'a--']) {
+    const hero = `https://bots.aitamer.news/heroes/${slug}-0123abcd.webp`;
+    assert.equal(isOwnHeroUrl(slug, hero), true);
+    const share = shareImageUrl(hero);
+    assert.equal(share, `https://bots.aitamer.news/heroes/${slug}-0123abcd.jpg`);
+    assert.equal(resolveMedia(share, '/media-local'), `/media-local/heroes/${slug}-0123abcd.jpg`);
+  }
+});

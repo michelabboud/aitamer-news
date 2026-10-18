@@ -33,3 +33,8 @@ Michel authorized verifying and repairing both owner-backed and automatic Grok p
 
 ## Quill App lane · 2026-10-11 · PR 248 conflict repair
 Michel requested resolving PR 248's conflicts. The merge candidate preserves the disabled App route from [ADR 0036](docs/adr/0036-quill-app-content-pull-requests.md) and main's publication reliability fixes. Local checks passed at 0.2.86; independent review, branch push/checkpoint and remote CI are pending. The coordinator may merge the PR after accepted reviews and exact-head remote checks under Michel's subsequent instruction. App creation, identity pinning and activation remain outside this task. [Resolution report](docs/reports/2026-10-11-quill-pr248-conflict-resolution.md).
+
+
+## Reviewed WebP integration · 2026-10-18
+
+Dev mode: production. Authorized by Michel: validate the open PR code and allow it if correct. Integrate PRs284,285,261 through a maintainer code PR, preserving their commits and all required checks. Fix the reviewed fallback and guide inconsistencies, validate the combined candidate, merge normally and verify deployment. No workflow or trust-rule changes; no existing article, image object, date or specimen changes. Bot X PR283 is merged. Status: running; final validation and protected merge pending.

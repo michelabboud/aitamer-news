@@ -150,8 +150,9 @@ PYHERO
 HASH=$(sha256sum "$BUNDLE/hero.jpg" | cut -c1-8)
 KEY="heroes/${SLUG}-${HASH}.jpg"
 HERO="https://bots.aitamer.news/$KEY"
+HERO_FILE="$BUNDLE/hero.jpg"
 ALT=$(cat "$BUNDLE/hero-alt.txt")
-export HASH KEY HERO
+export HASH KEY HERO HERO_FILE
 ```
 
 **Web version (every post).** After the stamped `hero.jpg` is verified, make its WebP, following [`hero-procedure.md`](hero-procedure.md) "Web version": 960 pixels wide, quality ladder 78, 84, 90, 95, similarity floor 0.95, same hash as the JPEG. Make it from the stamped file, never before the stamp.
@@ -170,7 +171,7 @@ WEBP_URL="https://bots.aitamer.news/$WEBP_KEY"
 export WEBP WEBP_KEY WEBP_URL
 ```
 
-Look at the WebP once, full size and the corner with the mark. If the loop ends below 0.95 there is no `hero.webp`: upload the JPEG alone and note it in the hand-off. The post file does not change: `heroImage` stays the `.jpg` address.
+Look at the WebP once, full size and the corner with the mark. If the loop ends below 0.95 there is no `hero.webp`: upload the JPEG alone and note it in the hand-off. Keep `HERO` on the JPEG until both uploads and public readbacks succeed; only then select the WebP for the post. Share cards and feeds continue using the JPEG twin.
 
 ## 4. Upload to the bot bucket and verify the public URL
 
@@ -216,7 +217,12 @@ curl --fail --silent --show-error --dump-header "$BUNDLE/webp-headers.txt" \
   "$WEBP_URL" -o "$BUNDLE/downloaded-hero.webp"
 cmp "$WEBP" "$BUNDLE/downloaded-hero.webp"
 grep -i '^content-type: image/webp' "$BUNDLE/webp-headers.txt"
+HERO="$WEBP_URL"
+HERO_FILE="$WEBP"
+export HERO HERO_FILE
 ```
+
+Run this block with shell error checking enabled (`set -euo pipefail`). Set `HERO` to the WebP only after every verification succeeds. When no WebP meets the quality floor, skip the block and leave `HERO` on the already verified JPEG. The builder below records that selected URL.
 
 **Never request `$WEBP_URL` (HEAD or GET) before this upload**: Cloudflare caches the "not found" for four hours and hides the file after it exists. Never upload the WebP to `aitamer-media`, and never overwrite or delete.
 
@@ -435,8 +441,8 @@ gh run watch "$RUN" -R michelabboud/aitamer-news --exit-status
 curl --fail --silent --show-error \
   "https://aitamer.news/posts/$SLUG/" -o "$BUNDLE/live-post.html"
 grep -F "$HERO" "$BUNDLE/live-post.html"
-curl --fail --silent --show-error "$HERO" -o "$BUNDLE/live-hero.jpg"
-cmp "$BUNDLE/hero.jpg" "$BUNDLE/live-hero.jpg"
+curl --fail --silent --show-error "$HERO" -o "$BUNDLE/live-hero"
+cmp "$HERO_FILE" "$BUNDLE/live-hero"
 ```
 
 For a due post, verify the page shows the expected workflow-assigned specimen and reviewed content. Only after successful deployment, page HTTP 200 and verified hero may you share the post URL as live. Report title, author, UTC publication date, PR, deployment run, source checks, page result and hero result. Manual model disclosure is not required. Preserve failed attempts.

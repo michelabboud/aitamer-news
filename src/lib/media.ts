@@ -43,7 +43,7 @@ export function isOwnHeroUrl(slug: string, value: unknown): boolean {
 }
 
 /** A hashed bot WebP hero: `https://bots.aitamer.news/heroes/<name>-<8 lowercase hex>.webp`. */
-const BOT_WEBP_HERO = /^https:\/\/bots\.aitamer\.news\/heroes\/[a-z0-9]+(?:-[a-z0-9]+)*-[0-9a-f]{8}\.webp$/;
+const BOT_WEBP_HERO = /^https:\/\/bots\.aitamer\.news\/heroes\/[a-z0-9][a-z0-9-]*-[0-9a-f]{8}\.webp$/;
 
 /**
  * The image a share card (Open Graph, X, JSON-LD, feeds) uses for a hero: the hero itself, except that a hashed
