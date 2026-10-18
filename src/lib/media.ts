@@ -25,7 +25,9 @@ const HERO_HASH = /^[0-9a-f]{8}$/;
  * Whether `value` is this post's own hero on the media host: `heroUrl(slug)` (every hero before 2026-10-02, and
  * any that never changes), or `https://media.aitamer.news/heroes/<slug>-<8 lowercase hex>.jpg`, the form a
  * replaced hero takes so its address changes with its picture and can be cached for a year (ADR 0024).
- * Bot heroes on bots.aitamer.news require that same hashed form; no unhashed bot URL is accepted.
+ * Bot heroes on bots.aitamer.news require that same hashed form; no unhashed bot URL is accepted. A bot hero may
+ * also be the WebP of that hashed JPEG, `https://bots.aitamer.news/heroes/<slug>-<8 lowercase hex>.webp`: same
+ * name and hash, made from the uploaded JPEG, which stays on the host and is what share cards use (`shareImageUrl`).
  * Byte for byte: no other host, scheme, case, query, fragment, encoding or other slug's image.
  */
 export function isOwnHeroUrl(slug: string, value: unknown): boolean {
@@ -33,9 +35,23 @@ export function isOwnHeroUrl(slug: string, value: unknown): boolean {
   if (value === heroUrl(slug)) return true;
   return MEDIA_ORIGINS.some((origin) => {
     const prefix = `${origin}/heroes/${slug}-`;
-    if (!value.startsWith(prefix) || !value.endsWith('.jpg')) return false;
-    return HERO_HASH.test(value.slice(prefix.length, value.length - '.jpg'.length));
+    if (!value.startsWith(prefix)) return false;
+    const ext = value.endsWith('.jpg') ? '.jpg' : origin === BOT_MEDIA_ORIGIN && value.endsWith('.webp') ? '.webp' : null;
+    if (ext === null) return false;
+    return HERO_HASH.test(value.slice(prefix.length, value.length - ext.length));
   });
+}
+
+/** A hashed bot WebP hero: `https://bots.aitamer.news/heroes/<name>-<8 lowercase hex>.webp`. */
+const BOT_WEBP_HERO = /^https:\/\/bots\.aitamer\.news\/heroes\/[a-z0-9]+(?:-[a-z0-9]+)*-[0-9a-f]{8}\.webp$/;
+
+/**
+ * The image a share card (Open Graph, X, JSON-LD, feeds) uses for a hero: the hero itself, except that a hashed
+ * bot WebP hero shares its JPEG twin (same name and hash, `.jpg`), which always exists on the host because the
+ * WebP is made from it. Share-card consumers do not all read WebP. Every other value passes through unchanged.
+ */
+export function shareImageUrl(value: string): string {
+  return BOT_WEBP_HERO.test(value) ? `${value.slice(0, -'.webp'.length)}.jpg` : value;
 }
 
 /**

@@ -11,13 +11,13 @@ import {
   withBase,
   type Section,
 } from '../lib/site';
-import { resolveMedia } from '../lib/media';
+import { resolveMedia, shareImageUrl } from '../lib/media';
 
-/** The hero's absolute URL: a media-host URL (ADR 0020), or a site-relative path made absolute. */
+/** The hero's absolute URL: a media-host URL (ADR 0020), or a site-relative path made absolute. A bot WebP hero gives its JPEG twin. */
 function absoluteHeroImageUrl(heroImage: string | undefined): string | undefined {
   const trimmed = heroImage?.trim();
   if (!trimmed) return undefined;
-  return new URL(resolveMedia(trimmed), SITE.url).toString();
+  return new URL(resolveMedia(shareImageUrl(trimmed)), SITE.url).toString();
 }
 
 export async function GET(_context: APIContext) {

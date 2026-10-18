@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, isOwnHeroUrl, resolveMedia } from './media.ts';
+import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, isOwnHeroUrl, resolveMedia, shareImageUrl } from './media.ts';
 
 test('heroUrl builds the full R2 URL for a slug', () => {
   assert.equal(heroUrl('grok-4-7'), 'https://media.aitamer.news/heroes/grok-4-7.jpg');
@@ -116,4 +116,35 @@ test('local media overrides handle the bot origin while leaving lookalikes untou
     'https://bots.aitamer.news@evil.example/heroes/a-0123abcd.jpg',
     'https://user@bots.aitamer.news/heroes/a-0123abcd.jpg',
   ]) assert.equal(resolveMedia(url, '/media-local'), url);
+});
+
+test('a bot hero may be the WebP of its hashed JPEG, on the bot host only, with the same strict form', () => {
+  assert.equal(isOwnHeroUrl('a', 'https://bots.aitamer.news/heroes/a-0123abcd.webp'), true);
+  assert.equal(isOwnHeroUrl('a', 'https://bots.aitamer.news/heroes/a-0123abcd.jpg'), true);
+  for (const value of [
+    'https://media.aitamer.news/heroes/a-0123abcd.webp',
+    'https://media.aitamer.news/heroes/a.webp',
+    'https://bots.aitamer.news/heroes/a.webp',
+    'https://bots.aitamer.news/heroes/b-0123abcd.webp',
+    'https://bots.aitamer.news/heroes/a-0123ABCD.webp',
+    'https://bots.aitamer.news/heroes/a-0123abc.webp',
+    'https://bots.aitamer.news/heroes/a-0123abcd.WEBP',
+    'https://bots.aitamer.news/heroes/a-0123abcd.png',
+    'https://bots.aitamer.news/heroes/a-0123abcd.webp?v=2',
+    'https://bots.aitamer.news.evil.example/heroes/a-0123abcd.webp',
+    'http://bots.aitamer.news/heroes/a-0123abcd.webp',
+  ]) assert.equal(isOwnHeroUrl('a', value), false, value);
+});
+
+test('shareImageUrl gives a bot WebP hero its JPEG twin and leaves everything else alone', () => {
+  assert.equal(shareImageUrl('https://bots.aitamer.news/heroes/a-b-0123abcd.webp'), 'https://bots.aitamer.news/heroes/a-b-0123abcd.jpg');
+  for (const value of [
+    'https://bots.aitamer.news/heroes/a-0123abcd.jpg',
+    'https://media.aitamer.news/heroes/a-0123abcd.webp',
+    'https://media.aitamer.news/heroes/a.jpg',
+    'https://bots.aitamer.news/heroes/a.webp',
+    'https://bots.aitamer.news.evil.example/heroes/a-0123abcd.webp',
+    '/covers/models.svg',
+    DEFAULT_SOCIAL_IMAGE,
+  ]) assert.equal(shareImageUrl(value), value, value);
 });

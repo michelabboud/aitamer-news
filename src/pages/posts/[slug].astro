@@ -36,7 +36,7 @@ import {
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
-import { DEFAULT_SOCIAL_IMAGE, resolveMedia } from '../../lib/media';
+import { DEFAULT_SOCIAL_IMAGE, resolveMedia, shareImageUrl } from '../../lib/media';
 import { commentsJsonLd } from '../../lib/comment-text';
 
 export async function getStaticPaths() {
@@ -76,7 +76,8 @@ const habitat = habitatOfPost(post);
 const generated = usesGeneratedCover(post);
 const heroSrc = resolveMedia(data.heroImage?.trim() || coverForSection(section));
 /* The page may fall back to the section's SVG cover, but share cards (Open Graph, X, LinkedIn, WhatsApp) do not render SVG: a post without its own hero shares the site's JPEG card instead. */
-const shareSrc = data.heroImage?.trim() ? heroSrc : resolveMedia(DEFAULT_SOCIAL_IMAGE);
+/* A bot WebP hero shares its JPEG twin (same name and hash): not every share-card consumer reads WebP. */
+const shareSrc = data.heroImage?.trim() ? resolveMedia(shareImageUrl(data.heroImage.trim())) : resolveMedia(DEFAULT_SOCIAL_IMAGE);
 const heroAlt = data.heroAlt ?? `Generated cover art for: ${data.title}`;
 const canonical = canonicalUrlFor(`/posts/${post.id}/`);
 const published = archiveMonthOf(data.pubDate);
