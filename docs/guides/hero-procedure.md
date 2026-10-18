@@ -90,7 +90,7 @@ A 1280 x 720 source is enlarged; if it looks soft, regenerate larger.
    KEY="heroes/${SLUG}-${HASH}.jpg"
    ```
 
-   How the bytes reach the bucket depends on your lane (the Grok bot bucket: [`grok-news-posting.md`](grok-news-posting.md) section 4; the main media bucket: `POST.md` section 3; the posts MCP uploads it itself).
+   How the bytes reach the bucket depends on your lane: the Grok bot bucket uses [`grok-news-posting.md`](grok-news-posting.md) section 4; the original media bucket uses [Upload both formats](#upload-both-formats-original-media-host) below. A posts uploader is qualified only when it supplies both formats and verified readbacks; do not assume a JPEG-only uploader meets this contract.
 5. **Read the public URL back before any post references it:** the same bytes, `image/jpeg`, 1600 x 900.
 
    ```bash
@@ -135,6 +135,38 @@ awk -v s="$SSIM" 'BEGIN{exit !(s>=0.95)}' || { echo "WebP below the quality floo
 - **Never request the WebP address (HEAD or GET) before you upload it.** Cloudflare's edge caches the "not found" for four hours (measured 2026-10-18) and hides the file after it exists. If you did, read it back with a throwaway `?verify=` query, which reaches the bucket, and recheck the plain address later.
 - **Read both back** from the public address: same bytes (`cmp`), `image/jpeg` and `image/webp`.
 - **Existing heroes** got their WebP in a one-time backfill (2026-10-18), uploaded beside each unchanged JPEG; rule 7 stands for the JPEG.
+
+## Upload both formats (original media host)
+
+After successful conversion and visual inspection, use the lane's already authorized bucket-scoped S3 profile. The operator supplies `AWS_PROFILE`, `R2_ENDPOINT_URL` and `R2_MEDIA_BUCKET` from the existing credential setup; never place their account details or credentials in this repository. The JPEG `KEY` and WebP `WEBP_KEY` come from the same JPEG hash above. Use a fresh private run folder, preserve receipts, and never blindly retry an upload whose outcome is unknown.
+
+```bash
+set -euo pipefail
+: "${AWS_PROFILE:?Select the authorized bucket-scoped S3 profile}"
+: "${R2_ENDPOINT_URL:?Set the authorized R2 S3 endpoint}"
+: "${R2_MEDIA_BUCKET:?Set the original media bucket}"
+test ! -e "$WORK/upload-jpeg.json" && test ! -e "$WORK/upload-webp.json" || { echo "Upload receipts already exist; inspect the prior attempt" >&2; exit 1; }
+export AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
+export AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
+aws --profile "$AWS_PROFILE" --region auto --endpoint-url "$R2_ENDPOINT_URL" s3api put-object \
+  --bucket "$R2_MEDIA_BUCKET" --key "$KEY" --body "$FINAL" \
+  --content-type image/jpeg --cache-control 'public, max-age=31536000, immutable' \
+  --if-none-match '*' --no-cli-pager > "$WORK/upload-jpeg.json"
+aws --profile "$AWS_PROFILE" --region auto --endpoint-url "$R2_ENDPOINT_URL" s3api put-object \
+  --bucket "$R2_MEDIA_BUCKET" --key "$WEBP_KEY" --body "$WEBP" \
+  --content-type image/webp --cache-control 'public, max-age=31536000, immutable' \
+  --if-none-match '*' --no-cli-pager > "$WORK/upload-webp.json"
+HERO="https://media.aitamer.news/$KEY"
+WEBP_URL="https://media.aitamer.news/$WEBP_KEY"
+curl --fail --silent --show-error --dump-header "$WORK/jpeg-headers.txt" "$HERO" -o "$WORK/readback-hero.jpg"
+cmp "$FINAL" "$WORK/readback-hero.jpg"
+grep -i '^content-type: image/jpeg' "$WORK/jpeg-headers.txt"
+curl --fail --silent --show-error --dump-header "$WORK/webp-headers.txt" "$WEBP_URL" -o "$WORK/readback-hero.webp"
+cmp "$WEBP" "$WORK/readback-hero.webp"
+grep -i '^content-type: image/webp' "$WORK/webp-headers.txt"
+```
+
+A 412 is a conflict, not permission to overwrite; stop and hand off the evidence. A failed or uncertain upload or readback holds the post. Neither public URL is requested before its object uploads successfully. Once both plain public URLs are verified, pass `HERO` (the JPEG URL) to the builder; production selects `WEBP_URL` automatically.
 
 ## Who keeps what
 
