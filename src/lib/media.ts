@@ -68,9 +68,11 @@ export function webpHeroUrl(value: string): string | undefined {
 /** Browser sources for a hero: verified WebP when available, with JPEG as the image fallback. */
 export function visualHeroSources(
   value: string,
-  mediaBase?: string,
+  mediaBase: string | undefined = readMediaBase(),
 ): { src: string; webp?: string } {
-  const webp = webpHeroUrl(value);
+  // The documented offline mirror may contain JPEGs alone. Production verification cannot attest
+  // that an override also holds WebP files, and a picture source does not fall back after a 404.
+  const webp = mediaBase ? undefined : webpHeroUrl(value);
   return {
     src: resolveMedia(shareImageUrl(value), mediaBase),
     ...(webp ? { webp: resolveMedia(webp, mediaBase) } : {}),

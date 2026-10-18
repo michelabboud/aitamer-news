@@ -169,7 +169,6 @@ test('verified hero pairs on either host select WebP and keep their exact JPEG f
     assert.deepEqual(visualHeroSources(jpeg), { src: jpeg, webp });
     assert.deepEqual(visualHeroSources(jpeg, '/media-local/'), {
       src: jpeg.replace(origin, '/media-local'),
-      webp: webp.replace(origin, '/media-local'),
     });
   }
   assert.deepEqual(visualHeroSources('https://media.aitamer.news/heroes/welcome-to-aitamer.jpg'), {
@@ -192,11 +191,10 @@ test('unknown JPEGs and unrelated images never infer an unverified WebP', () => 
   }
 });
 
-test('an explicit valid bot WebP selects its JPEG fallback before local rewriting', () => {
+test('local previews use the JPEG fallback even for an explicitly selected bot WebP', () => {
   const webp = 'https://bots.aitamer.news/heroes/a--b--0123abcd.webp';
   assert.equal(webpHeroUrl(webp), webp);
   assert.deepEqual(visualHeroSources(webp, '/media-local'), {
     src: '/media-local/heroes/a--b--0123abcd.jpg',
-    webp: '/media-local/heroes/a--b--0123abcd.webp',
   });
 });

@@ -147,3 +147,5 @@ The Grok bots stamp today with their own post-render script on the Newsroom box,
 ## Browser rollout and new pairs
 
 Article heroes, listing cards and the homepage lead use the shared `HeroImage` component. Verified catalog pairs use a WebP source and JPEG img fallback; social cards and feeds remain JPEG. The deploy media gate checks both objects for each live declared pair. Picture format fallback does not recover a missing supported WebP, so add a JPEG URL to `src/lib/hero-webp-catalog.ts` only after both create-only uploads and public byte/type readback succeed. Keep the list sorted and unique. If no WebP meets the quality floor, leave the JPEG out of the catalog and record that outcome; it continues to render as JPEG. Explicit valid bot WebP inputs are supported without a catalog entry.
+
+Local/offline previews with `PUBLIC_MEDIA_BASE` keep JPEG rendering because their local mirror may contain JPEG files alone. Production uses the verified WebP pairs.
