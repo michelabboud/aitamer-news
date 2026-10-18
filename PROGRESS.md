@@ -2,7 +2,7 @@
 
 ## 0.2.89 · 2026-10-18 · all-post WebP rollout
 
-All 907 current hero twins verified (578 original media, 329 bot). Shared article/card/homepage picture rendering and the verified-pair media gate are implemented. Combined validation, independent review and protected deployment are in progress; see the execution plan and review report.
+All 907 current hero twins verified (578 original media, 329 bot). Shared article/card/homepage picture rendering and the verified-pair media gate are implemented. Combined validation passed 1037 tests, 1815 media checks, production build and output checks. Independent mechanical/deep review and the focused offline fix review accepted source at 5d20a6a7. PR289 owns remote required-check merge and deployment receipts.
 
 ## 0.2.88 · 2026-10-18 · reviewed WebP integration
 
