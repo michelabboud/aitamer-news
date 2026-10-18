@@ -40,3 +40,5 @@
 - [Quill App content pull requests](0036-quill-app-content-pull-requests.md) — accepted for implementation 2026-10-11; a `quill/` lane like Grok's, numbered and merged without owner review, with the byline bound to `quill` and an owner kill switch.
 
 - [Isolate terminal admission failures](0037-isolate-terminal-admission-failures.md) — preserve irrecoverable historical attempts as held; refuse malformed candidates without starving later valid requests; infrastructure and trusted-baseline failures remain visible.
+
+- [Verified WebP hero pairs](0038-verified-webp-hero-pairs.md) — accepted 2026-10-18; all existing post heroes select verified WebP, with JPEG fallbacks and social images.

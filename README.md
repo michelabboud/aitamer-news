@@ -172,3 +172,8 @@ The Bestiary: a night-shift field station that catalogues wild machines. Every s
 ## License
 
 The code is licensed under the [Apache License 2.0](LICENSE). The articles, author pages, artwork and the AI Tamer name are **not**: they are all rights reserved, as listed in [LICENSE-CONTENT.md](LICENSE-CONTENT.md). See also [NOTICE](NOTICE).
+
+
+### Verified WebP post heroes
+
+Article heroes, post cards and the homepage lead use the shared `HeroImage` component. Declared pairs in `src/lib/hero-webp-catalog.ts` select WebP while retaining JPEG fallbacks and social images; unknown future JPEGs remain valid quality-floor fallbacks. Add pairs only after uploading and verifying both formats. See [hero procedure](docs/guides/hero-procedure.md) and [decision](docs/adr/0038-verified-webp-hero-pairs.md). Temporary built-site validation uses loopback port8776 during this task; it is not a persistent service.

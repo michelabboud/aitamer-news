@@ -8,6 +8,7 @@ import CommentCount from '../components/CommentCount.astro';
 import Freshness from '../components/Freshness.astro';
 import ExtinctionList from '../components/ExtinctionList.astro';
 import PostCard from '../components/PostCard.astro';
+import HeroImage from '../components/HeroImage.astro';
 import SpecimenTag from '../components/SpecimenTag.astro';
 import WildnessPanel from '../components/WildnessPanel.astro';
 import {
@@ -24,7 +25,7 @@ import {
   readingMinutes,
   withBase,
 } from '../lib/site';
-import { postCover } from '../lib/covers';
+import { postCoverSource } from '../lib/covers';
 import { commentCountFor } from '../lib/comment-text';
 import { frontPage, orderHomeAuthors } from '../lib/front-page.ts';
 import { isFeaturedWriter } from '../lib/writer-pages.ts';
@@ -100,7 +101,7 @@ const writers = orderedAuthors.filter((author) => isFeaturedWriter(author) || au
           <article class="lead__story">
             <a class="lead__photo-link" href={postHref(lead)} tabindex="-1" aria-hidden="true">
               <figure class="specimen-photo">
-                <img src={withBase(postCover(lead))} alt="" width="1600" height="1200" fetchpriority="high" decoding="async" />
+                <HeroImage src={postCoverSource(lead)} alt="" width="1600" height="1200" fetchpriority="high" decoding="async" />
                 {lead.data.specimen && <SpecimenTag specimen={lead.data.specimen} habitat={leadHabitat} />}
               </figure>
             </a>

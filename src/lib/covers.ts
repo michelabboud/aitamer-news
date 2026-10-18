@@ -20,10 +20,15 @@ export function coverForSection(section: Section): string {
   return SECTION_COVERS[section];
 }
 
+/** Keep the production URL intact until the image component selects its verified formats. */
+export function postCoverSource(post: CollectionEntry<'posts'>): string {
+  const hero = post.data.heroImage?.trim();
+  return hero || coverForSection(post.data.section as Section);
+}
+
 /** Prefer a post's heroImage when set (resolved to the local media override, if any); otherwise the section house cover. */
 export function postCover(post: CollectionEntry<'posts'>): string {
-  const hero = post.data.heroImage?.trim();
-  return hero ? resolveMedia(hero) : coverForSection(post.data.section as Section);
+  return resolveMedia(postCoverSource(post));
 }
 
 export function usesGeneratedCover(post: CollectionEntry<'posts'>): boolean {

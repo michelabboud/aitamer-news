@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.89 · 2026-10-18 · all-post WebP rollout
+
+All 907 current hero twins verified (578 original media, 329 bot). Shared article/card/homepage picture rendering and the verified-pair media gate are implemented. Combined validation, independent review and protected deployment are in progress; see the execution plan and review report.
+
 ## 0.2.88 · 2026-10-18 · reviewed WebP integration
 
 Bot X PR283 merged normally as `21fbcb94`. PRs 284, 285 and 261 are integrated with source history preserved on a maintainer code branch; the Grok article lane correctly refuses template changes. Independent review found and integration addressed slug fallback, offline section metadata and bot-guide selection inconsistencies. Combined validation passed1030 tests, production build and all post/media/built-output gates. Both focused acceptance reviews passed at ad0537a6. Maintainer PR288 owns remote check, normal merge and deployment receipts.

@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, isOwnHeroUrl, resolveMedia, shareImageUrl } from './media.ts';
+import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, isOwnHeroUrl, resolveMedia, shareImageUrl, visualHeroSources, webpHeroUrl } from './media.ts';
+import { WEBP_HERO_JPEGS } from './hero-webp-catalog.ts';
 
 test('heroUrl builds the full R2 URL for a slug', () => {
   assert.equal(heroUrl('grok-4-7'), 'https://media.aitamer.news/heroes/grok-4-7.jpg');
@@ -157,4 +158,45 @@ test('every accepted bot WebP slug keeps a JPEG share image, including repeated 
     assert.equal(share, `https://bots.aitamer.news/heroes/${slug}-0123abcd.jpg`);
     assert.equal(resolveMedia(share, '/media-local'), `/media-local/heroes/${slug}-0123abcd.jpg`);
   }
+});
+
+test('verified hero pairs on either host select WebP and keep their exact JPEG fallback', () => {
+  for (const origin of ['https://media.aitamer.news', 'https://bots.aitamer.news']) {
+    const jpeg = WEBP_HERO_JPEGS.find((url) => url.startsWith(`${origin}/`));
+    assert.ok(jpeg);
+    const webp = jpeg.replace(/\.jpg$/, '.webp');
+    assert.equal(webpHeroUrl(jpeg), webp);
+    assert.deepEqual(visualHeroSources(jpeg), { src: jpeg, webp });
+    assert.deepEqual(visualHeroSources(jpeg, '/media-local/'), {
+      src: jpeg.replace(origin, '/media-local'),
+      webp: webp.replace(origin, '/media-local'),
+    });
+  }
+  assert.deepEqual(visualHeroSources('https://media.aitamer.news/heroes/welcome-to-aitamer.jpg'), {
+    src: 'https://media.aitamer.news/heroes/welcome-to-aitamer.jpg',
+    webp: 'https://media.aitamer.news/heroes/welcome-to-aitamer.webp',
+  });
+});
+
+test('unknown JPEGs and unrelated images never infer an unverified WebP', () => {
+  for (const src of [
+    'https://media.aitamer.news/heroes/future-quality-fallback-0123abcd.jpg',
+    'https://bots.aitamer.news/heroes/future-quality-fallback-0123abcd.jpg',
+    'https://media.aitamer.news.evil.example/heroes/welcome-to-aitamer.jpg',
+    'https://user@media.aitamer.news/heroes/welcome-to-aitamer.jpg',
+    'https://media.aitamer.news/heroes/welcome-to-aitamer.jpg?v=1',
+    '/covers/models.svg', DEFAULT_SOCIAL_IMAGE,
+  ]) {
+    assert.equal(webpHeroUrl(src), undefined);
+    assert.deepEqual(visualHeroSources(src), { src });
+  }
+});
+
+test('an explicit valid bot WebP selects its JPEG fallback before local rewriting', () => {
+  const webp = 'https://bots.aitamer.news/heroes/a--b--0123abcd.webp';
+  assert.equal(webpHeroUrl(webp), webp);
+  assert.deepEqual(visualHeroSources(webp, '/media-local'), {
+    src: '/media-local/heroes/a--b--0123abcd.jpg',
+    webp: '/media-local/heroes/a--b--0123abcd.webp',
+  });
 });

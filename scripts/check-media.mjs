@@ -2,8 +2,8 @@
 /**
  * Check that the hero images the posts point at are really on the media host (ADR 0020).
  *
- *   npm run check:media                          every post's hero answers 200 image/jpeg (image/webp for a .webp bot hero, whose
- *                                                JPEG twin, the share image, must answer 200 image/jpeg too) on its allowlisted media host
+ *   npm run check:media                          every post's hero answers 200 with its named image type, including catalogued
+ *                                                WebP twins and the JPEG share twin of an explicit .webp bot hero
  *   npm run check:media -- --local <dir>         and every <dir>/<slug>.jpg is there byte for byte (size, ETag = MD5)
  *
  * Exit 0 when everything checked is there, 1 when anything is missing or differs, 2 on a usage error.
@@ -30,7 +30,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BOT_MEDIA_ORIGIN, DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, isOwnHeroUrl, mediaOrigin, shareImageUrl } from '../src/lib/media.ts';
+import { BOT_MEDIA_ORIGIN, DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, isOwnHeroUrl, mediaOrigin, shareImageUrl, webpHeroUrl } from '../src/lib/media.ts';
 import { isLive } from '../src/lib/schedule.ts';
 import { isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
 import { POSTS_DIR } from './stamp-post-times.mjs';
@@ -155,6 +155,10 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
     }
     const live = isPublishedDraftField(fm.data) === true && (date === null || isLive({ draft: false, pubDate: date }, now));
     targets.push({ origin, key: hero.slice(origin.length + 1), label: file, local: null, required: live });
+    // The catalog selects verified WebP twins for visual rendering. Unknown JPEGs keep their JPEG fallback.
+    // Look up the original production URL, before any local host replacement done by main().
+    const webp = webpHeroUrl(hero);
+    if (webp && webp !== hero) targets.push({ origin, key: webp.slice(origin.length + 1), label: `${file} (WebP image)`, local: null, required: live });
     // A WebP hero's share cards use its JPEG twin (src/lib/media.ts shareImageUrl), so that must be there too.
     const share = shareImageUrl(hero);
     if (share !== hero) targets.push({ origin, key: share.slice(origin.length + 1), label: `${file} (share image)`, local: null, required: live });

@@ -4,6 +4,8 @@
  * consumer of `heroImage` resolves it the same way.
  */
 
+import { WEBP_HERO_JPEGS } from './hero-webp-catalog.ts';
+
 /** Where hero images are served from in production. */
 export const MEDIA_ORIGIN = 'https://media.aitamer.news';
 
@@ -52,6 +54,27 @@ const BOT_WEBP_HERO = /^https:\/\/bots\.aitamer\.news\/heroes\/[a-z0-9][a-z0-9-]
  */
 export function shareImageUrl(value: string): string {
   return BOT_WEBP_HERO.test(value) ? `${value.slice(0, -'.webp'.length)}.jpg` : value;
+}
+
+/** Verified JPEG/WebP pairs; unknown JPEGs remain safe quality-floor fallbacks. */
+const webpHeroJpegs = new Set(WEBP_HERO_JPEGS);
+
+/** Select only a declared twin or an explicitly submitted bot WebP, before local URL rewriting. */
+export function webpHeroUrl(value: string): string | undefined {
+  if (BOT_WEBP_HERO.test(value)) return value;
+  return webpHeroJpegs.has(value) ? `${value.slice(0, -'.jpg'.length)}.webp` : undefined;
+}
+
+/** Browser sources for a hero: verified WebP when available, with JPEG as the image fallback. */
+export function visualHeroSources(
+  value: string,
+  mediaBase?: string,
+): { src: string; webp?: string } {
+  const webp = webpHeroUrl(value);
+  return {
+    src: resolveMedia(shareImageUrl(value), mediaBase),
+    ...(webp ? { webp: resolveMedia(webp, mediaBase) } : {}),
+  };
 }
 
 /**
