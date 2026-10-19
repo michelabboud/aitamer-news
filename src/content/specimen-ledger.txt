@@ -908,3 +908,9 @@
 0905 codewhale-rust-coding-agent-fail-open-fixes
 0906 pilotdeck-2-open-source-agent-os
 0907 cognition-devin-limits-engineering-output-per-dollar
+0908 opencode-console-breach-provider-api-keys
+0909 anthropic-public-benefit-fund-5-percent-shares
+0910 openai-gpt-4o-gpt-4-1-api-shutdown-january-2027
+0911 pydantic-monty-1-2-rust-python-sandbox
+0912 nvidia-app-local-mcp-server-default-on
+0913 vals-impossible-refund-agents-email-study
