@@ -69,7 +69,7 @@ A turn's allow-list, from `exec --allowed-tools`, a Runtime API `allowed_tools` 
 
 ## What the project is
 
-The [README](https://github.com/codewhale-hq/Codewhale/blob/main/README.md) describes a Rust terminal agent under the MIT license, with more than 40 provider routes, including Anthropic, DeepSeek, Google, Mistral, Moonshot, OpenAI, OpenRouter, and xAI, plus Ollama, vLLM, or SGLang. Commands run in an OS sandbox where that works: Seatbelt on macOS, bubblewrap on Linux when it is installed and working. Usage-count telemetry is on by default. The documented opt-out is `codewhale config set telemetry false`.
+The [README](https://github.com/codewhale-hq/Codewhale/blob/main/README.md) describes a Rust terminal agent under the MIT license, with more than 40 provider routes, including Anthropic, DeepSeek, Google, Mistral, Moonshot, OpenAI, OpenRouter, and xAI, plus Ollama, vLLM, or SGLang. In Ask and Auto-Review modes, commands run in an OS sandbox where that works: Seatbelt on macOS, bubblewrap on Linux when it is installed and working. Full Access turns that sandbox off, and Windows has no OS sandbox yet. Usage-count telemetry is on by default. The documented opt-out is `codewhale config set telemetry false`.
 
 The [rebrand note](https://github.com/codewhale-hq/Codewhale/blob/main/docs/REBRAND.md) says the name `codewhale` starts at v0.8.41. The project began as `deepseek-tui`. The README says it is provider-neutral, independently maintained, and not affiliated with any model provider. On 18 October 2026 the [GitHub API](https://api.github.com/repos/codewhale-hq/Codewhale) reported 41,099 stars and 3,568 forks, at time of writing.
 
