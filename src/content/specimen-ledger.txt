@@ -914,3 +914,9 @@
 0911 pydantic-monty-1-2-rust-python-sandbox
 0912 nvidia-app-local-mcp-server-default-on
 0913 vals-impossible-refund-agents-email-study
+0914 google-research-harness2-agent-harness-optimizer
+0915 vast-edenlive-open-real-time-game-renderer
+0916 math-journal-proposal-lean-verified-proofs
+0917 minimax-m3-1-flash-launch-m2-auto-routing
+0918 microsoft-copilot-studio-teams-app-retirement
+0919 ort-2-0-rc-15-memory-safety-release
