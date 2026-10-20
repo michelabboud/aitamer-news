@@ -1,5 +1,7 @@
 # Backlog
 
+- 2026-10-20 · image-approval checkpoint push · open, separate dependency triage — GitHub reported three high default-branch Dependabot alerts while pushing checkpoint0.2.91. No dependency changed in this task; alert IDs and current exposure were not assessed. Reconcile with the existing2026-10-04 build-cache advisory before claiming a clean audit.
+
 - 2026-10-11 · PR 248 conflict verification · open, outside conflict-fix scope — `check:posts` warns about the unchanged working-note paragraph in `made-on-youtube-2026-gemini-ask-studio.md`. Its reader-text checker and article bytes equal current main; its two existing iframe grandfather exceptions also remain. Preserve published content pending a separately scoped editorial repair.
 
 - 2026-10-06 · workflow runtime refresh · open — Verify fresh exact-head remote CI for Michel's Ubuntu26.04 trial, trusted-main checks after normal merge and actual Cloudflare deployment during/after the hosted-runner incident. An explicit OS label proves no provider recovery. Retain failed Check posts537/Workflow-owned numbering47 and parent0.2.75 evidence in [the report](docs/reports/2026-10-06-workflow-runtime-refresh.md).

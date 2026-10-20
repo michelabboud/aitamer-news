@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.92 — 2026-10-20
+
+- Reconcile the bots' article-only instructions with separate owner-approved image proposals, and point Grok image requests to the same process.
+- Record successful hosted owner approval, normal protected image merge and production hash verification. Update the current handoff and complete the plan.
+- Index the image approval decision as ADR0040, preserving the existing ADR0038/0039 hero decisions.
+
 ## 0.2.91 — 2026-10-20
 
 - Add an owner-only **Approve image PR** workflow in GitHub Actions, bound to the reviewed full commit SHA and current main. Isolated full validation precedes the three required image approval certificates; merging remains a normal protected merge.
