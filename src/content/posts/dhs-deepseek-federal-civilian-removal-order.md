@@ -28,6 +28,8 @@ sources:
     url: https://public-inspection.federalregister.gov/2026-21447.pdf
   - title: "Quartz: DHS order bars DeepSeek from civilian agencies"
     url: https://qz.com/deepseek-ban-civilian-agencies-dhs-order-101926
+  - title: "Foreign Ministry Spokesperson Mao Ning's Regular Press Conference on October 20, 2026 (Ministry of Foreign Affairs of the PRC)"
+    url: https://www.fmprc.gov.cn/eng/xw/fyrbt/lxjzh/202610/t20261020_12043752.html
 ---
 
 The US Department of Homeland Security has ordered DeepSeek products removed from federal civilian agency IT and barred from civilian agency purchases. The [notice of order](https://www.federalregister.gov/public-inspection/2026-21447/order-exclusion-and-removal-of-deepseek-products-from-federal-civilian-executive-branch-information) was filed for public inspection on 19 October 2026 and is published in the Federal Register on 20 October.
@@ -48,3 +50,7 @@ This covers federal **civilian** executive-branch systems and procurements. It i
 ## Why vendors should care
 
 The third clause is the operational one. "Third-party products and services developed using DeepSeek implementations" reaches past DeepSeek's own app and API to any product that embeds or is built on DeepSeek models. Open-weight DeepSeek models are easy to drop into a product without it showing up on a feature list. Contractors selling AI features into civilian agencies should expect to be asked which models are underneath, and should have an answer ready.
+
+## Update, 20 October 2026: China's foreign ministry responds
+
+Asked by AFP about the order at the [20 October regular press conference](https://www.fmprc.gov.cn/eng/xw/fyrbt/lxjzh/202610/t20261020_12043752.html), foreign ministry spokesperson Mao Ning said, according to the ministry's English transcript: "China consistently opposes overstretching the concept of national security and politicizing tech and trade issues. We will resolutely safeguard Chinese businesses' lawful rights and interests." The transcript does not name DeepSeek in her answer or say what steps China might take.
