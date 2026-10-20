@@ -7,6 +7,7 @@ import { CandidateAdmissionError, editorialDigest, planAdmission } from './speci
 import { inspectSpecimenChanges, verifyAdmissionProof, SPECIMEN_LEDGER } from './specimen-integrity.mjs';
 import { parseNameStatus, parseHeadModes, isGrokBranch, isQuillBranch, quillPostProblems } from './check-publisher-paths.mjs';
 import { readFrontmatter } from './frontmatter.mjs';
+import { inspectImageChanges } from './image-approval.mjs';
 const SHA = /^[a-f0-9]{40}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
 const POST = /^src\/content\/posts\/([a-z0-9]+(?:-[a-z0-9]+)*)\.md$/;
@@ -657,10 +658,24 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   console.log(`Merged workflow admission #${pr.number} at ${merged.sha}; deployment ${deployment}.`);
   return deployment;
 }
-export async function gate(api, env) {
-  const base = sha(env.ADMISSION_OBSERVATION==='true' ? git('rev-parse','HEAD').trim() : env.BASE_SHA), head = sha(env.HEAD_SHA); fetchObjects(base, head);
+const IMAGE_OBSERVATION = 'Image-only proposal shape verified. Explicit owner approval is available through Actions → Approve image PR using this PR number and exact SHA. This observation grants no required check or merge permission.';
+function reportImageObservation() {
+  console.log(`::notice::${IMAGE_OBSERVATION}`);
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, IMAGE_OBSERVATION+'\n');
+}
+/** Classifies data only. A valid image proposal receives no numbering or merge authority. */
+export function classifyObservation(base, head, { collect = collectAdmission, inspectImages = inspectImageChanges } = {}) {
+  try { collect(base, head); return 'article'; }
+  catch (error) {
+    if (!(error instanceof CandidateAdmissionError)) throw error;
+    try { inspectImages(base, head); return 'image'; }
+    catch (imageError) { throw new CandidateAdmissionError(`${error.message}; image policy: ${imageError.message}`); }
+  }
+}
+export async function gate(api, env, { fetchCommits = fetchObjects, readGit = git, collect = collectAdmission, inspectImages = inspectImageChanges, inspectSpecimens = inspectSpecimenChanges } = {}) {
+  const base = sha(env.ADMISSION_OBSERVATION==='true' ? readGit('rev-parse','HEAD').trim() : env.BASE_SHA), head = sha(env.HEAD_SHA); fetchCommits(base, head);
   if (env.ADMISSION_OBSERVATION==='true') {
-    collectAdmission(base,head); // Same narrow data lane and safe repair parsing.
+    if (classifyObservation(base,head,{collect,inspectImages})==='image') { reportImageObservation();return; }
     try { await admissionProof(api,base,head,integer(env.MAINTAINER_ID)); }
     catch(error) {
       if (error.message!=='no successful trusted-main allocation proof for this exact base/head') throw error;
@@ -671,14 +686,14 @@ export async function gate(api, env) {
     }
     console.log('Trusted numbered-head certificate is available; current-base required checks govern merge.');return;
   }
-  const result = await inspectSpecimenChanges({ cwd: process.cwd(), base, head });
+  const result = await inspectSpecimens({ cwd: process.cwd(), base, head });
   if (result.problems.length) throw new Error(result.problems.join('; '));
   if (result.requiresAdmission) await admissionProof(api, base, head, integer(env.MAINTAINER_ID));
   console.log(result.requiresAdmission ? 'Workflow-owned numbering proof accepted.' : 'No workflow-owned numbering changes.');
 }
-export function observePaths(env,{fetchCommits=fetchObjects,collect=collectAdmission,readGit=git}={}) {
+export function observePaths(env,{fetchCommits=fetchObjects,collect=collectAdmission,readGit=git,inspectImages=inspectImageChanges}={}) {
   const base=sha(readGit('rev-parse','HEAD').trim()),head=sha(env.HEAD_SHA);fetchCommits(base,head);
-  collect(base,head);
+  if (classifyObservation(base,head,{collect,inspectImages})==='image') { reportImageObservation();return; }
   const summary='Article paths and repairable numbering checked. Waiting for trusted workflow numbering; source observations grant no required success or merge permission.';
   console.log(`::notice::${summary}`);
   if(process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
