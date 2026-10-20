@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.91 — 2026-10-20
+
+- Add an owner-only **Approve image PR** workflow in GitHub Actions, bound to the reviewed full commit SHA and current main. Isolated full validation precedes the three required image approval certificates; merging remains a normal protected merge.
+- Accept bounded raster images, sanitized diagram SVGs and narrowly scoped author/post image metadata. Preserve article text, author identity, dates, numbering and source/configuration restrictions.
+- Recognize `images/` proposals as observations without granting bot write authority. Image-only observations explain the manual owner approval path instead of failing article admission.
+- Document the GitHub approval control, supported scope and stale-commit recovery.
+
 ## 0.2.90 · 2026-10-18
 
 Require JPEG and WebP for every future hero. Owned JPEG URLs automatically derive their same-name WebP, without catalog registration; live media validation requires both formats. JPEG remains canonical metadata, fallback, social and feed image; local previews remain JPEG-only. Canonical procedure and posting entry points require both create-only uploads/readbacks and hold publication on quality or upload failure. Existing posts, images and identities are unchanged.

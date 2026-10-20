@@ -4,6 +4,7 @@ Three plans are running. Their documents live in the private operations reposito
 
 | Plan | Description | Status | Written | Approved | Updated |
 |---|---|---|---|---|---|
+| [Owner-approved bot images](docs/plans/2026-10-20-owner-image-approval.md) | Exact-commit owner approval in GitHub Actions for image assets and image metadata; resolve PR #292 without widening article permissions | running | 2026-10-20 | authorized 2026-10-20 (Michel) | 2026-10-20 |
 | [Independent Grok numbering](docs/adr/0035-independent-grok-numbering.md) | Remove owner editorial approval from authorized Grok posting; preserve workflow numbering and technical checks | running | 2026-10-06 | 2026-10-06 (Michel) | 2026-10-06 |
 | [Workflow runtime refresh](docs/reports/2026-10-06-workflow-runtime-refresh.md) | Verify stable action pins and workflow Wrangler CLI; Michel's Ubuntu26.04 trial supersedes initial24.04 selection | 0.2.76 bounded local checks passed; existing PR204; successor review, fresh remote CI and merge/deployment pending | 2026-10-06 | 2026-10-06 (Michel) | 2026-10-06 |
 | [Single-PR publication](docs/plans/2026-10-05-single-pr-publication.md) | Keep the original PR through automatic owner-review admission, workflow numbering, isolated validation and normal strict merge | 0.2.73 deployed; original197 automatically numbered/certified and normally Grok App-merged; future publication/finalizer auto-merge remain separate; bot instructions and correction handoff in0.2.74 | 2026-10-05 | 2026-10-05 (Michel) | 2026-10-05 |
