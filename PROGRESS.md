@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.91 · 2026-10-20 · owner-approved image proposals
+
+Owner-only exact-commit approval in GitHub Actions is implemented with isolated validation and separate required certificates. Bots can propose raster assets, sanitized diagrams and image metadata without gaining general repository authority. New `images/` observation routing and image-shape explanations preserve article numbering restrictions. Final full suite passed **1092/1092**; production build, media and output checks passed. Independent deep review accepted source and the avatar-origin fix; focused mechanical re-review also accepted the fix. Remote checks, feature merge, original PR292 approval/merge and deployment evidence remain pending; see the current [plan](docs/plans/2026-10-20-owner-image-approval.md).
+
 ## 0.2.90 · 2026-10-18 · future hero workflow
 
 Future owned JPEG heroes automatically select WebP and require their twin, with no catalog edit. Paired-upload/readback contract and quality-failure hold are recorded across active posting guides. Focused 41/41 and full 1038/1038 tests passed with red/green regressions; 1815 media checks, build and output checks passed. Both source reviews accepted, including the concrete original-media upload guide. PR290 owns final remote required checks, merge and deployment receipts.

@@ -23,6 +23,12 @@ For article submissions: `npm run preflight -- --files <files>` (add `--news` fo
 - For other PRs, merge only when the owner has authorized this agent to merge, and only after checks pass, as a merge commit, never `--admin`. Otherwise stop at the open pull request and report its number.
 - Never rewrite published history; never delete files, branches or data you did not create this session without asking.
 
+## Bot image updates
+
+- Bots may propose image-only updates on `images/<description>` branches. A prefix selects observation checks only; it grants no repository authority.
+- The owner approves an exact head using **Actions → Approve image PR → Run workflow** on `main`, with the PR number and full commit SHA. See `docs/guides/owner-image-approval.md` for supported assets and the required checks. A new commit or moving main requires a fresh authorization.
+- This image path does not authorize unrelated code, article text, author identity, dates or numbering changes. Never broaden article admission to accommodate an image PR.
+
 ## Secrets and accounts
 Never print, log or commit a secret. No Cloudflare account ids or account details in this public repository. Inspect secrets by name and presence only.
 
