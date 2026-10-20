@@ -27,13 +27,13 @@ sources:
     url: https://www.krea.ai/docs/developers/krea-3/overview
   - title: "Krea press kit"
     url: https://www.krea.ai/press
-  - title: "Krea 3 Beta model page"
-    url: https://www.krea.ai/models/krea-3-beta
+  - title: "Krea 3 model page"
+    url: https://www.krea.ai/models/krea-3
   - title: "Nero Soares, Krea launched Krea 3 for fast and precise image editing (Testing Catalog, 15 October 2026)"
     url: https://www.testingcatalog.com/krea-launched-krea-3-for-fast-and-precise-image-editing/
 ---
 
-Krea's [changelog](https://www.krea.ai/docs/changelog) for 15 October 2026 says the Krea 3 API is in early access. The [API overview](https://www.krea.ai/docs/developers/krea-3/overview) says the same thing, and it limits calls to workspaces already in the Krea 3 beta. Access requests go to sales@krea.ai. The [press kit](https://www.krea.ai/press) dates the model itself to 12 October 2026: "Launched October 12, 2026," under a "New · October 12, 2026" label. The [beta model page](https://www.krea.ai/models/krea-3-beta) says Krea 3 Beta is available on Krea for generating and editing images. The 15 October news is the API gate, not the first day the model page existed.
+Krea's [changelog](https://www.krea.ai/docs/changelog) for 15 October 2026 says the Krea 3 API is in early access. The [API overview](https://www.krea.ai/docs/developers/krea-3/overview) says the same thing, and it limits calls to workspaces already in the Krea 3 beta. Access requests go to sales@krea.ai. The [press kit](https://www.krea.ai/press) dates the model itself to 12 October 2026: "Launched October 12, 2026," under a "New · October 12, 2026" label. Krea's [model page](https://www.krea.ai/models/krea-3) says Krea 3 is available on Krea for generating and editing images. The 15 October news is the API gate, not the first day the model page existed.
 
 ## What the API accepts
 
