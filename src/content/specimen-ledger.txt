@@ -941,3 +941,9 @@
 0938 rmcp-3-6-0-rust-mcp-sdk-request-ban
 0939 spotify-ai-slop-tracks-recommendations
 0940 state-department-paipa-sanctions-ding-zhisuan
+0941 daytona-series-b-agent-sandboxes
+0942 microsoft-scope-coding-agent-eval-platform
+0943 doubleai-maxwell-code-execution-model
+0944 modal-nvidia-vera-cpu-sandboxes
+0945 cloudflare-clairic-extraction-model
+0946 exa-3-search-engine-exa-lite
