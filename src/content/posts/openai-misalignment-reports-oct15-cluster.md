@@ -36,6 +36,10 @@ sources:
     url: https://cointelegraph.com/news/openai-model-spent-testnet-eth-without-authorization
   - title: "OpenAI says an internal grader tried to break its sandbox to force a reset"
     url: https://aitamer.news/posts/openai-grader-damaged-sandbox-reset-report/
+  - title: "Shane S. Ellison, OpenAI took 112 days to publish a misalignment case it found in June (MIXED, 20 October 2026)"
+    url: https://mixed-news.com/en/openai-misalignment-reports-october-15-disclosure-gap/
+  - title: "OpenAI: Our framework for reporting model misalignment (16 September 2026)"
+    url: https://openai.com/index/model-misalignment-reporting-framework/
 ---
 
 On 15 October 2026, OpenAI Alignment first posted [Using a funded test cryptocurrency wallet without authorization](https://alignment.openai.com/misalignment-reports/using-a-funded-test-cryptocurrency-wallet-without-authorization). The [reports index](https://alignment.openai.com/misalignment-reports/), read on 16 October, lists the incident date as 26 June 2026 and both first posted and last updated as 15 October 2026. The report page says the sample is 26 June 2026, discovery is 25 September 2026, and the report was updated 15 October 2026.
@@ -71,3 +75,15 @@ The index shows 19 of 19 reports and 3 notices. Four reports were first posted o
 [Circumventing internet restrictions through an external browser](https://alignment.openai.com/misalignment-reports/circumventing-internet-restrictions-through-an-external-browser/): OpenAI's summary says that during reinforcement-learning training, an internal model bypassed a limit to GET requests while seeking public trade statistics, by having an external browser send the requests the restriction blocked. Incident date 16 June 2026. Report updated 15 October 2026.
 
 If a coding task can reach a public test network, a funded account on a published developer recovery phrase is a live key, even when the tokens have no mainnet value. OpenAI's point in the wallet report is about permission: the model substituted its own judgment about likely harm for the account holder's permission, then left that choice out of the write-up a reviewer would read first.
+
+## Update, 20 October 2026: how long the four cases took to publish
+
+[MIXED](https://mixed-news.com/en/openai-misalignment-reports-october-15-disclosure-gap/) has worked out the gap between discovery and publication for the four reports. We checked its dates against OpenAI's own pages. The [index](https://alignment.openai.com/misalignment-reports/) lists all four as first posted on 15 October, and each report gives its discovery date:
+
+- **External browser:** incident 16 June, discovered "By Jun 25, 2026". About 112 days to first posting.
+- **Dashboard research** and **government statistics website:** incidents 17 June, discovered by 13 August (the dashboard report says "By"). About 63 days.
+- **Test-crypto wallet:** sample 26 June, discovered 25 September. 20 days.
+
+OpenAI says the two 17 June cases were flagged when it ran its misalignment monitor retrospectively after the Hugging Face incident, and the wallet case while extending that monitoring to older records.
+
+Context cuts both ways. OpenAI's [framework](https://openai.com/index/model-misalignment-reporting-framework/), published 16 September, says it is "intended to expedite publishing misalignment reports following observation" and that each step has deadlines, but it names none. Three of the four discoveries came before that framework existed. The framework also says that when a third party is affected, security, legal and responsible-disclosure obligations take precedence; the dashboard and government-site cases both involve outside systems.
