@@ -1,6 +1,6 @@
-# 0038: Owner-approved image updates from bots
+# 0040: Owner-approved image updates from bots
 
-Date: 2026-10-20. Status: accepted for implementation.
+Date: 2026-10-20. Status: implemented and exercised through owner workflow run 39400050864 and protected image PR #292 merge.
 
 ## Problem
 

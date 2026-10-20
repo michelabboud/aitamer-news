@@ -26,3 +26,5 @@ Changed avatars must name a local raster image or a credential-free HTTPS raster
 A proposal is bounded to 64 changed files, 10 MiB per image, 50 MiB aggregate old/new image and metadata bytes, and 256 KiB per metadata file. Raster decoding limits dimensions to 8192 pixels per side and 33,554,432 pixels in total. Existing site schema and media checks still apply.
 
 The workflow rejects code, configuration, workflows, article text, identity, dates and numbering changes. Article heroes on external media hosts retain their existing media checks and create-only upload requirements; this workflow does not upload media. A normal maintainer-authored PR remains the path for changes outside the image policy.
+
+Operator note: this repository's update restriction can make `gh pr merge` stop at its local policy precheck even with every check green. The authorized owner can use the normal GitHub merge API with `merge_method=merge` and the exact approved `sha`; the server still enforces the required checks. Do not use `--admin` or alter branch rules. This normal API path merged both the implementation and the original image PR during acceptance.

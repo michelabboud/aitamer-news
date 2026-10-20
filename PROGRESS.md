@@ -1,8 +1,12 @@
 # Progress
 
+## 0.2.92 · 2026-10-20 · owner image approval accepted
+
+PR298 installed the owner workflow; run39400050864 passed all three jobs for the exact refreshed image head. Original PR292 was approved and normally merged, and deployment39400491915 succeeded. Live homepage, both author pages and both image assets answered200 with the new references; the live180634-byte portrait exactly matched its reviewed SHA256. Bot and Grok instructions now separate image proposals from the ordinary article lane. The [current handoff](docs/handoffs/2026-10-20-owner-image-approval.md) records source, checks, normal merge API receipts and independent live verification. Code remains the1092-test0.2.91 candidate;0.2.92 updates records and instructions only.
+
 ## 0.2.91 · 2026-10-20 · owner-approved image proposals
 
-Owner-only exact-commit approval in GitHub Actions is implemented with isolated validation and separate required certificates. Bots can propose raster assets, sanitized diagrams and image metadata without gaining general repository authority. New `images/` observation routing and image-shape explanations preserve article numbering restrictions. Final full suite passed **1092/1092**; production build, media and output checks passed. Independent deep review accepted source and the avatar-origin fix; focused mechanical re-review also accepted the fix. Remote checks, feature merge, original PR292 approval/merge and deployment evidence remain pending; see the current [plan](docs/plans/2026-10-20-owner-image-approval.md).
+Owner-only exact-commit approval in GitHub Actions is implemented with isolated validation and separate required certificates. Bots can propose raster assets, sanitized diagrams and image metadata without gaining general repository authority. New `images/` observation routing and image-shape explanations preserve article numbering restrictions. Final full suite passed **1092/1092**; production build, media and output checks passed. Independent deep and mechanical reviews accepted source and the avatar-origin fix. Hosted acceptance completed; see the0.2.92 receipt and [plan](docs/plans/2026-10-20-owner-image-approval.md).
 
 ## 0.2.90 · 2026-10-18 · future hero workflow
 

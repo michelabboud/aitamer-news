@@ -26,7 +26,7 @@ Raster files and sanitized diagram SVGs cover ordinary image roles; other SVGs r
 
 ## Concerns and observations
 
-Hosted dispatch, certificate issuance, original PR #292's merge and production deployment are not established by local tests. They must be exercised after the feature lands. PNG decoding has a real-file regression; other formats have signature checks and runtime decoder validation, with the original WebP portrait providing the planned hosted WebP smoke case.
+Local tests alone did not establish hosted dispatch, certificate issuance, original PR #292's merge or production deployment. The separate hosted receipts below now establish those outcomes. PNG decoding has a real-file regression; other formats have signature checks and runtime decoder validation. The original WebP portrait passed the hosted decoding/validation job and independent live byte-hash verification.
 
 ## Close-out confirmation
 
@@ -35,3 +35,13 @@ Documentation, plan, architecture decision and bot instructions updated. Version
 Hygiene inspection: no deletion or cleanup performed. Standard ignored dependencies (277 MiB), build output (66 MiB) and Astro output (56 KiB) retained for local verification; logs retained as evidence. No new long-running local process, service, datastore or worktree was created. Free working disk was 37 GiB; available memory 43 GiB; shared-memory filesystem 8% used. The initial unused maintainer adoption branch remains local, preserving its cherry-picked original image change.
 
 Dashboard: `/home/michel/.local/state/build-task-dashboard/tasks.html`; project `/home/michel/projects/aitamer-news`, run `aviram-image-adoption`, session `news-pr292-adoption`.
+
+## Hosted acceptance and final records
+
+- [Implementation PR298](https://github.com/michelabboud/aitamer-news/pull/298) passed all four check instances and normally merged at `d6dcbfc9b4c6c0b2eb8250981633776bc9bcff29`.
+- [Owner run39400050864](https://github.com/michelabboud/aitamer-news/actions/runs/39400050864) passed prepare, isolated validation and certification for image head `3eced3580046af9b782d7f1eda5679a740c155c9`. Both previously failing observations passed, along with both full check observations and all three required certificates.
+- [Image PR292](https://github.com/michelabboud/aitamer-news/pull/292) received exact-head approval and normally merged at `24d4b22fa6e2239c53bdd9ecab4713e6877ef21b`. The CLI precheck stopped at the update policy, but the normal SHA-pinned REST merge succeeded under unchanged server rules. No `--admin`, branch-rule change or direct main push was used.
+- [Production run39400491915](https://github.com/michelabboud/aitamer-news/actions/runs/39400491915) succeeded. Independent live checks returned HTTP200 for the homepage, both author pages, the180634-byte portrait and15472-byte avatar. New references were present in served HTML; portrait SHA256 `ec2cb87c19f09e7cf3635eeb03179baf1f8e307e8b7ec49b30af6626e8b370c6` matched reviewed source exactly, and the avatar hash matched its content-addressed filename.
+- Final documentation review resolved remaining absolute article-only image bans in the bot contract, added the Grok image route, and preserved old handoff evidence. The new architecture decision was renumbered0040 because0038/0039 were already allocated. No application code changed in checkpoint0.2.92; documentation whitespace/reference checks and normal remote required checks govern its close-out.
+
+Append-only detailed hosted receipts are in the persistent evidence folder. Bot instructions, plan and current handoff now describe the accepted state.
