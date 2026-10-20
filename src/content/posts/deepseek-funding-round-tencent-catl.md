@@ -26,6 +26,10 @@ sources:
     url: https://www.straitstimes.com/business/deepseek-set-to-raise-at-least-15-billion-in-tencent-backed-funding
   - title: "DeepSeek to raise at least $12 billion in Tencent-backed funding, Bloomberg News reports (CNA)"
     url: https://www.channelnewsasia.com/business/deepseek-raise-least-12-billion-in-tencent-backed-funding-bloomberg-news-reports-6435381
+  - title: "Caixin: MIIT says 60 billion yuan national AI fund has invested in a batch of projects (20 October 2026, Chinese)"
+    url: https://www.caixin.com/2026-10-20/102495228.html
+  - title: "Caixin Global: China Steps Up AI Investment With $9 Billion Fund Backing Model Developers (20 October 2026)"
+    url: https://www.caixinglobal.com/2026-10-20/china-steps-up-ai-investment-with-9-billion-fund-backing-model-developers-102495295.html
 ---
 
 DeepSeek is close to raising at least 80 billion yuan, with Tencent and CATL among the largest commitments, ahead of an initial public offering in early 2027, according to a Bloomberg account published Tuesday and citing people familiar with the matter. That is not a company filing.
@@ -51,3 +55,9 @@ The Straits Times headline is "DeepSeek set to raise at least $15 billion in Ten
 ## Practical takeaway
 
 The round, as Bloomberg tells it through unnamed people, is at least 80 billion yuan, with Tencent and CATL among the largest commitments, a close soon, terms that may still change, and an IPO aimed at early 2027. Reuters, via CNA, said it could not verify that. The $12 billion headlines and the Straits Times "$15 billion" headline are different labels on the yuan figure in the bodies.
+
+## Update, 20 October 2026: China's national AI fund is in DeepSeek's round
+
+At a State Council Information Office press conference on 19 October, Wei Wei, director general of the science and technology department at the Ministry of Industry and Information Technology, said the 60 billion yuan national AI industry investment fund had already backed a batch of high-quality projects, [Caixin reported](https://www.caixin.com/2026-10-20/102495228.html). Caixin then tallied the fund's three disclosed direct investments. Per Caixin, the fund put about 980 million yuan into DeepSeek's first financing round, which Caixin says gave DeepSeek a post-money valuation of 350 billion yuan. The other two are Moonshot AI's Series F and Kuaishou's Kling AI entity.
+
+Caixin's 350 billion yuan is a post-money figure. The Bloomberg account above gives about 500 billion yuan as the valuation DeepSeek originally targeted. We have not seen a company statement reconciling the two, and DeepSeek has not announced the round's final size.
