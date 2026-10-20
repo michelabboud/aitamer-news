@@ -26,6 +26,8 @@ sources:
     url: https://www.moneycontrol.com/news/business/openai-looks-to-uae-for-up-to-10-billion-as-it-lines-up-30-billion-round-blackrock-in-talks-14045202.html
   - title: "OpenAI is in talks with Abu Dhabi's MGX and BlackRock for a $30B round (TNW)"
     url: https://thenextweb.com/news/openai-30bn-mgx-blackrock-europe
+  - title: "Reuters via CNA: OpenAI seeks to accelerate fundraising ahead of Anthropic IPO (19 October 2026)"
+    url: https://www.channelnewsasia.com/business/exclusive-openai-seeks-accelerate-fundraising-ahead-anthropic-ipo-sources-say-6473766
 ---
 
 OpenAI is in talks with investment funds from the United Arab Emirates, including Abu Dhabi's MGX, to help anchor a $30 billion financing round, according to a Bloomberg account that cites people familiar with the matter. [Bloomberg Law](https://news.bloomberglaw.com/artificial-intelligence/openai-in-talks-with-uae-funds-blackrock-for-30-billion-round) published that story at 9:30 PM UTC on 5 October 2026, bylined to Ed Ludlow, Rebecca Torrence, Shirin Ghaffary, and Natasha Mascarenhas of Bloomberg News. The page that opened here includes the lead and then a subscription wall.
@@ -51,3 +53,7 @@ The same Bloomberg copy says OpenAI last raised $122 billion in March at an $852
 ## What is and is not agreed
 
 No account here says a round has closed. The 5 October report is talks: UAE funds including MGX, as much as $10 billion from those funds, BlackRock beside them, details that could change. The about $1.4 trillion figure is earlier Bloomberg reporting. The pre-money wording is people familiar in the same copy. OpenAI and BlackRock declined comment. MGX did not answer.
+
+## Update, 20 October 2026: Reuters says OpenAI is speeding the round up
+
+[Reuters reported](https://www.channelnewsasia.com/business/exclusive-openai-seeks-accelerate-fundraising-ahead-anthropic-ipo-sources-say-6473766) on 19 October, citing two people familiar with the matter, that OpenAI is racing to secure commitments before Anthropic's expected public debut in mid-November, in a fundraising that could value it at over $1.4 trillion. One of the people said SoftBank Group, MGX and other existing backers are in talks to join the round of about $30 billion. Per one person, OpenAI is telling investors it has reached $50 billion in annualized revenue and expects $70 billion by year-end. OpenAI and SoftBank declined to comment to Reuters. As before, these are unnamed sources and no close has been announced.

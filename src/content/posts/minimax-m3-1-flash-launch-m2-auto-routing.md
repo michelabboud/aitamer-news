@@ -17,7 +17,7 @@ author: desk-bot
 wildness:
   rating: 2
   verified: "MiniMax's launch post, model list, retirement notice, docs and pricing page, plus Artificial Analysis."
-  claimed: "Benchmarks, speed and the 70% cost cut are MiniMax's claims. Weights are promised later, with no date."
+  claimed: "Benchmarks, speed and the 70% cost cut are MiniMax's. Weights are promised for 23 October."
 verdict: "A cheap new Flash model with a forced migration attached. If you call M2.5 or M2.7, check your plan type now: plan users are already on M3.1 Flash, pay-as-you-go users have until 18 November."
 sources:
   - title: "MiniMax: MiniMax M3.1 Flash, Redefining Agent Performance and Cost (19 October 2026)"
@@ -30,6 +30,8 @@ sources:
     url: https://platform.minimax.io/docs/pricing/overview
   - title: "Artificial Analysis: MiniMax-M3.1-Flash"
     url: https://artificialanalysis.ai/models/minimax-m3-1-flash
+  - title: "MiniMax on X, 19 October 2026"
+    url: https://x.com/MiniMax_AI/status/2112150867868541221
 ---
 
 MiniMax released [M3.1 Flash](https://www.minimax.io/blog/minimax-m31f) on 19 October 2026. The Chinese AI company says the model is built for agent work, coding, computer use and security tasks, and it priced it well below most frontier APIs. The launch also changes what some existing MiniMax customers are running, whether or not they asked for it.
@@ -79,3 +81,7 @@ The launch post says "Model weights will be released later," with no date. The t
 MiniMax says M3.1 Flash is available now through the MiniMax API, its M Plan subscription and its MiniMax Code app. The [text-generation guide](https://platform.minimax.io/docs/guides/text-generation) shows calls through MiniMax's own endpoints.
 
 For the wider context on retirements forcing migrations, see our piece on why [your model has a retirement date](/posts/your-model-has-a-retirement-date/), and this week's notice that [OpenAI will shut down GPT-4o and GPT-4.1 API snapshots in January 2027](/posts/openai-gpt-4o-gpt-4-1-api-shutdown-january-2027/).
+
+## Update, 20 October 2026: MiniMax names 23 October for the weights
+
+MiniMax's official account [posted on 19 October](https://x.com/MiniMax_AI/status/2112150867868541221) that "Model weights will arrive on Oct 23," which replaces the undated "later" in the launch post. The same post says the Space Bunny model seen on leaderboards was an earlier version of M3.1 Flash. Until a repository appears, it is still a promise.
