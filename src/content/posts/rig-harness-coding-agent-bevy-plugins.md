@@ -57,6 +57,10 @@ sources:
     url: https://github.com/earendil-works/pi
   - title: "AI Tamer: Earendil Pi 1.0"
     url: https://aitamer.news/posts/pi-1-0-codemode-mcp-durable/
+  - title: "rig v0.45.0 release"
+    url: https://github.com/0xPlaygrounds/rig/releases/tag/v0.45.0
+  - title: "crates.io: rig"
+    url: https://crates.io/crates/rig
 ---
 
 [Pull request 2771](https://github.com/0xPlaygrounds/rig/pull/2771) on `0xPlaygrounds/rig` merged at 03:57 UTC on 15 October 2026. The merge commit is [c9c928d4](https://github.com/0xPlaygrounds/rig/commit/c9c928d4fe9e42ed31142d8489e6578c3e55e1dc). The title is "feat(rig-harness): a thin coding agent over rig libraries, with rig-ecs and rig-tools." The [LICENSE](https://github.com/0xPlaygrounds/rig/blob/c9c928d4fe9e42ed31142d8489e6578c3e55e1dc/LICENSE) file at that commit is the MIT license, copyright 2024 Playgrounds Analytics Inc.
@@ -97,3 +101,7 @@ The workspace [Cargo.toml](https://github.com/0xPlaygrounds/rig/blob/c9c928d4fe9
 Code mode is optional and off by default. The plugin is `rig-steel`: a `run_steel` tool whose Steel program, in Scheme, spawns agents, messages them, and calls tools. The plugin README calls that Steel's sandboxed engine. The pull request is more specific. It says the sandbox is a lexical guard, not process isolation: host modules for process, git, network, and foreign functions are emptied, and a program that names module loading, `eval`, procedural macros, threads, blocking sleeps, or engine-private functions is refused before it runs. The same paragraph says Steel has no memory limit.
 
 [PLUGINS.md](https://github.com/0xPlaygrounds/rig/blob/c9c928d4fe9e42ed31142d8489e6578c3e55e1dc/crates/rig-harness/PLUGINS.md) is the guide for writing another plugin against `rig-harness`. Nothing in the merge publishes that guide's crates.
+
+## Update, 20 October 2026: rig 0.45.0 publishes the agent crates
+
+The unpublished side of this story is gone. [rig v0.45.0](https://github.com/0xPlaygrounds/rig/releases/tag/v0.45.0) was tagged on 19 October, and crates.io now has `rig` 0.45.0 (with a `rig` binary), `rig-core`, `rig-harness`, `rig-tools` and `rig-ecs`, all at 0.45.0 and published between 17:49 and 18:11 UTC that day. So `cargo install rig` now pulls the released agent instead of needing a checkout. The release also carries the breaking "beat Pi" series of harness changes (fail closed, one fixed system prompt, redacted keys, a smaller core with more plugins) and a flatter TUI. Those are the project's descriptions; we have not benchmarked it against Pi.

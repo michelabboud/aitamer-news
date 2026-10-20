@@ -47,6 +47,8 @@ sources:
     url: https://aitamer.news/posts/codewhale-rust-coding-agent-fail-open-fixes/
   - title: "AI Tamer: OpenCode 2.0 is the official line, with one shared server and a major upgrade"
     url: https://aitamer.news/posts/opencode-2-0-background-server-code-mode/
+  - title: "Thibault Sottiaux (OpenAI) on X, 19 October 2026"
+    url: https://x.com/thsottiaux/status/2112034063934742720
 ---
 
 If you received an email from OpenCode about a "potential provider key breach", replace every AI provider key you saved in an OpenCode Console workspace. Do it at each provider's own dashboard, not through a link in an email. OpenCode says people who got no email were not affected.
@@ -77,3 +79,7 @@ Lydia Hallie, who works on Claude Code at Anthropic, [wrote on X](https://x.com/
 OpenCode has not said who was behind the access, how the legacy system was reached, how the keys were stored, how many accounts 1.4% represents, or what "distillation attack" means here. On 19 October the status page listed no incident for the breach, only an unrelated free-inference slowdown, and the project's [GitHub advisories](https://github.com/anomalyco/opencode/security/advisories) had nothing newer than 24 September. We found no newer official update on OpenCode's X account, status page or changelog as of 19 October.
 
 One side effect: on 18 October a Codewhale [commit](https://github.com/codewhale-hq/Codewhale/commit/44e528d1f2cc25980683209adc75019663b57d63) removed README text that promoted storing provider keys in a Codewhale account, citing "OpenCode users' stored OpenAI and Claude keys" being exposed. We covered Codewhale's sandbox fixes [here](/posts/codewhale-rust-coding-agent-fail-open-fixes/), and OpenCode's local agent [here](/posts/opencode-2-0-background-server-code-mode/).
+
+## Update, 20 October 2026: OpenAI says it refunded affected credits
+
+On 19 October at 04:12 UTC, Thibault Sottiaux of OpenAI [posted on X](https://x.com/thsottiaux/status/2112034063934742720) that OpenAI's team "worked with OpenCode to have their users who are also OpenAI API customers back in business and any credits refunded which would have been drawn in the attack." He did not say how many accounts that covered or how refunds are applied. If you linked an OpenAI key to OpenCode Console, still revoke it and check your usage, as above, rather than assume a refund has landed.

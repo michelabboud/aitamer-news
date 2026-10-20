@@ -4,6 +4,7 @@ description: "HF tagged tokenizers v1.0.0-rc.2 (2026-09-21): same API and token 
 pubDate: 2026-09-24T09:15:12Z
 specimen: 19
 heroImage: https://media.aitamer.news/heroes/huggingface-tokenizers-1-0-rc2.jpg
+heroAlt: "Paper-cut coloured tokens spill from the left toward a striped coral and cream barrier, beside an arched cream vault door with a coral keyhole shield."
 section: rust
 subsection: ai
 tags:
@@ -25,15 +26,19 @@ sources:
     url: https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2
   - title: "tokenizers v1: encode, decode and scaling, measured — Hugging Face Blog"
     url: https://huggingface.co/blog/tokenizers-v1
+  - title: "Hugging Face tokenizers v1.0.0-rc.3 release"
+    url: https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.3
+  - title: "npm: tokenizers-wasm"
+    url: https://www.npmjs.com/package/tokenizers-wasm
 ---
 
-On **2026-09-21**, Hugging Face tagged Rust **tokenizers** [`v1.0.0-rc.2`](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2)—a **release candidate**, not stable `1.0.0`. Install path: `cargo add tokenizers --pre`. Companion post: [tokenizers v1 on the HF blog](https://huggingface.co/blog/tokenizers-v1).
+On **2026-09-21**, Hugging Face tagged Rust **tokenizers** [`v1.0.0-rc.2`](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2), a **release candidate**, not stable `1.0.0`. Install path: `cargo add tokenizers --pre`. Companion post: [tokenizers v1 on the HF blog](https://huggingface.co/blog/tokenizers-v1).
 
 This post draws on the GitHub pre-release and its blog. License: **Apache-2.0** (repo LICENSE). Foundational Rust tokenization library; Python and other bindings wrap the same core.
 
 ## Compatibility and architecture (HF’s framing)
 
-HF says v1 aims to keep the **same API**, vocabulary / merge ranks, and **token IDs as v0.23**, remain general across tokenizer families (not BPE-only), and load what v0.23 loaded. Report as stated RC goals—not a desk guarantee for every edge case or binding.
+HF says v1 aims to keep the **same API**, vocabulary / merge ranks, and **token IDs as v0.23**, remain general across tokenizer families (not BPE-only), and load what v0.23 loaded. Report as stated RC goals, not a desk guarantee for every edge case or binding.
 
 The blog describes a workspace split (`tk-encode` required; `tk-serialize`, `tk-convert`, `tk-train` optional), no-alloc / caller-owned scratch, bitcannon (bitstream / SIMD vs regex), merge-loop rewrite, word cache, and native parallelism. Pipeline stages: Normalization → Pre-tokenization → Model → Post-processing.
 
@@ -54,3 +59,7 @@ The blog lists remaining work (training-validation encoding path, optional offse
 ## Who should care
 
 Teams on HF tokenizers who want the RC performance refactor while keeping v0.23 IDs should try `--pre` and read the [tag](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2) plus [blog](https://huggingface.co/blog/tokenizers-v1). Treat this as a candidate, not a stable 1.0 cutover.
+
+## Update, 20 October 2026: rc.3 brings tokenizers to the browser
+
+Hugging Face tagged [v1.0.0-rc.3](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.3) on 19 October. The release notes call it "mainly a bindings release": WebAssembly bindings are now on npm as [`tokenizers-wasm`](https://www.npmjs.com/package/tokenizers-wasm), installed with `npm install tokenizers-wasm@next` (at our check, both the `latest` and `next` tags point to 1.0.0-rc.3). Python gains pair encoding, and several loading bugs are fixed, including byte-level BPE vocabularies such as ModernBERT's and `tokenizer.json` files with regex `Split` pre-tokenizers or `Replace` normalizers, which the notes say covers NLLB and every model transformers converted from SentencePiece. It is still a release candidate; HF says feature parity with 0.23 is the main milestone left before 1.0.0.
