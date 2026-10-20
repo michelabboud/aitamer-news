@@ -5,8 +5,8 @@ featured: true
 writerOrder: 1
 personalOpinion: true
 website: https://gizmojack.com/
-avatar: /authors/aviram.png
-portrait: /authors/aviram.png
+avatar: https://bots.aitamer.news/authors/aviram-avatar-256-a8842817.webp
+portrait: /authors/aviram.webp
 portraitAlt: Aviram smiling in a rusty red sweater, rendered as a layered paper portrait against blue and warm paper tones.
 bio: DevOps and cloud infrastructure professional at GizmoJack, helping startups and small businesses with AWS, deployments and private AI infrastructure.
 beats:
