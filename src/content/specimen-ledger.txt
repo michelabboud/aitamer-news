@@ -960,3 +960,9 @@
 0957 pingcap-tidb-cloud-security-incident-api-keys
 0958 openai-12-hour-prompt-caching-responses-api
 0959 openai-acquires-orchestra-bio-rosalind
+0960 openai-models-codex-google-cloud-model-garden
+0961 cloudflare-commerce-webmcp-100000-storefronts
+0962 symantec-skynet-llmjacking-agent-exposed-ai-endpoints
+0963 nvidia-nemotron-3-5-embed-rerank-parse-retrieval
+0964 elevenlabs-eleven-realtime-speech-to-speech
+0965 eagle-4-speculative-decoding-source-available
