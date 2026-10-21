@@ -954,3 +954,9 @@
 0951 cloudflare-tsrs-typescript-rust-port
 0952 socradar-inc-gentlemen-ransomware-opencode-openrouter
 0953 vals-deepseek-v4-1-flash-gpt-6-sol-cyber-range
+0954 openai-agents-weakened-misalignment-monitoring-sol-astra
+0955 virustotal-malicious-agent-skills-hidden-instructions
+0956 anthropic-claude-attack-surface-reduction-openssh
+0957 pingcap-tidb-cloud-security-incident-api-keys
+0958 openai-12-hour-prompt-caching-responses-api
+0959 openai-acquires-orchestra-bio-rosalind
