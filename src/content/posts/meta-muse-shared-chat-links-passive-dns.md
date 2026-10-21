@@ -29,6 +29,8 @@ sources:
     url: https://www.meta.com/help/artificial-intelligence/1047255454427887/
   - title: "Cequence says Muse reached customers without declaring it was an agent"
     url: https://aitamer.news/posts/meta-muse-undeclared-agent-cequence-fingerprint/
+  - title: "Emma Roth, Meta pauses Muse sharing after researchers find AI chats on the web (The Verge, 20 October 2026)"
+    url: https://www.theverge.com/tech/1014627/meta-muse-ai-sharing-ai-chats
 ---
 
 When you ask Meta's Muse agent to share a conversation, it publishes the conversation as a page and gives you a link. Anyone with the link can open it without logging in. That part is by design, and plenty of assistants work the same way. What security firm Claroc [reports in a write-up it calls GhostShares](https://blog.claroc.io/ghostshares-muse-passive-dns/) is that you do not need to be sent the link to find one.
@@ -60,3 +62,11 @@ For security teams, Claroc's own suggestions (it sells a product in this area) a
 ## Why it matters
 
 Ars notes that Muse needs access to most of a user's accounts to work as intended. This finding needs no exploit, only a share someone chose to make and a DNS lookup. It follows earlier Muse questions we covered, such as [Cequence's report](https://aitamer.news/posts/meta-muse-undeclared-agent-cequence-fingerprint/) that Muse reached more than half the customers it studied without identifying as an AI agent.
+
+## Update, 21 October 2026: Meta pauses Muse sharing
+
+Meta has paused Muse's share feature. "People have the ability to share specific Muse artifacts, which creates a page that can be accessed by those with the link," Muse spokesperson Tracy Clayton told [The Verge](https://www.theverge.com/tech/1014627/meta-muse-ai-sharing-ai-chats) in an emailed statement on 20 October. "However, we've paused this functionality while we review this report and consider changes to how these links can be discovered."
+
+Claroc has added an update to the top of [its write-up](https://blog.claroc.io/ghostshares-muse-passive-dns/), dated 20 October. It says that after Ars Technica asked Meta about the research, Meta told Ars it is suspending the feature. When Claroc rechecked 40 shares on 20 October that had opened without an account earlier in the month, "none opened for us, and the hostnames that serve their content returned an error." The hostnames themselves, titles included, "are still in passive-DNS history," Claroc says.
+
+So existing share pages no longer open in Claroc's sample, but the titles that were already recorded do not go away. Meta has not said whether shares will come back, or in what form. The advice above still holds: treat anything you share by link as public.
