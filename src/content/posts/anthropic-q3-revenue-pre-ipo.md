@@ -31,6 +31,8 @@ sources:
     url: https://www.anthropic.com/news
   - title: "AI Tamer: Bloomberg: Moonshot said to close near $50 billion, eye a 2027 Hong Kong IPO"
     url: https://aitamer.news/posts/moonshot-ai-50b-pre-ipo/
+  - title: "Anthropic logged net loss of over $80 billion in first half of 2026 (Channel NewsAsia, carrying Reuters, 20 October 2026, updated 21 October)"
+    url: https://www.channelnewsasia.com/business/anthropic-logged-net-loss-over-80-billion-in-first-half-2026-wsj-reports-6476676
 ---
 
 Newsrooms are reporting that Anthropic told prospective investors its third-quarter 2026 revenue was 16.8 billion dollars. The figure is not in an SEC filing, and it is not presented by these outlets as audited GAAP. [Anthropic's news index](https://www.anthropic.com/news), opened 15 October 2026, did not list a quarterly revenue announcement among the items on that page.
@@ -52,3 +54,16 @@ The 16.8 billion, 11.6 billion and 4.7 billion figures agree across BBC, CNBC an
 The timing is not one date. The BBC says a listing is expected before the end of the year. CNBC says the offering is reportedly slated for November. The Reuters copy says a public debut is likely to be pushed until after the November US midterm elections, and it marks that line as earlier Reuters reporting. The Straits Times copy says Bloomberg has reported that formal marketing could begin as soon as the week of 9 November, with trading before Thanksgiving and a debut no later than the end of the year, and that people familiar said deliberations are ongoing and the timeline could still shift.
 
 None of the four texts is a company release. A separate briefing on another lab's reported listing, [Moonshot's reported Hong Kong plans](/posts/moonshot-ai-50b-pre-ipo/), is about a valuation and a 2027 window. It does not supply these Anthropic figures.
+
+## Update, 21 October 2026: a draft prospectus shows an $80.7 billion first-half loss
+
+The Wall Street Journal reported on 20 October on a new draft of Anthropic's IPO prospectus, and Reuters says it has since reviewed the draft too. Its story, read here in the [Channel NewsAsia copy](https://www.channelnewsasia.com/business/anthropic-logged-net-loss-over-80-billion-in-first-half-2026-wsj-reports-6476676) last updated on 21 October, says:
+
+- Anthropic's net loss for the first half of 2026 was 80.7 billion dollars, against 13 billion dollars a year earlier.
+- That includes a 72 billion dollar accounting charge reflecting a rise in the estimated value of bonds that could convert into Anthropic shares, "rather than cash costs tied to its operations."
+- Anthropic spent nearly 9 billion dollars on computing capacity and infrastructure in the first half, up from 2.3 billion dollars a year earlier.
+- Anthropic has committed to spending at least 518 billion dollars over a decade on cloud services, computing and infrastructure.
+
+Reuters says Anthropic did not respond to a request for comment, and that the IPO is expected in November, with some investors weighing a valuation of around 1.5 trillion dollars after recent disclosures. This is a confidential draft, not a public SEC filing, and its figures can change before any public version.
+
+Other reports give larger totals for compute commitments, counting deals still being negotiated. We did not read the Journal's paywalled text, so we use only the figure in the Reuters story. The 16.8 billion dollar third-quarter revenue figure above still comes from investor briefings, not from this draft.

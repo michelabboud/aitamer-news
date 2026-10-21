@@ -57,6 +57,12 @@ sources:
     url: https://xerj.org/get
   - title: "XERJ PR #1886: agents rate hub corpora (automatic reviews)"
     url: https://github.com/xerj-org/xerj/pull/1886
+  - title: "CERT/CC Vulnerability Note VU#645818: Xerj Console API authentication bypass (20 October 2026)"
+    url: https://kb.cert.org/vuls/id/645818
+  - title: "CVE-2026-97406 (CVE record)"
+    url: https://www.cve.org/CVERecord?id=CVE-2026-97406
+  - title: "XERJ commit 050a12e: require a passkey session to mint API tokens (PR #2003)"
+    url: https://github.com/xerj-org/xerj/commit/050a12e9ac66f1c3fd279b365d769936e07939da
 ---
 
 On 16 October 2026 at 14:51 UTC, XERJ published [v1.0.0-rc.96](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.96). The [changelog](https://raw.githubusercontent.com/xerj-org/xerj/v1.0.0-rc.96/CHANGELOG.md) dates that section 15 October. The version string is a release candidate. GitHub's release record does not flag it as a prerelease.
@@ -103,3 +109,13 @@ XERJ tagged [v1.0.0-rc.97](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-
 The project has since put the consent question on its own record. [Issue #1896](https://github.com/xerj-org/xerj/issues/1896), opened by the xerj-org account late on 19 October (UTC) and labelled `question`, says that opening a public PR from the user's account "is an outward-facing action" and suggests having the agent offer the report to the user, or default to a local draft. It was still open, with no comments, when we checked on the evening of 20 October. XERJ's [Corpus Hub v2 post](https://xerj.org/blog/corpus-hub-v2.html), dated 19 October, says whether an agent should send a report without asking its user first "is open in #1896; the opt-out works either way." The same post counts 40 field reports on main, plus 12 that came in through the API fallback.
 
 That is an open question, not a change of course. On 20 October the install script at [xerj.org/get](https://xerj.org/get) and [llms.txt](https://xerj.org/llms.txt) still told agents to send the report automatically, with "no need to ask the user". [PR #1886](https://github.com/xerj-org/xerj/pull/1886), merged to main on 20 October and not yet in a tagged release, adds automatic corpus reviews: `xerj hub pull` and the MCP hub tools send one per corpus per week by default, under the same opt-out.
+
+## Update, 21 October 2026: CERT/CC publishes a console API flaw, fixed on main but not yet released
+
+On 20 October the CERT Coordination Center published [Vulnerability Note VU#645818](https://kb.cert.org/vuls/id/645818), tracked as [CVE-2026-97406](https://www.cve.org/CVERecord?id=CVE-2026-97406), for the XERJ Console API. CERT says the console turns both passkey browser sessions and API bearer tokens into the same `AuthSession`, and the token-creation handler did not check which one it had. As a result, "an attacker with an existing valid token can create independent, persistent successor credentials," and "revoking a compromised parent token has no effect on any descendant tokens." With an owner's token, CERT says, an attacker could issue an account invitation, redeem it in their own browser and enroll their own passkey.
+
+CERT's note says "the vendor could not be reached to coordinate this vulnerability," lists XERJ as notified on 13 August with status Unknown, and credits Shiran Guez as the reporter. The CVE record names Console API v1.0.0-rc.11 as affected and carries no severity score; CERT gives none either.
+
+About six hours after the note, XERJ merged a fix to main: [commit 050a12e](https://github.com/xerj-org/xerj/commit/050a12e9ac66f1c3fd279b365d769936e07939da) (pull request 2003, 21 October 00:31 UTC). Its changelog entry, under Unreleased, says creating and revoking API tokens, issuing invitations, deleting passkeys and logging out now require a passkey-backed browser session and return 403 to a bearer token, while ordinary console data calls still accept bearer tokens. The commit does not comment on the disclosure timeline.
+
+The fix is not in a release yet. When we checked on the morning of 21 October, the latest tagged release was still v1.0.0-rc.97, and the repository had no published security advisory. The flaw is in the console API (`/_xerj-console/api/v1`), not in search or the MCP tools. If you expose the console, limit who holds API tokens, and when a release with this fix ships, upgrade and then revoke and reissue tokens. Issue #1896 on agent field reports was still open, with no comments.
