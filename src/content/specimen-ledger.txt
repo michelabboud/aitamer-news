@@ -966,3 +966,9 @@
 0963 nvidia-nemotron-3-5-embed-rerank-parse-retrieval
 0964 elevenlabs-eleven-realtime-speech-to-speech
 0965 eagle-4-speculative-decoding-source-available
+0966 kling-4-0-general-availability
+0967 litellm-1-107-0-pypi-docker-credential-stealer
+0968 nvidia-flora-robotics-data-engine-models
+0969 openai-api-shutdowns-23-october-gpt-image-1-o3-mini
+0970 mastercard-agent-pay-for-machines-x402-cloudflare
+0971 krafton-raon-1-mini-preview-open-weights
