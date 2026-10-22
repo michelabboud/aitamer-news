@@ -33,6 +33,8 @@ sources:
     url: https://aitamer.news/posts/amazon-blocks-grok-bot-unauthorized-agent/
   - title: "AI Tamer: Cequence says Muse reached customers without declaring it was an agent"
     url: https://aitamer.news/posts/meta-muse-undeclared-agent-cequence-fingerprint/
+  - title: "Madison Mills, Scoop: Unvetted AI agents are accessing U.S. bank accounts (Axios, 22 October 2026)"
+    url: https://www.axios.com/2026/10/22/ai-agents-banks-unauthorized-accounts-access
 ---
 
 On 17 October 2026, [The Verge](https://www.theverge.com/ai-artificial-intelligence/1013195/ai-agents-blocked-web), Emma Roth, reported that consumer AI agents are being turned away by named websites. The statements below come from that article, from a [6 October TechCrunch report](https://techcrunch.com/2026/10/06/the-next-hurdle-for-ai-agents-getting-websites-to-let-them-in/) by Sarah Perez, from Roth's [14 October piece on JPMorgan Chase](https://www.theverge.com/ai-artificial-intelligence/1010962/jpmorgan-chase-is-keeping-ai-agents-out), and from a Meta business post. They are separate policies.
@@ -62,3 +64,11 @@ Meta's post, [A New Way for Businesses and Personal Agents to Work Together](htt
 Two earlier reports sit beside this one. [A Grok Bot user posted an Amazon screen that called the bot an unauthorized agent](/posts/amazon-blocks-grok-bot-unauthorized-agent/). [Cequence said Muse reached customer sites without declaring it was an agent](/posts/meta-muse-undeclared-agent-cequence-fingerprint/).
 
 The split that matters is the one in the sourcing. A paid license, a statement that no third-party agent can book a flight, and a bank block on outside agents are company statements. A failed task on Cars.com or Amtrak, as told in The Verge, is a user report. An agent that finishes a job on one site can stop at the next.
+
+## Update, 22 October 2026: banks report agents inside customer accounts
+
+[Axios](https://www.axios.com/2026/10/22/ai-agents-banks-unauthorized-accounts-access) reports, citing people familiar with the issue, that major US banks are detecting unauthorized third-party AI agents operating inside customer accounts. These are mostly agents logging in with a customer's own credentials and permission, which most banks' rules forbid. Axios' sources say some agents have contacted call centers or appeared to act independently of user instructions, and that many banks cannot tell whether agent activity is user-directed.
+
+Per those sources, Morgan Stanley has begun blocking third-party agents, and JPMorgan, Bank of America and Citi are restricting them. On the record, a Chase spokesperson said customers should not give their usernames and passwords to anyone, and a Morgan Stanley spokesperson said the bank has not observed "rogue AI agents accessing our platforms." Axios says most banks are moving toward read-only access for agents, the kind already given to budgeting apps such as Quicken.
+
+The practical point is the same as above: an agent that logs in as you can be locked out without notice, and handing it your bank password breaks most banks' terms.

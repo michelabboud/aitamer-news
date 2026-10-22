@@ -26,6 +26,10 @@ sources:
     url: https://huggingface.co/datasets/Anthropic/scorpion-toxin-binder-design
   - title: "Anthropic on X, 20 October 2026"
     url: https://x.com/AnthropicAI/status/2112579251555721573
+  - title: "Citrini Research: We Wanted to Use Claude to Create a New Drug. Here's What Happened. (20 October 2026)"
+    url: https://www.citriniresearch.com/p/citrini-therapeutics
+  - title: "Robert Hart, Claude did not invent scorpion antivenom (The Verge, 22 October 2026)"
+    url: https://www.theverge.com/ai-artificial-intelligence/1016443/anthropic-claude-citrini-vibecoding-scorpion-antivenom
 ---
 
 Anthropic says an internal Claude research model, working inside Claude Science, [designed small proteins that bind scorpion neurotoxins](https://www.anthropic.com/research/claude-scorpion-toxin-binder-design), and that two outside labs confirmed 17 of them. The company is releasing all 211 tested designs and their data, and it says plainly that it has not produced an antivenom.
@@ -49,3 +53,11 @@ The two strongest, against Cn2, bound in the single-digit nanomolar range. Compe
 ## Why it matters
 
 Scorpion stings kill more than 3,250 people a year, mostly children in places with poor access to care, and the treatments are costly to make. Anthropic says two outside researchers, Susana Vázquez Torres (CNIO) and Timothy P. Jenkins (Technical University of Denmark), called the work a promising first step. Vázquez Torres says binding itself "is no longer the main bottleneck"; the hard part is turning a binder into a safe, affordable drug. It is the second Claude Science result Anthropic has published this month, after [Ménard's ultraviolet sky map](/posts/claude-science-uv-sky-map/), and this one comes with its failures in the data: 194 of the 211 designs did not meet the bar.
+
+## Update, 22 October 2026: how the experiment was run, and what outside experts say
+
+Citrini Research has published [its own account](https://www.citriniresearch.com/p/citrini-therapeutics). It writes that its first prompt was stopped by Claude's biosecurity guardrails. After Anthropic sent a security questionnaire that Citrini says it could not meet, the prompting was done in person at Anthropic's offices, on Anthropic's machines, with an internal model that Citrini describes as more advanced than what has been released. Citrini puts its compute spend at $49,997 and the two labs' bills at just under $150,000, and writes that Anthropic "was willing to play ball on the compute/token bill." The Verge reads that as Anthropic covering the compute.
+
+[The Verge](https://www.theverge.com/ai-artificial-intelligence/1016443/anthropic-claude-citrini-vibecoding-scorpion-antivenom) asked outside researchers about the result. Andreas Hougaard Laustsen-Kiel of the Technical University of Denmark said finding a good binder against these toxins is "easy-ish" and that "the hard part is to translate it into a medicine." His DTU colleagues Melisa Benard Valle and Anne Ljungars called the results "technically promising" but "far from a medicine and hyped," and said the novel part is the autonomous process rather than the biology. Andreas Bender of Khalifa University said high-throughput screening often finds many hits without AI. Citrini and Anthropic did not respond to The Verge.
+
+None of this changes the findings above. Citrini also writes that no experiment has yet tested whether the binders stop the toxin working.
