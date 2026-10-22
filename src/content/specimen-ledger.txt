@@ -979,3 +979,9 @@
 0976 duckdb-2-0-lts-cinnamon-teal
 0977 walmart-agent-gateway-mcp-agent-profiles
 0978 openai-usage-policies-model-routers-gateways-approval
+0979 microsoft-storm-0940-artex-agentic-ai-connectwise
+0980 baseten-mammoth-1-elephant-1-open-decision-models
+0981 nvidia-flare-local-inference-rust-runtime
+0982 claude-duet-proactive-agent-claude-security-continuous-scans
+0983 recursive-flint-40b-open-local-coding-model
+0984 opal-reactive-optimizer-agent-rewrites-optimizer
