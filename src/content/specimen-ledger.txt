@@ -973,3 +973,9 @@
 0970 mastercard-agent-pay-for-machines-x402-cloudflare
 0971 krafton-raon-1-mini-preview-open-weights
 0972 grok-bot-getting-started
+0973 php2shell-php-rce-ai-found-exploited-before-disclosure
+0974 ai-movie-models-kling
+0975 claude-api-version-2026-10-21-sampling-parameters-removed
+0976 duckdb-2-0-lts-cinnamon-teal
+0977 walmart-agent-gateway-mcp-agent-profiles
+0978 openai-usage-policies-model-routers-gateways-approval

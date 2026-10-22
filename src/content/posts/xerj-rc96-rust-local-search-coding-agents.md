@@ -63,6 +63,12 @@ sources:
     url: https://www.cve.org/CVERecord?id=CVE-2026-97406
   - title: "XERJ commit 050a12e: require a passkey session to mint API tokens (PR #2003)"
     url: https://github.com/xerj-org/xerj/commit/050a12e9ac66f1c3fd279b365d769936e07939da
+  - title: "XERJ v1.0.0-rc.98 release (22 October 2026)"
+    url: https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.98
+  - title: "CHANGELOG.md at tag v1.0.0-rc.98"
+    url: https://raw.githubusercontent.com/xerj-org/xerj/v1.0.0-rc.98/CHANGELOG.md
+  - title: "XERJ PR #2126: remove one folder safely and refuse wildcard deletes"
+    url: https://github.com/xerj-org/xerj/pull/2126
 ---
 
 On 16 October 2026 at 14:51 UTC, XERJ published [v1.0.0-rc.96](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.96). The [changelog](https://raw.githubusercontent.com/xerj-org/xerj/v1.0.0-rc.96/CHANGELOG.md) dates that section 15 October. The version string is a release candidate. GitHub's release record does not flag it as a prerelease.
@@ -119,3 +125,11 @@ CERT's note says "the vendor could not be reached to coordinate this vulnerabili
 About six hours after the note, XERJ merged a fix to main: [commit 050a12e](https://github.com/xerj-org/xerj/commit/050a12e9ac66f1c3fd279b365d769936e07939da) (pull request 2003, 21 October 00:31 UTC). Its changelog entry, under Unreleased, says creating and revoking API tokens, issuing invitations, deleting passkeys and logging out now require a passkey-backed browser session and return 403 to a bearer token, while ordinary console data calls still accept bearer tokens. The commit does not comment on the disclosure timeline.
 
 The fix is not in a release yet. When we checked on the morning of 21 October, the latest tagged release was still v1.0.0-rc.97, and the repository had no published security advisory. The flaw is in the console API (`/_xerj-console/api/v1`), not in search or the MCP tools. If you expose the console, limit who holds API tokens, and when a release with this fix ships, upgrade and then revoke and reissue tokens. Issue #1896 on agent field reports was still open, with no comments.
+
+## Update, 22 October 2026: rc.98 ships the console fix
+
+XERJ tagged [v1.0.0-rc.98](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.98) at 03:09 UTC on 22 October, and published the GitHub release at 03:56 UTC. It is the first tagged release with the CVE-2026-97406 fix: GitHub's compare view shows the main-branch fix commit 050a12e is contained in the tag. The [changelog at the tag](https://raw.githubusercontent.com/xerj-org/xerj/v1.0.0-rc.98/CHANGELOG.md) now lists it under Security, citing CERT's note. It says that before the fix, "holding one API token was enough to mint independent successors", and that creating and revoking API tokens, issuing invitations, deleting passkeys and logging out now "require a passkey-backed browser session and return 403 for a bearer token". The changelog also says "no token lineage is stored", so a revoked token has no descendants.
+
+That last point shapes the cleanup. Upgrading stops new successor tokens being minted, but tokens minted on an older build stay valid until you revoke them yourself. If you exposed the console and handed out API tokens, upgrade to rc.98, then review every API token and invitation and revoke any you cannot account for. There was still no published GitHub security advisory and no severity score when we checked on the morning of 22 October.
+
+rc.98 also adds safer deletion for agents. A new `xerj autoindex remove` command and MCP tool list what they would drop first and delete nothing without `--yes`, a `y` at the terminal or `confirm: true`. A `DELETE` of `*`, `_all` or a wildcard is refused by default, and the agent docs now tell agents not to delete an index they did not create ([PR #2126](https://github.com/xerj-org/xerj/pull/2126)). The changelog says this change came from an agent field report. Issue #1896, on whether agents should send those reports without asking the user, was still open with no comments.
