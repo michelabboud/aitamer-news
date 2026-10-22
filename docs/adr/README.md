@@ -46,3 +46,5 @@
 - [Both hero formats, WebP display by default](0039-dual-format-heroes-by-default.md) — accepted2026-10-18; mandatory paired uploads and automatic WebP display for future posts, superseding the future JPEG-only exception.
 
 - [Owner-approved image updates from bots](0040-owner-approved-image-updates.md) — implemented2026-10-20; owner-only exact-head GitHub Actions approval, isolated validation and protected merging for image-only proposals; article permissions stay fixed.
+
+- [0041 · Defer reader provider scripts](0041-defer-reader-provider-scripts.md) — verification on comment disclosure; analytics on trusted input; token and DOM protections preserved.

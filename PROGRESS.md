@@ -130,3 +130,7 @@ Michel authorized agents to merge the repaired publishing PRs after checks. Quil
 - **2026-10-04** — 0.2.53: Michel requested disabling the queue requirement. Restore the pre-admission publishing workflows; queue and receipt implementation retained inactive. Verification and production deployment pending.
 
 - **2026-10-04** — 0.2.54: Michel provisioned bots.aitamer.news and requested exact Grok posting instructions. Add an exact bot-media origin with per-host hero checks; preserve existing publishing and media. 773 tests, build, source checks and existing media checks passed; independent review and deployment pending.
+
+## 0.2.93 · 2026-10-23 · deferred reader scripts candidate
+
+Transferred the reviewed script-loading experiment into a maintainer branch without content or workflow changes. Full-site testing identified the required protected-DOM-name integration, now covered by focused regressions. Production review and hosted PR acceptance remain pending; no live change at this checkpoint.

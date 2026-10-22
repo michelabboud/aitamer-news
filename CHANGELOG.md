@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.93 · 2026-10-23
+
+- Load comment verification only after opening the native Add a comment disclosure, with explicit SDK network retry and preserved typed input. Keep mandatory tokens, expiry, submit locking and reset behavior.
+- Load analytics once after trusted pointer, keyboard, wheel or touch input on production hosts. Passive visits without input are not counted; idle callbacks and native anchor/history scrolling do not start analytics.
+- Protect the new comment control IDs against article-body collisions and add isolated behavior regression tests. No article, author, image, publication-date, specimen, admission or deployment-policy changes.
+
 ## 0.2.92 — 2026-10-20
 
 - Reconcile the bots' article-only instructions with separate owner-approved image proposals, and point Grok image requests to the same process.

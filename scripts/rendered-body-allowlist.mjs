@@ -79,6 +79,8 @@ export const PROTECTED_IDS = Object.freeze(
     'comments-title',
     'comment-held',
     'comment-form',
+    'comment-disclosure',
+    'comment-retry',
     'comment-status',
     'comment-error',
     'comment-name',
@@ -88,6 +90,7 @@ export const PROTECTED_IDS = Object.freeze(
     'footnote-label',
     // Globals read through `window`, where a named element could shadow one that is not yet set.
     // The site's own inline scripts (BaseLayout.astro, CommentForm.astro):
+    '__aitamerAnalyticsScheduled',
     'dataLayer',
     'gtag',
     'aitamerCommentTurnstileReady',
