@@ -985,3 +985,9 @@
 0982 claude-duet-proactive-agent-claude-security-continuous-scans
 0983 recursive-flint-40b-open-local-coding-model
 0984 opal-reactive-optimizer-agent-rewrites-optimizer
+0985 railway-breach-environment-variables-ai-inference-keys
+0986 ibm-granite-speech-5-0-open-asr-translation
+0987 chatgpt-plan-usage-other-apps-sign-in-with-chatgpt
+0988 nvidia-kumo-relational-predictions-on-databases
+0989 weekly-builders-roundup-2026-10-22
+0990 reuse-rs-nvidia-speech-denoiser-rust-cpu-faster-than-gpu
