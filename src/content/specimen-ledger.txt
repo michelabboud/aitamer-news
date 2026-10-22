@@ -991,3 +991,9 @@
 0988 nvidia-kumo-relational-predictions-on-databases
 0989 weekly-builders-roundup-2026-10-22
 0990 reuse-rs-nvidia-speech-denoiser-rust-cpu-faster-than-gpu
+0991 qdrant-1-20-cluster-port-auth-default-bm25
+0992 did-you-know-chatgpt-pin-reset-deletes-locked-chats
+0993 agentic-ai-foundation-agent-skills-open-responses-openenv-opensandbox
+0994 metr-redwood-red-team-openai-internal-agent-monitoring
+0995 huggingface-carbon-x-open-model-chat-with-dna
+0996 1password-for-agents-approve-sign-ins-without-sharing-passwords
