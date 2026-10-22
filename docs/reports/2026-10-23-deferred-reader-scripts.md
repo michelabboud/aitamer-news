@@ -16,3 +16,9 @@ Local verification:
 The template browser check used production-host request routing with all providers and comments mocked. It verified no provider request before input, Enter-to-open, failed SDK retry, preserved input, token-gated submit and one submission/reset. No real comment or analytics was sent. Three local phone lab runs per template variant measured median initial bytes1,250,765 to415,230 and Cloudflare requests13 to0, while LCP distributions overlapped. Localhost disables analytics in both variants; these are laboratory results, not a production saving estimate. No stable LCP improvement is claimed.
 
 Independent exact-candidate production review and required hosted checks remain pending at this source commit. No live deployment is claimed. Existing report-only CSP and all admission rules are unchanged.
+
+## Production source reviews
+
+Independent Sol deep and Luna mechanical reviews accepted exact source2bf2e501247bbd6304712d54db30cd1e1ffdebd1, followed by two fresh Astra xhigh high reviews accepting the same frozen target against737054a. Same-family limitation: the governed cross-family runner refused before provider dispatch with argument_invalid despite a valid advisory request; no provider review was claimed. Reviewers read pinned Git objects and did not claim coordinator tests as their own. Requested model configurations and preserved external receipts supply the ledger; native token counters unavailable.
+
+One nonblocking high-review finding concerned privacy wording: elapsed time starts at page initialization, not disclosure opening. Updated privacy prose accordingly and documented delayed analytics there. The comment timing/loading/token code is unchanged. This wording follow-up receives focused exact-head review and hosted checks before normal merge.

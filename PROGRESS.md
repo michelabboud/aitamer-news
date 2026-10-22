@@ -134,3 +134,7 @@ Michel authorized agents to merge the repaired publishing PRs after checks. Quil
 ## 0.2.93 · 2026-10-23 · deferred reader scripts candidate
 
 Transferred the reviewed script-loading experiment into a maintainer branch without content or workflow changes. Full-site testing identified the required protected-DOM-name integration, now covered by focused regressions. Production review and hosted PR acceptance remain pending; no live change at this checkpoint.
+
+## 0.2.94 · 2026-10-23 · source review and privacy clarification
+
+Both independent high-review seats accepted code2bf2e5 without blockers. Corrected the identified privacy timing wording and described input-triggered analytics. PR314 owns required current-head checks and normal merge/deployment; no live claim yet.

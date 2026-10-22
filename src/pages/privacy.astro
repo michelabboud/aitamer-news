@@ -17,7 +17,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
       <p>
         Comments under a story are built into the page from the desk's own records. Nothing is
         loaded from a comment host when you read one. To post a comment, the form on the story page
-        sends your name, the comment text, how long the form was open before you sent it, and a
+        sends your name, the comment text, a timing value measured from when the page opened or your last successful comment, and a
         check from Cloudflare Turnstile that you are not a bot, to comments.{SITE.domain}. No email
         address is asked. A comment waits for the desk to read and approve it before anyone else
         sees it.
@@ -103,7 +103,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         address, and the browser’s user agent. That handling is Cloudflare’s, under its own policy.
       </p>
       <p>
-        On {SITE.domain} the site also loads Google Analytics. The tag sends Google the page address
+        On {SITE.domain} the site loads Google Analytics after your first pointer, keyboard, wheel or touch input. Reading without one of these inputs does not start the tag. The tag sends Google the page address
         and stores a cookie so a later visit from the same browser can be counted together. The site
         does not sell this information.
       </p>

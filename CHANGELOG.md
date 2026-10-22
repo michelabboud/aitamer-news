@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.94 · 2026-10-23
+
+- Clarify the privacy page for the deferred-script change: analytics starts on input, and the comment timing value is measured from page initialization or the last successful submission, including collapsed time.
+- Record independent production source review acceptance; hosted checks and deployment remain separate. No comment verification or loading code changed after the reviewed0.2.93 candidate.
+
 ## 0.2.93 · 2026-10-23
 
 - Load comment verification only after opening the native Add a comment disclosure, with explicit SDK network retry and preserved typed input. Keep mandatory tokens, expiry, submit locking and reset behavior.
