@@ -45,6 +45,7 @@ export function mountHomeFeed(root: HTMLElement) {
   const status = root.querySelector<HTMLElement>('[data-home-feed-status]');
   const errors = root.querySelector<HTMLElement>('[data-home-feed-error]');
   const retry = root.querySelector<HTMLButtonElement>('[data-home-feed-retry]');
+  const refresh = root.querySelector<HTMLAnchorElement>('[data-home-feed-refresh]');
   if (!cards || !sentinel || !status || !errors || !retry) return;
   const number = (name: string) => {
     const value = root.dataset[name];
@@ -83,9 +84,11 @@ export function mountHomeFeed(root: HTMLElement) {
   const render = () => {
     const loading = controller.state === 'loading';
     const failed = controller.state === 'error';
+    const hidingFocusedRetry = controller.stale && document.activeElement === retry;
     cards.setAttribute('aria-busy', String(loading));
     errors.hidden = !failed && !(loading && retryRequest);
     retry.hidden = controller.stale;
+    if (hidingFocusedRetry) refresh?.focus({ preventScroll: true });
     // Retain focus during an explicit retry; repeated activation is rejected by the controller.
     retry.setAttribute('aria-disabled', String(loading));
     status.textContent = loading ? 'Loading more sightings…'
@@ -123,7 +126,11 @@ export function mountHomeFeed(root: HTMLElement) {
         const retryFocused = document.activeElement === retry;
         cards.append(batch.content);
         // Only an explicit Retry can transfer focus to the newly available story.
-        if (retryFocused) firstLink?.focus({ preventScroll: true });
+        if (retryFocused && firstLink) {
+          firstLink.focus({ preventScroll: true });
+          // Finish any older focus-scroll animation before it can chase the moved Retry control.
+          firstLink.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+        }
       },
       changed: render,
     });
@@ -170,7 +177,8 @@ export function mountHomeFeed(root: HTMLElement) {
         if (!current()) return;
         const anchor = target.anchor ? document.getElementById(`home-post-${target.anchor}`) : null;
         const y = anchor ? window.scrollY + anchor.getBoundingClientRect().top - target.anchorOffset : target.scrollY;
-        window.scrollTo(0, Math.max(0, y));
+        // Restoration must settle before releasing its hold, regardless of site smooth-scroll CSS.
+        window.scrollTo({ left: 0, top: Math.max(0, y), behavior: 'instant' });
         requestAnimationFrame(() => {
           if (!current()) return;
           pendingRestoration = null;

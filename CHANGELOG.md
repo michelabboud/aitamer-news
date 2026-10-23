@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.109 · 2026-10-23
+
+Integrate homepage reading restoration with the existing smooth-scroll CSS: restore saved positions instantly, retain keyboard focus on Refresh after a stale Retry, and scroll the successfully retried story into view instantly so an older focus animation cannot load all remaining batches. Preserve moved-away focus and all prior lifecycle/limit checks.
+
 ## 0.2.108 · 2026-10-23
 
 Add the all-author cards directory at /authors/, canonical /authors/michel/ with exact old-profile redirects, and bounded automatic homepage loading. Independent settings start with 12 stories, add 12 per batch, and stop after five automatic batches. Preserve archive/footer access, responsive WebP/JPEG delivery, analytics and author IDs. Validate static fragments and restore reading position safely across errors and browser navigation.

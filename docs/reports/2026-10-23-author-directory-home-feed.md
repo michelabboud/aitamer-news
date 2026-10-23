@@ -30,3 +30,11 @@ The new controller adds JavaScript and fragment requests; document-size savings 
 ## Close-out confirmation
 
 The source, plan, decision and changelog are recorded in checkpoint 0.2.108. This is a source-only checkpoint; protected PR merge, final reviews, verified deployment and live readback must finish before calling it live. No data, backup, evidence or unrelated work was deleted. Temporary comparison servers are private loopback measurement tools and will be stopped after qualification.
+
+## Actual-site follow-up · 0.2.109
+
+The first source candidate passed hosted checks and both Top source inspections, with real-browser gates explicitly pending. Those gates confirmed the second review's stale-Retry focus concern, plus interaction with the existing site's smooth-scroll CSS: Back restoration animated past its hold and successful keyboard Retry could drain remaining batches while moving focus offscreen. No merge or deployment occurred.
+
+The focused fix uses instantaneous restored-position scrolling; it transfers a focused stale Retry to Refresh; successful Retry instantly brings the new focused story into view and leaves moved-away focus untouched. Actual Chromium regressions cover the smooth declaration and real anchors. The isolated fixture reproduced invisible focus; root's actual-page experiment reproduced the five-batch drain and its minimal correction. Full 1215-test suite (zero skips), 1125-page build and output guards passed on the repaired source. The promoted presentation source matches template226aa1b56d2afb04579a24fa5e171f8d570a172f.
+
+Cross-family final-review attempt was unavailable because the installed Claude CLI was not logged in; no login, secret handling or permission widening was attempted. Two fresh Astra contexts provided the permitted same-family source reviews, with that limitation recorded. Focused successor review of this exact checkpoint, fresh-built native navigation/focus probes, matched measurements, hosted checks and live acceptance remain pending. Preserved failures remain part of the evidence.

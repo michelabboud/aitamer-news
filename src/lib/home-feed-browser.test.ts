@@ -22,17 +22,18 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
   const initial = Array.from({ length: 12 }, (_, i) => `<li id="home-post-p${i}" data-home-post="p${i}"><article><h3>Initial ${i}</h3></article></li>`).join('');
   const html = `<!doctype html><html style="overflow-anchor:auto!important;--fixture:keep"><meta charset="utf-8"><style>html,body{margin:0}li{height:200px;list-style:none}ul{margin:0;padding:0}footer{height:800px}.sentinel{height:1px}[hidden]{display:none}</style>
     <section data-home-feed data-initial-count="12" data-initial-limit="12" data-batch-size="12" data-batch-count="5" data-planned-count="72" data-max-auto-batches="5" data-snapshot="${'a'.repeat(64)}" data-initial-ids='${JSON.stringify(Array.from({ length: 12 }, (_, i) => `p${i}`))}'>
-    <ul data-home-feed-cards>${initial}</ul><div class="sentinel" data-home-feed-sentinel></div><p data-home-feed-status></p><div data-home-feed-error hidden><button data-home-feed-retry>Retry</button></div><p><a id="news" href="#news">View all News</a></p></section><footer>Lower panels/footer</footer>
+    <ul data-home-feed-cards>${initial}</ul><div class="sentinel" data-home-feed-sentinel></div><p data-home-feed-status></p><div data-home-feed-error hidden><button data-home-feed-retry>Retry</button><a id="refresh" href="#refresh" data-home-feed-refresh>Refresh this page</a></div><p><a id="news" href="#news">View all News</a></p></section><footer>Lower panels/footer</footer>
     <script type="module">
       import {mountHomeFeed} from './home-feed-browser.mjs';
-      window.calls=[];window.delay=location.hash==='#restore-suspended'?180:10;window.scrolls=[];window.errorOnce=location.hash==='#restore-error';
-      window.fetch=async(url)=>{const n=Number(url.match(/home-feed\\/(\\d+)/)[1]);window.calls.push(n);await new Promise(r=>setTimeout(r,window.delay));if(window.errorOnce){window.errorOnce=false;throw new Error('Fixture network failure')}const ids=Array.from({length:12},(_,i)=>'p'+(n*12+i));const template=document.createElement('template');Object.assign(template.dataset,{homeFeedSchema:'1',homeFeedSnapshot:'a'.repeat(64),homeFeedIndex:String(n),homeFeedOffset:String(n*12),homeFeedCount:'12',homeFeedIds:JSON.stringify(ids)});template.innerHTML=ids.map(id=>'<li id="home-post-'+id+'" data-home-post="'+id+'"><article><h3>'+id+'</h3></article></li>').join('');return new Response(template.outerHTML,{headers:{'content-type':'text/html'}})};
+      window.calls=[];window.delay=location.hash==='#restore-suspended'?180:10;window.scrolls=[];window.errorOnce=location.hash==='#restore-error'||location.hash.startsWith('#retry-');
+      window.fetch=async(url)=>{const n=Number(url.match(/home-feed\\/(\\d+)/)[1]);window.calls.push(n);await new Promise(r=>setTimeout(r,window.delay));if(window.errorOnce){window.errorOnce=false;if(location.hash.startsWith('#retry-'))return new Response('Temporary failure',{status:503,headers:{'content-type':'text/html'}});throw new Error('Fixture network failure')}const ids=Array.from({length:12},(_,i)=>'p'+(n*12+i));const template=document.createElement('template');Object.assign(template.dataset,{homeFeedSchema:'1',homeFeedSnapshot:(location.hash.startsWith('#retry-stale')?'b':'a').repeat(64),homeFeedIndex:String(n),homeFeedOffset:String(n*12),homeFeedCount:'12',homeFeedIds:JSON.stringify(ids)});template.innerHTML=ids.map(id=>'<li id="home-post-'+id+'" data-home-post="'+id+'"><article><h3><a '+(location.protocol==='https:'?'href="/posts/'+id+'/"':'tabindex="0"')+'>'+id+'</a></h3></article></li>').join('');return new Response(template.outerHTML,{headers:{'content-type':'text/html'}})};
       const root=document.querySelector('[data-home-feed]');root.dataset.batchPrefix=location.pathname+'/home-feed/';
       window.addEventListener('scroll',()=>window.scrolls.push(scrollY));
       if(location.hash.startsWith('#restore-')){
         Object.defineProperty(performance,'getEntriesByType',{value:()=>[{type:'back_forward'}]});
         const suspendedReplay=location.hash==='#restore-suspended';
-        history.replaceState({aitamerHomeFeedV1:{version:1,snapshot:'a'.repeat(64),loadedBatches:suspendedReplay?3:1,anchor:suspendedReplay?'p40':'p12',anchorOffset:suspendedReplay?-17:0,scrollY:suspendedReplay?8000:1500}},'');
+        const smoothReplay=location.hash==='#restore-smooth';
+        history.replaceState({aitamerHomeFeedV1:{version:1,snapshot:'a'.repeat(64),loadedBatches:suspendedReplay?3:smoothReplay?2:1,anchor:suspendedReplay?'p40':smoothReplay?'p30':'p12',anchorOffset:suspendedReplay?-17:smoothReplay?-23:0,scrollY:suspendedReplay?8000:smoothReplay?6000:1500}},'');
       }
       if(location.hash==='#restore-queued'){
         window.queued=[];window.requestAnimationFrame=(callback)=>window.queued.push(callback);
@@ -48,6 +49,7 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
   let buffer = '';
   let stderr = '';
   const pending = new Map<number, { resolve: (value: any) => void; reject: (error: unknown) => void }>();
+  let handleEvent: (message: any) => void = () => {};
   chrome.stderr?.on('data', (bytes) => { stderr += bytes; });
   const input = chrome.stdio[3] as NodeJS.WritableStream;
   const output = chrome.stdio[4] as NodeJS.ReadableStream;
@@ -59,7 +61,7 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
       if (message.id) {
         const waiter = pending.get(message.id); pending.delete(message.id);
         if (message.error) waiter?.reject(message.error); else waiter?.resolve(message.result);
-      }
+      } else handleEvent(message);
     }
   });
   const call = (method: string, params: object = {}, sessionId?: string) => new Promise<any>((resolve, reject) => {
@@ -78,6 +80,10 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
       return response.result.value;
     };
     const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const press = async (key: string, code: string, virtualKey: number, modifiers = 0) => {
+      await call('Input.dispatchKeyEvent', { type: 'keyDown', key, code, windowsVirtualKeyCode: virtualKey, modifiers, ...(key === 'Enter' ? { text: '\r', unmodifiedText: '\r' } : {}) }, sessionId);
+      await call('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode: virtualKey, modifiers }, sessionId);
+    };
     const read = () => evaluate(`({calls:[...window.calls],cards:document.querySelectorAll('[data-home-post]').length,y:scrollY,scrolls:[...window.scrolls],anchor:document.documentElement.style.getPropertyValue('overflow-anchor'),priority:document.documentElement.style.getPropertyPriority('overflow-anchor'),fixture:document.documentElement.style.getPropertyValue('--fixture'),history:history.state?.aitamerHomeFeedV1,targetTop:document.getElementById('home-post-p40')?.getBoundingClientRect().top})`);
     await call('Page.navigate', { url: pathToFileURL(fixture).href }, sessionId);
     for (let i = 0; i < 100 && !await evaluate('!!window.fixtureReady'); i++) await wait(10);
@@ -169,6 +175,95 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     result = await read(); results.push(result);
     assert.ok(Math.abs(await evaluate(`document.getElementById('home-post-p12').getBoundingClientRect().top`)) <= 1, 'a fresh callback completes the pending anchor once after resume');
     assert.deepEqual(result.calls, [1], 'resuming only an unapplied anchor needs no duplicate fetch');
+
+    // A stale retry must transfer keyboard focus only when Retry still owns it.
+    for (const moved of [false, true]) {
+      const filename = moved ? 'retry-stale-moved.html' : 'retry-stale.html';
+      const staleFixture = join(directory, filename);
+      await writeFile(staleFixture, html);
+      await call('Page.navigate', { url: pathToFileURL(staleFixture).href + '#retry-stale' }, sessionId);
+      for (let i = 0; i < 100 && !await evaluate(`location.pathname.endsWith('/${filename}') && !!window.fixtureReady`); i++) await wait(10);
+      await evaluate(`window.scrollTo(0,document.querySelector('[data-home-feed-sentinel]').offsetTop)`); await wait(80);
+      assert.equal(await evaluate(`document.querySelector('[data-home-feed-error]').hidden`), false);
+      await evaluate(`document.querySelector('#news').focus({preventScroll:true});window.delay=80`);
+      await press('Tab', 'Tab', 9, 8); await press('Tab', 'Tab', 9, 8);
+      assert.equal(await evaluate(`document.activeElement===document.querySelector('[data-home-feed-retry]')`), true);
+      await press('Enter', 'Enter', 13);
+      if (moved) await evaluate(`document.querySelector('#news').focus({preventScroll:true})`);
+      await wait(130);
+      const focused = await evaluate(`({id:document.activeElement.id,tag:document.activeElement.tagName,retryHidden:document.querySelector('[data-home-feed-retry]').hidden,calls:[...window.calls],status:document.querySelector('[data-home-feed-status]').textContent})`);
+      results.push({ scenario: 'stale-retry-focus', moved, ...focused });
+      assert.equal(focused.retryHidden, true);
+      assert.equal(focused.id, moved ? 'news' : 'refresh', 'hiding Retry must retain a useful focus destination without stealing focus');
+    }
+
+    // Use the actual site's scrolling declaration so restoration cannot inherit smooth animation.
+    const siteStyles = await readFile(new URL('../styles/global.css', import.meta.url), 'utf8');
+    const scrollingDeclaration = siteStyles.match(/scroll-behavior\s*:[^;]+;/)?.[0];
+    assert.ok(scrollingDeclaration);
+    const smoothFixture = join(directory, 'restore-smooth.html');
+    await writeFile(smoothFixture, html.replace('<style>', `<style>html{${scrollingDeclaration}}`));
+    await call('Page.navigate', { url: pathToFileURL(smoothFixture).href + '#restore-smooth' }, sessionId);
+    for (let i = 0; i < 100 && !await evaluate(`location.pathname.endsWith('/restore-smooth.html') && !!window.fixtureReady && document.querySelectorAll('[data-home-post]').length===36`); i++) await wait(10);
+    await wait(80);
+    const restored = await evaluate(`({y:scrollY,top:document.getElementById('home-post-p30').getBoundingClientRect().top,history:history.state.aitamerHomeFeedV1,behavior:getComputedStyle(document.documentElement).scrollBehavior})`);
+    results.push({ scenario: 'smooth-restoration', ...restored });
+    assert.equal(restored.behavior, 'smooth');
+    assert.ok(Math.abs(restored.top - (-23)) <= 1, 'restoration must place the anchor immediately despite site smooth-scroll CSS');
+    assert.equal(restored.history.scrollY, restored.y, 'history must record the settled restored position');
+    await wait(700);
+    assert.equal((await read()).y, restored.y, 'no restoration animation may continue after releasing the hold');
+
+    // Serve a same-origin HTTPS fixture through Chromium interception so batches contain real links.
+    const interceptedPages = new Map<string, string>();
+    const interceptionErrors: string[] = [];
+    handleEvent = (message) => {
+      if (message.method !== 'Fetch.requestPaused') return;
+      void (async () => {
+        const { requestId, request } = message.params;
+        try {
+          const pathname = new URL(request.url).pathname;
+          if (pathname === '/favicon.ico') { await call('Fetch.fulfillRequest', { requestId, responseCode: 204 }, sessionId); return; }
+          const page = interceptedPages.get(pathname);
+          const body = page ?? await readFile(join(directory, pathname.slice(1)), 'utf8');
+          await call('Fetch.fulfillRequest', { requestId, responseCode: 200, responseHeaders: [{ name: 'content-type', value: page ? 'text/html' : 'text/javascript' }], body: Buffer.from(body).toString('base64') }, sessionId);
+        } catch (error) {
+          interceptionErrors.push(String(error));
+          await call('Fetch.failRequest', { requestId, errorReason: 'Failed' }, sessionId);
+        }
+      })();
+    };
+    await call('Fetch.enable', { patterns: [{ urlPattern: 'https://home-feed.test/*', requestStage: 'Request' }] }, sessionId);
+    for (const moved of [false, true]) {
+      const path = moved ? '/retry-success-moved.html' : '/retry-success.html';
+      // The homepage has a separate lead and an odd initial card count in a two-column grid.
+      const lead = initial.match(/^<li\b[\s\S]*?<\/li>/)?.[0] ?? '';
+      const successHtml = html.replace(initial, initial.slice(lead.length))
+        .replace('<section data-home-feed', '<article id="home-post-p0" data-home-post="p0" style="height:600px">Lead</article><section data-home-feed')
+        .replace('<style>', `<style>html{${scrollingDeclaration}}ul[data-home-feed-cards]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}li{min-height:700px}li h3{padding-top:240px}`);
+      interceptedPages.set(path, successHtml);
+      await call('Page.navigate', { url: `https://home-feed.test${path}#retry-success` }, sessionId);
+      for (let i = 0; i < 100 && !await evaluate(`location.pathname===${JSON.stringify(path)} && !!window.fixtureReady`); i++) await wait(10);
+      await evaluate(`window.scrollTo({top:document.querySelector('[data-home-feed-sentinel]').offsetTop,behavior:'instant'})`); await wait(80);
+      assert.equal(await evaluate(`document.querySelector('[data-home-feed-error]').hidden`), false);
+      await evaluate(`window.scrollTo({top:0,behavior:'instant'});document.querySelector('#news').focus({preventScroll:true});window.delay=30`);
+      await evaluate(`document.querySelector('[data-home-feed-retry]').focus()`);
+      assert.equal(await evaluate(`document.activeElement===document.querySelector('[data-home-feed-retry]')`), true);
+      await press('Enter', 'Enter', 13);
+      if (moved) await evaluate(`document.querySelector('#news').focus({preventScroll:true})`);
+      await wait(1000);
+      const retried = await evaluate(`({calls:[...window.calls],cards:document.querySelectorAll('[data-home-post]').length,y:scrollY,tag:document.activeElement.tagName,id:document.activeElement.id,href:document.activeElement.getAttribute('href'),top:document.activeElement.getBoundingClientRect().top,bottom:document.activeElement.getBoundingClientRect().bottom,height:innerHeight})`);
+      results.push({ scenario: 'smooth-successful-retry', moved, ...retried });
+      if (moved) assert.equal(retried.id, 'news', 'a successful retry cannot steal focus after the reader moves away');
+      else {
+        assert.deepEqual(retried.calls, [1, 1], 'focus scrolling must not create more batch requests after Retry succeeds');
+        assert.equal(retried.cards, 24);
+        assert.equal(retried.href, '/posts/p12/');
+        assert.ok(retried.bottom > 0 && retried.top < retried.height, 'the newly focused story link must remain visible');
+      }
+    }
+    assert.deepEqual(interceptionErrors, []);
+    await call('Fetch.disable', {}, sessionId);
 
     // Disposal also restores an originally absent declaration instead of leaving a new value.
     const absentFixture = join(directory, 'without-prior-anchor.html');
