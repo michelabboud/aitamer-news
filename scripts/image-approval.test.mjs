@@ -5,7 +5,7 @@ import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, wr
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assertImageSignature, certify, checkRemoteAvatars, decodeImage, imageMetadataChange, inspectImageChanges, materialize, prepare, verifyDispatch } from './image-approval.mjs';
+import { assertImageSignature, certify, checkRemoteAvatars, imageMetadataChange, inspectImageChanges, materialize, prepare, verifyDispatch } from './image-approval.mjs';
 
 const REPO = 'michelabboud/aitamer-news';
 const OWNER = 29182417;
@@ -153,16 +153,6 @@ test('file count and aggregate byte bounds reject otherwise valid image batches'
   });
 });
 
-test('isolated raster decoding accepts real images and rejects malformed and oversized-dimension data', t => {
-  const f = fixture(t);
-  // ffmpeg is already required by the repository's hero-image tests and every validation runner.
-  execFileSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'color=c=red:s=16x16:d=0.1', '-frames:v', '1', join(f.cwd, 'real.png')], { stdio: ['ignore', 'pipe', 'pipe'] });
-  assert.doesNotThrow(() => decodeImage('real.png', f.cwd));
-  f.put('broken.png', Buffer.concat([PNG.subarray(0, 24), Buffer.from('bad compressed image')]));
-  assert.throws(() => decodeImage('broken.png', f.cwd), /decode failed/);
-  f.put('large.gif', Buffer.from('474946383961ffff0100800000000000ffffff2c00000000ffff01000002024401003b', 'hex'));
-  assert.throws(() => decodeImage('large.gif', f.cwd), /dimensions|decode/);
-});
 
 function state(base = 'a'.repeat(40), head = 'b'.repeat(40)) {
   const env = { GITHUB_ACTIONS: 'true', GITHUB_REPOSITORY: REPO, GITHUB_RUN_ID: '100', GITHUB_RUN_ATTEMPT: '1', GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_REF: 'refs/heads/main', GITHUB_SHA: base, GITHUB_WORKFLOW_SHA: base, GITHUB_ACTOR_ID: String(OWNER), GITHUB_WORKFLOW_REF: `${REPO}/.github/workflows/image-approval.yml@refs/heads/main`, PR_NUMBER: '292', SOURCE_SHA: head };

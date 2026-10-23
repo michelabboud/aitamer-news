@@ -67,6 +67,7 @@ test('outside the directory, nested, dotted, uppercase, README and non-json path
   for (const path of [
     'README.md',
     'src/lib/site.ts',
+    'src/data/prepared-heroes.json',
     '.github/workflows/deploy-pages.yml',
     `${COMMENTS_LANE}README.md`,
     `${COMMENTS_LANE}nested/grok-4-7.json`,

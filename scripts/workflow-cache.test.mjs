@@ -19,7 +19,7 @@ const SCHEMA_ENTRY = 'src/content.config.ts';
  * covers. `!src/lib/**\/*.test.ts` only narrows; tests never feed the schema.
  */
 const FINGERPRINT =
-  "${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}";
+  "${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md', 'src/data/prepared-heroes.json') }}";
 const COVERED = [/^src\/content\.config\.ts$/, /^src\/content\/[^/]+\.ts$/, /^src\/lib\/.+\.ts$/];
 /**
  * The author files are in the key too (2026-09-28): Astro's warm cache kept a deleted author, and the

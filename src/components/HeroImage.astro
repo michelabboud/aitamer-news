@@ -4,6 +4,8 @@ import { withBase } from '../lib/site';
 import { getImage } from 'astro:assets';
 import { inferRemoteSize } from 'astro/assets/utils';
 import { cachedHeroMetadata, HERO_REMOTE_PATTERNS, HERO_SIZES, planResponsiveHero, type HeroContext } from '../lib/responsive-hero';
+import preparedCatalog from '../lib/prepared-hero-catalog';
+import { planPreparedHero } from '../lib/prepared-heroes';
 
 interface Props {
   /** Original production URL, before PUBLIC_MEDIA_BASE is applied. */
@@ -20,13 +22,15 @@ interface Props {
 const { src, alt, width, height, loading, decoding = 'async', fetchpriority, context = 'listing' } = Astro.props;
 const sources = visualHeroSources(src);
 const image = withBase(sources.src);
-const responsive = await planResponsiveHero(sources, {
+const preparing = process.env.HERO_PREPARE_LOCAL === '1';
+if (preparing && process.env.CI) throw new Error('Image generation is local-only; CI must reuse the approved catalog');
+const responsive = preparing ? await planResponsiveHero(sources, {
   // inferRemoteSize validates both the initial URL and redirects against these exact host/path rules.
   // Installed Astro exposes no timeout/signal option; retain its native network behavior.
   probe: (url) => cachedHeroMetadata(url, (remote) => inferRemoteSize(remote, { remotePatterns: [...HERO_REMOTE_PATTERNS] })),
   transform: (options) => getImage(options),
-});
-if (responsive.diagnostic) console.warn(`[responsive-hero] ${src}: ${responsive.diagnostic}; retaining existing image sources`);
+}) : planPreparedHero(sources, preparedCatalog);
+if (preparing && responsive.diagnostic) console.warn(`[responsive-hero] ${src}: ${responsive.diagnostic}; retaining existing image sources`);
 const srcset = responsive.candidates.length
   ? responsive.candidates.map((candidate) => `${candidate.src} ${candidate.width}w`).join(', ')
   : sources.webp ? withBase(sources.webp) : undefined;

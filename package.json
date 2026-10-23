@@ -7,9 +7,12 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/finalize-responsive-heroes.mjs && node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/writer-redirects.mjs && node scripts/check-diagrams.mjs --write dist && pagefind --site dist && node scripts/csp-headers.mjs",
+    "build": "astro build && node scripts/verify-prepared-heroes.mjs && node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/writer-redirects.mjs && node scripts/check-diagrams.mjs --write dist && pagefind --site dist && node scripts/csp-headers.mjs",
+    "heroes:qualify": "HERO_PREPARE_LOCAL=1 astro build && node scripts/finalize-responsive-heroes.mjs",
     "preview": "astro preview",
     "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test \"scripts/*.test.mjs\" \"src/lib/*.test.ts\" \"workers/contact/test/*.test.mjs\"",
+    "test:site": "node scripts/test-site.mjs",
+    "test:images": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test scripts/stamp-hero.test.mjs scripts/image-approval-decoder.test.mjs scripts/finalize-responsive-heroes-integration.test.mjs",
     "stamp": "node scripts/stamp-post-times.mjs && node scripts/stamp-specimens.mjs",
     "check:times": "node scripts/stamp-post-times.mjs --check",
     "check:dist": "node scripts/check-dist-secrets.mjs",

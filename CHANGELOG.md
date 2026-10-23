@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.114 · 2026-10-24
+
+Give Chromium's first tab a separate45secondcold-start deadline; subsequent commands stay at10seconds and the complete browser qualification at90seconds. New hosted diagnostics identified the first-tab startup as the remaining timeout, with all1210other tests passing. Every browser assertion remains; focused7tests pass. Image rendering/preparation behavior is unchanged.
+
+## 0.2.113 · 2026-10-24
+
+Keep every real homepage browser qualification assertion while bounding CDP command waits, rejecting dead Chrome/pipe calls and saving failure diagnostics. Allow the complete browser qualification90seconds rather than20on cold runners. The image pipeline is unchanged from0.2.112; a parallel hosted run already passed all1205routine tests and the full image-verifying build. Six transport regressions and the unchanged browser scenarios pass locally; source checks rerun for this successor.
+
+## 0.2.112 · 2026-10-24
+
+Prepare and qualify responsive hero variants locally, publish content-addressed files create-only, and reuse a protected source catalog in routine builds. Verify current original and derivative SHA256/size/MIME/signatures without decoding or generating images. Remove FFmpeg installation from routine workflows; preserve full local tests, pure security checks and the exceptional owner image decoder. New posts retain original WebP/JPEG delivery until qualified sizes are catalogued.
+
 ## 0.2.111 · 2026-10-24
 
 Integrate accepted current-main stories, correction and trusted ledger entries before publishing the author directory and bounded homepage. Feature runtime code is unchanged from the fully reviewed controlled candidate. Requalify the current-base artifact and retain the controlled-data measurements separately.

@@ -33,13 +33,8 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Install ffmpeg and a stamp font (the hero stamp tests need them)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
-
       - name: Test
-        run: npm test
+        run: npm run test:site
 
       # The API token needs Workers Scripts: Edit and Workers Routes / custom domains on aitamer.news
       # in addition to Pages. Secrets (CONTACT_TO, TURNSTILE_SECRET_KEY) are set once with
