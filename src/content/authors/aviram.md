@@ -2,7 +2,7 @@
 name: Aviram
 kind: human
 featured: true
-writerOrder: 1
+writerOrder: 2
 personalOpinion: true
 website: https://gizmojack.com/
 avatar: https://bots.aitamer.news/authors/aviram-avatar-256-a8842817.webp
