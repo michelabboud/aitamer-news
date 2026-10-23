@@ -42,8 +42,9 @@ import {
  * and the aitamer.news hostname on the token, so one solved on the contact form is no use here.
  *
  * Renders nothing but a note when the thread is closed, or when the endpoint or the Turnstile
- * site key is not configured (`commentFormSetup`). Turnstile's `api.js` loads only where the
- * form renders.
+ * site key is not configured (`commentFormSetup`). The native disclosure keeps the form's
+ * fields intact when closed. Turnstile's `api.js` loads on the first open, after its callbacks
+ * exist, with an explicit retry if the SDK request fails.
  */
 interface Props {
   /** The post's slug: the thread the comment belongs to. */
@@ -65,6 +66,7 @@ const commentedQuery = COMMENTED_QUERY;
 const commentedValue = COMMENTED_VALUE;
 const elapsedField = fields.elapsed;
 const checkFailedMessage = COMMENT_CHECK_FAILED_MESSAGE;
+const loadFailedMessage = 'The comment check could not load. Use the retry button to try again.';
 const errorMax = COMMENT_ERROR_MAX;
 const heldAnchor = COMMENT_HELD_ANCHOR;
 const callbacks = COMMENT_TURNSTILE_CALLBACKS;
@@ -76,48 +78,53 @@ const callbacks = COMMENT_TURNSTILE_CALLBACKS;
   <p class="form-note comment-form-note">Commenting is not set up yet.</p>
 ) : (
   <>
-    <form id="comment-form" class="comment-form" action={setup.endpoint} method="post">
-      <h3 class="comment-form__title">Add a comment</h3>
-      <p class="form-note">
-        Plain text, up to {COMMENT_TEXT_MAX.toLocaleString('en-US')} characters. The desk reads every
-        comment before it appears, under the name you give.
-      </p>
-      <p id="comment-status" class="form-success" role="status" aria-live="polite"></p>
-      <p id="comment-error" class="form-error" role="alert"></p>
-      <input type="hidden" name={fields.slug} value={slug} />
-      <div class="field">
-        <label for="comment-name">Name</label>
-        <input id="comment-name" name={fields.name} type="text" autocomplete="nickname" required maxlength={COMMENT_NAME_MAX} />
-      </div>
-      <div class="field">
-        <label for="comment-text">Comment</label>
-        <textarea id="comment-text" name={fields.text} required maxlength={COMMENT_TEXT_MAX} rows="5"></textarea>
-      </div>
-      <div class="contact-honey" aria-hidden="true">
-        <label for="comment-extra">Leave this field empty</label>
-        <input id="comment-extra" name={fields.honeypot} type="text" tabindex="-1" autocomplete="new-password" />
-      </div>
-      <div
-        class="cf-turnstile"
-        data-sitekey={setup.turnstileSiteKey}
-        data-action={COMMENT_TURNSTILE_ACTION}
-        data-callback={callbacks.ready}
-        data-expired-callback={callbacks.expired}
-        data-error-callback={callbacks.error}
-        data-size="flexible"
-      ></div>
-      <noscript>
+    <details id="comment-disclosure" class="comment-disclosure">
+      <summary class="comment-disclosure__summary">Add a comment</summary>
+      <form id="comment-form" class="comment-form" action={setup.endpoint} method="post">
         <p class="form-note">
-          Commenting needs JavaScript: the check that keeps bots out (Cloudflare Turnstile) runs in
-          the browser.
+          Plain text, up to {COMMENT_TEXT_MAX.toLocaleString('en-US')} characters. The desk reads every
+          comment before it appears, under the name you give.
         </p>
-      </noscript>
-      <button class="contact-submit" type="submit">Post the comment</button>
-    </form>
-    <script is:inline define:vars={{ heldMessage, failedMessage, checkFailedMessage, errorMax, commentedQuery, commentedValue, heldAnchor, elapsedField, callbacks }}>
+        <p id="comment-status" class="form-success" role="status" aria-live="polite"></p>
+        <p id="comment-error" class="form-error" role="alert"></p>
+        <input type="hidden" name={fields.slug} value={slug} />
+        <div class="field">
+          <label for="comment-name">Name</label>
+          <input id="comment-name" name={fields.name} type="text" autocomplete="nickname" required maxlength={COMMENT_NAME_MAX} />
+        </div>
+        <div class="field">
+          <label for="comment-text">Comment</label>
+          <textarea id="comment-text" name={fields.text} required maxlength={COMMENT_TEXT_MAX} rows="5"></textarea>
+        </div>
+        <div class="contact-honey" aria-hidden="true">
+          <label for="comment-extra">Leave this field empty</label>
+          <input id="comment-extra" name={fields.honeypot} type="text" tabindex="-1" autocomplete="new-password" />
+        </div>
+        <div
+          class="cf-turnstile"
+          data-sitekey={setup.turnstileSiteKey}
+          data-action={COMMENT_TURNSTILE_ACTION}
+          data-callback={callbacks.ready}
+          data-expired-callback={callbacks.expired}
+          data-error-callback={callbacks.error}
+          data-size="flexible"
+        ></div>
+        <button id="comment-retry" class="contact-submit comment-retry" type="button" hidden>Retry the comment check</button>
+        <noscript>
+          <p class="form-note">
+            Commenting needs JavaScript: the check that keeps bots out (Cloudflare Turnstile) runs in
+            the browser.
+          </p>
+        </noscript>
+        <button class="contact-submit" type="submit">Post the comment</button>
+      </form>
+    </details>
+    <script is:inline define:vars={{ heldMessage, failedMessage, checkFailedMessage, loadFailedMessage, errorMax, commentedQuery, commentedValue, heldAnchor, elapsedField, callbacks }}>
       (function () {
         var form = document.getElementById('comment-form');
         if (!form) return;
+        var disclosure = document.getElementById('comment-disclosure');
+        var retry = document.getElementById('comment-retry');
         var status = document.getElementById('comment-status');
         var error = document.getElementById('comment-error');
         var button = form.querySelector('[type="submit"]');
@@ -131,7 +138,7 @@ const callbacks = COMMENT_TURNSTILE_CALLBACKS;
         syncButton();
         window[callbacks.ready] = function () {
           tokenReady = true;
-          if (error.textContent === checkFailedMessage) error.textContent = '';
+          if (error.textContent === checkFailedMessage || error.textContent === loadFailedMessage) error.textContent = '';
           syncButton();
         };
         window[callbacks.expired] = function () {
@@ -143,6 +150,35 @@ const callbacks = COMMENT_TURNSTILE_CALLBACKS;
           error.textContent = checkFailedMessage;
           syncButton();
         };
+        // Native details handles pointer and keyboard activation without replacing the form.
+        // Register all callbacks before inserting the SDK: cached scripts may execute at once.
+        var sdkState = 'idle';
+        function loadCheck() {
+          if (sdkState !== 'idle' && sdkState !== 'failed') return;
+          sdkState = 'loading';
+          retry.hidden = true;
+          if (error.textContent === loadFailedMessage) error.textContent = '';
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+          script.onload = function () { sdkState = 'loaded'; };
+          script.onerror = function () {
+            sdkState = 'failed';
+            tokenReady = false;
+            error.textContent = loadFailedMessage;
+            retry.hidden = false;
+            syncButton();
+          };
+          document.head.appendChild(script);
+        }
+        disclosure.addEventListener('toggle', function () {
+          if (disclosure.open && sdkState === 'idle') loadCheck();
+        });
+        retry.addEventListener('click', function () {
+          if (sdkState === 'failed') loadCheck();
+        });
+        // The browser can restore an already-open disclosure during history navigation.
+        if (disclosure.open) loadCheck();
         // The Worker refuses a comment written faster than a person could. `elapsed` is the
         // milliseconds since the form became usable, a performance.now() difference so a
         // reader's wrong clock cannot skew it; the field exists only when this script runs.
@@ -209,7 +245,6 @@ const callbacks = COMMENT_TURNSTILE_CALLBACKS;
         });
       })();
     </script>
-    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </>
 )}
 
@@ -218,7 +253,10 @@ const callbacks = COMMENT_TURNSTILE_CALLBACKS;
   /* The held note after a no-script submit: shown only while the redirect's fragment targets it. */
   .comment-held { margin-top: 1.5rem; scroll-margin-top: 6rem; }
   .comment-held:not(:target) { display: none; }
-  .comment-form { position: relative; display: grid; gap: 1rem; margin-top: 1.5rem; max-width: var(--measure); }
-  .comment-form__title { font-size: 1.125rem; margin: 0; }
+  .comment-disclosure { margin-top: 1.5rem; max-width: var(--measure); }
+  .comment-disclosure__summary { width: fit-content; cursor: pointer; font-size: 1.125rem; font-weight: 600; }
+  .comment-disclosure__summary:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+  .comment-form { position: relative; display: grid; gap: 1rem; margin-top: 1rem; }
+  .comment-retry[hidden] { display: none; }
   .comment-form .form-note { margin: 0; }
 </style>

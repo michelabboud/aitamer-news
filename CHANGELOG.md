@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.96 · 2026-10-23
+
+Align the retained-timing bullet with the corrected privacy introduction. Correct the same page's outdated external-font claim: all font sources are existing site assets. Script/token behavior is unchanged.
+
+## 0.2.95 · 2026-10-23
+
+Update the privacy page revision date to match the clarified script-loading and timing disclosures.
+
+## 0.2.94 · 2026-10-23
+
+- Clarify the privacy page for the deferred-script change: analytics starts on input, and the comment timing value is measured from page initialization or the last successful submission, including collapsed time.
+- Record independent production source review acceptance; hosted checks and deployment remain separate. No comment verification or loading code changed after the reviewed0.2.93 candidate.
+
+## 0.2.93 · 2026-10-23
+
+- Load comment verification only after opening the native Add a comment disclosure, with explicit SDK network retry and preserved typed input. Keep mandatory tokens, expiry, submit locking and reset behavior.
+- Load analytics once after trusted pointer, keyboard, wheel or touch input on production hosts. Passive visits without input are not counted; idle callbacks and native anchor/history scrolling do not start analytics.
+- Protect the new comment control IDs against article-body collisions and add isolated behavior regression tests. No article, author, image, publication-date, specimen, admission or deployment-policy changes.
+
 ## 0.2.92 — 2026-10-20
 
 - Reconcile the bots' article-only instructions with separate owner-approved image proposals, and point Grok image requests to the same process.

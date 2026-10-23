@@ -7,7 +7,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
   <h1 class="page-title">Privacy</h1>
   <div class="article">
     <p class="lede">
-      {SITE.title} does not run accounts or a mailing list.{CONTACT_FORM_LIVE ? ' The about page can email the desk.' : ' The contact form on the about page opens soon.'} Last updated 26 September 2026.
+      {SITE.title} does not run accounts or a mailing list.{CONTACT_FORM_LIVE ? ' The about page can email the desk.' : ' The contact form on the about page opens soon.'} Last updated 23 October 2026.
     </p>
     <div class="article__body">
       <p>
@@ -17,7 +17,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
       <p>
         Comments under a story are built into the page from the desk's own records. Nothing is
         loaded from a comment host when you read one. To post a comment, the form on the story page
-        sends your name, the comment text, how long the form was open before you sent it, and a
+        sends your name, the comment text, a timing value measured from when the page opened or your last successful comment, and a
         check from Cloudflare Turnstile that you are not a bot, to comments.{SITE.domain}. No email
         address is asked. A comment waits for the desk to read and approve it before anyone else
         sees it.
@@ -44,7 +44,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
           history, and the number of links in it. These stay with the comment's record.
         </li>
         <li>
-          How long the form was open before you sent it. This is kept for 30 days and deleted within a
+          The timing value measured from when the page opened or your last successful comment. This is kept for 30 days and deleted within a
           day after that.
         </li>
         <li>
@@ -103,13 +103,13 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         address, and the browser’s user agent. That handling is Cloudflare’s, under its own policy.
       </p>
       <p>
-        On {SITE.domain} the site also loads Google Analytics. The tag sends Google the page address
+        On {SITE.domain} the site loads Google Analytics after your first pointer, keyboard, wheel or touch input. Reading without one of these inputs does not start the tag. The tag sends Google the page address
         and stores a cookie so a later visit from the same browser can be counted together. The site
         does not sell this information.
       </p>
       <p>
-        The type is loaded from Google Fonts. Your browser requests those font files from Google
-        when it draws a page.
+        The typefaces are served with the site. Your browser does not contact Google to load
+        those font files.
       </p>
       <p>
         Some stories include a YouTube video. Nothing is requested from YouTube until you press

@@ -274,6 +274,17 @@ test('heading ids: slugger shape only, never an id the page uses', () => {
   refusedBy('<h2 id="x">a</h2><h3 id="x">b</h3>', /used twice/);
 });
 
+for (const id of ['comment-disclosure', 'comment-retry']) {
+  test(`heading ids: a bot body cannot shadow the deferred comment control ${id}`, () => {
+    refusedBy(`<h2 id="${id}">x</h2>`, /collides with an id the story page uses/);
+  });
+}
+
+test('heading ids: the deferred analytics scheduling global is protected from named elements', () => {
+  assert.ok(isProtectedId('__aitamerAnalyticsScheduled'), 'the scheduling guard must stay covered with the other window globals');
+  refusedBy('<h2 id="__aitamerAnalyticsScheduled">x</h2>', /slugger shape|collides with an id the story page uses/);
+});
+
 test('footnotes: only their exact forms', () => {
   refusedBy('<p><a href="#user-content-fn-1" id="x" data-footnote-ref="" aria-describedby="footnote-label">1</a></p>', /id must be user-content-fnref/);
   refusedBy('<p><sup><a href="https://a.b" id="user-content-fnref-1" data-footnote-ref="" aria-describedby="footnote-label">1</a></sup></p>', /must link to #user-content-fn-/);
@@ -802,8 +813,8 @@ test('every id the story page, its layout, components and scripts define or look
   for (const [id, where] of literal) assert.ok(isProtectedId(id), `${where} uses id "${id}", which PROTECTED_IDS does not cover`);
   // Nothing protected has gone stale without a reason: every id of the site's own is still in use.
   // Exempt: the footnote heading (satteri writes it), `comment-held` (reached through a constant,
-  // DYNAMIC_IDS), and the window globals, which scripts read rather than define.
-  const notInPage = new Set(['footnote-label', 'comment-held', 'dataLayer', 'gtag', 'ga', 'GoogleAnalyticsObject', 'gaGlobal', 'gaplugins', '_gaUserPrefs', '_gaz', 'google_tag_data', 'google_tag_manager', 'google_tag_manager_external', 'google_image_requests', 'google_tags_first_party', 'turnstile', 'grecaptcha', 'onloadTurnstileCallback', 'onloadturnstilecallback']);
+  // DYNAMIC_IDS), and the window globals, which are not element ids.
+  const notInPage = new Set(['footnote-label', 'comment-held', '__aitamerAnalyticsScheduled', 'dataLayer', 'gtag', 'ga', 'GoogleAnalyticsObject', 'gaGlobal', 'gaplugins', '_gaUserPrefs', '_gaz', 'google_tag_data', 'google_tag_manager', 'google_tag_manager_external', 'google_image_requests', 'google_tags_first_party', 'turnstile', 'grecaptcha', 'onloadTurnstileCallback', 'onloadturnstilecallback']);
   for (const id of PROTECTED_IDS) {
     if (notInPage.has(id) || id.startsWith('aitamerCommentTurnstile')) continue;
     assert.ok(literal.has(id), `PROTECTED_IDS lists "${id}", which the story page no longer uses`);
