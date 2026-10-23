@@ -39,6 +39,8 @@ sources:
     url: https://developers.openai.com/api/docs/guides/rate-limits
   - title: "Help Center: Business Associate Agreement for the OpenAI API"
     url: https://help.openai.com/en/articles/8660679-getting-a-business-associate-agreement-for-the-openai-api
+  - title: "The Decisions API is now generally available (OpenAI, 22 October 2026)"
+    url: https://openai.com/index/decisions-api
 ---
 On 6 October 2026 the [OpenAI API changelog](https://developers.openai.com/api/docs/changelog) says the Decisions API is released in beta with `gpt-6-luna`. The [Decisions guide](https://developers.openai.com/api/docs/guides/decisions) calls it a public beta and says OpenAI expects general availability in the coming weeks. The only model listed is `gpt-6-luna`, on `POST /v1/decisions`.
 
@@ -87,3 +89,9 @@ On 5 October the changelog added an in-product flow under Organization settings,
 The 6 October changelog also simplifies API usage tiers from five to three: Build, Launch, and Grow, with automatic upgrades as total credit purchases reach each minimum. The [rate limits](https://developers.openai.com/api/docs/guides/rate-limits) page calls those the three paid tiers: Build at $5 purchased and a $500 monthly usage limit, Launch at $100 and $5,000 a month, Grow at $500 and $200,000 a month. Free remains, at $100 a month, for a user in an allowed geography.
 
 For a probability, a fixed-set choice, or a rubric score, call `POST /v1/decisions` on `gpt-6-luna` and take $0.10 per 1M input tokens from the decisions guide. Read the data-controls row before regulated content.
+
+## Update, 23 October 2026: generally available, and caching is now billed
+
+OpenAI made the Decisions API [generally available](https://openai.com/index/decisions-api) on 22 October, still on `gpt-6-luna`. The [changelog](https://developers.openai.com/api/docs/changelog) lists what changed since this beta: prompt caching for shared input, images inside individual question instructions, structured input through `input_json`, and up to 400 questions per request, up from 200. OpenAI also lists native GPT-Live integration and US and EU regional processing.
+
+One pricing detail changed. Uncached input is still $0.10 per 1M tokens and output is still free, but the [decisions guide](https://developers.openai.com/api/docs/guides/decisions) now says cache hits get discounted input pricing and cache writes are charged, at the standard `gpt-6-luna` caching rates. The launch post puts cached input at $0.01 per 1M. During the beta, as reported above, the guide listed no cache charges, so check your cost model if you reuse long shared context. Customer speed figures in the launch post, such as Datadog's 40 times faster p95, are the customers' own.
