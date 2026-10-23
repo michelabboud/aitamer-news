@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.111 · 2026-10-24
+
+Integrate accepted current-main stories, correction and trusted ledger entries before publishing the author directory and bounded homepage. Feature runtime code is unchanged from the fully reviewed controlled candidate. Requalify the current-base artifact and retain the controlled-data measurements separately.
+
 ## 0.2.110 · 2026-10-24
 
 Use one temporary document scroll policy while automatic batches remain, restoring exact prior declarations afterward. Preserve focus from both disappearing recovery controls. On explicit Retry with focus elsewhere, restore the pre-insertion viewport after appending and reset the scroll baseline without moving focus. Keep normal physical scrolling, archive/footer access and all prior lifecycle checks.

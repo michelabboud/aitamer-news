@@ -43,8 +43,35 @@ Cross-family final-review attempt was unavailable because the installed Claude C
 
 The temporary guard now owns both anchoring and implicit scroll behavior, with exact restoration and no physical-input heuristics. Successful append transfers focus from Retry or Refresh before their recovery block hides. For explicit Retry with outside focus, post-insertion position restoration cancels retained native motion and resets the baseline without changing focus. Normal automatic append gains no unconditional scroll.
 
-All six actual-page client-substitution cases pass on fixed full-content geometry. The full news suite passes 1215 tests with no skips, template576 with no skips, and both builds/output guards pass. The final feature source matches private c972daebound by the promotion manifest; a fresh built-artifact run, exact source review, measurements, current-base integration and public deployment remain gates.
+All six actual-page client-substitution cases pass on fixed full-content geometry. The full news suite passes 1215 tests with no skips, template576 with no skips, and both builds/output guards pass. The final feature source matches private checkpoint 0.0.51, bound by the promotion manifest; a fresh built-artifact run, exact source review, measurements, current-base integration and public deployment remain gates.
 
 A parallel template run exposed an early assertion while a stale response was still loading; its failed fixture/log were retained. The test now polls a bounded terminal state and retains the same focus/request assertions. Production behavior was not relaxed.
 
 This checkpoint deliberately retains the baseline's 1014 published posts for comparable lab measurements. Accepted main content advanced separately during testing; the final merge must preserve it and receive current-base qualification. No old post or ledger state will be reset to make the branch appear current.
+
+## Controlled measurements and current main · 2026-10-24
+
+Controlled candidate 4f4fea30391bcfe01c1dff1c8662b34291dedef6 passed the six fresh-built success/stale focus cases, fresh continuation, exact five-batch/72-story cap, footer, CSS restoration, no-JavaScript/no-observer fallback and eight-author phone rendering. Separate native Chrome back-forward cache and real cold Back each preserved the exact story offset and36loaded entries. Both independent Top source gates passed; native actual model/token telemetry was unavailable.
+
+Three matched local mobile Lighthouse runs on frozen1014-story content gave the following medians. They are controlled local measurements, not production field performance.
+
+| Metric | Before | After |
+|---|---:|---:|
+| Performance score |87|88|
+| FCP |1353ms|1203ms|
+| LCP |3977ms|3827ms|
+| TBT / CLS |0 /0|0 /0|
+| Runtime DOM elements |1900|650|
+| Initial HTML, gzip |20271bytes|12203bytes|
+| Total initial network transfer |744592bytes|742256bytes|
+| Added compiled module |0|14717raw /5504gzip bytes|
+
+The useful reduction is initial document/DOM cost. Total traffic fell only0.31percent because images and fonts were unchanged; the small3.77percent LCP difference is not a large or field-proven speed claim. All three runs had no warnings, errors, failed requests or analytics traffic. Raw reports, traces, network arithmetic and immutable artifact manifests remain retained.
+
+Accepted main 1ee2ef59f907de3ad5448d2f03c5fd1608c7cc17 was merged normally into the feature branch at053f6294c7705a162154ed356c95fd88f0b48c32. Its five new stories, one correction and trusted ledger bytes were preserved exactly. Feature presentation source did not change. A fresh current-base build/check run is in progress; final exact-head hosted checks and live acceptance remain mandatory. Controlled1014-story lab figures will not be relabelled as measurements of the newer publication data.
+
+## Current-base qualification · 0.2.111
+
+The normal main integration preserves every accepted content/ledger byte; the feature presentation files remain identical to controlled110/private51. Current-base suite:1215passed, zero failures or skips. Build:1126pages,5382files, with1015published stories at its clock cutoff. All2041hero URLs answer with their named image format; scheduled stories remain excluded until due. File/link/body/diagram/secret/CSP output guards pass. Future publication builds may include more of the already accepted scheduled posts; no clock or article dates were changed.
+
+The final source checkpoint binds this current-base tree for exact hosted checks and normal PR324 merge. Controlled lab figures remain attached to the immutable1014-story110artifact. Runtime acceptance of the protected merge/deployment remains separate and pending.

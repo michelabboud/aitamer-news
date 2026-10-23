@@ -1,6 +1,6 @@
 # Handoff
 
-**Current source task:** [Author directory and bounded homepage](docs/reports/2026-10-23-author-directory-home-feed.md), controlled checkpoint 0.2.110. Final feature checks pass on fixed baseline content; PR324 must integrate the accepted current main, then complete exact review/checks, measurements and live acceptance. Existing deployed author/image work remains live until that merge.
+**Current source task:** [Author directory and bounded homepage](docs/reports/2026-10-23-author-directory-home-feed.md), current-base checkpoint 0.2.111. Accepted main content is integrated and local qualification passes. PR324 still needs exact final source binding, hosted checks, normal merge and live deployment acceptance. Controlled measurements remain pinned to 0.2.110. Existing deployed author/image work remains live until that merge.
 
 **Current handoff:** [Author profiles and security headers](docs/handoffs/2026-10-23-author-profiles-security-headers.md),2026-10-23.
 
