@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.97 · 2026-10-23
+
+Restore automatic analytics after page load, with a five-second fallback for slow resources and exactly-once initialization. Reader interaction is no longer required. Keep comment verification deferred until the form opens, and update the privacy disclosure and behavioral regressions.
+
 ## 0.2.96 · 2026-10-23
 
 Align the retained-timing bullet with the corrected privacy introduction. Correct the same page's outdated external-font claim: all font sources are existing site assets. Script/token behavior is unchanged.

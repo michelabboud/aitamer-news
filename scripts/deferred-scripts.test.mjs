@@ -88,13 +88,31 @@ function comments({ present = true } = {}) {
   };
 }
 
-function analytics(hostname = 'aitamer.news', window = new Target()) {
+function analytics(hostname = 'aitamer.news', readyState = 'loading') {
+  const window = new Target();
   const scripts = [];
+  const timers = new Map();
+  let now = 0;
+  let nextTimer = 0;
+  window.setTimeout = (callback, delay) => {
+    const id = ++nextTimer;
+    timers.set(id, { callback, due: now + delay });
+    return id;
+  };
+  window.clearTimeout = (id) => timers.delete(id);
   const context = { window, location: { hostname }, analyticsId: 'G-TEST', encodeURIComponent,
-    document: { createElement: () => ({}), head: { appendChild: (script) => scripts.push(script) } } };
+    document: { readyState, createElement: () => ({}), head: { appendChild: (script) => scripts.push(script) } } };
   const execute = () => runInNewContext(inline(layoutSource), context);
   execute();
-  return { window, scripts, execute };
+  return {
+    window, scripts, timers, execute,
+    advance(milliseconds) {
+      now += milliseconds;
+      for (const [id, timer] of [...timers]) {
+        if (timer.due <= now && timers.delete(id)) timer.callback();
+      }
+    },
+  };
 }
 
 test('comments request no SDK while collapsed, and missing/closed forms cannot load one', () => {
@@ -196,48 +214,96 @@ test('Worker and network failures preserve text but consume the attempted token'
   }
 });
 
-test('analytics does not initialize or request a provider before real interaction', () => {
-  const page = analytics();
-  assert.equal(page.scripts.length, 0);
-  assert.equal(page.window.gtag, undefined);
-  for (const type of ['pointerdown', 'keydown', 'wheel', 'touchstart']) page.window.emit(type, { isTrusted: false });
-  assert.equal(page.scripts.length, 0);
-});
-
-test('browser-generated anchor or history scrolling does not initialize analytics', () => {
-  const page = analytics();
-  page.window.emit('scroll', { isTrusted: false });
-  page.window.emit('scroll', { isTrusted: true });
-  assert.equal(page.scripts.length, 0);
-  assert.equal(page.window.gtag, undefined);
-});
-
-for (const trigger of ['pointerdown', 'keydown', 'wheel', 'touchstart']) {
-  test(`analytics starts once on a real ${trigger} and removes every trigger listener`, () => {
-    const page = analytics();
-    page.execute();
-    page.window.emit(trigger);
-    assert.equal(page.scripts.length, 1);
-    assert.equal(page.scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST');
-    assert.equal(page.window.dataLayer.length, 2);
+test('analytics waits during loading and interactive states without registering input listeners', () => {
+  for (const state of ['loading', 'interactive']) {
+    const page = analytics('aitamer.news', state);
     for (const type of ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll']) {
       assert.equal(page.window.listeners.get(type)?.size || 0, 0);
       page.window.emit(type);
     }
+    page.advance(4999);
+    assert.equal(page.scripts.length, 0);
+    assert.equal(page.window.gtag, undefined);
+    assert.equal(page.window.dataLayer, undefined);
+  }
+});
+
+test('window load starts analytics without input and cancels the fallback', () => {
+  const page = analytics();
+  page.execute();
+  page.window.emit('load');
+  assert.equal(page.scripts.length, 1);
+  assert.equal(page.scripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST');
+  assert.equal(page.scripts[0].async, true);
+  assert.equal(page.window.dataLayer.length, 2);
+  assert.equal(page.window.dataLayer[0][0], 'js');
+  assert.equal(page.window.dataLayer[1][0], 'config');
+  assert.equal(page.window.dataLayer[1][1], 'G-TEST');
+  assert.equal(page.timers.size, 0);
+  assert.equal(page.window.listeners.get('load')?.size || 0, 0);
+  page.advance(5000);
+  page.window.emit('load');
+  page.execute();
+  assert.equal(page.scripts.length, 1);
+  assert.equal(page.window.dataLayer.length, 2);
+});
+
+test('an already-complete document starts analytics immediately without pending work', () => {
+  const page = analytics('aitamer.news', 'complete');
+  assert.equal(page.scripts.length, 1);
+  assert.equal(page.timers.size, 0);
+  assert.equal(page.window.listeners.get('load')?.size || 0, 0);
+  page.execute();
+  assert.equal(page.scripts.length, 1);
+});
+
+test('slow resources cannot defer analytics beyond five seconds from the first registration', () => {
+  const page = analytics();
+  page.advance(4000);
+  page.execute();
+  page.advance(999);
+  assert.equal(page.scripts.length, 0);
+  page.advance(1);
+  assert.equal(page.scripts.length, 1);
+  assert.equal(page.window.dataLayer.length, 2);
+  assert.equal(page.timers.size, 0);
+  assert.equal(page.window.listeners.get('load')?.size || 0, 0);
+  page.window.emit('load');
+  page.execute();
+  assert.equal(page.scripts.length, 1);
+});
+
+for (const first of ['load', 'fallback']) {
+  test(`racing load and fallback callbacks start analytics once with ${first} first`, () => {
+    const page = analytics();
+    const load = [...(page.window.listeners.get('load') || [])][0];
+    const fallback = [...page.timers.values()][0]?.callback;
+    assert.equal(typeof load, 'function');
+    assert.equal(typeof fallback, 'function');
+    // Model callbacks that were queued before listener removal/timer cancellation.
+    if (first === 'load') { load(); fallback(); }
+    else { fallback(); load(); }
     page.execute();
     assert.equal(page.scripts.length, 1);
     assert.equal(page.window.dataLayer.length, 2);
+    assert.equal(page.timers.size, 0);
+    assert.equal(page.window.listeners.get('load')?.size || 0, 0);
   });
 }
 
 test('analytics stays absent on preview, local and lookalike hosts', () => {
   for (const host of ['localhost', '127.0.0.1', 'preview.pages.dev', 'aitamer.news.evil.example']) {
-    const page = analytics(host);
-    page.window.emit('pointerdown');
-    assert.equal(page.scripts.length, 0);
-    assert.equal(page.window.dataLayer, undefined);
+    for (const state of ['loading', 'complete']) {
+      const page = analytics(host, state);
+      page.window.emit('load');
+      page.advance(5000);
+      assert.equal(page.scripts.length, 0);
+      assert.equal(page.window.dataLayer, undefined);
+      assert.equal(page.timers.size, 0);
+      assert.equal(page.window.listeners.size, 0);
+    }
   }
   const www = analytics('www.aitamer.news');
-  www.window.emit('keydown');
+  www.window.emit('load');
   assert.equal(www.scripts.length, 1);
 });

@@ -104,15 +104,16 @@ const STATION_LINKS = [
         if (host !== 'aitamer.news' && host !== 'www.aitamer.news') return;
         if (window.__aitamerAnalyticsScheduled) return;
         window.__aitamerAnalyticsScheduled = true;
-        // Deliberate measurement boundary: count visits after the first trusted pointer,
-        // keyboard, wheel or touch event. Scroll itself also fires for anchor/history
-        // restoration, so it cannot start analytics; there is no idle timer.
-        var triggers = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+        // Let page resources finish first, but do not let a slow resource prevent
+        // passive visits from being counted. Bound the wait from loader registration.
+        var ANALYTICS_LOAD_FALLBACK_MS = 5000;
+        var fallbackTimer = null;
         var started = false;
-        function startAnalytics(event) {
-          if (!event.isTrusted || started) return;
+        function startAnalytics() {
+          if (started) return;
           started = true;
-          triggers.forEach(function (type) { window.removeEventListener(type, startAnalytics); });
+          if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
+          window.removeEventListener('load', startAnalytics);
           window.dataLayer = window.dataLayer || [];
           window.gtag = function () { window.dataLayer.push(arguments); };
           window.gtag('js', new Date());
@@ -122,7 +123,11 @@ const STATION_LINKS = [
           script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(analyticsId);
           document.head.appendChild(script);
         }
-        triggers.forEach(function (type) { window.addEventListener(type, startAnalytics, { passive: true }); });
+        if (document.readyState === 'complete') startAnalytics();
+        else {
+          fallbackTimer = window.setTimeout(startAnalytics, ANALYTICS_LOAD_FALLBACK_MS);
+          window.addEventListener('load', startAnalytics, { once: true });
+        }
       })();
     </script>
     <link rel="preload" as="font" type="font/woff2" href={gloockLatin} crossorigin />
