@@ -4,8 +4,8 @@
 
 **Where we are:**
 1. Automatic analytics and deferred comment verification are deployed; Cloudflare HSTS/www redirect verified.
-2. Canonical author profiles and headers candidate0.2.98 passes full local production checks and Pages/browser probes.
-3. Independent review, hosted checks and live acceptance remain pending; see the current handoff.
+2. Canonical author profiles and headers source passes full production checks and Pages/browser probes;0.2.99 fixes the source review documentation finding.
+3. The current review, hosted-check and live-deployment receipts are on [PR319](https://github.com/michelabboud/aitamer-news/pull/319); see the handoff for scope.
 
 ## Historical handoff snapshot
 

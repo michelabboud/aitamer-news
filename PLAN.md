@@ -56,4 +56,4 @@ Dev mode: production. Michel authorized SEO fixes after backup branches for both
 
 ## Canonical author profiles and security headers · running 2026-10-23
 
-[Execution plan](docs/plans/2026-10-23-author-profiles-security-headers.md). Michel authorized finishing the paired template experiment and shipping through a normal news PR. Full production checks and local response/browser validation passed; independent exact-candidate review, hosted checks and live acceptance remain pending.
+[Execution plan](docs/plans/2026-10-23-author-profiles-security-headers.md). Michel authorized finishing the paired template experiment and shipping through a normal news PR. Runtime source passed full production checks and local response/browser validation. Final reviewers accepted with one documentation finding, corrected in0.2.99. Current review/check/deployment status is recorded on [PR319](https://github.com/michelabboud/aitamer-news/pull/319).

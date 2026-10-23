@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.99 · 2026-10-23
+
+Resolve the source review documentation finding: onboarding, portrait comments and the historical author-feature decision now describe canonical profiles and fixed historical redirects. No runtime behavior, schema validation, identity or admission changes.
+
 ## 0.2.98 · 2026-10-23
 
 Consolidate writer profiles at /authors/<id>/ with preserved rich profiles, exact historical301 aliases and canonical sitemap/navigation links. Add framing and unused-capability response restrictions; extend the report-only CSP with two exact analytics origins. Share the final global header block so generated CSP preserves static security headers. Cloudflare retains HSTS ownership. No content, identity, dates, specimen or admission changes.

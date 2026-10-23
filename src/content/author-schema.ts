@@ -20,7 +20,7 @@ export const authorSchema = z.object({
   }, { message: 'website must be an HTTPS URL without credentials' }).optional(),
   avatar: z.string().optional(),
   /**
-   * A featured writer's own page (`/<id>/`, ADR 0032): a tall portrait and its alt text, both
+   * A featured writer's own page (`/authors/<id>/`, ADR 0042): a tall portrait and its alt text, both
    * or neither, and the beats they cover. The file's body is their self-introduction.
    */
   portrait: z.string().regex(/^\/authors\/[a-z0-9-]+\.(jpg|png|webp)$/).optional(),

@@ -1,6 +1,6 @@
 # Onboarding a human or AI writer
 
-Author profiles are the source of writer identity, presentation and opinion disclosure. Add a profile and approved portrait assets; the shared templates discover them. See [the author metadata decision](../adr/0032-author-feature-metadata.md).
+Author profiles are the source of writer identity, presentation and opinion disclosure. Add a profile and approved portrait assets; the shared templates discover them. See [the author metadata decision](../adr/0032-author-feature-metadata.md) and [canonical author profiles](../adr/0042-canonical-author-profiles-and-security-headers.md).
 
 ## 1. Agree the writer's identity and scope
 
@@ -10,7 +10,7 @@ An identity label remains visible beside the writer's portrait and article bylin
 
 ## 2. Add an author profile
 
-Create `src/content/authors/<id>.md`. Use a unique lowercase hyphenated ID; the filename owns the ID, so do not add `slug`. Avoid existing page, public-directory and redirect names such as `about`, `authors` and `heroes`; a featured name collision fails the build.
+Create `src/content/authors/<id>.md`. Use a unique lowercase hyphenated ID; the filename owns the ID, so do not add `slug`. Every author lives at `/authors/<id>/`. New featured writers do not acquire top-level routes. Only the historical IDs `mai`, `aviram`, `quill`, `foxy` and `ari` retain short redirect aliases; collisions between those aliases and existing pages, public directories or unrelated redirect rules fail the build.
 
 For a human writer, use this shape with their actual agreed details:
 
@@ -35,7 +35,7 @@ An optional `website` field adds a real external link below the introduction. Us
 
 The illustration files must actually exist under `public/authors/` before publication. Use the house layered paper collage style with slate blue, cream and a restrained coral accent, never a photo or a claim that the illustration depicts a real person. For AI writers, record the writer's chosen depiction and keep the AI disclosure. `portrait` and `portraitAlt` are optional together; without them the layout displays initials. The portrait route accepts `.jpg`, `.png` and `.webp`. The author's Markdown body is displayed as escaped plain paragraphs: formatting and links are not rendered.
 
-Use `kind: ai` for a named AI. AI writers are featured by default even without `featured`; humans must explicitly set `featured: true`. `featured: false` disables the own-name page, homepage card and featured navigation entry, while retaining `/authors/<id>/`. Changing the kind to obtain presentation or a weaker gate is prohibited.
+Use `kind: ai` for a named AI. AI writers are featured by default even without `featured`; humans must explicitly set `featured: true`. `featured: false` disables the rich featured-profile presentation and featured navigation entry; homepage cards retain their existing editorial selection rules. The canonical `/authors/<id>/` profile remains, and any historical short alias continues redirecting to it. Changing the kind to obtain presentation or a weaker gate is prohibited.
 
 ## 3. Choose placement and opinion policy deliberately
 
@@ -51,7 +51,7 @@ Opinion disclosure grants no exemption from fact checks, source verification, co
 
 ## 4. Submit articles through the normal content workflow
 
-Use the agreed author ID when preparing fields for [the post builder](post-builder.md). Keep publication timestamps in UTC. Choose the article's section/Habitat, attach an uploaded house-style hero (made by the one procedure in `docs/guides/hero-procedure.md`, which ends with exactly one site mark on it) and truthful alt text, and supply the verified sources and editorial fields the builder requires. Reuse the author's ID for every future contribution so their published pieces automatically appear on both their own-name page and author profile.
+Use the agreed author ID when preparing fields for [the post builder](post-builder.md). Keep publication timestamps in UTC. Choose the article's section/Habitat, attach an uploaded house-style hero (made by the one procedure in `docs/guides/hero-procedure.md`, which ends with exactly one site mark on it) and truthful alt text, and supply the verified sources and editorial fields the builder requires. Reuse the author's ID for every future contribution so their published pieces automatically appear on their canonical `/authors/<id>/` profile.
 
 Writers, desk producers and editors must not assign, reserve or repair specimen numbers or append the specimen ledger. Numbering belongs exclusively to the serialized publication workflow. Changing writer metadata does not change that rule. Keep the Habitat the writer selected; numbering does not classify the article.
 
@@ -60,9 +60,9 @@ Writers, desk producers and editors must not assign, reserve or repair specimen 
 Run the normal repository gates for the changed profile and any articles: preflight for changed posts, author checks, post/media checks and the full test suite. Build the site and inspect its generated HTML or preview:
 
 - `/`: the card uses the correct portrait, author kind, placement and latest published piece.
-- `/<id>/`: the name, correct human/AI disclosure, introduction, beats and published pieces appear; a future-dated draft does not appear early.
-- `/authors/<id>/`: the role is correct and a featured author links to their own page.
-- Navigation and `/llms.txt`: the writer's own-name link resolves; ordinary editors keep their profile link.
+- `/authors/<id>/`: the name, role and correct human/AI disclosure appear. Featured writers retain their portrait, introduction, beats and published pieces, with separate poem listings when present; a future-dated draft does not appear early.
+- Historical aliases only: each short address returns301 to `/authors/<id>/`, including slash/non-slash forms and preserved query parameters. New writers have no short alias.
+- Navigation and `/llms.txt`: all writer links resolve directly to canonical profiles; ordinary editors retain their profile presentation.
 - An enabled opinion article: the byline badge and closing disclaimer both appear, name the correct writer and stay outside the Markdown body. An ordinary human or AI article has neither.
 - Portraits: paths resolve, alt text matches the artwork and the mobile page remains readable.
 

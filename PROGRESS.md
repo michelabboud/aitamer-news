@@ -146,3 +146,7 @@ PR314 merged as217e2f9; live inspection found the expected measurement ID in all
 ## 0.2.98 · 2026-10-23 · author profiles and headers candidate
 
 Transferred the template experiment onto latest main b18c88a.1138 tests,1111-page build, content/media/CSP/link/secret/file/diagram gates and actual local Pages/browser probes passed. Independent production review and hosted/live acceptance remain separate pending gates; no source checkpoint is claimed as live.
+
+## 0.2.99 · 2026-10-23 · author/header review correction
+
+Both independent final source reviews accepted candidate f3848e2 with no blockers and one minor documentation mismatch. Updated writer onboarding, the portrait comment and an additive historical decision amendment. Runtime behavior is unchanged. Exact successor review, hosted checks and deployment acceptance are recorded on [PR319](https://github.com/michelabboud/aitamer-news/pull/319).
