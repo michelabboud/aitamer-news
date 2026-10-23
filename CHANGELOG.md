@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.110 · 2026-10-24
+
+Use one temporary document scroll policy while automatic batches remain, restoring exact prior declarations afterward. Preserve focus from both disappearing recovery controls. On explicit Retry with focus elsewhere, restore the pre-insertion viewport after appending and reset the scroll baseline without moving focus. Keep normal physical scrolling, archive/footer access and all prior lifecycle checks.
+
 ## 0.2.109 · 2026-10-23
 
 Integrate homepage reading restoration with the existing smooth-scroll CSS: restore saved positions instantly, retain keyboard focus on Refresh after a stale Retry, and scroll the successfully retried story into view instantly so an older focus animation cannot load all remaining batches. Preserve moved-away focus and all prior lifecycle/limit checks.

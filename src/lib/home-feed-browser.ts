@@ -19,20 +19,22 @@ export function createHistoryWriteGate(clock: () => number = () => performance.n
 }
 
 /**
- * Appending above a visible sentinel/footer can make native scroll anchoring emit another
- * downward scroll. Opt out while automatic batches remain, for every scrolling input method.
- * Keep the exact prior declaration so finishing or disposing returns ownership to the page.
+ * Appends and implicit focus/navigation animations can emit downward scrolls without new input.
+ * Keep automatic loading outside both effects; physical scrolling remains native. Restore each
+ * exact prior declaration when loading finishes or the adapter is disposed.
  */
-export function suppressFeedScrollAnchoring(style: CSSStyleDeclaration): () => void {
-  const previousValue = style.getPropertyValue('overflow-anchor');
-  const previousPriority = style.getPropertyPriority('overflow-anchor');
-  style.setProperty('overflow-anchor', 'none', 'important');
+export function suppressFeedScrollEffects(style: CSSStyleDeclaration): () => void {
+  const properties = [['overflow-anchor', 'none'], ['scroll-behavior', 'auto']] as const;
+  const previous = properties.map(([name]) => ({ name, value: style.getPropertyValue(name), priority: style.getPropertyPriority(name) }));
+  for (const [name, value] of properties) style.setProperty(name, value, 'important');
   let active = true;
   return () => {
     if (!active) return;
     active = false;
-    if (previousValue) style.setProperty('overflow-anchor', previousValue, previousPriority);
-    else style.removeProperty('overflow-anchor');
+    for (const { name, value, priority } of previous) {
+      if (value) style.setProperty(name, value, priority);
+      else style.removeProperty(name);
+    }
   };
 }
 
@@ -60,7 +62,7 @@ export function mountHomeFeed(root: HTMLElement) {
   let lifecycleGeneration = 0;
   let pendingRestoration: RestoredFeedState | null = null;
   let retryRequest = false;
-  let restoreScrollAnchoring: (() => void) | undefined;
+  let restoreScrollEffects: (() => void) | undefined;
   const pageUrl = window.location.href;
   const historyWriteDue = createHistoryWriteGate();
   const save = (force = false) => {
@@ -97,7 +99,7 @@ export function mountHomeFeed(root: HTMLElement) {
       : controller.loadedBatches > 0 ? `${controller.manifest.initialCount + controller.loadedBatches * controller.manifest.batchSize} sightings shown.` : '';
     if (controller.state === 'finished' || controller.state === 'disposed') {
       observer?.disconnect();
-      restoreScrollAnchoring?.(); restoreScrollAnchoring = undefined;
+      restoreScrollEffects?.(); restoreScrollEffects = undefined;
     }
     if (!loading) { retryRequest = false; save(); }
   };
@@ -123,13 +125,19 @@ export function mountHomeFeed(root: HTMLElement) {
       },
       append: (batch) => {
         const firstLink = batch.content.querySelector<HTMLAnchorElement>('h3 a');
-        const retryFocused = document.activeElement === retry;
+        const focusedBeforeAppend = document.activeElement;
+        const recoveryFocused = focusedBeforeAppend !== null && errors.contains(focusedBeforeAppend);
+        const outsideRetryViewport = retryRequest && !recoveryFocused ? { left: window.scrollX, top: window.scrollY } : null;
         cards.append(batch.content);
-        // Only an explicit Retry can transfer focus to the newly available story.
-        if (retryFocused && firstLink) {
+        // The recovery block will hide on success; preserve focus from either Retry or Refresh.
+        if (recoveryFocused && firstLink) {
           firstLink.focus({ preventScroll: true });
           // Finish any older focus-scroll animation before it can chase the moved Retry control.
           firstLink.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+        } else if (outsideRetryViewport) {
+          // Settle an older outside focus-scroll target after the DOM has moved beneath it.
+          window.scrollTo({ ...outsideRetryViewport, behavior: 'instant' });
+          controller.resetScroll(window.scrollY);
         }
       },
       changed: render,
@@ -139,7 +147,7 @@ export function mountHomeFeed(root: HTMLElement) {
     console.error('[home-feed] Invalid homepage configuration', error);
     return;
   }
-  if (controller.state !== 'finished') restoreScrollAnchoring = suppressFeedScrollAnchoring(document.documentElement.style);
+  if (controller.state !== 'finished') restoreScrollEffects = suppressFeedScrollEffects(document.documentElement.style);
   controller.resetScroll(window.scrollY);
   const onScroll = () => {
     if (restoring || suspended) return;

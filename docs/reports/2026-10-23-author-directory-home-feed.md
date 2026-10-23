@@ -38,3 +38,13 @@ The first source candidate passed hosted checks and both Top source inspections,
 The focused fix uses instantaneous restored-position scrolling; it transfers a focused stale Retry to Refresh; successful Retry instantly brings the new focused story into view and leaves moved-away focus untouched. Actual Chromium regressions cover the smooth declaration and real anchors. The isolated fixture reproduced invisible focus; root's actual-page experiment reproduced the five-batch drain and its minimal correction. Full 1215-test suite (zero skips), 1125-page build and output guards passed on the repaired source. The promoted presentation source matches template226aa1b56d2afb04579a24fa5e171f8d570a172f.
 
 Cross-family final-review attempt was unavailable because the installed Claude CLI was not logged in; no login, secret handling or permission widening was attempted. Two fresh Astra contexts provided the permitted same-family source reviews, with that limitation recorded. Focused successor review of this exact checkpoint, fresh-built native navigation/focus probes, matched measurements, hosted checks and live acceptance remain pending. Preserved failures remain part of the evidence.
+
+## Controlled final feature checkpoint · 0.2.110
+
+The temporary guard now owns both anchoring and implicit scroll behavior, with exact restoration and no physical-input heuristics. Successful append transfers focus from Retry or Refresh before their recovery block hides. For explicit Retry with outside focus, post-insertion position restoration cancels retained native motion and resets the baseline without changing focus. Normal automatic append gains no unconditional scroll.
+
+All six actual-page client-substitution cases pass on fixed full-content geometry. The full news suite passes 1215 tests with no skips, template576 with no skips, and both builds/output guards pass. The final feature source matches private c972daebound by the promotion manifest; a fresh built-artifact run, exact source review, measurements, current-base integration and public deployment remain gates.
+
+A parallel template run exposed an early assertion while a stale response was still loading; its failed fixture/log were retained. The test now polls a bounded terminal state and retains the same focus/request assertions. Production behavior was not relaxed.
+
+This checkpoint deliberately retains the baseline's 1014 published posts for comparable lab measurements. Accepted main content advanced separately during testing; the final merge must preserve it and receive current-base qualification. No old post or ledger state will be reset to make the branch appear current.

@@ -8,6 +8,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+const STALE_SETTLE_TIMEOUT_MS = 2000;
+const STALE_SETTLE_POLL_MS = 20;
+
 test('native anchoring cannot turn one scroll into five loads; continued scrolling and suspension still work', { timeout: 20000 }, async (t) => {
   if (spawnSync('google-chrome', ['--version'], { stdio: 'ignore' }).error) {
     t.skip('google-chrome is unavailable; Chromium scroll-anchoring qualification requires this focused test');
@@ -20,7 +23,7 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     await writeFile(join(directory, `${name}.mjs`), stripTypeScriptTypes(source).replace(/(from\s+['"]\.\/[^'"]+)\.ts(['"])/g, '$1.mjs$2'));
   }
   const initial = Array.from({ length: 12 }, (_, i) => `<li id="home-post-p${i}" data-home-post="p${i}"><article><h3>Initial ${i}</h3></article></li>`).join('');
-  const html = `<!doctype html><html style="overflow-anchor:auto!important;--fixture:keep"><meta charset="utf-8"><style>html,body{margin:0}li{height:200px;list-style:none}ul{margin:0;padding:0}footer{height:800px}.sentinel{height:1px}[hidden]{display:none}</style>
+  const html = `<!doctype html><html style="overflow-anchor:auto!important;scroll-behavior:smooth!important;--fixture:keep"><meta charset="utf-8"><style>html,body{margin:0}li{height:200px;list-style:none}ul{margin:0;padding:0}footer{height:800px}.sentinel{height:1px}[hidden]{display:none}</style>
     <section data-home-feed data-initial-count="12" data-initial-limit="12" data-batch-size="12" data-batch-count="5" data-planned-count="72" data-max-auto-batches="5" data-snapshot="${'a'.repeat(64)}" data-initial-ids='${JSON.stringify(Array.from({ length: 12 }, (_, i) => `p${i}`))}'>
     <ul data-home-feed-cards>${initial}</ul><div class="sentinel" data-home-feed-sentinel></div><p data-home-feed-status></p><div data-home-feed-error hidden><button data-home-feed-retry>Retry</button><a id="refresh" href="#refresh" data-home-feed-refresh>Refresh this page</a></div><p><a id="news" href="#news">View all News</a></p></section><footer>Lower panels/footer</footer>
     <script type="module">
@@ -84,7 +87,7 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
       await call('Input.dispatchKeyEvent', { type: 'keyDown', key, code, windowsVirtualKeyCode: virtualKey, modifiers, ...(key === 'Enter' ? { text: '\r', unmodifiedText: '\r' } : {}) }, sessionId);
       await call('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode: virtualKey, modifiers }, sessionId);
     };
-    const read = () => evaluate(`({calls:[...window.calls],cards:document.querySelectorAll('[data-home-post]').length,y:scrollY,scrolls:[...window.scrolls],anchor:document.documentElement.style.getPropertyValue('overflow-anchor'),priority:document.documentElement.style.getPropertyPriority('overflow-anchor'),fixture:document.documentElement.style.getPropertyValue('--fixture'),history:history.state?.aitamerHomeFeedV1,targetTop:document.getElementById('home-post-p40')?.getBoundingClientRect().top})`);
+    const read = () => evaluate(`({calls:[...window.calls],cards:document.querySelectorAll('[data-home-post]').length,y:scrollY,scrolls:[...window.scrolls],anchor:document.documentElement.style.getPropertyValue('overflow-anchor'),priority:document.documentElement.style.getPropertyPriority('overflow-anchor'),behavior:document.documentElement.style.getPropertyValue('scroll-behavior'),behaviorPriority:document.documentElement.style.getPropertyPriority('scroll-behavior'),fixture:document.documentElement.style.getPropertyValue('--fixture'),history:history.state?.aitamerHomeFeedV1,targetTop:document.getElementById('home-post-p40')?.getBoundingClientRect().top})`);
     await call('Page.navigate', { url: pathToFileURL(fixture).href }, sessionId);
     for (let i = 0; i < 100 && !await evaluate('!!window.fixtureReady'); i++) await wait(10);
     assert.equal(await evaluate('!!window.fixtureReady'), true);
@@ -95,6 +98,8 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     assert.equal(result.cards, 24);
     assert.equal(result.anchor, 'none');
     assert.equal(result.priority, 'important');
+    assert.equal(result.behavior, 'auto', 'active automatic loading must override implicit smooth scrolling');
+    assert.equal(result.behaviorPriority, 'important');
 
     // Persisted pagehide must keep suppression, abort once and remain quiet after pageshow.
     await evaluate(`window.delay=300;window.scrollTo(0,document.querySelector('[data-home-feed-sentinel]').offsetTop)`);
@@ -103,6 +108,8 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     await wait(400);
     result = await read(); results.push(result);
     assert.deepEqual(result.calls, [1, 2]); assert.equal(result.cards, 24); assert.equal(result.anchor, 'none');
+    assert.equal(result.behavior, 'auto', 'the scroll guard persists through suspended loading');
+    assert.equal(result.behaviorPriority, 'important');
     await evaluate(`window.delay=10;window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}))`);
     await wait(100);
     assert.deepEqual((await read()).calls, [1, 2], 'resume must await another scroll');
@@ -117,6 +124,8 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     }
     assert.equal(result.anchor, 'auto', 'finish restores the prior anchoring value');
     assert.equal(result.priority, 'important', 'finish restores the prior priority');
+    assert.equal(result.behavior, 'smooth', 'finish restores the prior scroll behavior');
+    assert.equal(result.behaviorPriority, 'important', 'finish restores the prior scroll priority');
     assert.equal(result.fixture, 'keep', 'unrelated style survives');
 
     // A restoration failure must leave usable Retry and automatic continuation.
@@ -125,6 +134,7 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     await call('Page.navigate', { url: pathToFileURL(errorFixture).href + '#restore-error' }, sessionId);
     for (let i = 0; i < 100 && !await evaluate(`location.pathname.endsWith('/restore-error.html') && !!window.fixtureReady && !document.querySelector('[data-home-feed-error]').hidden`); i++) await wait(10);
     assert.equal(await evaluate(`document.querySelector('[data-home-feed-error]').hidden`), false);
+    assert.equal((await read()).behavior, 'auto', 'a recoverable error must retain the scroll guard');
     assert.equal((await read()).history.loadedBatches, 1, 'active failure retains the validated replay destination');
     await evaluate(`window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}))`);
     await wait(50);
@@ -177,8 +187,8 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     assert.deepEqual(result.calls, [1], 'resuming only an unapplied anchor needs no duplicate fetch');
 
     // A stale retry must transfer keyboard focus only when Retry still owns it.
-    for (const moved of [false, true]) {
-      const filename = moved ? 'retry-stale-moved.html' : 'retry-stale.html';
+    for (const focusBeforeResponse of ['retry', 'refresh', 'news']) {
+      const filename = `retry-stale-${focusBeforeResponse}.html`;
       const staleFixture = join(directory, filename);
       await writeFile(staleFixture, html);
       await call('Page.navigate', { url: pathToFileURL(staleFixture).href + '#retry-stale' }, sessionId);
@@ -189,12 +199,22 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
       await press('Tab', 'Tab', 9, 8); await press('Tab', 'Tab', 9, 8);
       assert.equal(await evaluate(`document.activeElement===document.querySelector('[data-home-feed-retry]')`), true);
       await press('Enter', 'Enter', 13);
-      if (moved) await evaluate(`document.querySelector('#news').focus({preventScroll:true})`);
-      await wait(130);
-      const focused = await evaluate(`({id:document.activeElement.id,tag:document.activeElement.tagName,retryHidden:document.querySelector('[data-home-feed-retry]').hidden,calls:[...window.calls],status:document.querySelector('[data-home-feed-status]').textContent})`);
-      results.push({ scenario: 'stale-retry-focus', moved, ...focused });
+      if (focusBeforeResponse === 'refresh') await press('Tab', 'Tab', 9);
+      else if (focusBeforeResponse === 'news') await evaluate(`document.querySelector('#news').focus({preventScroll:true})`);
+      const readFocused = () => evaluate(`({id:document.activeElement.id,tag:document.activeElement.tagName,retryHidden:document.querySelector('[data-home-feed-retry]').hidden,calls:[...window.calls],status:document.querySelector('[data-home-feed-status]').textContent,busy:document.querySelector('[data-home-feed-cards]').getAttribute('aria-busy')})`);
+      const staleStatus = 'The stories changed. Refresh this page or view all News.';
+      const deadline = Date.now() + STALE_SETTLE_TIMEOUT_MS;
+      let focused = await readFocused();
+      while (!(focused.retryHidden && focused.status === staleStatus && focused.busy === 'false') && Date.now() < deadline) {
+        await wait(STALE_SETTLE_POLL_MS);
+        focused = await readFocused();
+      }
+      results.push({ scenario: 'stale-retry-focus', focusBeforeResponse, ...focused });
       assert.equal(focused.retryHidden, true);
-      assert.equal(focused.id, moved ? 'news' : 'refresh', 'hiding Retry must retain a useful focus destination without stealing focus');
+      assert.equal(focused.status, staleStatus);
+      assert.equal(focused.busy, 'false');
+      assert.deepEqual(focused.calls, [1, 1]);
+      assert.equal(focused.id, focusBeforeResponse === 'news' ? 'news' : 'refresh', 'hiding Retry must retain a useful focus destination without stealing focus');
     }
 
     // Use the actual site's scrolling declaration so restoration cannot inherit smooth animation.
@@ -208,7 +228,7 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     await wait(80);
     const restored = await evaluate(`({y:scrollY,top:document.getElementById('home-post-p30').getBoundingClientRect().top,history:history.state.aitamerHomeFeedV1,behavior:getComputedStyle(document.documentElement).scrollBehavior})`);
     results.push({ scenario: 'smooth-restoration', ...restored });
-    assert.equal(restored.behavior, 'smooth');
+    assert.equal(restored.behavior, 'auto', 'active guard overrides the actual site smooth-scroll declaration');
     assert.ok(Math.abs(restored.top - (-23)) <= 1, 'restoration must place the anchor immediately despite site smooth-scroll CSS');
     assert.equal(restored.history.scrollY, restored.y, 'history must record the settled restored position');
     await wait(700);
@@ -234,8 +254,8 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
       })();
     };
     await call('Fetch.enable', { patterns: [{ urlPattern: 'https://home-feed.test/*', requestStage: 'Request' }] }, sessionId);
-    for (const moved of [false, true]) {
-      const path = moved ? '/retry-success-moved.html' : '/retry-success.html';
+    for (const focusBeforeResponse of ['retry', 'refresh', 'news']) {
+      const path = `/retry-success-${focusBeforeResponse}.html`;
       // The homepage has a separate lead and an odd initial card count in a two-column grid.
       const lead = initial.match(/^<li\b[\s\S]*?<\/li>/)?.[0] ?? '';
       const successHtml = html.replace(initial, initial.slice(lead.length))
@@ -246,18 +266,29 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
       for (let i = 0; i < 100 && !await evaluate(`location.pathname===${JSON.stringify(path)} && !!window.fixtureReady`); i++) await wait(10);
       await evaluate(`window.scrollTo({top:document.querySelector('[data-home-feed-sentinel]').offsetTop,behavior:'instant'})`); await wait(80);
       assert.equal(await evaluate(`document.querySelector('[data-home-feed-error]').hidden`), false);
-      await evaluate(`window.scrollTo({top:0,behavior:'instant'});document.querySelector('#news').focus({preventScroll:true});window.delay=30`);
+      await evaluate(`window.scrollTo({top:0,behavior:'instant'});document.querySelector('#news').focus({preventScroll:true});window.delay=250`);
+      if (focusBeforeResponse === 'news') {
+        await evaluate(`const list=document.querySelector('[data-home-feed-cards]');const append=list.append;list.append=function(...nodes){window.viewportBeforeAppend={x:scrollX,y:scrollY};return append.apply(this,nodes)}`);
+      }
       await evaluate(`document.querySelector('[data-home-feed-retry]').focus()`);
       assert.equal(await evaluate(`document.activeElement===document.querySelector('[data-home-feed-retry]')`), true);
       await press('Enter', 'Enter', 13);
-      if (moved) await evaluate(`document.querySelector('#news').focus({preventScroll:true})`);
-      await wait(1000);
-      const retried = await evaluate(`({calls:[...window.calls],cards:document.querySelectorAll('[data-home-post]').length,y:scrollY,tag:document.activeElement.tagName,id:document.activeElement.id,href:document.activeElement.getAttribute('href'),top:document.activeElement.getBoundingClientRect().top,bottom:document.activeElement.getBoundingClientRect().bottom,height:innerHeight})`);
-      results.push({ scenario: 'smooth-successful-retry', moved, ...retried });
-      if (moved) assert.equal(retried.id, 'news', 'a successful retry cannot steal focus after the reader moves away');
+      if (focusBeforeResponse === 'refresh') {
+        await press('Tab', 'Tab', 9);
+        assert.equal(await evaluate(`document.activeElement.id`), 'refresh', 'Tab during the pending response must reach Refresh');
+      } else if (focusBeforeResponse === 'news') await evaluate(`document.querySelector('#news').focus({preventScroll:true});window.outsideFocus=document.activeElement`);
+      await wait(1300);
+      const retried = await evaluate(`({calls:[...window.calls],cards:document.querySelectorAll('[data-home-post]').length,unique:new Set([...document.querySelectorAll('[data-home-post]')].map(node=>node.dataset.homePost)).size,x:scrollX,y:scrollY,viewportBeforeAppend:window.viewportBeforeAppend,sameOutsideFocus:document.activeElement===window.outsideFocus,tag:document.activeElement.tagName,id:document.activeElement.id,href:document.activeElement.getAttribute('href'),top:document.activeElement.getBoundingClientRect().top,bottom:document.activeElement.getBoundingClientRect().bottom,height:innerHeight})`);
+      results.push({ scenario: 'smooth-successful-retry', focusBeforeResponse, ...retried });
+      assert.deepEqual(retried.calls, [1, 1], 'focus scrolling must not create more batch requests after Retry succeeds');
+      assert.equal(retried.cards, 24);
+      assert.equal(retried.unique, 24);
+      if (focusBeforeResponse === 'news') {
+        assert.equal(retried.id, 'news', 'a successful retry cannot steal focus after the reader moves away');
+        assert.equal(retried.sameOutsideFocus, true, 'the outside focused element must retain identity');
+        assert.deepEqual({ x: retried.x, y: retried.y }, retried.viewportBeforeAppend, 'outside-focus Retry must preserve both viewport coordinates through append');
+      }
       else {
-        assert.deepEqual(retried.calls, [1, 1], 'focus scrolling must not create more batch requests after Retry succeeds');
-        assert.equal(retried.cards, 24);
         assert.equal(retried.href, '/posts/p12/');
         assert.ok(retried.bottom > 0 && retried.top < retried.height, 'the newly focused story link must remain visible');
       }
@@ -265,15 +296,37 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     assert.deepEqual(interceptionErrors, []);
     await call('Fetch.disable', {}, sessionId);
 
-    // Disposal also restores an originally absent declaration instead of leaving a new value.
+    // Disposal restores both existing important declarations and an originally absent declaration.
+    const priorFixture = join(directory, 'with-prior-effects.html');
+    await writeFile(priorFixture, html);
+    await call('Page.navigate', { url: pathToFileURL(priorFixture).href }, sessionId);
+    for (let i = 0; i < 100 && !await evaluate(`location.pathname.endsWith('/with-prior-effects.html') && !!window.fixtureReady`); i++) await wait(10);
+    assert.equal((await read()).behavior, 'auto');
+    await evaluate(`window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:false}))`);
+    result = await read(); results.push(result);
+    assert.equal(result.anchor, 'auto'); assert.equal(result.priority, 'important');
+    assert.equal(result.behavior, 'smooth'); assert.equal(result.behaviorPriority, 'important'); assert.equal(result.fixture, 'keep');
     const absentFixture = join(directory, 'without-prior-anchor.html');
-    await writeFile(absentFixture, html.replace('overflow-anchor:auto!important;', ''));
+    await writeFile(absentFixture, html.replace('overflow-anchor:auto!important;scroll-behavior:smooth!important;', ''));
     await call('Page.navigate', { url: pathToFileURL(absentFixture).href }, sessionId);
     for (let i = 0; i < 100 && !await evaluate(`location.pathname.endsWith('/without-prior-anchor.html') && !!window.fixtureReady`); i++) await wait(10);
     assert.equal((await read()).anchor, 'none');
+    assert.equal((await read()).behavior, 'auto');
     await evaluate(`window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:false}))`);
     result = await read(); results.push(result);
     assert.equal(result.anchor, ''); assert.equal(result.priority, ''); assert.equal(result.fixture, 'keep');
+    assert.equal(result.behavior, ''); assert.equal(result.behaviorPriority, '');
+
+    // A configured zero-batch page owns neither CSS property and never fetches a batch.
+    const zeroFixture = join(directory, 'zero-batches.html');
+    await writeFile(zeroFixture, html.replace('data-batch-count="5"', 'data-batch-count="0"').replace('data-planned-count="72"', 'data-planned-count="12"').replace('data-max-auto-batches="5"', 'data-max-auto-batches="0"'));
+    await call('Page.navigate', { url: pathToFileURL(zeroFixture).href }, sessionId);
+    for (let i = 0; i < 100 && !await evaluate(`location.pathname.endsWith('/zero-batches.html') && !!window.fixtureReady`); i++) await wait(10);
+    await evaluate(`window.scrollTo({top:1000,behavior:'instant'})`); await wait(60);
+    result = await read(); results.push(result);
+    assert.deepEqual(result.calls, []); assert.equal(result.cards, 12);
+    assert.equal(result.anchor, 'auto'); assert.equal(result.priority, 'important');
+    assert.equal(result.behavior, 'smooth'); assert.equal(result.behaviorPriority, 'important'); assert.equal(result.fixture, 'keep');
   } finally {
     try { await call('Browser.close'); }
     finally {
