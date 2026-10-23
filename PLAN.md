@@ -57,3 +57,7 @@ Dev mode: production. Michel authorized SEO fixes after backup branches for both
 ## Canonical author profiles and security headers · running 2026-10-23
 
 [Execution plan](docs/plans/2026-10-23-author-profiles-security-headers.md). Michel authorized finishing the paired template experiment and shipping through a normal news PR. Runtime source passed full production checks and local response/browser validation. Final reviewers accepted with one documentation finding, corrected in0.2.99. Current review/check/deployment status is recorded on [PR319](https://github.com/michelabboud/aitamer-news/pull/319).
+
+## Michel profile and responsive image delivery · running 2026-10-23
+
+Michel requested finishing his profile and optimizing the reported first-load WebP images while keeping JPEG fallback for all posts. Profile update is an independently validated bounded PR; image delivery is a separate template-first experiment, preserving JPEG originals/social metadata and measuring bytes/browser selection/Lighthouse before claiming improvement.

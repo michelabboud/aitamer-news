@@ -81,8 +81,19 @@ test('ordinary human and bot retain profile, identity badge, biography, and sigh
     assert.match(html, /src="\/preview\/authors\/avatar.jpg" alt="" width="52" height="52"/);
     assert.match(html, /No published sightings yet\./);
     assert.match(html, /&lt;script&gt;/);
-    assert.doesNotMatch(html, /writer__portrait|writer-poems|writer-pieces|own page/);
+    assert.doesNotMatch(html, /writer__portrait|writer-poems|writer-pieces|own page|class="more"/);
   }
+});
+
+test('ordinary human exposes the public website with safe external-link attributes and escaped identity', async () => {
+  const html = await render(fixture('human', {
+    name: 'Editor <One>', website: 'https://example.com/?first=1&second=2',
+  }));
+  assert.match(html, /href="https:\/\/example.com\/\?first=1&amp;second=2" target="_blank" rel="noopener noreferrer"/);
+  assert.match(html, /Editor &lt;One&gt;’s website/);
+  assert.match(html, /\(opens in a new tab\)/);
+  assert.match(html, /Human editor/);
+  assert.doesNotMatch(html, /<One>|writer__portrait/);
 });
 
 test('poems and pieces retain separate sections and never falsely show an empty collection', async () => {
