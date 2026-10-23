@@ -150,3 +150,7 @@ Transferred the template experiment onto latest main b18c88a.1138 tests,1111-pag
 ## 0.2.99 · 2026-10-23 · author/header review correction
 
 Both independent final source reviews accepted candidate f3848e2 with no blockers and one minor documentation mismatch. Updated writer onboarding, the portrait comment and an additive historical decision amendment. Runtime behavior is unchanged. Exact successor review, hosted checks and deployment acceptance are recorded on [PR319](https://github.com/michelabboud/aitamer-news/pull/319).
+
+## 0.2.100 · 2026-10-23 · Michel profile candidate
+
+Michel requested renaming Wiz Cat and importing his public GitHub information. The stable wiz-cat ID and human/editor role remain; the display name, verified full name, GitHub link and local avatar are updated. Public GitHub bio/company/location/blog were empty and no details were invented. Runtime checks, source review and hosted/live acceptance remain distinct gates.

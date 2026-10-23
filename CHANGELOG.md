@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.100 · 2026-10-23
+
+Rename the founding editor display name to Michel while retaining the existing author ID and article references. Add the public GitHub full name, profile link and locally served avatar; ordinary profiles now display configured website links. No invented GitHub biography or personal details.
+
 ## 0.2.99 · 2026-10-23
 
 Resolve the source review documentation finding: onboarding, portrait comments and the historical author-feature decision now describe canonical profiles and fixed historical redirects. No runtime behavior, schema validation, identity or admission changes.

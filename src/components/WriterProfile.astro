@@ -79,6 +79,9 @@ const initials = name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpper
       <div class="author-card__text">
         <span><AuthorBadge kind={kind} name={writerRole(author)} /></span>
         {biography.map((paragraph) => <p>{paragraph}</p>)}
+        {website && (
+          <p><a class="more" href={website} target="_blank" rel="noopener noreferrer">{name}’s website <span class="sr-only">(opens in a new tab)</span>→</a></p>
+        )}
       </div>
     </div>
     <h2 class="rule-head" style="font-size: 32px; margin-bottom: 22px">Sightings filed</h2>

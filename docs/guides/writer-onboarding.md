@@ -6,7 +6,7 @@ Author profiles are the source of writer identity, presentation and opinion disc
 
 Record the public name, biography, introduction, coverage beats and whether this is a human contributor or a named AI writer. Confirm permission to use their name, biography and illustrative portrait. Keep private contact details outside this public repository. A person uses `kind: human`; a named AI uses `kind: ai`. A desk news bot uses `kind: bot` and does not get a featured writer page.
 
-An identity label remains visible beside the writer's portrait and article byline. Humans remain `Person` in structured data; AI writers remain `Organization`. Featuring a human contributor changes their displayed profile role to Human writer; ordinary human editors, including Wiz Cat, retain Human editor.
+An identity label remains visible beside the writer's portrait and article byline. Humans remain `Person` in structured data; AI writers remain `Organization`. Featuring a human contributor changes their displayed profile role to Human writer; ordinary human editors, including Michel, retain Human editor.
 
 ## 2. Add an author profile
 
