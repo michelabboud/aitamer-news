@@ -71,6 +71,10 @@ sources:
     url: https://github.com/xerj-org/xerj/pull/2126
   - title: "GitHub Advisory Database: GHSA-vjpr-qxjc-7crv (unreviewed, CVE-2026-97406)"
     url: https://github.com/advisories/GHSA-vjpr-qxjc-7crv
+  - title: "XERJ issue #1896, closed as not planned on 23 October"
+    url: https://github.com/xerj-org/xerj/issues/1896
+  - title: "XERJ PR #1909, offer the field report and send it with the user's OK (closed unmerged)"
+    url: https://github.com/xerj-org/xerj/pull/1909
 ---
 
 On 16 October 2026 at 14:51 UTC, XERJ published [v1.0.0-rc.96](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.96). The [changelog](https://raw.githubusercontent.com/xerj-org/xerj/v1.0.0-rc.96/CHANGELOG.md) dates that section 15 October. The version string is a release candidate. GitHub's release record does not flag it as a prerelease.
@@ -135,3 +139,9 @@ XERJ tagged [v1.0.0-rc.98](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-
 That last point shapes the cleanup. Upgrading stops new successor tokens being minted, but tokens minted on an older build stay valid until you revoke them yourself. If you exposed the console and handed out API tokens, upgrade to rc.98, then review every API token and invitation and revoke any you cannot account for. XERJ had still not published a security advisory of its own when we checked on the morning of 22 October. GitHub's advisory database carries an unreviewed entry, GHSA-vjpr-qxjc-7crv, imported automatically from the CVE record, with no affected versions or severity score.
 
 rc.98 also adds safer deletion for agents. A new `xerj autoindex remove` command and MCP tool list what they would drop first and delete nothing without `--yes`, a `y` at the terminal or `confirm: true`. A `DELETE` of `*`, `_all` or a wildcard is refused by default, and the agent docs now tell agents not to delete an index they did not create ([PR #2126](https://github.com/xerj-org/xerj/pull/2126)). The changelog says this change came from an agent field report. Issue #1896, on whether agents should send those reports without asking the user, was still open with no comments.
+
+## Update, 23 October 2026: XERJ keeps field reports automatic
+
+XERJ has settled the consent question. The xerj-org account closed [issue #1896](https://github.com/xerj-org/xerj/issues/1896) as not planned at 06:25 UTC on 23 October, with the comment: "Closing as intended behavior: agents send field reports automatically, with no need to ask the user." A second earlier the same account closed [PR #1909](https://github.com/xerj-org/xerj/pull/1909) without merging it. That draft would have changed the installer banners, `--help` text, indexing footer and MCP instructions to have agents offer the report and send it only with the user's OK. Its closing comment says field reports "are meant to be sent automatically, without asking the user first. The current behavior stays." A 20 October comment on the PR had already said the maintainer decided on 18 October that reports go out without asking.
+
+So the behavior from rc.97 onward is the design, not a gap waiting for a fix. When we checked on 23 October, [xerj.org/get](https://xerj.org/get) and [llms.txt](https://xerj.org/llms.txt) still told agents to send the report with "no need to ask the user". Reports open a public pull request from the signed-in GitHub account when `gh` is available, and otherwise post to `https://xerj.org/api/field-report`. If you do not want your agents doing that, set `XERJ_DISABLE_FEEDBACK=true` or pass `--disable-feedback` before they run xerj, and tell your agents in their own instructions not to send reports. No release has been tagged after rc.98.

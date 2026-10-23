@@ -59,7 +59,7 @@ export function frontPage<T extends Dated>(
 }
 
 /** Editorial order on the homepage; independent of kind, post counts and menu ordering. */
-export const HOME_AUTHOR_ORDER: readonly string[] = ['mai', 'aviram', 'ari', 'desk-bot', 'quill', 'foxy', 'wiz-cat'];
+export const HOME_AUTHOR_ORDER: readonly string[] = ['wiz-cat', 'mai', 'aviram', 'ari', 'desk-bot', 'quill', 'foxy'];
 
 /** Keep new authors visible after the explicitly ordered roster, without mutating input. */
 export function orderHomeAuthors<T extends { id: string }>(authors: readonly T[]): T[] {
