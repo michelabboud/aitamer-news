@@ -16,7 +16,7 @@ export const HERO_REMOTE_PATTERNS = [
 
 export const HERO_SIZES = {
   lead: '(max-width: 900px) calc(100vw - 32px), (max-width: 1232px) calc(100vw - 420px), 812px',
-  'home-card': '(max-width: 591.98px) calc(100vw - 32px), (max-width: 900px) calc(50vw - 30px), (max-width: 979.98px) calc(100vw - 420px), (max-width: 1232px) calc(50vw - 224px), 392px',
+  'home-card': '(max-width: 591.98px) calc(100vw - 32px), (max-width: 720px) calc(50vw - 32px), (max-width: 900px) calc(50vw - 30px), (max-width: 979.98px) calc(100vw - 420px), (max-width: 1232px) calc(50vw - 224px), 392px',
   listing: '(max-width: 720px) calc(100vw - 32px), (max-width: 900px) calc(50vw - 30px), (max-width: 1232px) calc((100vw - 88px) / 3), 381.34px',
   article: '(max-width: 812px) calc(100vw - 32px), 780px',
 } as const;
