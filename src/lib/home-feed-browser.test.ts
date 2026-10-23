@@ -13,6 +13,7 @@ const STALE_SETTLE_TIMEOUT_MS = 2000;
 const STALE_SETTLE_POLL_MS = 20;
 // This aggregate qualification covers scroll loading, suspension, restoration and keyboard focus.
 const BROWSER_QUALIFICATION_TIMEOUT_MS = 90_000;
+const CHROME_STARTUP_TIMEOUT_MS = 45_000;
 
 test('native anchoring cannot turn one scroll into five loads; continued scrolling and suspension still work', { timeout: BROWSER_QUALIFICATION_TIMEOUT_MS }, async (t) => {
   if (spawnSync('google-chrome', ['--version'], { stdio: 'ignore' }).error) {
@@ -53,7 +54,7 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
   const harness = new ChromePipeHarness(chrome);
   let handleEvent: (message: any) => void = () => {};
   harness.onEvent = (message) => handleEvent(message);
-  const call = (method: string, params: object = {}, sessionId?: string) => harness.call(method, params, sessionId);
+  const call = (method: string, params: object = {}, sessionId?: string, timeoutMs?: number) => harness.call(method, params, sessionId, timeoutMs);
   const results: unknown[] = [];
   let failure: unknown;
   let cleanupTask: Promise<void> | undefined;
@@ -70,7 +71,7 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
   t.after(cleanup);
   t.signal.addEventListener('abort', () => harness.abort('Browser qualification aborted'), { once: true });
   try {
-    const { targetId } = await call('Target.createTarget', { url: 'about:blank' });
+    const { targetId } = await call('Target.createTarget', { url: 'about:blank' }, undefined, CHROME_STARTUP_TIMEOUT_MS);
     const { sessionId } = await call('Target.attachToTarget', { targetId, flatten: true });
     await call('Runtime.enable', {}, sessionId);
     await call('Page.enable', {}, sessionId);

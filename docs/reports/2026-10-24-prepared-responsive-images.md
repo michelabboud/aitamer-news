@@ -31,3 +31,7 @@ Decision, operator guide, plan, changelog and handoff updated; checkpoint0.2.112
 ## Hosted qualification successor · 0.2.113
 
 Hosted run40034787986passed all1205routine tests and the1128-page build with4051current image bodies verified, without an FFmpeg install step. Parallel PR run40034902619cancelled only the original20secondaggregate browser test;1204others passed. Both results are preserved. A failing Chrome launch reproduced unbounded pending calls and lost diagnostics in the unchanged harness. The successor adds command/process/pipe failure bounds and evidence preservation; all71original assertions/scenarios remain, with a90secondaggregate budget. Six transport tests plus the real browser qualification pass (7/7, no skips), and a fake Chrome exit7fails promptly with retained diagnostic files. Application image behavior/qualification is unchanged from0.2.112.
+
+### Cold-start bound · 0.2.114
+
+Hosted40035847680passed1210tests but failed the first Target.createTarget command's10seconddeadline. Chrome remained alive and the new stderr/transport evidence identified startup rather than a UI assertion. Only that initial tab gets a named45secondstartup deadline; later commands remain10seconds and the aggregate90seconds. Focused7tests pass again (real qualification10.92seconds), with allassertions retained. No image production code changed.
