@@ -27,13 +27,11 @@ sources:
     url: https://www.nippairen.com/wp-content/uploads/2026/10/4822a6ac69f21b4538064352be62abab.pdf
   - title: "Ryo Jozuka, Union releases guidelines to protect voice actors from AI (The Asahi Shimbun, 16 October 2026)"
     url: https://www.asahi.com/ajw/articles/16970021
-  - title: "Dragon Ball voice actor urges end to unauthorized AI use (NHK WORLD-JAPAN, 16 October 2026)"
-    url: https://www3.nhk.or.jp/nhkworld/news/20261016de60382/
   - title: "AI Tamer: Meloni has applied to trademark a recording of her voice"
     url: https://aitamer.news/posts/meloni-voice-trademark-euipo/
 ---
 
-On 15 October 2026 the Japan Actors Union, 日本俳優連合 (Nippairen), published a guideline on generative AI and performers' voices. The [announcement](https://www.nippairen.com/about/jau_guideline.html) is timestamped 2026-10-15T04:25:32Z and says about 2,600 actors and voice actors belong to the cooperative. [NHK WORLD-JAPAN](https://www3.nhk.or.jp/nhkworld/news/20261016de60382/) also says about 2,600 members. The linked [PDF](https://www.nippairen.com/wp-content/uploads/2026/10/4822a6ac69f21b4538064352be62abab.pdf), "音声に関する生成AI利用ガイドライン," version 1.0, is dated 15 October 2026 on the cover. Quotations from the Japanese are our translations.
+On 15 October 2026 the Japan Actors Union, 日本俳優連合 (Nippairen), published a guideline on generative AI and performers' voices. The [announcement](https://www.nippairen.com/about/jau_guideline.html) is timestamped 2026-10-15T04:25:32Z and says about 2,600 actors and voice actors belong to the cooperative. The linked [PDF](https://www.nippairen.com/wp-content/uploads/2026/10/4822a6ac69f21b4538064352be62abab.pdf), "音声に関する生成AI利用ガイドライン," version 1.0, is dated 15 October 2026 on the cover. Quotations from the Japanese are our translations.
 
 The text is a guideline the union asks companies to follow. It is not a statute. The announcement says Japan has no explicit law that comprehensively protects a person's "voice" itself, a so-called "voice right." That sentence is the union's. [The Asahi Shimbun](https://www.asahi.com/ajw/articles/16970021), at 16:50 JST on 16 October, reports that the industry ministry has begun considering changes to the Unfair Competition Prevention Law. No ministry paper was opened. The guideline's preamble says Copyright Act Article 91 assumes a recording of the performance itself and does not necessarily cover learning a voice in order to generate a new one. That is the union's reading.
 
@@ -59,8 +57,8 @@ Article 6 says operators in principle must not build, keep, or use a dead perfor
 
 ## What a performer can ask for
 
-Article 20 says a breach lets the performer demand an immediate stop to distribution and sale, and irreversible disposal of the trained model, including the weights. The operator is then to pay special damages equal to the sales of that business, back to the day the unauthorized use began. NHK's 16 October story reports the same demand. These are requests in a guideline. They are not a court order.
+Article 20 says a breach lets the performer demand an immediate stop to distribution and sale, and irreversible disposal of the trained model, including the weights. The operator is then to pay special damages equal to the sales of that business, back to the day the unauthorized use began. These are requests in a guideline. They are not a court order.
 
-Asahi reports a video message at the 15 October Tokyo news conference from Masako Nozawa, the Japanese voice of Son Goku in Dragon Ball: "I hope everyone follows the rules so that both people and AI can enjoy a future where they can happily coexist." NHK also reports a video message to the union and calls her vice chair. The video file was not opened. Asahi says two industry groups "reportedly support" the standards. Their own sites were not the source for that line.
+Asahi reports a video message at the 15 October Tokyo news conference from Masako Nozawa, the Japanese voice of Son Goku in Dragon Ball: "I hope everyone follows the rules so that both people and AI can enjoy a future where they can happily coexist." The video file was not opened. Asahi says two industry groups "reportedly support" the standards. Their own sites were not the source for that line.
 
 [Meloni's EUIPO application](/posts/meloni-voice-trademark-euipo/) is a trademark filing, a different instrument. The Nippairen text asks for a fresh written yes, a separate fee, and an end date.
