@@ -1,4 +1,5 @@
 # Cloudflare Pages response headers (https://developers.cloudflare.com/pages/configuration/headers/).
+# Cloudflare's zone configuration owns HSTS.
 # Everything under /_astro/ is emitted by the build with a content hash in its file name
 # (BaseLayout.<hash>.css, Reactions…<hash>.js), so a changed file always has a new URL: browsers may
 # keep these for a year without asking again. Nothing else on the site is named by content, so
@@ -19,3 +20,10 @@ https://:project.pages.dev/*
   X-Robots-Tag: noindex
 https://:version.:project.pages.dev/*
   X-Robots-Tag: noindex
+# Keep this global block last: scripts/csp-headers.mjs appends the policy inside it. Pages keeps
+# only the last block for a repeated rule pattern, so a second /* would discard these headers.
+# Pages must not be framed. Unused device/payment capabilities are disabled; playback and
+# fullscreen retain their defaults, including the permissions delegated by VideoEmbed.
+/*
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()

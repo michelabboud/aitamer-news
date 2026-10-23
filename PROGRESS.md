@@ -142,3 +142,7 @@ Both independent high-review seats accepted code2bf2e5 without blockers. Correct
 ## 0.2.97 · 2026-10-23 · automatic analytics revision
 
 PR314 merged as217e2f9; live inspection found the expected measurement ID in all995 published sitemap posts. Michel requested revising the interaction requirement because it excludes passive readers. The automatic-load revision retains production-only hosts and deferred comment verification. Local verification, independent review, required hosted checks and deployment are tracked separately in the follow-up PR. Cloudflare HSTS (one month, no subdomain inheritance/preload) and www-to-apex301 redirects were verified live independently of this code.
+
+## 0.2.98 · 2026-10-23 · author profiles and headers candidate
+
+Transferred the template experiment onto latest main b18c88a.1138 tests,1111-page build, content/media/CSP/link/secret/file/diagram gates and actual local Pages/browser probes passed. Independent production review and hosted/live acceptance remain separate pending gates; no source checkpoint is claimed as live.

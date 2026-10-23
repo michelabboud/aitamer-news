@@ -392,7 +392,7 @@ test("N1: the endpoints are read the way Vite reads them: .env files for the pro
 });
 
 test('N2: a _headers rule form the guard does not model is refused, not misjudged', () => {
-  for (const rule of ['/posts/:slug/*', '/a/*/b', 'https://aitamer.news/*', '/*.jpg']) {
+  for (const rule of ['/posts/:slug/*', '/a/*/b', 'https://unmodeled.example/*', '/*.jpg']) {
     const f = fixture(SITE, `${PUBLIC_HEADERS}${rule}\n  X-Test: 1\n`);
     const written = writeSitePolicy(f.dist, { env: ENV });
     assert.ok(written.findings.some((x) => x.includes(rule) && x.includes('does not model')), `${rule}: ${written.findings.join('\n')}`);
@@ -414,8 +414,8 @@ test('a *.pages.dev preview rule is modelled as never reaching the site, unless 
   for (const line of ['Content-Security-Policy: default-src *', 'content-security-policy-report-only: x', '! Content-Security-Policy']) {
     assert.deepEqual(csp.unmodeledRules(`https://:project.pages.dev/*\n  ${line}\n`), ['https://:project.pages.dev/*'], line);
   }
-  // Other hosts, the production domain included, stay refused.
-  for (const rule of ['https://aitamer.news/*', 'https://pages.dev.example.com/*', 'http://:project.pages.dev/*']) {
+  // Other hosts and non-HTTPS preview syntax stay refused.
+  for (const rule of ['https://unmodeled.example/*', 'https://pages.dev.example.com/*', 'http://:project.pages.dev/*']) {
     assert.deepEqual(csp.unmodeledRules(`${rule}\n  X: 1\n`), [rule], rule);
   }
 });

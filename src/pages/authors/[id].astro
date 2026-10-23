@@ -1,10 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
-import { introParagraphs, isFeaturedWriter, writerRole } from '../../lib/writer-pages.ts';
+import { isFeaturedWriter, splitPoems, writerAuthorPath, writerNoun } from '../../lib/writer-pages.ts';
+import { jsonLdAuthorType } from '../../lib/author-kinds.ts';
+import { toJsonLd } from '../../lib/json-ld';
+import WriterProfile from '../../components/WriterProfile.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
-import AuthorBadge from '../../components/AuthorBadge.astro';
-import { entryStamp, getPostsByAuthor, getPublishedPosts, resolveAuthor, withBase } from '../../lib/site';
+import { SITE, canonicalUrlFor, entryStamp, getPostsByAuthor, getPublishedPosts, resolveAuthor, withBase } from '../../lib/site';
 
 export async function getStaticPaths() {
   const authors = await getCollection('authors');
@@ -26,10 +28,12 @@ export async function getStaticPaths() {
 }
 
 const { author } = Astro.props;
-const intro = introParagraphs(author.body);
-const biography = intro.length > 0 ? intro : introParagraphs(author.data.bio);
+const featured = isFeaturedWriter(author);
+const { name, kind, bio, portrait } = author.data;
+const image = featured ? portrait : author.data.avatar;
+const pageUrl = canonicalUrlFor(writerAuthorPath(author));
 const posts = await getPostsByAuthor(author.id);
-const initials = author.data.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+const [poems, pieces] = splitPoems(posts);
 const cards = await Promise.all(
   posts.map(async (post) => {
     const resolved = await resolveAuthor(post);
@@ -38,34 +42,38 @@ const cards = await Promise.all(
   }),
 );
 ---
-<BaseLayout title={author.data.name} description={author.data.bio} image={author.data.avatar}>
-  <header class="page-head">
-    <p class="page-kicker">The Tamers · {cards.length} {cards.length === 1 ? 'sighting' : 'sightings'} filed</p>
-    <h1 class="page-title">{author.data.name}</h1>
-  </header>
-  <div class="author-card">
-    {author.data.avatar ? (
-      <img class="tamer__avatar" src={withBase(author.data.avatar)} alt="" width="52" height="52" />
-    ) : (
-      <span class={`tamer__avatar tamer__avatar--${author.data.kind}`} aria-hidden="true">{initials}</span>
-    )}
-    <div class="author-card__text">
-      <span><AuthorBadge kind={author.data.kind} name={writerRole(author)} /></span>
-      {biography.map((paragraph) => <p>{paragraph}</p>)}
-      {isFeaturedWriter(author) && (
-        <p><a class="more" href={withBase(`/${author.id}/`)}>{author.data.name}’s own page →</a></p>
-      )}
-    </div>
-  </div>
-
-  <h2 class="rule-head" style="font-size: 32px; margin-bottom: 22px">Sightings filed</h2>
-  {cards.length === 0 ? (
-    <p class="empty">No published sightings yet.</p>
-  ) : (
-    <ul class="cards listing">
+<BaseLayout title={name} description={bio} image={image}>
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={toJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      url: pageUrl,
+      mainEntity: {
+        '@type': jsonLdAuthorType(kind),
+        name,
+        description: `${name} is ${writerNoun(author)} at ${SITE.title}. ${bio}`,
+        url: pageUrl,
+        ...(image ? { image: canonicalUrlFor(image) } : {}),
+      },
+    })}
+  />
+  <WriterProfile author={author} count={posts.length} poemCount={poems.length} pieceCount={pieces.length} imageSrc={image ? withBase(image) : undefined}>
+    <ul slot="poems" class="cards listing">
+      {poems.map((post, i) => (
+        <li><PostCard post={post} author={author} heading="h3" showDesc eager={i < 3} /></li>
+      ))}
+    </ul>
+    <ul slot="pieces" class="cards listing">
+      {pieces.map((post, i) => (
+        <li><PostCard post={post} author={author} heading="h3" showDesc eager={poems.length === 0 && i < 3} /></li>
+      ))}
+    </ul>
+    <ul slot="sightings" class="cards listing">
       {cards.map(({ post, author: a }, i) => (
         <li><PostCard post={post} author={a} heading="h3" showDesc eager={i < 3} /></li>
       ))}
     </ul>
-  )}
+  </WriterProfile>
 </BaseLayout>

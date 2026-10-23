@@ -1,3 +1,5 @@
+# Historical writer aliases are generated into dist/_redirects by scripts/writer-redirects.mjs.
+# Only authors present in this content snapshot get exact slash and non-slash 301 rules.
 # Retired sections -> the habitat that absorbed them: the old desks (2026-09-25) and the old habitats
 # (2026-09-28, ADR 0013). The pages under dist/section/<old>/ carry the same redirect for hosts that ignore
 # this file. Source of truth: src/lib/habitats.ts (LEGACY_SECTIONS); src/lib/redirects.test.ts holds them equal.

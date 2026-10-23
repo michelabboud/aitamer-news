@@ -66,6 +66,9 @@ export const PUBLIC_HEADERS = join(SITE_ROOT, 'public', '_headers');
 
 /** Every path on the site. */
 export const SITE_RULE = '/*';
+/** The only production host with a modeled host-specific header rule. */
+export const PRODUCTION_HOST = 'aitamer.news';
+export const PRODUCTION_HOST_RULE = `https://${PRODUCTION_HOST}/*`;
 /**
  * Where Pagefind compiles WebAssembly: its worker (`/pagefind/pagefind-worker.js`, the path that
  * matters) and the search page (its fallback when the worker cannot start).
@@ -134,13 +137,16 @@ export const ORIGINS = {
   turnstile: 'https://challenges.cloudflare.com',
   /** Google Analytics: the layout's bootstrap injects gtag.js from here (on aitamer.news only). */
   gtag: 'https://www.googletagmanager.com',
+  /** Cloudflare Pages Web Analytics injects its beacon script from this exact origin. */
+  cloudflareInsights: 'https://static.cloudflareinsights.com',
   /**
    * Where gtag.js sends measurements, besides its own host (`gtag` above): Google's GA4 guidance
    * for the Google tag, https://developers.google.com/tag-platform/security/guides/csp (read
    * 2026-09-26), lists `*.google-analytics.com` and `*.google.com` for connect-src. The site does not
-   * use the Ads features, which need more hosts.
+   * use the Ads features, which need more hosts. Reader analytics also connects to the exact
+   * `stats.g.doubleclick.net` origin; this exception does not admit other DoubleClick hosts.
    */
-  analyticsConnect: ['https://*.google-analytics.com', 'https://*.google.com'],
+  analyticsConnect: ['https://*.google-analytics.com', 'https://*.google.com', 'https://stats.g.doubleclick.net'],
   /** VideoEmbed's click-to-load player. */
   youtubeNoCookie: 'https://www.youtube-nocookie.com',
   /** Only the one grandfathered post that embeds raw YouTube iframes (made-on-youtube-2026-gemini-ask-studio). */
@@ -156,7 +162,7 @@ export function directives({ hashes, endpoints, wasm = false, enforce = CSP_ENFO
   const hashSources = [...new Set(hashes)].sort().map((hash) => `'sha256-${hash}'`);
   return [
     ['default-src', ["'self'"]],
-    ['script-src', ["'self'", ...(wasm ? ["'wasm-unsafe-eval'"] : []), ...hashSources, ORIGINS.turnstile, ORIGINS.gtag]],
+    ['script-src', ["'self'", ...(wasm ? ["'wasm-unsafe-eval'"] : []), ...hashSources, ORIGINS.turnstile, ORIGINS.gtag, ORIGINS.cloudflareInsights]],
     // Inline style attributes (Shiki's code blocks, table alignment, Astro's scoped styles) carry
     // no script; the rendered-body gate constrains their values in bot posts.
     ['style-src', ["'self'", "'unsafe-inline'"]],
@@ -468,7 +474,29 @@ export function generatedBlock(pages, endpoints, enforce = CSP_ENFORCE) {
 export function renderHeaders(existing, block) {
   const kept = existing.includes(GENERATED_MARKER) ? existing.slice(0, existing.indexOf(GENERATED_MARKER)) : existing;
   const head = kept.replace(/\s+$/, '');
-  return head ? `${head}\n\n${block}` : block;
+  // Pages stores rules by pattern: repeating /* replaces the previous block instead of merging
+  // its headers. A final handwritten /* can stay verbatim and receive the generated header below
+  // the marker; comments and blank lines do not close a rule. Other duplicate patterns fail closed.
+  const appended = rulePatterns(head).at(-1) === SITE_RULE
+    ? block.replace(`${GENERATED_MARKER}\n${SITE_RULE}\n`, `${GENERATED_MARKER}\n`)
+    : block;
+  return head ? `${head}\n\n${appended}` : appended;
+}
+
+/** @param {string} text @returns {string[]} rule patterns, in file order */
+function rulePatterns(text) {
+  return text.split('\n').filter((line) => line.trim() && !/^\s/.test(line) && !line.startsWith('#')).map((line) => line.trim());
+}
+
+/** @param {string} text @returns {string[]} patterns Pages would silently replace */
+function duplicateRuleFindings(text) {
+  const seen = new Set();
+  const duplicates = new Set();
+  for (const rule of rulePatterns(text)) {
+    if (seen.has(rule)) duplicates.add(rule);
+    seen.add(rule);
+  }
+  return [...duplicates].map((rule) => `_headers: duplicate rule ${rule}; Pages keeps only the last block for a pattern; combine its headers in one block${rule === SITE_RULE ? ' and keep the handwritten /* block last so generated CSP extends it' : ''}`);
 }
 
 /** @param {string} text @returns {string[]} lines longer than Cloudflare reads */
@@ -477,22 +505,30 @@ export function overlongLines(text) {
 }
 
 /**
- * The headers attached to `path` by the rules in `text`, in Cloudflare's way: every matching
+ * The headers attached to `request` by the rules in `text`, in Cloudflare's way: every matching
  * rule in order, `! name` detaching what earlier rules attached, a repeated name joined by a comma.
- * Only the path forms this site uses: an exact path, or a prefix ending in `*`. A rule for a
- * `*.pages.dev` preview host matches no path here: the site this models is aitamer.news.
- * @param {string} text @param {string} path
+ * Rule patterns must be unique: Pages replaces an earlier block with the same pattern, so the
+ * writer and guard refuse duplicates rather than modeling them as merged headers.
+ * A root-relative path means the production host; an absolute request URL supplies its own host.
+ * Only the exact production-host rule and the path forms this site uses are matched. Pages
+ * ignores incoming protocol and port for host rules, despite requiring https and no port in
+ * the rule itself (https://developers.cloudflare.com/pages/configuration/headers/).
+ * Preview-host rules remain excluded from this production policy model.
+ * @param {string} text @param {string} request a root-relative path or absolute request URL
  * @returns {Map<string, string>} lower-cased header name → value
  */
-export function headersFor(text, path) {
+export function headersFor(text, request) {
+  const url = new URL(request, `https://${PRODUCTION_HOST}/`);
+  const path = url.pathname;
   const out = new Map();
   let matching = false;
   for (const raw of text.split('\n')) {
     if (!raw.trim() || raw.trimStart().startsWith('#')) continue;
     if (!/^\s/.test(raw)) {
       const rule = raw.trim();
-      if (PREVIEW_HOST_RULE.test(rule)) matching = false; // a preview host's rule never reaches the site
-      else matching = rule.endsWith('*') ? path.startsWith(rule.slice(0, -1)) : path === rule;
+      if (rule === PRODUCTION_HOST_RULE) matching = url.hostname.toLowerCase() === PRODUCTION_HOST;
+      else if (MODELED_RULE.test(rule)) matching = rule.endsWith('*') ? path.startsWith(rule.slice(0, -1)) : path === rule;
+      else matching = false;
       continue;
     }
     if (!matching) continue;
@@ -526,16 +562,16 @@ export function sourcesFor(policy, directive) {
 
 /**
  * The `_headers` rule forms this script models: a path from the root with no placeholder, and at
- * most one `*`, at its end. Cloudflare also accepts `:placeholders`, a `*` mid-path and absolute
- * URLs; `headersFor` would misjudge those, so they are refused instead.
+ * most one `*`, at its end. The exact production-host rule and preview-host rules below are
+ * bounded exceptions. Other absolute URLs, `:placeholders` and a `*` mid-path remain refused.
  */
 const MODELED_RULE = /^\/[^*:\s]*\*?$/;
 /**
- * The one absolute-URL form modeled: a rule scoped to a Cloudflare Pages preview host
- * (`https://:project.pages.dev/*`, `https://:version.:project.pages.dev/*`), which the production
- * domain can never match, so `headersFor` skips it. It is modeled only while it leaves the policy
- * alone: a preview rule that set or detached a Content-Security-Policy header would make the
- * previews' policy differ from the one checked here, and is refused like any unmodeled rule.
+ * Rules scoped to a Cloudflare Pages preview host (`https://:project.pages.dev/*`,
+ * `https://:version.:project.pages.dev/*`), which the production domain can never match, so
+ * `headersFor` skips them. All host-specific rules, including the exact production rule, are
+ * modeled only while they leave the policy alone: setting or detaching either CSP header would
+ * make hosts' policies differ from the site-wide policy checked here, so it remains refused.
  */
 export const PREVIEW_HOST_RULE = /^https:\/\/(?:[^/\s]+\.)?[^/\s.]+\.pages\.dev\/\S*$/;
 const POLICY_HEADER = /^(?:!\s*)?content-security-policy(?:-report-only)?\s*(?::|$)/i;
@@ -553,17 +589,17 @@ export function unmodeledRules(text) {
     if (!/^\s/.test(raw)) {
       close();
       rule = raw.trim();
-      modeled = MODELED_RULE.test(rule) || PREVIEW_HOST_RULE.test(rule);
+      modeled = MODELED_RULE.test(rule) || rule === PRODUCTION_HOST_RULE || PREVIEW_HOST_RULE.test(rule);
       continue;
     }
-    if (rule !== null && PREVIEW_HOST_RULE.test(rule) && POLICY_HEADER.test(raw.trim())) modeled = false;
+    if (rule !== null && (rule === PRODUCTION_HOST_RULE || PREVIEW_HOST_RULE.test(rule)) && POLICY_HEADER.test(raw.trim())) modeled = false;
   }
   close();
   return out;
 }
 
 /** @param {string} rule @returns {string} */
-const unmodeledFinding = (rule) => `_headers: the rule ${rule} is a form this script does not model (only /exact/paths, /prefix/*, and *.pages.dev preview rules that leave the policy alone); rewrite it, or teach headersFor the form and test it`;
+const unmodeledFinding = (rule) => `_headers: the rule ${rule} is a form this script does not model (only /exact/paths, /prefix/*, and ${PRODUCTION_HOST_RULE} or *.pages.dev host rules that leave the policy alone); rewrite it, or teach headersFor the form and test it`;
 
 /** @param {string} value @returns {Map<string, string[]>} directive → sources */
 export function parsePolicy(value) {
@@ -599,6 +635,8 @@ export function writeSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
   const unmodeled = unmodeledRules(existing);
   if (unmodeled.length) return { findings: unmodeled.map(unmodeledFinding), pages: pages.length, hashes };
   const text = renderHeaders(existing, generatedBlock(pages, endpointOrigins(env), enforce));
+  const duplicates = duplicateRuleFindings(text);
+  if (duplicates.length) return { findings: duplicates, pages: pages.length, hashes };
   const long = overlongLines(text);
   if (long.length) {
     return {
@@ -627,6 +665,8 @@ export function checkSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
   const pages = scanSite(dist);
   const unmodeled = unmodeledRules(text);
   if (unmodeled.length) return unmodeled.map(unmodeledFinding);
+  const duplicates = duplicateRuleFindings(text);
+  if (duplicates.length) return duplicates;
 
   for (const { page, scan } of pages) {
     for (const refusal of scan.refusals) findings.push(`${page}: ${refusal.what}`);

@@ -1,0 +1,87 @@
+---
+/** Author identity and introduction, shared by canonical profiles for every author kind. */
+import type { CollectionEntry } from 'astro:content';
+import { kindLabel } from '../lib/author-kinds.ts';
+import { introParagraphs, isFeaturedWriter, writerRole } from '../lib/writer-pages.ts';
+import AuthorBadge from './AuthorBadge.astro';
+interface Props {
+  author: CollectionEntry<'authors'>;
+  count: number;
+  poemCount?: number;
+  pieceCount?: number;
+  /** Already resolved through withBase by the route. */
+  imageSrc?: string;
+}
+const { author, count, imageSrc, poemCount = 0, pieceCount = 0 } = Astro.props;
+const { name, kind, bio, portrait, portraitAlt, beats, website } = author.data;
+const intro = introParagraphs(author.body);
+const biography = intro.length > 0 ? intro : introParagraphs(bio);
+const initials = name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+---
+{isFeaturedWriter(author) ? (
+  <>
+  <section class="writer" aria-labelledby="writer-name">
+    <figure class="writer__portrait">
+      {portrait && portraitAlt ? (
+        <img src={imageSrc} alt={portraitAlt} width="768" height="1024" fetchpriority="high" decoding="async" />
+      ) : (
+        <span class="writer__initials" aria-hidden="true">{initials}</span>
+      )}
+      <figcaption>
+        <span class={`tag tag--${kind}`}>{kindLabel(kind)}</span>
+        {kind === 'human' ? (
+          <>{name} is a human writer.{portrait && ' This portrait is a paper collage illustration.'}</>
+        ) : (
+          <>{name} is an AI, not a person.{portrait && ` This portrait is the one ${name} chose.`}</>
+        )}
+      </figcaption>
+    </figure>
+    <div class="writer__text">
+      <p class="page-kicker">{writerRole(author)} · {count} {count === 1 ? 'piece' : 'pieces'} published</p>
+      <h1 id="writer-name" class="page-title">{name}</h1>
+      {intro.length > 0 ? intro.map((p) => <p class="writer__intro">{p}</p>) : <p class="writer__intro">{bio}</p>}
+      {website && (
+        <p class="writer__intro"><a class="more" href={website} target="_blank" rel="noopener noreferrer">{name}’s website <span class="sr-only">(opens in a new tab)</span>→</a></p>
+      )}
+      {beats && beats.length > 0 && (
+        <div class="writer__beats">
+          <h2 class="panel__label">What {name} covers</h2>
+          <ul>{beats.map((beat) => <li>{beat}</li>)}</ul>
+        </div>
+      )}
+    </div>
+  </section>
+  {poemCount > 0 && (
+    <section aria-labelledby="writer-poems">
+      <div class="rule-head"><h2 id="writer-poems">{name}’s poems</h2></div>
+      <slot name="poems" />
+    </section>
+  )}
+  <section aria-labelledby="writer-pieces">
+    <div class="rule-head"><h2 id="writer-pieces">{name}’s pieces</h2></div>
+    {pieceCount === 0 ? (
+      <p class="empty">{name}’s first piece is on its way.</p>
+    ) : <slot name="pieces" />}
+  </section>
+  </>
+) : (
+  <>
+    <header class="page-head">
+      <p class="page-kicker">The Tamers · {count} {count === 1 ? 'sighting' : 'sightings'} filed</p>
+      <h1 class="page-title">{name}</h1>
+    </header>
+    <div class="author-card">
+      {imageSrc ? (
+        <img class="tamer__avatar" src={imageSrc} alt="" width="52" height="52" />
+      ) : (
+        <span class={`tamer__avatar tamer__avatar--${kind}`} aria-hidden="true">{initials}</span>
+      )}
+      <div class="author-card__text">
+        <span><AuthorBadge kind={kind} name={writerRole(author)} /></span>
+        {biography.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+    </div>
+    <h2 class="rule-head" style="font-size: 32px; margin-bottom: 22px">Sightings filed</h2>
+    {count === 0 ? <p class="empty">No published sightings yet.</p> : <slot name="sightings" />}
+  </>
+)}

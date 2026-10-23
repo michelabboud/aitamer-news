@@ -36,7 +36,7 @@ export function redirectStubHtml({ to, canonical, label }: RedirectStub): string
 <meta http-equiv="refresh" content="0;url=${href}">
 </head>
 <body>
-<p>This section moved. Go to <a href="${href}">${escapeHtml(label)}</a>.</p>
+<p>This page moved. Go to <a href="${href}">${escapeHtml(label)}</a>.</p>
 </body>
 </html>
 `;
