@@ -31,6 +31,12 @@ sources:
     url: https://www.unite.ai/meta-rewrites-web-crawling-clause-in-pending-commercial-terms/
   - title: "AI Tamer: Meta's 30 October terms say business users authorize its crawlers"
     url: https://aitamer.news/posts/meta-commercial-terms-crawl-train-ai/
+  - title: "Emma Roth, Meta delays new business terms after publisher pushback on AI scraping (The Verge, 23 October 2026)"
+    url: https://www.theverge.com/tech/1017450/meta-business-terms-delayed-ai-scraping
+  - title: "Internet Archive capture of the Meta Commercial Terms preview, 23 October 2026, 15:06 UTC"
+    url: https://web.archive.org/web/20261023150605/https://www.facebook.com/legal/commercial_terms_preview
+  - title: "News Publishers Deliver Letter to Meta Demanding It Withdraw New Harmful Terms of Use (News/Media Alliance)"
+    url: https://www.newsmediaalliance.org/letter-to-meta-demanding-withdrawal-of-new-terms-of-use/
 ---
 
 Update, 17 October 2026. The sentence that said Meta may train on pages it crawls is gone from the commercial-terms preview. The preview still authorizes crawlers on domains tied to a business user's products, and it still says the update takes effect on 30 October 2026. This follows [the 16 October report](/posts/meta-commercial-terms-crawl-train-ai/) on the earlier wording.
@@ -62,3 +68,13 @@ O'Brien writes that spokesperson Daniel Roberts sent a follow-up statement that 
 That statement is Roberts, via The Verge. The preview does not print it. Earlier comments from Roberts and from Andy Stone, and the readings Nieman Lab gathered from legal experts, are in the [16 October report](/posts/meta-commercial-terms-crawl-train-ai/).
 
 The preview still says: "If you do not agree to the updated terms, you may stop all access or use of our Products for business or commercial purposes." What changed on the preview is the stated purpose of the crawl, and the removal of "train."
+
+## Update, 23 October 2026: Meta pushes the effective date to 20 November
+
+Meta has moved the new commercial terms from 30 October to 20 November 2026. An [archive capture](https://web.archive.org/web/20261023150605/https://www.facebook.com/legal/commercial_terms_preview) of the preview from 15:06 UTC on 23 October reads: "These updates will go into effect on November 20, 2026," and its footer says "Effective Date: November 20, 2026." The crawler paragraph quoted above reads word for word the same in that capture, and the word "train" still does not appear on the page.
+
+[The Verge](https://www.theverge.com/tech/1017450/meta-business-terms-delayed-ai-scraping) reports that spokesperson Daniel Roberts gave the reason as "to allow more time for us to explain to our partners and stakeholders what's changing and what's not," including "how Meta uses web crawlers and the fact that content owners will still be able to use robots.txt to signal preferences." Those quotes are Roberts, via The Verge.
+
+The delay follows publisher pressure. The [News/Media Alliance](https://www.newsmediaalliance.org/letter-to-meta-demanding-withdrawal-of-new-terms-of-use/), which says it represents over 2,000 publishers, sent Mark Zuckerberg a letter asking Meta to withdraw the crawling provision. The letter argues that publishers "cannot practically disallow or block Meta's crawlers without harming their ability to promote content as a business account user." The Verge also reports that advertisers and publishers in the EU and the UK urged regulators to stop the terms.
+
+What has not changed: in the 23 October capture, the crawl paragraph is the same as on 17 October. Only the date moved. If you run a business account on Meta's platforms and object to the crawl permission, you now have until 20 November to decide what to do, rather than 30 October.
