@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
-import { introParagraphs, orderWriterCards, reservedTopLevelNames, splitPoems, writerPageIds, isFeaturedWriter, isLegacyWriterAliasPath, writerAuthorPath, writerRole, writerNoun, personalOpinionDisclosure } from './writer-pages.ts';
+import { authorProfileSlug, authorProfileSlugs, introParagraphs, orderWriterCards, reservedTopLevelNames, splitPoems, writerPageIds, isFeaturedWriter, isLegacyWriterAliasPath, writerAuthorPath, writerRole, writerNoun, personalOpinionDisclosure } from './writer-pages.ts';
 
 const author = (id: string, kind: 'human' | 'bot' | 'ai') => ({ id, data: { kind } });
 
@@ -89,7 +89,7 @@ test('featured selection is independent of canonical URLs and historical aliases
   ];
   assert.deepEqual(writers.filter(isFeaturedWriter).map((a) => a.id), ['mai', 'new-human']);
   assert.deepEqual(writerPageIds(writers, new Set()), ['mai']);
-  assert.deepEqual(writers.map(writerAuthorPath), ['/authors/mai/', '/authors/new-human/', '/authors/wiz-cat/', '/authors/private-ai/', '/authors/desk-bot/']);
+  assert.deepEqual(writers.map(writerAuthorPath), ['/authors/mai/', '/authors/new-human/', '/authors/michel/', '/authors/private-ai/', '/authors/desk-bot/']);
   assert.deepEqual(writers.map(writerRole), ['Featured writer', 'Human writer', 'Human editor', 'Featured writer', 'News bot']);
   assert.equal(writerNoun(writers[1]), 'a human writer');
   assert.equal(writerNoun(writers[2]), 'a human editor');
@@ -136,4 +136,13 @@ test('opinion disclosure defaults off and explicit opt-in is reusable across aut
     assert.ok(opinion?.disclaimer.includes('do not necessarily reflect AI Tamer'));
     assert.ok(opinion?.disclaimer.includes('sourcing and correction standards'));
   }
+});
+
+
+test('public Michel slug preserves the stored ID and rejects canonical collisions', () => {
+  assert.equal(authorProfileSlug('wiz-cat'), 'michel');
+  assert.equal(authorProfileSlug('constructor'), 'constructor');
+  assert.deepEqual(authorProfileSlugs(['wiz-cat', 'mai']), ['michel', 'mai']);
+  assert.throws(() => authorProfileSlugs(['wiz-cat', 'michel']), /collision: michel/);
+  assert.throws(() => authorProfileSlugs(['michel', 'wiz-cat']), /collision: michel/);
 });

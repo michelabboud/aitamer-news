@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import { isFeaturedWriter, splitPoems, writerAuthorPath, writerNoun } from '../../lib/writer-pages.ts';
+import { isFeaturedWriter, splitPoems, writerAuthorPath, writerNoun, authorProfileSlugs } from '../../lib/writer-pages.ts';
 import { jsonLdAuthorType } from '../../lib/author-kinds.ts';
 import { toJsonLd } from '../../lib/json-ld';
 import WriterProfile from '../../components/WriterProfile.astro';
@@ -11,7 +11,8 @@ import { SITE, canonicalUrlFor, entryStamp, getPostsByAuthor, getPublishedPosts,
 export async function getStaticPaths() {
   const authors = await getCollection('authors');
   const posts = await getPublishedPosts();
-  return authors.map((author) => {
+  const slugs = authorProfileSlugs(authors.map((author) => author.id));
+  return authors.map((author, index) => {
     const stamps = [
       entryStamp(author),
       ...posts
@@ -20,9 +21,9 @@ export async function getStaticPaths() {
         .sort(),
     ];
     return {
-      params: { id: author.id },
+      params: { id: slugs[index] },
       props: { author },
-      cacheKey: stamps.join('|'),
+      cacheKey: `${slugs[index]}|${stamps.join('|')}`,
     };
   });
 }

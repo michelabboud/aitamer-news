@@ -7,7 +7,7 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isOwnedWriterRedirect, reservedTopLevelNames, writerPageIds } from '../src/lib/writer-pages.ts';
+import { isOwnedWriterRedirect, reservedTopLevelNames, writerPageIds, authorProfileSlug, authorProfileSlugs, writerAuthorPath } from '../src/lib/writer-pages.ts';
 
 const STATIC_RULE_LIMIT = 2000;
 const DYNAMIC_RULE_LIMIT = 100;
@@ -40,18 +40,30 @@ export function validateRedirectLimits(text) {
  * @param {{pages?: readonly string[], assets?: readonly string[]}} [entries]
  */
 export function renderWriterRedirects(existing, authorIds, { pages = [], assets = [] } = {}) {
+  authorProfileSlugs(authorIds);
   const authors = authorIds.map((id) => ({ id, data: { kind: /** @type {'ai'} */ ('ai') } }));
   const aliases = writerPageIds(authors, reservedTopLevelNames(pages, assets, existing));
   const present = new Set(authorIds);
+  const profileRules = authorIds.filter((id) => authorProfileSlug(id) !== id).flatMap((id) => [
+    `/authors/${id}/ ${writerAuthorPath({ id })} 301`,
+    `/authors/${id} ${writerAuthorPath({ id })} 301`,
+  ]);
+  const profileSources = new Set(profileRules.map((rule) => rule.split(' ')[0]));
+  for (const line of ruleLines(existing)) {
+    const [from, to, status, ...extra] = line.split(/\s+/);
+    if (profileSources.has(from) && (extra.length || !isOwnedWriterRedirect(from, to, status))) {
+      throw new Error(`writer redirects: conflicting profile redirect for ${from}`);
+    }
+  }
   // Exact owned rules in source can survive a later sync, but not create dead sparse-template URLs.
   const source = existing.split('\n').filter((line) => {
     const [from, to, status, ...extra] = line.trim().split(/\s+/);
     return !(extra.length === 0 && isOwnedWriterRedirect(from, to, status));
   }).join('\n').trimEnd();
-  const rules = aliases.filter((id) => present.has(id)).flatMap((id) => [
-    `/${id}/ /authors/${id}/ 301`,
-    `/${id} /authors/${id}/ 301`,
-  ]);
+  const rules = [...profileRules, ...aliases.filter((id) => present.has(id)).flatMap((id) => [
+    `/${id}/ ${writerAuthorPath({ id })} 301`,
+    `/${id} ${writerAuthorPath({ id })} 301`,
+  ])];
   // Put exact aliases before any existing dynamic rules. Existing rules retain their relative order.
   const text = `${GENERATED_COMMENT}\n${rules.join('\n')}${rules.length ? '\n' : ''}${source}\n`;
   validateRedirectLimits(text);

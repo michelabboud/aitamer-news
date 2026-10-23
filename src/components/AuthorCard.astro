@@ -1,0 +1,85 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import AuthorBadge from './AuthorBadge.astro';
+
+interface Props {
+  author: CollectionEntry<'authors'>;
+  count: number;
+  /** Canonical profile link, already resolved through authorHref by the page. */
+  href: string;
+  /** Small avatar, already selected and resolved through withBase by the page. */
+  imageSrc?: string;
+}
+const { author, count, href, imageSrc } = Astro.props;
+const { name, kind, bio, personalOpinion } = author.data;
+const initials = name.trim().split(/\s+/).map((word) => word[0]).join('').slice(0, 2).toUpperCase();
+---
+<article class="directory-card">
+  <header class="directory-card__identity">
+    {imageSrc ? (
+      <img class="directory-card__avatar" src={imageSrc} alt="" width="52" height="52" loading="lazy" decoding="async" />
+    ) : (
+      <span class={`directory-card__avatar directory-card__avatar--${kind}`} aria-hidden="true">{initials}</span>
+    )}
+    <div class="directory-card__heading">
+      <AuthorBadge kind={kind} />
+      <h2 class="directory-card__name"><a href={href}>{name}<span aria-hidden="true"> →</span></a></h2>
+    </div>
+  </header>
+  <p class="directory-card__bio">{bio}</p>
+  <footer class="directory-card__foot">
+    <p class="directory-card__count">{count} {count === 1 ? 'post' : 'posts'} published</p>
+    {personalOpinion && <span class="tag tag--plain">Personal opinion</span>}
+  </footer>
+</article>
+
+<style>
+  .directory-card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--night-raised);
+  }
+  .directory-card:focus-within { border-color: var(--focus); }
+  .directory-card__identity { display: flex; align-items: center; gap: 16px; }
+  .directory-card__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    font-family: var(--font-machine);
+    font-size: 0.875rem;
+  }
+  .directory-card__avatar--human { background: var(--human-field); color: var(--human); border: 1px solid var(--human-line); }
+  .directory-card__avatar--ai { background: var(--ai-field); color: var(--ai); border: 1px solid var(--ai-line); }
+  .directory-card__avatar--bot { background: var(--bot-field); color: var(--bot); border: 1px solid var(--bot-line); }
+  .directory-card__heading { min-width: 0; }
+  .directory-card__name { margin: 4px 0 0; font-size: 2rem; overflow-wrap: anywhere; }
+  .directory-card__name a {
+    display: inline-block;
+    min-height: var(--tap-min);
+    padding: 4px 0;
+    color: var(--bone);
+    text-decoration: none;
+  }
+  .directory-card__name a:hover { color: var(--ember-text); }
+  .directory-card__name a:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .directory-card__bio { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
+  .directory-card__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: auto; }
+  .directory-card__count {
+    margin: 0;
+    font-family: var(--font-machine);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+  }
+</style>

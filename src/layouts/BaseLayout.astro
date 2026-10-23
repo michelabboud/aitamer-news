@@ -73,6 +73,7 @@ const writerLinks = orderWriterCards((await getCollection('authors')).filter(isF
 /** Station links: the top bar on wide screens, the menu on phones. */
 const STATION_LINKS = [
   ...writerLinks,
+  { href: "/authors/", label: "Authors" },
   { href: '/search/', label: 'Search' },
   { href: '/about/', label: 'About' },
   { href: '/campfire/', label: 'Campfire' },
@@ -248,7 +249,7 @@ const STATION_LINKS = [
         <nav aria-labelledby="footer-station">
           <h2 id="footer-station">Station</h2>
           <a href={withBase('/about/')} aria-current={current('/about/')}>About</a>
-          <a href={withBase('/about/#tamers')}>The Tamers</a>
+          <a href={withBase('/authors/')}>Authors</a>
           <a href={withBase('/campfire/')} aria-current={current('/campfire/')}>The Campfire</a>
           <a href={withBase('/about/?topic=sighting#contact')}>Report a sighting</a>
           <a href={withBase('/about/#contact')}>Contact</a>

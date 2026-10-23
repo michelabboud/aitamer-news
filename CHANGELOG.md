@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.108 · 2026-10-23
+
+Add the all-author cards directory at /authors/, canonical /authors/michel/ with exact old-profile redirects, and bounded automatic homepage loading. Independent settings start with 12 stories, add 12 per batch, and stop after five automatic batches. Preserve archive/footer access, responsive WebP/JPEG delivery, analytics and author IDs. Validate static fragments and restore reading position safely across errors and browser navigation.
+
 ## 0.2.101 · 2026-10-23
 
 Keep small ordinary-profile avatars in the profile UI and structured author data while using the default landscape site image for social previews. This prevents the new128px avatar from becoming a large social card. Featured profile portraits retain their existing metadata behavior.

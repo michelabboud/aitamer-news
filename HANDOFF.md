@@ -1,5 +1,7 @@
 # Handoff
 
+**Current source task:** [Author directory and bounded homepage](docs/reports/2026-10-23-author-directory-home-feed.md), checkpoint 0.2.108. Local checks and focused reviews pass; final production review, protected PR, measurements and live acceptance remain pending. Existing deployed author/image work remains live until that merge.
+
 **Current handoff:** [Author profiles and security headers](docs/handoffs/2026-10-23-author-profiles-security-headers.md),2026-10-23.
 
 **Where we are:**

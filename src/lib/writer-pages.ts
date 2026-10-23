@@ -19,9 +19,27 @@ export function isFeaturedWriter(author: WriterAuthor): boolean {
   return author.data.kind !== 'bot' && (author.data.featured ?? author.data.kind === 'ai');
 }
 
+/** Public profile names can change while stored author IDs and article references stay fixed. */
+const AUTHOR_PROFILE_SLUG_OVERRIDES: ReadonlyMap<string, string> = new Map([['wiz-cat', 'michel']]);
+
+export function authorProfileSlug(id: string): string {
+  return AUTHOR_PROFILE_SLUG_OVERRIDES.get(id) ?? id;
+}
+
+/** Fail before generating two authors at the same public address. */
+export function authorProfileSlugs(ids: readonly string[]): string[] {
+  const slugs = ids.map(authorProfileSlug);
+  const seen = new Set<string>();
+  for (const slug of slugs) {
+    if (seen.has(slug)) throw new Error(`author profile URL collision: ${slug}`);
+    seen.add(slug);
+  }
+  return slugs;
+}
+
 /** Every author has one canonical URL, independent of homepage prominence. */
-export function writerAuthorPath(author: WriterAuthor): string {
-  return `/authors/${author.id}/`;
+export function writerAuthorPath(author: Pick<WriterAuthor, 'id'>): string {
+  return `/authors/${authorProfileSlug(author.id)}/`;
 }
 
 /** Historical public URLs only: future writers never claim new top-level names. */
@@ -36,7 +54,9 @@ export function isLegacyWriterAliasPath(pathname: string, base = '/'): boolean {
 /** Only the exact owned 301 is exempt from redirect-source collision checks. */
 export function isOwnedWriterRedirect(source: string, target: string, status: string): boolean {
   return LEGACY_WRITER_ALIASES.some((id) =>
-    (source === `/${id}` || source === `/${id}/`) && target === `/authors/${id}/` && status === '301');
+    (source === `/${id}` || source === `/${id}/`) && target === writerAuthorPath({ id }) && status === '301')
+    || [...AUTHOR_PROFILE_SLUG_OVERRIDES.keys()].some((id) =>
+      (source === `/authors/${id}` || source === `/authors/${id}/`) && target === writerAuthorPath({ id }) && status === '301');
 }
 
 /** Featured human contributors are writers; unfeatured humans retain the editor role. */

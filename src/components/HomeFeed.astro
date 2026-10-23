@@ -1,0 +1,57 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { FeedManifest } from '../lib/home-feed-client.ts';
+import PostCard from './PostCard.astro';
+import { withBase } from '../lib/site';
+
+interface Props {
+  cards: CollectionEntry<'posts'>[];
+  authorOf: (post: CollectionEntry<'posts'>) => CollectionEntry<'authors'>;
+  manifest: FeedManifest;
+  initialIds: string[];
+}
+const { cards, authorOf, manifest, initialIds } = Astro.props;
+---
+<section
+  aria-labelledby="latest-title"
+  data-home-feed
+  data-snapshot={manifest.snapshot}
+  data-initial-count={manifest.initialCount}
+  data-initial-limit={manifest.initialLimit}
+  data-batch-size={manifest.batchSize}
+  data-batch-count={manifest.batchCount}
+  data-planned-count={manifest.plannedCount}
+  data-max-auto-batches={manifest.maxAutoBatches}
+  data-initial-ids={JSON.stringify(initialIds)}
+  data-batch-prefix={withBase('/home-feed/')}
+>
+  <div class="rule-head">
+    <h2 id="latest-title">Latest sightings</h2>
+    <a class="more" href={withBase('/news/')}>View all News →</a>
+  </div>
+  {manifest.initialCount === 0 && <p>No sightings have been published yet.</p>}
+  <ul class="cards" data-home-feed-cards aria-busy="false">
+    {cards.map((post) => (
+      <li data-home-post={post.id} id={`home-post-${post.id}`}><PostCard post={post} author={authorOf(post)} context="home-card" heading="h3" /></li>
+    ))}
+  </ul>
+  <div class="home-feed__sentinel" data-home-feed-sentinel aria-hidden="true"></div>
+  <p class="muted" data-home-feed-status role="status" aria-live="polite" aria-atomic="true"></p>
+  <div data-home-feed-error hidden>
+    <button class="button button--outline" type="button" data-home-feed-retry>Retry</button>
+    <a class="more" href={withBase('/')} data-home-feed-refresh>Refresh this page →</a>
+  </div>
+  <p><a class="more" href={withBase('/news/')}>View all News →</a></p>
+</section>
+
+<script>
+  import { mountHomeFeed } from '../lib/home-feed-browser.ts';
+  document.querySelectorAll<HTMLElement>('[data-home-feed]').forEach(mountHomeFeed);
+</script>
+
+<style>
+  .home-feed__sentinel { height: 1px; }
+  [data-home-feed-status]:empty { display: none; }
+  [data-home-feed-error] { align-items: center; gap: 1rem; }
+  [data-home-feed-error]:not([hidden]) { display: flex; }
+</style>
