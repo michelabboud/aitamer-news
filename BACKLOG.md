@@ -151,3 +151,5 @@ Dated one-liners for everything deferred or spotted and not done. Format: `date 
 
 
 - 2026-10-18 | producer contract | External uploader services must supply both hero formats before publication; this site change enforces the media contract and updates guides but does not qualify or modify those services. | integration evidence required per producer
+
+- Responsive-image capacity: ADR0043 adds two local assets per unique hero. Move qualified delivery variants to external storage before the existing16000-file warning, preserving immutable original pairs, quality admission and JPEG fallback. Historical9900-post capacity estimates no longer apply.

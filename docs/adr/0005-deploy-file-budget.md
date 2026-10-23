@@ -35,3 +35,7 @@ Each post costs about three deploy files: its page, its hero JPEG (`public/heroe
 ## Status
 
 Accepted, 2026-09-25. Step 3.1 superseded in part by ADR 0020.
+
+## 2026-10-23 responsive-delivery amendment
+
+The historical capacity table above predates ADR0043. Original hero pairs remain on R2, but two generated WebP delivery sizes per optimized unique hero now ship with the site. Add those two files to the former per-post estimate, plus search/index overhead. The old approximately9900-post estimate therefore no longer applies. Keep the existing measured-count warning/failure gates; plan external storage of delivery variants before that warning threshold. See ADR0043 and `docs/reports/2026-10-23-responsive-image-delivery.md` for the current measured build.
