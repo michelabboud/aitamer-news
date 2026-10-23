@@ -27,3 +27,7 @@ Current-byte verification retains network hashing to detect changed originals; i
 ## Close-out confirmation
 
 Decision, operator guide, plan, changelog and handoff updated; checkpoint0.2.112 reserved after local/remote SemVer reconciliation. Source PR, checkpoint push, exact final review binding and live acceptance are pending and will be recorded in the private handoff/PR acceptance receipt. Existing Authors/home-feed PR324 is separately merged and verified live.
+
+## Hosted qualification successor · 0.2.113
+
+Hosted run40034787986passed all1205routine tests and the1128-page build with4051current image bodies verified, without an FFmpeg install step. Parallel PR run40034902619cancelled only the original20secondaggregate browser test;1204others passed. Both results are preserved. A failing Chrome launch reproduced unbounded pending calls and lost diagnostics in the unchanged harness. The successor adds command/process/pipe failure bounds and evidence preservation; all71original assertions/scenarios remain, with a90secondaggregate budget. Six transport tests plus the real browser qualification pass (7/7, no skips), and a fake Chrome exit7fails promptly with retained diagnostic files. Application image behavior/qualification is unchanged from0.2.112.

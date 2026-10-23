@@ -7,11 +7,14 @@ import { stripTypeScriptTypes } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { ChromePipeHarness } from './browser-cdp-harness.ts';
 
 const STALE_SETTLE_TIMEOUT_MS = 2000;
 const STALE_SETTLE_POLL_MS = 20;
+// This aggregate qualification covers scroll loading, suspension, restoration and keyboard focus.
+const BROWSER_QUALIFICATION_TIMEOUT_MS = 90_000;
 
-test('native anchoring cannot turn one scroll into five loads; continued scrolling and suspension still work', { timeout: 20000 }, async (t) => {
+test('native anchoring cannot turn one scroll into five loads; continued scrolling and suspension still work', { timeout: BROWSER_QUALIFICATION_TIMEOUT_MS }, async (t) => {
   if (spawnSync('google-chrome', ['--version'], { stdio: 'ignore' }).error) {
     t.skip('google-chrome is unavailable; Chromium scroll-anchoring qualification requires this focused test');
     return;
@@ -47,31 +50,25 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
   const fixture = join(directory, 'index.html');
   await writeFile(fixture, html);
   const chrome = spawn('google-chrome', ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--allow-file-access-from-files', '--remote-debugging-pipe', `--user-data-dir=${join(directory, 'profile')}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe', 'pipe', 'pipe'] });
-  t.after(() => { if (chrome.exitCode === null) chrome.kill(); });
-  let id = 0;
-  let buffer = '';
-  let stderr = '';
-  const pending = new Map<number, { resolve: (value: any) => void; reject: (error: unknown) => void }>();
+  const harness = new ChromePipeHarness(chrome);
   let handleEvent: (message: any) => void = () => {};
-  chrome.stderr?.on('data', (bytes) => { stderr += bytes; });
-  const input = chrome.stdio[3] as NodeJS.WritableStream;
-  const output = chrome.stdio[4] as NodeJS.ReadableStream;
-  output.on('data', (bytes) => {
-    buffer += bytes.toString();
-    let end: number;
-    while ((end = buffer.indexOf('\0')) >= 0) {
-      const message = JSON.parse(buffer.slice(0, end)); buffer = buffer.slice(end + 1);
-      if (message.id) {
-        const waiter = pending.get(message.id); pending.delete(message.id);
-        if (message.error) waiter?.reject(message.error); else waiter?.resolve(message.result);
-      } else handleEvent(message);
-    }
-  });
-  const call = (method: string, params: object = {}, sessionId?: string) => new Promise<any>((resolve, reject) => {
-    const next = ++id; pending.set(next, { resolve, reject });
-    input.write(JSON.stringify({ id: next, method, params, ...(sessionId ? { sessionId } : {}) }) + '\0');
-  });
+  harness.onEvent = (message) => handleEvent(message);
+  const call = (method: string, params: object = {}, sessionId?: string) => harness.call(method, params, sessionId);
   const results: unknown[] = [];
+  let failure: unknown;
+  let cleanupTask: Promise<void> | undefined;
+  const cleanup = () => cleanupTask ??= (async () => {
+    try { await harness.shutdown(); }
+    finally {
+      await Promise.all([
+        writeFile(join(directory, 'results.json'), JSON.stringify(results, null, 2)),
+        writeFile(join(directory, 'chrome-stderr.txt'), harness.stderr),
+        writeFile(join(directory, 'harness-diagnostic.txt'), `${failure instanceof Error ? failure.stack : failure ?? ''}\n${harness.diagnostics()}`),
+      ]);
+    }
+  })();
+  t.after(cleanup);
+  t.signal.addEventListener('abort', () => harness.abort('Browser qualification aborted'), { once: true });
   try {
     const { targetId } = await call('Target.createTarget', { url: 'about:blank' });
     const { sessionId } = await call('Target.attachToTarget', { targetId, flatten: true });
@@ -249,7 +246,8 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
           await call('Fetch.fulfillRequest', { requestId, responseCode: 200, responseHeaders: [{ name: 'content-type', value: page ? 'text/html' : 'text/javascript' }], body: Buffer.from(body).toString('base64') }, sessionId);
         } catch (error) {
           interceptionErrors.push(String(error));
-          await call('Fetch.failRequest', { requestId, errorReason: 'Failed' }, sessionId);
+          await call('Fetch.failRequest', { requestId, errorReason: 'Failed' }, sessionId)
+            .catch((failure) => { interceptionErrors.push(String(failure)); });
         }
       })();
     };
@@ -327,11 +325,9 @@ test('native anchoring cannot turn one scroll into five loads; continued scrolli
     assert.deepEqual(result.calls, []); assert.equal(result.cards, 12);
     assert.equal(result.anchor, 'auto'); assert.equal(result.priority, 'important');
     assert.equal(result.behavior, 'smooth'); assert.equal(result.behaviorPriority, 'important'); assert.equal(result.fixture, 'keep');
-  } finally {
-    try { await call('Browser.close'); }
-    finally {
-      await writeFile(join(directory, 'results.json'), JSON.stringify(results, null, 2));
-      await writeFile(join(directory, 'chrome-stderr.txt'), stderr);
-    }
-  }
+  } catch (error) {
+    failure = error;
+    await cleanup();
+    throw new Error(`${error instanceof Error ? error.stack : String(error)}\n${harness.diagnostics()}`, { cause: error });
+  } finally { await cleanup(); }
 });
