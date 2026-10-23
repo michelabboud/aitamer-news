@@ -101,7 +101,7 @@ const writers = orderedAuthors.filter((author) => isFeaturedWriter(author) || au
           <article class="lead__story">
             <a class="lead__photo-link" href={postHref(lead)} tabindex="-1" aria-hidden="true">
               <figure class="specimen-photo">
-                <HeroImage src={postCoverSource(lead)} alt="" width="1600" height="1200" fetchpriority="high" decoding="async" />
+                <HeroImage src={postCoverSource(lead)} alt="" width="1600" height="1200" fetchpriority="high" decoding="async" context="lead" />
                 {lead.data.specimen && <SpecimenTag specimen={lead.data.specimen} habitat={leadHabitat} />}
               </figure>
             </a>
@@ -143,7 +143,7 @@ const writers = orderedAuthors.filter((author) => isFeaturedWriter(author) || au
           </div>
           <ul class="cards">
             {featured.map((post) => (
-              <li><PostCard post={post} author={authorOf(post)} /></li>
+              <li><PostCard post={post} author={authorOf(post)} context="home-card" /></li>
             ))}
           </ul>
         </section>

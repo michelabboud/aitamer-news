@@ -21,8 +21,9 @@ interface Props {
   eager?: boolean;
   /** h3 under a section heading (home), h2 directly under the page title (listings). */
   heading?: 'h2' | 'h3';
+  context?: 'home-card' | 'listing';
 }
-const { post, author, showDesc = false, eager = false, heading = 'h3' } = Astro.props;
+const { post, author, showDesc = false, eager = false, heading = 'h3', context = 'listing' } = Astro.props;
 const Heading = heading;
 const habitat = habitatOfPost(post);
 const href = postHref(post);
@@ -39,6 +40,7 @@ const kind = author.data.kind;
       height="900"
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
+      context={context}
     />
     {specimen && <span class="card__no">No.{formatSpecimen(specimen)}</span>}
   </a>
