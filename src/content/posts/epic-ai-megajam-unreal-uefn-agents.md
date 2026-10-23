@@ -27,7 +27,7 @@ sources:
     url: https://itch.io/jam/2026-epic-ai-megajam
 ---
 
-Epic Games has [announced the 2026 Epic AI MegaJam](https://www.unrealengine.com/news/2026-epic-ai-megajam), a four-day game jam where AI tools are not just allowed but the point. Teams build a playable game in Unreal Engine or Unreal Editor for Fortnite (UEFN) and can bring "any AI tools", from asset generation to coding agents.
+Epic Games has [announced the 2026 Epic AI MegaJam](https://www.unrealengine.com/news/2026-epic-ai-megajam), a four-day game jam built around AI tools. Teams build a playable game in Unreal Engine or Unreal Editor for Fortnite (UEFN) and can bring "any AI tools", from asset generation to coding agents.
 
 ## The format
 
