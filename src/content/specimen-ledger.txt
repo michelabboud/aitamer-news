@@ -1004,3 +1004,9 @@
 1001 canva-craft-image-model-api-craft-v1-2k
 1002 nvidia-dynamo-1-6-rust-endpoint-picker-coding-agent-serving
 1003 microsoft-mai-dxo-sequential-diagnosis-science-peer-reviewed
+1004 gemini-api-cli-preview-coding-agents
+1005 did-you-know-claude-apps-auto-mode-default
+1006 ibm-vllm-hook-mia-runtime-steering-cuda-graphs
+1007 meta-muse-agent-launches-japan
+1008 artificial-analysis-coding-agent-index-v2-frontiercode
+1009 ai-image-models-flux
