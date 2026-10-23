@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.95 · 2026-10-23
+
+Update the privacy page revision date to match the clarified script-loading and timing disclosures.
+
 ## 0.2.94 · 2026-10-23
 
 - Clarify the privacy page for the deferred-script change: analytics starts on input, and the comment timing value is measured from page initialization or the last successful submission, including collapsed time.
