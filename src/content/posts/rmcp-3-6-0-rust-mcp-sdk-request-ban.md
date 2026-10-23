@@ -35,6 +35,12 @@ sources:
     url: https://crates.io/crates/rmcp/3.6.0
   - title: "MCP gives AI applications a common way to connect tools and context"
     url: https://aitamer.news/posts/mcp-explained/
+  - title: "GHSA-4432-vg92-fqh6: unbounded tool schema cache in StreamableHttpService"
+    url: https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-4432-vg92-fqh6
+  - title: "GHSA-5p52-q7pq-9fq2: incomplete fix for OAuth SSRF checks"
+    url: https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-5p52-q7pq-9fq2
+  - title: "rmcp-v3.7.0 release (GitHub)"
+    url: https://github.com/modelcontextprotocol/rust-sdk/releases/tag/rmcp-v3.7.0
 ---
 
 [rmcp 3.6.0](https://github.com/modelcontextprotocol/rust-sdk/releases/tag/rmcp-v3.6.0), the Model Context Protocol project's official Rust SDK, was published to [crates.io](https://crates.io/crates/rmcp/3.6.0) on 20 October. It does not add support for the 2026-07-28 spec; rmcp 3.5.1 already treated 2026-07-28 as its latest protocol version. What 3.6.0 does is enforce one of that spec's rules, and that fixes a bug that failed silently.
@@ -65,3 +71,9 @@ The release also adds opt-in initial scope selection for OAuth, a non-blocking `
 ## Why it matters
 
 The 2026-07-28 spec changed how [MCP](https://aitamer.news/posts/mcp-explained/) servers ask clients for help. A port that compiles but hangs on the first sampling call is the worst kind of migration bug. With 3.6.0 it fails loudly instead.
+
+## Update, 23 October 2026: two advisories, and 3.7.0
+
+This post said the two transport fixes above had no security advisory. That is still true of them, but 3.6.0 also closed a separate High-severity advisory, published on 20 October, that we missed. [GHSA-4432-vg92-fqh6](https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-4432-vg92-fqh6) covers versions 3.0.0 up to 3.6.0: the `StreamableHttpService` cached tool schemas without a limit, so a client on protocol 2026-07-28 or later could exhaust server memory, without logging in if no auth layer sits in front. If you cannot upgrade, put authentication in front of the server or reject unknown tool names.
+
+A second advisory, [GHSA-5p52-q7pq-9fq2](https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-5p52-q7pq-9fq2), rated Moderate and published 22 October, affects 2.0.0 through 3.6.0, so 3.6.0 is not enough. An earlier fix for server-side request forgery in OAuth discovery checked host names as text, missed bracketed IPv6 addresses and skipped the token and registration endpoints. [rmcp 3.7.0](https://github.com/modelcontextprotocol/rust-sdk/releases/tag/rmcp-v3.7.0), out on 22 October, makes `AuthorizationManager::new` check every resolved address. Single sign-on on a private host name now needs `new_allowing_private_addresses`, and clients built with `new_with_oauth_http_client` still get only the text check. Neither advisory has a CVE number yet.

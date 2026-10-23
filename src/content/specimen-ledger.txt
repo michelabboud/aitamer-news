@@ -998,3 +998,9 @@
 0995 huggingface-carbon-x-open-model-chat-with-dna
 0996 1password-for-agents-approve-sign-ins-without-sharing-passwords
 0997 grok-bot-skills-and-memory
+0998 claude-formal-verification-239-oss-fuzz-entry-points-rocq
+0999 grok-bot-phone-apps-calendar-reminders-messages-home
+1000 pain-axis-study-llms-self-directed-harm-direction
+1001 canva-craft-image-model-api-craft-v1-2k
+1002 nvidia-dynamo-1-6-rust-endpoint-picker-coding-agent-serving
+1003 microsoft-mai-dxo-sequential-diagnosis-science-peer-reviewed

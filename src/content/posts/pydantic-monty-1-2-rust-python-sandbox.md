@@ -55,6 +55,10 @@ sources:
     url: https://aitamer.news/posts/modal-vm-sandboxes-ga/
   - title: "AI Tamer: Test Pydantic AI agents with a fake model instead of the live API"
     url: https://aitamer.news/posts/test-pydantic-ai-agents-with-a-fake-model-instead-of-the-live-api/
+  - title: "pydantic-monty 1.3.0 (PyPI)"
+    url: https://pypi.org/project/pydantic-monty/1.3.0/
+  - title: "Monty v1.3.0 release (GitHub)"
+    url: https://github.com/pydantic/monty/releases/tag/v1.3.0
 ---
 
 Pydantic released [Monty v1.2.0](https://github.com/pydantic/monty/releases/tag/v1.2.0) on 18 October 2026, and the same version went to [PyPI](https://pypi.org/project/pydantic-monty/), [npm](https://www.npmjs.com/package/@pydantic/monty) and [crates.io](https://crates.io/crates/monty) that day. Maintainer Samuel Colvin [announced it on X](https://x.com/samuelcolvin/status/2111884046489772273) the same evening. It is the first time we have covered the project.
@@ -90,3 +94,7 @@ The README says a new sandbox takes "under 1ms" from a running pool, "compared t
 ## Where it fits
 
 A microVM sandbox such as [Perplexity's SPACE](/posts/perplexity-space-rust-sandbox/) or [Modal's VM sandboxes](/posts/modal-vm-sandboxes-ga/) gives code a whole machine and walls it off at the OS. Monty gives code almost nothing, then lets you hand in exactly the functions it may call. That is fast and small, but its safety depends on the interpreter having no bugs and on the host functions you write. [OpenCode 2.0's Code Mode](/posts/opencode-2-0-background-server-code-mode/) takes a similar approach with a small JavaScript interpreter. If you build on Pydantic AI, our [guide to testing agents with a fake model](/posts/test-pydantic-ai-agents-with-a-fake-model-instead-of-the-live-api/) pairs well with it.
+
+## Update, 23 October 2026: 1.3.0 hardens the type checker path
+
+Monty [1.3.0](https://github.com/pydantic/monty/releases/tag/v1.3.0) reached [PyPI](https://pypi.org/project/pydantic-monty/1.3.0/) and npm late on 22 October UTC. Two fixes are relevant to the isolation model above. [#930](https://github.com/pydantic/monty/pull/930) caps how deeply nested the parsed code can be before the type checker walks it, after source that parsed into a very deeply nested tree could overflow the stack and abort the worker process. [#1096](https://github.com/pydantic/monty/pull/1096) updates the bundled root certificates to pull in distrust updates after a certificate authority compromise. Neither comes with a published advisory, so treat them as hardening and upgrade if you run untrusted code through Monty.
