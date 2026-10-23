@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.96 · 2026-10-23
+
+Align the retained-timing bullet with the corrected privacy introduction. Correct the same page's outdated external-font claim: all font sources are existing site assets. Script/token behavior is unchanged.
+
 ## 0.2.95 · 2026-10-23
 
 Update the privacy page revision date to match the clarified script-loading and timing disclosures.
