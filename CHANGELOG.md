@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.101 · 2026-10-23
+
+Keep small ordinary-profile avatars in the profile UI and structured author data while using the default landscape site image for social previews. This prevents the new128px avatar from becoming a large social card. Featured profile portraits retain their existing metadata behavior.
+
 ## 0.2.100 · 2026-10-23
 
 Rename the founding editor display name to Michel while retaining the existing author ID and article references. Add the public GitHub full name, profile link and locally served avatar; ordinary profiles now display configured website links. No invented GitHub biography or personal details.

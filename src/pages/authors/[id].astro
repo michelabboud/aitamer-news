@@ -42,7 +42,7 @@ const cards = await Promise.all(
   }),
 );
 ---
-<BaseLayout title={name} description={bio} image={image}>
+<BaseLayout title={name} description={bio} image={featured ? image : undefined}>
   <script
     slot="head"
     type="application/ld+json"
