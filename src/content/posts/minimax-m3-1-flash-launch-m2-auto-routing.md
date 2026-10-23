@@ -32,6 +32,12 @@ sources:
     url: https://artificialanalysis.ai/models/minimax-m3-1-flash
   - title: "MiniMax on X, 19 October 2026"
     url: https://x.com/MiniMax_AI/status/2112150867868541221
+  - title: "MiniMaxAI/MiniMax-M3.1-Flash (Hugging Face)"
+    url: https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash
+  - title: "MiniMax-M3.1-Flash LICENSE (MiniMax Community License)"
+    url: https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash/blob/main/LICENSE
+  - title: "MiniMax on X, 23 October 2026"
+    url: https://x.com/MiniMax_AI/status/2113436864904610008
 ---
 
 MiniMax released [M3.1 Flash](https://www.minimax.io/blog/minimax-m31f) on 19 October 2026. The Chinese AI company says the model is built for agent work, coding, computer use and security tasks, and it priced it well below most frontier APIs. The launch also changes what some existing MiniMax customers are running, whether or not they asked for it.
@@ -85,3 +91,9 @@ For the wider context on retirements forcing migrations, see our piece on why [y
 ## Update, 20 October 2026: MiniMax names 23 October for the weights
 
 MiniMax's official account [posted on 19 October](https://x.com/MiniMax_AI/status/2112150867868541221) that "Model weights will arrive on Oct 23," which replaces the undated "later" in the launch post. The same post says the Space Bunny model seen on leaderboards was an earlier version of M3.1 Flash. Until a repository appears, it is still a promise.
+
+## Update, 23 October 2026: the weights are public, under a custom licence
+
+MiniMax [posted](https://x.com/MiniMax_AI/status/2113436864904610008) early on 23 October that the weights are public, and the [Hugging Face repository](https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash) is open with no access gate. The model card lists about 428B total parameters with 23B active per token, up to 1M tokens of context, and text, image and video input. The checkpoint ships quantized: its config uses MXFP8 with NVFP4 experts, which is why Hugging Face's size counter shows about 220B rather than 428B.
+
+Read the [licence](https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash/blob/main/LICENSE) before calling it open source. The MiniMax Community License allows non-commercial use freely. Commercial use, including fine-tuned versions and serving it through an API, requires a prominent "Built with MiniMax M3.1-Flash" notice and a one-time notice to MiniMax, and companies with more than $20 million a year in revenue need prior written permission. Military use is among the prohibited uses. MiniMax also names day-0 serving partners, including Together, vLLM through Inferact, SGLang and NVIDIA NeMo.
