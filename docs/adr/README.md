@@ -48,3 +48,5 @@
 - [Owner-approved image updates from bots](0040-owner-approved-image-updates.md) — implemented2026-10-20; owner-only exact-head GitHub Actions approval, isolated validation and protected merging for image-only proposals; article permissions stay fixed.
 
 - [0041 · Defer reader provider scripts](0041-defer-reader-provider-scripts.md) — verification on comment disclosure; analytics on trusted input; token and DOM protections preserved.
+
+- [0044 · Bounded static homepage feed](0044-bounded-static-homepage-feed.md) — inert static fragments, independent initial/batch/automatic limits and complete archive fallback; protected author identities.

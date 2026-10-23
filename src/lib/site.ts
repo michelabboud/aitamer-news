@@ -6,6 +6,7 @@ import { HABITATS, HABITAT_META, isHabitat, type Habitat } from './habitats.ts';
 import { isLive } from './schedule.ts';
 import { HABITAT_LIST, habitatOf, type HabitatView } from './bestiary.ts';
 import { SITE } from './site-meta.ts';
+import { writerAuthorPath } from './writer-pages.ts';
 
 export { HABITATS, HABITAT_META, LEGACY_SECTIONS, type Habitat } from './habitats.ts';
 
@@ -214,7 +215,7 @@ export function archiveHref(year?: string, month?: string): string {
 }
 
 export function authorHref(id: string): string {
-  return withBase(`/authors/${id}/`);
+  return withBase(writerAuthorPath({ id }));
 }
 
 export function isSection(value: string): value is Section {

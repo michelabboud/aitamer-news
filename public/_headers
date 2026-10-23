@@ -20,6 +20,9 @@ https://:project.pages.dev/*
   X-Robots-Tag: noindex
 https://:version.:project.pages.dev/*
   X-Robots-Tag: noindex
+# Homepage batches are reader fragments; the News archive is the crawlable listing.
+/home-feed/*
+  X-Robots-Tag: noindex
 # Keep this global block last: scripts/csp-headers.mjs appends the policy inside it. Pages keeps
 # only the last block for a repeated rule pattern, so a second /* would discard these headers.
 # Pages must not be framed. Unused device/payment capabilities are disabled; playback and

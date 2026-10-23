@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.111 · 2026-10-24
+
+Integrate accepted current-main stories, correction and trusted ledger entries before publishing the author directory and bounded homepage. Feature runtime code is unchanged from the fully reviewed controlled candidate. Requalify the current-base artifact and retain the controlled-data measurements separately.
+
+## 0.2.110 · 2026-10-24
+
+Use one temporary document scroll policy while automatic batches remain, restoring exact prior declarations afterward. Preserve focus from both disappearing recovery controls. On explicit Retry with focus elsewhere, restore the pre-insertion viewport after appending and reset the scroll baseline without moving focus. Keep normal physical scrolling, archive/footer access and all prior lifecycle checks.
+
+## 0.2.109 · 2026-10-23
+
+Integrate homepage reading restoration with the existing smooth-scroll CSS: restore saved positions instantly, retain keyboard focus on Refresh after a stale Retry, and scroll the successfully retried story into view instantly so an older focus animation cannot load all remaining batches. Preserve moved-away focus and all prior lifecycle/limit checks.
+
+## 0.2.108 · 2026-10-23
+
+Add the all-author cards directory at /authors/, canonical /authors/michel/ with exact old-profile redirects, and bounded automatic homepage loading. Independent settings start with 12 stories, add 12 per batch, and stop after five automatic batches. Preserve archive/footer access, responsive WebP/JPEG delivery, analytics and author IDs. Validate static fragments and restore reading position safely across errors and browser navigation.
+
 ## 0.2.101 · 2026-10-23
 
 Keep small ordinary-profile avatars in the profile UI and structured author data while using the default landscape site image for social previews. This prevents the new128px avatar from becoming a large social card. Featured profile portraits retain their existing metadata behavior.

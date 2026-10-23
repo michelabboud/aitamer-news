@@ -71,3 +71,23 @@ test('generation writes only dist, is repeatable, and leaves source unchanged on
   assert.equal(readFileSync(target, 'utf8'), first);
   assert.equal(readFileSync(sourcePath, 'utf8'), overflow);
 });
+
+
+test('renamed Michel profile preserves exact old URLs only when its author exists', () => {
+  assert.deepEqual(rules(renderWriterRedirects('', ['wiz-cat'])), [
+    '/authors/wiz-cat/ /authors/michel/ 301',
+    '/authors/wiz-cat /authors/michel/ 301',
+  ]);
+  assert.deepEqual(rules(renderWriterRedirects('', [])), []);
+});
+
+
+test('profile aliases replace stale exact copies and reject conflicting destinations', () => {
+  const old = '/authors/wiz-cat/ /authors/michel/ 301\n/authors/wiz-cat /authors/michel/ 301\n';
+  assert.equal(rules(renderWriterRedirects(old, ['wiz-cat'])).length, 2);
+  assert.deepEqual(rules(renderWriterRedirects(old, [])), []);
+  for (const rule of ['/authors/wiz-cat/ /elsewhere/ 301', '/authors/wiz-cat /authors/michel/ 302']) {
+    assert.throws(() => renderWriterRedirects(rule, ['wiz-cat']), /conflicting profile redirect/);
+  }
+  assert.throws(() => renderWriterRedirects('', ['wiz-cat', 'michel']), /collision: michel/);
+});

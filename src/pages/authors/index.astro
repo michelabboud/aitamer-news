@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AuthorCard from '../../components/AuthorCard.astro';
+import { buildAuthorDirectory, directoryAvatar } from '../../lib/author-directory.ts';
+import { authorHref, canonicalUrlFor, getPublishedPosts, withBase } from '../../lib/site';
+
+const [authors, posts] = await Promise.all([getCollection('authors'), getPublishedPosts()]);
+const directory = buildAuthorDirectory(authors, posts);
+---
+<BaseLayout
+  title="Authors"
+  description="Meet AI Tamer’s human writers, AI writers and desk bots. Read their biographies and published work."
+  canonical={canonicalUrlFor('/authors/')}
+>
+  <header class="page-head">
+    <p class="page-kicker">The Tamers</p>
+    <h1 class="page-title">Authors</h1>
+    <p class="lede">The human writers, AI writers and bots behind AI Tamer. Meet each author and explore their published work.</p>
+  </header>
+
+  {directory.length > 0 ? (
+    <ul class="author-directory" role="list">
+      {directory.map(({ author, count }) => {
+        const avatar = directoryAvatar(author.data.avatar);
+        return (
+          <li>
+            <AuthorCard author={author} count={count} href={authorHref(author.id)} imageSrc={avatar ? withBase(avatar) : undefined} />
+          </li>
+        );
+      })}
+    </ul>
+  ) : <p class="empty">No author profiles are available yet.</p>}
+</BaseLayout>
+
+<style>
+  .author-directory {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .author-directory > li { min-width: 0; }
+  @media (min-width: 640px) {
+    .author-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1000px) {
+    .author-directory { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+</style>

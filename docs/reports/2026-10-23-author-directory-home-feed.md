@@ -1,0 +1,77 @@
+# Author directory and bounded homepage
+
+## What was built
+
+Source checkpoint 0.2.108 adds /authors/ cards for all eight authors, Michel first, using existing biographies, identity kinds, published counts and small avatars or initials. Navigation and footer links expose the directory. The public profile is /authors/michel/; exact old slash and nonslash profile paths redirect permanently. Internal wiz-cat identity and article references remain unchanged.
+
+The homepage initially includes 12 stories counting the lead, adds 12 per automatic batch, and stops after five batches (72 stories maximum). These are independent constants in src/config/home-feed.ts. The footer, lower panels and complete News archive links exist in initial HTML. Five inert static fragment routes use the same card/image rendering and quality gate, remain out of sitemap/search, and receive noindex headers.
+
+The client bounds requests and validates snapshot, cursor, IDs and inert markup before appending. Native scroll anchoring is suppressed while automatic batches remain. Cancellation invalidates producer and lifecycle generations; pending valid reading destinations resume safely after suspension. Error-only Retry, history write limits and exact final saves retain reading continuity.
+
+## Verification evidence
+
+- Full production-content suite: 1215 passed, zero failures or skips. Template: 576 passed, zero failures or skips; 38-page build passed. Sync regressions: 10 passed.
+- Full news build: 1125 pages; 1014 published stories; 5377 files (free-plan cap 20000). All 119058 internal links served. All 41 shipped diagrams are checked rewrites; rendered bodies and secret scans passed.
+- Responsive gate: 1014 hero pairs, 2028 derivative candidates, 2021 admitted and seven normally excluded. Fragment pictures were included. All 2031 hero URLs answered with the correct named JPEG/WebP type in the media check.
+- Built directory has eight unique profile links; counts sum to all 1014 published stories. Canonical Michel route, exact old redirects, sitemap exclusions, initial footer and 72 unique feed entries passed static output checks.
+- All 1014 built story pages retain Google Analytics and Authors navigation, without old-profile links.
+- Independent mechanical and deep reviews found and ruled fixes for history write frequency, append anchoring, restoration cancellation and interrupted replay. The final promoted presentation source matches template revision bcb74ee62424dd9e00594f6430e57b74f3dea63a. Actual Chromium regression and independent reproductions passed. Requested review configurations were owner-admitted Luna/max and Strong Sol/xhigh; native actual model/token telemetry was unavailable.
+
+Final production review, matched performance measurements, genuine navigation probes, hosted checks and public deployment acceptance remain separate pending gates. This source report makes no live or field-performance claim.
+
+## Assumptions made
+
+The initial count includes the lead. The automatic ceiling is additional batches. The complete News archive remains normal navigation and the fallback without JavaScript or observer support. The template intentionally retains its sparse sample content; production uses the full author/post collections. No dependency, service, account setting, admission rule, publication date, specimen or content file changed.
+
+## Concerns and observations
+
+The new controller adds JavaScript and fragment requests; document-size savings are not a claim about total network or LCP. Only Chromium is locally qualified; synthetic persisted lifecycle events are distinct from native back-forward-cache acceptance. Pagefind warns that the intentionally inert fragment files lack html elements; all five remain unindexed and the indexed story count stays 1014. The existing unchanged reader-text/iframe exceptions remain recorded in BACKLOG.md. Failed reproduction/setup evidence and source backups are preserved.
+
+## Close-out confirmation
+
+The source, plan, decision and changelog are recorded in checkpoint 0.2.108. This is a source-only checkpoint; protected PR merge, final reviews, verified deployment and live readback must finish before calling it live. No data, backup, evidence or unrelated work was deleted. Temporary comparison servers are private loopback measurement tools and will be stopped after qualification.
+
+## Actual-site follow-up · 0.2.109
+
+The first source candidate passed hosted checks and both Top source inspections, with real-browser gates explicitly pending. Those gates confirmed the second review's stale-Retry focus concern, plus interaction with the existing site's smooth-scroll CSS: Back restoration animated past its hold and successful keyboard Retry could drain remaining batches while moving focus offscreen. No merge or deployment occurred.
+
+The focused fix uses instantaneous restored-position scrolling; it transfers a focused stale Retry to Refresh; successful Retry instantly brings the new focused story into view and leaves moved-away focus untouched. Actual Chromium regressions cover the smooth declaration and real anchors. The isolated fixture reproduced invisible focus; root's actual-page experiment reproduced the five-batch drain and its minimal correction. Full 1215-test suite (zero skips), 1125-page build and output guards passed on the repaired source. The promoted presentation source matches template226aa1b56d2afb04579a24fa5e171f8d570a172f.
+
+Cross-family final-review attempt was unavailable because the installed Claude CLI was not logged in; no login, secret handling or permission widening was attempted. Two fresh Astra contexts provided the permitted same-family source reviews, with that limitation recorded. Focused successor review of this exact checkpoint, fresh-built native navigation/focus probes, matched measurements, hosted checks and live acceptance remain pending. Preserved failures remain part of the evidence.
+
+## Controlled final feature checkpoint · 0.2.110
+
+The temporary guard now owns both anchoring and implicit scroll behavior, with exact restoration and no physical-input heuristics. Successful append transfers focus from Retry or Refresh before their recovery block hides. For explicit Retry with outside focus, post-insertion position restoration cancels retained native motion and resets the baseline without changing focus. Normal automatic append gains no unconditional scroll.
+
+All six actual-page client-substitution cases pass on fixed full-content geometry. The full news suite passes 1215 tests with no skips, template576 with no skips, and both builds/output guards pass. The final feature source matches private checkpoint 0.0.51, bound by the promotion manifest; a fresh built-artifact run, exact source review, measurements, current-base integration and public deployment remain gates.
+
+A parallel template run exposed an early assertion while a stale response was still loading; its failed fixture/log were retained. The test now polls a bounded terminal state and retains the same focus/request assertions. Production behavior was not relaxed.
+
+This checkpoint deliberately retains the baseline's 1014 published posts for comparable lab measurements. Accepted main content advanced separately during testing; the final merge must preserve it and receive current-base qualification. No old post or ledger state will be reset to make the branch appear current.
+
+## Controlled measurements and current main · 2026-10-24
+
+Controlled candidate 4f4fea30391bcfe01c1dff1c8662b34291dedef6 passed the six fresh-built success/stale focus cases, fresh continuation, exact five-batch/72-story cap, footer, CSS restoration, no-JavaScript/no-observer fallback and eight-author phone rendering. Separate native Chrome back-forward cache and real cold Back each preserved the exact story offset and36loaded entries. Both independent Top source gates passed; native actual model/token telemetry was unavailable.
+
+Three matched local mobile Lighthouse runs on frozen1014-story content gave the following medians. They are controlled local measurements, not production field performance.
+
+| Metric | Before | After |
+|---|---:|---:|
+| Performance score |87|88|
+| FCP |1353ms|1203ms|
+| LCP |3977ms|3827ms|
+| TBT / CLS |0 /0|0 /0|
+| Runtime DOM elements |1900|650|
+| Initial HTML, gzip |20271bytes|12203bytes|
+| Total initial network transfer |744592bytes|742256bytes|
+| Added compiled module |0|14717raw /5504gzip bytes|
+
+The useful reduction is initial document/DOM cost. Total traffic fell only0.31percent because images and fonts were unchanged; the small3.77percent LCP difference is not a large or field-proven speed claim. All three runs had no warnings, errors, failed requests or analytics traffic. Raw reports, traces, network arithmetic and immutable artifact manifests remain retained.
+
+Accepted main 1ee2ef59f907de3ad5448d2f03c5fd1608c7cc17 was merged normally into the feature branch at053f6294c7705a162154ed356c95fd88f0b48c32. Its five new stories, one correction and trusted ledger bytes were preserved exactly. Feature presentation source did not change. A fresh current-base build/check run is in progress; final exact-head hosted checks and live acceptance remain mandatory. Controlled1014-story lab figures will not be relabelled as measurements of the newer publication data.
+
+## Current-base qualification · 0.2.111
+
+The normal main integration preserves every accepted content/ledger byte; the feature presentation files remain identical to controlled110/private51. Current-base suite:1215passed, zero failures or skips. Build:1126pages,5382files, with1015published stories at its clock cutoff. All2041hero URLs answer with their named image format; scheduled stories remain excluded until due. File/link/body/diagram/secret/CSP output guards pass. Future publication builds may include more of the already accepted scheduled posts; no clock or article dates were changed.
+
+The final source checkpoint binds this current-base tree for exact hosted checks and normal PR324 merge. Controlled lab figures remain attached to the immutable1014-story110artifact. Runtime acceptance of the protected merge/deployment remains separate and pending.
