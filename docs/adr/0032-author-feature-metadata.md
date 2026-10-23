@@ -30,3 +30,7 @@ Onboarding a featured writer requires an author profile, optional paper collage 
 ## Status
 
 Accepted for implementation 2026-10-05 under Michel's request for Aviram and a reusable onboarding workflow. Supersedes the AI-only own-name-page selection in ADR 0012; preserves its portrait, plain-text introduction and collision safeguards.
+
+## Canonical profile amendment · 2026-10-23
+
+[ADR0042](0042-canonical-author-profiles-and-security-headers.md) supersedes the own-name route selection described above. All writers now use /authors/<id>/; featuring controls rich presentation and navigation rather than a second route. Only the five fixed historical aliases retain301 redirects, even when an author stops being featured. Future writers do not claim top-level paths. Kind, opinion policy, ordering and editorial ownership are unchanged.

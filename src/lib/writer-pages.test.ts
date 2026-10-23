@@ -1,9 +1,27 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
-import { introParagraphs, orderWriterCards, reservedTopLevelNames, splitPoems, writerPageIds, isFeaturedWriter, writerAuthorPath, writerRole, writerNoun, personalOpinionDisclosure } from './writer-pages.ts';
+import { introParagraphs, orderWriterCards, reservedTopLevelNames, splitPoems, writerPageIds, isFeaturedWriter, isLegacyWriterAliasPath, writerAuthorPath, writerRole, writerNoun, personalOpinionDisclosure } from './writer-pages.ts';
 
 const author = (id: string, kind: 'human' | 'bot' | 'ai') => ({ id, data: { kind } });
+
+test('sitemap excludes only exact historical aliases at root and under a deploy base', () => {
+  for (const base of ['/', '/project/', '/project']) {
+    const prefix = base === '/' ? '' : '/project';
+    for (const id of ['mai', 'aviram', 'quill', 'foxy', 'ari']) {
+      assert.equal(isLegacyWriterAliasPath(`${prefix}/${id}`, base), true);
+      assert.equal(isLegacyWriterAliasPath(`${prefix}/${id}/`, base), true);
+      assert.equal(isLegacyWriterAliasPath(`${prefix}/authors/${id}/`, base), false);
+      assert.equal(isLegacyWriterAliasPath(`${prefix}/${id}/nested/`, base), false);
+      assert.equal(isLegacyWriterAliasPath(`${prefix}/${id}-extra/`, base), false);
+    }
+    assert.equal(isLegacyWriterAliasPath(`${prefix}/future-writer/`, base), false);
+  }
+  assert.equal(isLegacyWriterAliasPath('/ari/'), true);
+  assert.equal(isLegacyWriterAliasPath('/projectx/ari/', '/project/'), false);
+  assert.equal(isLegacyWriterAliasPath('/ari/', '/project/'), false);
+  assert.equal(isLegacyWriterAliasPath('/authors/ari/'), false);
+});
 
 test('reserved names come from page files, page folders and public entries; dynamic routes are skipped', () => {
   const reserved = reservedTopLevelNames(
@@ -18,15 +36,15 @@ test('the first segment of every _redirects source is reserved; comments and bla
   assert.deepEqual([...reserved].sort(), ['heroes', 'section']);
 });
 
-test('existing AI writers get own-name pages while unfeatured humans and bots stay profiles', () => {
+test('historical aliases exist only for authors present', () => {
   const ids = writerPageIds([author('mai', 'ai'), author('desk-bot', 'bot'), author('wiz-cat', 'human')], new Set(['about']));
   assert.deepEqual(ids, ['mai']);
 });
 
 test('a writer whose name is already a page or a public folder fails the build, naming it', () => {
   assert.throws(
-    () => writerPageIds([author('about', 'ai'), author('heroes', 'ai'), author('mai', 'ai')], new Set(['about', 'heroes'])),
-    /about, heroes would collide/,
+    () => writerPageIds([author('ari', 'ai'), author('mai', 'ai')], new Set(['ari', 'mai'])),
+    /mai, ari would collide/,
   );
 });
 
@@ -61,7 +79,7 @@ test('writer cards follow the editor\'s order; unlisted writers come last in id 
 });
 
 
-test('human writers opt in, AI writers default in and may opt out, bots never get own-name pages', () => {
+test('featured selection is independent of canonical URLs and historical aliases', () => {
   const writers = [
     author('mai', 'ai'),
     { id: 'new-human', data: { kind: 'human' as const, featured: true } },
@@ -70,19 +88,26 @@ test('human writers opt in, AI writers default in and may opt out, bots never ge
     { id: 'desk-bot', data: { kind: 'bot' as const, featured: true } },
   ];
   assert.deepEqual(writers.filter(isFeaturedWriter).map((a) => a.id), ['mai', 'new-human']);
-  assert.deepEqual(writerPageIds(writers, new Set()), ['mai', 'new-human']);
-  assert.deepEqual(writers.map(writerAuthorPath), ['/mai/', '/new-human/', '/authors/wiz-cat/', '/authors/private-ai/', '/authors/desk-bot/']);
+  assert.deepEqual(writerPageIds(writers, new Set()), ['mai']);
+  assert.deepEqual(writers.map(writerAuthorPath), ['/authors/mai/', '/authors/new-human/', '/authors/wiz-cat/', '/authors/private-ai/', '/authors/desk-bot/']);
   assert.deepEqual(writers.map(writerRole), ['Featured writer', 'Human writer', 'Human editor', 'Featured writer', 'News bot']);
   assert.equal(writerNoun(writers[1]), 'a human writer');
   assert.equal(writerNoun(writers[2]), 'a human editor');
 });
 
-test('an opted-in human writer receives the same route collision protection as an AI writer', () => {
-  assert.throws(
-    () => writerPageIds([{ id: 'about', data: { kind: 'human', featured: true } }], new Set(['about'])),
-    /about would collide/,
-  );
-  assert.deepEqual(writerPageIds([{ id: 'about', data: { kind: 'human' } }], new Set(['about'])), []);
+test('historical aliases survive featured opt-out and retain collision protection', () => {
+  const old = [{ id: 'aviram', data: { kind: 'human' as const, featured: false } }];
+  assert.deepEqual(writerPageIds(old, new Set()), ['aviram']);
+  for (const reserved of [
+    reservedTopLevelNames(['aviram.astro'], [], '/aviram/ /authors/aviram/ 301'),
+    reservedTopLevelNames([], ['aviram'], '/aviram /authors/aviram/ 301'),
+    reservedTopLevelNames([], [], '/aviram/ /unrelated/ 301'),
+    reservedTopLevelNames([], [], '/aviram/photo.jpg /authors/aviram/ 301'),
+    reservedTopLevelNames([], [], '/aviram/ /authors/aviram/ 302'),
+  ]) assert.throws(() => writerPageIds(old, reserved), /aviram would collide/);
+  const owned = reservedTopLevelNames([], [], '/aviram /authors/aviram/ 301\n/aviram/ /authors/aviram/ 301');
+  assert.deepEqual(writerPageIds(old, owned), ['aviram']);
+  assert.deepEqual(writerPageIds([{ id: 'about', data: { kind: 'human', featured: true } }], new Set(['about'])), []);
 });
 
 test('editorial ranks insert a human immediately after Mai while preserving all existing AI positions', () => {

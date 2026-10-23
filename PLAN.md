@@ -53,3 +53,7 @@ Dev mode: production. Authorized by Michel: validate the open PR code and allow 
 ## Deferred reader scripts · 2026-10-23
 
 Dev mode: production. Michel authorized SEO fixes after backup branches for both repos and template refresh. [Plan](docs/plans/2026-10-23-deferred-reader-scripts.md): bounded comment/analytics loading change, protected DOM-name integration, full local checks, independent production review, then required PR checks and normal deployment. PR314 merged and the interaction-triggered loader was verified across all 995 live sitemap posts. Follow-up: restore automatic analytics after page load with a five-second fallback, retaining deferred comment verification. Candidate checks, independent review and verified deployment precede completion.
+
+## Canonical author profiles and security headers · running 2026-10-23
+
+[Execution plan](docs/plans/2026-10-23-author-profiles-security-headers.md). Michel authorized finishing the paired template experiment and shipping through a normal news PR. Runtime source passed full production checks and local response/browser validation. Final reviewers accepted with one documentation finding, corrected in0.2.99. Current review/check/deployment status is recorded on [PR319](https://github.com/michelabboud/aitamer-news/pull/319).

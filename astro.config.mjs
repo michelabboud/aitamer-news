@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { sitemapIncludes } from './src/lib/habitats.ts';
+import { isLegacyWriterAliasPath } from './src/lib/writer-pages.ts';
 import { loadSitemapData, postSlugOf } from './scripts/sitemap-data.mjs';
 
 // Two publishes of one static build:
@@ -28,7 +29,7 @@ export default defineConfig({
     mdx(),
     sitemap({
       // The search page is noindex, so it stays out too.
-      filter: (page) => !/\/search\/$/.test(new URL(page).pathname) && sitemapIncludes(page) && (postData.get(postSlugOf(page) ?? '')?.listed ?? true),
+      filter: (page) => !/\/search\/$/.test(new URL(page).pathname) && !isLegacyWriterAliasPath(new URL(page).pathname, base) && sitemapIncludes(page) && (postData.get(postSlugOf(page) ?? '')?.listed ?? true),
       serialize: (item) => {
         const lastmod = postData.get(postSlugOf(item.url) ?? '')?.lastmod;
         return lastmod ? { ...item, lastmod: lastmod.toISOString() } : item;

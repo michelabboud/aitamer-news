@@ -19,9 +19,24 @@ export function isFeaturedWriter(author: WriterAuthor): boolean {
   return author.data.kind !== 'bot' && (author.data.featured ?? author.data.kind === 'ai');
 }
 
-/** The fuller introduction for featured writers, otherwise their ordinary author profile. */
+/** Every author has one canonical URL, independent of homepage prominence. */
 export function writerAuthorPath(author: WriterAuthor): string {
-  return isFeaturedWriter(author) ? `/${author.id}/` : `/authors/${author.id}/`;
+  return `/authors/${author.id}/`;
+}
+
+/** Historical public URLs only: future writers never claim new top-level names. */
+export const LEGACY_WRITER_ALIASES: readonly string[] = ['mai', 'aviram', 'quill', 'foxy', 'ari'];
+
+/** Sitemap exclusion for exact historical aliases, including builds beneath a deploy base. */
+export function isLegacyWriterAliasPath(pathname: string, base = '/'): boolean {
+  const prefix = `/${base.replace(/^\/+|\/+$/g, '')}`.replace(/\/$/, '');
+  return LEGACY_WRITER_ALIASES.some((id) => pathname === `${prefix}/${id}` || pathname === `${prefix}/${id}/`);
+}
+
+/** Only the exact owned 301 is exempt from redirect-source collision checks. */
+export function isOwnedWriterRedirect(source: string, target: string, status: string): boolean {
+  return LEGACY_WRITER_ALIASES.some((id) =>
+    (source === `/${id}` || source === `/${id}/`) && target === `/authors/${id}/` && status === '301');
 }
 
 /** Featured human contributors are writers; unfeatured humans retain the editor role. */
@@ -76,8 +91,9 @@ export function reservedTopLevelNames(
   }
   for (const entry of publicEntries) names.add(entry);
   for (const line of redirectsText.split('\n')) {
-    const source = line.trim().split(/\s+/)[0];
+    const [source, target, status, ...extra] = line.trim().split(/\s+/);
     if (!source || source.startsWith('#')) continue;
+    if (extra.length === 0 && isOwnedWriterRedirect(source, target, status)) continue;
     const first = source.split('/')[1];
     if (first) names.add(first);
   }
@@ -85,14 +101,16 @@ export function reservedTopLevelNames(
 }
 
 /**
- * The ids that get a writer page. A writer whose id is already a page or a public folder is a
+ * Historical aliases for authors still present, including those no longer featured.
+ * An alias whose id is already a page or a public folder is a
  * build error: Astro would let the static page win silently, and the writer's page would vanish.
  */
 export function writerPageIds(
   authors: readonly WriterAuthor[],
   reserved: ReadonlySet<string>,
 ): string[] {
-  const ids = authors.filter(isFeaturedWriter).map((a) => a.id);
+  const present = new Set(authors.map((a) => a.id));
+  const ids = LEGACY_WRITER_ALIASES.filter((id) => present.has(id));
   const clashes = ids.filter((id) => reserved.has(id));
   if (clashes.length > 0) {
     throw new Error(

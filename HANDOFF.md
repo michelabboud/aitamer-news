@@ -1,11 +1,11 @@
 # Handoff
 
-**Current handoff:** [`docs/handoffs/2026-10-20-owner-image-approval.md`](docs/handoffs/2026-10-20-owner-image-approval.md) (2026-10-20).
+**Current handoff:** [Author profiles and security headers](docs/handoffs/2026-10-23-author-profiles-security-headers.md),2026-10-23.
 
 **Where we are:**
-1. Owner-only image approval is implemented and hosted validation passed; code checkpoint `0.2.91` is merged through PR298.
-2. Original image PR292 is approved and merged; the updated portrait and avatar passed all seven checks.
-3. Production deployment39400491915 succeeded; homepage, both author pages and both image assets returned HTTP200, with the portrait matching the reviewed SHA256. Acceptance records and bot instructions use checkpoint `0.2.92`.
+1. Automatic analytics and deferred comment verification are deployed; Cloudflare HSTS/www redirect verified.
+2. Canonical author profiles and headers source passes full production checks and Pages/browser probes;0.2.99 fixes the source review documentation finding.
+3. The current review, hosted-check and live-deployment receipts are on [PR319](https://github.com/michelabboud/aitamer-news/pull/319); see the handoff for scope.
 
 ## Historical handoff snapshot
 
