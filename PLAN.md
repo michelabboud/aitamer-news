@@ -52,4 +52,4 @@ Dev mode: production. Authorized by Michel: validate the open PR code and allow 
 
 ## Deferred reader scripts · 2026-10-23
 
-Dev mode: production. Michel authorized SEO fixes after backup branches for both repos and template refresh. [Plan](docs/plans/2026-10-23-deferred-reader-scripts.md): bounded comment/analytics loading change, protected DOM-name integration, full local checks, independent production review, then required PR checks and normal deployment. Current status: local validation; no live change yet.
+Dev mode: production. Michel authorized SEO fixes after backup branches for both repos and template refresh. [Plan](docs/plans/2026-10-23-deferred-reader-scripts.md): bounded comment/analytics loading change, protected DOM-name integration, full local checks, independent production review, then required PR checks and normal deployment. PR314 merged and the interaction-triggered loader was verified across all 995 live sitemap posts. Follow-up: restore automatic analytics after page load with a five-second fallback, retaining deferred comment verification. Candidate checks, independent review and verified deployment precede completion.

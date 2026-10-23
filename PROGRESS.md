@@ -138,3 +138,7 @@ Transferred the reviewed script-loading experiment into a maintainer branch with
 ## 0.2.94 · 2026-10-23 · source review and privacy clarification
 
 Both independent high-review seats accepted code2bf2e5 without blockers. Corrected the identified privacy timing wording and described input-triggered analytics. PR314 owns required current-head checks and normal merge/deployment; no live claim yet.
+
+## 0.2.97 · 2026-10-23 · automatic analytics revision
+
+PR314 merged as217e2f9; live inspection found the expected measurement ID in all995 published sitemap posts. Michel requested revising the interaction requirement because it excludes passive readers. The automatic-load revision retains production-only hosts and deferred comment verification. Local verification, independent review, required hosted checks and deployment are tracked separately in the follow-up PR. Cloudflare HSTS (one month, no subdomain inheritance/preload) and www-to-apex301 redirects were verified live independently of this code.

@@ -103,7 +103,8 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         address, and the browser’s user agent. That handling is Cloudflare’s, under its own policy.
       </p>
       <p>
-        On {SITE.domain} the site loads Google Analytics after your first pointer, keyboard, wheel or touch input. Reading without one of these inputs does not start the tag. The tag sends Google the page address
+        On {SITE.domain} the site loads Google Analytics automatically after the page finishes loading,
+        or after a five-second wait if some resources are still loading. The tag sends Google the page address
         and stores a cookie so a later visit from the same browser can be counted together. The site
         does not sell this information.
       </p>
