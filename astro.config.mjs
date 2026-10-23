@@ -5,6 +5,8 @@ import sitemap from '@astrojs/sitemap';
 import { sitemapIncludes } from './src/lib/habitats.ts';
 import { isLegacyWriterAliasPath } from './src/lib/writer-pages.ts';
 import { loadSitemapData, postSlugOf } from './scripts/sitemap-data.mjs';
+import { HERO_REMOTE_PATTERNS } from './src/lib/responsive-hero.ts';
+import { plainBodyMarkdown } from './src/lib/plain-body-markdown.ts';
 
 // Two publishes of one static build:
 // - Cloudflare (aitamer.news) uses the defaults: site root, no path prefix.
@@ -18,6 +20,8 @@ export default defineConfig({
   site,
   base,
   output: 'static',
+  image: { remotePatterns: [...HERO_REMOTE_PATTERNS] },
+  markdown: { processor: plainBodyMarkdown() },
   // Reuse HTML for unchanged getStaticPaths pages. Build concurrency must stay
   // at its default of 1, or Astro disables this cache.
   experimental: {

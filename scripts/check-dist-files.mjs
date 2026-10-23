@@ -4,8 +4,9 @@
  *
  *   npm run check:files     warn from WARN_AT files, fail from FAIL_AT (run after `npm run build`)
  *
- * The free plan accepts at most 20,000 files per deploy, and every post costs about two
- * (its page and its Pagefind fragment; its hero image lives on R2 since 0.2.45, ADR 0020). A deploy over the cap is rejected outright,
+ * The free plan accepts at most 20,000 files per deploy. Pages and search consume files,
+ * and responsive delivery adds two local assets per optimized unique hero (ADR 0043).
+ * Original hero pairs stay on R2 (ADR 0020). A deploy over the cap is rejected outright,
  * so this fails the build first, with room to spare, and warns long before
  * (docs/adr/0005-deploy-file-budget.md).
  */
@@ -15,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 /** Cloudflare's free-plan limit on files in one Pages / Workers-assets deploy. */
 export const DEPLOY_FILE_CAP = 20_000;
-/** Start warning here: about 2,000 posts of headroom left at two files per post. */
+/** Start warning here: 4,000 files of headroom; per-post growth includes responsive assets. */
 export const WARN_AT = 16_000;
 /** Fail here, before Cloudflare does, so the error names the cause. */
 export const FAIL_AT = 19_500;
