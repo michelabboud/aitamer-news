@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {mkdtemp,readFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {runImageProcess,probeImage,decodeImage,measureSsim,ImageEvidenceError} from './finalize-responsive-heroes.mjs';
+test('real FFmpeg fixture validates decoding, exact dimensions and the SSIM recipe', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'responsive-hero-ffmpeg-'));
+  const jpegFile = join(root, 'fixture.jpg');
+  const webpFile = join(root, 'fixture.webp');
+  await runImageProcess('ffmpeg', ['-hide_banner', '-nostdin', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=blue:s=128x72', '-frames:v', '1', '-threads', '1', '-f', 'image2', jpegFile]);
+  await runImageProcess('ffmpeg', ['-hide_banner', '-nostdin', '-loglevel', 'error', '-threads', '1', '-protocol_whitelist', 'file,pipe', '-f', 'mjpeg', '-i', jpegFile, '-vf', 'scale=64:36:flags=lanczos', '-frames:v', '1', '-threads', '1', '-f', 'webp', webpFile]);
+  const jpeg = await readFile(jpegFile);
+  const webp = await readFile(webpFile);
+  assert.equal((await probeImage(jpeg, 'jpg')).width, 128);
+  await decodeImage(jpeg, 'jpg');
+  const decoded = await probeImage(webp, 'webp');
+  assert.deepEqual([decoded.width, decoded.height], [64, 36]);
+  await decodeImage(webp, 'webp');
+  assert.ok(await measureSsim(jpeg, webp, 64, 36) >= .95);
+  await assert.rejects(probeImage(Buffer.from('not webp'),'webp'),ImageEvidenceError);
+});

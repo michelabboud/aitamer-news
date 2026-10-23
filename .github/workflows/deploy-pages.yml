@@ -145,14 +145,9 @@ jobs:
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-      - name: Install ffmpeg and a stamp font (the hero stamp tests need them)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
-
       - name: Check scripts and post times
         run: |
-          npm test
+          npm run test:site
           npm run check:posts
 
       # The cache holds parsed content, and Astro does not re-parse an unchanged file when the schema
@@ -165,9 +160,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules/.astro
-          key: astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}-${{ github.sha }}
+          key: astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md', 'src/data/prepared-heroes.json') }}-${{ github.sha }}
           restore-keys: |
-            astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md') }}-
+            astro-incremental-cloudflare-${{ hashFiles('src/content.config.ts', 'src/content/*.ts', 'src/lib/**/*.ts', '!src/lib/**/*.test.ts', 'package-lock.json', 'src/content/authors/*.md', 'src/data/prepared-heroes.json') }}-
 
       - name: Verify workflow-owned numbering
         if: vars.SPECIMEN_ADMISSION_ENABLED == 'true'

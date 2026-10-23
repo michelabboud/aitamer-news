@@ -50,3 +50,5 @@
 - [0041 · Defer reader provider scripts](0041-defer-reader-provider-scripts.md) — verification on comment disclosure; analytics on trusted input; token and DOM protections preserved.
 
 - [0044 · Bounded static homepage feed](0044-bounded-static-homepage-feed.md) — inert static fragments, independent initial/batch/automatic limits and complete archive fallback; protected author identities.
+
+- [0045 · Local responsive image preparation](0045-local-responsive-image-preparation.md) — qualified content-addressed media files and a protected byte-bound catalog; routine builds verify and reuse without image tools.

@@ -21,6 +21,8 @@ export default defineConfig({
   site,
   base,
   output: 'static',
+  // Local image preparation must never warm the ordinary deployment HTML cache.
+  cacheDir: process.env.HERO_PREPARE_LOCAL === '1' ? './node_modules/.astro/image-preparation' : './node_modules/.astro',
   image: { remotePatterns: [...HERO_REMOTE_PATTERNS] },
   markdown: { processor: plainBodyMarkdown() },
   // Reuse HTML for unchanged getStaticPaths pages. Build concurrency must stay

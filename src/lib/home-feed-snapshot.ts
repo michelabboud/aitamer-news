@@ -21,7 +21,7 @@ export async function fingerprintHomeFeedSources(root: URL): Promise<string> {
     }
   }
   await visit('src/');
-  paths.push('astro.config.mjs', 'scripts/finalize-responsive-heroes.mjs', 'package-lock.json');
+  paths.push('astro.config.mjs', 'scripts/finalize-responsive-heroes.mjs', 'scripts/verify-prepared-heroes.mjs', 'package-lock.json');
   return renderingFingerprint(await Promise.all(paths.map(async (path) => [path, await readFile(new URL(path, root), 'utf8')] as const)));
 }
 

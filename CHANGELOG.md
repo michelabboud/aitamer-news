@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.112 · 2026-10-24
+
+Prepare and qualify responsive hero variants locally, publish content-addressed files create-only, and reuse a protected source catalog in routine builds. Verify current original and derivative SHA256/size/MIME/signatures without decoding or generating images. Remove FFmpeg installation from routine workflows; preserve full local tests, pure security checks and the exceptional owner image decoder. New posts retain original WebP/JPEG delivery until qualified sizes are catalogued.
+
 ## 0.2.111 · 2026-10-24
 
 Integrate accepted current-main stories, correction and trusted ledger entries before publishing the author directory and bounded homepage. Feature runtime code is unchanged from the fully reviewed controlled candidate. Requalify the current-base artifact and retain the controlled-data measurements separately.

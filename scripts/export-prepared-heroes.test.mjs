@@ -1,0 +1,25 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,mkdir,writeFile,readFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {createHash} from 'node:crypto';
+import {exportPreparedHeroes} from './export-prepared-heroes.mjs';
+const sha=b=>createHash('sha256').update(b).digest('hex');
+test('export binds passed measurements to exact staged bytes and refuses evidence tampering',async()=>{
+  const root=await mkdtemp(join(tmpdir(),'export-heroes-')),dist=join(root,'dist'),out=join(root,'out'),receipt=join(root,'receipt.json'),bytes=Buffer.from('RIFF....WEBPpayload');
+  await mkdir(join(dist,'_astro'),{recursive:true});await writeFile(join(dist,'_astro','fixture.webp'),bytes);
+  const original=(url,size,width,height)=>({url,sha256:'a'.repeat(64),bytes:size,width,height});
+  const pair={jpeg:original('https://media.aitamer.news/heroes/fixture.jpg',300,1600,900),webp:original('https://media.aitamer.news/heroes/fixture.webp',200,960,540)};
+  const report={schemaVersion:1,status:'passed',recipe:{source:'canonical-jpeg',format:'webp',widths:[480,720],quality:84,minSsim:.95},comparator:{id:'ffmpeg-lanczos-yuv444p-ssim-v1',ffmpeg:'ffmpeg version fixture',ffprobe:'ffprobe version fixture'},pairs:[pair],candidates:[{jpeg:pair.jpeg.url,rawWebp:pair.webp.url,url:'/_astro/fixture.webp',ok:true,verdict:'admitted',reasonCode:'qualified',ssim:.98,actual:{sha256:sha(bytes),bytes:bytes.length,width:480,height:270}}]};
+  await writeFile(receipt,JSON.stringify(report));
+  assert.deepEqual(await exportPreparedHeroes(receipt,dist,out),{pairs:1,files:1,bytes:bytes.length});
+  const catalog=JSON.parse(await readFile(join(out,'prepared-heroes.json'),'utf8'));
+  assert.equal(catalog.pairs[0].variants[0].sha256,sha(bytes));
+  assert.equal(catalog.qualification.receiptSha256,sha(await readFile(receipt)));
+  await assert.rejects(exportPreparedHeroes(receipt,dist,out),/EEXIST/);
+  await writeFile(join(dist,'_astro','fixture.webp'),Buffer.alloc(bytes.length));
+  await assert.rejects(exportPreparedHeroes(receipt,dist,join(root,'changed')),/bytes changed/);
+  report.status='failed';await writeFile(receipt,JSON.stringify(report));
+  await assert.rejects(exportPreparedHeroes(receipt,dist,join(root,'failed')),/passed local/);
+});

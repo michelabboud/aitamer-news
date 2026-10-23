@@ -89,7 +89,9 @@ test('larger, low-SSIM, falsely described and undecodable derivatives are exclud
   assert.match((await qualify(variant, compareIO(meta(480, 271)))).reason, /dimension|aspect/);
   const noUpscale = await qualifyVariant(pair, { url: first, width: 1600 }, jpegBytes, webpBytes, originalJpeg, originalWebp, variant, compareIO());
   assert.equal(noUpscale.ok, false);
-  const broken = await qualifyVariant(pair, candidate, jpegBytes, webpBytes, originalJpeg, originalWebp, Buffer.from('not webp'));
+  const broken = await qualifyVariant(pair, candidate, jpegBytes, webpBytes, originalJpeg, originalWebp, Buffer.from('not webp'), {
+    ...compareIO(), probe: async () => { throw new ImageEvidenceError('undecodable metadata'); },
+  });
   assert.equal(broken.ok, false);
   assert.match(broken.reason, /decode|metadata|ffprobe/);
 });
@@ -258,20 +260,4 @@ test('project-site base candidates resolve within dist and receipt output cannot
   await mkdir(join(dist, 'public-receipts'));
   await symlink(join(dist, 'public-receipts'), join(options.receiptDirectory, 'public-link'));
   await assert.rejects(finalizeBuild(dist, '/project/', { ...options, receiptDirectory: join(options.receiptDirectory, 'public-link') }), /outside public dist/);
-});
-
-test('real FFmpeg fixture validates decoding, exact dimensions and the SSIM recipe', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'responsive-hero-ffmpeg-'));
-  const jpegFile = join(root, 'fixture.jpg');
-  const webpFile = join(root, 'fixture.webp');
-  await runImageProcess('ffmpeg', ['-hide_banner', '-nostdin', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=blue:s=128x72', '-frames:v', '1', '-threads', '1', '-f', 'image2', jpegFile]);
-  await runImageProcess('ffmpeg', ['-hide_banner', '-nostdin', '-loglevel', 'error', '-threads', '1', '-protocol_whitelist', 'file,pipe', '-f', 'mjpeg', '-i', jpegFile, '-vf', 'scale=64:36:flags=lanczos', '-frames:v', '1', '-threads', '1', '-f', 'webp', webpFile]);
-  const jpeg = await readFile(jpegFile);
-  const webp = await readFile(webpFile);
-  assert.equal((await probeImage(jpeg, 'jpg')).width, 128);
-  await decodeImage(jpeg, 'jpg');
-  const decoded = await probeImage(webp, 'webp');
-  assert.deepEqual([decoded.width, decoded.height], [64, 36]);
-  await decodeImage(webp, 'webp');
-  assert.ok(await measureSsim(jpeg, webp, 64, 36) >= .95);
 });

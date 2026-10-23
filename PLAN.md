@@ -63,3 +63,5 @@ Dev mode: production. Michel authorized SEO fixes after backup branches for both
 Michel requested finishing his profile and optimizing the reported first-load WebP images while keeping JPEG fallback for all posts. Profile update is an independently validated bounded PR; image delivery is a separate template-first experiment, preserving JPEG originals/social metadata and measuring bytes/browser selection/Lighthouse before claiming improvement.
 
 | [Author directory and bounded homepage](docs/plans/2026-10-23-author-directory-home-feed.md) | All-author cards, canonical Michel profile and independent 12/12/5 automatic feed settings | local implementation and focused reviews passed; final production review and public acceptance pending | 2026-10-23 | authorized 2026-10-23 (Michel) | 2026-10-23 |
+
+| [Prepared responsive images](docs/plans/2026-10-24-prepared-responsive-images.md) | Local quality preparation and create-only derivative publication; routine GitHub verifies/reuses without FFmpeg | local qualification passed; PR/live acceptance pending | 2026-10-24 | authorized 2026-10-24 (Michel: fix it) | 2026-10-24 |
