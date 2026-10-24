@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.118 · 2026-10-24
+
+Review nits on 0.2.117: the topic sitemap `lastmod` lookup no longer depends on `ASTRO_BASE` having no trailing slash, and a tag label with brackets or a backslash is escaped in `llms.txt` so its line stays one link. No behavior change for the production build.
+
 ## 0.2.117 · 2026-10-24
 
 Keep the sitemap provably current. Topic pages and the `/topics/` index now carry a `lastmod` in the sitemap (the newest change among their stories; later pages of a topic carry none), computed from the same grouping as the pages. `llms.txt` lists the 30 largest topics with story counts and links the rest. The deploy smoke test now also fails a deployment whose sitemaps (index, parts, news sitemap) differ byte for byte from the ones the build made, so a stale sitemap is caught and rolled back like a stale page. Checked against production first: all three live sitemaps are byte-identical to a local build.

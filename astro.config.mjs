@@ -24,7 +24,9 @@ const topicDates = topicLastmods(
 
 /** `lastmod` for `/topics/` and `/topics/<slug>/` (page 1); later pages of a topic carry none. */
 function topicPageLastmod(url) {
-  const path = new URL(url).pathname.slice(base.length - 1);
+  // `base` may or may not end in a slash (`/` or `/aitamer-news` or `/aitamer-news/`); the path below always starts with one.
+  const prefix = base.replace(/\/+$/, '');
+  const path = new URL(url).pathname.slice(prefix.length) || '/';
   if (path === '/topics/') return topicDates.newest;
   const match = /^\/topics\/([^/]+)\/$/.exec(path);
   return match ? topicDates.bySlug.get(match[1]) : undefined;

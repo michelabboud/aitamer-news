@@ -190,3 +190,9 @@ test('llms.txt lists the biggest topics with counts and points to the full list'
   assert.equal(llmsTxtTopicsSection([], (p) => p), '');
   assert.equal(LLMS_TOPIC_LIMIT, 30);
 });
+
+test('llms.txt escapes the brackets and backslashes of a tag label so its link line stays one link', () => {
+  const [topic] = buildTopics(many('a[1]\\b', 5));
+  const line = llmsTxtTopicsSection([topic], (path) => `https://x.test${path}`);
+  assert.ok(line.startsWith('- [a\\[1\\]\\\\b](https://x.test/topics/'), line);
+});

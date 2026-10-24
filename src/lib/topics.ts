@@ -204,7 +204,7 @@ export function llmsTxtTopicsSection(
 ): string {
   const lines = topics
     .slice(0, limit)
-    .map((t) => `- [${t.label}](${url(`/topics/${t.slug}/`)}): ${t.postIds.length} ${t.postIds.length === 1 ? 'story' : 'stories'}, newest first.`);
+    .map((t) => `- [${t.label.replace(/[[\]\\]/g, (c) => `\\${c}`)}](${url(`/topics/${t.slug}/`)}): ${t.postIds.length} ${t.postIds.length === 1 ? 'story' : 'stories'}, newest first.`);
   const more = topics.length > limit ? `\n- [All ${topics.length} topics](${url('/topics/')}): every tag that ${TOPIC_MIN_STORIES} or more stories carry.` : '';
   return lines.join('\n') + more;
 }
