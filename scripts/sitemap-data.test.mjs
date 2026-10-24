@@ -32,3 +32,11 @@ test('only post URLs map to a slug', () => {
   assert.equal(postSlugOf('https://aitamer.news/posts/grok-4-7/'), 'grok-4-7');
   assert.equal(postSlugOf('https://aitamer.news/section/tools/'), null);
 });
+
+test('the entry carries the post\'s tags for the topic sitemap, and only text tags', () => {
+  const now = new Date('2026-09-25T00:00:00Z');
+  const published = new Date('2026-09-24T09:00:00Z');
+  assert.deepEqual(sitemapEntry('a', { pubDate: published, tags: ['rust', 'Open Weights', 7, null] }, now).tags, ['rust', 'Open Weights']);
+  assert.deepEqual(sitemapEntry('b', { pubDate: published }, now).tags, []);
+  assert.deepEqual(sitemapEntry('c', { pubDate: published, tags: 'rust' }, now).tags, []);
+});

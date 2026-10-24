@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.117 · 2026-10-24
+
+Keep the sitemap provably current. Topic pages and the `/topics/` index now carry a `lastmod` in the sitemap (the newest change among their stories; later pages of a topic carry none), computed from the same grouping as the pages. `llms.txt` lists the 30 largest topics with story counts and links the rest. The deploy smoke test now also fails a deployment whose sitemaps (index, parts, news sitemap) differ byte for byte from the ones the build made, so a stale sitemap is caught and rolled back like a stale page. Checked against production first: all three live sitemaps are byte-identical to a local build.
+
 ## 0.2.116 · 2026-10-24
 
 Production-review fixes for 0.2.115 (an independent Opus 5.5 high review found no blocker): topic tags that differ only in space, underscore or hyphen are one topic (no change to any current address, every tag is already in slug form); linked tags are underlined at rest; `satteri` is pinned exactly and its vetting is recorded; code comments cite ADR 0046.

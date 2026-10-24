@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.117 · 2026-10-24 · sitemap freshness
+
+Before: the live sitemap listed all 1,031 stories and every one of the newest 50 feed items, newest `lastmod` equal to the newest story, regenerated on every build. Added topic `lastmod`, topics in `llms.txt` and a sitemap-equals-build check in the deploy smoke test. 1288 tests and the 1,365-page build pass.
+
 ## 0.2.116 · 2026-10-24 · production review fixes
 
 High review of PR330 by a fresh Opus 5.5 session (Astra had no tokens; Michel's word 2026-10-24): no blocker, three should-fix items fixed here. Merge follows green hosted checks.

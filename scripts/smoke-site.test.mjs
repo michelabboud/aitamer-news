@@ -20,6 +20,9 @@ function fixtureDist() {
     'heroes/h.jpg': 'jpg',
     'llms.txt': 'llms',
     'rss.xml': '<rss/>',
+    'sitemap-index.xml': '<sitemapindex>1</sitemapindex>',
+    'sitemap-0.xml': '<urlset>1</urlset>',
+    'news-sitemap.xml': '<urlset>news</urlset>',
     '_headers': '/*\n  X: 1\n',
     '_redirects': '# retired\n/section/old/ /section/new/ 301\n/heroes/old.jpg https://media.aitamer.news/heroes/old.jpg 301\n',
     'diagrams/news/flow.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>\n',
@@ -65,7 +68,10 @@ async function host({ fault = null, flakyFirst = 0, robots = null } = {}) {
       const headers = { 'content-type': fault === 'diagram-as-html' ? 'text/html' : 'image/svg+xml', 'x-content-type-options': 'nosniff' };
       if (fault !== 'diagram-no-lockdown') headers['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
       res.writeHead(200, headers).end('<svg/>');
-    } else if (['/heroes/h.jpg', '/llms.txt', '/rss.xml'].includes(path) && !(fault === 'missing-file' && path === '/llms.txt')) res.writeHead(200).end('x');
+    } else if (path === '/sitemap-0.xml') res.writeHead(200).end(fault === 'stale-sitemap' ? '<urlset>old</urlset>' : '<urlset>1</urlset>');
+    else if (path === '/sitemap-index.xml') res.writeHead(200).end('<sitemapindex>1</sitemapindex>');
+    else if (path === '/news-sitemap.xml') res.writeHead(200).end('<urlset>news</urlset>');
+    else if (['/heroes/h.jpg', '/llms.txt', '/rss.xml'].includes(path) && !(fault === 'missing-file' && path === '/llms.txt')) res.writeHead(200).end('x');
     else if (fault === 'soft-404') html(200, page('Home'));
     else html(404, page('Not found'));
   });
@@ -88,7 +94,9 @@ async function run(expect, hostOpts, opts = FAST) {
 test('the plan: every page but 404 and redirected fallbacks, root files and the home page\'s files, the redirects', () => {
   const work = plan(fixtureDist());
   assert.deepEqual(work.pages, [{ path: '/', title: 'Home' }, { path: '/news/', title: 'News' }]);
-  assert.deepEqual(work.files, ['/_astro/a.1b2c.css', '/heroes/h.jpg', '/llms.txt', '/rss.xml']);
+  assert.deepEqual(work.files, ['/_astro/a.1b2c.css', '/heroes/h.jpg', '/llms.txt', '/news-sitemap.xml', '/rss.xml', '/sitemap-0.xml', '/sitemap-index.xml']);
+  assert.deepEqual([...work.sitemaps.keys()].sort(), ['/news-sitemap.xml', '/sitemap-0.xml', '/sitemap-index.xml']);
+  assert.equal(work.sitemaps.get('/sitemap-0.xml'), '<urlset>1</urlset>');
   assert.deepEqual(work.redirects, [
     { from: '/section/old/', to: '/section/new/', status: 301 },
     { from: '/heroes/old.jpg', to: 'https://media.aitamer.news/heroes/old.jpg', status: 301 },
@@ -115,6 +123,7 @@ test('each way a deployment can be wrong is a finding', async () => {
     ['missing-page', 'production', /\/news\/: answered 404, expected 200/],
     ['stale', 'production', /\/news\/: title is "Old news", this build's is "News" \(an old deployment\?\)/],
     ['missing-file', 'production', /\/llms\.txt: answered 404/],
+    ['stale-sitemap', 'production', /\/sitemap-0\.xml: the deployment serves a different sitemap than this build made/],
     ['redirect-to', 'production', /redirect \/section\/old\/: points at \/elsewhere\/, expected \/section\/new\//],
     ['redirect-status', 'production', /redirect \/section\/old\/: answered 302, expected 301/],
     // A redirect to another host must land on that host, not merely on the same path (ADR 0020).
