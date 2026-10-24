@@ -31,6 +31,10 @@ sources:
     url: https://pypi.org/pypi/litellm/json
   - title: "LiteLLM: Oct 21, 2026 LiteLLM release v1.107.0 Compromised (incident post, updated 21 October 2026 20:30 UTC)"
     url: https://docs.litellm.ai/blog/security-incident-oct-21-2026
+  - title: "LiteLLM: The attack chain behind the v1.107.0 LiteLLM release (23 October 2026)"
+    url: https://docs.litellm.ai/blog/security-incident-oct-21-2026-attack-chain
+  - title: "LiteLLM v1.105.4 release notes (new cosign key, eMudhra root CA removed)"
+    url: https://github.com/BerriAI/litellm/releases/tag/v1.105.4
 ---
 
 LiteLLM, the open-source gateway many teams put in front of OpenAI, Anthropic and other model APIs, published a poisoned release on 21 October. Version 1.107.0 reached PyPI at about 11:40 UTC (14:40 in Israel) and the Docker images on GHCR and Docker Hub, including the `latest`, `main-latest` and `main-stable` tags. LiteLLM's Director of Security [said](https://x.com/LiteLLM/status/2112945728565993864) the team learned of it at 13:32 UTC and has removed the releases and images. PyPI now lists 1.106.2 as the latest version, and 1.107.0 is gone from the project's release list.
@@ -76,3 +80,18 @@ LiteLLM's account, which it says it is still confirming:
 The post also firms up the exposure windows: PyPI from 11:39:51 to 13:23 UTC, GHCR tags until 13:51 UTC, and Docker Hub tags until 14:20 UTC. The incident page itself still carried its 20:30 UTC update when we checked on the morning of 22 October, but the maintainers kept posting on the [tracking issue](https://github.com/BerriAI/litellm/issues/47826). At 23:37 UTC they said they are revoking or rotating every authentication token across the organization as a precaution, because "some questions about how the attacker gained initial access remain unresolved", and that for "the vast majority" of those tokens they had seen no sign of exfiltration or improper use. At 02:19 UTC they reported no material developments, said the registries stay locked and regular releases stay paused, and switched from two-hourly updates to updates when there are significant developments.
 
 What changes for readers: if you pulled any of those Docker Hub tags up to 14:20 UTC, include that image in your check. And if you run a LiteLLM proxy yourself, look at what it logs. Request and response bodies can carry secrets, so turn off full body logging where you do not need it, keep the admin interface off the public internet, and audit its user accounts.
+
+## Update, 24 October 2026: the root cause was a key leaked in May, and releases are back
+
+LiteLLM published a [root cause analysis](https://docs.litellm.ai/blog/security-incident-oct-21-2026-attack-chain) late on 23 October and calls it "the canonical source of truth". It says some assumptions in its earlier status updates "were later proven to be inaccurate or incomplete". The biggest correction: the first token did not come from the logs of an internal deployment, as its first post suspected. LiteLLM's account now runs:
+
+- **27 May.** A config file committed to the public `LiteLLM-Labs/lite-harness` repository contained the master key of a LiteLLM Agent Platform deployment, an experimental tool LiteLLM used to let cloud agents open pull requests. The commit was force-pushed over and the key was marked for revocation, but the master key was never revoked.
+- **10 October.** The attacker used that key to call the Agent Platform API, which returned the GitHub CLI OAuth token of one of LiteLLM's two organization owners. The token was not a scoped service account. LiteLLM notes that GitHub CLI tokens are issued after two-factor login and are not asked to re-authenticate for sensitive organization actions.
+- **10 and 12 October.** With the owner's token, the attacker pushed throwaway branches whose workflows posted repository CI secrets to an outside endpoint, then deleted the runs. Two of those secrets were GitHub CLI tokens of two more maintainers. LiteLLM says the attacker also took tokens for other internal systems and looked mainly for upstream inference API keys.
+- **21 October.** The owner's token overrode branch protection on the private release repository to build from the lookalike `Berri-AI/litellm`. A rule requiring a device-locked approver account had been relaxed that week to let any two engineers trigger and approve releases, so one stolen token started the release and another approved it. A third deleted the run records, and the owner's token force-pushed the change out of visible history.
+
+LiteLLM says it is revoking every token on every internal system and vendor platform, and that it will share process changes next week.
+
+Releases have resumed. On 24 October LiteLLM published 1.103.8, 1.104.6 and 1.105.4 on GitHub, and 1.106.3 is on PyPI. The [release notes](https://github.com/BerriAI/litellm/releases/tag/v1.105.4) say Docker images and Helm charts are now signed with a **new cosign key** (from commit `e82a3c6`), so verifying with the old key from commit `0112e53` will fail, and the eMudhra root CA is removed from every certificate bundle the SDK, proxy and images trust.
+
+What changes for readers: update any `cosign verify` script, CI check or admission policy that pins the old `cosign.pub` before you move to these releases. And the lesson generalizes to any agent platform: a GitHub token held by an agent service should be a scoped bot token, never an owner's personal CLI token, and a leaked key has to be revoked, not just scrubbed from history.
