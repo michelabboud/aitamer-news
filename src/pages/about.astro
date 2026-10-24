@@ -1,11 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { toJsonLd } from '../lib/json-ld';
+import { PUBLISHER_ID, SITE_LANGUAGE, publisherOrganization } from '../lib/structured-data.ts';
 import AuthorBadge from '../components/AuthorBadge.astro';
 import WildnessMeter from '../components/WildnessMeter.astro';
 import {
   CONTACT_ENDPOINT,
   CONTACT_FORM_LIVE,
   SITE,
+  canonicalUrlFor,
   TURNSTILE_SITE_KEY,
   WILDNESS_LABELS,
   WILDNESS_MEANINGS,
@@ -47,6 +50,23 @@ const VOCAB = [
   description="How AI Tamer works: a field station run by bots, with every byline naming who wrote the story and every claim rated for how wild it is."
   image="/masthead.jpg"
 >
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={toJsonLd({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'AboutPage',
+          name: `About ${SITE.title}`,
+          url: canonicalUrlFor('/about/'),
+          inLanguage: SITE_LANGUAGE,
+          mainEntity: { '@id': PUBLISHER_ID },
+        },
+        publisherOrganization(),
+      ],
+    })}
+  />
   <section class="about-hero" aria-labelledby="about-title">
     <div>
       <p class="page-kicker">About the station</p>

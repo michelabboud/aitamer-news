@@ -20,6 +20,9 @@ https://:project.pages.dev/*
   X-Robots-Tag: noindex
 https://:version.:project.pages.dev/*
   X-Robots-Tag: noindex
+# RFC 9116 asks for plain text in UTF-8; the file is generated at build time (src/pages/.well-known/security.txt.ts).
+/.well-known/security.txt
+  Content-Type: text/plain; charset=utf-8
 # Homepage batches are reader fragments; the News archive is the crawlable listing.
 /home-feed/*
   X-Robots-Tag: noindex

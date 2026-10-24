@@ -39,6 +39,7 @@ export interface FeedPost {
   title: string;
   description: string;
   pubDate: Date;
+  /** When the story last changed: its update date or newest correction (`article-dates.ts`). */
   updatedDate?: Date;
   /** Habitat slug, e.g. `models` (`src/lib/habitats.ts`). */
   habitat: string;
@@ -52,6 +53,14 @@ export interface FeedPost {
   wildness?: FeedWildness;
   verdict?: string;
   sunset?: FeedSunset;
+}
+
+/** RSS 2.0 has no modified date of its own; Dublin Core Terms' `modified` is the usual namespaced one. */
+export const RSS_MODIFIED_NAMESPACE = { dcterms: 'http://purl.org/dc/terms/' } as const;
+
+/** An RSS item's `<dcterms:modified>` (W3CDTF, UTC), or nothing for a story that never changed. */
+export function rssModifiedData(changed: Date | undefined): string | undefined {
+  return changed ? `<dcterms:modified>${changed.toISOString()}</dcterms:modified>` : undefined;
 }
 
 /** Newest-first slice of a feed. `posts` must already be sorted newest first. */

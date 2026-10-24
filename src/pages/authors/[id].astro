@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { isFeaturedWriter, splitPoems, writerAuthorPath, writerNoun, authorProfileSlugs } from '../../lib/writer-pages.ts';
 import { jsonLdAuthorType } from '../../lib/author-kinds.ts';
+import { authorSameAs } from '../../lib/structured-data.ts';
 import { toJsonLd } from '../../lib/json-ld';
 import WriterProfile from '../../components/WriterProfile.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -33,6 +34,7 @@ const featured = isFeaturedWriter(author);
 const { name, kind, bio, portrait } = author.data;
 const image = featured ? portrait : author.data.avatar;
 const pageUrl = canonicalUrlFor(writerAuthorPath(author));
+const sameAs = authorSameAs(kind, author.data.website);
 const posts = await getPostsByAuthor(author.id);
 const [poems, pieces] = splitPoems(posts);
 const cards = await Promise.all(
@@ -57,6 +59,7 @@ const cards = await Promise.all(
         description: `${name} is ${writerNoun(author)} at ${SITE.title}. ${bio}`,
         url: pageUrl,
         ...(image ? { image: canonicalUrlFor(image) } : {}),
+        ...(sameAs ? { sameAs } : {}),
       },
     })}
   />

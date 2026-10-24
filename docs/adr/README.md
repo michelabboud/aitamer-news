@@ -52,3 +52,5 @@
 - [0044 · Bounded static homepage feed](0044-bounded-static-homepage-feed.md) — inert static fragments, independent initial/batch/automatic limits and complete archive fallback; protected author identities.
 
 - [0045 · Local responsive image preparation](0045-local-responsive-image-preparation.md) — qualified content-addressed media files and a protected byte-bound catalog; routine builds verify and reuse without image tools.
+
+- [0046 · Topic pages from tags](0046-topic-pages-from-tags-with-a-five-story-floor.md) — `/topics/<slug>/` for tags with five or more stories, stable slugs that depend only on their own tag, one optional hand-kept details file.

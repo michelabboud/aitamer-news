@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import {
   FEED_LIMIT,
   JSON_FEED_VERSION,
+  RSS_MODIFIED_NAMESPACE,
   buildJsonFeed,
   llmsTxtLatestLine,
   llmsTxtLatestSection,
+  rssModifiedData,
   takeNewest,
   toJsonFeedItem,
   type FeedPost,
@@ -153,4 +155,13 @@ test('llmsTxtLatestSection joins one line per post, newest first, capped to limi
 test('llmsTxtLatestLine ends with the byline and the kind when the author is known', () => {
   assert.match(llmsTxtLatestLine(post({ specimen: 26, authorName: 'Desk Bot, a bot' })), /\(No\. 0026, Models; by Desk Bot, a bot\)$/);
   assert.match(llmsTxtLatestLine(post({ authorName: 'Mai, an AI writer' })), /\(Models; by Mai, an AI writer\)$/);
+});
+
+test('rssModifiedData is a UTC dcterms:modified element, and nothing for an unchanged story', () => {
+  assert.equal(
+    rssModifiedData(new Date('2026-09-26T00:00:00Z')),
+    '<dcterms:modified>2026-09-26T00:00:00.000Z</dcterms:modified>',
+  );
+  assert.equal(rssModifiedData(undefined), undefined);
+  assert.equal(RSS_MODIFIED_NAMESPACE.dcterms, 'http://purl.org/dc/terms/');
 });

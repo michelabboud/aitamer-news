@@ -1,6 +1,10 @@
 ---
 import { toJsonLd } from '../../lib/json-ld';
 import { jsonLdAuthorType } from '../../lib/author-kinds.ts';
+import { getTopicIndex } from '../../lib/topics-data.ts';
+import { topicSlugsForTags } from '../../lib/topics.ts';
+import { effectiveModified, lastChange } from '../../lib/article-dates.ts';
+import { SITE_LANGUAGE, articleWordCount, authorSameAs, publisherOrganization } from '../../lib/structured-data.ts';
 import { writerAuthorPath, writerNoun, personalOpinionDisclosure } from '../../lib/writer-pages.ts';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -47,6 +51,7 @@ export async function getStaticPaths() {
   // stamps, so a new comment or a changed total re-renders that story's page and no other.
   const threads = await getCommentThreads();
   const reactionFiles = await getReactionThreads();
+  const topicIndex = await getTopicIndex();
   return Promise.all(
     posts.map(async (post) => {
       const author = await resolveAuthor(post);
@@ -60,6 +65,8 @@ export async function getStaticPaths() {
           author ? entryStamp(author) : 'missing-author',
           thread ? entryStamp(thread) : 'no-comments',
           reactions ? entryStamp(reactions) : 'no-reactions',
+          // A tag gains or loses its topic page when other stories change, so the links belong in the key.
+          topicSlugsForTags(topicIndex.slugByKey, post.data.tags).map(({ slug }) => slug).join(','),
         ].join('|'),
       };
     }),
@@ -93,6 +100,10 @@ const opinion = personalOpinionDisclosure(author);
 const withdrawn = data.withdrawn;
 // Newest correction first, so a reader sees the latest change at the top of the list.
 const corrections = [...data.corrections].sort((a, b) => b.date.valueOf() - a.date.valueOf());
+// The story's last change (an update or the newest correction), undefined if it never changed.
+const changed = lastChange(data);
+const topicLinks = new Map(topicSlugsForTags((await getTopicIndex()).slugByKey, data.tags).map(({ tag, slug }) => [tag, slug]));
+const authorUrl = canonicalUrlFor(writerAuthorPath(author));
 const absolute = (path: string) => new URL(withBase(path), SITE.url).toString();
 
 // schema.org NewsArticle for search engines and LLM crawlers. Withdrawn posts publish none.
@@ -107,19 +118,20 @@ const jsonLd = withdrawn
       mainEntityOfPage: canonical,
       datePublished: data.pubDate.toISOString(),
       // Newest of publish, update and correction dates: the same rule as the sitemap's lastmod.
-      dateModified: new Date(
-        Math.max(data.pubDate.valueOf(), data.updatedDate?.valueOf() ?? 0, ...data.corrections.map((c) => c.date.valueOf())),
-      ).toISOString(),
+      dateModified: effectiveModified(data).toISOString(),
       image: [/^https:\/\//.test(shareSrc) ? shareSrc : absolute(shareSrc)],
+      inLanguage: SITE_LANGUAGE,
+      wordCount: articleWordCount(post.body, { mdx: post.filePath?.endsWith('.mdx') }),
       articleSection: habitat.name,
       keywords: data.tags.join(', ') || undefined,
       identifier: data.specimen ? `AI Tamer specimen No. ${formatSpecimen(data.specimen)}` : undefined,
       author: {
         '@type': jsonLdAuthorType(author.data.kind),
         name: author.data.name,
-        url: canonicalUrlFor(writerAuthorPath(author)),
+        url: authorUrl,
+        sameAs: authorSameAs(author.data.kind, author.data.website),
       },
-      publisher: { '@type': 'Organization', name: SITE.title, url: SITE.url },
+      publisher: publisherOrganization(),
       citation: data.sources?.map((source) => source.url),
       isAccessibleForFree: true,
       // Approved reader comments: the count, and the newest few as schema.org Comments.
@@ -146,8 +158,9 @@ const breadcrumbs = {
   <Fragment slot="head">
     {jsonLd && <script type="application/ld+json" set:html={toJsonLd(jsonLd)} />}
     <script type="application/ld+json" set:html={toJsonLd(breadcrumbs)} />
+    <meta property="article:author" content={authorUrl} />
     <meta property="article:published_time" content={data.pubDate.toISOString()} />
-    {data.updatedDate && <meta property="article:modified_time" content={data.updatedDate.toISOString()} />}
+    {changed && <meta property="article:modified_time" content={changed.toISOString()} />}
     <meta property="article:section" content={habitat.name} />
     {data.tags.map((tag) => <meta property="article:tag" content={tag} />)}
     <meta property="og:image:width" content={String(shareWidth)} />
@@ -181,9 +194,9 @@ const breadcrumbs = {
         {!withdrawn && <span>{readingMinutes(post.body)} MIN</span>}
         {!withdrawn && <CommentCount id={post.id} count={comments.length} />}
         {!withdrawn && <ShareLinks url={canonical} title={data.title} summary={data.description} placement="top" />}
-        {data.updatedDate && (
+        {changed && (
           <span>
-            Updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time>
+            Updated <time datetime={changed.toISOString()}>{formatDate(changed)}</time>
           </span>
         )}
       </div>
@@ -279,14 +292,16 @@ const breadcrumbs = {
         <p class="signoff">
           Written by <a href={signoffAuthorHref}>{author.data.name}</a>, {writerNoun(author)}. Published{' '}
           <a href={archiveHref(published.year, published.month)} title="More stories from this month"><time datetime={data.pubDate.toISOString()}>{formatDateTime(data.pubDate)}</time></a>
-          {data.updatedDate && (
-            <>; updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time></>
+          {changed && (
+            <>; updated <time datetime={changed.toISOString()}>{formatDate(changed)}</time></>
           )}.
         </p>
 
         {data.tags.length > 0 && (
           <ul class="tag-list" aria-label="Tags" style="margin-top: 2rem">
-            {data.tags.map((tag) => <li class="tag tag--plain">{tag}</li>)}
+            {data.tags.map((tag) => (
+              <li class="tag tag--plain">{topicLinks.get(tag) ? <a href={withBase(`/topics/${topicLinks.get(tag)}/`)}>{tag}</a> : tag}</li>
+            ))}
           </ul>
         )}
 
