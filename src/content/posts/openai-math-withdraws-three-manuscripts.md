@@ -30,6 +30,10 @@ sources:
     url: https://x.com/danintheory/status/2108065033070789090
   - title: "OpenAI posts 722 math manuscripts from an unreleased model"
     url: https://aitamer.news/posts/openai-math-722-manuscripts/
+  - title: "oai-math-revised: a community hub for revising OpenAI's math write-ups (guest post on Terence Tao's blog, 24 October 2026)"
+    url: https://terrytao.wordpress.com/2026/10/24/oai-math-revised-a-community-hub-for-revising-openais-math-write-ups/
+  - title: "mathcommunity/oai-math-revised (GitHub)"
+    url: https://github.com/mathcommunity/oai-math-revised/
 ---
 
 OpenAI has withdrawn three manuscripts from its public mathematics catalogue. The [history file](https://github.com/openai/math/blob/main/history.md), in the section headed October 7, 2026, says that in "Algebraicity of Weil classes on split abelian eightfolds" a sign error "invalidates a stabilization-trace cancellation argument and the construction used by two dependent papers."
@@ -63,3 +67,9 @@ The commit "Update manuscripts and Lean formalizations" is by Dan Roberts (dr@op
 Lean is a proof assistant. A formalization rewrites a claim so a program can check each step. A finished Lean proof is a machine-checked version of that claim. An unformalized write-up still depends on a person reading it. The README says some unformalized results could have issues. Three hundred of 719 is the history file's share of top-line results that now have a formalization, which it writes as about 42 percent.
 
 A withdrawal after a sign error is the correction process that file describes: name the gap, withdraw the three manuscripts that use the broken step, and leave notices pointing at the archived text. The other manuscripts stay. Some have a machine check. Some do not. The withdrawal shows the checking process catching one error. It does not grade the manuscripts that remain.
+
+## Update, 24 October 2026: mathematicians open a community hub to revise OpenAI's write-ups
+
+Four mathematicians, Abhinav Nellore, Johannes Schmitt, Soledad Villar and Rachel Ward, announced [oai-math-revised](https://github.com/mathcommunity/oai-math-revised/) in a [guest post on Terence Tao's blog](https://terrytao.wordpress.com/2026/10/24/oai-math-revised-a-community-hub-for-revising-openais-math-write-ups/) on 24 October. They write that OpenAI's write-ups in `openai/math` "can be difficult to understand and can have incomplete citations", and invite students, postdocs, professors and enthusiasts to help improve them through pull requests and issues. A [browsable site](https://mathcommunity.github.io/oai-math-revised/) lists the papers by discipline, and the organizers are recruiting reviewers per category of OpenAI's overview.
+
+The repository was created on 10 October and is not an OpenAI project. So far it is mostly scaffolding: of the merged pull requests we counted on 24 October, three touch the mathematics (added references for the circulant Hadamard write-up, and two additions by Tao to the Landau-Siegel zeros entry), while the rest build the site, sign-ups and automatically collected notes for all 719 manuscripts. Contributors are asked to disclose substantial use of language models, proof assistants or other software. It is an invitation to review, not a set of findings yet.
