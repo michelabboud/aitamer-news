@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import { TAMER_RANK } from '../lib/author-kinds.ts';
 import { FEED_LIMIT, llmsTxtLatestSection, takeNewest, type FeedPost } from '../lib/feeds';
 import { writerAuthorPath, writerNoun } from '../lib/writer-pages.ts';
+import { getTopicIndex } from '../lib/topics-data.ts';
+import { llmsTxtTopicsSection } from '../lib/topics.ts';
 import {
   HABITATS,
   HABITAT_META,
@@ -52,6 +54,9 @@ export async function GET(_context: APIContext) {
     })
     .join('\n');
 
+  const { topics } = await getTopicIndex();
+  const topicLines = llmsTxtTopicsSection(topics, (path) => canonicalUrlFor(withBase(path)));
+
   const feedLines = [
     `- [RSS feed](${canonicalUrlFor(withBase('/rss.xml'))}): the newest ${FEED_LIMIT} posts.`,
     `- [JSON Feed](${canonicalUrlFor(withBase('/feed.json'))}): the same ${FEED_LIMIT} posts as JSON Feed 1.1, with an \`_aitamer\` block per item (specimen, habitat, wildness, verdict, sunset).`,
@@ -77,7 +82,7 @@ ${writerLines}
 ## Habitats
 
 ${habitatLines}
-
+${topicLines ? `\n## Topics\n\n${topicLines}\n` : ''}
 ## Feeds and contract
 
 ${feedLines}

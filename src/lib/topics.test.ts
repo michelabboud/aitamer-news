@@ -3,7 +3,10 @@ import { test } from 'node:test';
 import {
   TOPIC_MIN_STORIES,
   TOPIC_SUMMARY_MAX,
+  LLMS_TOPIC_LIMIT,
   buildTopics,
+  llmsTxtTopicsSection,
+  topicLastmods,
   parseTopicDetails,
   topicDescription,
   topicKey,
@@ -137,4 +140,59 @@ test('details refuse anything that is not plain, bounded text and a Wikipedia or
   bad('a string');
   assert.throws(() => parseTopicDetails([]), /object/);
   assert.throws(() => parseTopicDetails({ 'Not A Slug': {} }), /Not A Slug/);
+});
+
+const dated = (id: string, tag: string, iso: string | null) => ({ id, tags: [tag], lastmod: iso ? new Date(iso) : null });
+
+test('a topic page is as new as its newest story, and the index as new as the newest topic', () => {
+  const stories = [
+    ...['a', 'b', 'c', 'd'].map((id, i) => dated(`r-${id}`, 'rust', `2026-09-0${i + 1}T00:00:00Z`)),
+    dated('r-e', 'rust', '2026-09-20T00:00:00Z'),
+    ...['a', 'b', 'c', 'd', 'e'].map((id) => dated(`o-${id}`, 'openai', '2026-08-01T00:00:00Z')),
+    ...['a', 'b'].map((id) => dated(`m-${id}`, 'mcp', '2026-10-30T00:00:00Z')),
+  ];
+  const { bySlug, newest } = topicLastmods(stories);
+  assert.equal(bySlug.get('rust')?.toISOString(), '2026-09-20T00:00:00.000Z');
+  assert.equal(bySlug.get('openai')?.toISOString(), '2026-08-01T00:00:00.000Z');
+  // "mcp" has two stories, below the floor: no page, so its date moves nothing.
+  assert.equal(bySlug.has('mcp'), false);
+  assert.equal(newest?.toISOString(), '2026-09-20T00:00:00.000Z');
+});
+
+test('stories without a date are skipped, and a topic with none has no entry', () => {
+  const stories = [...many('rust', 4).map((p) => dated(p.id, 'rust', null)), dated('x', 'rust', '2026-09-01T00:00:00Z')];
+  assert.equal(topicLastmods(stories).bySlug.get('rust')?.toISOString(), '2026-09-01T00:00:00.000Z');
+  const none = many('rust', 5).map((p) => dated(p.id, 'rust', null));
+  assert.deepEqual([...topicLastmods(none).bySlug], []);
+  assert.equal(topicLastmods(none).newest, undefined);
+  assert.deepEqual(topicLastmods([]), { bySlug: new Map(), newest: undefined });
+});
+
+test('the sitemap and the pages group stories the same way', () => {
+  const stories = [...many('Open Weights', 3, 'a'), ...many('open-weights', 3, 'b')].map((p) => dated(p.id, p.tags[0], '2026-09-01T00:00:00Z'));
+  assert.deepEqual([...topicLastmods(stories).bySlug.keys()], buildTopics(stories).map((t) => t.slug));
+});
+
+test('llms.txt lists the biggest topics with counts and points to the full list', () => {
+  const topics = buildTopics([...many('big', 9), ...many('mid', 6), ...many('small', 5)]);
+  const text = llmsTxtTopicsSection(topics, (path) => `https://x.test${path}`);
+  assert.equal(
+    text,
+    [
+      '- [big](https://x.test/topics/big/): 9 stories, newest first.',
+      '- [mid](https://x.test/topics/mid/): 6 stories, newest first.',
+      '- [small](https://x.test/topics/small/): 5 stories, newest first.',
+    ].join('\n'),
+  );
+  const capped = llmsTxtTopicsSection(topics, (path) => `https://x.test${path}`, 2);
+  assert.match(capped, /\n- \[All 3 topics\]\(https:\/\/x\.test\/topics\/\): every tag that 5 or more stories carry\.$/);
+  assert.equal(capped.split('\n').length, 3);
+  assert.equal(llmsTxtTopicsSection([], (p) => p), '');
+  assert.equal(LLMS_TOPIC_LIMIT, 30);
+});
+
+test('llms.txt escapes the brackets and backslashes of a tag label so its link line stays one link', () => {
+  const [topic] = buildTopics(many('a[1]\\b', 5));
+  const line = llmsTxtTopicsSection([topic], (path) => `https://x.test${path}`);
+  assert.ok(line.startsWith('- [a\\[1\\]\\\\b](https://x.test/topics/'), line);
 });

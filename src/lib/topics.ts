@@ -168,3 +168,43 @@ export function topicSlugsForTags(slugByKey: ReadonlyMap<string, string>, tags: 
   }
   return out;
 }
+
+/**
+ * When each topic page last changed, for the sitemap: the newest last-change date among the topic's
+ * stories (a new story, an update or a correction all move it), and the newest of those for the
+ * `/topics/` index. Run at config time over the sitemap's own view of the posts, with the same
+ * floor and the same grouping as the pages, so the two cannot disagree about what a topic is.
+ * Stories without a usable date are skipped; a topic with none gets no entry.
+ */
+export function topicLastmods(
+  stories: readonly { id: string; tags: readonly string[]; lastmod: Date | null }[],
+  min: number = TOPIC_MIN_STORIES,
+): { bySlug: Map<string, Date>; newest: Date | undefined } {
+  const dates = new Map(stories.map((story) => [story.id, story.lastmod]));
+  const bySlug = new Map<string, Date>();
+  let newest: Date | undefined;
+  for (const topic of buildTopics(stories, min)) {
+    const moments = topic.postIds.map((id) => dates.get(id)?.valueOf()).filter((v): v is number => v !== undefined);
+    if (!moments.length) continue;
+    const latest = new Date(Math.max(...moments));
+    bySlug.set(topic.slug, latest);
+    if (!newest || latest > newest) newest = latest;
+  }
+  return { bySlug, newest };
+}
+
+/** How many topics `llms.txt` lists by name; the rest are one link away on `/topics/`. */
+export const LLMS_TOPIC_LIMIT = 30;
+
+/** The "Topics" lines of `llms.txt`: the biggest topics, each with its story count, and a pointer to the full list. */
+export function llmsTxtTopicsSection(
+  topics: readonly Pick<Topic, 'slug' | 'label' | 'postIds'>[],
+  url: (path: string) => string,
+  limit: number = LLMS_TOPIC_LIMIT,
+): string {
+  const lines = topics
+    .slice(0, limit)
+    .map((t) => `- [${t.label.replace(/[[\]\\]/g, (c) => `\\${c}`)}](${url(`/topics/${t.slug}/`)}): ${t.postIds.length} ${t.postIds.length === 1 ? 'story' : 'stories'}, newest first.`);
+  const more = topics.length > limit ? `\n- [All ${topics.length} topics](${url('/topics/')}): every tag that ${TOPIC_MIN_STORIES} or more stories carry.` : '';
+  return lines.join('\n') + more;
+}

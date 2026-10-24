@@ -16,6 +16,8 @@
  *   build still being served) fails as surely as a missing page;
  * - every file at the site root (llms.txt, the feeds, the sitemaps, robots.txt) and every same-site
  *   file the home page loads (its CSS, scripts, images) answers 200;
+ * - the sitemaps served are byte-for-byte the ones this build made, so a deployment that still
+ *   serves an older sitemap (a new story or topic missing, an old `lastmod`) fails like a stale page;
  * - every `_redirects` line answers its status and points at its target;
  * - every diagram answers 200 as `image/svg+xml` under its folder's enforced lockdown (ADR 0016);
  * - an address that does not exist answers 404, not 200;
@@ -56,6 +58,8 @@ export const USER_AGENT = 'aitamer-deploy-smoke/1 (+https://github.com/michelabb
 /** Root files that are the host's configuration, never served as files. */
 const HOST_CONFIG_FILES = new Set(['_headers', '_redirects', '_routes.json']);
 const EXPECTS = new Set(['preview', 'production']);
+/** A sitemap at the site root: `sitemap-index.xml`, `sitemap-0.xml`, `news-sitemap.xml`. */
+const SITEMAP_FILE = /^\/(?:news-)?sitemap[^/]*\.xml$/;
 /** A `_redirects` target with its own scheme and host, not a path on the site. */
 const ABSOLUTE_TARGET = /^https?:\/\//i;
 
@@ -83,7 +87,7 @@ export function parseRedirects(text) {
 /**
  * What to request, from the build.
  * @param {string} dist @param {number} maxPages
- * @returns {{ pages: { path: string, title: string | null }[], files: string[], redirects: ReturnType<typeof parseRedirects> }}
+ * @returns {{ pages: { path: string, title: string | null }[], files: string[], sitemaps: Map<string, string>, redirects: ReturnType<typeof parseRedirects> }}
  */
 export function plan(dist, maxPages = MAX_PAGES) {
   const redirectsFile = join(dist, '_redirects');
@@ -107,6 +111,10 @@ export function plan(dist, maxPages = MAX_PAGES) {
     .map((url) => sitePath(url, '/', 'https://site.invalid'))
     .filter((path) => path !== null && !path.endsWith('/'));
   const files = [...new Set([...rootFiles, ...homeFiles])].sort();
+  // The sitemaps (the index, its parts, the news sitemap) as built, to compare with what is served.
+  const sitemaps = new Map(
+    rootFiles.filter((path) => SITEMAP_FILE.test(path)).map((path) => [path, readFileSync(join(dist, path), 'utf8')]),
+  );
   const diagramsDir = join(dist, 'diagrams');
   const diagrams = existsSync(diagramsDir)
     ? readdirSync(diagramsDir, { withFileTypes: true })
@@ -114,7 +122,7 @@ export function plan(dist, maxPages = MAX_PAGES) {
         .flatMap((d) => readdirSync(join(diagramsDir, d.name)).filter((f) => f.endsWith('.svg')).map((f) => `/diagrams/${d.name}/${f}`))
         .sort()
     : [];
-  return { pages, files, redirects, diagrams };
+  return { pages, files, sitemaps, redirects, diagrams };
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -185,6 +193,9 @@ export async function checkRound(base, expect, work, opts = {}) {
   for (const { path, res } of files) {
     if ('error' in res) findings.push(`${path}: ${res.error}`);
     else if (res.status !== 200) findings.push(`${path}: answered ${res.status}, expected 200`);
+    else if (work.sitemaps?.has(path) && res.body !== work.sitemaps.get(path)) {
+      findings.push(`${path}: the deployment serves a different sitemap than this build made (an old deployment?)`);
+    }
   }
 
   const redirects = await pool(work.redirects, concurrency, async (rule) => ({ rule, res: await get(rule.from, 'manual') }));
