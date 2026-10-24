@@ -42,7 +42,7 @@
     "astro": "^7.3.4",
     "js-yaml": "4.3.2",
     "parse5": "8.0.1",
-    "satteri": "^0.10.5"
+    "satteri": "0.10.5"
   },
   "allowScripts": {
     "esbuild": true

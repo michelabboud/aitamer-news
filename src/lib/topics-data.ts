@@ -1,5 +1,5 @@
 import { getPublishedPosts } from './site';
-import { buildTopics, parseTopicDetails, topicKey, type Topic, type TopicDetails } from './topics.ts';
+import { buildTopics, parseTopicDetails, type Topic, type TopicDetails } from './topics.ts';
 
 /** `src/data/topics.json`, if present: a missing file is a site with no topic details, not an error. */
 const detailFiles = import.meta.glob('../data/topics.json', { eager: true, import: 'default' });
@@ -29,18 +29,4 @@ async function load(): Promise<TopicIndex> {
 export function getTopicIndex(): Promise<TopicIndex> {
   cached ??= load();
   return cached;
-}
-
-/** The topic slug for each of a story's tags that has a page, in tag order, without repeats. */
-export function topicSlugsForTags(index: TopicIndex, tags: readonly string[]): { tag: string; slug: string }[] {
-  const seen = new Set<string>();
-  const out: { tag: string; slug: string }[] = [];
-  for (const tag of tags) {
-    const slug = index.slugByKey.get(topicKey(tag));
-    if (slug && !seen.has(slug)) {
-      seen.add(slug);
-      out.push({ tag, slug });
-    }
-  }
-  return out;
 }

@@ -1,6 +1,6 @@
 # Topic details (`topics.json`)
 
-Optional, maintained by hand. Topic pages (`/topics/<slug>/`, ADR 0007) exist for every tag with at least five stories and work with this file empty. Add an entry to say something checkable about a topic:
+Optional, maintained by hand. Topic pages (`/topics/<slug>/`, ADR 0046) exist for every tag with at least five stories and work with this file empty. Add an entry to say something checkable about a topic:
 
 ```json
 {

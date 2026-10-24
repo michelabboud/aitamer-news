@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.116 · 2026-10-24 · production review fixes
+
+High review of PR330 by a fresh Opus 5.5 session (Astra had no tokens; Michel's word 2026-10-24): no blocker, three should-fix items fixed here. Merge follows green hosted checks.
+
 ## 0.2.115 · 2026-10-24 · structured data, dates, topics
 
 Template-first work from the private UIUX repository (0.0.55 to 0.0.60), reviewed twice by independent mechanical reviewers, applied here. 1281 tests and the full 1364-page build pass; every story page's JSON-LD parses with the new fields, 195 topic pages build, and the three corrected stories show one date on every surface. Live acceptance follows the deployment.

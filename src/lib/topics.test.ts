@@ -7,6 +7,7 @@ import {
   parseTopicDetails,
   topicDescription,
   topicKey,
+  topicSlugsForTags,
 } from './topics.ts';
 
 const post = (id: string, ...tags: string[]) => ({ id, tags });
@@ -30,7 +31,26 @@ test('tags that differ only in case, spacing or accents are one topic, labelled 
   assert.equal(topic.postIds.length, 6);
   assert.equal(topic.slug, 'openai');
   assert.equal(topic.label, 'openai');
-  assert.equal(topicKey('  Café   Society '), 'cafe society');
+  assert.equal(topicKey('  Café   Society '), 'cafe-society');
+});
+
+test('spaces, underscores and hyphens are one separator, so a subject is never split in two', () => {
+  assert.equal(topicKey('Open Weights'), 'open-weights');
+  assert.equal(topicKey('open_weights'), 'open-weights');
+  assert.equal(topicKey('--open -- weights--'), 'open-weights');
+  const posts = [post('1', 'open weights'), post('2', 'open-weights'), post('3', 'Open_Weights'), post('4', 'open-weights'), post('5', 'OPEN WEIGHTS')];
+  const topics = buildTopics(posts);
+  assert.equal(topics.length, 1);
+  assert.equal(topics[0].slug, 'open-weights');
+});
+
+test('story tags link once per topic, in tag order, and only when the topic has a page', () => {
+  const slugByKey = new Map([['openai', 'openai'], ['open-weights', 'open-weights']]);
+  assert.deepEqual(topicSlugsForTags(slugByKey, ['AI', 'OpenAI', 'openai', 'Open Weights', 'ferris']), [
+    { tag: 'OpenAI', slug: 'openai' },
+    { tag: 'Open Weights', slug: 'open-weights' },
+  ]);
+  assert.deepEqual(topicSlugsForTags(new Map(), ['openai']), []);
 });
 
 test('the label tie-breaks alphabetically, so the build is deterministic', () => {

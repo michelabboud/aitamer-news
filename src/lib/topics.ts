@@ -1,9 +1,9 @@
 /**
- * Topic pages (`/topics/<slug>/`, ADR 0007): one page per tag that at least `TOPIC_MIN_STORIES`
+ * Topic pages (`/topics/<slug>/`, ADR 0046): one page per tag that at least `TOPIC_MIN_STORIES`
  * published stories carry, gathering them in one place for readers, search engines and answer
  * engines. Pure, so `node:test` covers it; `topics-data.ts` does the loading.
  *
- * Tags are free text from writers, so a topic is a tag after normalising (case, spacing, accents).
+ * Tags are free text from writers, so a topic is a tag after normalising (case, accents, and spaces, underscores and hyphens).
  * Addresses must never change when other stories change: a tag that is already written in slug form
  * (`openai`, `grok-4-7`, which is every tag the site's writers use today) owns that plain address
  * for good, and any other tag always carries a hash of itself, so neither a new tag nor a withdrawn
@@ -37,9 +37,12 @@ export interface Topic {
   postIds: string[];
 }
 
-/** A tag as one comparable string: accents folded, lower case, single spaces. */
+/**
+ * A tag as one comparable string: accents folded, lower case, and every run of spaces, underscores
+ * and hyphens one hyphen, so `open weights`, `Open_Weights` and `open-weights` are one topic.
+ */
 export function topicKey(tag: string): string {
-  return tag.normalize('NFKD').replace(/\p{M}+/gu, '').toLowerCase().trim().replace(/\s+/g, ' ');
+  return tag.normalize('NFKD').replace(/\p{M}+/gu, '').toLowerCase().replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
 /** Code-point order: the same on every machine, unlike a locale's collation. */
@@ -150,4 +153,18 @@ export function parseTopicDetails(raw: unknown): Map<string, TopicDetails> {
 /** The meta description and lede of a topic page: the maintainer's summary, else a plain count. */
 export function topicDescription(label: string, count: number, summary: string | undefined): string {
   return summary ?? `${count} ${count === 1 ? 'story' : 'stories'} tagged ${label} on AI Tamer, newest first.`;
+}
+
+/** The topic slug for each of a story's tags that has a page, in tag order, one link per topic. */
+export function topicSlugsForTags(slugByKey: ReadonlyMap<string, string>, tags: readonly string[]): { tag: string; slug: string }[] {
+  const seen = new Set<string>();
+  const out: { tag: string; slug: string }[] = [];
+  for (const tag of tags) {
+    const slug = slugByKey.get(topicKey(tag));
+    if (slug && !seen.has(slug)) {
+      seen.add(slug);
+      out.push({ tag, slug });
+    }
+  }
+  return out;
 }

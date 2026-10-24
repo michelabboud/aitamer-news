@@ -1,7 +1,8 @@
 ---
 import { toJsonLd } from '../../lib/json-ld';
 import { jsonLdAuthorType } from '../../lib/author-kinds.ts';
-import { getTopicIndex, topicSlugsForTags } from '../../lib/topics-data.ts';
+import { getTopicIndex } from '../../lib/topics-data.ts';
+import { topicSlugsForTags } from '../../lib/topics.ts';
 import { effectiveModified, lastChange } from '../../lib/article-dates.ts';
 import { SITE_LANGUAGE, articleWordCount, authorSameAs, publisherOrganization } from '../../lib/structured-data.ts';
 import { writerAuthorPath, writerNoun, personalOpinionDisclosure } from '../../lib/writer-pages.ts';
@@ -65,7 +66,7 @@ export async function getStaticPaths() {
           thread ? entryStamp(thread) : 'no-comments',
           reactions ? entryStamp(reactions) : 'no-reactions',
           // A tag gains or loses its topic page when other stories change, so the links belong in the key.
-          topicSlugsForTags(topicIndex, post.data.tags).map(({ slug }) => slug).join(','),
+          topicSlugsForTags(topicIndex.slugByKey, post.data.tags).map(({ slug }) => slug).join(','),
         ].join('|'),
       };
     }),
@@ -101,7 +102,7 @@ const withdrawn = data.withdrawn;
 const corrections = [...data.corrections].sort((a, b) => b.date.valueOf() - a.date.valueOf());
 // The story's last change (an update or the newest correction), undefined if it never changed.
 const changed = lastChange(data);
-const topicLinks = new Map(topicSlugsForTags(await getTopicIndex(), data.tags).map(({ tag, slug }) => [tag, slug]));
+const topicLinks = new Map(topicSlugsForTags((await getTopicIndex()).slugByKey, data.tags).map(({ tag, slug }) => [tag, slug]));
 const authorUrl = canonicalUrlFor(writerAuthorPath(author));
 const absolute = (path: string) => new URL(withBase(path), SITE.url).toString();
 
