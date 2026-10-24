@@ -1028,3 +1028,8 @@
 1025 tencent-hy-nomas-open-interactive-world-model
 1026 uk-ai-biosecurity-lab-openai-anthropic
 1027 block-dessa-speech-only-voice-model
+1028 ai-voice-models-elevenlabs
+1029 goose-1-56-boa-rust-javascript-code-mode
+1030 lancedb-cloud-table-name-path-traversal
+1031 did-you-know-google-personal-intelligence-ads
+1032 aws-continuum-code-vulnerabilities-ga

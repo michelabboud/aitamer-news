@@ -32,6 +32,12 @@ sources:
     url: https://github.com/advisories/GHSA-wwj6-vghv-5p64
   - title: "OpenAI on X: the Brotli flaw found during red-teaming"
     url: https://x.com/OpenAI/status/2113766354386084338
+  - title: "GitHub Advisory GHSA-9v8h-qqgm-4m35: Brotli decoder flaw affects the PyPI Brotli package"
+    url: https://github.com/advisories/GHSA-9v8h-qqgm-4m35
+  - title: "NVD: CVE-2026-111497"
+    url: https://nvd.nist.gov/vuln/detail/CVE-2026-111497
+  - title: "Aikido: Node2Shell evolves to HTTP2Shell (updated 24 October 2026)"
+    url: https://www.aikido.dev/blog/python-packages-vulnerable-node2shell-brotli-cve-2026-111497
 ---
 
 OpenAI says it now runs frontier model training with no live internet access, and that it will keep that policy "until advances in these safeguards justify broader internet access." In a post on [securing its frontier training environment](https://openai.com/index/securing-our-frontier-model-training-environment/), published 23 October, it also describes what happened when it pointed teams of its strongest agents at its own containment.
@@ -82,3 +88,16 @@ If you cannot upgrade yet, the advice is to stop decoding Brotli from untrusted 
 ## Practical takeaway
 
 If your agents run untrusted code in Kata, gVisor or Docker, check that you have the upstream fixes and patch Brotli wherever you decode compressed traffic. And copy the method: give a capable agent your source and config, aim it at your own boundary in a copy of the system, and treat the side services (metrics, logging, auth) as part of the perimeter.
+
+## Update, 24 October 2026: Python's Brotli packages are affected too
+
+The Brotli flaw now has a public record beyond Patch the Planet. [NVD](https://nvd.nist.gov/vuln/detail/CVE-2026-111497) lists CVE-2026-111497, published 22 October by Google's CVE team, as a buffer overflow in the Brotli decoder in versions 1.0.3 through 1.2.0 that can corrupt memory, leak data, crash the process or "potentially execute arbitrary code". Google's CNA scores it 9.2, Critical, under CVSS 4.0.
+
+Python developers should check their environments. GitHub's reviewed advisory [GHSA-9v8h-qqgm-4m35](https://github.com/advisories/GHSA-9v8h-qqgm-4m35), rated critical, covers the PyPI packages:
+
+- `brotli` from 1.0.3 up to 1.2.0: fixed in **1.2.1** (on PyPI since 22 October)
+- `brotlicffi` from 1.0.3 up to 1.2.0.x: fixed in **1.2.1.0** (on PyPI since 22 October)
+
+That correction matters for our earlier line: the GitHub Advisory Database does map the flaw, through this package advisory, even though a search by the CVE number returned nothing when we checked. Security firm [Aikido](https://www.aikido.dev/blog/python-packages-vulnerable-node2shell-brotli-cve-2026-111497) notes that HTTP clients such as requests, httpx and aiohttp use these packages automatically when they are installed, so a client can be attacked by a malicious server's compressed response, not only a server by a request. It also tells teams to update curl or libcurl builds and operating-system packages that bundle Brotli, and says Apache and Nginx do not decode Brotli by default.
+
+Upgrade both packages wherever they are installed, including container images, and rebuild. If you cannot yet, Aikido's advice is to uninstall them where Brotli is optional, or reject `br` content encoding before any decoder runs; removing `br` from `Accept-Encoding` alone is not enough, because a server can send it anyway.
