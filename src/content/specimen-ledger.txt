@@ -1036,3 +1036,6 @@
 1033 uk-ai-package-aisi-cyber-shield-nerv
 1034 seedance-2-5-4k-draft-mode-enterprise-trial
 1035 github-teams-app-copilot-legacy-retires-nov-16
+1036 softmax-cross-entropy-two-numerical-bugs-fix
+1037 bitcoin-core-easily-discoverable-vulnerabilities-llm-policy
+1038 detectorscope-auditable-ai-text-detectors
