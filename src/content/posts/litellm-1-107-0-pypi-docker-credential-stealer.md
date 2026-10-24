@@ -92,6 +92,6 @@ LiteLLM published a [root cause analysis](https://docs.litellm.ai/blog/security-
 
 LiteLLM says it is revoking every token on every internal system and vendor platform, and that it will share process changes next week.
 
-Releases have resumed. On 24 October LiteLLM published 1.103.8, 1.104.6 and 1.105.4 on GitHub, and 1.106.3 is on PyPI. The [release notes](https://github.com/BerriAI/litellm/releases/tag/v1.105.4) say Docker images and Helm charts are now signed with a **new cosign key** (from commit `e82a3c6`), so verifying with the old key from commit `0112e53` will fail, and the eMudhra root CA is removed from every certificate bundle the SDK, proxy and images trust.
+Releases have resumed. On 24 October LiteLLM published 1.103.8, 1.104.6, 1.105.4 and 1.106.3 on GitHub, and 1.106.3 is also on PyPI. The [release notes](https://github.com/BerriAI/litellm/releases/tag/v1.105.4) say Docker images and Helm charts are now signed with a **new cosign key** (from commit `e82a3c6`), so verifying with the old key from commit `0112e53` will fail, and the eMudhra root CA is removed from every certificate bundle the SDK, proxy and images trust.
 
 What changes for readers: update any `cosign verify` script, CI check or admission policy that pins the old `cosign.pub` before you move to these releases. And the lesson generalizes to any agent platform: a GitHub token held by an agent service should be a scoped bot token, never an owner's personal CLI token, and a leaked key has to be revoked, not just scrubbed from history.
