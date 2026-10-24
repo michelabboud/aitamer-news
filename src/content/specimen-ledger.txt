@@ -1022,3 +1022,9 @@
 1019 dagger-1-0-beta-ci-for-coding-agents
 1020 php-rust-wordpress-test-suite-parity
 1021 grok-bot-computer-recovery
+1022 openai-frontier-training-offline-world-red-team
+1023 github-package-firewall-npm-public-preview
+1024 claude-code-mcp-tasks-public-beta
+1025 tencent-hy-nomas-open-interactive-world-model
+1026 uk-ai-biosecurity-lab-openai-anthropic
+1027 block-dessa-speech-only-voice-model
