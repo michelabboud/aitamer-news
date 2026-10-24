@@ -15,6 +15,8 @@ interface Props {
   fullTitle?: string;
   description?: string;
   canonical?: string;
+  /** An error page has no address of its own: no canonical link and no og:url (the 404 page). */
+  noCanonical?: boolean;
   /** A site-relative path or an absolute URL (a hero on the media host); the welcome hero when absent. */
   image?: string;
   /** Open Graph type. */
@@ -39,6 +41,7 @@ const {
   fullTitle,
   description = SITE.description,
   canonical,
+  noCanonical = false,
   image,
   ogType = 'website',
   noindex = false,
@@ -92,7 +95,7 @@ const STATION_LINKS = [
     <meta name="theme-color" content="#111513" />
     <meta name="color-scheme" content="dark" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="canonical" href={canonicalUrl} />
+    {!noCanonical && <link rel="canonical" href={canonicalUrl} />}
     <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
@@ -138,7 +141,7 @@ const STATION_LINKS = [
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />
-    <meta property="og:url" content={canonicalUrl} />
+    {!noCanonical && <meta property="og:url" content={canonicalUrl} />}
     <meta property="og:image" content={absoluteImage} />
     <meta property="og:site_name" content={SITE.title} />
 

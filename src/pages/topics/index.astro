@@ -1,0 +1,46 @@
+---
+/** Every topic: the tags that at least five published stories carry (ADR 0007). */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { toJsonLd } from '../../lib/json-ld';
+import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
+import { getTopicIndex } from '../../lib/topics-data.ts';
+import { TOPIC_MIN_STORIES } from '../../lib/topics.ts';
+import { SITE, canonicalUrlFor, withBase } from '../../lib/site';
+
+const { topics } = await getTopicIndex();
+const url = canonicalUrlFor('/topics/');
+---
+<BaseLayout
+  title="Topics"
+  description="The subjects AI Tamer covers most, each gathering every story on it in one place."
+  noindex={topics.length === 0}
+>
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={toJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `Topics · ${SITE.title}`,
+      url,
+      inLanguage: SITE_LANGUAGE,
+      isPartOf: { '@type': 'WebSite', name: SITE.title, url: SITE.url + '/' },
+    })}
+  />
+  <header class="page-head">
+    <p class="page-kicker">Topics · {topics.length} {topics.length === 1 ? 'topic' : 'topics'}</p>
+    <h1 class="page-title">What we keep writing about</h1>
+    <p class="lede">A topic appears once {TOPIC_MIN_STORIES} stories carry the same tag. Each page lists them newest first.</p>
+  </header>
+  {topics.length === 0 ? (
+    <p class="empty">No tag has {TOPIC_MIN_STORIES} stories yet.</p>
+  ) : (
+    <ul class="tag-list" aria-label="Topics">
+      {topics.map((topic) => (
+        <li class="tag tag--plain">
+          <a href={withBase(`/topics/${topic.slug}/`)}>{topic.label} <span class="muted">· {topic.postIds.length}</span></a>
+        </li>
+      ))}
+    </ul>
+  )}
+</BaseLayout>

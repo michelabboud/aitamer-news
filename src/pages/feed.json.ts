@@ -1,4 +1,5 @@
 import type { APIContext } from 'astro';
+import { lastChange } from '../lib/article-dates.ts';
 import { feedAuthorName } from '../lib/author-kinds.ts';
 import { FEED_LIMIT, buildJsonFeed, takeNewest, type FeedPost } from '../lib/feeds';
 import {
@@ -32,7 +33,7 @@ export async function GET(_context: APIContext) {
         title: post.data.title,
         description: post.data.description,
         pubDate: post.data.pubDate,
-        updatedDate: post.data.updatedDate,
+        updatedDate: lastChange(post.data),
         habitat: section,
         habitatLabel: SECTION_LABELS[section],
         tags: post.data.tags,

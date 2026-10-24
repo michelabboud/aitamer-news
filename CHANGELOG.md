@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.115 · 2026-10-24
+
+SEO structured data, update dates, topic pages and small fixes (audit findings M1 to M4, L1 to L4). Stories and the home page carry a full publisher Organization (logo, contact form, language, prose word count, `article:author`), human writers carry `sameAs`, and About has AboutPage markup; no publisher identity facts are invented. One rule, the newest of `updatedDate` and corrections, drives the visible "Updated" line, `article:modified_time`, JSON-LD, the JSON feed, a new RSS `dcterms:modified` and the sitemap. `/topics/` and `/topics/<slug>/` exist for the 195 tags that five or more stories carry, with addresses that depend only on their own tag (ADR 0046) and an optional `src/data/topics.json`. Also a build-generated `/.well-known/security.txt`, no canonical on the 404 page, and real headings on the home writer cards. `satteri` is declared as the direct dependency it already was in the tree. No story, image or workflow behavior changes.
+
 ## 0.2.114 · 2026-10-24
 
 Give Chromium's first tab a separate45secondcold-start deadline; subsequent commands stay at10seconds and the complete browser qualification at90seconds. New hosted diagnostics identified the first-tab startup as the remaining timeout, with all1210other tests passing. Every browser assertion remains; focused7tests pass. Image rendering/preparation behavior is unchanged.

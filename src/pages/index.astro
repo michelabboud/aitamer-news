@@ -1,6 +1,7 @@
 ---
 import { toJsonLd } from '../lib/json-ld';
 import { isColumnist, kindLabel } from '../lib/author-kinds.ts';
+import { PUBLISHER_ID, SITE_LANGUAGE, publisherOrganization } from '../lib/structured-data.ts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AuthorBadge from '../components/AuthorBadge.astro';
 import CommentCount from '../components/CommentCount.astro';
@@ -72,11 +73,17 @@ const writers = orderedAuthors.filter((author) => isFeaturedWriter(author) || au
     type="application/ld+json"
     set:html={toJsonLd({
       '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: SITE.title,
-      url: SITE.url + '/',
-      description: SITE.description,
-      publisher: { '@type': 'Organization', name: SITE.title, url: SITE.url },
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          name: SITE.title,
+          url: SITE.url + '/',
+          description: SITE.description,
+          inLanguage: SITE_LANGUAGE,
+          publisher: { '@id': PUBLISHER_ID },
+        },
+        publisherOrganization(),
+      ],
     })}
   />
   <Freshness mode="stories" newest={newestShown} />
@@ -178,10 +185,10 @@ const writers = orderedAuthors.filter((author) => isFeaturedWriter(author) || au
             ) : (
               <span class={`tamer__avatar tamer__avatar--${author.data.kind}`} aria-hidden="true">{initials(author.data.name)}</span>
             )}
-            <span class="writer-card__text">
+            <div class="writer-card__text">
               <span class={`writer-card__kicker by--${author.data.kind}`}>From our {kindLabel(author.data.kind)}</span>
-              <span id={`writer-card-${author.id}`} class="writer-card__name">{author.data.name}</span>
-            </span>
+              <h2 id={`writer-card-${author.id}`} class="writer-card__name">{author.data.name}</h2>
+            </div>
           </a>
           {latest ? (
             <a class="writer-card__latest" href={postHref(latest)}>{latest.data.title}</a>

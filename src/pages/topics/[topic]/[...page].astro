@@ -1,0 +1,61 @@
+---
+/** One topic: every published story carrying the tag, newest first, 24 to a page (ADR 0007). */
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostListing from '../../../components/PostListing.astro';
+import { LISTING_PAGE_SIZE, listingTitle } from '../../../lib/listing.ts';
+import { toJsonLd } from '../../../lib/json-ld';
+import { SITE_LANGUAGE } from '../../../lib/structured-data.ts';
+import { getTopicIndex } from '../../../lib/topics-data.ts';
+import { topicDescription } from '../../../lib/topics.ts';
+import { SITE, canonicalUrlFor, getPublishedPosts } from '../../../lib/site';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const { topics, details } = await getTopicIndex();
+  const posts = await getPublishedPosts();
+  const postById = new Map(posts.map((post) => [post.id, post]));
+  const authors = new Map((await getCollection('authors')).map((a) => [a.id, a]));
+  return topics.flatMap((topic) => {
+    const items = topic.postIds.map((id) => {
+      const post = postById.get(id);
+      const author = post && authors.get(post.data.author.id);
+      if (!post || !author) throw new Error(`Topic ${topic.slug}: missing post or author for ${id}`);
+      return { post, author };
+    });
+    return paginate(items, {
+      pageSize: LISTING_PAGE_SIZE,
+      params: { topic: topic.slug },
+      props: { label: topic.label, count: topic.postIds.length, details: details.get(topic.slug) },
+    });
+  });
+}) satisfies GetStaticPaths;
+
+const { page, label, count, details } = Astro.props;
+const description = topicDescription(label, count, details?.summary);
+const sameAs = details?.sameAs ?? [];
+---
+<BaseLayout title={listingTitle(`Topic: ${label}`, page.currentPage)} description={description}>
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={toJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `${label} · ${SITE.title}`,
+      url: canonicalUrlFor(Astro.url.pathname),
+      description,
+      inLanguage: SITE_LANGUAGE,
+      isPartOf: { '@type': 'WebSite', name: SITE.title, url: SITE.url + '/' },
+      ...(sameAs.length ? { about: { '@type': 'Thing', name: label, sameAs } } : {}),
+    })}
+  />
+  <PostListing
+    page={page}
+    name={`Topic ${label}`}
+    kicker={`Topic · ${count} ${count === 1 ? 'story' : 'stories'}`}
+    heading={label}
+    lede={description}
+    empty="Nothing is published on this topic."
+  />
+</BaseLayout>

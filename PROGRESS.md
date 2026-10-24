@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.115 · 2026-10-24 · structured data, dates, topics
+
+Template-first work from the private UIUX repository (0.0.55 to 0.0.60), reviewed twice by independent mechanical reviewers, applied here. 1281 tests and the full 1364-page build pass; every story page's JSON-LD parses with the new fields, 195 topic pages build, and the three corrected stories show one date on every surface. Live acceptance follows the deployment.
+
 ## 0.2.92 · 2026-10-20 · owner image approval accepted
 
 PR298 installed the owner workflow; run39400050864 passed all three jobs for the exact refreshed image head. Original PR292 was approved and normally merged, and deployment39400491915 succeeded. Live homepage, both author pages and both image assets answered200 with the new references; the live180634-byte portrait exactly matched its reviewed SHA256. Bot and Grok instructions now separate image proposals from the ordinary article lane. The [current handoff](docs/handoffs/2026-10-20-owner-image-approval.md) records source, checks, normal merge API receipts and independent live verification. Code remains the1092-test0.2.91 candidate;0.2.92 updates records and instructions only.
