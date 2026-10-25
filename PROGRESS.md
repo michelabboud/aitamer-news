@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.122 · 2026-10-25 · privacy page: backups last 7 days
+
+The two sentences on the privacy page that said restorable backups last up to 30 days now say up to 7 days, and the page is dated 25 October 2026. Template first (private repository 0.0.75), copied here byte for byte. Independent of the comments switch-over.
+
 ## 0.2.121 · 2026-10-25 · review fixes for the comments code (still switched off)
 
 Two independent reviews of pull request 335 found nothing blocking; their items are fixed template-first (private repository 0.0.74) and copied here byte for byte: the comments index check enforces the contract's cross-field rules, a redirect or a plain-http data host fails closed, the 10 second timeout also works on Safari before 16, the CSP script no longer reads the data-host variable in a baked build, and a repeated failure is announced again. Tests, build and checks: see the pull request.

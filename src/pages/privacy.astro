@@ -7,7 +7,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
   <h1 class="page-title">Privacy</h1>
   <div class="article">
     <p class="lede">
-      {SITE.title} does not run accounts or a mailing list.{CONTACT_FORM_LIVE ? ' The about page can email the desk.' : ' The contact form on the about page opens soon.'} Last updated 23 October 2026.
+      {SITE.title} does not run accounts or a mailing list.{CONTACT_FORM_LIVE ? ' The about page can email the desk.' : ' The contact form on the about page opens soon.'} Last updated 25 October 2026.
     </p>
     <div class="article__body">
       <p>
@@ -28,7 +28,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         when you send a comment, and for how long. The desk deletes old data in a clean-up that runs
         once a night, so anything kept "for 30 days" is deleted at the first clean-up after those 30
         days: at most 31 days after it was stored. Deleted data can remain in the database's
-        restorable backups for up to 30 days more, until those backups expire.
+        restorable backups for up to 7 days more, until those backups expire.
       </p>
       <ul>
         <li>
@@ -54,7 +54,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         <li>
           If the desk removes a comment, its name and text are erased from the desk's database at
           once. A bare record that a comment existed stays: its id, story, times, trust score and link
-          count. The database keeps restorable backups for up to 30 days, so erased text can remain in
+          count. The database keeps restorable backups for up to 7 days, so erased text can remain in
           those backups until they expire.
         </li>
       </ul>
