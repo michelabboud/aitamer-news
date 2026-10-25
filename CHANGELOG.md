@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.125 · 2026-10-25
+
+- Match v2 browser timestamp validation to the published schemas: seconds are required. Independent review found the mismatch; the new case fails before correction and focused19/full1,415 tests pass afterward. Production build passes; stale v1 URL prose corrected. Source review found no blocking reader defect; final cutover gates remain open.
+
 ## 0.2.124 · 2026-10-25
 
 - Prepare the cutover for revisioned v2 comments and index files, including empty story envelopes. Preserve frozen v1 schemas/routes and baked rollback validation; errors never fall back to legacy text. [Source verification](docs/reports/2026-10-25-comments-v2-reader.md):1,415tests pass, production build/content checks pass. Writer deployment, legacy URL retirement and the actual site switch remain separate gates.

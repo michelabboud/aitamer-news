@@ -35,7 +35,7 @@ test('v2 browsers refuse noncanonical, numeric, overflowing or absent revisions 
 });
 
 test('v2 timestamps are UTC instants, stories retain their time ceiling and order', () => {
-  for (const value of ['yesterday', '2026-02-30T10:00:00Z', '2026-10-25T10:00:00+00:00', undefined]) {
+  for (const value of ['yesterday', '2026-02-30T10:00:00Z', '2026-10-25T10:00:00+00:00', '2026-10-25T10:00Z', undefined]) {
     assert.equal(read(story({ generatedAt: value })).phase, 'failed');
     assert.equal(validateCommentsIndex(index({ generatedAt: value })).ok, false);
   }

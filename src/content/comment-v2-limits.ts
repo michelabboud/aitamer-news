@@ -15,7 +15,7 @@ export function parseCommentRevision(value: unknown): bigint | null {
 /** Same UTC calendar/time shape as the published ISO datetime fields, without zod in a browser. */
 export function isCommentUtcInstant(value: unknown): value is string {
   if (typeof value !== 'string') return false;
-  const parts = /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d+)?)?Z$/.exec(value);
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(?:\.\d+)?Z(?![\s\S])/.exec(value);
   if (parts === null) return false;
   const time = new Date(value);
   return Number.isFinite(time.getTime()) && time.getUTCFullYear() === Number(parts[1]) &&
