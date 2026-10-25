@@ -49,6 +49,10 @@ sources:
     url: https://aitamer.news/posts/rig-harness-coding-agent-bevy-plugins/
   - title: "AI Tamer: Perplexity open-sources SPACE, its Firecracker sandbox for agent tasks"
     url: https://aitamer.news/posts/perplexity-space-rust-sandbox/
+  - title: "Codewhale v0.10.2 release (GitHub, 24 October 2026)"
+    url: https://github.com/codewhale-hq/Codewhale/releases/tag/v0.10.2
+  - title: "Codewhale CHANGELOG at v0.10.2"
+    url: https://github.com/codewhale-hq/Codewhale/blob/v0.10.2/CHANGELOG.md
 ---
 
 On 17 and 18 October 2026, commits on the main branch of [codewhale-hq/Codewhale](https://github.com/codewhale-hq/Codewhale) changed how this terminal coding agent treats file reads, sub-agents, workflow approval, and sandboxed commands. The [changelog's Unreleased section](https://github.com/codewhale-hq/Codewhale/blob/main/CHANGELOG.md) describes the fixes. They are fixed on main, due in the next release.
@@ -84,3 +88,9 @@ An older record sits beside this. The [security-advisories API](https://api.gith
 A guard that only some tools honor is the pattern in the changelog. On any agent that reads files and starts commands, check three things: whether a turn's allow-list reaches the sub-agents it starts, whether every read path (review, verify, a single-file search) hits the deny-list, and whether PTY sessions get the same credential deny-list and OS sandbox as the shell. Here, the fixes for those gaps are on main, due in the next release, and are not in v0.10.1.
 
 Related on this site: [Moli](/posts/moli-rust-headless-browser-ai-agents/), [Rig's coding-agent plugins](/posts/rig-harness-coding-agent-bevy-plugins/), and [Perplexity's SPACE sandbox](/posts/perplexity-space-rust-sandbox/).
+
+## Update, 25 October 2026: the fixes are now in v0.10.2
+
+Codewhale [v0.10.2](https://github.com/codewhale-hq/Codewhale/releases/tag/v0.10.2) was published on GitHub on 24 October at 17:31 UTC, and npm's `codewhale` and crates.io's `codewhale-cli` both list 0.10.2 as the latest version. The GitHub compare view shows the newest of the seven fix commits named above is included in the tag. The [changelog at the tag](https://github.com/codewhale-hq/Codewhale/blob/v0.10.2/CHANGELOG.md) describes the same fixes: `validate_data`, `review` and `verify` honor the read deny-list, `fim_edit` honors it too, and a `tool_call_before` hook that answers `ask` now always shows the approval prompt. It adds more: sandboxed commands can no longer reach Codewhale's Runtime daemon socket, and unauthenticated `--insecure` servers answer only requests addressed to localhost, to block DNS rebinding.
+
+The same changelog has a Known limits section "from a pre-release security review of the local network surfaces, not yet fixed". With `codewhale serve --insecure` or `app-server --insecure-no-auth`, the `Origin` header is not checked, so a page on an allowed development origin such as `localhost:3000` can drive the Runtime API. The one-time `codewhale web` bootstrap capability passes through browser-launcher arguments other local users can read, and the opt-in control socket does not check the connecting user. One change also loosens a rule: sandboxed shells can again read tools' own auth config for `gh`, `aws`, `npm`, `cargo`, `docker`, `kubectl` and `git`, while Codewhale's file tools stay blocked from those files.

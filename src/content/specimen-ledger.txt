@@ -1040,3 +1040,8 @@
 1037 bitcoin-core-easily-discoverable-vulnerabilities-llm-policy
 1038 detectorscope-auditable-ai-text-detectors
 1039 grok-bot-files-and-voice
+1040 pennsylvania-ai-deceptive-advertising-act-labels
+1041 hipfire-0-4-3-1-r9700-a3b-prefill-decode
+1042 claude-enterprise-unified-chat-cowork-default-nov-16
+1043 rustgis-0-4-0-agents-mcp-audit-log-undo
+1044 devin-vulnerability-fixes-agent-skills-php-node-gitlab
