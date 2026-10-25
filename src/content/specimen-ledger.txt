@@ -1048,3 +1048,6 @@
 1045 ai-movie-models-gemini-omni-vs-utopai-x
 1046 gpu-unlock-rtx-30-40-tensor-throughput-llm-prefill
 1047 rockbridge-korea-hugging-face-models-chinese-base-qwen
+1048 pgrust-v0-4-beta-agent-built-postgres-rust-clickbench-dispute
+1049 nanbeige-4-3-33b-open-agentic-coding-model
+1050 tokengate-learned-token-pruning-long-context-prefill
