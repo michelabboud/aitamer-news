@@ -1,24 +1,37 @@
 ---
 /**
- * A story's approved comment count, counted at build time from its data file, linking to the
- * thread on the story page. Nothing loads in the reader's browser.
+ * A story's approved comment count, linking to the thread on the story page.
  *
- * The caller passes the count: the post page from the thread it already holds (its
- * incremental-build key covers exactly that thread), the home page and the Campfire from one
- * `getCommentThreads()` per page through `commentCountFor` — never one directory listing per row.
- * Only pages rebuilt on every build (home, Campfire) may show counts for many posts; never a page
- * with a `cacheKey` that does not cover every thread it shows (plan decision D6: no counts on cards).
+ * **Counted at build time** (`COMMENTS_SOURCE = 'baked'`): the caller passes `count`. The post page
+ * counts from the thread it already holds (its incremental-build key covers exactly that thread),
+ * the home page and the Campfire from one `getCommentThreads()` per page through
+ * `commentCountFor` — never one directory listing per row. Only pages rebuilt on every build (home,
+ * Campfire) may show counts for many posts; never a page with a `cacheKey` that does not cover
+ * every thread it shows (plan decision D6: no counts on cards). Nothing loads in the reader's browser.
+ *
+ * **Counted in the browser** (`'r2'`, docs/plans/2026-10-24-comments-on-r2.md §2.6): the caller
+ * leaves `count` out. The link says "Comments" and carries `data-comment-count="<id>"`; the story
+ * page's thread script (`CommentsLive.astro`) fills it from the story's file, and the home page and
+ * the Campfire fill theirs from the comments index (`CommentIndexLive.astro`). Without script it
+ * stays "Comments". Its width is reserved for the widest likely label (`global.css`), so filling it
+ * moves nothing.
  */
 import { commentCountLabel } from '../lib/comment-text';
+import { COMMENT_COUNT_PENDING_LABEL } from '../lib/comments-client';
 import { withBase } from '../lib/site';
 
 interface Props {
   /** The post's id. */
   id: string;
-  /** The number of approved comments. */
-  count: number;
+  /** The number of approved comments when the page counts them at build time; absent when the browser counts them. */
+  count?: number;
 }
 
 const { id, count } = Astro.props;
+const href = `${withBase(`/posts/${id}/`)}#comments`;
 ---
-<a class="comment-count" href={`${withBase(`/posts/${id}/`)}#comments`}>{commentCountLabel(count)}</a>
+{count === undefined ? (
+  <a class="comment-count comment-count--live" href={href} data-comment-count={id}>{COMMENT_COUNT_PENDING_LABEL}</a>
+) : (
+  <a class="comment-count" href={href}>{commentCountLabel(count)}</a>
+)}

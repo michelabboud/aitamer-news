@@ -142,6 +142,8 @@ The comment form on story pages posts to `https://comments.aitamer.news/`, the d
 
 Reactions under stories (seven, one per reader, `src/components/Reactions.astro`) are built but **off** until the desk's publisher bakes real totals: `REACTIONS_LIVE` in `src/lib/site.ts` turns on the component and the privacy page's paragraph together. A choice posts to `/react` on the same Worker; the totals come from `src/content/reactions/<slug>.json` (`POST.md` section 9).
 
+Comments and reaction totals can also be read in the browser from a public data host instead of being baked into the pages (`ARCHITECTURE.md`, "Reading comments and reaction totals from the data host"; ADR 0047). That code is built and tested but **off**: `COMMENTS_SOURCE` and `REACTIONS_SOURCE` in `src/lib/site.ts` are `'baked'`, so the site is unchanged. `PUBLIC_COMMENTS_DATA_BASE` (see `.env.example`) points a local build at a local fixture server when the switch is tried in a scratch copy.
+
 ## Search
 
 `/search/` runs on [Pagefind](https://pagefind.app/), which indexes the built `dist/` and writes its index to `dist/pagefind/` — so search only exists after `npm run build`, never in `npm run dev`. Only story pages are indexed (they carry `data-pagefind-body`); withdrawn posts and every other route are excluded.

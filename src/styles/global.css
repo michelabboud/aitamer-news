@@ -673,6 +673,36 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 .comment__text { color: var(--ink-soft); overflow-wrap: anywhere; unicode-bidi: isolate; }
 .comment__text p:last-child { margin-bottom: 0; }
 
+/* Comments read in the browser (COMMENTS_SOURCE = 'r2'; CommentsLive.astro, CommentIndexLive.astro).
+   The status line always takes one line, empty or not, so the loading text, the noscript note, the
+   failed text and the thread replacing them move nothing above it. The thread sits under the
+   article, so what it pushes down is only what is below it. */
+.comments__thread { margin-bottom: 1.5rem; }
+.comments__thread:focus { outline: none; }
+.comments__thread:focus-visible { outline: 2px solid var(--ember); outline-offset: 4px; }
+.comments__thread .comment-list { margin-bottom: 0; }
+.comments__thread .comments__empty { margin: 0; }
+.comments__status { margin: 0; min-height: 1.6em; min-height: 1lh; color: var(--ink-soft); }
+.comments__status--failed { color: var(--bone); }
+.comments__retry {
+  display: inline-flex; align-items: center; min-height: var(--tap-min); margin-top: 0.75rem; padding: 0.4rem 1rem;
+  background: var(--night-raised); color: var(--bone);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  font: 600 0.95rem/1 var(--font-reading); cursor: pointer;
+}
+.comments__retry:hover { border-color: var(--ember); color: var(--ember-text); }
+.comments__retry:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+.comments__retry[aria-disabled="true"] { cursor: progress; opacity: 0.7; }
+/* The comment a deep link named: the same mark as :target, which a comment rendered after the page
+   loaded never gets. */
+.comment--linked { border-color: var(--ember-line); box-shadow: inset 3px 0 0 var(--ember); }
+.comment--linked:focus { outline: none; }
+.comment--linked:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+/* A count the browser fills in: as wide as the widest likely label ("999 comments"), so filling it
+   moves nothing in its row. */
+.comment-count--live { display: inline-block; min-width: 12ch; }
+.threads .comment-count--live, .log-row--thread .comment-count--live { text-align: right; }
+
 /* ---------- Listings (desk, habitat, author, archive) ---------- */
 
 .listing .cards { margin-top: 0; }
@@ -983,6 +1013,12 @@ a.archive-month__name:hover { color: var(--ember-text); }
 .reactions__summary { background: transparent; padding-inline: 0.6rem; }
 .reactions__summary--static { margin: 0; cursor: default; border-color: var(--line); }
 .reactions__summary[hidden] { display: none; }
+/* Totals read in the browser (REACTIONS_SOURCE = 'r2'): the summary holds its place and the width of
+   three emoji and a five-digit total while it has nothing to show (loading, failed, or zero), so
+   the counts arriving move nothing. visibility: hidden also keeps it out of the tab order and the
+   accessibility tree until then. */
+.reactions__summary--live { min-width: 8.5rem; }
+.reactions__summary[data-reserved] { visibility: hidden; }
 .reactions__stack { display: inline-flex; align-items: center; isolation: isolate; }
 /* Overlapping by half a rem, each with a ring of the page colour so the edges read as separate. */
 .reactions__stack-emoji {

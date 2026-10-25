@@ -54,3 +54,5 @@
 - [0045 · Local responsive image preparation](0045-local-responsive-image-preparation.md) — qualified content-addressed media files and a protected byte-bound catalog; routine builds verify and reuse without image tools.
 
 - [0046 · Topic pages from tags](0046-topic-pages-from-tags-with-a-five-story-floor.md) — `/topics/<slug>/` for tags with five or more stories, stable slugs that depend only on their own tag, one optional hand-kept details file.
+
+- [Comments and reaction totals are read in the browser from data.aitamer.news](0047-comments-and-reaction-totals-are-read-in-the-browser-from-the-data-host.md) — accepted 2026-10-24, **supersedes 0006 and 0008, amends 0007**: the desk publishes approved comments, a comments index and reaction totals to a public R2 bucket; pages fetch and render them with `textContent`; the comments index is a new frozen public contract; the switches `COMMENTS_SOURCE` and `REACTIONS_SOURCE` ship as `'baked'`, so the site is unchanged until the flip.

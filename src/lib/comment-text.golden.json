@@ -1,0 +1,630 @@
+{
+  "about": "renderCommentHtml output frozen from src/lib/comment-text.ts at commit f1234df, before S2 rebuilt it over commentTextBlocks. Never regenerate this from the new code: it is the proof the new code changed nothing.",
+  "cases": [
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://aitamer.news⁄posts@evil.example/",
+      "html": "<p>https://aitamer.news⁄posts@evil.example/</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "One\ntwo\n\nThree",
+      "html": "<p>One<br>two</p><p>Three</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://user:pass@example.com/",
+      "html": "<p>https://user:pass@example.com/</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://:pass@example.com/",
+      "html": "<p>https://:pass@example.com/</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://aitamer.news%2eevil.example/",
+      "html": "<p><a href=\"https://aitamer.news.evil.example/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://aitamer.news.evil.example/</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "\nOne\n\n\n\n  \t\nTwo\n",
+      "html": "<p>One</p><p>Two</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "One\r\ntwo\r\n\r\nThree\rfour",
+      "html": "<p>One<br>two</p><p>Three<br>four</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "",
+      "html": ""
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "\n\n  \n",
+      "html": ""
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "​‮",
+      "html": ""
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://aitamer.news.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.evil.example/story",
+      "html": "<p><a href=\"https://aitamer.news.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.evil.example/story\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://aitamer.news.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.evil.example…</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "Ada & \"Bob\" <3 'n' a > b",
+      "html": "<p>Ada &amp; &quot;Bob&quot; &lt;3 &#39;n&#39; a &gt; b</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "<script>alert(1)</script><img src=x onerror=alert(1)>",
+      "html": "<p>&lt;script&gt;alert(1)&lt;/script&gt;&lt;img src=x onerror=alert(1)&gt;</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://evil.example\\@aitamer.news",
+      "html": "<p><a href=\"https://evil.example/@aitamer.news\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://evil.example/@aitamer.news</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "&lt;script&gt; and &amp; and &#60;b&#62;",
+      "html": "<p>&amp;lt;script&amp;gt; and &amp;amp; and &amp;#60;b&amp;#62;</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://аitamer.news",
+      "html": "<p><a href=\"https://xn--itamer-2nf.news/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://xn--itamer-2nf.news/</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "<3 a < b > c \"q\" 'r' R&D",
+      "html": "<p>&lt;3 a &lt; b &gt; c &quot;q&quot; &#39;r&#39; R&amp;D</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "See https://example.com/a-link for more",
+      "html": "<p>See <a href=\"https://example.com/a-link\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a-link</a> for more</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "http://example.com/",
+      "html": "<p><a href=\"http://example.com/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">http://example.com/</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "HTTPS://Example.COM/X",
+      "html": "<p><a href=\"https://example.com/X\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/X</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "click javascript:alert(1) now",
+      "html": "<p>click javascript:alert(1) now</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "click JaVaScRiPt:alert(document.cookie) now",
+      "html": "<p>click JaVaScRiPt:alert(document.cookie) now</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "click data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg== now",
+      "html": "<p>click data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg== now</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "click vbscript:msgbox(1) now",
+      "html": "<p>click vbscript:msgbox(1) now</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "click mailto:ada@example.com now",
+      "html": "<p>click mailto:ada@example.com now</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "click ftp://example.com/file now",
+      "html": "<p>click ftp://example.com/file now</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "click //example.com/protocol-relative now",
+      "html": "<p>click //example.com/protocol-relative now</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "click www.example.com now",
+      "html": "<p>click www.example.com now</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "javascript:location='https://evil.example/x'",
+      "html": "<p>javascript:location=&#39;<a href=\"https://evil.example/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://evil.example/x</a>&#39;</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "xhttps://example.com",
+      "html": "<p>xhttps://example.com</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https:// and http:///path",
+      "html": "<p>https:// and http:///path</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://[not-an-ip",
+      "html": "<p>https://[not-an-ip</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://3232235777",
+      "html": "<p>https://3232235777</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://[::1]/",
+      "html": "<p>https://[::1]/</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "http://127.0.0.1/",
+      "html": "<p>http://127.0.0.1/</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://0x7f.1/",
+      "html": "<p>https://0x7f.1/</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/0 and https://example.com/1 and https://example.com/2 and https://example.com/3 and https://example.com/4 and https://example.com/5 and https://example.com/6 and https://example.com/7 and https://example.com/8 and https://example.com/9",
+      "html": "<p><a href=\"https://example.com/0\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/0</a> and <a href=\"https://example.com/1\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/1</a> and <a href=\"https://example.com/2\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/2</a> and <a href=\"https://example.com/3\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/3</a> and <a href=\"https://example.com/4\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/4</a> and <a href=\"https://example.com/5\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/5</a> and <a href=\"https://example.com/6\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/6</a> and <a href=\"https://example.com/7\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/7</a> and <a href=\"https://example.com/8\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/8</a> and <a href=\"https://example.com/9\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/9</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://127.1/",
+      "html": "<p>https://127.1/</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://[2001:db8::1]:8080/x",
+      "html": "<p>https://[2001:db8::1]:8080/x</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "(see https://example.com/a).",
+      "html": "<p>(see <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>).</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "Read https://example.com/x, then!",
+      "html": "<p>Read <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, then!</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/y?",
+      "html": "<p><a href=\"https://example.com/y\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/y</a>?</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://en.wikipedia.org/wiki/Tamer_(film).",
+      "html": "<p><a href=\"https://en.wikipedia.org/wiki/Tamer_(film)\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://en.wikipedia.org/wiki/Tamer_(film)</a>.</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://x.example/\"onmouseover=alert(1)",
+      "html": "<p><a href=\"https://x.example/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://x.example/</a>&quot;onmouseover=alert(1)</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://x.example/'onmouseover=alert(1)",
+      "html": "<p><a href=\"https://x.example/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://x.example/</a>&#39;onmouseover=alert(1)</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://x.example/<script>",
+      "html": "<p><a href=\"https://x.example/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://x.example/</a>&lt;script&gt;</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://x.example/`x`",
+      "html": "<p><a href=\"https://x.example/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://x.example/</a>`x`</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://x.example/?q=<b>&r=\"1\" https://y.example/a&b\n<i>&lt;</i>",
+      "html": "<p><a href=\"https://x.example/?q=\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://x.example/?q=</a>&lt;b&gt;&amp;r=&quot;1&quot; <a href=\"https://y.example/a&amp;b\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://y.example/a&amp;b</a><br>&lt;i&gt;&amp;lt;&lt;/i&gt;</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/?a=1&b=2\"onmouseover=\"alert(1)",
+      "html": "<p><a href=\"https://example.com/?a=1&amp;b=2\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/?a=1&amp;b=2</a>&quot;onmouseover=&quot;alert(1)</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://bücher.example/",
+      "html": "<p><a href=\"https://xn--bcher-kva.example/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://xn--bcher-kva.example/</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://ja.wikipedia.org/wiki/東京",
+      "html": "<p><a href=\"https://ja.wikipedia.org/wiki/%E6%9D%B1%E4%BA%AC\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://ja.wikipedia.org/wiki/東京</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "html": "<p><a href=\"https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a。",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>。</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a，",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>，</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a、",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>、</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a）",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>）</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a」",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>」</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a』",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>』</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a】",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>】</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a！",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>！</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a？",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>？</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a；",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>；</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "見て https://example.com/a：",
+      "html": "<p>見て <a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>：</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/a。次の文",
+      "html": "<p><a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>。次の文</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/a，次の文",
+      "html": "<p><a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>，次の文</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/a、次の文",
+      "html": "<p><a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>、次の文</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/（注）。",
+      "html": "<p><a href=\"https://example.com/%EF%BC%88%E6%B3%A8%EF%BC%89\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/（注）</a>。</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/a).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).",
+      "html": "<p><a href=\"https://example.com/a\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a</a>).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).).</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "https://example.com/(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((())))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))).",
+      "html": "<p><a href=\"https://example.com/(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((())))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((…</a>).</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "a https://example.com/1\nb\n\nhttps://example.com/2",
+      "html": "<p>a <a href=\"https://example.com/1\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/1</a><br>b</p><p><a href=\"https://example.com/2\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/2</a></p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "x𓐶y",
+      "html": "<p>xy</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "a\tb\u0007c\rd",
+      "html": "<p>abc<br>d</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "﻿safe‮txt.exe‬ ⁦iso⁩ zero​width ‪‫‭⁧⁨",
+      "html": "<p>safetxt.exe iso zerowidth </p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "👩‍👩‍👧 می‌خواهم",
+      "html": "<p>👩‍👩‍👧 می‌خواهم</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "java​script:alert(1)",
+      "html": "<p>javascript:alert(1)</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "Comment number 0",
+      "html": "<p>Comment number 0</p>"
+    },
+    {
+      "source": "existing test (comment-text.test.ts, comment-link-regression.test.ts)",
+      "input": "hi <script> https://example.com/x.",
+      "html": "<p>hi &lt;script&gt; <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>.</p>"
+    },
+    {
+      "source": "production data file aitamer-news src/content/comments/the-gap-between-the-needles.json",
+      "input": "I love it :) \nnice poem Mai :)",
+      "html": "<p>I love it :) <br>nice poem Mai :)</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "<script>alert(1)</script>",
+      "html": "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "before <script src=\"https://evil.example/x.js\"></script> after",
+      "html": "<p>before &lt;script src=&quot;<a href=\"https://evil.example/x.js\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://evil.example/x.js</a>&quot;&gt;&lt;/script&gt; after</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "\"><img src=x onerror=alert(1)>",
+      "html": "<p>&quot;&gt;&lt;img src=x onerror=alert(1)&gt;</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://x.example/\"><img src=x onerror=alert(1)>",
+      "html": "<p><a href=\"https://x.example/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://x.example/</a>&quot;&gt;&lt;img src=x onerror=alert(1)&gt;</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "'><svg onload=alert(1)>",
+      "html": "<p>&#39;&gt;&lt;svg onload=alert(1)&gt;</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "javascript:alert(1)",
+      "html": "<p>javascript:alert(1)</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "see javascript:alert(document.domain) now",
+      "html": "<p>see javascript:alert(document.domain) now</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "javascript://example.com/%0Aalert(1)",
+      "html": "<p>javascript://example.com/%0Aalert(1)</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "data:text/html,<script>alert(1)</script>",
+      "html": "<p>data:text/html,&lt;script&gt;alert(1)&lt;/script&gt;</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+      "html": "<p>data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "//evil.example/path",
+      "html": "<p>//evil.example/path</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "go to //evil.example now",
+      "html": "<p>go to //evil.example now</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://аpple.com/login",
+      "html": "<p><a href=\"https://xn--pple-43d.com/login\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://xn--pple-43d.com/login</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://pаypal.com/",
+      "html": "<p><a href=\"https://xn--pypal-4ve.com/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://xn--pypal-4ve.com/</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://xn--pple-43d.com/",
+      "html": "<p><a href=\"https://xn--pple-43d.com/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://xn--pple-43d.com/</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "html": "<p><a href=\"https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "html": "<p><a href=\"https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "html": "<p><a href=\"https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…</a>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "text https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa text",
+      "html": "<p>text <a href=\"https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…</a> text</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "abc‮gnp.exe",
+      "html": "<p>abcgnp.exe</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/‮exe.txt",
+      "html": "<p><a href=\"https://example.com/exe.txt\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/exe.txt</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "⁦isolated⁩ ‪embed‬ ‏mark‎",
+      "html": "<p>isolated embed mark</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "line separator paragraph",
+      "html": "<p>lineseparatorparagraph</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/a https://example.com/b",
+      "html": "<p><a href=\"https://example.com/ahttps://example.com/b\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/ahttps://example.com/b</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "👩‍👩‍👧",
+      "html": "<p>👩‍👩‍👧</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "a‍b‌c",
+      "html": "<p>a‍b‌c</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://exa‍mple.com/",
+      "html": "<p>https://exa‍mple.com/</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/a‍b",
+      "html": "<p><a href=\"https://example.com/a%E2%80%8Db\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/a%E2%80%8Db</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "‍‍‍",
+      "html": "<p>‍‍‍</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "a\ud800b",
+      "html": "<p>ab</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "\udfff",
+      "html": ""
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "\udfff\ud800",
+      "html": ""
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/\ud800x",
+      "html": "<p><a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://exam\ud800ple.com/",
+      "html": "<p><a href=\"https://example.com/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "html": "<p>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https://example.com/x, word https:/",
+      "html": "<p>word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word <a href=\"https://example.com/x\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/x</a>, word https:/</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "para one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\npara one\n\n",
+      "html": "<p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p><p>para one</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": " ",
+      "html": ""
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "\n",
+      "html": ""
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "\u0000\u0001null",
+      "html": "<p>null</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/?q=<script>&x=\"y\"",
+      "html": "<p><a href=\"https://example.com/?q=\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/?q=</a>&lt;script&gt;&amp;x=&quot;y&quot;</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/#\"onmouseover=\"alert(1)",
+      "html": "<p><a href=\"https://example.com/#\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/</a>&quot;onmouseover=&quot;alert(1)</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "HTTPS://EXAMPLE.COM",
+      "html": "<p><a href=\"https://example.com/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com:99999/",
+      "html": "<p>https://example.com:99999/</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://exa mple.com/",
+      "html": "<p><a href=\"https://exa/\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://exa/</a> mple.com/</p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/%3Cscript%3E",
+      "html": "<p><a href=\"https://example.com/%3Cscript%3E\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/&lt;script&gt;</a></p>"
+    },
+    {
+      "source": "adversarial corpus (S2)",
+      "input": "https://example.com/%E2%80%AE",
+      "html": "<p><a href=\"https://example.com/%E2%80%AE\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\" dir=\"ltr\">https://example.com/%E2%80%AE</a></p>"
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+---
+/**
+ * The comments index read in the browser (`COMMENTS_SOURCE = 'r2'`; docs/plans/2026-10-24-comments-on-r2.md
+ * §2.3, §2.6): rendered once by the home page and by the Campfire page, never by a story page (a
+ * story page reads only its own file, so a story view costs one data request).
+ *
+ * The script fetches `v1/comments-index.json` from the data host once, with `credentials: 'omit'`,
+ * checks it with `validateCommentsIndex` (`src/lib/comments-client.ts`, tested), and then:
+ * - fills every `data-comment-count` link on the page (`CommentCount.astro`) with its story's
+ *   count; a story the index does not list has none. A 404 is an index with nothing in it yet.
+ * - fills "Around the fire" (`data-around-fire`, the Campfire page) with the index's newest
+ *   comments on the stories this page lists, built with `textContent` only, in the markup the
+ *   baked page uses.
+ * On a failure or a refused index the counts stay "Comments" and "Around the fire" says so.
+ *
+ * The element below carries the data host's base so the build's CSP guard
+ * (`scripts/csp-headers.mjs`) sees what the page connects to.
+ */
+interface Props {
+  /** The data host's base, already checked by `dataBaseUrl`. */
+  dataBase: string;
+}
+
+const { dataBase } = Astro.props;
+---
+<span hidden data-comments-index data-comments-base={dataBase}></span>
+
+<script>
+  import {
+    AROUND_THE_FIRE_EMPTY_TEXT,
+    AROUND_THE_FIRE_FAILED_TEXT,
+    AROUND_THE_FIRE_LOADING_TEXT,
+    COMMENTS_FETCH_TIMEOUT_MS,
+    aroundTheFire,
+    commentsIndexUrl,
+    countFor,
+    storyHref,
+    validateCommentsIndex,
+    type CommentsIndexCheck,
+    type FireRow,
+  } from '../lib/comments-client';
+  import { commentCountLabel } from '../lib/comment-text';
+  import { formatShortDate } from '../lib/date-format';
+
+  /** No index yet (404): the desk has published nothing, so every count is zero. */
+  const EMPTY_INDEX: CommentsIndexCheck = { ok: true, counts: new Map(), recent: [] };
+
+  async function loadIndex(url: string): Promise<CommentsIndexCheck> {
+    const signal = typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal ? AbortSignal.timeout(COMMENTS_FETCH_TIMEOUT_MS) : undefined;
+    let response: Response;
+    try {
+      response = await fetch(url, { credentials: 'omit', mode: 'cors', signal });
+    } catch {
+      return { ok: false, reason: 'the data host did not answer' };
+    }
+    if (response.status === 404) return EMPTY_INDEX;
+    if (!response.ok) return { ok: false, reason: `the data host answered ${response.status}` };
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      return { ok: false, reason: 'the index is not JSON, or did not arrive whole' };
+    }
+    return validateCommentsIndex(body);
+  }
+
+  function fireRow(row: FireRow): HTMLLIElement {
+    const item = document.createElement('li');
+    item.className = 'log-row log-row--comment';
+    const time = document.createElement('time');
+    time.className = 'log-row__time';
+    time.setAttribute('datetime', row.at);
+    time.textContent = formatShortDate(new Date(row.at));
+    const body = document.createElement('div');
+    body.className = 'log-row__body';
+    const link = document.createElement('a');
+    link.className = 'log-row__title';
+    link.setAttribute('href', row.href);
+    const name = document.createElement('span');
+    name.className = 'log-row__name';
+    name.setAttribute('dir', 'auto');
+    name.textContent = row.name;
+    link.append(name, document.createTextNode(` on ${row.title}`));
+    const excerpt = document.createElement('p');
+    excerpt.className = 'log-row__excerpt';
+    excerpt.setAttribute('dir', 'auto');
+    excerpt.textContent = row.excerpt;
+    body.append(link, excerpt);
+    item.append(time, body);
+    return item;
+  }
+
+  function status(container: HTMLElement, text: string): void {
+    const p = document.createElement('p');
+    p.className = 'muted comments__status';
+    p.textContent = text;
+    container.replaceChildren(p);
+  }
+
+  async function run(marker: HTMLElement): Promise<void> {
+    const countLinks = [...document.querySelectorAll<HTMLAnchorElement>('a[data-comment-count]')];
+    const fire = document.querySelector<HTMLElement>('[data-around-fire]');
+    if (fire) status(fire, AROUND_THE_FIRE_LOADING_TEXT);
+    let url: string;
+    try {
+      url = commentsIndexUrl(marker.dataset.commentsBase ?? '');
+    } catch (error) {
+      console.error('comments index: the data address is not usable', error);
+      if (fire) status(fire, AROUND_THE_FIRE_FAILED_TEXT);
+      return;
+    }
+    const index = await loadIndex(url);
+    if (!index.ok) {
+      console.warn(`comments index: not shown (${index.reason})`);
+      if (fire) status(fire, AROUND_THE_FIRE_FAILED_TEXT);
+      return;
+    }
+    const stories = new Map<string, string>();
+    for (const link of countLinks) {
+      const slug = link.dataset.commentCount!;
+      link.textContent = commentCountLabel(countFor(index.counts, slug));
+      stories.set(slug, storyHref(link.getAttribute('href') ?? ''));
+    }
+    if (!fire) return;
+    const rows = aroundTheFire(index.recent, stories);
+    if (rows.length === 0) {
+      status(fire, AROUND_THE_FIRE_EMPTY_TEXT);
+      return;
+    }
+    const list = document.createElement('ol');
+    list.className = 'log';
+    list.append(...rows.map(fireRow));
+    fire.replaceChildren(list);
+  }
+
+  const marker = document.querySelector<HTMLElement>('[data-comments-index][data-comments-base]');
+  if (marker) void run(marker);
+</script>

@@ -188,6 +188,44 @@ Enforcement: `npm run check:posts` fails a file whose post does not exist or who
 
 **`/comments/threads.json`.** Regenerated on every build: `{ "version": 1, "generatedAt": "<build time>", "threads": { "<slug>": "open" | "closed" } }`, one entry per live post (drafts and scheduled posts are absent, so the Worker refuses comments for a page that does not exist yet). Withdrawn posts and posts with `comments: { closed: true }` are `closed`.
 
+### 8a. The comments index, and reading comments from the data host (not live yet)
+
+**Status: switched off.** The site still bakes comments as described above. `COMMENTS_SOURCE` and `REACTIONS_SOURCE` in `src/lib/site.ts` are `'baked'` and `REACTIONS_LIVE` is `false`; the code that reads comments and reaction totals in the browser from the data host (`COMMENTS_DATA_BASE`, `https://data.aitamer.news/` unless `PUBLIC_COMMENTS_DATA_BASE` says otherwise) is in the tree and tested but not used by any built page. The decision is `docs/adr/0047-comments-and-reaction-totals-are-read-in-the-browser-from-the-data-host.md`. When the switch flips, the desk publishes three kinds of object under a version prefix: `v1/comments/<slug>.json` (the comment format above, unchanged), `v1/reactions/<slug>.json` (the reactions format in section 9, unchanged) and `v1/comments-index.json`, a new contract described here.
+
+**`v1/comments-index.json`.** One small file with what a list page needs and a story page does not: how many approved comments each story has (the home page's cards, the Campfire's counts) and the newest comments site-wide ("Around the fire"). The site owns the contract; the desk writes the file whenever it publishes a comment file, and a browser reads it. It is not under `v1/comments/` because a slug may be `index`.
+
+```json
+{
+  "version": 1,
+  "site": "aitamer",
+  "generatedAt": "2026-09-25T10:00:00Z",
+  "counts": { "grok-4-7": 2, "reflection-beam-open-weight-model": 1 },
+  "recent": [
+    { "slug": "grok-4-7", "title": "Grok 4.7 ships", "id": "01K63M4Q3ZJ8W3Y8N5V2R7T9AB", "name": "Ada", "text": "First paragraph.", "at": "2026-09-25T10:00:00Z", "signedIn": true }
+  ]
+}
+```
+
+- `version` is `1`. `site` is the desk's id for the site (lowercase letters, digits and hyphens, at most 60 characters). `generatedAt` is a UTC time ending in `Z`.
+- `counts` maps a story's slug to its number of approved comments, 1 to 2,000. A story with none is left out, never written as `0`. At most 10,000 stories, keys sorted.
+- `recent` holds the 60 newest approved comments site-wide at most, newest first. Each entry has `slug`, `title` (1 to 200 code points, one line), `id`, `name`, `text`, `at`, and optionally `signedIn: true` and `truncated: true`. `name` and `text` follow the comment format's rules; `text` is at most 400 code points, cut at a grapheme boundary with `truncated: true` when it was longer.
+- No other key, at any level, and never an email address, a hash, a trust score or a moderation note.
+
+The schema's `description` states eight rules a JSON Schema cannot express, and a reader enforces them too:
+
+1. `counts` holds only stories with at least one approved comment, and its keys are sorted ascending by UTF-16 code unit (a slug of digits only, such as `2026`, is the one case a JavaScript reader cannot see the order of).
+2. `counts` holds at most 10,000 stories.
+3. `recent` is newest first by `at`; comments with the same `at` are ordered by `id`, descending.
+4. Ids in `recent` are unique.
+5. Every slug in `recent` is a key of `counts`, and `recent` holds no more comments of a story than its count.
+6. When `recent` is not empty, `generatedAt` equals the `at` of its first entry, so the same state always makes the same bytes. With an empty `recent` any UTC time is valid; the desk should choose a fixed one.
+7. A text longer than 400 code points is cut and marked `truncated: true`; `truncated` is never `false`, and neither is `signedIn`.
+8. An entry whose story title cannot be found is left out of `recent`.
+
+**Where the contract is.** `src/content/comments-index-schema.ts` (the zod schema and the limits, which live in `src/content/comment-limits.ts`) generates the JSON Schema served at `/contract/comments-index.schema.json` (newest) and `/contract/v1/comments-index.schema.json` (v1, frozen byte for byte by `src/content/comments-index-schema.v1.snapshot.json` and its test in `src/lib/comments-index-contract.test.ts`). An additive change needs a new snapshot and a deliberate review; a breaking change needs v2.
+
+**How a page reads it, once live.** A story page fetches its comments file once, with no credentials, checks its shape (`validateCommentFile`), and builds the thread with DOM calls only: text goes in with `textContent`, and a link is made only for an `http(s)` URL that parses and re-parses to the same address. No code on that path uses `innerHTML`, and a test greps for the sinks. A missing file (404) means no comments; any other failure shows "Comments could not be loaded right now." with a retry button. The home and Campfire pages fetch the index once to fill their counts. Objects are served with `Cache-Control: public, max-age=0, s-maxage=60`, and the page's content security policy gains the data origin in `connect-src` only (`scripts/csp-headers.mjs`). The consequence the decision accepts: comments are not in the first HTML or the JSON-LD, so a crawler that does not run JavaScript will not see them.
+
 ## 9. Reactions
 
 Readers will react to a story with one of seven reactions (Love, Wow, Funny, Angry, Skeptical, Overhyped, Underrated; the set is `REACTIONS` in `src/lib/reactions.ts`). Like comments, reactions are not part of a post's file: their totals arrive as **reactions data files**, `src/content/reactions/<slug>.json`, one per post whose reactions add up to more than zero, and the build bakes them into the post's page. **Not live yet:** until `REACTIONS_LIVE` in `src/lib/site.ts` is true, no page shows reactions, but any file that lands is already checked.

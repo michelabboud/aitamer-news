@@ -7,9 +7,11 @@ import {
   commentAnchor,
   commentCountFor,
   commentCountLabel,
+  commentTextBlocks,
   commentsJsonLd,
   commentViews,
   escapeHtml,
+  isLinkSegment,
   linkText,
   renderCommentHtml,
   stripInvisible,
@@ -280,6 +282,33 @@ test('the zero-width joiner and non-joiner are kept (emoji sequences and real sc
 
 test('a zero-width space cannot hide a scheme from the scheme check', () => {
   assert.equal(renderCommentHtml('java\u200Bscript:alert(1)'), '<p>javascript:alert(1)</p>');
+});
+
+// ---- the tokenizer both renderers share ----
+
+test('commentTextBlocks: paragraphs of lines of text and link segments, trailing punctuation kept as text', () => {
+  assert.deepEqual(commentTextBlocks('Hi <b>\nsee https://Example.com/a).\n\nbye'), [
+    [[{ text: 'Hi <b>' }], [{ text: 'see ' }, { href: 'https://example.com/a', label: 'https://example.com/a' }, { text: ').' }]],
+    [[{ text: 'bye' }]],
+  ]);
+});
+
+test('commentTextBlocks: adjacent text merges into one segment, and nothing visible gives no paragraphs', () => {
+  assert.deepEqual(commentTextBlocks('a javascript:x b'), [[[{ text: 'a javascript:x b' }]]]);
+  assert.deepEqual(commentTextBlocks('a https://127.0.0.1/ b'), [[[{ text: 'a https://127.0.0.1/ b' }]]]);
+  assert.deepEqual(commentTextBlocks(''), []);
+  assert.deepEqual(commentTextBlocks('\u200B\n\n \u202E'), []);
+});
+
+test('commentTextBlocks: a link segment\'s href is the parsed URL and its label never names another host', () => {
+  const [[line]] = commentTextBlocks('https://\u0430itamer.news/x https://example.com/' + 'p'.repeat(200));
+  const links = line.filter(isLinkSegment);
+  assert.equal(links.length, 2);
+  for (const { href, label } of links) {
+    const { protocol, host } = new URL(href);
+    assert.ok(label.startsWith(`${protocol}//${host}`), label);
+  }
+  assert.match(links[0].href, /^https:\/\/xn--/);
 });
 
 // ---- counts and anchors ----

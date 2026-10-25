@@ -1,26 +1,48 @@
 ---
 /**
- * A story's comments, baked into the page at build time from its data file
- * (`src/content/comments/<slug>.json`, ADR 0006; plan §6.2). No request leaves the page to show
- * them. What to show comes from `commentViews` (pure, tested in `src/lib/comment-text.test.ts`):
- * text through `renderCommentHtml` (escaped, paragraphs, `http(s)` links only) and never through
- * the Markdown pipeline; names stripped of forbidden characters, then Astro-escaped as text.
- * Name and text carry `dir="auto"`, so a right-to-left comment reads right to left without
- * reordering its neighbours.
+ * A story's comments. Where they come from is the switch `COMMENTS_SOURCE` in `src/lib/site.ts`.
  *
- * A withdrawn story renders nothing here: no comments and no form.
+ * **`'baked'`** (ADR 0006; plan §6.2): baked into the page at build time from its data file
+ * (`src/content/comments/<slug>.json`). No request leaves the page to show them. What to show
+ * comes from `commentViews` (pure, tested in `src/lib/comment-text.test.ts`): text through
+ * `renderCommentHtml` (escaped, paragraphs, `http(s)` links only) and never through the Markdown
+ * pipeline; names stripped of forbidden characters, then Astro-escaped as text.
+ *
+ * **`'r2'`** (docs/plans/2026-10-24-comments-on-r2.md §2.6, §2.9; site ADR 0047): the page ships
+ * the section empty, and the bundled script below fetches `v1/comments/<slug>.json` from the data
+ * host (`COMMENTS_DATA_BASE`) once, with `credentials: 'omit'`, and renders it with DOM calls only
+ * (`renderCommentList` in `src/lib/comment-dom.ts`, after `validateCommentFile`). The decisions —
+ * the state machine, the URL, the deep link — are in `src/lib/comments-client.ts` and tested there.
+ * That section and its script are `CommentsLive.astro`, rendered only in this mode, so a baked
+ * build ships no comments script at all.
+ * - The status line reserves one line (`.comments__status`), so the thread appearing moves only
+ *   what is below it. It is a plain paragraph, not a live region: the thread is not an update the
+ *   reader asked for. A hidden polite status line speaks only after a retry the reader pressed.
+ * - Without script, the status line says the comments load with JavaScript (`<noscript>`).
+ * - A deep link (`#c-<id>`, the anchor the baked thread has always had) is scrolled to, respecting
+ *   reduced motion, and focused (`tabindex="-1"`) once the list exists. Focus moves nowhere else,
+ *   except back into the thread when the retry button the reader was on goes away.
+ * - The comment form below keeps its own deferred loading (Turnstile's `api.js` on first open,
+ *   `CommentForm.astro`); only the list loads at once.
+ *
+ * Either way: both renderers draw the same markup with the same labels (the constants come from
+ * `comment-dom.ts` and `comments-client.ts`), name and text carry `dir="auto"`, and a withdrawn
+ * story renders nothing here: no comments and no form.
  */
 import type { CollectionEntry } from 'astro:content';
 import { commentCountLabel, commentViews } from '../lib/comment-text';
-import { formatDateTime } from '../lib/site';
+import { COMMENT_ID_TITLE, COMMENT_SIGNED_IN_LABEL, COMMENT_SIGNED_IN_TITLE, COMMENT_TIME_TITLE } from '../lib/comment-dom';
+import { COMMENTS_EMPTY_TEXT, dataBaseUrl } from '../lib/comments-client';
+import { COMMENTS_DATA_BASE, COMMENTS_SOURCE, formatDateTime } from '../lib/site';
 import CommentForm from './CommentForm.astro';
+import CommentsLive from './CommentsLive.astro';
 
 type Comment = CollectionEntry<'comments'>['data']['comments'][number];
 
 interface Props {
   /** The post's id, which is also its comment file's name. */
   slug: string;
-  /** The approved comments, oldest first, as the data file holds them. Empty when there is no file. */
+  /** The approved comments, oldest first, as the data file holds them. Empty when there is no file. Unused when the source is `'r2'`. */
   comments: readonly Comment[];
   /** A withdrawn story shows no comments and takes none. */
   withdrawn: boolean;
@@ -29,7 +51,10 @@ interface Props {
 }
 
 const { slug, comments, withdrawn, closed = false } = Astro.props;
-const views = commentViews(comments, withdrawn);
+const live = COMMENTS_SOURCE === 'r2';
+const views = live ? null : commentViews(comments, withdrawn);
+// A wrong PUBLIC_COMMENTS_DATA_BASE fails the build here, naming the problem, rather than every reader's page.
+const dataBase = live && !withdrawn ? dataBaseUrl(COMMENTS_DATA_BASE).href : undefined;
 ---
 {views && (
   <section class="comments" id="comments" aria-labelledby="comments-title" data-thread={slug}>
@@ -39,9 +64,7 @@ const views = commentViews(comments, withdrawn);
     </div>
 
     {views.length === 0 ? (
-      <p class="comments__empty">
-        Nobody has pulled up a log by this one yet. Be the first to say what you make of it.
-      </p>
+      <p class="comments__empty">{COMMENTS_EMPTY_TEXT}</p>
     ) : (
       <ol class="comment-list">
         {views.map((comment) => (
@@ -50,12 +73,12 @@ const views = commentViews(comments, withdrawn);
               <header class="comment__meta">
                 <span class="comment__name" id={comment.nameId} dir="auto">{comment.name}</span>
                 {comment.signedIn && (
-                  <span class="comment__signed" title="Signed in when they wrote this">Signed in</span>
+                  <span class="comment__signed" title={COMMENT_SIGNED_IN_TITLE}>{COMMENT_SIGNED_IN_LABEL}</span>
                 )}
-                <a class="comment__time" href={`#${comment.anchor}`} title="Link to this comment">
+                <a class="comment__time" href={`#${comment.anchor}`} title={COMMENT_TIME_TITLE}>
                   <time datetime={comment.at}>{formatDateTime(new Date(comment.at))}</time>
                 </a>
-                <span class="comment__id" title="This comment's id: quote it to the desk to ask for a removal">
+                <span class="comment__id" title={COMMENT_ID_TITLE}>
                   {comment.id}
                 </span>
               </header>
@@ -69,3 +92,4 @@ const views = commentViews(comments, withdrawn);
     <CommentForm slug={slug} closed={closed} />
   </section>
 )}
+{dataBase && <CommentsLive slug={slug} dataBase={dataBase} closed={closed} />}

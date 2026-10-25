@@ -37,6 +37,8 @@ import {
   resolveAuthor,
   withBase,
   REACTIONS_LIVE,
+  REACTIONS_SOURCE,
+  COMMENTS_SOURCE,
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
@@ -48,23 +50,25 @@ export async function getStaticPaths() {
   // Withdrawn posts keep their page (and URL); they only leave lists and feeds.
   const posts = await getPostPages();
   // Loaded once for every post. Each page's key carries its own thread's and reactions file's
-  // stamps, so a new comment or a changed total re-renders that story's page and no other.
+  // stamps, so a new comment or a changed total re-renders that story's page and no other. Read in
+  // the browser (`REACTIONS_SOURCE = 'r2'`), the totals are neither loaded, passed nor in the key.
   const threads = await getCommentThreads();
-  const reactionFiles = await getReactionThreads();
+  const liveReactions = REACTIONS_SOURCE === 'r2';
+  const reactionFiles = liveReactions ? undefined : await getReactionThreads();
   const topicIndex = await getTopicIndex();
   return Promise.all(
     posts.map(async (post) => {
       const author = await resolveAuthor(post);
       const thread = threads.get(post.id);
-      const reactions = reactionFiles.get(post.id);
+      const reactions = reactionFiles?.get(post.id);
       return {
         params: { slug: post.id },
-        props: { post, comments: thread?.data.comments ?? [], reactions: reactions?.data },
+        props: { post, comments: thread?.data.comments ?? [], ...(reactionFiles ? { reactions: reactions?.data } : {}) },
         cacheKey: [
           entryStamp(post),
           author ? entryStamp(author) : 'missing-author',
           thread ? entryStamp(thread) : 'no-comments',
-          reactions ? entryStamp(reactions) : 'no-reactions',
+          ...(reactionFiles ? [reactions ? entryStamp(reactions) : 'no-reactions'] : []),
           // A tag gains or loses its topic page when other stories change, so the links belong in the key.
           topicSlugsForTags(topicIndex.slugByKey, post.data.tags).map(({ slug }) => slug).join(','),
         ].join('|'),
@@ -134,8 +138,9 @@ const jsonLd = withdrawn
       publisher: publisherOrganization(),
       citation: data.sources?.map((source) => source.url),
       isAccessibleForFree: true,
-      // Approved reader comments: the count, and the newest few as schema.org Comments.
-      ...commentsJsonLd(comments, canonical),
+      // Approved reader comments: the count, and the newest few as schema.org Comments. Only while
+      // they are baked: read in the browser (`COMMENTS_SOURCE = 'r2'`) they are not in the build to describe.
+      ...(COMMENTS_SOURCE === 'baked' ? commentsJsonLd(comments, canonical) : {}),
     };
 const breadcrumbs = {
   '@context': 'https://schema.org',
@@ -192,7 +197,7 @@ const breadcrumbs = {
         </a>
         {!withdrawn && opinion && <span class="tag tag--plain">{opinion.label}</span>}
         {!withdrawn && <span>{readingMinutes(post.body)} MIN</span>}
-        {!withdrawn && <CommentCount id={post.id} count={comments.length} />}
+        {!withdrawn && <CommentCount id={post.id} count={COMMENTS_SOURCE === 'baked' ? comments.length : undefined} />}
         {!withdrawn && <ShareLinks url={canonical} title={data.title} summary={data.description} placement="top" />}
         {changed && (
           <span>

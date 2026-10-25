@@ -1,8 +1,18 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CommentCount from '../components/CommentCount.astro';
-import { commentAnchor, commentCountFor, stripInvisible, truncateGraphemes } from '../lib/comment-text';
+import CommentIndexLive from '../components/CommentIndexLive.astro';
+import { commentAnchor, commentCountFor, stripInvisible } from '../lib/comment-text';
 import {
+  AROUND_THE_FIRE_EMPTY_TEXT,
+  AROUND_THE_FIRE_MAX,
+  AROUND_THE_FIRE_NOSCRIPT_TEXT,
+  dataBaseUrl,
+  fireExcerpt,
+} from '../lib/comments-client';
+import {
+  COMMENTS_DATA_BASE,
+  COMMENTS_SOURCE,
   CONTACT_FORM_LIVE,
   formatShortDate,
   getCommentThreads,
@@ -12,22 +22,14 @@ import {
   withBase,
 } from '../lib/site';
 
-/** How many of the newest comments site-wide "Around the fire" shows. */
-const AROUND_THE_FIRE_MAX = 30;
-/** How many characters of a comment's text "Around the fire" shows, before an ellipsis. */
-const AROUND_THE_FIRE_EXCERPT_MAX = 160;
-const WHITESPACE_RUN = /\s+/g;
-
+// "Around the fire" keeps its length and excerpt rules in `src/lib/comments-client.ts`, so the baked
+// page and the browser's (`COMMENTS_SOURCE = 'r2'`, from the comments index) cannot drift.
 const posts = await getPublishedPosts();
-// Looked up once for every row's count, not once per row.
-const threads = await getCommentThreads();
+const liveComments = COMMENTS_SOURCE === 'r2';
+// Looked up once for every row's count, not once per row; the comments index replaces it when live.
+const threads = liveComments ? new Map() : await getCommentThreads();
+const commentsDataBase = liveComments ? dataBaseUrl(COMMENTS_DATA_BASE).href : undefined;
 const postsById = new Map(posts.map((post) => [post.id, post]));
-
-/** A comment's text as one line, cut to a feed-row length. Plain text: Astro escapes it on output. */
-function fireExcerpt(text: string): string {
-  const collapsed = stripInvisible(text).replace(WHITESPACE_RUN, ' ').trim();
-  return truncateGraphemes(collapsed, AROUND_THE_FIRE_EXCERPT_MAX);
-}
 
 /**
  * Every approved comment on a published, non-withdrawn story — the only ones with a live comment
@@ -73,7 +75,7 @@ const recentComments = [...threads.values()]
             <a class="log-row__title" href={`${postHref(post)}#comments`}>{post.data.title}</a>
             <span class="log-row__meta muted">{habitatOfPost(post).name.toUpperCase()}</span>
           </div>
-          <CommentCount id={post.id} count={commentCountFor(threads, post.id)} />
+          <CommentCount id={post.id} count={liveComments ? undefined : commentCountFor(threads, post.id)} />
         </li>
       ))}
     </ol>
@@ -84,10 +86,12 @@ const recentComments = [...threads.values()]
       <h2 id="around-fire-title">Around the fire</h2>
       <span class="mono muted">Newest comments</span>
     </div>
-    {recentComments.length === 0 ? (
-      <p class="muted" style="max-width: 60ch">
-        Nobody has pulled up a log yet. Be the first, on any story.
-      </p>
+    {liveComments ? (
+      <div data-around-fire>
+        <p class="muted comments__status"><noscript>{AROUND_THE_FIRE_NOSCRIPT_TEXT}</noscript></p>
+      </div>
+    ) : recentComments.length === 0 ? (
+      <p class="muted" style="max-width: 60ch">{AROUND_THE_FIRE_EMPTY_TEXT}</p>
     ) : (
       <ol class="log">
         {recentComments.map(({ post, comment }) => (
@@ -103,6 +107,7 @@ const recentComments = [...threads.values()]
         ))}
       </ol>
     )}
+    {commentsDataBase && <CommentIndexLive dataBase={commentsDataBase} />}
   </section>
 
   <p class="muted" style="margin-top: 2rem; max-width: 60ch; font-size: 0.9375rem">

@@ -24,7 +24,15 @@ import {
   reactionTotals,
   summaryLabel,
   topReactions,
+  REACTIONS_FILE_PREFIX,
+  REACTIONS_PER_FILE_MAX,
+  liveCounts,
+  reactionsFileUrl,
+  reactionsReader,
+  validateReactionFile,
+  type ClientReactionFile,
 } from './reactions.ts';
+import { initialLoadState, loadTransition, type LoadState } from './data-host.ts';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const NOW = new Date('2026-09-26T12:00:00.000Z');
@@ -283,4 +291,114 @@ test('reactionsHostAllowed: the site, its www host and the local hosts only', ()
   for (const host of ['michelabboud.github.io', 'aitamer-news.pages.dev', 'abc123.aitamer-news.pages.dev', 'aitamer.news.evil.example', 'evilaitamer.news', 'staging.aitamer.news', '[::1]', '']) {
     assert.equal(reactionsHostAllowed(host), false, host);
   }
+});
+
+// ---- the totals read from the data host (REACTIONS_SOURCE = 'r2', task R4) ----
+
+const SLUG = 'grok-4-7';
+const BASE = 'https://data.aitamer.news/';
+const goodFile = () => ({ version: 1, slug: SLUG, reactions: [{ id: 'love', n: 3 }, { id: 'overhyped', n: 7 }, { id: 'retired-one', n: 2 }] });
+
+function load(status: number, body?: unknown, state: LoadState<ClientReactionFile> = initialLoadState()) {
+  return loadTransition(state, { type: 'response', attempt: state.attempt, status, body }, reactionsReader(SLUG));
+}
+
+test('r2: the totals URL is v1/reactions/<slug>.json under the data base, and nothing else', () => {
+  assert.equal(reactionsFileUrl(BASE, SLUG), 'https://data.aitamer.news/v1/reactions/grok-4-7.json');
+  assert.equal(reactionsFileUrl('http://127.0.0.1:4743/', SLUG), 'http://127.0.0.1:4743/v1/reactions/grok-4-7.json');
+  assert.equal(REACTIONS_FILE_PREFIX, 'v1/reactions/');
+  for (const slug of ['../comments/x', 'a/b', 'A', '', 'a.json', `${'a'.repeat(121)}`, '-a', 'a?b']) {
+    assert.throws(() => reactionsFileUrl(BASE, slug), TypeError, slug);
+  }
+  for (const base of ['data.aitamer.news/', 'https://data.aitamer.news', 'ftp://data.aitamer.news/', 'https://data.aitamer.news/?a', 'https://u:p@data.aitamer.news/']) {
+    assert.throws(() => reactionsFileUrl(base, SLUG), TypeError, base);
+  }
+});
+
+test('r2: a 404 means zero reactions, not a failure', () => {
+  const state = load(404);
+  assert.equal(state.phase, 'ready');
+  assert.ok(state.phase === 'ready');
+  const { counts, unknown } = liveCounts(state.value, null, null);
+  assert.equal(unknown, 0);
+  assert.deepEqual([...counts.values()], REACTIONS.map(() => 0));
+  assert.equal(summaryLabel(reactionTotals(state.value)), 'No reactions yet');
+});
+
+test('r2: a valid file is read, a retired id counted in the total and never given a chip', () => {
+  const state = load(200, goodFile());
+  assert.ok(state.phase === 'ready');
+  const { counts, unknown } = liveCounts(state.value, null, null);
+  assert.equal(counts.get('love'), 3);
+  assert.equal(counts.get('overhyped'), 7);
+  assert.equal(counts.get('wow'), 0);
+  assert.equal(counts.has('retired-one'), false);
+  assert.equal(unknown, 2);
+  // An additive key from a later contract and an unsorted file put no wrong count on the page.
+  const additive = { ...goodFile(), generatedAt: '2026-10-25T00:00:00Z', reactions: [{ id: 'wow', n: 1 }, { id: 'love', n: 2 }] };
+  assert.equal(load(200, additive).phase, 'ready');
+});
+
+test('r2: an invalid file shows no counts: each kind of bad file is refused whole', () => {
+  const bad: [string, unknown][] = [
+    ['not an object', [1, 2]],
+    ['null', null],
+    ['another version', { ...goodFile(), version: 2 }],
+    ["another story's file", { ...goodFile(), slug: 'other-story' }],
+    ['no reactions array', { version: 1, slug: SLUG, reactions: { love: 3 } }],
+    ['an empty array', { version: 1, slug: SLUG, reactions: [] }],
+    ['too many entries', { version: 1, slug: SLUG, reactions: Array.from({ length: REACTIONS_PER_FILE_MAX + 1 }, (_, i) => ({ id: `r${i}`, n: 1 })) }],
+    ['an entry that is not an object', { version: 1, slug: SLUG, reactions: ['love'] }],
+    ['an id of the wrong shape', { version: 1, slug: SLUG, reactions: [{ id: 'Love', n: 1 }] }],
+    ['an id that is markup', { version: 1, slug: SLUG, reactions: [{ id: '<img src=x onerror=alert(1)>', n: 1 }] }],
+    ['a duplicate id', { version: 1, slug: SLUG, reactions: [{ id: 'love', n: 1 }, { id: 'love', n: 2 }] }],
+    ['a zero', { version: 1, slug: SLUG, reactions: [{ id: 'love', n: 0 }] }],
+    ['a negative', { version: 1, slug: SLUG, reactions: [{ id: 'love', n: -4 }] }],
+    ['a fraction', { version: 1, slug: SLUG, reactions: [{ id: 'love', n: 1.5 }] }],
+    ['a string count', { version: 1, slug: SLUG, reactions: [{ id: 'love', n: '3' }] }],
+    ['an unsafe integer', { version: 1, slug: SLUG, reactions: [{ id: 'love', n: 2 ** 60 }] }],
+  ];
+  for (const [what, body] of bad) {
+    const check = validateReactionFile(body, SLUG);
+    assert.equal(check.ok, false, what);
+    const state = load(200, body);
+    assert.equal(state.phase === 'failed' && state.failure, 'invalid', what);
+    assert.ok(state.phase === 'failed' && !state.reason.includes('onerror'), `${what}: the reason carries no value from the file`);
+  }
+  assert.ok(REACTIONS_PER_FILE_MAX === 64);
+  assert.throws(() => validateReactionFile(goodFile(), 'Not A Slug'), TypeError);
+});
+
+test('r2: a failed load leaves the counts unknown, and the labels then name the reaction only', () => {
+  for (const status of [500, 503, 403]) assert.equal(load(status).phase === 'failed' && load(status).failure, 'unavailable', String(status));
+  assert.equal(reactionLabel('overhyped', null), 'Overhyped');
+  assert.equal(reactionCaption('overhyped', null), 'Overhyped');
+  assert.equal(reactionLabel('overhyped', 0), 'Overhyped, 0 reactions');
+  assert.throws(() => reactionLabel('retired', null), RangeError);
+});
+
+test('r2: a stale answer is ignored after a retry', () => {
+  const failed = load(500);
+  const retrying = loadTransition(failed, { type: 'retry' }, reactionsReader(SLUG));
+  assert.equal(retrying.phase, 'loading');
+  assert.equal(retrying.attempt, 2);
+  const stale = loadTransition(retrying, { type: 'response', attempt: 1, status: 200, body: goodFile() }, reactionsReader(SLUG));
+  assert.equal(stale, retrying);
+  assert.equal(load(200, goodFile(), retrying).phase, 'ready');
+});
+
+test("r2: the reader's own choice is laid over the file, before or after it loads, without a refetch", () => {
+  const file = { reactions: [{ id: 'love', n: 3 }, { id: 'wow', n: 1 }] };
+  // The page remembered "love" (confirmed, so in the file) and nothing changed: the file as it is.
+  assert.equal(liveCounts(file, 'love', 'love').counts.get('love'), 3);
+  // Changed to "wow" while the file was loading: love −1, wow +1.
+  const moved = liveCounts(file, 'love', 'wow').counts;
+  assert.equal(moved.get('love'), 2);
+  assert.equal(moved.get('wow'), 2);
+  // A first choice before the file arrived; then removed again after it did, by the page's applyChoice.
+  const first = liveCounts(file, null, 'funny').counts;
+  assert.equal(first.get('funny'), 1);
+  assert.equal(applyChoice(first, 'funny', null).get('funny'), 0);
+  // Never below zero when the file does not hold the remembered choice yet.
+  assert.equal(liveCounts({ reactions: [] }, 'love', null).counts.get('love'), 0);
 });

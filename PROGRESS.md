@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.119 · 2026-10-25 · comments and reactions on the data host, switched off
+
+Template-first work from the private UIUX repository (0.0.68 to 0.0.72: the index contract, one renderer with two outputs, browser loading, the held message, reaction totals from the data host), copied here byte for byte (hashes in the pull request). Behaviour is unchanged by design: the switches stay `'baked'` and `REACTIONS_LIVE` stays `false`. Built-page comparison against 0.2.118, tests and checks: see the pull request. Flipping the switch, retiring the publisher lane and the privacy page wording are separate later pull requests.
+
 ## 0.2.117 · 2026-10-24 · sitemap freshness
 
 Before: the live sitemap listed all 1,031 stories and every one of the newest 50 feed items, newest `lastmod` equal to the newest story, regenerated on every build. Added topic `lastmod`, topics in `llms.txt` and a sitemap-equals-build check in the deploy smoke test. 1288 tests and the 1,365-page build pass.
