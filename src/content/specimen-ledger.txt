@@ -1045,3 +1045,6 @@
 1042 claude-enterprise-unified-chat-cowork-default-nov-16
 1043 rustgis-0-4-0-agents-mcp-audit-log-undo
 1044 devin-vulnerability-fixes-agent-skills-php-node-gitlab
+1045 ai-movie-models-gemini-omni-vs-utopai-x
+1046 gpu-unlock-rtx-30-40-tensor-throughput-llm-prefill
+1047 rockbridge-korea-hugging-face-models-chinese-base-qwen
