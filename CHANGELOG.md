@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.120 · 2026-10-25
+
+The held-comment message goes back to its current wording in this pull request, so it stays inert: the "appears here within about a minute" text would be untrue while comments are still published by the hourly publisher. The new wording ships with the pull request that switches the source to the data host.
+
 ## 0.2.119 · 2026-10-25
 
 Comments and reaction totals can now be read in the browser from a public data host, and the code is **switched off**. `COMMENTS_SOURCE` and `REACTIONS_SOURCE` ship as `'baked'` and `REACTIONS_LIVE` stays `false`, so no page, feed or header changes (a build of this commit and a build of 0.2.118 are byte-equal apart from hashed asset names and build-time fingerprints). Added, all unused by any built page until a later flip:
@@ -7,7 +11,7 @@ Comments and reaction totals can now be read in the browser from a public data h
 - the comments index contract (`v1/comments-index.json`: counts per story and the 60 newest comments), its schema `src/content/comments-index-schema.ts`, a frozen v1 snapshot and the routes `/contract/comments-index.schema.json` and `/contract/v1/comments-index.schema.json` (new public files);
 - one tokenizer for comment text with two outputs, the unchanged server HTML and DOM nodes for the browser (`textContent` only; a test greps for every HTML-parsing sink), held by a 125-case golden file;
 - browser loading of a story's thread, the home and Campfire counts, "Around the fire" and reaction totals, with loading, empty, failed (with retry) and invalid states, deep links, and a CSP `connect-src` entry added only when a page reads the data host;
-- the held-comment message now says the comment is waiting for the desk and appears within about a minute once approved;
+- the held-comment message is unchanged here: the new wording ("appears here within about a minute") is true only after the flip, so it moves to the pull request that switches the source to the data host;
 - ADR 0047, `POST.md` section 8a, `src/content/comments/README.md` and `ARCHITECTURE.md` describe the contract and the planned read path without claiming it is live.
 
 The contract constants moved to `src/content/comment-limits.ts` and the date formatters to `src/lib/date-format.ts`; the old modules re-export them and no published schema byte changed. The story page's id-protection test (`scripts/check-rendered-body.test.mjs`) now lists the thread's deep-link lookup as reviewed (a validated ULID, scoped to the thread). No new dependency.

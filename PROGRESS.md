@@ -2,7 +2,7 @@
 
 ## 0.2.119 · 2026-10-25 · comments and reactions on the data host, switched off
 
-Template-first work from the private UIUX repository (0.0.68 to 0.0.72: the index contract, one renderer with two outputs, browser loading, the held message, reaction totals from the data host), copied here byte for byte (hashes in the pull request). Behaviour is unchanged by design: the switches stay `'baked'` and `REACTIONS_LIVE` stays `false`. Built-page comparison against 0.2.118, tests and checks: see the pull request. Flipping the switch, retiring the publisher lane and the privacy page wording are separate later pull requests.
+Template-first work from the private UIUX repository (0.0.68 to 0.0.72: the index contract, one renderer with two outputs, browser loading, the held message (left unchanged in this pull request; it moves to the flip), reaction totals from the data host), copied here byte for byte (hashes in the pull request). Behaviour is unchanged by design: the switches stay `'baked'` and `REACTIONS_LIVE` stays `false`. Built-page comparison against 0.2.118, tests and checks: see the pull request. Flipping the switch, retiring the publisher lane and the privacy page wording are separate later pull requests.
 
 ## 0.2.117 · 2026-10-24 · sitemap freshness
 
