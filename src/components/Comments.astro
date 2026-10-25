@@ -11,7 +11,7 @@
  * **`'r2'`** (docs/plans/2026-10-24-comments-on-r2.md §2.6, §2.9; site ADR 0047): the page ships
  * the section empty, and the bundled script below fetches `v1/comments/<slug>.json` from the data
  * host (`COMMENTS_DATA_BASE`) once, with `credentials: 'omit'`, and renders it with DOM calls only
- * (`renderCommentList` in `src/lib/comment-dom.ts`, after `validateCommentFile`). The decisions —
+ * (`renderCommentList` in `src/lib/comment-dom.ts`, after `validateCommentFileV2`). The decisions —
  * the state machine, the URL, the deep link — are in `src/lib/comments-client.ts` and tested there.
  * That section and its script are `CommentsLive.astro`, rendered only in this mode, so a baked
  * build ships no comments script at all.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.124 · 2026-10-25
+
+- Prepare the cutover for revisioned v2 comments and index files, including empty story envelopes. Preserve frozen v1 schemas/routes and baked rollback validation; errors never fall back to legacy text. [Source verification](docs/reports/2026-10-25-comments-v2-reader.md):1,415tests pass, production build/content checks pass. Writer deployment, legacy URL retirement and the actual site switch remain separate gates.
+
 ## 0.2.123 · 2026-10-25
 
 The comments flip (pull request B of the comments-on-R2 plan, ADR 0047 amendment). **This pull request must not merge before cutover steps C1 to C3** (publishing to the data host is on, the data files are verified, and the old publisher has stopped for this site); the coordinator merges it at C4.
