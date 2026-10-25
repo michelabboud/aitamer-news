@@ -1051,3 +1051,8 @@
 1048 pgrust-v0-4-beta-agent-built-postgres-rust-clickbench-dispute
 1049 nanbeige-4-3-33b-open-agentic-coding-model
 1050 tokengate-learned-token-pruning-long-context-prefill
+1051 mcp-inspector-nine-advisories-two-critical-rce-update
+1052 r-opensource-bans-ai-projects-new-rules-backlash
+1053 solidcraft-0-22-1-adds-itself-to-ai-clients-mcp-by-default
+1054 aws-infinity-rust-agent-runtime-suspends-agents-at-tool-calls
+1055 redwood-simulated-control-evals-llm-fakes-tool-outputs
