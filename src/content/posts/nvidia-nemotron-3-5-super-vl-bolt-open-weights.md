@@ -51,6 +51,10 @@ sources:
     url: https://opensource.org/licenses
   - title: "AI Tamer: NVIDIA reports Nemotron scores above 2026 IOI and IMO gold lines"
     url: https://aitamer.news/posts/nvidia-nemotron-ioi-imo-2026/
+  - title: "NVIDIA-Nemotron-3.5-Bolt-E4B-4GB model card (Hugging Face)"
+    url: https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-E4B-4GB
+  - title: "NVIDIA Nemotron 3.5 Bolt E4B 4GB technical blog (NVIDIA Research)"
+    url: https://research.nvidia.com/labs/nemotron/NVIDIA-Nemotron-3.5-Bolt-E4B-4GB/
 ---
 
 On 15 October 2026, NVIDIA published two posts about Nemotron 3.5 Super VL and Nemotron 3.5 Bolt. Michelle Horton's [technical post](https://developer.nvidia.com/blog/nvidia-nemotron-3-5-super-vl-powers-specialized-agents-with-multimodal-reasoning/) is timestamped 15:00 UTC and modified the same day at 16:24 UTC. Kari Briski's [company post](https://blogs.nvidia.com/blog/nemotron-3-5-super-vl/) is timestamped 15:00 UTC and modified at 15:22 UTC. NVIDIA calls Super VL an open model. The card license, below, is why this account says open weights.
@@ -98,3 +102,9 @@ The company post names further customizers, including AfterQuery, Mercor, and Pe
 An earlier note on [NVIDIA's own IOI and IMO scores](/posts/nvidia-nemotron-ioi-imo-2026/) covers different Nemotron systems.
 
 The weights named above are public. The speed, the partner savings, and the 23 October date for Bolt E4B are claims in NVIDIA's posts.
+
+## Update, 25 October 2026: Bolt E4B 4GB is out
+
+The smaller Bolt that NVIDIA said would follow on 23 October is now public. The [model card](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-E4B-4GB) for NVIDIA-Nemotron-3.5-Bolt-E4B-4GB says it was post-trained by NVIDIA from Google's Gemma-4-E4B-it: 8B total parameters, 4B effective, Q4_K_M precision, up to 64K tokens in and 64K out, with reasoning switched on or off through the chat template. There is a companion DFlash drafter for speculative decoding and a separate BF16 version. The card says the model is "ready for commercial or non-commercial use" under OpenMDW-1.1, and that use of the underlying Gemma 4 model is governed by Apache 2.0. The Hub API shows the repository last modified on 23 October at 19:03 UTC.
+
+NVIDIA aims it at local voice and device assistants, personas and embedded interfaces. The "4GB" depends on the workload: NVIDIA's [technical blog](https://research.nvidia.com/labs/nemotron/NVIDIA-Nemotron-3.5-Bolt-E4B-4GB/) lists 3.5 GB of peak VRAM on an RTX 5070 for a short prompt and 4.3 GB with 32K of cached context, measured on llama.cpp at batch size 1. The card lists llama.cpp deployment as "recipe pending" while also giving llama.cpp server commands. Benchmark scores on the card are NVIDIA's.
