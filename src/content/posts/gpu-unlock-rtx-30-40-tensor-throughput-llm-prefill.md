@@ -19,7 +19,7 @@ wildness:
   rating: 3
   verified: "READMEs, releases and issue reports of the three repositories, read 25 October."
   claimed: "Every benchmark is a project or owner run on single cards; we have not reproduced any."
-verdict: "Worth a look if your local LLM work is prefill heavy and the card is yours to risk. It changes nothing for token generation speed, and Nvidia does not support it."
+verdict: "Worth a look if your local LLM work is prefill heavy and the card is yours to risk. It changes nothing for token generation speed, and it is an unofficial third-party module, not an Nvidia tool."
 sources:
   - title: "Zagitta/gpu-unlock, README and v1.0.0 (GitHub)"
     url: https://github.com/Zagitta/gpu-unlock
