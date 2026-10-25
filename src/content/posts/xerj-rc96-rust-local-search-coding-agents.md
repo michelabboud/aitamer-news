@@ -75,6 +75,14 @@ sources:
     url: https://github.com/xerj-org/xerj/issues/1896
   - title: "XERJ PR #1909, offer the field report and send it with the user's OK (closed unmerged)"
     url: https://github.com/xerj-org/xerj/pull/1909
+  - title: "XERJ v1.0.0-rc.99 release (GitHub)"
+    url: https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.99
+  - title: "XERJ CHANGELOG at v1.0.0-rc.99"
+    url: https://github.com/xerj-org/xerj/blob/v1.0.0-rc.99/CHANGELOG.md
+  - title: "rc.99: smart, resource-aware autoindex and more harness tools (XERJ blog, 24 October 2026)"
+    url: https://xerj.org/blog/rc99-smart-autoindex-harness-tools.html
+  - title: "PR #2377: land 11 reviewed fixes (rc.100)"
+    url: https://github.com/xerj-org/xerj/pull/2377
 ---
 
 On 16 October 2026 at 14:51 UTC, XERJ published [v1.0.0-rc.96](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.96). The [changelog](https://raw.githubusercontent.com/xerj-org/xerj/v1.0.0-rc.96/CHANGELOG.md) dates that section 15 October. The version string is a release candidate. GitHub's release record does not flag it as a prerelease.
@@ -145,3 +153,11 @@ rc.98 also adds safer deletion for agents. A new `xerj autoindex remove` command
 XERJ has settled the consent question. The xerj-org account closed [issue #1896](https://github.com/xerj-org/xerj/issues/1896) as not planned at 06:25 UTC on 23 October, with the comment: "Closing as intended behavior: agents send field reports automatically, with no need to ask the user." A second earlier the same account closed [PR #1909](https://github.com/xerj-org/xerj/pull/1909) without merging it. That draft would have changed the installer banners, `--help` text, indexing footer and MCP instructions to have agents offer the report and send it only with the user's OK. Its closing comment says field reports "are meant to be sent automatically, without asking the user first. The current behavior stays." A 20 October comment on the PR had already said the maintainer decided on 18 October that reports go out without asking.
 
 So the behavior from rc.97 onward is the design, not a gap waiting for a fix. When we checked on 23 October, [xerj.org/get](https://xerj.org/get) and [llms.txt](https://xerj.org/llms.txt) still told agents to send the report with "no need to ask the user". Reports open a public pull request from the signed-in GitHub account when `gh` is available, and otherwise post to `https://xerj.org/api/field-report`. If you do not want your agents doing that, set `XERJ_DISABLE_FEEDBACK=true` or pass `--disable-feedback` before they run xerj, and tell your agents in their own instructions not to send reports. No release has been tagged after rc.98.
+
+## Update, 25 October 2026: rc.99 adds cluster replication, with one-way upgrade notes
+
+XERJ published [v1.0.0-rc.99](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.99) on 24 October at 23:11 UTC, with 20 binaries. The [changelog](https://github.com/xerj-org/xerj/blob/v1.0.0-rc.99/CHANGELOG.md) counts 116 merged pull requests since rc.98. x86_64 binaries now run on CPUs without AVX2. Cluster mode replicates index metadata through an on-disk Raft log, routes document writes to the primary named at create, and acknowledges a write once a quorum of copies confirms. The MCP server gains local definition lookup and ordered batch retrieval. The [launch post](https://xerj.org/blog/rc99-smart-autoindex-harness-tools.html) says "two hard limits stay open: a machine that has truly run out of memory, and clustering."
+
+Read the upgrade notes before installing. Once rc.99 writes a field name that differs only by case identity (for example `page_Id`), the data-directory marker moves from 2 to 3 and rc.98 will refuse to open it, so the project says to back up first. Vectors rc.99 writes are packed as a `xerj:f32:` hex string that older binaries open but do not score in kNN. One cluster bug surfaced right after the tag: [PR #2377](https://github.com/xerj-org/xerj/pull/2377), merged on 25 October for rc.100, fixes `_delete_by_query`, which ran only on the member that received the call and was not copied to the replica. That fix is on main, not in rc.99.
+
+The field-report text is unchanged: [`feedback.rs`](https://github.com/xerj-org/xerj/blob/v1.0.0-rc.99/engine/crates/xerj-common/src/feedback.rs) at the rc.99 tag still tells agents to send reports automatically, "no need to ask the user", with `--disable-feedback` or `XERJ_DISABLE_FEEDBACK=true` as the opt-out.

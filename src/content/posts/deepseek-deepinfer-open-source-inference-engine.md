@@ -34,6 +34,10 @@ sources:
     url: https://aitamer.news/posts/deepseek-v4-1-flash-1017-open-weights/
   - title: "DHS orders DeepSeek products, and third-party tools built on them, out of federal civilian IT"
     url: https://aitamer.news/posts/dhs-deepseek-federal-civilian-removal-order/
+  - title: "Serving DeepSeek-V4.1-Flash at Scale: vLLM Matches DeepInfer and Scales to GB300 NVL72 (vLLM Blog)"
+    url: https://vllm.ai/blog/2026-10-23-deepseek-v41-flash-pd-wide-ep
+  - title: "More Than DeepInfer: What SGLang Delivers (LMSYS Org, 24 October 2026)"
+    url: https://www.lmsys.org/blog/2026-10-24-dsv41-deepinfer/
 ---
 
 DeepSeek has [open-sourced DeepInfer](https://github.com/deepseek-ai/DeepInfer), which it describes as the inference framework behind its large-scale DeepSeek-V4.1-Flash service. The code is under Apache-2.0. DeepSeek announced it [on X](https://x.com/deepseek_ai/status/2112476496283775135) on 20 October, saying it is sharing its production stack "to help the community lower compute costs, reduce energy use, and make AI more affordable."
@@ -67,3 +71,11 @@ Alongside DeepInfer, DeepSeek pointed to [deepseek-recipe](https://github.com/de
 ## Why it matters
 
 Most open serving stacks are built by people who do not run a frontier model at scale. This one comes from a lab that does, with an Ascend path alongside NVIDIA's. For teams self-hosting V4.1-Flash, the Q&A alone is worth reading. For US federal civilian IT, note that the [DHS order](https://aitamer.news/posts/dhs-deepseek-federal-civilian-removal-order/) published this week also covers "third-party products and services developed using DeepSeek implementations."
+
+## Update, 25 October 2026: vLLM and SGLang say they now run V4.1-Flash about as fast as DeepInfer
+
+Four days after DeepSeek's release, the two big open serving engines published their own comparisons. The [vLLM post](https://vllm.ai/blog/2026-10-23-deepseek-v41-flash-pd-wide-ep) says that under DeepSeek's decode configuration (131K context, nextn=3), vLLM on GB200 is "within 6%" of DeepInfer's published decode throughput across batch sizes 8 to 256. It read DeepInfer's numbers off the charts in its README, and says the prefill setups differ too much to read the gap between the curves as a result. It also notes the shared lineage: DeepInfer "was originally built on vLLM", and vLLM uses DeepSeek's open kernels. On a GB300 NVL72 rack it reports 954K tokens per second per GPU on SemiAnalysis AgentX.
+
+The [LMSYS post](https://www.lmsys.org/blog/2026-10-24-dsv41-deepinfer/) says SGLang ran DeepInfer's own benchmarks on the same hardware and reports up to 1.04x prefill throughput on 4x GB300 and 4x B300, up to 7.4% shorter decode steps on 64x GB300, and within 1% at the remaining points. It integrates DeepSeek's Mega kernels and adds the pieces DeepInfer's README lists as missing: an API server, a KV cache system, prefill/decode disaggregation and load balancing.
+
+Both are self-reported benchmarks by the engines' own teams. The practical upshot for anyone serving V4.1-Flash: the full serving stacks are close to DeepSeek's offline engine on speed, without giving up the features it leaves out.
