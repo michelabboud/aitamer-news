@@ -63,4 +63,4 @@ So long prompts, RAG contexts and batch embedding get faster. Tokens per second 
 
 ## Before you try it
 
-This is an unofficial change to how the card boots, and Nvidia does not support it. GitHub shows no license on the original repository, while the Ada fork is GPL-2.0. The build downloads pinned Nvidia and CachyOS inputs, checks their SHA-256 hashes and generates the firmware locally. Every figure above comes from one card or one owner, and the Turing fork's damage warning applies to all of them: watch power and temperatures, and keep your normal boot entry.
+This is an unofficial third-party change to how the card boots, not an Nvidia release. GitHub shows no license on the original repository, while the Ada fork is GPL-2.0. The build downloads pinned Nvidia and CachyOS inputs, checks their SHA-256 hashes and generates the firmware locally. Every figure above comes from one card or one owner, and the Turing fork's damage warning applies to all of them: watch power and temperatures, and keep your normal boot entry.
