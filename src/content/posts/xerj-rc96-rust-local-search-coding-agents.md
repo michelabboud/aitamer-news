@@ -83,6 +83,8 @@ sources:
     url: https://xerj.org/blog/rc99-smart-autoindex-harness-tools.html
   - title: "PR #2377: land 11 reviewed fixes (rc.100)"
     url: https://github.com/xerj-org/xerj/pull/2377
+  - title: "XERJ PR #2380, route native document writes to the shard primary (GitHub, merged 25 October 2026)"
+    url: https://github.com/xerj-org/xerj/pull/2380
 ---
 
 On 16 October 2026 at 14:51 UTC, XERJ published [v1.0.0-rc.96](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.96). The [changelog](https://raw.githubusercontent.com/xerj-org/xerj/v1.0.0-rc.96/CHANGELOG.md) dates that section 15 October. The version string is a release candidate. GitHub's release record does not flag it as a prerelease.
@@ -161,3 +163,9 @@ XERJ published [v1.0.0-rc.99](https://github.com/xerj-org/xerj/releases/tag/v1.0
 Read the upgrade notes before installing. Once rc.99 writes a field name that differs only by case identity (for example `page_Id`), the data-directory marker moves from 2 to 3 and rc.98 will refuse to open it, so the project says to back up first. Vectors rc.99 writes are packed as a `xerj:f32:` hex string that older binaries open but do not score in kNN. One cluster bug surfaced right after the tag: [PR #2377](https://github.com/xerj-org/xerj/pull/2377), merged on 25 October for rc.100, fixes `_delete_by_query`, which ran only on the member that received the call and was not copied to the replica. That fix is on main, not in rc.99.
 
 The field-report text is unchanged: [`feedback.rs`](https://github.com/xerj-org/xerj/blob/v1.0.0-rc.99/engine/crates/xerj-common/src/feedback.rs) at the rc.99 tag still tells agents to send reports automatically, "no need to ask the user", with `--disable-feedback` or `XERJ_DISABLE_FEEDBACK=true` as the opt-out.
+
+## Update, 25 October 2026: rc.99's native document API skipped the shard primary
+
+Our rc.99 note above says cluster mode routes document writes to the primary. That holds for the `PUT /{index}/_doc/{id}` path, but not for XERJ's own native document API. [PR #2380](https://github.com/xerj-org/xerj/pull/2380), merged to main at 06:11 UTC on 25 October, says `POST /v1/indices/{name}/docs`, `DELETE /v1/indices/{name}/docs/{id}` and `POST /v1/indices/{name}/docs/_bulk` "wrote on the node that accepted them. A cluster member could acknowledge a document the shard primary never stored, and the in-sync replica never saw it."
+
+Those three calls now use the same primary and replica quorum. The commit adds that logs, OTLP, syslog, turbo and pipeline ingest "still write locally". With the `_delete_by_query` fix in #2377, that makes two write paths fixed on main after the tag. Neither is in a release yet: rc.99 was still the latest tag when we checked on the afternoon of 25 October. The commit names `PUT /{index}/_doc/{id}` as the path that already used the quorum, so cluster users on rc.99 may want to check which API their writers call.

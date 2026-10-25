@@ -46,6 +46,10 @@ sources:
     url: https://aitamer.news/posts/deepseek-funding-round-tencent-catl/
   - title: "AI Tamer: Bloomberg account of Moonshot, the lab behind Kimi"
     url: https://aitamer.news/posts/moonshot-ai-50b-pre-ipo/
+  - title: "MiniMax Group Inc., voluntary announcement: business update (HKEX, 23 October 2026)"
+    url: https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1023/2026102301675.pdf
+  - title: "Reuters, China's DeepSeek, MiniMax win approval for AI global use, state media-affiliated entity says (Investing.com, 23 October 2026)"
+    url: https://www.investing.com/news/stock-market-news/chinas-deepseekminimax-win-approval-for-ai-global-use-state-mediaaffiliated-entity-says-4968133
 ---
 
 On 16 October 2026 the Ministry of Commerce and the Ministry of Science and Technology published [Announcement 2026 No. 48](https://www.mofcom.gov.cn/zcfb/blgg/gg/2026/art/2026/art_05e2643a8ca04eb9adf9dd0542991fe4.html), timestamped 16:00, from 安全与管制局. The ministries propose to revise the Catalogue of Technologies Prohibited or Restricted from Export (《中国禁止出口限制出口技术目录》), adding some artificial intelligence, biomedicine, and photovoltaic technologies. Technology already public through open source or academic papers is proposed to stay outside it. Comment is open, and pre-export registration applies.
@@ -81,3 +85,11 @@ The announcement, the Q&A, and annex 1 do not name DeepSeek, Qwen, Kimi, or GLM.
 [Reuters](https://www.yahoo.com/news/world/articles/china-proposes-adding-40-ai-084246835.html), Yahoo News, Beijing, 16 October, byline Shi Bu, Liz Lee, and Eduardo Baptista, reports the 40 technologies, comment to 15 November, and a ministry line that the move targets no specific country, region, or entity. Reuters itself calls models, agents, and clusters "the three fundamental building blocks of China's AI industry." The announcement's four groupings include information processing. A longer [Japanese Reuters item](https://topics.smt.docomo.ne.jp/article/reuters/world/reuters-20261016114) names DeepSeek and Alibaba beside the API and SaaS line. Those names are Reuters'.
 
 [South China Morning Post](https://www.scmp.com/economy/china-economy/article/3371149/china-mulls-new-tech-export-bans-covering-ai-biotech-and-solar-power), Xiaofei Xu, 4:31pm on 16 October, headlines "export bans" for a draft it says would prohibit 14 technologies and restrict 26. [Bloomberg Law](https://news.bloomberglaw.com/artificial-intelligence/china-proposes-export-controls-on-ai-models-chips-and-agents), Nectar Gan and Luz Ding, 10:48 UTC, names Moonshot's Kimi K3 and DeepSeek. [Nikkei Asia](https://asia.nikkei.com/business/technology/artificial-intelligence/china-to-add-ai-biopharma-and-solar-tech-to-export-control-list), Cissy Zhou, 18:56 JST, reports the proposal.
+
+## Update, 25 October 2026: MiniMax says it has registered under No. 48
+
+MiniMax has now said publicly that it registered. In a [voluntary announcement](https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1023/2026102301675.pdf) to the Hong Kong exchange dated 23 October, MiniMax says it "has duly completed the technology export registration procedures with the Ministry of Commerce required for the open-source release and overseas licensing of certain recently released and upcoming models", under Announcement No. 48. It does not name the models. The same day, MiniMax opened the weights of [M3.1 Flash](/posts/minimax-m3-1-flash-launch-m2-auto-routing/).
+
+The filing suggests labs are registering before a release, since the draft's public-domain exemption covers only technology that is already public.
+
+[Reuters reported](https://www.investing.com/news/stock-market-news/chinas-deepseekminimax-win-approval-for-ai-global-use-state-mediaaffiliated-entity-says-4968133) that Yuyuan Tantian, a social media account affiliated with state broadcaster CCTV, said DeepSeek and MiniMax had both completed registration and could proceed with open-source release and overseas licensing. DeepSeek did not respond to Reuters, and we have not found a DeepSeek statement. The comment period still runs to 15 November.
