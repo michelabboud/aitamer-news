@@ -142,7 +142,7 @@ The comment form on story pages posts to `https://comments.aitamer.news/`, the d
 
 Reactions under stories (seven, one per reader, `src/components/Reactions.astro`) are built but **off** until the desk's publisher bakes real totals: `REACTIONS_LIVE` in `src/lib/site.ts` turns on the component and the privacy page's paragraph together. A choice posts to `/react` on the same Worker; the totals come from `src/content/reactions/<slug>.json` (`POST.md` section 9).
 
-Comments and reaction totals can also be read in the browser from a public data host instead of being baked into the pages (`ARCHITECTURE.md`, "Reading comments and reaction totals from the data host"; ADR 0047). That code is built and tested but **off**: `COMMENTS_SOURCE` and `REACTIONS_SOURCE` in `src/lib/site.ts` are `'baked'`, so the site is unchanged. `PUBLIC_COMMENTS_DATA_BASE` (see `.env.example`) points a local build at a local fixture server when the switch is tried in a scratch copy.
+Comments are read in the browser from a public data host, `https://data.aitamer.news/`, instead of being baked into the pages (`ARCHITECTURE.md`, "Reading comments and reaction totals from the data host"; ADR 0047, which supersedes the baking of ADR 0006): `COMMENTS_SOURCE` in `src/lib/site.ts` is `'r2'`. Reaction totals are not part of that flip: `REACTIONS_SOURCE` is still `'baked'` and `REACTIONS_LIVE` is `false`. `PUBLIC_COMMENTS_DATA_BASE` (see `.env.example`) points a local build at a local fixture server; previews and mirrors outside the data host's CORS allowlist (`pages.dev`) show the comments error state.
 
 ## Search
 

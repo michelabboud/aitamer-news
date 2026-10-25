@@ -2,8 +2,9 @@
  * The shared half of `check-comments.mjs` and `check-reactions.mjs`: the rules every directory of
  * the desk's data files follows, with a directory's own words for its messages.
  *
- * The desk's publisher writes `src/content/<lane>/<slug>.json` (ADR 0006 for comments; the
- * reactions contract is `src/content/reaction-schema.ts`); a human only ever removes. These
+ * The desk's publisher wrote `src/content/<lane>/<slug>.json` (ADR 0006 for comments; the
+ * reactions contract is `src/content/reaction-schema.ts`) until ADR 0047 retired it; both
+ * directories are kept, empty, for the way back to baked HTML. These
  * checks catch what a schema cannot see, because they need the directory listing, the file name
  * and the posts directory:
  *   - every entry in the directory is `README.md` or a regular file named `<slug>.json` — lowercase

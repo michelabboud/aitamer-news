@@ -39,15 +39,16 @@ export const COMMENTS_ENDPOINT: string =
   import.meta.env.PUBLIC_COMMENTS_ENDPOINT || 'https://comments.aitamer.news/';
 
 /**
- * Where story and list pages read comments from. `'baked'` (today): comments are Astro content
- * files built into the HTML and the JSON-LD (ADR 0006). `'r2'`: the browser reads the desk's
- * published files from `COMMENTS_DATA_BASE` instead (docs/plans/2026-10-24-comments-on-r2.md,
- * site ADR 0047). Like `REACTIONS_LIVE` it is flipped in source, in the commit that also moves
- * the privacy page's date, never by environment: what a page says it does must match the build.
- * It ships as `'baked'`: only a build with `'r2'` renders the loaders (`CommentsLive.astro`,
- * `CommentIndexLive.astro`) into a page, so a baked build's pages are unchanged.
+ * Where story and list pages read comments from. `'r2'` (today, since the flip of 2026-10-25): the
+ * browser reads the desk's published files from `COMMENTS_DATA_BASE` and builds the thread with DOM
+ * calls (docs/plans/2026-10-24-comments-on-r2.md, site ADR 0047, which supersedes ADRs 0006, 0007
+ * and 0008 for how comments reach the page). `'baked'`: comments are Astro content files built into
+ * the HTML and the JSON-LD, the way back kept open by ADR 0047 (the collection, its loader and the
+ * server renderer all stay). Like `REACTIONS_LIVE` it is flipped in source, in the commit that also
+ * moves the privacy page's date, never by environment: what a page says it does must match the build.
+ * Only a build with `'r2'` renders the loaders (`CommentsLive.astro`, `CommentIndexLive.astro`) into a page.
  */
-export const COMMENTS_SOURCE: 'baked' | 'r2' = 'baked';
+export const COMMENTS_SOURCE: 'baked' | 'r2' = 'r2';
 
 /** The public data host's origin when `PUBLIC_COMMENTS_DATA_BASE` is not set: the desk's public comments bucket. */
 export const COMMENTS_DATA_BASE_DEFAULT = 'https://data.aitamer.news/';

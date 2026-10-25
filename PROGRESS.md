@@ -1,5 +1,9 @@
 # Progress
 
+## 0.2.123 · 2026-10-25 · the comments flip (prepared, merged at cutover)
+
+Pull request B: `COMMENTS_SOURCE = 'r2'`, the baked comment files removed, no comment JSON-LD, the held-comment message, the publisher with no lane, the approved comments privacy wording, and the supersession links. Template first (private repository 0.0.76). Not merged until the cutover has run its steps C1 to C3; the coordinator merges it at C4 and updates the two 25 October 2026 dates in a final commit if the cutover is on a later day.
+
 ## 0.2.122 · 2026-10-25 · privacy page: backups last 7 days
 
 The two sentences on the privacy page that said restorable backups last up to 30 days now say up to 7 days, and the page is dated 25 October 2026. Template first (private repository 0.0.75), copied here byte for byte. Independent of the comments switch-over.

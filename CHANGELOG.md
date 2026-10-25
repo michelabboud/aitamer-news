@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.123 · 2026-10-25
+
+The comments flip (pull request B of the comments-on-R2 plan, ADR 0047 amendment). **This pull request must not merge before cutover steps C1 to C3** (publishing to the data host is on, the data files are verified, and the old publisher has stopped for this site); the coordinator merges it at C4.
+
+- Comments are read in the browser from `https://data.aitamer.news/`: `COMMENTS_SOURCE = 'r2'`. Every story page carries `data-comments-base`, and the Content-Security-Policy gains the data origin in `connect-src`. `REACTIONS_SOURCE` stays `'baked'` and `REACTIONS_LIVE` stays `false`.
+- The two baked comment files (`the-gap-between-the-needles.json`, `detectorscope-auditable-ai-text-detectors.json`) leave the tree, restorable by git. `src/content/comments/README.md` is rewritten for the data-host era. The story page no longer carries `commentCount` or `Comment` items in its structured data.
+- The held-comment message reads "Thanks. Your comment is waiting for the desk. Once it is approved it appears here within about a minute."
+- The publisher has no lane: `scripts/check-publisher-paths.mjs` refuses every changed path from a pull request that is held to the rule and from a publisher push (the required check keeps its name), and the deploy's step is renamed "The publisher may change nothing". Both former lanes (comments and reactions) close together because the publisher job retires as a whole.
+- Privacy page: the comments wording approved by Michel on 2026-10-25 (items A1 and A2: the data host request, the private backup history, the 12-month record of a removed comment). "Last updated" stays 25 October 2026 and the sentence "Comments published before 25 October 2026 were also part of the site's public source history" carries the same date; if the cutover happens on a later day, both dates are updated in a final commit. Items A4 and A5 were already live (0.2.122); Part B (reactions) is untouched.
+- Docs: ADR index supersession links (0006 and 0008 superseded, 0007 amended) and an amendment to ADR 0047; `ARCHITECTURE.md`, `README.md`, `POST.md`, `CONTRIBUTING.md`, `PLAN.md`, `PROGRESS.md`, `BACKLOG.md`. Template first (private repository 0.0.76), copied here byte for byte except the files that exist only here.
+
 ## 0.2.122 · 2026-10-25
 
 The privacy page now says the database's restorable backups last up to 7 days, not 30, in the two sentences that said so (the opening paragraph of the comments section and the removal item), and "Last updated" moves to 25 October 2026. The account is on Cloudflare's Free plan, where D1 Time Travel keeps 7 days; the page was wrong in the reader's disfavour. This is a correction to text that is already live and does not depend on the switch-over to the data host. The reactions paragraph is unchanged. Only `src/pages/privacy.astro` changed in code; the file is byte for byte the private template's (0.0.75).

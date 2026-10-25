@@ -52,7 +52,8 @@ export const COMMENTS_ANCHOR = 'comments';
 export const COMMENT_HELD_ANCHOR = 'comment-held';
 
 /** Shown after a comment is accepted, by the script and after the no-script redirect. */
-export const COMMENT_HELD_MESSAGE = 'Held for the desk. It appears after a look.';
+export const COMMENT_HELD_MESSAGE =
+  'Thanks. Your comment is waiting for the desk. Once it is approved it appears here within about a minute.';
 /** Shown when the Worker cannot be reached or answers without a readable reason. */
 export const COMMENT_FAILED_MESSAGE = 'The desk could not take that comment. Try again in a moment.';
 /** Shown when Turnstile cannot run (blocked, offline, or its own error), so the submit stays off. */

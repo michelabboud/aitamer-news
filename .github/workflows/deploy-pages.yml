@@ -67,13 +67,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: The publisher may only have changed comment files
+      - name: The publisher may change nothing
         # Defence in depth behind the required check `publisher-paths` (check-publisher-pr.yml):
-        # the desk's publisher should only ever land its data files through a pull request, but if
-        # it ever pushes to main itself (a ruleset gap, a leaked key), this refuses to build or
-        # deploy unless every path changed between github.event.before and after is in one of its
-        # two lanes, src/content/comments/<slug>.json or src/content/reactions/<slug>.json (ADR
-        # 0008; the step keeps its original name, which the test finds it by). It runs first,
+        # since the comments flip (ADR 0047) the desk's publisher has no lane at all (comments
+        # are published to the data host, and reaction totals will be, never committed here), so if it ever
+        # pushes to main (a ruleset gap, a leaked key), this refuses to build or deploy unless
+        # nothing changed between github.event.before and after. (Until the flip it admitted the
+        # two data-file lanes of ADR 0006 and 0008; the step was then named "The publisher may
+        # only have changed comment files".) It runs first,
         # before `npm ci` or anything else from the pushed tree, with the runner's own node (the
         # script needs only node's built-ins). Because the judge is the script as it was before
         # the push, a change to the lanes takes effect only once it is itself on main.
@@ -121,7 +122,7 @@ jobs:
             exit 0
           fi
           if [ "$EVENT_NAME" != "push" ]; then
-            echo "::error::the publisher started a $EVENT_NAME run; it may only push comment files"
+            echo "::error::the publisher started a $EVENT_NAME run; it may change nothing"
             exit 1
           fi
           if [[ "$BEFORE" =~ ^0+$ ]]; then

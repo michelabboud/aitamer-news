@@ -1,11 +1,11 @@
 name: Publisher paths
 
-# The desk's publisher, a GitHub App, may only ever add, change or delete
-# src/content/comments/<slug>.json and src/content/reactions/<slug>.json, its two lanes (phase 2
-# plan D12, ADR 0006; the second lane, ADR 0008). A rename that git detects may not cross from one
-# lane to the other; that is a tripwire (a delete plus a dissimilar add is two allowed changes),
-# and each lane's contract, enforced by the required check `check`, is the real guarantee. It pushes to a desk/comments-* branch and opens a pull request into main with its
-# installation token; this job is the required check on pull requests in the branch ruleset.
+# The desk's publisher, a GitHub App, may change nothing. Until the comments flip (ADR 0047) it had
+# two lanes, src/content/comments/<slug>.json and src/content/reactions/<slug>.json (phase 2 plan
+# D12, ADR 0006; the second lane, ADR 0008); the desk now publishes comments to the data host (and,
+# at the later reactions flip, reaction totals), so both lanes are closed and any path an unexempted pull request changes
+# fails this job. The job and its name stay: the branch rulesets require `publisher-paths` by name.
+# This job is the required check on pull requests in the branch ruleset.
 #
 # Who is held to the rule: EVERY pull request, unless its author and this event's sender are both
 # the maintainer, compared by numeric account id with the repository variable MAINTAINER_ID, and
@@ -20,7 +20,7 @@ name: Publisher paths
 # added or modified, and only an AI writer's or a bot's (kind at the merge base when modified, at
 # the head when added; a human's file changes only through the maintainer), and only honestly: a
 # modified author keeps its kind and name, and an added author takes no other author's name. The posts App gains nothing else, and
-# the publisher's lanes do not gain author files. The rules and why: the script's header.
+# the publisher, with no lane, gains nothing. The rules and why: the script's header.
 #
 # pull_request_target: the workflow, and the script it runs, always come from main — never from
 # the pull request. Nothing from the pull request's head is checked out or executed. For every pull

@@ -196,14 +196,14 @@ test('current main history can be retained by a refreshed head, and unrelated ba
   assert.equal(result.result, 0, result.output);
 });
 
-test('other actors retain the maintainer exemption, publisher lanes and push behavior', async () => {
+test('other actors retain the maintainer exemption, the publisher’s empty rule and push behavior', async () => {
   const repo = repository();
   addPost(repo);
   assert.equal((await run(repo, { PR_AUTHOR_ID: MAINTAINER, EVENT_SENDER_ID: MAINTAINER })).code, 0);
   assert.equal((await run(repo, { PR_AUTHOR_ID: '4242', EVENT_SENDER_ID: '4242' })).code, 1);
   const comments = repository();
   comments.write('src/content/comments/old-story.json', '{}\n');
-  assert.equal((await run(comments, { PR_AUTHOR_ID: '4242', EVENT_SENDER_ID: '4242' })).code, 0);
+  assert.equal((await run(comments, { PR_AUTHOR_ID: '4242', EVENT_SENDER_ID: '4242' })).code, 1, 'the publisher has no lane since ADR 0047');
   assert.equal((await run(comments)).code, 1, 'Grok content lane does not acquire the publisher lanes');
   const head = repo.git(['rev-parse', 'HEAD']).trim();
   const push = await quietlyAsync(() => main(['push', '--before', repo.base, '--after', head], env(), repo.dir));

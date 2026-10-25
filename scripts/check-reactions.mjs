@@ -4,8 +4,9 @@
  *
  *   node scripts/check-reactions.mjs   exit 1 when a reactions file has no post, or is not what it says it is
  *
- * The desk's publisher writes `src/content/reactions/<slug>.json`, one per post whose reactions
- * add up to more than zero; a human only ever removes. The same rules as the comment files, from
+ * The desk's publisher wrote `src/content/reactions/<slug>.json`, one per post whose reactions
+ * add up to more than zero, until ADR 0047 retired it (the totals will be read from the data
+ * host at the reactions flip); the directory is kept, empty, for the way back. The same rules as the comment files, from
  * `./data-files.mjs`: every entry is `README.md` or a regular `<slug>.json`, the file parses as
  * JSON, its `slug` field is its name, and a post with that slug exists. Every field and its rules
  * are the strict schema's job, at `npm run build` (src/content/reaction-schema.ts).
