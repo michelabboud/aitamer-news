@@ -701,9 +701,17 @@ const DYNAMIC_IDS = {
 
 /**
  * Id lookups that are not literals, reviewed by hand: `file: expression` → why it cannot collide.
- * Empty today; a new one fails the test until someone reviews it and lists it here.
+ * A new one fails the test until someone reviews it and lists it here.
  */
-const REVIEWED_DYNAMIC_LOOKUPS = {};
+const REVIEWED_DYNAMIC_LOOKUPS = {
+  // The deep link of the browser-rendered thread (ADR 0047; off while COMMENTS_SOURCE is 'baked').
+  // The interpolated value is never read from the URL as it stands: `resolveDeepLink` returns an id
+  // only when it is a ULID that one of the validated comments of this very page has, so the selector
+  // is `article[id="c-<26 Crockford characters>"]` and cannot be bent. It is scoped to the thread
+  // container and to `article`, and the `c-<ULID>` shape is what DYNAMIC_IDS['comment.anchor'] already
+  // protects from a heading id.
+  'src/components/CommentsLive.astro: querySelector(`article[id="c-${id}"]`)': 'validated ULID, scoped to the thread, shape protected as comment.anchor',
+};
 
 const SOURCE_EXTENSIONS = ['', '.ts', '.js', '.mjs', '.astro', '/index.ts', '/index.js'];
 

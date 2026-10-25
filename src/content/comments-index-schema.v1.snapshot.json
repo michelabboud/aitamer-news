@@ -1,0 +1,131 @@
+{
+  "$id": "https://aitamer.news/contract/v1/comments-index.schema.json",
+  "title": "AI Tamer comments index",
+  "description": "The contract the comments index (v1/comments-index.json in the public data bucket) on aitamer.news satisfies. Generated from the same zod schema a reader validates against, so it cannot drift. It carries public data only: counts of approved comments per story and the newest comments site-wide. Lengths are counted in Unicode code points. Eight rules cannot be expressed here. A reader enforces the first seven; the eighth is the desk's alone, because a reader cannot know which story titles the desk could not find: (1) counts holds only stories with at least one approved comment, and its keys are sorted ascending by UTF-16 code unit (a slug of digits only, such as 2026, is the one case a JavaScript reader cannot see the order of); (2) counts holds at most 10000 stories; (3) recent holds the 60 newest approved comments site-wide at most, newest first by at, comments with the same at ordered by id descending; (4) ids in recent are unique; (5) every slug in recent is a key of counts, and recent holds no more comments of a story than its count; (6) when recent is not empty, generatedAt equals the at of its first entry, so the same state makes the same bytes; (7) a text longer than 400 code points is cut at a grapheme boundary and marked truncated true, so no text is longer than 400 and truncated is never false; (8) an entry whose story title cannot be found is left out of recent. The patterns are ECMA-262 without the u flag, exactly as in the comment contract (/contract/v1/comments.schema.json), whose name, text and slug rules this contract reuses. The format is documented in POST.md: https://github.com/michelabboud/aitamer-news/blob/main/POST.md",
+  "x-contract-version": 1,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "site": {
+      "type": "string",
+      "maxLength": 60,
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "counts": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "maxLength": 120,
+        "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 2000
+      },
+      "maxProperties": 10000
+    },
+    "recent": {
+      "maxItems": 60,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "maxLength": 120,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "allOf": [
+              {
+                "pattern": "^(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD804][\\uDC00-\\uDCBC]|[\\uD800-\\uD803\\uD805-\\uD80C\\uD80E-\\uD82E\\uD830-\\uD833\\uD835-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF]|[\\uD804][\\uDCBE-\\uDCCC]|[\\uD804][\\uDCCE-\\uDFFF]|[\\uD80D][\\uDC00-\\uDC2F]|[\\uD80D][\\uDC40-\\uDFFF]|[\\uD82F][\\uDC00-\\uDC9F]|[\\uD82F][\\uDCA4-\\uDFFF]|[\\uD834][\\uDC00-\\uDD72]|[\\uD834][\\uDD7B-\\uDFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD])(?:[\\u200C\\u200D]?(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD804][\\uDC00-\\uDCBC]|[\\uD800-\\uD803\\uD805-\\uD80C\\uD80E-\\uD82E\\uD830-\\uD833\\uD835-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF]|[\\uD804][\\uDCBE-\\uDCCC]|[\\uD804][\\uDCCE-\\uDFFF]|[\\uD80D][\\uDC00-\\uDC2F]|[\\uD80D][\\uDC40-\\uDFFF]|[\\uD82F][\\uDC00-\\uDC9F]|[\\uD82F][\\uDCA4-\\uDFFF]|[\\uD834][\\uDC00-\\uDD72]|[\\uD834][\\uDD7B-\\uDFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD]))*$"
+              },
+              {
+                "pattern": "[^\\s\\u0300-\\u036F\\u1AB0-\\u1AFF\\u1DC0-\\u1DFF\\u200C\\u200D\\u20D0-\\u20FF\\uFE0E\\uFE0F\\uFE20-\\uFE2F]"
+              }
+            ],
+            "maxLength": 200
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "allOf": [
+              {
+                "pattern": "^(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD804][\\uDC00-\\uDCBC]|[\\uD800-\\uD803\\uD805-\\uD80C\\uD80E-\\uD82E\\uD830-\\uD833\\uD835-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF]|[\\uD804][\\uDCBE-\\uDCCC]|[\\uD804][\\uDCCE-\\uDFFF]|[\\uD80D][\\uDC00-\\uDC2F]|[\\uD80D][\\uDC40-\\uDFFF]|[\\uD82F][\\uDC00-\\uDC9F]|[\\uD82F][\\uDCA4-\\uDFFF]|[\\uD834][\\uDC00-\\uDD72]|[\\uD834][\\uDD7B-\\uDFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD])(?:[\\u200C\\u200D]?(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD804][\\uDC00-\\uDCBC]|[\\uD800-\\uD803\\uD805-\\uD80C\\uD80E-\\uD82E\\uD830-\\uD833\\uD835-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF]|[\\uD804][\\uDCBE-\\uDCCC]|[\\uD804][\\uDCCE-\\uDFFF]|[\\uD80D][\\uDC00-\\uDC2F]|[\\uD80D][\\uDC40-\\uDFFF]|[\\uD82F][\\uDC00-\\uDC9F]|[\\uD82F][\\uDCA4-\\uDFFF]|[\\uD834][\\uDC00-\\uDD72]|[\\uD834][\\uDD7B-\\uDFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD]))*$"
+              },
+              {
+                "pattern": "^(?:[^<]|<+[^<A-Za-z!/?])*<*$"
+              },
+              {
+                "pattern": "[^\\s\\u0300-\\u036F\\u1AB0-\\u1AFF\\u1DC0-\\u1DFF\\u200C\\u200D\\u20D0-\\u20FF\\uFE0E\\uFE0F\\uFE20-\\uFE2F]"
+              }
+            ],
+            "maxLength": 60
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "allOf": [
+              {
+                "pattern": "^(?:\\n|(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD804][\\uDC00-\\uDCBC]|[\\uD800-\\uD803\\uD805-\\uD80C\\uD80E-\\uD82E\\uD830-\\uD833\\uD835-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF]|[\\uD804][\\uDCBE-\\uDCCC]|[\\uD804][\\uDCCE-\\uDFFF]|[\\uD80D][\\uDC00-\\uDC2F]|[\\uD80D][\\uDC40-\\uDFFF]|[\\uD82F][\\uDC00-\\uDC9F]|[\\uD82F][\\uDCA4-\\uDFFF]|[\\uD834][\\uDC00-\\uDD72]|[\\uD834][\\uDD7B-\\uDFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD]))(?:[\\u200C\\u200D]?(?:\\n|(?:[^\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u034F\\u061C\\u115F-\\u1160\\u17B4-\\u17B5\\u180B-\\u180F\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u2800\\u3164\\uD800-\\uDFFF\\uE000-\\uF8FF\\uFDD0-\\uFDEF\\uFE00-\\uFE0D\\uFEFF\\uFFA0\\uFFF0-\\uFFFB\\uFFFE-\\uFFFF]|[\\uD804][\\uDC00-\\uDCBC]|[\\uD800-\\uD803\\uD805-\\uD80C\\uD80E-\\uD82E\\uD830-\\uD833\\uD835-\\uD83E\\uD840-\\uD87E\\uD880-\\uD8BE\\uD8C0-\\uD8FE\\uD900-\\uD93E\\uD940-\\uD97E\\uD980-\\uD9BE\\uD9C0-\\uD9FE\\uDA00-\\uDA3E\\uDA40-\\uDA7E\\uDA80-\\uDABE\\uDAC0-\\uDAFE\\uDB00-\\uDB3E][\\uDC00-\\uDFFF]|[\\uD804][\\uDCBE-\\uDCCC]|[\\uD804][\\uDCCE-\\uDFFF]|[\\uD80D][\\uDC00-\\uDC2F]|[\\uD80D][\\uDC40-\\uDFFF]|[\\uD82F][\\uDC00-\\uDC9F]|[\\uD82F][\\uDCA4-\\uDFFF]|[\\uD834][\\uDC00-\\uDD72]|[\\uD834][\\uDD7B-\\uDFFF]|[\\uD83F\\uD87F\\uD8BF\\uD8FF\\uD93F\\uD97F\\uD9BF\\uD9FF\\uDA3F\\uDA7F\\uDABF\\uDAFF\\uDB3F][\\uDC00-\\uDFFD])))*$"
+              },
+              {
+                "pattern": "^(?:[^<]|<+[^<A-Za-z!/?])*<*$"
+              },
+              {
+                "pattern": "[^\\s\\u0300-\\u036F\\u1AB0-\\u1AFF\\u1DC0-\\u1DFF\\u200C\\u200D\\u20D0-\\u20FF\\uFE0E\\uFE0F\\uFE20-\\uFE2F]"
+              }
+            ],
+            "maxLength": 400
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "signedIn": {
+            "type": "boolean",
+            "const": true
+          },
+          "truncated": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "id",
+          "name",
+          "text",
+          "at"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "version",
+    "site",
+    "generatedAt",
+    "counts",
+    "recent"
+  ],
+  "additionalProperties": false
+}

@@ -1,5 +1,17 @@
 # Progress
 
+## 0.2.121 · 2026-10-25 · review fixes for the comments code (still switched off)
+
+Two independent reviews of pull request 335 found nothing blocking; their items are fixed template-first (private repository 0.0.74) and copied here byte for byte: the comments index check enforces the contract's cross-field rules, a redirect or a plain-http data host fails closed, the 10 second timeout also works on Safari before 16, the CSP script no longer reads the data-host variable in a baked build, and a repeated failure is announced again. Tests, build and checks: see the pull request.
+
+## 0.2.120 · 2026-10-25 · held-comment message back to base
+
+The held-comment message goes back to its current wording in this pull request, so the code stays inert; the new wording ships with the pull request that switches the source to the data host.
+
+## 0.2.119 · 2026-10-25 · comments and reactions on the data host, switched off
+
+Template-first work from the private UIUX repository (0.0.68 to 0.0.72: the index contract, one renderer with two outputs, browser loading, the held message (left unchanged in this pull request; it moves to the flip), reaction totals from the data host), copied here byte for byte (hashes in the pull request). Behaviour is unchanged by design: the switches stay `'baked'` and `REACTIONS_LIVE` stays `false`. Built-page comparison against 0.2.118, tests and checks: see the pull request. Flipping the switch, retiring the publisher lane and the privacy page wording are separate later pull requests.
+
 ## 0.2.117 · 2026-10-24 · sitemap freshness
 
 Before: the live sitemap listed all 1,031 stories and every one of the newest 50 feed items, newest `lastmod` equal to the newest story, regenerated on every build. Added topic `lastmod`, topics in `llms.txt` and a sitemap-equals-build check in the deploy smoke test. 1288 tests and the 1,365-page build pass.

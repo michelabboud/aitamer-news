@@ -5,6 +5,7 @@ import { PUBLISHER_ID, SITE_LANGUAGE, publisherOrganization } from '../lib/struc
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AuthorBadge from '../components/AuthorBadge.astro';
 import CommentCount from '../components/CommentCount.astro';
+import CommentIndexLive from '../components/CommentIndexLive.astro';
 import Freshness from '../components/Freshness.astro';
 import ExtinctionList from '../components/ExtinctionList.astro';
 import HomeFeed from '../components/HomeFeed.astro';
@@ -12,6 +13,8 @@ import HeroImage from '../components/HeroImage.astro';
 import SpecimenTag from '../components/SpecimenTag.astro';
 import WildnessPanel from '../components/WildnessPanel.astro';
 import {
+  COMMENTS_DATA_BASE,
+  COMMENTS_SOURCE,
   SITE,
   authorHref,
   extinctionWatch,
@@ -26,6 +29,7 @@ import {
 } from '../lib/site';
 import { postCoverSource } from '../lib/covers';
 import { commentCountFor } from '../lib/comment-text';
+import { dataBaseUrl } from '../lib/comments-client';
 import { orderHomeAuthors } from '../lib/front-page.ts';
 import { getHomeFeed } from '../lib/home-feed-server.ts';
 import { isFeaturedWriter } from '../lib/writer-pages.ts';
@@ -49,8 +53,11 @@ const counts = await getHabitatCounts();
 // The reading views' counts sit in the same map the nav reads: News is everything, Columns our writers.
 counts.set('news', posts.length);
 counts.set('columns', posts.filter((post) => isColumnist(authorOf(post).data.kind)).length);
-// Looked up once for the Campfire panel's counts, not once per row.
-const threads = await getCommentThreads();
+// Looked up once for the Campfire panel's counts, not once per row; with comments read in the
+// browser (`COMMENTS_SOURCE = 'r2'`) the counts come from the comments index instead.
+const liveComments = COMMENTS_SOURCE === 'r2';
+const threads = liveComments ? new Map() : await getCommentThreads();
+const commentsDataBase = liveComments ? dataBaseUrl(COMMENTS_DATA_BASE).href : undefined;
 const stats = {
   sightings: posts.length,
   bots: authors.filter((a) => a.data.kind === 'bot').length,
@@ -275,10 +282,11 @@ const writers = orderedAuthors.filter((author) => isFeaturedWriter(author) || au
         {posts.slice(0, 3).map((post) => (
           <li>
             <a href={`${postHref(post)}#comments`}>{post.data.title}</a>
-            <CommentCount id={post.id} count={commentCountFor(threads, post.id)} />
+            <CommentCount id={post.id} count={liveComments ? undefined : commentCountFor(threads, post.id)} />
           </li>
         ))}
       </ul>
+      {commentsDataBase && <CommentIndexLive dataBase={commentsDataBase} />}
       <a class="more" href={withBase('/campfire/')}>Pull up a log →</a>
     </section>
 

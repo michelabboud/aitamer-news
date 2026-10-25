@@ -82,6 +82,19 @@ The full list, as code-point ranges and as ready-made character classes, is
 `FORBIDDEN_CHARACTERS` in `src/content/comment-schema.ts`; the renderer and the desk's
 normaliser use the same one.
 
+## The planned read path (not live)
+
+**Nothing described in this section happens yet.** The site bakes the files in this directory into its pages, exactly as above. `COMMENTS_SOURCE` in `src/lib/site.ts` is `'baked'`, and no built page reads from anywhere else.
+
+The code for the next read path is already in the tree, switched off, so that a later change can be a one-line flip. Under that plan the desk's moderation app would publish the same v1 comment files, byte for byte, to a public bucket served at `https://data.aitamer.news/` (`COMMENTS_DATA_BASE`, or `PUBLIC_COMMENTS_DATA_BASE` for a local build):
+
+| Object | What it is | Contract |
+|---|---|---|
+| `v1/comments/<slug>.json` | One story's comments. The file format above, unchanged. | `/contract/v1/comments.schema.json` |
+| `v1/comments-index.json` | Approved-comment counts per story and the newest comments site-wide. | `/contract/v1/comments-index.schema.json` (`src/content/comments-index-schema.ts`; format in `POST.md`, section 8a) |
+
+The browser would fetch a story's file once, with no credentials, check its shape and build the thread with DOM calls only (`textContent`, never `innerHTML`); the home and Campfire pages would fetch the index for their counts. This directory, its schema, its checks and the build-time renderer stay, so the files can still be baked back in. If that flip happens, this README changes in the same pull request: the files here would stop being the way comments reach the site, and the paragraph above about the publisher would no longer describe it. The reasoning, the costs (comments leave the first HTML and the structured data) and the way back are in `docs/adr/0047-comments-and-reaction-totals-are-read-in-the-browser-from-the-data-host.md`.
+
 ## What enforces it
 
 - `npm run check:posts` (`scripts/check-comments.mjs`): every entry in this directory is

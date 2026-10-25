@@ -104,6 +104,14 @@ export const GENERATED_MARKER = '# --- Content-Security-Policy: written by scrip
  */
 export const COMMENTS_ENDPOINT_DEFAULT = 'https://comments.aitamer.news/';
 export const CONTACT_ENDPOINT_DEFAULT = 'https://contact.aitamer.news/';
+/**
+ * The desk's public data host, where story pages read their comments file and list pages the
+ * comments index once `COMMENTS_SOURCE` in `src/lib/site.ts` is `'r2'` (site ADR 0047). The same
+ * variable and default as `COMMENTS_DATA_BASE` there.
+ */
+export const COMMENTS_DATA_BASE_DEFAULT = 'https://data.aitamer.news/';
+/** The attribute a page that reads the data host carries (`CommentsLive.astro`, `CommentIndexLive.astro`). */
+export const COMMENTS_DATA_ATTRIBUTE = 'data-comments-base';
 
 /**
  * The build's environment as Astro sees it: Astro loads it with Vite's `loadEnv` for the
@@ -126,6 +134,48 @@ export function endpointOrigins(env = process.env) {
     comments: new URL(env.PUBLIC_COMMENTS_ENDPOINT || COMMENTS_ENDPOINT_DEFAULT).origin,
     contact: new URL(env.PUBLIC_CONTACT_ENDPOINT || CONTACT_ENDPOINT_DEFAULT).origin,
   };
+}
+
+/**
+ * The hosts a page may reach over plain `http:`: this machine only, for a local fixture server
+ * (the same rule as `dataBaseUrl` in `src/lib/data-host.ts`).
+ */
+const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
+
+/**
+ * The data host's origin, for `connect-src`. Read only when a built page reads the host
+ * (`readsCommentsData`), so a baked build never looks at `PUBLIC_COMMENTS_DATA_BASE`: a stray or
+ * malformed value there must not fail a build that does not use it.
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {string} the origin of `PUBLIC_COMMENTS_DATA_BASE` (default: the desk's data host)
+ * @throws {Error} naming the variable and what is wrong, never echoing its value, when it is not
+ *   an `https:` URL (or `http:` on a loopback host)
+ */
+export function commentsDataOrigin(env = process.env) {
+  const base = env.PUBLIC_COMMENTS_DATA_BASE || COMMENTS_DATA_BASE_DEFAULT;
+  let url;
+  try {
+    url = new URL(base);
+  } catch {
+    throw new Error('PUBLIC_COMMENTS_DATA_BASE is not an absolute URL, but this build reads the data host (COMMENTS_SOURCE or REACTIONS_SOURCE is \'r2\')');
+  }
+  const loopback = url.protocol === 'http:' && LOOPBACK_HOSTS.has(url.hostname);
+  if (url.protocol !== 'https:' && !loopback) {
+    throw new Error('PUBLIC_COMMENTS_DATA_BASE must be an https URL (http only on 127.0.0.1, localhost or [::1]), but this build reads the data host (COMMENTS_SOURCE or REACTIONS_SOURCE is \'r2\')');
+  }
+  return url.origin;
+}
+
+/**
+ * The endpoints for this build's policy: the Workers always, the data host only when a built page
+ * reads it (and only then is its variable looked at).
+ * @param {{ scan: PageScan }[]} pages
+ * @param {NodeJS.ProcessEnv} env
+ * @returns {{ comments: string, contact: string, data?: string }}
+ */
+function policyEndpoints(pages, env) {
+  const workers = endpointOrigins(env);
+  return readsCommentsData(pages) ? { ...workers, data: commentsDataOrigin(env) } : workers;
 }
 
 /**
@@ -154,8 +204,9 @@ export const ORIGINS = {
 };
 
 /**
- * @param {{ hashes: Iterable<string>, endpoints: { comments: string, contact: string }, wasm?: boolean, enforce?: boolean }} input
- *   `hashes` are base64 SHA-256 digests; `wasm` adds `'wasm-unsafe-eval'` for Pagefind
+ * @param {{ hashes: Iterable<string>, endpoints: { comments: string, contact: string, data?: string }, wasm?: boolean, enforce?: boolean }} input
+ *   `hashes` are base64 SHA-256 digests; `wasm` adds `'wasm-unsafe-eval'` for Pagefind; `endpoints.data`,
+ *   when given, is the comments data host (`connect-src` only)
  * @returns {[string, string[]][]} the policy's directives, in order
  */
 export function directives({ hashes, endpoints, wasm = false, enforce = CSP_ENFORCE }) {
@@ -170,7 +221,7 @@ export function directives({ hashes, endpoints, wasm = false, enforce = CSP_ENFO
     ['font-src', ["'self'"]],
     // Human posts may use an image from any https host (and gtag's pixel is one).
     ['img-src', ["'self'", 'data:', 'https:']],
-    ['connect-src', ["'self'", endpoints.comments, endpoints.contact, ORIGINS.gtag, ...ORIGINS.analyticsConnect]],
+    ['connect-src', ["'self'", endpoints.comments, endpoints.contact, ...(endpoints.data ? [endpoints.data] : []), ORIGINS.gtag, ...ORIGINS.analyticsConnect]],
     ['frame-src', [ORIGINS.turnstile, ORIGINS.youtubeNoCookie, ORIGINS.youtube]],
     ['form-action', ["'self'", endpoints.comments, endpoints.contact]],
     ['object-src', ["'none'"]],
@@ -333,13 +384,15 @@ function loadsOf(node) {
 }
 
 /**
- * Data attributes the site's own scripts load from: Reactions posts to `data-endpoint`, and
- * VideoEmbed turns `data-embed` into an iframe when the reader presses play. The comment and
+ * Data attributes the site's own scripts load from: Reactions posts to `data-endpoint`,
+ * VideoEmbed turns `data-embed` into an iframe when the reader presses play, and the comments
+ * scripts fetch their files under `data-comments-base`. The comment and
  * contact forms `fetch` their `action`, so a form's action must be allowed by `connect-src` too.
  */
 const RUNTIME_ATTRIBUTES = [
   { attribute: 'data-endpoint', directive: 'connect-src' },
   { attribute: 'data-embed', directive: 'frame-src' },
+  { attribute: COMMENTS_DATA_ATTRIBUTE, directive: 'connect-src' },
 ];
 /** Elements the policy refuses outright (`object-src 'none'`, `base-uri 'none'`). */
 const REFUSED_ELEMENTS = { object: "object-src 'none'", embed: "object-src 'none'", base: "base-uri 'none'" };
@@ -353,7 +406,7 @@ const URL_ATTRIBUTES = new Set(['href', 'src', 'action', 'formaction', 'xlink:hr
 
 /**
  * @typedef {{ hash: string, preview: string }} InlineScript
- * @typedef {{ directive: string, url: string, where: string }} Load
+ * @typedef {{ directive: string, url: string, where: string, attribute?: string }} Load the attribute is set for a `RUNTIME_ATTRIBUTES` load
  * @typedef {{ what: string }} Refusal something on the page the policy can never allow
  * @typedef {{ inline: InlineScript[], loads: Load[], refusals: Refusal[] }} PageScan
  */
@@ -377,7 +430,7 @@ export function scanPage(html) {
         scan.refusals.push({ what: `${name} on <${tag}> (${REFUSED_ATTRIBUTES[/** @type {keyof typeof REFUSED_ATTRIBUTES} */ (name)]})` });
       }
       for (const runtime of RUNTIME_ATTRIBUTES) {
-        if (name === runtime.attribute && value) scan.loads.push({ directive: runtime.directive, url: value, where: `<${tag} ${name}>` });
+        if (name === runtime.attribute && value) scan.loads.push({ directive: runtime.directive, url: value, where: `<${tag} ${name}>`, attribute: name });
       }
     }
     if (tag in REFUSED_ELEMENTS) scan.refusals.push({ what: `<${tag}> element (the policy has ${REFUSED_ELEMENTS[/** @type {keyof typeof REFUSED_ELEMENTS} */ (tag)]})` });
@@ -441,16 +494,28 @@ export function scanSite(dist) {
 }
 
 /**
+ * Whether any built page reads the comments data host: only a build with `COMMENTS_SOURCE = 'r2'`
+ * renders the attribute.
+ * @param {{ scan: PageScan }[]} pages
+ */
+export function readsCommentsData(pages) {
+  return pages.some(({ scan }) => scan.loads.some((load) => load.attribute === COMMENTS_DATA_ATTRIBUTE));
+}
+
+/**
  * @param {{ page: string, scan: PageScan }[]} pages
- * @param {{ comments: string, contact: string }} endpoints
+ * @param {{ comments: string, contact: string, data?: string }} endpoints `data` is admitted only
+ *   when a page reads it (`readsCommentsData`)
  * @param {boolean} [enforce]
  * @returns {string} the block appended to _headers
  */
 export function generatedBlock(pages, endpoints, enforce = CSP_ENFORCE) {
   const hashes = pages.flatMap(({ scan }) => scan.inline.map((s) => s.hash));
   const name = cspHeaderName(enforce);
-  const site = policyText(directives({ hashes, endpoints, enforce }));
-  const wasm = policyText(directives({ hashes, endpoints, wasm: true, enforce }));
+  const { data, ...workers } = endpoints;
+  const used = data && readsCommentsData(pages) ? { ...workers, data } : workers;
+  const site = policyText(directives({ hashes, endpoints: used, enforce }));
+  const wasm = policyText(directives({ hashes, endpoints: used, wasm: true, enforce }));
   return [
     GENERATED_MARKER,
     SITE_RULE,
@@ -634,7 +699,13 @@ export function writeSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
   const existing = existsSync(target) ? readFileSync(target, 'utf8') : '';
   const unmodeled = unmodeledRules(existing);
   if (unmodeled.length) return { findings: unmodeled.map(unmodeledFinding), pages: pages.length, hashes };
-  const text = renderHeaders(existing, generatedBlock(pages, endpointOrigins(env), enforce));
+  let endpoints;
+  try {
+    endpoints = policyEndpoints(pages, env);
+  } catch (error) {
+    return { findings: [error instanceof Error ? error.message : String(error)], pages: pages.length, hashes };
+  }
+  const text = renderHeaders(existing, generatedBlock(pages, endpoints, enforce));
   const duplicates = duplicateRuleFindings(text);
   if (duplicates.length) return { findings: duplicates, pages: pages.length, hashes };
   const long = overlongLines(text);
@@ -699,7 +770,14 @@ export function checkSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
     }
   }
 
-  const expected = renderHeaders(existsSync(publicHeaders) ? readFileSync(publicHeaders, 'utf8') : '', generatedBlock(pages, endpointOrigins(env), enforce));
+  let endpoints;
+  try {
+    endpoints = policyEndpoints(pages, env);
+  } catch (error) {
+    findings.push(error instanceof Error ? error.message : String(error));
+    return findings;
+  }
+  const expected = renderHeaders(existsSync(publicHeaders) ? readFileSync(publicHeaders, 'utf8') : '', generatedBlock(pages, endpoints, enforce));
   if (text !== expected) {
     const kept = existsSync(publicHeaders) ? readFileSync(publicHeaders, 'utf8').replace(/\s+$/, '') : '';
     if (kept && !text.startsWith(kept)) findings.push('_headers: the rules in public/_headers did not survive into dist/_headers unchanged');

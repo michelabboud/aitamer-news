@@ -39,6 +39,29 @@ export const COMMENTS_ENDPOINT: string =
   import.meta.env.PUBLIC_COMMENTS_ENDPOINT || 'https://comments.aitamer.news/';
 
 /**
+ * Where story and list pages read comments from. `'baked'` (today): comments are Astro content
+ * files built into the HTML and the JSON-LD (ADR 0006). `'r2'`: the browser reads the desk's
+ * published files from `COMMENTS_DATA_BASE` instead (docs/plans/2026-10-24-comments-on-r2.md,
+ * site ADR 0047). Like `REACTIONS_LIVE` it is flipped in source, in the commit that also moves
+ * the privacy page's date, never by environment: what a page says it does must match the build.
+ * It ships as `'baked'`: only a build with `'r2'` renders the loaders (`CommentsLive.astro`,
+ * `CommentIndexLive.astro`) into a page, so a baked build's pages are unchanged.
+ */
+export const COMMENTS_SOURCE: 'baked' | 'r2' = 'baked';
+
+/** The public data host's origin when `PUBLIC_COMMENTS_DATA_BASE` is not set: the desk's public comments bucket. */
+export const COMMENTS_DATA_BASE_DEFAULT = 'https://data.aitamer.news/';
+
+/**
+ * The base URL of the desk's public data bucket (`v1/comments/<slug>.json`,
+ * `v1/comments-index.json`, `v1/reactions/<slug>.json`), with a trailing slash. Public by nature.
+ * PUBLIC_COMMENTS_DATA_BASE points a local build at another host or a local copy of the files. Must
+ * be an absolute https URL ending in `/` (http only for a loopback host, for a local fixture server).
+ * Only used once `COMMENTS_SOURCE` or `REACTIONS_SOURCE` is `'r2'`.
+ */
+export const COMMENTS_DATA_BASE: string = import.meta.env.PUBLIC_COMMENTS_DATA_BASE || COMMENTS_DATA_BASE_DEFAULT;
+
+/**
  * Cloudflare Turnstile site key for the contact form and the comment form. Public (it ships in
  * the page); empty = the contact form's widget is off, and the comment form says commenting is
  * not set up yet (Turnstile is mandatory for comments, plan D8).
@@ -57,6 +80,16 @@ export const TURNSTILE_SITE_KEY = '0x4AAAAAAFD4NAnBkk3_-_1Y';
  * page's date.
  */
 export const REACTIONS_LIVE = false;
+
+/**
+ * Where a story page's reaction totals come from, the twin of `COMMENTS_SOURCE`. `'baked'` (today):
+ * `src/content/reactions/<slug>.json`, built into the page. `'r2'`: the browser reads
+ * `v1/reactions/<slug>.json` from `COMMENTS_DATA_BASE` (the comments Worker writes it,
+ * docs/plans/2026-10-24-comments-on-r2.md §2.5, task R4), and the build no longer reads the
+ * reactions collection for the story pages. Flipped in source, never by environment, with
+ * `REACTIONS_LIVE` and the privacy page's date. It ships as `'baked'`, so this changes no output.
+ */
+export const REACTIONS_SOURCE: 'baked' | 'r2' = 'baked';
 
 /** The habitats, in reading order. Kept under the old name: routes and props still say "section". */
 export const ALL_SECTIONS = HABITATS;
@@ -154,29 +187,6 @@ export async function resolveAuthor(post: CollectionEntry<'posts'>) {
   return getEntry(post.data.author);
 }
 
-export function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  });
-}
-
-/** Publish date and time for the article byline, in UTC, e.g. "Sep 24, 2026, 09:15 UTC". */
-export function formatDateTime(date: Date): string {
-  const stamp = date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-    timeZone: 'UTC',
-  });
-  return `${stamp} UTC`;
-}
-
 /** Prefix a root path with Astro's base. No-op when the site is served at `/`. */
 export function withBase(path: string): string {
   if (!path.startsWith('/') || path.startsWith('//')) return path;
@@ -234,6 +244,7 @@ export {
 } from './bestiary.ts';
 export { WILDNESS_LABELS, type WildnessRating } from './wildness.ts';
 export { formatSpecimen } from './specimen.ts';
+export { formatClock, formatDate, formatDateTime, formatShortDate } from './date-format.ts';
 
 /** Published posts in one habitat, newest first. */
 export async function getPostsByHabitat(habitat: HabitatView): Promise<CollectionEntry<'posts'>[]> {
@@ -254,23 +265,6 @@ export function habitatHref(habitat: HabitatView): string {
 
 export function habitatOfPost(post: CollectionEntry<'posts'>): HabitatView {
   return habitatOf(post.data.section);
-}
-
-/** "09:15", in UTC. */
-export function formatClock(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-    timeZone: 'UTC',
-  });
-}
-
-/** "SEP 23", in UTC. */
-export function formatShortDate(date: Date): string {
-  return date
-    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
-    .toUpperCase();
 }
 
 /** Words per minute used for the reading-time estimate. */

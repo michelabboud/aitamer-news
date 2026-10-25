@@ -14,7 +14,7 @@
  * `https:`, escaped for the attribute. A link's visible text is built from that same parsed URL,
  * never copied from what was typed, so the text and the href always name the same host.
  */
-import { FORBIDDEN_CHARACTERS } from '../content/comment-schema.ts';
+import { FORBIDDEN_CHARACTERS } from '../content/comment-limits.ts';
 
 /**
  * Every character the comment schema refuses (`FORBIDDEN_CHARACTERS`, the one list), except the
@@ -158,7 +158,7 @@ function splitTrailing(candidate: string): { url: string; rest: string } {
  * address, in any of its forms (a comment has no business linking a reader to a bare address,
  * least of all a private one).
  */
-function parseLinkable(value: string): URL | null {
+export function parseLinkable(value: string): URL | null {
   if (!URL.canParse(value)) return null;
   const url = new URL(value);
   if (!LINKABLE_PROTOCOLS.has(url.protocol) || url.hostname === '') return null;
@@ -215,46 +215,96 @@ export function linkText(url: URL): string {
   return origin + truncateGraphemes(tail, Math.max(COMMENT_LINK_TEXT_MAX - origin.length, 1));
 }
 
-function linkHtml(url: URL): string {
-  return (
-    `<a href="${escapeHtml(url.href)}" rel="${COMMENT_LINK_REL}" target="${COMMENT_LINK_TARGET}" dir="${COMMENT_LINK_DIR}">` +
-    `${escapeHtml(linkText(url))}</a>`
-  );
+/** A run of plain text inside one line of a comment. Text, never HTML: every consumer escapes it or sets it as text. */
+export interface CommentTextSegment {
+  text: string;
 }
 
-/** One line of plain text as escaped HTML, with its `http(s)` URLs as links. */
-function lineHtml(line: string): string {
-  let html = '';
+/**
+ * A link inside one line of a comment. `href` is `url.href` of a URL {@link parseLinkable}
+ * accepted (absolute `http:` or `https:`, a host that is a name, no user info); `label` is
+ * {@link linkText} of the same URL, so the two always name the same host.
+ */
+export interface CommentLinkSegment {
+  href: string;
+  label: string;
+}
+
+export type CommentSegment = CommentTextSegment | CommentLinkSegment;
+/** One line of a paragraph: the segments in reading order. Lines are separated by a line break. */
+export type CommentLine = CommentSegment[];
+/** One paragraph: its lines. Paragraphs are separated by a blank line in the text. */
+export type CommentParagraph = CommentLine[];
+
+/** @returns whether `segment` is a link rather than plain text */
+export function isLinkSegment(segment: CommentSegment): segment is CommentLinkSegment {
+  return 'href' in segment;
+}
+
+/** Appends plain text to a line, merging it into a text segment that ends the line. Empty text adds nothing. */
+function pushText(line: CommentLine, text: string): void {
+  if (text === '') return;
+  const last = line.at(-1);
+  if (last !== undefined && !isLinkSegment(last)) last.text += text;
+  else line.push({ text });
+}
+
+/** One line of plain text as segments, with its `http(s)` URLs as links and trailing punctuation kept as text. */
+function lineSegments(line: string): CommentLine {
+  const segments: CommentLine = [];
   let cursor = 0;
   for (const match of line.matchAll(URL_CANDIDATE)) {
     const start = match.index;
     const { url, rest } = splitTrailing(match[0]);
     const parsed = parseLinkable(url);
     if (!parsed) continue;
-    html += escapeHtml(line.slice(cursor, start));
-    html += linkHtml(parsed);
-    html += escapeHtml(rest);
+    pushText(segments, line.slice(cursor, start));
+    segments.push({ href: parsed.href, label: linkText(parsed) });
+    pushText(segments, rest);
     cursor = start + match[0].length;
   }
-  return html + escapeHtml(line.slice(cursor));
+  pushText(segments, line.slice(cursor));
+  return segments;
 }
 
 /**
- * A comment's plain text as HTML: paragraphs on blank lines, `<br>` on single newlines, every
- * `& < > " '` escaped, `http(s)` URLs linked with {@link COMMENT_LINK_REL},
- * {@link COMMENT_LINK_TARGET} and {@link COMMENT_LINK_DIR} and shown by {@link linkText},
- * sentence punctuation after a URL kept outside the link, and the schema's forbidden characters
- * stripped first.
- * @returns HTML for `set:html`; the empty string when the text has nothing visible
+ * A comment's plain text as structure, the one tokenizer both renderers share: paragraphs on
+ * blank lines, lines on single newlines, and in each line plain text and `http(s)` links. The
+ * schema's forbidden characters are stripped first (newlines and the two joiners kept), carriage
+ * returns count as newlines, and paragraphs with nothing but whitespace are dropped. Nothing here
+ * is HTML: {@link renderCommentHtml} escapes it for the server, and `appendCommentText`
+ * (`./comment-dom.ts`) sets it as text in the browser.
+ * @returns the paragraphs; an empty array when the text has nothing visible
  */
-export function renderCommentHtml(text: string): string {
+export function commentTextBlocks(text: string): CommentParagraph[] {
   // Carriage returns first: they are forbidden characters, and the strip would glue lines together.
   const clean = stripInvisible(text.replace(CARRIAGE_RETURN, '\n'));
   return clean
     .split(PARAGRAPH_BREAK)
     .map((paragraph) => paragraph.replace(EDGE_NEWLINES, ''))
     .filter((paragraph) => paragraph.trim() !== '')
-    .map((paragraph) => `<p>${paragraph.split('\n').map(lineHtml).join('<br>')}</p>`)
+    .map((paragraph) => paragraph.split('\n').map(lineSegments));
+}
+
+function segmentHtml(segment: CommentSegment): string {
+  if (!isLinkSegment(segment)) return escapeHtml(segment.text);
+  return (
+    `<a href="${escapeHtml(segment.href)}" rel="${COMMENT_LINK_REL}" target="${COMMENT_LINK_TARGET}" dir="${COMMENT_LINK_DIR}">` +
+    `${escapeHtml(segment.label)}</a>`
+  );
+}
+
+/**
+ * A comment's plain text as HTML: {@link commentTextBlocks} serialised, paragraphs as `<p>`,
+ * lines joined by `<br>`, every `& < > " '` escaped, links with {@link COMMENT_LINK_REL},
+ * {@link COMMENT_LINK_TARGET} and {@link COMMENT_LINK_DIR} and shown by {@link linkText}.
+ * Byte for byte what this function returned before the tokenizer existed
+ * (`comment-text.golden.json` holds that proof).
+ * @returns HTML for `set:html`; the empty string when the text has nothing visible
+ */
+export function renderCommentHtml(text: string): string {
+  return commentTextBlocks(text)
+    .map((paragraph) => `<p>${paragraph.map((line) => line.map(segmentHtml).join('')).join('<br>')}</p>`)
     .join('');
 }
 

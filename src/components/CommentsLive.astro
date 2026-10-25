@@ -1,0 +1,171 @@
+---
+/**
+ * A story's thread read in the browser (`COMMENTS_SOURCE = 'r2'`): the section and its script.
+ * Rendered only by `Comments.astro`, and only in that mode, so a baked build ships no comments
+ * script at all. The documentation of the behaviour is in `Comments.astro`; the decisions are in
+ * `src/lib/comments-client.ts` (tested).
+ */
+import { COMMENTS_NOSCRIPT_TEXT, COMMENT_COUNT_PENDING_LABEL } from '../lib/comments-client';
+import CommentForm from './CommentForm.astro';
+
+interface Props {
+  /** The post's id, which is also its comment file's name. */
+  slug: string;
+  /** The data host's base, already checked by `dataBaseUrl`. */
+  dataBase: string;
+  /** Comments closed on the story: the thread stays, the form does not. */
+  closed: boolean;
+}
+
+const { slug, dataBase, closed } = Astro.props;
+---
+<section class="comments" id="comments" aria-labelledby="comments-title" data-thread={slug} data-comments-base={dataBase}>
+  <div class="comments__head">
+    <h2 id="comments-title">The Campfire</h2>
+    <span class="comments__count" data-comments-count>{COMMENT_COUNT_PENDING_LABEL}</span>
+  </div>
+  <div class="comments__thread" data-comments-thread tabindex="-1">
+    <p class="comments__status" data-comments-status><noscript>{COMMENTS_NOSCRIPT_TEXT}</noscript></p>
+  </div>
+  <p class="sr-only" role="status" data-comments-announce></p>
+
+  <CommentForm slug={slug} closed={closed} />
+</section>
+
+<script>
+  import { renderCommentList } from '../lib/comment-dom';
+  import {
+    COMMENTS_EMPTY_TEXT,
+    COMMENTS_FAILED_TEXT,
+    COMMENTS_LOADING_TEXT,
+    COMMENTS_RETRY_LABEL,
+    commentsFileUrl,
+    deepLinkScrollBehavior,
+    initialThreadState,
+    resolveDeepLink,
+    retryAnnouncement,
+    threadCountLabel,
+    threadTransition,
+    type ThreadEvent,
+    type ThreadState,
+  } from '../lib/comments-client';
+  import { fetchDataFile } from '../lib/data-host';
+  import { formatDateTime } from '../lib/date-format';
+
+  function setup(section: HTMLElement): void {
+    const slug = section.dataset.thread;
+    const base = section.dataset.commentsBase;
+    const thread = section.querySelector<HTMLElement>('[data-comments-thread]');
+    const status = section.querySelector<HTMLElement>('[data-comments-status]');
+    const announce = section.querySelector<HTMLElement>('[data-comments-announce]');
+    if (!slug || !base || !thread || !status || !announce) return;
+    // The thread's own count, and the post header's link to it (CommentCount.astro).
+    const counts = [
+      ...section.querySelectorAll<HTMLElement>('[data-comments-count]'),
+      ...[...document.querySelectorAll<HTMLElement>('[data-comment-count]')].filter((el) => el.dataset.commentCount === slug),
+    ];
+
+    let url: string;
+    try {
+      url = commentsFileUrl(base, slug);
+    } catch (error) {
+      console.error('comments: the data address is not usable', error);
+      status.textContent = COMMENTS_FAILED_TEXT;
+      return;
+    }
+
+    let state: ThreadState = initialThreadState();
+    let deepLinked = false;
+    let retryButton: HTMLButtonElement | null = null;
+
+    function retryControl(): HTMLButtonElement {
+      if (retryButton) return retryButton;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'comments__retry';
+      button.textContent = COMMENTS_RETRY_LABEL;
+      button.addEventListener('click', () => {
+        if (button.getAttribute('aria-disabled') === 'true') return;
+        transition({ type: 'retry' });
+      });
+      retryButton = button;
+      return button;
+    }
+
+    function paragraph(className: string, text: string): HTMLParagraphElement {
+      const p = document.createElement('p');
+      p.className = className;
+      p.textContent = text;
+      return p;
+    }
+
+    /** Puts exactly these nodes in the thread, leaving it untouched when they are already there, so a focused button keeps its focus. */
+    function show(...nodes: Node[]): void {
+      const current = [...thread!.childNodes];
+      if (current.length === nodes.length && current.every((node, i) => node === nodes[i])) return;
+      thread!.replaceChildren(...nodes);
+    }
+
+    function render(): void {
+      const hadFocus = thread!.contains(document.activeElement) && document.activeElement !== thread;
+      for (const el of counts) el.textContent = threadCountLabel(state);
+      if (state.phase === 'loading') {
+        // Emptied, so the next answer is a change of text: a second failure in a row says the same
+        // words, and a live region announces only what changes.
+        announce!.textContent = '';
+        status!.textContent = COMMENTS_LOADING_TEXT;
+        status!.classList.remove('comments__status--failed');
+        if (retryButton) {
+          // A retry: the button stays where the reader's focus is, inert until the answer.
+          retryButton.setAttribute('aria-disabled', 'true');
+          show(status!, retryButton);
+        } else {
+          show(status!);
+        }
+        return;
+      }
+      if (state.phase === 'failed') {
+        console.warn(`comments: not shown (${state.failure}: ${state.reason})`);
+        status!.textContent = COMMENTS_FAILED_TEXT;
+        status!.classList.add('comments__status--failed');
+        const button = retryControl();
+        button.removeAttribute('aria-disabled');
+        show(status!, button);
+      } else if (state.phase === 'empty') {
+        show(paragraph('comments__empty', COMMENTS_EMPTY_TEXT));
+      } else {
+        show(renderCommentList(document, state.comments, { formatTime: formatDateTime }));
+      }
+      announce!.textContent = retryAnnouncement(state);
+      // The retry button the reader was on is gone: keep focus in the thread, not on the page body.
+      if (hadFocus && !thread!.contains(document.activeElement)) thread!.focus({ preventScroll: true });
+      if (state.phase === 'list' && !deepLinked) followDeepLink(state.comments);
+    }
+
+    function followDeepLink(comments: readonly { id: string }[]): void {
+      deepLinked = true;
+      const id = resolveDeepLink(location.hash, comments);
+      if (id === null) return;
+      const target = thread!.querySelector<HTMLElement>(`article[id="c-${id}"]`);
+      if (!target) return;
+      target.classList.add('comment--linked');
+      target.setAttribute('tabindex', '-1');
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      target.scrollIntoView({ behavior: deepLinkScrollBehavior(reduced), block: 'start' });
+      target.focus({ preventScroll: true });
+    }
+
+    function transition(event: ThreadEvent): void {
+      const next = threadTransition(state, event, slug!);
+      if (next === state) return;
+      state = next;
+      render();
+      if (state.phase === 'loading') void fetchDataFile(url, state.attempt).then(transition);
+    }
+
+    render();
+    void fetchDataFile(url, state.attempt).then(transition);
+  }
+
+  document.querySelectorAll<HTMLElement>('section.comments[data-comments-base]').forEach(setup);
+</script>

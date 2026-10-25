@@ -12,10 +12,17 @@
  * the id may leave here. A retired id can stay in a baked file for good, because the totals are
  * permanent, so everything below counts an unknown id in the total and never gives it a chip.
  *
- * Pure, with no `astro:content` import, so `src/lib/reactions.test.ts` runs it under plain
- * `node:test`.
+ * Reading the totals from the desk's data host (`REACTIONS_SOURCE = 'r2'` in `./site.ts`, task R4
+ * of docs/plans/2026-10-24-comments-on-r2.md): {@link reactionsFileUrl}, {@link validateReactionFile}
+ * and {@link reactionsReader} feed the data host's shared load machine (`./data-host.ts`), and
+ * {@link liveCounts} lays the reader's own choice over the file.
+ *
+ * Pure, with no `astro:content` and no zod import, so `src/lib/reactions.test.ts` runs it under
+ * plain `node:test` and the browser bundle stays small.
  */
 
+import { COMMENT_SLUG, COMMENT_SLUG_MAX } from '../content/comment-limits.ts';
+import { dataBaseUrl, type DataCheck, type DataReader } from './data-host.ts';
 import { SITE } from './site-meta.ts';
 
 /** One reaction a reader can choose. */
@@ -111,19 +118,30 @@ export function topReactions(known: ReadonlyMap<ReactionId, number>, count = 3):
 
 const COUNT_FORMAT = new Intl.NumberFormat('en-US');
 
+/** The reactions data contract's version (`src/content/reaction-schema.ts` re-exports it). */
+export const REACTION_CONTRACT_VERSION = 1;
+
+/**
+ * Distinct reaction ids in one file. Far above the seven of today's set, so retired ids can
+ * accumulate across several swaps; far below anything that could make a file large (each entry is
+ * a few dozen bytes). `src/content/reaction-schema.ts` re-exports it.
+ */
+export const REACTIONS_PER_FILE_MAX = 64;
+
 /** "1 reaction", "12 reactions", "1,204 reactions". */
 export function reactionCount(n: number): string {
   return `${COUNT_FORMAT.format(n)} ${n === 1 ? 'reaction' : 'reactions'}`;
 }
 
 /**
- * A choice's accessible name in the panel: "Overhyped, 12 reactions".
+ * A choice's accessible name in the panel: "Overhyped, 12 reactions"; just "Overhyped" when the
+ * count is not known (`null`: the totals have not loaded, or could not be).
  * @throws {RangeError} for an id the set does not know: the panel only ever lists the set
  */
-export function reactionLabel(id: string, n: number): string {
+export function reactionLabel(id: string, n: number | null): string {
   const reaction = reactionById(id);
   if (!reaction) throw new RangeError(`reactionLabel: ${JSON.stringify(id)} is not in the reaction set`);
-  return `${reaction.label}, ${reactionCount(n)}`;
+  return n === null ? reaction.label : `${reaction.label}, ${reactionCount(n)}`;
 }
 
 /** "Love", "Love and Wow", "Love, Wow and Funny". */
@@ -316,11 +334,11 @@ export const REACTIONS_CLOSED_MESSAGE = 'Reactions are closed on this story.';
 /** Shown inside the panel when script is off: choosing needs the page script. */
 export const REACTIONS_NO_SCRIPT_MESSAGE = 'Reacting needs JavaScript.';
 
-/** The caption under the panel while a choice is hovered or focused: "Overhyped · 12". */
-export function reactionCaption(id: string, n: number): string {
+/** The caption under the panel while a choice is hovered or focused: "Overhyped · 12"; "Overhyped" when the count is not known (`null`). */
+export function reactionCaption(id: string, n: number | null): string {
   const reaction = reactionById(id);
   if (!reaction) throw new RangeError(`reactionCaption: ${JSON.stringify(id)} is not in the reaction set`);
-  return `${reaction.label} · ${COUNT_FORMAT.format(n)}`;
+  return n === null ? reaction.label : `${reaction.label} · ${COUNT_FORMAT.format(n)}`;
 }
 
 /**
@@ -348,4 +366,95 @@ export function applyChoice(
  */
 export function nextChoice(current: ReactionId | null, tapped: ReactionId): ReactionId | null {
   return current === tapped ? null : tapped;
+}
+
+// --- the totals read from the desk's data host (REACTIONS_SOURCE = 'r2', task R4) ---------------
+
+/** Where a story's totals sit under the data host's base, before `<slug>.json` (plan §2.1). */
+export const REACTIONS_FILE_PREFIX = 'v1/reactions/';
+
+function isSlug(value: unknown): value is string {
+  return typeof value === 'string' && value.length <= COMMENT_SLUG_MAX && COMMENT_SLUG.test(value);
+}
+
+/**
+ * @returns the URL of a story's totals, `<base>v1/reactions/<slug>.json`
+ * @throws TypeError when the base is not a data base (`dataBaseUrl`) or `slug` is not a slug
+ */
+export function reactionsFileUrl(base: string, slug: string): string {
+  const root = dataBaseUrl(base);
+  if (!isSlug(slug)) throw new TypeError('reactionsFileUrl: not a slug');
+  return new URL(`${REACTIONS_FILE_PREFIX}${slug}.json`, root).href;
+}
+
+/** A totals file the browser accepted: the shape {@link reactionTotals} reads. */
+export interface ClientReactionFile {
+  readonly reactions: readonly { readonly id: string; readonly n: number }[];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Checks a totals file fetched in the browser before any count reaches the page, the way the
+ * thread checks its comments file: `version` is the contract's, `slug` is the page's, `reactions`
+ * is an array of 1 to {@link REACTIONS_PER_FILE_MAX} entries, and each has an `id` of the
+ * contract's shape ({@link REACTION_ID}; a retired id is allowed), unique in the file, and an `n`
+ * that is a whole number from 1 to `Number.MAX_SAFE_INTEGER`. The order of the ids and keys a
+ * later additive version adds are not checked: they cannot put a wrong count on the page.
+ * @param value the parsed JSON, of unknown shape
+ * @param slug the page's own slug
+ * @returns the entries, as plain `{ id, n }`; or the first reason, which never carries a value from the file
+ * @throws TypeError when `slug` is not a slug: that is the caller's bug, not the file's
+ */
+export function validateReactionFile(value: unknown, slug: string): DataCheck<ClientReactionFile> {
+  if (!isSlug(slug)) throw new TypeError('validateReactionFile: the page slug is not a slug');
+  if (!isRecord(value)) return { ok: false, reason: 'the file is not a JSON object' };
+  if (value.version !== REACTION_CONTRACT_VERSION) return { ok: false, reason: `version is not ${REACTION_CONTRACT_VERSION}` };
+  if (value.slug !== slug) return { ok: false, reason: "slug is not this page's slug" };
+  const { reactions } = value;
+  if (!Array.isArray(reactions)) return { ok: false, reason: 'reactions is not an array' };
+  if (reactions.length === 0) return { ok: false, reason: 'reactions is empty; the desk deletes such a file' };
+  if (reactions.length > REACTIONS_PER_FILE_MAX) return { ok: false, reason: `reactions has more than ${REACTIONS_PER_FILE_MAX} entries` };
+  const seen = new Set<string>();
+  const checked: { id: string; n: number }[] = [];
+  for (const [index, entry] of reactions.entries()) {
+    const where = `reactions[${index}]`;
+    if (!isRecord(entry)) return { ok: false, reason: `${where} is not an object` };
+    const { id, n } = entry;
+    if (typeof id !== 'string' || !REACTION_ID.test(id)) return { ok: false, reason: `${where}.id is not a reaction id` };
+    if (seen.has(id)) return { ok: false, reason: `${where}.id is not unique in the file` };
+    seen.add(id);
+    if (typeof n !== 'number' || !Number.isSafeInteger(n) || n < 1) return { ok: false, reason: `${where}.n is not a whole number of at least 1` };
+    checked.push({ id, n });
+  }
+  return { ok: true, value: { reactions: checked } };
+}
+
+/** How the data host's load machine reads a totals file: a 404 is a story nobody reacted to. */
+export function reactionsReader(slug: string): DataReader<ClientReactionFile> {
+  return { missing: () => ({ reactions: [] }), accept: (body) => validateReactionFile(body, slug) };
+}
+
+/** The counts the page shows once a file has loaded. */
+export interface LiveCounts {
+  /** Every id of the current set, zero included. */
+  readonly counts: Map<string, number>;
+  /** The total of ids the set does not know (retired ones): counted, never given a chip. */
+  readonly unknown: number;
+}
+
+/**
+ * The page's counts from a loaded file, with the reader's own choice laid over it. The file is
+ * taken to hold the choice the page remembered when it loaded (`atLoad`, the same assumption the
+ * baked totals make); a choice changed since (`now`) moves the counts by {@link applyChoice}, so a
+ * tap made before the file arrived is not lost and a tap made after moves the counts at once,
+ * without fetching again.
+ */
+export function liveCounts(file: ClientReactionFile, atLoad: ReactionId | null, now: ReactionId | null): LiveCounts {
+  const totals = reactionTotals(file);
+  const known = new Map<string, number>(REACTIONS.map((r) => [r.id, totals.known.get(r.id) ?? 0]));
+  const unknown = [...totals.unknown.values()].reduce((sum, n) => sum + n, 0);
+  return { counts: applyChoice(known, atLoad, now), unknown };
 }

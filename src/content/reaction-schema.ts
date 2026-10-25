@@ -1,6 +1,6 @@
 import { z } from 'astro/zod';
 import { SITE } from '../lib/site-meta.ts';
-import { REACTION_ID } from '../lib/reactions.ts';
+import { REACTION_CONTRACT_VERSION, REACTION_ID, REACTIONS_PER_FILE_MAX } from '../lib/reactions.ts';
 import { COMMENT_SLUG, COMMENT_SLUG_MAX } from './comment-schema.ts';
 
 /**
@@ -37,8 +37,13 @@ import { COMMENT_SLUG, COMMENT_SLUG_MAX } from './comment-schema.ts';
  * are a zod refinement here and prose in the JSON Schema's `description`.
  */
 
-/** The reactions contract's version. Bump it, and add a sibling schema route, rather than editing this one in place. */
-export const REACTION_CONTRACT_VERSION = 1;
+/**
+ * The reactions contract's version, and the cap on distinct ids in one file. Both live in
+ * `src/lib/reactions.ts`, which has no zod, so the browser's check of a file read from the data
+ * host (`validateReactionFile`, task R4) uses the same numbers as this schema. Re-exported here
+ * unchanged for every importer of the contract.
+ */
+export { REACTION_CONTRACT_VERSION, REACTIONS_PER_FILE_MAX };
 
 /** The routes the contract is served at, relative to the site root; `$id` is the site URL plus the route. */
 export const REACTIONS_SCHEMA_ROUTES = Object.freeze({
@@ -53,12 +58,6 @@ export type ReactionsSchemaRoute = keyof typeof REACTIONS_SCHEMA_ROUTES;
 export const REACTION_SLUG = COMMENT_SLUG;
 export const REACTION_SLUG_MAX = COMMENT_SLUG_MAX;
 
-/**
- * Distinct reaction ids in one file. Far above the seven of today's set, so retired ids can
- * accumulate across several swaps; far below anything that could make a file large (each entry is
- * a few dozen bytes).
- */
-export const REACTIONS_PER_FILE_MAX = 64;
 
 export const reactionCountSchema = z
   .object({
