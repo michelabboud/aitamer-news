@@ -21,10 +21,11 @@ import {
   threadCountLabel,
   threadTransition,
   validateCommentsIndex,
+  commentsIndexReader,
   type ClientRecentComment,
   type ThreadState,
 } from './comments-client.ts';
-import { COMMENTS_INDEX_KEY, COMMENTS_INDEX_RECENT_MAX, COMMENTS_INDEX_TEXT_MAX } from '../content/comments-index-schema.ts';
+import { COMMENTS_INDEX_KEY, commentsIndexSchema, COMMENTS_INDEX_RECENT_MAX, COMMENTS_INDEX_TEXT_MAX } from '../content/comments-index-schema.ts';
 import { COMMENTS_PER_FILE_MAX } from '../content/comment-schema.ts';
 
 /**
@@ -52,8 +53,8 @@ test('URLs: the comments file and the index sit under the data base', () => {
   assert.equal(new URL(commentsIndexUrl(BASE)).pathname, `/${COMMENTS_INDEX_KEY}`);
 });
 
-test('URLs: a base that is not an absolute http(s) URL ending in / is refused', () => {
-  for (const base of ['data.aitamer.news/', '/v1/', 'ftp://data.aitamer.news/', 'javascript:alert(1)//', 'https://data.aitamer.news',
+test('URLs: a base that is not an absolute https URL (http only on this machine) ending in / is refused', () => {
+  for (const base of ['data.aitamer.news/', '/v1/', 'ftp://data.aitamer.news/', 'javascript:alert(1)//', 'http://data.aitamer.news/', 'https://data.aitamer.news',
     'https://data.aitamer.news/bucket', 'https://user:pw@data.aitamer.news/', 'https://data.aitamer.news/?x=1', 'https://data.aitamer.news/#x', '']) {
     assert.throws(() => dataBaseUrl(base), TypeError, base);
     assert.throws(() => commentsIndexUrl(base), TypeError, base);
@@ -248,6 +249,54 @@ test('index: any violation refuses the whole index, naming the field and not the
     assert.equal(check.ok, false, what);
     assert.doesNotMatch(check.ok ? '' : check.reason, /<script>|\.\.\/x|yesterday/, what);
   }
+});
+
+// The rules that need two fields at once (POST.md section 8a, rules 1 and 3 to 6): a reader refuses
+// a file that breaks one, whole. Each case is also run through the contract's own schema, so the
+// reader and the desk's validator cannot disagree about what a valid index is.
+const ID_C = '01K5ZQ8M3C0000000000000000';
+const T09 = '2026-10-24T09:00:00Z';
+const T10 = '2026-10-24T10:00:00Z';
+
+test('index: cross-field rules the contract states for a reader refuse the whole index', () => {
+  const bad: [string, unknown][] = [
+    ['duplicate id', index({ counts: { 'story-a': 2 }, recent: [recent('story-a', ID_B), recent('story-a', ID_B)] })],
+    ['slug missing from counts', index({ counts: { 'story-a': 2 }, recent: [recent('story-a', ID_B), recent('story-b', ID_A)] })],
+    ['more recent entries than the count', index({ counts: { 'story-a': 1 }, recent: [recent('story-a', ID_B), recent('story-a', ID_A)] })],
+    ['generatedAt is not the first at', index({ generatedAt: T10 })],
+    ['generatedAt missing with a recent entry', (({ generatedAt: _gone, ...rest }) => rest)(index())],
+    ['older entry before a newer one', index({ generatedAt: T09, recent: [recent('story-a', ID_B, { at: T09 }), recent('story-b', ID_A, { at: T10 })] })],
+    ['same at, id ascending', index({ recent: [recent('story-b', ID_A), recent('story-a', ID_B)] })],
+    ['counts keys not sorted', index({ counts: { 'story-b': 1, 'story-a': 2 } })],
+  ];
+  for (const [what, value] of bad) {
+    const check = validateCommentsIndex(value);
+    assert.equal(check.ok, false, what);
+    assert.equal(commentsIndexSchema.safeParse(value).success, false, `${what}: the contract's schema agrees`);
+    assert.doesNotMatch(check.ok ? '' : check.reason, /story-|01K5Z/, `${what}: the reason names no value`);
+  }
+});
+
+test('index: an index that keeps every cross-field rule is accepted, as the schema accepts it', () => {
+  const good: [string, unknown][] = [
+    ['empty recent, any generatedAt', index({ counts: { 'story-a': 2 }, recent: [], generatedAt: T10 })],
+    ['a story shown fewer times than its count', index({ counts: { 'story-a': 5, 'story-b': 1 }, recent: [recent('story-a', ID_B)] })],
+    ['same at, id descending', index({ recent: [recent('story-a', ID_B), recent('story-a', ID_A)] })],
+    ['strictly older entries', index({ generatedAt: T10, recent: [recent('story-a', ID_A, { at: T10 }), recent('story-b', ID_C, { at: T09 })] })],
+    ['sorted counts', index({ counts: { 'story-a': 2, 'story-b': 1, 'story-c': 1 } })],
+    ['digit-only slugs, whatever order the text had', index({ counts: { '10': 1, '9': 1, 'story-a': 2 }, recent: [recent('story-a', ID_B)] })],
+  ];
+  for (const [what, value] of good) {
+    assert.equal(validateCommentsIndex(value).ok, true, what);
+    assert.equal(commentsIndexSchema.safeParse(value).success, true, `${what}: the contract's schema agrees`);
+  }
+});
+
+test('index: the reader for the data host takes a 404 as an empty index and refuses a broken file', () => {
+  assert.deepEqual(commentsIndexReader.missing(), { counts: new Map(), recent: [] });
+  const accepted = commentsIndexReader.accept(index());
+  assert.equal(accepted.ok, true);
+  assert.equal(commentsIndexReader.accept(index({ generatedAt: T10 })).ok, false);
 });
 
 test('Around the fire: only stories this page lists, newest first as the index has them, capped, linked to the comment', () => {

@@ -3,7 +3,7 @@
  * §2.6, §2.9; task S3; site ADR 0047). Used only while `COMMENTS_SOURCE` in `./site.ts` is `'r2'`.
  *
  * - **Where the files are:** {@link commentsFileUrl} and {@link commentsIndexUrl} build the two URLs
- *   on the public data host from `COMMENTS_DATA_BASE`, refusing anything but an absolute http(s)
+ *   on the public data host from `COMMENTS_DATA_BASE`, refusing anything but an absolute https (http for a loopback host)
  *   base and a contract slug, so a page can only ever ask for `v1/comments/<slug>.json` or
  *   `v1/comments-index.json` there.
  * - **What the story page shows:** {@link threadTransition} is the thread's state machine
@@ -19,8 +19,8 @@
  *
  * Pure: no global `document`, `window`, `fetch` or timer, and no zod (its constants come from
  * `../content/comment-limits.ts`), so `src/lib/comments-client.test.ts` runs it under `node:test`
- * and the story page's bundle stays small. The scripts in `Comments.astro`, `CommentCount.astro`
- * and `campfire.astro` do the fetching and the DOM.
+ * and the story page's bundle stays small. The scripts in `CommentsLive.astro` (the thread) and
+ * `CommentIndexLive.astro` (the counts and "Around the fire") do the fetching and the DOM.
  */
 import {
   COMMENTS_INDEX_CONTRACT_VERSION,
@@ -242,14 +242,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Keys in the order a JavaScript object can show them when sorted by UTF-16 code unit (see the contract's rule 1). */
+function sortedKeyOrder(keys: readonly string[]): string[] {
+  return Object.keys(Object.fromEntries([...keys].sort().map((key) => [key, 0])));
+}
+
 /**
- * Checks the comments index fetched in the browser before any of it reaches a page: `version` is
- * the contract's, `counts` maps at most {@link COMMENTS_INDEX_STORIES_MAX} slugs to whole numbers
- * from 1 to {@link COMMENTS_PER_FILE_MAX}, and `recent` holds at most
- * {@link COMMENTS_INDEX_RECENT_MAX} comments, each with a slug, a title, a ULID, a name and a text
- * within their caps and still visible once stripped, a readable `at`, and `signedIn` and
- * `truncated` absent or `true`. The fields the pages do not show (`site`, `generatedAt`) and the
- * contract's ordering rules are not checked: they cannot put anything wrong on a page.
+ * Checks the comments index fetched in the browser before any of it reaches a page. Every rule the
+ * contract states for a reader (`../content/comments-index-schema.ts`, POST.md section 8a) is
+ * enforced here except rule 8 (a story whose title cannot be found is left out), which only the
+ * desk can know; a file that breaks one is refused whole.
+ * - `version` is the contract's; `counts` maps at most {@link COMMENTS_INDEX_STORIES_MAX} slugs, keys
+ *   sorted ascending, to whole numbers from 1 to {@link COMMENTS_PER_FILE_MAX}.
+ * - `recent` holds at most {@link COMMENTS_INDEX_RECENT_MAX} comments, each with a slug, a title, a
+ *   ULID, a name and a text within their caps and still visible once stripped, a readable `at`, and
+ *   `signedIn` and `truncated` absent or `true`.
+ * - Across entries: ids are unique; `recent` is newest first by `at`, equal times by id descending;
+ *   every slug is a key of `counts` and `recent` holds no more comments of a story than its count;
+ *   when `recent` is not empty, `generatedAt` equals the first entry's `at`.
+ * The one thing not checked is the order of a `counts` slug made only of digits, which a
+ * JavaScript reader cannot see (the schema's description says so). `site` is not shown, so not checked.
  */
 export function validateCommentsIndex(value: unknown): CommentsIndexCheck {
   if (!isRecord(value)) return { ok: false, reason: 'the index is not a JSON object' };
@@ -267,9 +279,13 @@ export function validateCommentsIndex(value: unknown): CommentsIndexCheck {
     }
     countMap.set(key, n);
   }
+  const expectedOrder = sortedKeyOrder(keys);
+  if (keys.some((key, position) => key !== expectedOrder[position])) return { ok: false, reason: 'counts is not sorted by slug' };
   if (!Array.isArray(recent)) return { ok: false, reason: 'recent is not an array' };
   if (recent.length > COMMENTS_INDEX_RECENT_MAX) return { ok: false, reason: `recent has more than ${COMMENTS_INDEX_RECENT_MAX} entries` };
   const checked: ClientRecentComment[] = [];
+  const seenIds = new Set<string>();
+  const shownPerSlug = new Map<string, number>();
   for (const [index, entry] of recent.entries()) {
     const where = `recent[${index}]`;
     if (!isRecord(entry)) return { ok: false, reason: `${where} is not an object` };
@@ -294,10 +310,33 @@ export function validateCommentsIndex(value: unknown): CommentsIndexCheck {
     if (cleanTitle === null) return { ok: false, reason: `${where}.title has no visible character` };
     if (cleanName === null) return { ok: false, reason: `${where}.name has no visible character` };
     if (cleanText === null) return { ok: false, reason: `${where}.text has no visible character` };
+
+    if (seenIds.has(id)) return { ok: false, reason: `${where}.id appears twice in recent` };
+    seenIds.add(id);
+    const total = countMap.get(slug);
+    if (total === undefined) return { ok: false, reason: `${where}.slug is not a key of counts` };
+    const shown = (shownPerSlug.get(slug) ?? 0) + 1;
+    shownPerSlug.set(slug, shown);
+    if (shown > total) return { ok: false, reason: `${where}.slug has more comments in recent than its count` };
+    const before = checked[checked.length - 1];
+    if (before !== undefined) {
+      const later = Date.parse(at) - Date.parse(before.at);
+      if (later > 0 || (later === 0 && id > before.id)) return { ok: false, reason: `${where} breaks the newest-first order` };
+    }
     checked.push({ slug, title: cleanTitle, id, name: cleanName, text: cleanText, at });
   }
+  if (checked.length > 0 && value.generatedAt !== checked[0].at) return { ok: false, reason: 'generatedAt is not the at of the first recent entry' };
   return { ok: true, counts: countMap, recent: checked };
 }
+
+/** How the comments index is read from the data host (`./data-host.ts`): a 404 is no comments yet, a file that breaks the contract is refused whole. */
+export const commentsIndexReader: DataReader<{ counts: ReadonlyMap<string, number>; recent: ClientRecentComment[] }> = {
+  missing: () => ({ counts: new Map(), recent: [] }),
+  accept: (body) => {
+    const check = validateCommentsIndex(body);
+    return check.ok ? { ok: true, value: { counts: check.counts, recent: check.recent } } : check;
+  },
+};
 
 /** A story's approved comment count from the index: 0 for a story the index does not list. */
 export function countFor(counts: ReadonlyMap<string, number>, slug: string): number {

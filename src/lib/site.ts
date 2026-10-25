@@ -44,7 +44,8 @@ export const COMMENTS_ENDPOINT: string =
  * published files from `COMMENTS_DATA_BASE` instead (docs/plans/2026-10-24-comments-on-r2.md,
  * site ADR 0047). Like `REACTIONS_LIVE` it is flipped in source, in the commit that also moves
  * the privacy page's date, never by environment: what a page says it does must match the build.
- * It ships as `'baked'` and nothing reads it yet, so this task changes no output.
+ * It ships as `'baked'`: only a build with `'r2'` renders the loaders (`CommentsLive.astro`,
+ * `CommentIndexLive.astro`) into a page, so a baked build's pages are unchanged.
  */
 export const COMMENTS_SOURCE: 'baked' | 'r2' = 'baked';
 
@@ -55,7 +56,8 @@ export const COMMENTS_DATA_BASE_DEFAULT = 'https://data.aitamer.news/';
  * The base URL of the desk's public data bucket (`v1/comments/<slug>.json`,
  * `v1/comments-index.json`, `v1/reactions/<slug>.json`), with a trailing slash. Public by nature.
  * PUBLIC_COMMENTS_DATA_BASE points a local build at another host or a local copy of the files. Must
- * be an absolute http(s) URL ending in `/`. Only read once `COMMENTS_SOURCE` is `'r2'`.
+ * be an absolute https URL ending in `/` (http only for a loopback host, for a local fixture server).
+ * Only used once `COMMENTS_SOURCE` or `REACTIONS_SOURCE` is `'r2'`.
  */
 export const COMMENTS_DATA_BASE: string = import.meta.env.PUBLIC_COMMENTS_DATA_BASE || COMMENTS_DATA_BASE_DEFAULT;
 
@@ -265,7 +267,6 @@ export function habitatOfPost(post: CollectionEntry<'posts'>): HabitatView {
   return habitatOf(post.data.section);
 }
 
-/** "09:15", in UTC. */
 /** Words per minute used for the reading-time estimate. */
 const READING_WPM = 230;
 

@@ -1,12 +1,15 @@
 # Changelog
 
+## 0.2.121 · 2026-10-25
+
+Review fixes for the pull request that adds the comments code switched off (nothing a reader sees changes: the switches stay `'baked'`). The check of the comments index now enforces every rule the contract states for a reader (unique ids in `recent`, every `recent` slug in `counts` with no more entries than its count, `generatedAt` equal to the first entry's `at`, newest first with equal times by id descending, `counts` sorted) and refuses a file that breaks one whole; the contract's description now says a reader enforces the first seven rules and the eighth (a story whose title cannot be found is left out) is the desk's alone, so the frozen v1 snapshot changed by that one string. The data-host fetch uses an `AbortController` and a cleared timer where `AbortSignal.timeout` is missing (Safari before 16), and refuses to follow a redirect (the failed state, with retry); "Around the fire" and the counts now use that same fetch. A data base over plain `http:` is refused unless the host is `127.0.0.1`, `localhost` or `[::1]`. The Content-Security-Policy script reads `PUBLIC_COMMENTS_DATA_BASE` only when a built page reads the data host, so a baked build cannot be failed by a stray value, and a build that reads the host fails with a message naming the variable. The thread's polite status line is emptied while a retry loads, so a second failure in a row is announced again. Stale comments and docs corrected. Template tests 760 pass (10 new).
 ## 0.2.120 · 2026-10-25
 
 The held-comment message goes back to its current wording in this pull request, so it stays inert: the "appears here within about a minute" text would be untrue while comments are still published by the hourly publisher. The new wording ships with the pull request that switches the source to the data host.
 
 ## 0.2.119 · 2026-10-25
 
-Comments and reaction totals can now be read in the browser from a public data host, and the code is **switched off**. `COMMENTS_SOURCE` and `REACTIONS_SOURCE` ship as `'baked'` and `REACTIONS_LIVE` stays `false`, so no page, feed or header changes (a build of this commit and a build of 0.2.118 are byte-equal apart from hashed asset names and build-time fingerprints). Added, all unused by any built page until a later flip:
+Comments and reaction totals can now be read in the browser from a public data host, and the code is **switched off**. `COMMENTS_SOURCE` and `REACTIONS_SOURCE` ship as `'baked'` and `REACTIONS_LIVE` stays `false`, so no page, feed or header changes (a build of this commit and a build of 0.2.118 are byte-equal apart from hashed asset names, build-time fingerprints and three new script files in `_astro/` that no page references or requests: Astro emits a component's script whether or not it renders). Added, all unused by any built page until a later flip:
 
 - the comments index contract (`v1/comments-index.json`: counts per story and the 60 newest comments), its schema `src/content/comments-index-schema.ts`, a frozen v1 snapshot and the routes `/contract/comments-index.schema.json` and `/contract/v1/comments-index.schema.json` (new public files);
 - one tokenizer for comment text with two outputs, the unchanged server HTML and DOM nodes for the browser (`textContent` only; a test greps for every HTML-parsing sink), held by a 125-case golden file;

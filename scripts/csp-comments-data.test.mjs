@@ -118,3 +118,35 @@ test('R4: the guard refuses a reactions section that reads a data host the polic
   const findings = checkSitePolicy(dist, { env });
   assert.ok(findings.some((f) => f.includes('data-comments-base') && f.includes('connect-src does not allow')), findings.join('\n'));
 });
+
+test('a baked build never reads PUBLIC_COMMENTS_DATA_BASE: a malformed, file: or http value cannot fail it', (t) => {
+  const dist = site(t, { 'index.html': baked, 'posts/a/index.html': baked });
+  for (const value of ['not a url', 'file:///etc/passwd', 'ftp://data.example/', 'http://data.aitamer.news/', 'javascript:alert(1)']) {
+    const env = { PUBLIC_COMMENTS_DATA_BASE: value };
+    assert.deepEqual(writeSitePolicy(dist, { env }).findings, [], value);
+    assert.ok(!connectSrc(dist).some((source) => source.includes('data.')), value);
+    assert.deepEqual(checkSitePolicy(dist, { env }), [], value);
+  }
+});
+
+test('a build that reads the data host fails loudly on a base it cannot use, naming the variable and never the value', (t) => {
+  const dist = site(t, { 'posts/a/index.html': live(COMMENTS_DATA_BASE_DEFAULT), 'posts/b/index.html': reactionsLive(COMMENTS_DATA_BASE_DEFAULT) });
+  for (const value of ['not a url', 'file:///etc/passwd', 'ftp://data.example/', 'http://data.aitamer.news/']) {
+    const env = { PUBLIC_COMMENTS_DATA_BASE: value };
+    const written = writeSitePolicy(dist, { env }).findings;
+    assert.equal(written.length, 1, value);
+    assert.match(written[0], /PUBLIC_COMMENTS_DATA_BASE/, value);
+    assert.doesNotMatch(written[0], new RegExp(value.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')), 'the value is not echoed');
+    const checked = checkSitePolicy(dist, { env });
+    assert.ok(checked.some((f) => /PUBLIC_COMMENTS_DATA_BASE/.test(f)), `${value}: ${checked.join('\n')}`);
+  }
+  assert.throws(() => commentsDataOrigin({ PUBLIC_COMMENTS_DATA_BASE: 'file:///x/' }), /PUBLIC_COMMENTS_DATA_BASE/);
+});
+
+test('the data origin: https, or http on this machine only', () => {
+  assert.equal(commentsDataOrigin({ PUBLIC_COMMENTS_DATA_BASE: 'https://data.example/bucket/' }), 'https://data.example');
+  for (const local of ['http://127.0.0.1:4399/', 'http://localhost:4399/', 'http://[::1]:4399/']) {
+    assert.equal(commentsDataOrigin({ PUBLIC_COMMENTS_DATA_BASE: local }), new URL(local).origin, local);
+  }
+  assert.throws(() => commentsDataOrigin({ PUBLIC_COMMENTS_DATA_BASE: 'http://example.com/' }), /PUBLIC_COMMENTS_DATA_BASE/);
+});

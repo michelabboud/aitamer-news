@@ -211,7 +211,7 @@ Enforcement: `npm run check:posts` fails a file whose post does not exist or who
 - `recent` holds the 60 newest approved comments site-wide at most, newest first. Each entry has `slug`, `title` (1 to 200 code points, one line), `id`, `name`, `text`, `at`, and optionally `signedIn: true` and `truncated: true`. `name` and `text` follow the comment format's rules; `text` is at most 400 code points, cut at a grapheme boundary with `truncated: true` when it was longer.
 - No other key, at any level, and never an email address, a hash, a trust score or a moderation note.
 
-The schema's `description` states eight rules a JSON Schema cannot express, and a reader enforces them too:
+The schema's `description` states eight rules a JSON Schema cannot express. A reader enforces the first seven (a file that breaks one is refused whole); the eighth is the desk's alone, because a reader cannot know which story titles the desk could not find:
 
 1. `counts` holds only stories with at least one approved comment, and its keys are sorted ascending by UTF-16 code unit (a slug of digits only, such as `2026`, is the one case a JavaScript reader cannot see the order of).
 2. `counts` holds at most 10,000 stories.
@@ -220,11 +220,11 @@ The schema's `description` states eight rules a JSON Schema cannot express, and 
 5. Every slug in `recent` is a key of `counts`, and `recent` holds no more comments of a story than its count.
 6. When `recent` is not empty, `generatedAt` equals the `at` of its first entry, so the same state always makes the same bytes. With an empty `recent` any UTC time is valid; the desk should choose a fixed one.
 7. A text longer than 400 code points is cut and marked `truncated: true`; `truncated` is never `false`, and neither is `signedIn`.
-8. An entry whose story title cannot be found is left out of `recent`.
+8. An entry whose story title cannot be found is left out of `recent` (the desk's rule; a reader cannot check it).
 
 **Where the contract is.** `src/content/comments-index-schema.ts` (the zod schema and the limits, which live in `src/content/comment-limits.ts`) generates the JSON Schema served at `/contract/comments-index.schema.json` (newest) and `/contract/v1/comments-index.schema.json` (v1, frozen byte for byte by `src/content/comments-index-schema.v1.snapshot.json` and its test in `src/lib/comments-index-contract.test.ts`). An additive change needs a new snapshot and a deliberate review; a breaking change needs v2.
 
-**How a page reads it, once live.** A story page fetches its comments file once, with no credentials, checks its shape (`validateCommentFile`), and builds the thread with DOM calls only: text goes in with `textContent`, and a link is made only for an `http(s)` URL that parses and re-parses to the same address. No code on that path uses `innerHTML`, and a test greps for the sinks. A missing file (404) means no comments; any other failure shows "Comments could not be loaded right now." with a retry button. The home and Campfire pages fetch the index once to fill their counts. Objects are served with `Cache-Control: public, max-age=0, s-maxage=60`, and the page's content security policy gains the data origin in `connect-src` only (`scripts/csp-headers.mjs`). The consequence the decision accepts: comments are not in the first HTML or the JSON-LD, so a crawler that does not run JavaScript will not see them.
+**How a page reads it, once live.** A story page fetches its comments file once, with no credentials, without following a redirect (a redirect from the data host is a failure), and with a 10 second timeout, checks its shape (`validateCommentFile`), and builds the thread with DOM calls only: text goes in with `textContent`, and a link is made only for an `http(s)` URL that parses and re-parses to the same address. No code on that path uses `innerHTML`, and a test greps for the sinks. A missing file (404) means no comments; any other failure shows "Comments could not be loaded right now." with a retry button. The home and Campfire pages fetch the index once to fill their counts. Objects are served with `Cache-Control: public, max-age=0, s-maxage=60`, and the page's content security policy gains the data origin in `connect-src` only (`scripts/csp-headers.mjs`). The consequence the decision accepts: comments are not in the first HTML or the JSON-LD, so a crawler that does not run JavaScript will not see them.
 
 ## 9. Reactions
 

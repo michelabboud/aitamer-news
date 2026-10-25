@@ -25,8 +25,8 @@ import {
  * holding what a list page needs and the story pages do not: how many approved comments each
  * story has (the home page's cards, the Campfire page's counts) and the newest comments site-wide
  * ("Around the fire"). The desk's moderation app writes it whenever it publishes a comment file;
- * a browser reads it. Nothing in the site build reads it yet (the switch `COMMENTS_SOURCE` in
- * `src/lib/site.ts` ships as `'baked'`).
+ * a browser reads it. No built page reads it yet: the browser scripts that do (`CommentIndexLive.astro`)
+ * are rendered only when the switch `COMMENTS_SOURCE` in `src/lib/site.ts` is `'r2'`, and it ships as `'baked'`.
  *
  * The comment contract's sibling (`./comment-schema.ts`), and built the same way: this schema is
  * the single source of the published JSON Schema (`commentsIndexJsonSchema` below, served at
@@ -247,7 +247,7 @@ const COMMENTS_INDEX_SCHEMA_DESCRIPTION =
   'satisfies. Generated from the same zod schema a reader validates against, so it cannot drift. ' +
   'It carries public data only: counts of approved comments per story and the newest comments site-wide. ' +
   'Lengths are counted in Unicode code points. ' +
-  'Eight rules cannot be expressed here and a reader enforces them too: ' +
+  'Eight rules cannot be expressed here. A reader enforces the first seven; the eighth is the desk\'s alone, because a reader cannot know which story titles the desk could not find: ' +
   '(1) counts holds only stories with at least one approved comment, and its keys are sorted ascending by UTF-16 code unit ' +
   '(a slug of digits only, such as 2026, is the one case a JavaScript reader cannot see the order of); ' +
   '(2) counts holds at most 10000 stories; ' +

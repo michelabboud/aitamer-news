@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   DATA_FETCH_TIMEOUT_MS,
+  dataBaseUrl,
   fetchDataFile,
   initialLoadState,
   loadTransition,
@@ -134,4 +135,61 @@ test('fetch: a 2xx body that is not JSON is unreadable', async () => {
     }),
   );
   assert.deepEqual(await fetchDataFile('https://x.test/a.json', 1, impl), { type: 'unreadable', attempt: 1 });
+});
+
+test('fetch: a redirect is never followed (redirect: error), so a host that redirects is the failed state', async () => {
+  const { impl, calls } = fakeFetch(ok(async () => ({ n: 1 })));
+  await fetchDataFile('https://x.test/a.json', 1, impl);
+  assert.equal(calls[0].init.redirect, 'error');
+  // What the browser does with `redirect: 'error'` is to reject the fetch; that is a network error here.
+  const redirected = fakeFetch(() => Promise.reject(new TypeError('Failed to fetch')));
+  assert.deepEqual(await fetchDataFile('https://x.test/a.json', 1, redirected.impl), { type: 'network-error', attempt: 1 });
+});
+
+test('fetch: without AbortSignal.timeout (Safari before 16) the 10 s timeout still aborts the request, and the timer is cleared', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const original = Object.getOwnPropertyDescriptor(AbortSignal, 'timeout')!;
+  Object.defineProperty(AbortSignal, 'timeout', { value: undefined, configurable: true, writable: true });
+  t.after(() => Object.defineProperty(AbortSignal, 'timeout', original));
+
+  // A request that never answers: it settles only when its signal aborts.
+  let seen: AbortSignal | undefined;
+  const impl: FetchLike = (_url, init) =>
+    new Promise((_resolve, reject) => {
+      seen = init.signal as AbortSignal;
+      seen.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+    });
+  const pending = fetchDataFile('https://x.test/a.json', 5, impl);
+  assert.ok(seen instanceof AbortSignal, 'a signal is sent even without AbortSignal.timeout');
+  assert.equal(seen.aborted, false);
+  t.mock.timers.tick(DATA_FETCH_TIMEOUT_MS - 1);
+  assert.equal(seen.aborted, false, 'not before the 10 s are up');
+  t.mock.timers.tick(1);
+  assert.equal(seen.aborted, true);
+  assert.deepEqual(await pending, { type: 'network-error', attempt: 5 });
+});
+
+test('fetch: the fallback timer is cleared when the load ends first, so it cannot fire later', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const original = Object.getOwnPropertyDescriptor(AbortSignal, 'timeout')!;
+  Object.defineProperty(AbortSignal, 'timeout', { value: undefined, configurable: true, writable: true });
+  t.after(() => Object.defineProperty(AbortSignal, 'timeout', original));
+  let seen: AbortSignal | undefined;
+  const impl: FetchLike = async (_url, init) => {
+    seen = init.signal as AbortSignal;
+    return { ok: true, status: 200, json: async () => ({ n: 1 }) };
+  };
+  assert.deepEqual(await fetchDataFile('https://x.test/a.json', 1, impl), { type: 'response', attempt: 1, status: 200, body: { n: 1 } });
+  t.mock.timers.tick(DATA_FETCH_TIMEOUT_MS * 2);
+  assert.equal(seen!.aborted, false, 'a finished load is never aborted afterwards');
+});
+
+test('base: https is accepted; http only on this machine (a mistyped base never goes out in the clear)', () => {
+  assert.equal(dataBaseUrl('https://data.aitamer.news/').href, 'https://data.aitamer.news/');
+  for (const local of ['http://127.0.0.1:4399/', 'http://localhost:4399/bucket/', 'http://[::1]:4399/']) {
+    assert.doesNotThrow(() => dataBaseUrl(local), local);
+  }
+  for (const remote of ['http://data.aitamer.news/', 'http://example.com/', 'http://127.0.0.2/', 'http://localhost.evil.example/', 'http://192.168.1.5:4399/', 'http://evil.example@localhost/']) {
+    assert.throws(() => dataBaseUrl(remote), TypeError, remote);
+  }
 });

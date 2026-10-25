@@ -29,6 +29,7 @@ export function formatDateTime(date: Date): string {
   return `${stamp} UTC`;
 }
 
+/** "09:15", in UTC. */
 export function formatClock(date: Date): string {
   return date.toLocaleTimeString('en-US', {
     hour: '2-digit',

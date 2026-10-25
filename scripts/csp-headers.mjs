@@ -137,12 +137,45 @@ export function endpointOrigins(env = process.env) {
 }
 
 /**
+ * The hosts a page may reach over plain `http:`: this machine only, for a local fixture server
+ * (the same rule as `dataBaseUrl` in `src/lib/data-host.ts`).
+ */
+const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
+
+/**
+ * The data host's origin, for `connect-src`. Read only when a built page reads the host
+ * (`readsCommentsData`), so a baked build never looks at `PUBLIC_COMMENTS_DATA_BASE`: a stray or
+ * malformed value there must not fail a build that does not use it.
  * @param {NodeJS.ProcessEnv} [env]
- * @returns {string} the data host's origin. `connect-src` names it only when a built page reads it
- *   (`readsCommentsData`), so a baked build's policy is unchanged.
+ * @returns {string} the origin of `PUBLIC_COMMENTS_DATA_BASE` (default: the desk's data host)
+ * @throws {Error} naming the variable and what is wrong, never echoing its value, when it is not
+ *   an `https:` URL (or `http:` on a loopback host)
  */
 export function commentsDataOrigin(env = process.env) {
-  return new URL(env.PUBLIC_COMMENTS_DATA_BASE || COMMENTS_DATA_BASE_DEFAULT).origin;
+  const base = env.PUBLIC_COMMENTS_DATA_BASE || COMMENTS_DATA_BASE_DEFAULT;
+  let url;
+  try {
+    url = new URL(base);
+  } catch {
+    throw new Error('PUBLIC_COMMENTS_DATA_BASE is not an absolute URL, but this build reads the data host (COMMENTS_SOURCE or REACTIONS_SOURCE is \'r2\')');
+  }
+  const loopback = url.protocol === 'http:' && LOOPBACK_HOSTS.has(url.hostname);
+  if (url.protocol !== 'https:' && !loopback) {
+    throw new Error('PUBLIC_COMMENTS_DATA_BASE must be an https URL (http only on 127.0.0.1, localhost or [::1]), but this build reads the data host (COMMENTS_SOURCE or REACTIONS_SOURCE is \'r2\')');
+  }
+  return url.origin;
+}
+
+/**
+ * The endpoints for this build's policy: the Workers always, the data host only when a built page
+ * reads it (and only then is its variable looked at).
+ * @param {{ scan: PageScan }[]} pages
+ * @param {NodeJS.ProcessEnv} env
+ * @returns {{ comments: string, contact: string, data?: string }}
+ */
+function policyEndpoints(pages, env) {
+  const workers = endpointOrigins(env);
+  return readsCommentsData(pages) ? { ...workers, data: commentsDataOrigin(env) } : workers;
 }
 
 /**
@@ -666,7 +699,13 @@ export function writeSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
   const existing = existsSync(target) ? readFileSync(target, 'utf8') : '';
   const unmodeled = unmodeledRules(existing);
   if (unmodeled.length) return { findings: unmodeled.map(unmodeledFinding), pages: pages.length, hashes };
-  const text = renderHeaders(existing, generatedBlock(pages, { ...endpointOrigins(env), data: commentsDataOrigin(env) }, enforce));
+  let endpoints;
+  try {
+    endpoints = policyEndpoints(pages, env);
+  } catch (error) {
+    return { findings: [error instanceof Error ? error.message : String(error)], pages: pages.length, hashes };
+  }
+  const text = renderHeaders(existing, generatedBlock(pages, endpoints, enforce));
   const duplicates = duplicateRuleFindings(text);
   if (duplicates.length) return { findings: duplicates, pages: pages.length, hashes };
   const long = overlongLines(text);
@@ -731,7 +770,14 @@ export function checkSitePolicy(dist, { env = process.env, enforce = CSP_ENFORCE
     }
   }
 
-  const expected = renderHeaders(existsSync(publicHeaders) ? readFileSync(publicHeaders, 'utf8') : '', generatedBlock(pages, { ...endpointOrigins(env), data: commentsDataOrigin(env) }, enforce));
+  let endpoints;
+  try {
+    endpoints = policyEndpoints(pages, env);
+  } catch (error) {
+    findings.push(error instanceof Error ? error.message : String(error));
+    return findings;
+  }
+  const expected = renderHeaders(existsSync(publicHeaders) ? readFileSync(publicHeaders, 'utf8') : '', generatedBlock(pages, endpoints, enforce));
   if (text !== expected) {
     const kept = existsSync(publicHeaders) ? readFileSync(publicHeaders, 'utf8').replace(/\s+$/, '') : '';
     if (kept && !text.startsWith(kept)) findings.push('_headers: the rules in public/_headers did not survive into dist/_headers unchanged');

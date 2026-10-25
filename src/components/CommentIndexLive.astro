@@ -30,38 +30,29 @@ const { dataBase } = Astro.props;
     AROUND_THE_FIRE_EMPTY_TEXT,
     AROUND_THE_FIRE_FAILED_TEXT,
     AROUND_THE_FIRE_LOADING_TEXT,
-    COMMENTS_FETCH_TIMEOUT_MS,
     aroundTheFire,
+    commentsIndexReader,
     commentsIndexUrl,
     countFor,
     storyHref,
-    validateCommentsIndex,
-    type CommentsIndexCheck,
+    type ClientRecentComment,
     type FireRow,
   } from '../lib/comments-client';
+  import { fetchDataFile, initialLoadState, loadTransition } from '../lib/data-host';
   import { commentCountLabel } from '../lib/comment-text';
   import { formatShortDate } from '../lib/date-format';
 
-  /** No index yet (404): the desk has published nothing, so every count is zero. */
-  const EMPTY_INDEX: CommentsIndexCheck = { ok: true, counts: new Map(), recent: [] };
+  type LoadedIndex = { ok: true; counts: ReadonlyMap<string, number>; recent: ClientRecentComment[] } | { ok: false; reason: string };
 
-  async function loadIndex(url: string): Promise<CommentsIndexCheck> {
-    const signal = typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal ? AbortSignal.timeout(COMMENTS_FETCH_TIMEOUT_MS) : undefined;
-    let response: Response;
-    try {
-      response = await fetch(url, { credentials: 'omit', mode: 'cors', signal });
-    } catch {
-      return { ok: false, reason: 'the data host did not answer' };
-    }
-    if (response.status === 404) return EMPTY_INDEX;
-    if (!response.ok) return { ok: false, reason: `the data host answered ${response.status}` };
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      return { ok: false, reason: 'the index is not JSON, or did not arrive whole' };
-    }
-    return validateCommentsIndex(body);
+  /**
+   * One load of the index through the data host's fetch and state machine (the same timeout,
+   * credentials and redirect rules as every data file). No index yet (404): the desk has published
+   * nothing, so every count is zero.
+   */
+  async function loadIndex(url: string): Promise<LoadedIndex> {
+    const state = loadTransition(initialLoadState<{ counts: ReadonlyMap<string, number>; recent: ClientRecentComment[] }>(), await fetchDataFile(url, 1), commentsIndexReader);
+    if (state.phase === 'ready') return { ok: true, ...state.value };
+    return { ok: false, reason: state.phase === 'failed' ? `${state.failure}: ${state.reason}` : 'the load did not finish' };
   }
 
   function fireRow(row: FireRow): HTMLLIElement {

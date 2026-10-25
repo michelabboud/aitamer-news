@@ -110,6 +110,9 @@ const { slug, dataBase, closed } = Astro.props;
       const hadFocus = thread!.contains(document.activeElement) && document.activeElement !== thread;
       for (const el of counts) el.textContent = threadCountLabel(state);
       if (state.phase === 'loading') {
+        // Emptied, so the next answer is a change of text: a second failure in a row says the same
+        // words, and a live region announces only what changes.
+        announce!.textContent = '';
         status!.textContent = COMMENTS_LOADING_TEXT;
         status!.classList.remove('comments__status--failed');
         if (retryButton) {
