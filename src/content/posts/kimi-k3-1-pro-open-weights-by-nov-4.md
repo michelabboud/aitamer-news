@@ -30,6 +30,10 @@ sources:
     url: https://x.com/Kimi_Moonshot/status/2113680718249500786
   - title: "moonshotai models on Hugging Face"
     url: https://huggingface.co/moonshotai
+  - title: "Kimi.ai on K3.1 Pro rate limits and a one-time quota reset (X, 25 October 2026)"
+    url: https://x.com/Kimi_Moonshot/status/2114450610724708492
+  - title: "Moonshot resets subscriber quotas after Kimi K3.1 Pro launch issues (Reuters via CNA, 26 October 2026)"
+    url: https://www.channelnewsasia.com/business/moonshot-resets-subscriber-quotas-after-kimi-k31-pro-launch-issues-6491956
 ---
 
 Moonshot AI launched [Kimi K3.1 Pro](https://kimi.ai/blog/kimi-k3-1-pro) on 23 October. The tech blog calls it "the first model in our new K3.1 series and our most capable 3T-class open-weight model to date," with a 1-million-token context window. A second model, **Kimi K3.1 Pro Highspeed**, runs at 2 to 3 times the speed of K3.1 Pro, per Moonshot.
@@ -69,3 +73,9 @@ Moonshot says it removed cyber-related data from mid-training and from the reinf
 ## If you are on K2
 
 The pricing page says K2 series models will not be available to newly registered users from 31 October 2026, and that Moonshot plans to retire all K2 models by the end of December 2026. Existing users keep access until then. If you pin a K2 model in an app, plan the move now.
+
+## Update, 26 October 2026: Moonshot apologises for subscription limits and resets quotas
+
+Moonshot [apologised on X](https://x.com/Kimi_Moonshot/status/2114450610724708492) on 25 October "for the rate limits and unnecessary quota consumption on the K3.1 Pro subscription plan," adding: "These were our issues, and we should have fixed them sooner."
+
+Every subscriber on every plan gets a one-time usage reset that restores 25% of the monthly quota, which Moonshot says equals one week of usage. Anyone who had used less than 25% goes back to zero. Moonshot also says it has adjusted the plan and is cutting unnecessary subagent calls and output length so quota lasts longer. [Reuters](https://www.channelnewsasia.com/business/moonshot-resets-subscriber-quotas-after-kimi-k31-pro-launch-issues-6491956) notes Moonshot also had compute capacity problems after the K3 launch. The open-weights date in this post is unchanged.

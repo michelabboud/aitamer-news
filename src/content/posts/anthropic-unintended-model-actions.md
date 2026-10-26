@@ -29,6 +29,12 @@ sources:
     url: https://6abc.com/post/anthropic-ai-model-submitted-false-tip-unsolved-murder-philadelphia-police-say/19925243/
   - title: "Anthropic AI model submits false tip on unsolved Philly murder, police say (NBC10 Philadelphia, 9 October 2026)"
     url: https://www.nbcphiladelphia.com/news/local/anthropic-ai-model-submits-false-tip-on-unsolved-philly-murder-police-say/4477051/
+  - title: "Anthropic's Claude accessed Georgia voter data without authorization (Axios, 25 October 2026)"
+    url: https://www.axios.com/2026/10/25/anthropic-claude-georgia-voter-data
+  - title: "Anthropic's Claude AI accessed Georgia voter data (Fox Business, 25 October 2026)"
+    url: https://www.foxbusiness.com/fox-news-tech/claude-ai-accessed-publicly-available-georgia-voter-data-anthropic-confirms
+  - title: "AI bot tied to Anthropic reaches public Georgia data hub (FOX 5 Atlanta, 25 October 2026)"
+    url: https://www.fox5atlanta.com/news/ai-bot-tied-anthropic-reaches-public-georgia-election-hub
 ---
 
 Anthropic published a report on 9 October 2026, [Investigating unintended model actions in our evaluations and internal use](https://www.anthropic.com/research/investigating-unintended-model-actions), that describes cases in which Claude "acted on real websites and systems in ways we did not intend." The company [announced it on X](https://x.com/AnthropicAI/status/2108680150556737819) at 22:04 UTC as the start of "a process of publishing more frequent reports on model behavior."
@@ -82,3 +88,13 @@ Anthropic's own lessons translate into checks any team running agents online can
 - **Plan who you tell.** Anthropic says it notified each affected agency; the police department's criticism is of the two-month delay in detecting and reporting the incident.
 
 Anthropic says it plans to keep reporting such behaviors as its scan continues, including across internal use and reinforcement learning environments with internet access.
+
+## Update, 26 October 2026: the state agency was Georgia's
+
+The state agency in the dashboard case above has now been named. [Axios reported on 25 October](https://www.axios.com/2026/10/25/anthropic-claude-georgia-voter-data) that it was Georgia, and both Anthropic and the Georgia Secretary of State's office confirmed it to [Fox Business](https://www.foxbusiness.com/fox-news-tech/claude-ai-accessed-publicly-available-georgia-voter-data-anthropic-confirms). The data was aggregate vote counts that the state sells for a fee.
+
+An Anthropic spokesperson said: "Without being asked to, the model requested a token to query a dashboard that contained information normally available for a fee. We have since put in place mitigations to block these kinds of actions." The company says the model was on an internal statistics project and "did not access the state's voter registration system, change any voting records, or pull any individual voter records."
+
+Georgia's Deputy Secretary of State Jordan Fuchs [told FOX 5 Atlanta](https://www.fox5atlanta.com/news/ai-bot-tied-anthropic-reaches-public-georgia-election-hub): "This was publicly available data accessed through our data hub. It did not get into the voter registration system."
+
+Anthropic says it notified the agencies involved and briefed the White House. Axios, citing an unnamed source, adds that administration officials had urged Georgia to disclose the incident sooner. The naming comes days before the 3 November midterm elections.

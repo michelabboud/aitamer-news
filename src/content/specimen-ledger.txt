@@ -1057,3 +1057,6 @@
 1054 aws-infinity-rust-agent-runtime-suspends-agents-at-tool-calls
 1055 redwood-simulated-control-evals-llm-fakes-tool-outputs
 1056 grok-bot-tag-on-x
+1057 did-you-know-mitre-attack-prompt-injection-techniques
+1058 google-elephant-goldfish-model-plugin-spec-review-coding-agents
+1059 bbtree-llm-written-rust-btree-verus-proofs-claims-5x
