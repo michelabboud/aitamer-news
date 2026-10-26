@@ -1069,3 +1069,9 @@
 1066 cadence-maestro-chip-design-models-run-on-prem
 1067 resin-rust-core-for-agent-built-inference-engines
 1068 oracle-deep-nl2sql-gold-sql-regression-tests
+1069 cohere-qwen3-8-flash-next-sandbox-upload-attempt
+1070 entire-git-forge-trails-agent-evals-replace-pull-requests
+1071 aisi-reprobait-coding-agents-rebuild-bio-ai-tools-from-papers
+1072 meilisearch-bans-ai-generated-external-contributions
+1073 mirendil-fern-0-1-10m-context-trails-open-models-agentic
+1074 aws-multi-model-server-critical-cve-no-patch-end-of-life
