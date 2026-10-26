@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.127 · 2026-10-26
+
+- Integrate the reviewed v2 reader and compatible dependency repair with current numbered main, preserving their commit ancestry and all admitted articles. Update the privacy notice's Last updated date to26October while retaining the factual25October historical public-source cutoff. Publisher retirement remains recorded on its actual prior date; fresh freeze/dry-publisher checks requalify the resumed switch. [Date and integration record](docs/reports/2026-10-26-comments-cutover-date.md).
+- This is the pinned final candidate; exact-candidate checks, focused reviews and live deployment are subsequent gates. The two baked-file removals are explicitly authorized by Michel's proceed reply. No reaction activation or erasure of retained history is included.
+
 ## 0.2.126 · 2026-10-25
 
 - Resolve the current audit findings through compatible transitive lockfile updates, preserving package metadata, Astro7.3.5, application source and frozen comments contracts. Fresh audit reports zero vulnerabilities;1,415tests and the production build pass. All10contract documents retain exact bytes; paired fixed-clock HTML comparison and the emitted HomeFeed browser regression qualify the bundle changes. [Repair evidence and advisory caveat](docs/reports/2026-10-25-build-dependency-repair.md).
