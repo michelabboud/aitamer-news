@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { dirname, join } from 'node:path';
 import { parseArgs, parseRedirects, plan, smoke, titleOf } from './smoke-site.mjs';
@@ -108,7 +108,7 @@ async function host({ fault = null, faultPath = null, flakyFirst = 0, robots = n
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
-  return { base, close: () => new Promise((resolve) => server.close(resolve)) };
+  return { base, requests: () => served, close: () => new Promise((resolve) => server.close(resolve)) };
 }
 
 const FAST = { rounds: 1, roundDelayMs: 0, attempts: 1, attemptDelayMs: 0 };
@@ -218,6 +218,22 @@ test('an incomplete or report-only candidate artifact cannot supply deployment e
     } finally {
       await h.close();
     }
+  }
+});
+
+test('a candidate missing its authored 404 page fails before requesting a host fallback', async () => {
+  const dist = fixtureDist();
+  rmSync(join(dist, '404.html'));
+  const work = plan(dist);
+  assert.ok(work.findings.some((finding) => finding.includes('404.html') && finding.includes('missing')), work.findings.join(' | '));
+  const h = await host();
+  try {
+    const result = await smoke(h.base, 'production', dist, FAST);
+    assert.equal(result.ok, false);
+    assert.equal(result.checked, 0);
+    assert.equal(h.requests(), 0, 'a host-provided 404 cannot substitute for the absent candidate page');
+  } finally {
+    await h.close();
   }
 });
 

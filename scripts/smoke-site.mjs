@@ -155,7 +155,9 @@ export function plan(dist, maxPages = MAX_PAGES) {
     policies.set(path, { name, value, hashes });
   };
   for (const page of pages) expectPolicy(page.path, readFileSync(join(dist, all.find((p) => p.path === page.path).file), 'utf8'));
-  expectPolicy('/404.html', existsSync(join(dist, '404.html')) ? readFileSync(join(dist, '404.html'), 'utf8') : null);
+  const notFoundFile = join(dist, '404.html');
+  if (existsSync(notFoundFile)) expectPolicy('/404.html', readFileSync(notFoundFile, 'utf8'));
+  else findings.push('404.html: candidate not-found page is missing; run `npm run build` first');
   if (worker !== null) expectPolicy(`/${PAGEFIND_WORKER}`, null);
   for (const path of diagrams) expectPolicy(path, null, true);
   return { pages, files, sitemaps, redirects, diagrams, policies, worker, findings };
