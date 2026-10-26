@@ -1,5 +1,7 @@
 # Backlog
 
+- 2026-10-25 · build dependency audit · source fixed in0.2.126; review/integration pending — compatible lock resolutions leave npm audit at zero without source/contract changes. The http-cache-semantics advisory is disputed upstream; record audit range resolution rather than claiming a demonstrated security patch. See docs/reports/2026-10-25-build-dependency-repair.md.
+
 - 2026-10-25 · comments flip (S6) · open — The deploy's publisher step judges a push with the script as it was before the push, so the closed lanes (nothing may change) take effect from the first push after the flip is on `main`. Until then the old two-lane script is the judge; the publisher job is switched off on the desk's host first (cutover step C3), so no publisher push is expected in between.
 - 2026-10-25 · comments flip (S6) · open, accepted trade-off — Comments are no longer in the story page's first HTML or its JSON-LD (`commentCount` and `Comment` items are gone). `commentsJsonLd` and its tests stay in `src/lib/comment-text.ts` for the way back (ADR 0047), but no build uses the function; delete it only together with the bake-back path.
 - 2026-10-25 · comments flip (S6) · open — The reactions flip (task R6) must also move the privacy page's "Last updated" date and carry Part B of the approved wording byte for byte, in the same commit that sets `REACTIONS_LIVE = true`. The comments wording is live; the reactions paragraph is still the old text, behind `REACTIONS_LIVE`.

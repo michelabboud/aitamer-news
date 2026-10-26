@@ -1,5 +1,7 @@
 # Progress
 
+2026-10-25 — Source0.2.126 resolves13audit advisories across6transitive packages; fresh audit0vulnerabilities,1,415tests/build/CSP/content/link checks pass. Frozen contract bytes unchanged. Isolated branch based on the pending reader candidate; independent review, integration and deployment not established by this checkpoint. [Evidence](docs/reports/2026-10-25-build-dependency-repair.md).
+
 2026-10-25 — Source0.2.124 prepares revisioned v2 comment readers and schemas, preserving frozen v1 rollback. Full1,415tests/build/content checks pass. Independent review, browser acceptance, writer deployment and the site switch remain open. [Report](docs/reports/2026-10-25-comments-v2-reader.md).
 
 ## 0.2.123 · 2026-10-25 · the comments flip (prepared, merged at cutover)

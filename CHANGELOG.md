@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.126 · 2026-10-25
+
+- Resolve the current audit findings through compatible transitive lockfile updates, preserving package metadata, Astro7.3.5, application source and frozen comments contracts. Fresh audit reports zero vulnerabilities;1,415tests and the production build pass. All10contract documents retain exact bytes; paired fixed-clock HTML comparison and the emitted HomeFeed browser regression qualify the bundle changes. [Repair evidence and advisory caveat](docs/reports/2026-10-25-build-dependency-repair.md).
+- This checkpoint is a separate build-toolchain repair; it does not merge the pending comments cutover or claim live deployment. Independent review and integration remain separate gates.
+
 ## 0.2.125 · 2026-10-25
 
 - Match v2 browser timestamp validation to the published schemas: seconds are required. Independent review found the mismatch; the new case fails before correction and focused19/full1,415 tests pass afterward. Production build passes; stale v1 URL prose corrected. Source review found no blocking reader defect; final cutover gates remain open.
