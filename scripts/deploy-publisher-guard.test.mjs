@@ -14,7 +14,7 @@ import yaml from 'js-yaml';
 import { tempDir } from './test-support.mjs';
 
 const WORKFLOW = new URL('../.github/workflows/deploy-pages.yml', import.meta.url);
-const GUARD_STEP = 'The publisher may only have changed comment files';
+const GUARD_STEP = 'The publisher may change nothing';
 const PUBLISHER = '4242';
 const BEFORE = 'a'.repeat(40);
 const AFTER = 'b'.repeat(40);

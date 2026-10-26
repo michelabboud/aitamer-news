@@ -1,18 +1,31 @@
-# Comment data files
+# Comment data: the format, and a directory kept for the way back
 
-One file per post that has at least one approved comment: `<slug>.json`, named after the post
-under `src/content/posts/`. **The desk's publisher writes these files, and regenerates them from
-the desk's database on every run.** Nobody writes, rewords, reorders or removes anything here by
-hand in the normal course: a hand edit is overwritten by the next publish. To remove a comment,
-see "Removing a comment" below. Why this directory exists at all, and what it costs:
-`docs/adr/0006-comments-are-baked-static-from-published-data-files.md` and
-`docs/adr/0007-the-publisher-guard-as-built.md`.
+**Since the flip to `COMMENTS_SOURCE = 'r2'` this directory holds no comments, and no page renders anything from it.** The
+desk's moderation app publishes each story's approved comments, on approval, as `v1/comments/<slug>.json`
+to a public bucket served at `https://data.aitamer.news/` (`COMMENTS_DATA_BASE`, or
+`PUBLIC_COMMENTS_DATA_BASE` for a local build), together with `v1/comments-index.json` (the counts for
+the home and Campfire pages, `POST.md` section 8a). The story page fetches its file in the browser, with
+no credentials, checks its shape and builds the thread with DOM calls only (`textContent`, never
+`innerHTML`). `COMMENTS_SOURCE` in `src/lib/site.ts` is `'r2'`. The reasoning, the costs (comments are
+no longer in the first HTML or the structured data) and the way back are in
+`docs/adr/0047-comments-and-reaction-totals-are-read-in-the-browser-from-the-data-host.md`; it supersedes
+the baking of `docs/adr/0006-comments-are-baked-static-from-published-data-files.md` and the publisher's
+guard of `docs/adr/0007-the-publisher-guard-as-built.md` and `docs/adr/0008-the-publishers-second-lane.md`.
 
-This directory is empty of `.json` files until the first comment is published. That is normal:
-the build passes, and this `README.md` keeps the directory in git. **Nothing else belongs here:**
-every entry other than `README.md` must be a regular file named `<slug>.json` (lowercase slug,
-`.json` exactly). A symbolic link, a folder, `x.JSON`, `x.jsonc`, `x.json.bak` or a dotfile
-fails `npm run check:posts` naming the entry; links are never followed.
+**Nobody writes here.** The old publisher no longer runs for this site, and the `publisher-paths` check
+admits no change to this directory by any App. The baked files that existed before the flip were removed
+in the flip's pull request; they stay in git history (restorable by git), and a comment published before
+that day stays in the public history, which removal cannot reach (the privacy page says so).
+
+**Why the directory, its schema and its checks stay:** the format below is the contract the published
+files follow, byte for byte (`/contract/v1/comments.schema.json`, frozen by
+`src/content/comment-schema.v1.snapshot.json`), and the collection, its loader, `check:posts` and the
+server-side renderer are the way back to baked HTML. A later build step could pull `v1/comments/*.json`
+into this directory before `astro build`; it must also rebuild on every removal, or the baked page would
+outlive the 60-second removal promise. If that step is ever added, this README changes in the same pull
+request. Until then, every entry here other than `README.md` must still be a regular file named
+`<slug>.json` (lowercase slug, `.json` exactly). A symbolic link, a folder, `x.JSON`, `x.jsonc`,
+`x.json.bak` or a dotfile fails `npm run check:posts` naming the entry; links are never followed.
 
 ## Format v1
 
@@ -82,19 +95,6 @@ The full list, as code-point ranges and as ready-made character classes, is
 `FORBIDDEN_CHARACTERS` in `src/content/comment-schema.ts`; the renderer and the desk's
 normaliser use the same one.
 
-## The planned read path (not live)
-
-**Nothing described in this section happens yet.** The site bakes the files in this directory into its pages, exactly as above. `COMMENTS_SOURCE` in `src/lib/site.ts` is `'baked'`, and no built page reads from anywhere else.
-
-The code for the next read path is already in the tree, switched off, so that a later change can be a one-line flip. Under that plan the desk's moderation app would publish the same v1 comment files, byte for byte, to a public bucket served at `https://data.aitamer.news/` (`COMMENTS_DATA_BASE`, or `PUBLIC_COMMENTS_DATA_BASE` for a local build):
-
-| Object | What it is | Contract |
-|---|---|---|
-| `v1/comments/<slug>.json` | One story's comments. The file format above, unchanged. | `/contract/v1/comments.schema.json` |
-| `v1/comments-index.json` | Approved-comment counts per story and the newest comments site-wide. | `/contract/v1/comments-index.schema.json` (`src/content/comments-index-schema.ts`; format in `POST.md`, section 8a) |
-
-The browser would fetch a story's file once, with no credentials, check its shape and build the thread with DOM calls only (`textContent`, never `innerHTML`); the home and Campfire pages would fetch the index for their counts. This directory, its schema, its checks and the build-time renderer stay, so the files can still be baked back in. If that flip happens, this README changes in the same pull request: the files here would stop being the way comments reach the site, and the paragraph above about the publisher would no longer describe it. The reasoning, the costs (comments leave the first HTML and the structured data) and the way back are in `docs/adr/0047-comments-and-reaction-totals-are-read-in-the-browser-from-the-data-host.md`.
-
 ## What enforces it
 
 - `npm run check:posts` (`scripts/check-comments.mjs`): every entry in this directory is
@@ -108,23 +108,22 @@ The browser would fetch a story's file once, with no credentials, check its shap
 - The published contract, generated from the same schema: `/contract/comments.schema.json`
   (always the newest version) and `/contract/v1/comments.schema.json` (v1, frozen byte for byte
   by `src/content/comment-schema.v1.snapshot.json` and its test). The desk validates against it
-  before it commits. Its patterns are ECMA-262 without the `u` flag; a validator that compiles
+  before it publishes. Its patterns are ECMA-262 without the `u` flag; a validator that compiles
   them with the flag agrees for every character up to U+FFFF but lets the refused characters
   above it through, so such a validator should also apply `FORBIDDEN_CHARACTERS.ranges` — the
   build refuses them either way.
 
 ## Removing a comment
 
-**Use the desk's delete command** (part of the desk's moderation tool), with the comment's id.
-It takes the comment out of the desk's database and erases the stored name and text there; the
-next publish rewrites this file without it (or deletes the file, if it was the last comment), and
-the comment leaves the site at the deploy that follows.
+**Use the desk's delete command** (part of the desk's moderation tool), with the comment's id. It
+takes the comment out of the desk's database and erases the stored name and text there, then rewrites
+the story's `v1/comments/<slug>.json` on the data host (or deletes the object, if it was the last
+comment) and the index. The comment is gone from the data host at once and from the site within about
+a minute (the files are served with `Cache-Control: public, max-age=0, s-maxage=60`). The desk's
+private backup history keeps a record of the removed comment for 12 months and then erases it; the
+privacy page says so.
 
-**Do not delete the entry here and stop.** The publisher regenerates every file from the desk's
-database, so a comment removed only from this file comes back on the next publish. A hand edit
-is an emergency stopgap, for a comment that must leave the site before the next publish: delete
-its object from `comments` (or the whole file, if it was the last), commit it to `main`, and run the
-desk's delete for the same id **the same day**, or the comment returns.
+Nothing is removed by editing a file in this repository: nothing here is read.
 
-Either way, a published comment stays in this repository's public git history, which removal
+A comment published before the flip also stays in this repository's public git history, which removal
 cannot erase; the privacy page says so.

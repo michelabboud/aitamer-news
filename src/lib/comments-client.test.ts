@@ -25,7 +25,9 @@ import {
   type ClientRecentComment,
   type ThreadState,
 } from './comments-client.ts';
-import { COMMENTS_INDEX_KEY, commentsIndexSchema, COMMENTS_INDEX_RECENT_MAX, COMMENTS_INDEX_TEXT_MAX } from '../content/comments-index-schema.ts';
+import { commentsIndexV2Schema as commentsIndexSchema } from '../content/comments-index-schema-v2.ts';
+import { COMMENTS_INDEX_RECENT_MAX, COMMENTS_INDEX_TEXT_MAX } from '../content/comment-limits.ts';
+import { COMMENTS_V2_INDEX_KEY as COMMENTS_INDEX_KEY } from '../content/comment-v2-limits.ts';
 import { COMMENTS_PER_FILE_MAX } from '../content/comment-schema.ts';
 
 /**
@@ -39,16 +41,16 @@ const SLUG = 'the-gap-between-the-needles';
 const ID_A = '01K5ZQ8M3A0000000000000000';
 const ID_B = '01K5ZQ8M3B0000000000000000';
 
-const file = (comments: unknown[], slug = SLUG) => ({ version: 1, slug, generatedAt: '2026-10-24T10:00:00Z', comments });
+const file = (comments: unknown[], slug = SLUG) => ({ version: 2, revision: '1', slug, generatedAt: '2026-10-24T10:00:00Z', comments });
 const comment = (id: string, extra: Record<string, unknown> = {}) => ({ id, name: 'Ada', text: 'Hello there', at: '2026-10-24T09:00:00Z', ...extra });
 
 // ---- URLs ----
 
 test('URLs: the comments file and the index sit under the data base', () => {
-  assert.equal(commentsFileUrl(BASE, SLUG), `https://data.aitamer.news/v1/comments/${SLUG}.json`);
-  assert.equal(commentsIndexUrl(BASE), 'https://data.aitamer.news/v1/comments-index.json');
+  assert.equal(commentsFileUrl(BASE, SLUG), `https://data.aitamer.news/v2/comments/${SLUG}.json`);
+  assert.equal(commentsIndexUrl(BASE), 'https://data.aitamer.news/v2/comments-index.json');
   // A base with a path keeps it, and a local fixture server works the same way.
-  assert.equal(commentsFileUrl('http://127.0.0.1:4399/bucket/', 'a'), 'http://127.0.0.1:4399/bucket/v1/comments/a.json');
+  assert.equal(commentsFileUrl('http://127.0.0.1:4399/bucket/', 'a'), 'http://127.0.0.1:4399/bucket/v2/comments/a.json');
   // The index key is the contract's, not a second spelling of it.
   assert.equal(new URL(commentsIndexUrl(BASE)).pathname, `/${COMMENTS_INDEX_KEY}`);
 });
@@ -121,7 +123,7 @@ test('thread: a body that is not JSON, or a file the check refuses, is "invalid"
   assert.equal(unreadable.phase === 'failed' && unreadable.failure, 'invalid');
   const bad = [
     file([comment(ID_A)], 'another-story'), // a file for another page
-    { ...file([comment(ID_A)]), version: 2 },
+    { ...file([comment(ID_A)]), version: 1 },
     file([comment(ID_A), comment('not-a-ulid')]), // one bad comment rejects the whole file
     file([comment(ID_A, { text: '‮​' })]), // nothing visible once stripped
     file([comment(ID_A), comment(ID_A)]),
@@ -206,7 +208,7 @@ const recent = (slug: string, id: string, extra: Record<string, unknown> = {}) =
   slug, title: `Story ${slug}`, id, name: 'Ada', text: 'A comment', at: '2026-10-24T09:00:00Z', ...extra,
 });
 const index = (extra: Record<string, unknown> = {}) => ({
-  version: 1, site: 'aitamer', generatedAt: '2026-10-24T09:00:00Z',
+  version: 2, revision: '1', site: 'aitamer', generatedAt: '2026-10-24T09:00:00Z',
   counts: { 'story-a': 2, 'story-b': 1 },
   recent: [recent('story-a', ID_B), recent('story-b', ID_A, { signedIn: true, truncated: true })],
   ...extra,
@@ -226,7 +228,7 @@ test('index: a valid index gives every count and the recent comments, stripped',
 test('index: any violation refuses the whole index, naming the field and not the value', () => {
   const bad: [string, unknown][] = [
     ['not an object', []],
-    ['version', index({ version: 2 })],
+    ['version', index({ version: 1 })],
     ['counts not an object', index({ counts: [] })],
     ['count zero', index({ counts: { 'story-a': 0 } })],
     ['count fraction', index({ counts: { 'story-a': 1.5 } })],
@@ -263,7 +265,7 @@ test('index: cross-field rules the contract states for a reader refuse the whole
     ['duplicate id', index({ counts: { 'story-a': 2 }, recent: [recent('story-a', ID_B), recent('story-a', ID_B)] })],
     ['slug missing from counts', index({ counts: { 'story-a': 2 }, recent: [recent('story-a', ID_B), recent('story-b', ID_A)] })],
     ['more recent entries than the count', index({ counts: { 'story-a': 1 }, recent: [recent('story-a', ID_B), recent('story-a', ID_A)] })],
-    ['generatedAt is not the first at', index({ generatedAt: T10 })],
+    ['generatedAt is before a recent at', index({ generatedAt: '2026-10-24T08:00:00Z' })],
     ['generatedAt missing with a recent entry', (({ generatedAt: _gone, ...rest }) => rest)(index())],
     ['older entry before a newer one', index({ generatedAt: T09, recent: [recent('story-a', ID_B, { at: T09 }), recent('story-b', ID_A, { at: T10 })] })],
     ['same at, id ascending', index({ recent: [recent('story-b', ID_A), recent('story-a', ID_B)] })],
@@ -296,7 +298,7 @@ test('index: the reader for the data host takes a 404 as an empty index and refu
   assert.deepEqual(commentsIndexReader.missing(), { counts: new Map(), recent: [] });
   const accepted = commentsIndexReader.accept(index());
   assert.equal(accepted.ok, true);
-  assert.equal(commentsIndexReader.accept(index({ generatedAt: T10 })).ok, false);
+  assert.equal(commentsIndexReader.accept(index({ generatedAt: '2026-10-24T08:00:00Z' })).ok, false);
 });
 
 test('Around the fire: only stories this page lists, newest first as the index has them, capped, linked to the comment', () => {

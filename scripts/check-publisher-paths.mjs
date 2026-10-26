@@ -1,8 +1,14 @@
 #!/usr/bin/env node
 /**
- * The publisher path guard (phase 2 plan D12, ADR 0006; widened to two lanes by ADR 0008): the
- * desk's publisher may add, change or delete `src/content/comments/<slug>.json` and
- * `src/content/reactions/<slug>.json`, and nothing else.
+ * The publisher path guard (phase 2 plan D12, ADR 0006; widened to two lanes by ADR 0008; the
+ * lanes closed by ADR 0047): the desk's publisher may change **nothing**. Until the comments
+ * flip (ADR 0047) it could add, change or delete `src/content/comments/<slug>.json` and
+ * `src/content/reactions/<slug>.json`; the desk's moderation app now publishes comments to the
+ * data host (`data.aitamer.news`) and the comments Worker will write reaction totals there (the
+ * later reactions flip), so no App commits comment or reaction files to this repository any more. The check keeps its name,
+ * because the branch rulesets require `publisher-paths` by it, and it keeps judging every pull
+ * request and every publisher push: with no lane to admit, any changed path fails. The App
+ * lanes below (posts authors, Grok, Quill) are separate and unchanged.
  *
  *   node scripts/check-publisher-paths.mjs pr --base <sha> --head <sha>
  *     PR_ACTION        github.event.action (opened, synchronize, reopened, edited)
@@ -34,17 +40,13 @@
  * else (the publisher, say) may have pushed the head. An unset, empty or non-numeric
  * `MAINTAINER_ID` exempts nobody.
  *
- * The rule: every changed path must be `<lane><slug>.json` in one of the two lanes,
- * `src/content/comments/` and `src/content/reactions/` — not nested, not another name or
- * extension, not a path outside the directories; a rename git detects must start and end inside
- * **the same** lane (a comment file never becomes a reactions file, or the reverse). That last rule
- * is a tripwire, not a guarantee: git pairs a deletion and an addition as a rename only when the
- * two files are at least half alike, so a deletion in one lane plus a dissimilar addition in the
- * other is judged as two lane changes and passes — both are paths the publisher may write. What
- * holds each lane to its own shape is its contract, which the required check `check` enforces
- * (ADR 0008, amendment of 2026-09-26). A deletion is allowed
- * (that is how a thread empties, or a story's reactions go back to none); an added or changed file
- * must be a plain, non-executable file (mode 100644): no symlink, no submodule, no executable bit.
+ * The rule: a pull request that is not in one of the App lanes below, and a push by the
+ * publisher, may change **no path at all**. Every changed path is reported, whatever its status
+ * (added, changed, deleted, renamed) and whatever its mode. A change set with no path (an empty
+ * push) passes: there is nothing to refuse. To admit a publisher lane again, restore this
+ * check's lane list from git history (the commit before the flip) together with the rulesets
+ * and the deploy guard, and write the ADR that says why (ADR 0047 keeps the way back to baked
+ * comments open as a build step that pulls the data host's files in; it does not need a lane).
  *
  * The posts App's authors lane (ADR 0018), pull requests only: a pull request whose author AND
  * this event's sender are the posts App (numeric id, repository variable `POSTS_ACTOR_ID`, compared
@@ -102,25 +104,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { SLUG } from './slug.mjs';
 
-/** The comment data files' directory: the publisher's first lane (ADR 0006, ADR 0007). */
-export const COMMENTS_LANE = 'src/content/comments/';
-/** The reactions data files' directory: the publisher's second lane (ADR 0008). */
-export const REACTIONS_LANE = 'src/content/reactions/';
-/** Every directory the publisher may write into, and nothing else. */
-export const PUBLISHER_LANES = Object.freeze([COMMENTS_LANE, REACTIONS_LANE]);
-
-/** `<lane><slug>.json`, and only that: the slug rule is the posts' (`scripts/slug.mjs`). */
-const laneFilePath = (lane) => new RegExp(`^${lane.replace(/[/.]/g, '\\$&')}${SLUG.source.slice(1, -1)}\\.json$`);
-/** `src/content/comments/<slug>.json`, exactly. */
-export const COMMENT_FILE_PATH = laneFilePath(COMMENTS_LANE);
-/** `src/content/reactions/<slug>.json`, exactly. */
-export const REACTION_FILE_PATH = laneFilePath(REACTIONS_LANE);
-const LANE_FILE_PATHS = new Map([
-  [COMMENTS_LANE, COMMENT_FILE_PATH],
-  [REACTIONS_LANE, REACTION_FILE_PATH],
-]);
-/** How the messages name what may change. */
-const LANES_TEXT = PUBLISHER_LANES.map((lane) => `${lane}<slug>.json`).join(' or ');
+/** What the messages say the publisher may change: ADR 0047 closed both of its lanes. */
+const PUBLISHER_MAY_CHANGE = 'the publisher may change nothing';
 
 /** git tree entry modes. Only a plain file may be added or changed. */
 export const MODE_FILE = '100644';
@@ -141,8 +126,6 @@ const OBJECT_ID = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
 /** The id a push event carries as `before` when there was no previous commit. */
 const NULL_OBJECT_ID = /^0+$/;
 
-/** `git diff --name-status` letters that leave a file in the new tree. `D` is the other kept one. */
-const PRESENT_STATUSES = new Set(['A', 'M', 'R', 'C', 'T']);
 const STATUS_TOKEN = /^([A-Z])([0-9]{0,3})$/;
 /** Output larger than this is not a publisher batch; git's output is refused rather than truncated. */
 const GIT_MAX_BUFFER = 256 * 1024 * 1024;
@@ -692,18 +675,6 @@ export function authorContentProblems({ status, path, baseText, mainText, headTe
   return problems;
 }
 
-/** @param {unknown} path @returns {string | null} the lane `path` is a data file of, or null when it is in none */
-export function laneOf(path) {
-  if (typeof path !== 'string') return null;
-  for (const [lane, pattern] of LANE_FILE_PATHS) if (pattern.test(path)) return lane;
-  return null;
-}
-
-/** @param {unknown} path @returns {boolean} whether `path` is a data file in one of the publisher's lanes */
-export function inPublisherLane(path) {
-  return laneOf(path) !== null;
-}
-
 /** @param {unknown} value @returns {string | null} the trimmed account id, or null when it is not one */
 export function accountId(value) {
   const text = typeof value === 'string' ? value.trim() : typeof value === 'number' ? String(value) : '';
@@ -770,47 +741,25 @@ export function parseHeadModes(text) {
 }
 
 /**
- * The problems with one changed file. Pure.
+ * The problems with one changed file. Pure. The publisher has no lane (ADR 0047), so a change to
+ * any path, of any status, is a problem; a rename or a copy names where it came from as well.
  * @param {{ status: string, path: string, from?: string }} change one entry of `parseNameStatus`
- * @param {Map<string, string>} modes path → mode in the tree being judged
- * @returns {string[]} each naming the file; empty when the change is one the publisher may make
+ * @returns {string[]} each naming the file; empty only for no change at all (never for a named path)
  */
-export function fileProblems(change, modes) {
+export function fileProblems(change) {
   const { status, path, from } = change;
   if (typeof path !== 'string' || path === '') return ['a changed file has no name'];
-  const problems = [];
-  const lane = laneOf(path);
-  if (lane === null) {
-    problems.push(`${path}: outside the publisher's lanes; only ${LANES_TEXT} may change`);
-  }
-  if (status === 'D') return problems;
-  if (status === 'R') {
-    const fromLane = laneOf(from);
-    if (fromLane === null) {
-      problems.push(`${path}: renamed from ${typeof from === 'string' ? from : '(unknown)'}, which is outside the publisher's lanes`);
-    } else if (lane !== null && fromLane !== lane) {
-      problems.push(`${path}: renamed from ${from}, in another lane; a file never moves between ${PUBLISHER_LANES.join(' and ')}`);
-    }
-  }
-  if (!PRESENT_STATUSES.has(status)) {
-    problems.push(`${path}: unexpected change status ${JSON.stringify(status)}`);
-  }
-  const mode = modes.get(path);
-  if (mode === undefined) {
-    problems.push(`${path}: not in the tree being checked, so its mode cannot be checked`);
-  } else if (mode !== MODE_FILE) {
-    problems.push(`${path}: is ${MODE_NAMES[mode] ?? `mode ${mode}`} (${mode}); only a plain file (${MODE_FILE}) may be added or changed`);
-  }
-  return problems;
+  const origin = (status === 'R' || status === 'C') ? ` (${status === 'R' ? 'renamed' : 'copied'} from ${typeof from === 'string' ? from : '(unknown)'})` : '';
+  return [`${path}: outside the publisher's lanes${origin}; ${PUBLISHER_MAY_CHANGE}`];
 }
 
 /**
  * Every problem with a set of changes. Pure.
- * @param {{ changes: { status: string, path: string, from?: string }[], modes: Map<string, string> }} input
+ * @param {{ changes: { status: string, path: string, from?: string }[] }} input
  * @returns {string[]}
  */
-export function changeProblems({ changes, modes }) {
-  return changes.flatMap((change) => fileProblems(change, modes));
+export function changeProblems({ changes }) {
+  return changes.flatMap((change) => fileProblems(change));
 }
 
 /** @param {string} cwd @param {string[]} args @returns {string} git's stdout */
@@ -1067,7 +1016,7 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   }
   const count = collected.changes.length;
   if (problems.length === 0) {
-    const what = quill.applies ? `all ${GROK_ALLOWED_TEXT}, written as ${QUILL_LANE_AUTHORS.join(' or ')}` : grok.applies ? `all ${GROK_ALLOWED_TEXT}` : lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `all ${LANES_TEXT}`;
+    const what = quill.applies ? `all ${GROK_ALLOWED_TEXT}, written as ${QUILL_LANE_AUTHORS.join(' or ')}` : grok.applies ? `all ${GROK_ALLOWED_TEXT}` : lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `none allowed (${PUBLISHER_MAY_CHANGE})`;
     console.log(`check:publisher: ${count} changed file${count === 1 ? '' : 's'} in this ${subject}, ${what} (${why}).`);
     return 0;
   }

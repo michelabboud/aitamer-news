@@ -43,7 +43,6 @@ import {
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 import { DEFAULT_SOCIAL_IMAGE, resolveMedia, shareImageUrl } from '../../lib/media';
-import { commentsJsonLd } from '../../lib/comment-text';
 import HeroImage from '../../components/HeroImage.astro';
 
 export async function getStaticPaths() {
@@ -138,9 +137,9 @@ const jsonLd = withdrawn
       publisher: publisherOrganization(),
       citation: data.sources?.map((source) => source.url),
       isAccessibleForFree: true,
-      // Approved reader comments: the count, and the newest few as schema.org Comments. Only while
-      // they are baked: read in the browser (`COMMENTS_SOURCE = 'r2'`) they are not in the build to describe.
-      ...(COMMENTS_SOURCE === 'baked' ? commentsJsonLd(comments, canonical) : {}),
+      // No comment count or schema.org Comments: comments are read in the browser from the data host
+      // (`COMMENTS_SOURCE = 'r2'`, ADR 0047), so they are not in the build to describe. `commentsJsonLd`
+      // stays in `comment-text.ts` for the way back to baked HTML.
     };
 const breadcrumbs = {
   '@context': 'https://schema.org',

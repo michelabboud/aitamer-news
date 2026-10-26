@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.2.127 · 2026-10-26
+
+- Integrate the reviewed v2 reader and compatible dependency repair with current numbered main, preserving their commit ancestry and all admitted articles. Update the privacy notice's Last updated date to26October while retaining the factual25October historical public-source cutoff. Publisher retirement remains recorded on its actual prior date; fresh freeze/dry-publisher checks requalify the resumed switch. [Date and integration record](docs/reports/2026-10-26-comments-cutover-date.md).
+- This is the pinned final candidate; exact-candidate checks, focused reviews and live deployment are subsequent gates. The two baked-file removals are explicitly authorized by Michel's proceed reply. No reaction activation or erasure of retained history is included.
+
+## 0.2.126 · 2026-10-25
+
+- Resolve the current audit findings through compatible transitive lockfile updates, preserving package metadata, Astro7.3.5, application source and frozen comments contracts. Fresh audit reports zero vulnerabilities;1,415tests and the production build pass. All10contract documents retain exact bytes; paired fixed-clock HTML comparison and the emitted HomeFeed browser regression qualify the bundle changes. [Repair evidence and advisory caveat](docs/reports/2026-10-25-build-dependency-repair.md).
+- This checkpoint is a separate build-toolchain repair; it does not merge the pending comments cutover or claim live deployment. Independent review and integration remain separate gates.
+
+## 0.2.125 · 2026-10-25
+
+- Match v2 browser timestamp validation to the published schemas: seconds are required. Independent review found the mismatch; the new case fails before correction and focused19/full1,415 tests pass afterward. Production build passes; stale v1 URL prose corrected. Source review found no blocking reader defect; final cutover gates remain open.
+
+## 0.2.124 · 2026-10-25
+
+- Prepare the cutover for revisioned v2 comments and index files, including empty story envelopes. Preserve frozen v1 schemas/routes and baked rollback validation; errors never fall back to legacy text. [Source verification](docs/reports/2026-10-25-comments-v2-reader.md):1,415tests pass, production build/content checks pass. Writer deployment, legacy URL retirement and the actual site switch remain separate gates.
+
+## 0.2.123 · 2026-10-25
+
+The comments flip (pull request B of the comments-on-R2 plan, ADR 0047 amendment). **This pull request must not merge before cutover steps C1 to C3** (publishing to the data host is on, the data files are verified, and the old publisher has stopped for this site); the coordinator merges it at C4.
+
+- Comments are read in the browser from `https://data.aitamer.news/`: `COMMENTS_SOURCE = 'r2'`. Every story page carries `data-comments-base`, and the Content-Security-Policy gains the data origin in `connect-src`. `REACTIONS_SOURCE` stays `'baked'` and `REACTIONS_LIVE` stays `false`.
+- The two baked comment files (`the-gap-between-the-needles.json`, `detectorscope-auditable-ai-text-detectors.json`) leave the tree, restorable by git. `src/content/comments/README.md` is rewritten for the data-host era. The story page no longer carries `commentCount` or `Comment` items in its structured data.
+- The held-comment message reads "Thanks. Your comment is waiting for the desk. Once it is approved it appears here within about a minute."
+- The publisher has no lane: `scripts/check-publisher-paths.mjs` refuses every changed path from a pull request that is held to the rule and from a publisher push (the required check keeps its name), and the deploy's step is renamed "The publisher may change nothing". Both former lanes (comments and reactions) close together because the publisher job retires as a whole.
+- Privacy page: the comments wording approved by Michel on 2026-10-25 (items A1 and A2: the data host request, the private backup history, the 12-month record of a removed comment). "Last updated" stays 25 October 2026 and the sentence "Comments published before 25 October 2026 were also part of the site's public source history" carries the same date; if the cutover happens on a later day, both dates are updated in a final commit. Items A4 and A5 were already live (0.2.122); Part B (reactions) is untouched.
+- Docs: ADR index supersession links (0006 and 0008 superseded, 0007 amended) and an amendment to ADR 0047; `ARCHITECTURE.md`, `README.md`, `POST.md`, `CONTRIBUTING.md`, `PLAN.md`, `PROGRESS.md`, `BACKLOG.md`. Template first (private repository 0.0.76), copied here byte for byte except the files that exist only here.
+
 ## 0.2.122 · 2026-10-25
 
 The privacy page now says the database's restorable backups last up to 7 days, not 30, in the two sentences that said so (the opening paragraph of the comments section and the removal item), and "Last updated" moves to 25 October 2026. The account is on Cloudflare's Free plan, where D1 Time Travel keeps 7 days; the page was wrong in the reader's disfavour. This is a correction to text that is already live and does not depend on the switch-over to the data host. The reactions paragraph is unchanged. Only `src/pages/privacy.astro` changed in code; the file is byte for byte the private template's (0.0.75).

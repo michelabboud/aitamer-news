@@ -4,8 +4,9 @@
  *
  *   node scripts/check-comments.mjs   exit 1 when a comment file has no post, or is not what it says it is
  *
- * The desk's publisher writes `src/content/comments/<slug>.json` (ADR 0006); a human only ever
- * removes. The rules — what belongs in the directory, the file parses, its `slug` is its name, its
+ * Until the comments flip (ADR 0047) the desk's publisher wrote `src/content/comments/<slug>.json`
+ * (ADR 0006); since then the directory holds no comments, and this check stays for the way back to
+ * baked HTML (ADR 0047, "Consequences"). The rules — what belongs in the directory, the file parses, its `slug` is its name, its
  * post exists — are shared with the reactions check and live in `./data-files.mjs`; this file
  * binds them to the comment directory and keeps the names the rest of the repository imports.
  * Everything else about a file — every field and its rules — is the strict schema's job, at

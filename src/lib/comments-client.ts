@@ -4,15 +4,14 @@
  *
  * - **Where the files are:** {@link commentsFileUrl} and {@link commentsIndexUrl} build the two URLs
  *   on the public data host from `COMMENTS_DATA_BASE`, refusing anything but an absolute https (http for a loopback host)
- *   base and a contract slug, so a page can only ever ask for `v1/comments/<slug>.json` or
- *   `v1/comments-index.json` there.
+ *   base and a contract slug, so a page can only ever ask for `v2/comments/<slug>.json` or
+ *   `v2/comments-index.json` there.
  * - **What the story page shows:** {@link threadTransition} is the thread's state machine
- *   (loading, the list, empty, failed with a retry). A 404 is the empty state, because a story with
- *   no approved comment has no object. A file is shown only after `validateCommentFile`
- *   (`./comment-dom.ts`) accepted all of it; any violation is the failed state, so a bad file shows
- *   nothing rather than part of itself.
+ *   (loading, the list, empty, failed with a retry). A missing projection (404) or an empty
+ *   withdrawal envelope is the empty state. A file is shown only after `validateCommentFileV2`
+ *   accepted all of it; any violation is the failed state. V1 responses are refused, with no legacy fallback.
  * - **What the list pages show:** {@link validateCommentsIndex} checks the comments index
- *   (`../content/comments-index-schema.ts`) the same way before a count or a name reaches a page;
+ *   (`../content/comments-index-schema-v2.ts`) the same way before a count or a name reaches a page;
  *   {@link countFor} and {@link aroundTheFire} merge it into the page's own stories.
  * - **Deep links:** {@link deepLinkCommentId} reads `#c-<id>`, the anchor the baked thread has
  *   always used (`commentAnchor`), so every link already out there keeps working.
@@ -23,8 +22,8 @@
  * `CommentIndexLive.astro` (the counts and "Around the fire") do the fetching and the DOM.
  */
 import {
-  COMMENTS_INDEX_CONTRACT_VERSION,
-  COMMENTS_INDEX_KEY,
+  COMMENT_CONTRACT_VERSION,
+  COMMENTS_INDEX_SITE_MAX,
   COMMENTS_INDEX_RECENT_MAX,
   COMMENTS_INDEX_STORIES_MAX,
   COMMENTS_INDEX_TEXT_MAX,
@@ -35,7 +34,8 @@ import {
   COMMENT_SLUG_MAX,
   ULID,
 } from '../content/comment-limits.ts';
-import { codePointsWithin, validateCommentFile, visibleAfterStrip, type ClientComment } from './comment-dom.ts';
+import { codePointsWithin, validateCommentFile, visibleAfterStrip, type ClientComment, type CommentFileCheck } from './comment-dom.ts';
+import { COMMENT_V2_CONTRACT_VERSION, COMMENTS_V2_FILE_PREFIX, COMMENTS_V2_INDEX_KEY, isCommentUtcInstant, parseCommentRevision } from '../content/comment-v2-limits.ts';
 import { commentAnchor, commentCountLabel, stripInvisible, truncateGraphemes } from './comment-text.ts';
 import {
   DATA_FETCH_TIMEOUT_MS,
@@ -51,7 +51,7 @@ import {
 export { dataBaseUrl };
 
 /** Where a story's comments file sits under the data host's base, before `<slug>.json`. */
-export const COMMENTS_FILE_PREFIX = 'v1/comments/';
+export const COMMENTS_FILE_PREFIX = COMMENTS_V2_FILE_PREFIX;
 /** How long the page waits for a data file before it shows the failed state: the data host's ({@link DATA_FETCH_TIMEOUT_MS}). */
 export const COMMENTS_FETCH_TIMEOUT_MS = DATA_FETCH_TIMEOUT_MS;
 
@@ -96,7 +96,7 @@ function isSlug(value: unknown): value is string {
 }
 
 /**
- * @returns the URL of a story's comments file, `<base>v1/comments/<slug>.json`
+ * @returns the URL of a story's comments file, `<base>v2/comments/<slug>.json`
  * @throws TypeError when the base is not a data base ({@link dataBaseUrl}) or `slug` is not a slug
  */
 export function commentsFileUrl(base: string, slug: string): string {
@@ -106,11 +106,11 @@ export function commentsFileUrl(base: string, slug: string): string {
 }
 
 /**
- * @returns the URL of the comments index, `<base>v1/comments-index.json`
+ * @returns the URL of the comments index, `<base>v2/comments-index.json`
  * @throws TypeError when the base is not a data base ({@link dataBaseUrl})
  */
 export function commentsIndexUrl(base: string): string {
-  return new URL(COMMENTS_INDEX_KEY, dataBaseUrl(base)).href;
+  return new URL(COMMENTS_V2_INDEX_KEY, dataBaseUrl(base)).href;
 }
 
 // ---- The story page's thread ---------------------------------------------------------------
@@ -137,11 +137,33 @@ export function initialThreadState(): ThreadState {
   return { phase: 'loading', attempt: 1 };
 }
 
+/** V2 envelopes reuse the frozen v1 comment renderer checks, after accepting v2 metadata only. */
+export function validateCommentFileV2(value: unknown, slug: string): CommentFileCheck {
+  if (!isSlug(slug)) throw new TypeError('validateCommentFileV2: the page slug is not a slug');
+  if (!isRecord(value)) return { ok: false, reason: 'the file is not a JSON object' };
+  if (value.version !== COMMENT_V2_CONTRACT_VERSION) return { ok: false, reason: `version is not ${COMMENT_V2_CONTRACT_VERSION}` };
+  if (parseCommentRevision(value.revision) === null) return { ok: false, reason: 'revision is not a canonical positive decimal string of at most 40 digits' };
+  if (!isCommentUtcInstant(value.generatedAt)) return { ok: false, reason: 'generatedAt is not an ISO-8601 UTC time' };
+  // The input version was checked above. Reusing comment-level checks does not accept a v1 response.
+  const check = validateCommentFile({ ...value, version: COMMENT_CONTRACT_VERSION }, slug);
+  if (!check.ok) return check;
+  const generatedAt = Date.parse(value.generatedAt);
+  for (const [position, comment] of check.comments.entries()) {
+    if (!isCommentUtcInstant(comment.at)) return { ok: false, reason: `comments[${position}].at is not an ISO-8601 UTC time` };
+    const at = Date.parse(comment.at);
+    if (at > generatedAt) return { ok: false, reason: `comments[${position}].at is later than generatedAt` };
+    if (position > 0 && at < Date.parse(check.comments[position - 1].at)) {
+      return { ok: false, reason: `comments[${position}] breaks the oldest-first order` };
+    }
+  }
+  return check;
+}
+
 function threadReader(slug: string): DataReader<ClientComment[]> {
   return {
     missing: () => [],
     accept: (body) => {
-      const check = validateCommentFile(body, slug);
+      const check = validateCommentFileV2(body, slug);
       return check.ok ? { ok: true, value: check.comments } : check;
     },
   };
@@ -157,8 +179,8 @@ function asLoad(state: ThreadState): LoadState<ClientComment[]> {
  * The thread's state machine: the data host's {@link loadTransition}, read for a comments file.
  * - `retry` leaves only the failed state, to loading with the next attempt; anywhere else it is ignored.
  * - An answer counts only while loading, and only for the attempt in flight; any other is stale and ignored.
- * - 404 is empty: no approved comment, so no object. Another non-2xx, a network error or the
- *   timeout is `unavailable`. A 2xx whose body is not JSON, or that `validateCommentFile` refuses,
+ * - 404 is empty: no projection yet. Another non-2xx, a network error or the
+ *   timeout is `unavailable`. A 2xx whose body is not JSON, or that `validateCommentFileV2` refuses,
  *   is `invalid`. A valid file with no comments is empty too.
  * Returns `state` itself when the event changes nothing.
  * @param slug the page's own slug; the file must name it
@@ -249,23 +271,27 @@ function sortedKeyOrder(keys: readonly string[]): string[] {
 
 /**
  * Checks the comments index fetched in the browser before any of it reaches a page. Every rule the
- * contract states for a reader (`../content/comments-index-schema.ts`, POST.md section 8a) is
- * enforced here except rule 8 (a story whose title cannot be found is left out), which only the
+ * contract states for a reader (`../content/comments-index-schema-v2.ts`) is
+ * enforced here except omission of a story whose title cannot be found, which only the
  * desk can know; a file that breaks one is refused whole.
- * - `version` is the contract's; `counts` maps at most {@link COMMENTS_INDEX_STORIES_MAX} slugs, keys
+ * - `version` is 2, `revision` is a canonical positive decimal string of at most 40 digits; `counts` maps at most {@link COMMENTS_INDEX_STORIES_MAX} slugs, keys
  *   sorted ascending, to whole numbers from 1 to {@link COMMENTS_PER_FILE_MAX}.
  * - `recent` holds at most {@link COMMENTS_INDEX_RECENT_MAX} comments, each with a slug, a title, a
  *   ULID, a name and a text within their caps and still visible once stripped, a readable `at`, and
  *   `signedIn` and `truncated` absent or `true`.
  * - Across entries: ids are unique; `recent` is newest first by `at`, equal times by id descending;
  *   every slug is a key of `counts` and `recent` holds no more comments of a story than its count;
- *   when `recent` is not empty, `generatedAt` equals the first entry's `at`.
+ *   every `at` is no later than the informational UTC `generatedAt`; generation need not equal
+ *   the newest comment time.
  * The one thing not checked is the order of a `counts` slug made only of digits, which a
- * JavaScript reader cannot see (the schema's description says so). `site` is not shown, so not checked.
+ * JavaScript reader cannot see (the schema's description says so). Envelope metadata is checked but never shown.
  */
 export function validateCommentsIndex(value: unknown): CommentsIndexCheck {
   if (!isRecord(value)) return { ok: false, reason: 'the index is not a JSON object' };
-  if (value.version !== COMMENTS_INDEX_CONTRACT_VERSION) return { ok: false, reason: `version is not ${COMMENTS_INDEX_CONTRACT_VERSION}` };
+  if (value.version !== COMMENT_V2_CONTRACT_VERSION) return { ok: false, reason: `version is not ${COMMENT_V2_CONTRACT_VERSION}` };
+  if (parseCommentRevision(value.revision) === null) return { ok: false, reason: 'revision is not a canonical positive decimal string of at most 40 digits' };
+  if (!isCommentUtcInstant(value.generatedAt)) return { ok: false, reason: 'generatedAt is not an ISO-8601 UTC time' };
+  if (!isSlug(value.site) || value.site.length > COMMENTS_INDEX_SITE_MAX) return { ok: false, reason: 'site is not a site slug' };
   const { counts, recent } = value;
   if (!isRecord(counts)) return { ok: false, reason: 'counts is not an object' };
   const keys = Object.keys(counts);
@@ -301,7 +327,8 @@ export function validateCommentsIndex(value: unknown): CommentsIndexCheck {
     if (typeof text !== 'string' || !codePointsWithin(text, COMMENTS_INDEX_TEXT_MAX)) {
       return { ok: false, reason: `${where}.text is not a string of 1 to ${COMMENTS_INDEX_TEXT_MAX} characters` };
     }
-    if (typeof at !== 'string' || !Number.isFinite(Date.parse(at))) return { ok: false, reason: `${where}.at is not a time` };
+    if (!isCommentUtcInstant(at)) return { ok: false, reason: `${where}.at is not an ISO-8601 UTC time` };
+    if (Date.parse(at) > Date.parse(value.generatedAt)) return { ok: false, reason: `${where}.at is later than generatedAt` };
     if (signedIn !== undefined && signedIn !== true) return { ok: false, reason: `${where}.signedIn is neither absent nor true` };
     if (truncated !== undefined && truncated !== true) return { ok: false, reason: `${where}.truncated is neither absent nor true` };
     const cleanTitle = visibleAfterStrip(title);
@@ -325,7 +352,6 @@ export function validateCommentsIndex(value: unknown): CommentsIndexCheck {
     }
     checked.push({ slug, title: cleanTitle, id, name: cleanName, text: cleanText, at });
   }
-  if (checked.length > 0 && value.generatedAt !== checked[0].at) return { ok: false, reason: 'generatedAt is not the at of the first recent entry' };
   return { ok: true, counts: countMap, recent: checked };
 }
 

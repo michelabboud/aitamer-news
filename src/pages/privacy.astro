@@ -7,7 +7,7 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
   <h1 class="page-title">Privacy</h1>
   <div class="article">
     <p class="lede">
-      {SITE.title} does not run accounts or a mailing list.{CONTACT_FORM_LIVE ? ' The about page can email the desk.' : ' The contact form on the about page opens soon.'} Last updated 25 October 2026.
+      {SITE.title} does not run accounts or a mailing list.{CONTACT_FORM_LIVE ? ' The about page can email the desk.' : ' The contact form on the about page opens soon.'} Last updated 26 October 2026.
     </p>
     <div class="article__body">
       <p>
@@ -15,8 +15,11 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         It does not record who subscribes.
       </p>
       <p>
-        Comments under a story are built into the page from the desk's own records. Nothing is
-        loaded from a comment host when you read one. To post a comment, the form on the story page
+        Comments under a story are kept by the desk. A published comment is stored as a small
+        public file at data.{SITE.domain} (a storage service run by Cloudflare), and your browser
+        loads it when you open the story. Loading it sends what every web request sends (your IP
+        address and browser details) to Cloudflare, which serves this whole site; the desk keeps no
+        record of who loads comments. To post a comment, the form on the story page
         sends your name, the comment text, a timing value measured from when the page opened or your last successful comment, and a
         check from Cloudflare Turnstile that you are not a bot, to comments.{SITE.domain}. No email
         address is asked. A comment waits for the desk to read and approve it before anyone else
@@ -59,12 +62,17 @@ import { CONTACT_FORM_LIVE, REACTIONS_LIVE, SITE, TURNSTILE_SITE_KEY, withBase }
         </li>
       </ul>
       <p>
-        A published comment is public. It appears on the story's page, on the{' '}
-        <a href={withBase('/campfire/')}>Campfire</a> page with the other newest comments, and in the
-        story page's structured data (the machine-readable summary search engines read). The site's
-        source is public on GitHub, and a published comment is part of its history there. Removing a
-        comment takes it off the site and erases its name and text from the desk's database, but it
-        cannot erase it from that public history.
+        A published comment is public. It appears on the story's page and on the{' '}
+        <a href={withBase('/campfire/')}>Campfire</a> page with the other newest comments, and both
+        read it from a public file at data.{SITE.domain}. The desk also keeps a private backup
+        history of published comments, on its own computer and in a private repository on GitHub (a
+        code-hosting service). Removing a comment erases its name and text from the desk's database
+        at once and takes it off the site within about a minute. The private backup history keeps a
+        record of the removed comment for 12 months, so the desk can answer a complaint or a legal
+        request about it, and then the desk erases it there and asks GitHub to purge any copy it
+        still keeps. If you ask, the desk erases it sooner, unless there is a legal reason to keep
+        it. Comments published before 25 October 2026 were also part of the site's public source
+        history on GitHub, which removal cannot reach.
       </p>
       <p>
         To ask for a comment's removal, use{' '}

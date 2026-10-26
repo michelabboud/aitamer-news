@@ -4,7 +4,7 @@
  * §2.3, §2.6): rendered once by the home page and by the Campfire page, never by a story page (a
  * story page reads only its own file, so a story view costs one data request).
  *
- * The script fetches `v1/comments-index.json` from the data host once, with `credentials: 'omit'`,
+ * The script fetches `v2/comments-index.json` from the data host once, with `credentials: 'omit'`,
  * checks it with `validateCommentsIndex` (`src/lib/comments-client.ts`, tested), and then:
  * - fills every `data-comment-count` link on the page (`CommentCount.astro`) with its story's
  *   count; a story the index does not list has none. A 404 is an index with nothing in it yet.

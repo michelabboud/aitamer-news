@@ -29,3 +29,15 @@ ADR 0006 bakes approved comments into the site: a publisher commits `src/content
 - Previews and mirrors outside the CORS allowlist show the comments error state.
 - The index grows with the number of stories that have comments (about 40 bytes each, plus about 30 KB for `recent`); sharding `counts` is the answer past 64 KiB.
 - Comments published before the flip stay in the public git history.
+
+## Amendment · 2026-10-25 · the comments flip
+
+**Status of the text above:** the "Status" paragraph describes the code before the flip. The flip pull request (version 0.2.123) did the following and nothing else:
+
+- `COMMENTS_SOURCE` is `'r2'`. `REACTIONS_SOURCE` stays `'baked'` and `REACTIONS_LIVE` stays `false`: reaction totals are a later flip, with their own privacy wording.
+- The baked comment files left the tree (`the-gap-between-the-needles.json`, `detectorscope-auditable-ai-text-detectors.json`), restorable by git; the README stays and describes the data host. `commentsJsonLd` left the story page; the function stays in `src/lib/comment-text.ts` for the way back.
+- ADR 0006 is superseded and ADR 0008 is superseded, by the ADR index; ADR 0007 is amended: `publisher-paths` keeps its required name and, with no lane left, refuses every path from the publisher, and the deploy's step is renamed "The publisher may change nothing". Both the reactions lane and the comments lane closed together, because the publisher job retires as a whole on the desk's host (cutover step C3) before this pull request merges (step C4).
+- The held-comment message now promises the comment within about a minute of approval, which is true only on the data host path.
+- The privacy page describes the data host request, the private backup history (12 months for a removed comment's record) and the removal path, in the wording Michel approved on 2026-10-25.
+
+The order of the cutover is what keeps the privacy promise true: the old publisher stops (C3) before the site stops reading baked files (C4), so no comment can land in the public history after the site stopped showing it.

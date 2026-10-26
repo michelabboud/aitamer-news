@@ -14,6 +14,7 @@ import {
   commentsIndexSchema,
 } from '../content/comments-index-schema.ts';
 import { COMMENT_NAME_MAX, COMMENT_SLUG, COMMENT_SLUG_MAX, COMMENTS_PER_FILE_MAX } from '../content/comment-schema.ts';
+import { commentsIndexV2JsonSchemaDocument } from '../content/comments-index-schema-v2.ts';
 import { GET as currentRoute } from '../pages/contract/comments-index.schema.json.ts';
 import { GET as v1Route } from '../pages/contract/v1/comments-index.schema.json.ts';
 
@@ -378,11 +379,11 @@ test('the v1 document is frozen: it matches the committed snapshot byte for byte
   );
 });
 
-test('the routes serve those bytes as JSON Schema: v1 is the snapshot, the current route its twin', async () => {
+test('the pinned route serves frozen v1 bytes and the current route serves v2', async () => {
   const v1 = await v1Route({} as never);
   assert.equal(v1.headers.get('Content-Type'), 'application/schema+json; charset=utf-8');
   assert.equal(await v1.text(), readFileSync(SNAPSHOT, 'utf8'));
   const current = await currentRoute({} as never);
   assert.equal(current.headers.get('Content-Type'), 'application/schema+json; charset=utf-8');
-  assert.equal(await current.text(), commentsIndexJsonSchemaDocument('current'));
+  assert.equal(await current.text(), commentsIndexV2JsonSchemaDocument('current'));
 });

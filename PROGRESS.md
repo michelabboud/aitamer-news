@@ -1,5 +1,15 @@
 # Progress
 
+2026-10-26 — Candidate0.2.127 combines the accepted v2 reader, reviewed clean dependency lock and current main. Last updated26October, historical cutoff25October. Owner authorized the two baked-file removals. Exact-candidate checks/reviews/deployment remain pending at this record's initial write. [Record](docs/reports/2026-10-26-comments-cutover-date.md).
+
+2026-10-25 — Source0.2.126 resolves13audit advisories across6transitive packages; fresh audit0vulnerabilities,1,415tests/build/CSP/content/link checks pass. Frozen contract bytes unchanged. Isolated branch based on the pending reader candidate; independent review, integration and deployment not established by this checkpoint. [Evidence](docs/reports/2026-10-25-build-dependency-repair.md).
+
+2026-10-25 — Source0.2.124 prepares revisioned v2 comment readers and schemas, preserving frozen v1 rollback. Full1,415tests/build/content checks pass. Independent review, browser acceptance, writer deployment and the site switch remain open. [Report](docs/reports/2026-10-25-comments-v2-reader.md).
+
+## 0.2.123 · 2026-10-25 · the comments flip (prepared, merged at cutover)
+
+Pull request B: `COMMENTS_SOURCE = 'r2'`, the baked comment files removed, no comment JSON-LD, the held-comment message, the publisher with no lane, the approved comments privacy wording, and the supersession links. Template first (private repository 0.0.76). Not merged until the cutover has run its steps C1 to C3; the coordinator merges it at C4 and updates the two 25 October 2026 dates in a final commit if the cutover is on a later day.
+
 ## 0.2.122 · 2026-10-25 · privacy page: backups last 7 days
 
 The two sentences on the privacy page that said restorable backups last up to 30 days now say up to 7 days, and the page is dated 25 October 2026. Template first (private repository 0.0.75), copied here byte for byte. Independent of the comments switch-over.

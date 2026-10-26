@@ -1,10 +1,13 @@
 # Reactions data files
 
 One file per post whose readers' reactions add up to more than zero: `<slug>.json`, named after
-the post under `src/content/posts/`. **The desk's publisher writes these files**, from the desk's
-database: for each reaction, the permanent anonymous total plus the reactions still live there.
-Nobody writes or changes a count here by hand: the next publish would overwrite it. Edit this
-directory only to remove a file (below).
+the post under `src/content/posts/`. **No publisher writes these files any more.** Until the
+comments flip (`docs/adr/0047-comments-and-reaction-totals-are-read-in-the-browser-from-the-data-host.md`)
+the desk's publisher wrote them from the desk's database: for each reaction, the permanent
+anonymous total plus the reactions still live there. The totals will instead be read in the browser
+from the data host (`v1/reactions/<slug>.json`, the same format, written by the comments Worker) at
+the later reactions flip; this directory, its schema and its checks stay, empty, as the way back.
+Nobody writes or changes a count here by hand. Edit this directory only to remove a file (below).
 
 This directory is empty of `.json` files until the desk publishes a first total. That is normal:
 the build passes, a story with no file reads as zero reactions, and this `README.md` keeps the
@@ -53,18 +56,15 @@ never a reader, an address, a hash or a time.
 - The published contract, generated from the same schema: `/contract/reactions.schema.json`
   (always the newest version) and `/contract/v1/reactions.schema.json` (v1, frozen byte for byte
   by `src/content/reaction-schema.v1.snapshot.json` and its test). The desk validates against it
-  before it commits.
-- The publisher lands its files by pull request only, and the required check `publisher-paths`
-  (`scripts/check-publisher-paths.mjs`) refuses a pull request that changes anything but
-  `src/content/comments/<slug>.json` and `<slug>.json` here, renames a file between the two
-  directories (as a tripwire: git sees a rename only when the files are at least half alike; the
-  contract above is the real guarantee), or adds a link, a submodule or an executable
-  (`docs/adr/0008-the-publishers-second-lane.md`).
+  before it publishes.
+- The publisher has no lane here any more: the required check `publisher-paths`
+  (`scripts/check-publisher-paths.mjs`) refuses a pull request from it that changes any path
+  (`docs/adr/0047-comments-and-reaction-totals-are-read-in-the-browser-from-the-data-host.md`;
+  the earlier two-lane rule was `docs/adr/0008-the-publishers-second-lane.md`).
 
 ## Removing a file
 
 A reactions file carries no reader text, so there is nothing to take down for a reader's sake.
-The one case is an orphan: a file left behind for a post that was deleted or renamed. The
-publisher deletes it on its next run; deleting it by hand in the same commit that removes or
-renames the post is also fine. Changing a count by hand is never the fix: the next publish
-rewrites the file from the desk's database.
+The one case is an orphan: a file left behind for a post that was deleted or renamed. Delete it
+by hand in the same commit that removes or renames the post. Changing a count by hand is never
+the fix.
