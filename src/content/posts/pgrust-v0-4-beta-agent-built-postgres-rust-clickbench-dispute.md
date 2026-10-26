@@ -38,6 +38,10 @@ sources:
     url: https://www.postgresql.org/message-id/19586-bb603bf5ad9934dd%40postgresql.org
   - title: "Michael Malis, Postgres in Rust: three dead ends before we passed 100% of the regression suite (malisper.me, July 2026)"
     url: https://malisper.me/how-pgrust-was-built-four-attempts-to-rewrite-postgres-in-rust-with-ai/
+  - title: "pgrust: add v0.4-beta, ClickBench PR #2751 (GitHub)"
+    url: https://github.com/ClickHouse/ClickBench/pull/2751
+  - title: "ClickBench results"
+    url: https://benchmark.clickhouse.com/
 ---
 
 [pgrust](https://github.com/malisper/pgrust) is a rewrite of PostgreSQL in Rust, built largely with coding agents. On 22 October it published [v0.4-beta](https://pgrust.com/blog/pgrust-v0-4-beta/), and the code that the project had kept private behind monthly drops is now developed in the open. The release lands a month after ClickBench threw pgrust off its leaderboard, and two days before Dan Luu held it up as his main example of what agent-built software can now do. His [essay](https://danluu.com/ambitious/) passed 500 points on Hacker News over the weekend.
@@ -70,3 +74,9 @@ Luu's case rests partly on testing. He links five reports to the pgsql-bugs list
 ## Why it matters
 
 pgrust is among the most ambitious agent-written Rust projects we have covered, after smaller efforts such as [php-rust](/posts/php-rust-wordpress-test-suite-parity/). It also shows the open problem with such projects: speed claims get checked by outsiders, and a premature benchmark entry can follow a project around. Malis's own request in the release post is for bug reports on any query where pgrust diverges from Postgres.
+
+## Update, 26 October 2026: pgrust is back on ClickBench
+
+ClickBench has accepted a new pgrust entry. Malis opened [PR #2751](https://github.com/ClickHouse/ClickBench/pull/2751), "pgrust: add v0.4-beta", on 22 October, and Milovidov merged it on 25 October. The [results page](https://benchmark.clickhouse.com/) now lists six pgrust v0.4-beta runs dated 25 October, on AWS c6a, c7a and c8g instances, all marked untuned. Milovidov left no comment on the PR.
+
+The PR describes the caches the new entry uses. They are on by default, held in memory only, and cleared by restarting the server before each cold run. A condition cache stores match counts keyed by each filter and its constants, so "a repeated count-only query can be answered from those counts"; a lighter granule mode keeps only what ClickHouse's own query condition cache keeps, but the entry runs the default full mode. Malis also says the dictionary filter cache, which stayed on in the earlier submission when the condition cache was turned off, is now fixed. The merge means the entry passed ClickBench's review. It does not settle the earlier dispute.
