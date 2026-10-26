@@ -66,3 +66,7 @@ Michel requested finishing his profile and optimizing the reported first-load We
 | [Author directory and bounded homepage](docs/plans/2026-10-23-author-directory-home-feed.md) | All-author cards, canonical Michel profile and independent 12/12/5 automatic feed settings | local implementation and focused reviews passed; final production review and public acceptance pending | 2026-10-23 | authorized 2026-10-23 (Michel) | 2026-10-23 |
 
 | [Prepared responsive images](docs/plans/2026-10-24-prepared-responsive-images.md) | Local quality preparation and create-only derivative publication; routine GitHub verifies/reuses without FFmpeg | local qualification passed; PR/live acceptance pending | 2026-10-24 | authorized 2026-10-24 (Michel: fix it) | 2026-10-24 |
+
+## CSP enforcement · running 2026-10-26
+
+Michel authorized [enforcement through apps SSH staging](docs/plans/2026-10-26-csp-enforcement.md), without a custom staging domain. Template enforcement is under security review. Public integration, deployment guard, full artifact/browser qualification, protected merge and actual live acceptance are pending. No provider/cache changes.

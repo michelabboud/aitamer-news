@@ -8,7 +8,6 @@ import {
   COMMENTS_DATA_BASE_DEFAULT,
   checkSitePolicy,
   commentsDataOrigin,
-  cspHeaderName,
   endpointOrigins,
   headersFor,
   parsePolicy,
@@ -19,11 +18,11 @@ import {
  * Plan docs/plans/2026-10-24-comments-on-r2.md, task S3: the data host joins `connect-src` only
  * when a built page reads it (a page rendered with `COMMENTS_SOURCE = 'r2'` carries
  * `data-comments-base`), its origin comes from `PUBLIC_COMMENTS_DATA_BASE` like the page's, and the
- * policy stays Report-Only.
+ * enforced policy preserves these data reads.
  */
 
 const publicHeaders = readFileSync(new URL('../public/_headers', import.meta.url), 'utf8');
-const header = cspHeaderName().toLowerCase();
+const header = 'content-security-policy';
 
 function site(t, pages) {
   const dist = mkdtempSync(join(tmpdir(), 'aitamer-csp-comments-'));
@@ -63,7 +62,10 @@ test('a build that reads the data host: connect-src names exactly its origin, an
     if (directive !== 'connect-src') assert.ok(!sources.includes(origin), `${directive} must not name the data host`);
   }
   // The comments and contact Workers are still there, unchanged.
-  for (const worker of Object.values(endpointOrigins({}))) assert.ok(connectSrc(dist).includes(worker), worker);
+  for (const worker of Object.values(endpointOrigins({}))) {
+    assert.ok(connectSrc(dist).includes(worker), worker);
+    assert.ok(policy.get('form-action').includes(worker), worker);
+  }
   assert.deepEqual(checkSitePolicy(dist, { env: {} }), []);
 });
 
@@ -84,13 +86,14 @@ test('the guard refuses a page that reads a data host the policy does not name',
   assert.ok(findings.some((f) => f.includes('data-comments-base') && f.includes('connect-src does not allow')), findings.join('\n'));
 });
 
-test('the policy stays Report-Only', (t) => {
-  assert.equal(CSP_ENFORCE, false);
+test('the shipped comments-data policy is enforced without a report-only companion', (t) => {
+  assert.equal(CSP_ENFORCE, true);
   const dist = site(t, { 'posts/a/index.html': live(COMMENTS_DATA_BASE_DEFAULT) });
-  writeSitePolicy(dist, { env: {} });
+  assert.deepEqual(writeSitePolicy(dist, { env: {} }).findings, []);
   const headers = headersFor(readFileSync(join(dist, '_headers'), 'utf8'), '/posts/a/');
-  assert.ok(headers.has('content-security-policy-report-only'));
-  assert.ok(!headers.has('content-security-policy'));
+  assert.ok(headers.has('content-security-policy'));
+  assert.ok(!headers.has('content-security-policy-report-only'));
+  assert.deepEqual(checkSitePolicy(dist, { env: {} }), []);
 });
 
 test('the data origin default matches the site\'s', () => {
