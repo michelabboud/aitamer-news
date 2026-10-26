@@ -1060,3 +1060,7 @@
 1057 did-you-know-mitre-attack-prompt-injection-techniques
 1058 google-elephant-goldfish-model-plugin-spec-review-coding-agents
 1059 bbtree-llm-written-rust-btree-verus-proofs-claims-5x
+1060 agents-md-downloads-folder-hijacks-codex-claude-code
+1061 ai-image-models-nano-banana-vs-gpt-image
+1062 frontiercs-2-agents-must-beat-papers-own-code
+1063 pomerado-yc-open-source-websites-to-mcp-integrations
