@@ -1,5 +1,7 @@
 # Progress
 
+2026-10-26 — CSP enforcement and exact-policy deployment guard integrated from the independently accepted template source. Focused76/76 and full1423/1423 tests pass. Full-content build, SSH staging, intercepted production compatibility, reviews and normal deployment/live acceptance are in progress. [Plan](docs/plans/2026-10-26-csp-enforcement.md), ADR0048.
+
 2026-10-26 — Candidate0.2.127 combines the accepted v2 reader, reviewed clean dependency lock and current main. Last updated26October, historical cutoff25October. Owner authorized the two baked-file removals. Exact-candidate checks/reviews/deployment remain pending at this record's initial write. [Record](docs/reports/2026-10-26-comments-cutover-date.md).
 
 2026-10-25 — Source0.2.126 resolves13audit advisories across6transitive packages; fresh audit0vulnerabilities,1,415tests/build/CSP/content/link checks pass. Frozen contract bytes unchanged. Isolated branch based on the pending reader candidate; independent review, integration and deployment not established by this checkpoint. [Evidence](docs/reports/2026-10-25-build-dependency-repair.md).

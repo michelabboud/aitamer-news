@@ -56,3 +56,5 @@
 - [0046 · Topic pages from tags](0046-topic-pages-from-tags-with-a-five-story-floor.md) — `/topics/<slug>/` for tags with five or more stories, stable slugs that depend only on their own tag, one optional hand-kept details file.
 
 - [0047 · Comments and reaction totals are read in the browser from data.aitamer.news](0047-comments-and-reaction-totals-are-read-in-the-browser-from-the-data-host.md) — accepted 2026-10-24, **supersedes 0006 and 0008, amends 0007**: the desk publishes approved comments, a comments index and reaction totals to a public R2 bucket; pages fetch and render them with `textContent`; the comments index is a new frozen public contract; the switches shipped as `'baked'`, so the site was unchanged until the flip; the comments flip (2026-10-25) set `COMMENTS_SOURCE = 'r2'` and closed the publisher's lanes (see its amendment), and `REACTIONS_SOURCE` stays `'baked'` until the later reactions flip.
+
+- [0048: Enforce the build-derived Content Security Policy](0048-enforce-build-derived-content-security-policy.md)

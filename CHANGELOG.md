@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.128 · 2026-10-26
+
+- Enforce build-derived script hashes while preserving search-worker WebAssembly, SVG sandboxing, comments reads and handwritten cache/security headers. Keep explicit report-only source rollback. Deny the rotating edge-injected detection wrapper without broad inline exceptions or provider/cache changes.
+- Make deployment smoke checks compare effective policies and authored inline hashes with the candidate artifact, including search, actual worker, story,404 and diagrams. Full suite:1423/1423. Build, browser qualification, independent production review and actual live acceptance remain separately tracked in the execution report; this source record does not assert deployment.
+
 ## 0.2.127 · 2026-10-26
 
 - Integrate the reviewed v2 reader and compatible dependency repair with current numbered main, preserving their commit ancestry and all admitted articles. Update the privacy notice's Last updated date to26October while retaining the factual25October historical public-source cutoff. Publisher retirement remains recorded on its actual prior date; fresh freeze/dry-publisher checks requalify the resumed switch. [Date and integration record](docs/reports/2026-10-26-comments-cutover-date.md).

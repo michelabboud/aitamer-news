@@ -21,7 +21,9 @@
  * - every `_redirects` line answers its status and points at its target;
  * - every diagram answers 200 as `image/svg+xml` under its folder's enforced lockdown (ADR 0016);
  * - an address that does not exist answers 404, not 200;
- * - the home page carries a Content-Security-Policy, and a hashed `/_astro/` file the long cache;
+ * - HTML, the search worker, diagrams and a real 404 carry exactly this build's policy; authored
+ *   inline scripts keep their build hashes, and the worker body is this build's worker;
+ * - a hashed `/_astro/` file keeps the long cache;
  * - `X-Robots-Tag: noindex` is on a preview and **not** on production: previews must stay out of
  *   search results, and the same header on aitamer.news would take the whole site out of them.
  *
@@ -33,6 +35,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { htmlFiles, pageUrls, servedPath, sitePath } from './check-dist-links.mjs';
+import { CSP_ENFORCE, DIAGRAM_POLICY, PAGEFIND_WORKER, cspHeaderName, headersFor, parsePolicy, scanPage } from './csp-headers.mjs';
 
 /** Rounds of the whole check before a failure is final: a new deployment can lag for seconds. */
 export const ROUNDS = 3;
@@ -87,7 +90,7 @@ export function parseRedirects(text) {
 /**
  * What to request, from the build.
  * @param {string} dist @param {number} maxPages
- * @returns {{ pages: { path: string, title: string | null }[], files: string[], sitemaps: Map<string, string>, redirects: ReturnType<typeof parseRedirects> }}
+ * @returns {{ pages: { path: string, title: string | null }[], files: string[], sitemaps: Map<string, string>, redirects: ReturnType<typeof parseRedirects>, diagrams: string[], policies: Map<string, { name: string, value: string, hashes: string[] }>, worker: string | null, findings: string[] }}
  */
 export function plan(dist, maxPages = MAX_PAGES) {
   const redirectsFile = join(dist, '_redirects');
@@ -99,10 +102,12 @@ export function plan(dist, maxPages = MAX_PAGES) {
     .filter((file) => file !== '404.html')
     .map((file) => ({ path: servedPath(file), file }))
     .filter(({ path }) => !redirected.has(path))
-    .map(({ path, file }) => ({ path, title: titleOf(readFileSync(join(dist, file), 'utf8')) }));
-  const key = KEY_PAGES.map((path) => all.find((p) => p.path === path)).filter(Boolean);
-  const rest = all.filter((p) => !KEY_PAGES.includes(p.path));
-  const pages = [...key, ...rest].slice(0, Math.max(maxPages, key.length));
+    .map(({ path, file }) => ({ path, file, title: titleOf(readFileSync(join(dist, file), 'utf8')) }));
+  // Keep one story in the bounded sample even when a small cap leaves room only for key pages.
+  const priority = [...KEY_PAGES, all.find((p) => p.path.startsWith('/posts/'))?.path].filter(Boolean);
+  const key = priority.map((path) => all.find((p) => p.path === path)).filter(Boolean);
+  const rest = all.filter((p) => !priority.includes(p.path));
+  const pages = [...key, ...rest].slice(0, Math.max(maxPages, key.length)).map(({ path, title }) => ({ path, title }));
 
   const rootFiles = readdirSync(dist, { withFileTypes: true })
     .filter((e) => e.isFile() && !e.name.endsWith('.html') && !HOST_CONFIG_FILES.has(e.name))
@@ -110,7 +115,9 @@ export function plan(dist, maxPages = MAX_PAGES) {
   const homeFiles = pageUrls(readFileSync(join(dist, 'index.html'), 'utf8'))
     .map((url) => sitePath(url, '/', 'https://site.invalid'))
     .filter((path) => path !== null && !path.endsWith('/'));
-  const files = [...new Set([...rootFiles, ...homeFiles])].sort();
+  const workerFile = join(dist, PAGEFIND_WORKER);
+  const worker = existsSync(workerFile) ? readFileSync(workerFile, 'utf8') : null;
+  const files = [...new Set([...rootFiles, ...homeFiles, ...(worker === null ? [] : [`/${PAGEFIND_WORKER}`])])].sort();
   // The sitemaps (the index, its parts, the news sitemap) as built, to compare with what is served.
   const sitemaps = new Map(
     rootFiles.filter((path) => SITEMAP_FILE.test(path)).map((path) => [path, readFileSync(join(dist, path), 'utf8')]),
@@ -122,7 +129,58 @@ export function plan(dist, maxPages = MAX_PAGES) {
         .flatMap((d) => readdirSync(join(diagramsDir, d.name)).filter((f) => f.endsWith('.svg')).map((f) => `/diagrams/${d.name}/${f}`))
         .sort()
     : [];
-  return { pages, files, sitemaps, redirects, diagrams };
+  const findings = [];
+  const headersFile = join(dist, '_headers');
+  const headersText = existsSync(headersFile) ? readFileSync(headersFile, 'utf8') : '';
+  if (!headersText) findings.push('_headers: candidate policy is missing; run `npm run build` first');
+  if (worker === null) findings.push(`${PAGEFIND_WORKER}: candidate search worker is missing; run \`npm run build\` first`);
+  const policies = new Map();
+  const expectPolicy = (path, html, diagram = false) => {
+    const name = cspHeaderName(diagram || CSP_ENFORCE).toLowerCase();
+    const other = cspHeaderName(!(diagram || CSP_ENFORCE)).toLowerCase();
+    const headers = headersFor(headersText, path);
+    const value = headers.get(name) ?? '';
+    const hashes = html === null ? [] : scanPage(html).inline.map((script) => script.hash);
+    if (!value) findings.push(`_headers: ${path} has no ${name}`);
+    if (headers.has(other)) findings.push(`_headers: ${path} has unexpected ${other}`);
+    if (value.includes(',')) findings.push(`_headers: ${path} has multiple ${name} policies`);
+    if (diagram && value !== DIAGRAM_POLICY) findings.push(`_headers: ${path} does not have the diagram sandbox policy`);
+    const scriptSources = parsePolicy(value).get('script-src') ?? [];
+    for (const hash of hashes) {
+      if (!scriptSources.includes(`'sha256-${hash}'`)) findings.push(`_headers: ${path} does not allow its authored inline script sha256-${hash}`);
+    }
+    if ((path === '/search/' || path === `/${PAGEFIND_WORKER}`) && !scriptSources.includes("'wasm-unsafe-eval'")) {
+      findings.push(`_headers: ${path} does not allow the search WebAssembly`);
+    }
+    policies.set(path, { name, value, hashes });
+  };
+  for (const page of pages) expectPolicy(page.path, readFileSync(join(dist, all.find((p) => p.path === page.path).file), 'utf8'));
+  const notFoundFile = join(dist, '404.html');
+  if (existsSync(notFoundFile)) expectPolicy('/404.html', readFileSync(notFoundFile, 'utf8'));
+  else findings.push('404.html: candidate not-found page is missing; run `npm run build` first');
+  if (worker !== null) expectPolicy(`/${PAGEFIND_WORKER}`, null);
+  for (const path of diagrams) expectPolicy(path, null, true);
+  return { pages, files, sitemaps, redirects, diagrams, policies, worker, findings };
+}
+
+/** Check the effective response policy against the artifact, without admitting edge-added scripts. */
+function policyFindings(path, res, expected) {
+  const findings = [];
+  const value = res.headers.get(expected.name);
+  const other = expected.name === 'content-security-policy' ? 'content-security-policy-report-only' : 'content-security-policy';
+  if (!value) findings.push(`${path}: no ${expected.name === 'content-security-policy' ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only'} header`);
+  if (res.headers.has(other)) findings.push(`${path}: unexpected ${other === 'content-security-policy' ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only'} header`);
+  if (value?.includes(',')) findings.push(`${path}: multiple Content-Security-Policy policies reach it`);
+  if (value && value !== expected.value) findings.push(`${path}: Content-Security-Policy differs from this build's _headers (a stale hash or wrong policy)`);
+  if (expected.hashes.length) {
+    // Cloudflare may add its deliberately denied JSD wrapper. Require every authored script to
+    // remain unchanged, without treating extra scripts as authored or giving them hash exceptions.
+    const served = new Set(scanPage(res.body).inline.map((script) => script.hash));
+    for (const hash of expected.hashes) {
+      if (!served.has(hash)) findings.push(`${path}: authored inline script sha256-${hash} from this build is missing or changed in the served HTML`);
+    }
+  }
+  return findings;
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -177,7 +235,8 @@ const saysNoindex = (value) => /(^|[\s,])noindex([\s,]|$)/i.test(value ?? '');
  * @returns {Promise<{ checked: number, findings: string[] }>}
  */
 export async function checkRound(base, expect, work, opts = {}) {
-  const findings = [];
+  const findings = [...work.findings];
+  if (findings.length) return { checked: 0, findings };
   const at = (path) => new URL(path, base).href;
   const get = (path, redirect) => request(at(path), { redirect, ...opts });
   const concurrency = opts.concurrency ?? CONCURRENCY;
@@ -187,6 +246,7 @@ export async function checkRound(base, expect, work, opts = {}) {
     if ('error' in res) findings.push(`${page.path}: ${res.error}`);
     else if (res.status !== 200) findings.push(`${page.path}: answered ${res.status}, expected 200`);
     else if (titleOf(res.body) !== page.title) findings.push(`${page.path}: title is ${JSON.stringify(titleOf(res.body))}, this build's is ${JSON.stringify(page.title)} (an old deployment?)`);
+    if (!('error' in res)) findings.push(...policyFindings(page.path, res, work.policies.get(page.path)));
   }
 
   const files = await pool(work.files, concurrency, async (path) => ({ path, res: await get(path) }));
@@ -195,6 +255,10 @@ export async function checkRound(base, expect, work, opts = {}) {
     else if (res.status !== 200) findings.push(`${path}: answered ${res.status}, expected 200`);
     else if (work.sitemaps?.has(path) && res.body !== work.sitemaps.get(path)) {
       findings.push(`${path}: the deployment serves a different sitemap than this build made (an old deployment?)`);
+    }
+    if (!('error' in res) && path === `/${PAGEFIND_WORKER}`) {
+      findings.push(...policyFindings(path, res, work.policies.get(path)));
+      if (res.status === 200 && res.body !== work.worker) findings.push(`${path}: worker differs from this build`);
     }
   }
 
@@ -227,18 +291,17 @@ export async function checkRound(base, expect, work, opts = {}) {
     else if (!/^image\/svg\+xml\b/.test(res.headers.get('content-type') ?? '')) findings.push(`${path}: served as ${res.headers.get('content-type')}, expected image/svg+xml`);
     else if (!/default-src 'none'/.test(policy) || !/\bsandbox\b/.test(policy) || /script-src/.test(policy)) findings.push(`${path}: missing the diagrams' enforced lockdown (Content-Security-Policy: ${JSON.stringify(policy)})`);
     else if ((res.headers.get('x-content-type-options') ?? '').toLowerCase() !== 'nosniff') findings.push(`${path}: missing X-Content-Type-Options: nosniff`);
+    findings.push(...policyFindings(path, res, work.policies.get(path)));
   }
 
   const missing = `/smoke-check-no-such-page-${Date.now().toString(36)}/`;
   const notFound = await get(missing);
   if ('error' in notFound) findings.push(`${missing}: ${notFound.error}`);
   else if (notFound.status !== 404) findings.push(`an address that does not exist answered ${notFound.status}, expected 404`);
+  if (!('error' in notFound)) findings.push(...policyFindings(missing, notFound, work.policies.get('/404.html')));
 
   const home = pages.find(({ page }) => page.path === '/')?.res;
   if (home && !('error' in home)) {
-    if (!home.headers.get('content-security-policy') && !home.headers.get('content-security-policy-report-only')) {
-      findings.push('/: no Content-Security-Policy header');
-    }
     const robots = home.headers.get('x-robots-tag');
     if (expect === 'preview' && !saysNoindex(robots)) findings.push(`/: a preview must carry X-Robots-Tag: noindex (it has ${JSON.stringify(robots)})`);
     if (expect === 'production' && saysNoindex(robots)) findings.push(`/: production carries X-Robots-Tag: ${robots}, which would take the site out of search results`);

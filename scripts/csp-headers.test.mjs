@@ -143,12 +143,11 @@ test('running the writer twice leaves one policy block', () => {
   assert.equal(once.split(GENERATED_MARKER).length, 2);
 });
 
-test('the report-only switch names the header, and the shipped value is report-only', () => {
+test('the shipped policy is enforced and an explicit report-only rollback retains its semantics', () => {
   assert.equal(cspHeaderName(false), 'Content-Security-Policy-Report-Only');
   assert.equal(cspHeaderName(true), 'Content-Security-Policy');
-  // Enforcing is a decision (SECURITY.md, "Content-Security-Policy"): flip CSP_ENFORCE and this line together.
-  assert.equal(CSP_ENFORCE, false);
-  assert.equal(cspHeaderName(), 'Content-Security-Policy-Report-Only');
+  assert.equal(CSP_ENFORCE, true);
+  assert.equal(cspHeaderName(), 'Content-Security-Policy');
 
   const reportOnly = built(SITE, false).text();
   assert.match(reportOnly, /^ {2}Content-Security-Policy-Report-Only: /m);

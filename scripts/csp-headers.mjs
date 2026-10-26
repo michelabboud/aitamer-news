@@ -47,12 +47,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from 'parse5';
 
 /**
- * The switch. False: the policy ships as `Content-Security-Policy-Report-Only`, which a browser
- * reports against (in its console, since there is no collector yet) and never enforces. Enforcing
- * is flipping this to true; `scripts/csp-headers.test.mjs` pins the value, so the flip is a
- * reviewed two-line change.
+ * Enforce the build-derived policy by default. An explicit `enforce: false` keeps the report-only
+ * rollback path: a browser reports violations in its console and never enforces that policy.
+ * Scripts injected after the build, including Cloudflare's rotating JavaScript Detections inline
+ * wrapper, deliberately receive no hash exception. Turnstile remains separately allowed.
  */
-export const CSP_ENFORCE = false;
+export const CSP_ENFORCE = true;
 
 /** @param {boolean} [enforce] @returns {string} the response header that carries the policy */
 export function cspHeaderName(enforce = CSP_ENFORCE) {

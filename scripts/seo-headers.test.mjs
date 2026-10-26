@@ -9,6 +9,7 @@ import {
 } from './csp-headers.mjs';
 
 const publicHeaders = readFileSync(new URL('../public/_headers', import.meta.url), 'utf8');
+const enforced = 'content-security-policy';
 const reportOnly = 'content-security-policy-report-only';
 const endpoints = {};
 
@@ -55,7 +56,7 @@ test('the built resource guard permits Cloudflare Insights scripts and the exact
     <div data-endpoint="https://stats.g.doubleclick.net/g/collect?v=2"></div>`);
   const text = generate(dist);
   assert.deepEqual(checkSitePolicy(dist, { env: endpoints }), []);
-  const policy = parsePolicy(headersFor(text, '/').get(reportOnly));
+  const policy = parsePolicy(headersFor(text, '/').get(enforced));
   assert.equal(allows(policy.get('script-src'), 'https://static.cloudflareinsights.com/beacon.min.js'), true);
   assert.equal(allows(policy.get('connect-src'), 'https://stats.g.doubleclick.net/g/collect'), true);
   assert.equal(allows(policy.get('script-src'), 'https://stats.g.doubleclick.net/tracker.js'), false);
@@ -64,7 +65,7 @@ test('the built resource guard permits Cloudflare Insights scripts and the exact
 
 test('new provider exceptions reject lookalike hosts, alternate ports, subdomains and insecure URLs', (t) => {
   const text = generate(builtSite(t));
-  const policy = parsePolicy(headersFor(text, '/').get(reportOnly));
+  const policy = parsePolicy(headersFor(text, '/').get(enforced));
   for (const [directive, hostname] of [
     ['script-src', 'static.cloudflareinsights.com'], ['connect-src', 'stats.g.doubleclick.net'],
   ]) {
@@ -104,27 +105,62 @@ test('existing forms, analytics, video embeds and self-hosted assets still pass 
     <img src="https://media.aitamer.news/heroes/story.webp" alt="Story">`);
   const text = generate(dist);
   assert.deepEqual(checkSitePolicy(dist, { env: endpoints }), []);
-  const policy = parsePolicy(headersFor(text, '/').get(reportOnly));
+  const policy = parsePolicy(headersFor(text, '/').get(enforced));
   assert.deepEqual(policy.get('script-src').filter((source) => source.includes('*')), []);
   assert.deepEqual(policy.get('connect-src').filter((source) => source.includes('*')), [
     'https://*.google-analytics.com', 'https://*.google.com',
   ]);
 });
 
-test('inline hashes stay report-only and search workers retain their separate WebAssembly permission', (t) => {
+test('inline hashes are enforced and only search and its worker can compile WebAssembly', (t) => {
+  const script = 'document.documentElement.dataset.ready = "true";';
+  const expectedHash = `'sha256-${createHash('sha256').update(script).digest('base64')}'`;
+  const dist = builtSite(t, `<!doctype html><title>Reader</title><script>${script}</script>`, {
+    'posts/story/index.html': '<!doctype html><title>Story</title>',
+    '404.html': '<!doctype html><title>Not found</title>',
+    'search/index.html': '<!doctype html><title>Search</title>',
+    'pagefind/pagefind-worker.js': '// disposable worker response fixture',
+  });
+  const text = generate(dist);
+  assert.deepEqual(checkSitePolicy(dist, { env: endpoints }), []);
+  for (const path of ['/', '/posts/story/', '/404.html', '/search/', '/pagefind/pagefind-worker.js']) {
+    const headers = headersFor(text, path);
+    assert.equal(headers.has(reportOnly), false, path);
+    assert.equal(headers.get(enforced).includes(','), false, path);
+    const policy = parsePolicy(headers.get(enforced));
+    assert.equal(policy.has('upgrade-insecure-requests'), true, path);
+    const sources = policy.get('script-src');
+    assert.equal(sources.filter((source) => source === expectedHash).length, 1, path);
+    assert.equal(sources.includes("'unsafe-inline'"), false, path);
+    assert.equal(sources.includes("'unsafe-eval'"), false, path);
+    assert.equal(sources.includes("'wasm-unsafe-eval'"), path === '/search/' || path === '/pagefind/pagefind-worker.js', path);
+  }
+  const diagram = headersFor(text, '/diagrams/chart.svg');
+  assert.equal(diagram.has(reportOnly), false);
+  assert.equal(diagram.get('content-security-policy'), "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+  assert.equal(diagram.get('x-content-type-options'), 'nosniff');
+});
+
+test('explicit report-only rollback preserves hashes and worker overrides while diagrams remain enforced', (t) => {
   const script = 'document.documentElement.dataset.ready = "true";';
   const expectedHash = `'sha256-${createHash('sha256').update(script).digest('base64')}'`;
   const dist = builtSite(t, `<!doctype html><title>Reader</title><script>${script}</script>`, {
     'search/index.html': '<!doctype html><title>Search</title>',
     'pagefind/pagefind-worker.js': '// disposable worker response fixture',
   });
-  const text = generate(dist);
-  assert.deepEqual(checkSitePolicy(dist, { env: endpoints }), []);
+  generate(dist);
+  assert.deepEqual(writeSitePolicy(dist, { env: endpoints, enforce: false }).findings, []);
+  assert.deepEqual(checkSitePolicy(dist, { env: endpoints, enforce: false }), []);
+  assert.ok(checkSitePolicy(dist, { env: endpoints }).some((finding) => finding.includes('served with Content-Security-Policy-Report-Only')));
+  const text = readFileSync(join(dist, '_headers'), 'utf8');
+  assert.ok(text.startsWith(`${publicHeaders.trimEnd()}\n\n`));
   for (const path of ['/', '/search/', '/pagefind/pagefind-worker.js']) {
     const headers = headersFor(text, path);
-    assert.equal(headers.has('content-security-policy'), false, path);
+    assert.equal(headers.has(enforced), false, path);
     assert.equal(headers.get(reportOnly).includes(','), false, path);
-    const sources = parsePolicy(headers.get(reportOnly)).get('script-src');
+    const policy = parsePolicy(headers.get(reportOnly));
+    assert.equal(policy.has('upgrade-insecure-requests'), false, path);
+    const sources = policy.get('script-src');
     assert.equal(sources.filter((source) => source === expectedHash).length, 1, path);
     assert.equal(sources.includes("'unsafe-inline'"), false, path);
     assert.equal(sources.includes("'unsafe-eval'"), false, path);
@@ -132,8 +168,46 @@ test('inline hashes stay report-only and search workers retain their separate We
   }
   const diagram = headersFor(text, '/diagrams/chart.svg');
   assert.equal(diagram.has(reportOnly), false);
-  assert.equal(diagram.get('content-security-policy'), "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+  assert.equal(diagram.get(enforced), "default-src 'none'; style-src 'unsafe-inline'; sandbox");
   assert.equal(diagram.get('x-content-type-options'), 'nosniff');
+  const restored = generate(dist);
+  assert.equal(headersFor(restored, '/').has(reportOnly), false);
+  assert.deepEqual(checkSitePolicy(dist, { env: endpoints }), []);
+});
+
+test('the deploy guard rejects missing and duplicate enforced site policies', (t) => {
+  for (const [name, replacement, expected] of [
+    ['missing', '', 'served with no Content-Security-Policy header'],
+    ['duplicate', '$&$&', 'two Content-Security-Policy values reach it'],
+  ]) {
+    const dist = builtSite(t);
+    const text = generate(dist);
+    const altered = text.replace(/^  Content-Security-Policy:.*\n/m, replacement);
+    assert.notEqual(altered, text, name);
+    writeFileSync(join(dist, '_headers'), altered);
+    const findings = checkSitePolicy(dist, { env: endpoints });
+    assert.ok(findings.some((finding) => finding.includes(expected)), `${name}: ${findings.join('\n')}`);
+  }
+});
+
+test('the deploy guard rejects an inline script added after the policy was built', (t) => {
+  const dist = builtSite(t);
+  generate(dist);
+  writeFileSync(join(dist, 'index.html'), '<!doctype html><title>Changed</title><script>window.changed = true;</script>');
+  const findings = checkSitePolicy(dist, { env: endpoints });
+  assert.ok(findings.some((finding) => finding.includes('inline script sha256-') && finding.includes('is not in the policy')), findings.join('\n'));
+});
+
+test('the deploy guard rejects a worker policy without its WebAssembly permission', (t) => {
+  const dist = builtSite(t, '<!doctype html><title>Reader</title>', {
+    'pagefind/pagefind-worker.js': '// disposable worker response fixture',
+  });
+  const text = generate(dist);
+  const altered = text.replace(/(\/pagefind\/\*\n  ! Content-Security-Policy\n  Content-Security-Policy:[^\n]*)/, (block) => block.replace(" 'wasm-unsafe-eval'", ''));
+  assert.notEqual(altered, text);
+  writeFileSync(join(dist, '_headers'), altered);
+  const findings = checkSitePolicy(dist, { env: endpoints });
+  assert.ok(findings.some((finding) => finding.includes("pagefind/pagefind-worker.js: its policy does not allow 'wasm-unsafe-eval'")), findings.join('\n'));
 });
 
 test('generated headers preserve preview exclusions and distinct asset and story cache rules', (t) => {
@@ -175,7 +249,8 @@ test('absolute request URLs retain path headers regardless of incoming protocol 
   ]) {
     const headers = headersFor(text, request);
     assert.equal(headers.get('x-frame-options'), 'DENY', request);
-    assert.equal(headers.has(reportOnly), true, request);
+    assert.equal(headers.has(enforced), true, request);
+    assert.equal(headers.has(reportOnly), false, request);
   }
   assert.equal(headersFor(text, 'https://aitamer.news/_astro/site.hash.css').get('cache-control'), 'public, max-age=31536000, immutable');
   assert.equal(headersFor(text, 'https://aitamer.news/posts/story/').get('cache-control'), 'public, max-age=30, must-revalidate');
@@ -253,7 +328,7 @@ test('generated output uses unique rule patterns so Pages keeps the global secur
   const globalBlock = text.split(/^\/\*$/m)[1].split(/^[^\s#]/m)[0];
   assert.match(globalBlock, /^  X-Frame-Options: DENY$/m);
   assert.match(globalBlock, /^  Permissions-Policy: camera=\(\), microphone=\(\), geolocation=\(\), payment=\(\), usb=\(\)$/m);
-  assert.match(globalBlock, /^  Content-Security-Policy-Report-Only: default-src 'self';/m);
+  assert.match(globalBlock, /^  Content-Security-Policy: default-src 'self';/m);
 });
 
 test('duplicate handwritten rule patterns are refused before Pages can replace an earlier block', (t) => {
