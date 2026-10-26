@@ -1064,3 +1064,8 @@
 1061 ai-image-models-nano-banana-vs-gpt-image
 1062 frontiercs-2-agents-must-beat-papers-own-code
 1063 pomerado-yc-open-source-websites-to-mcp-integrations
+1064 anthropic-files-public-s-1-ant-nasdaq
+1065 harness-swap-flips-as-many-swe-bench-tasks-as-a-rerun
+1066 cadence-maestro-chip-design-models-run-on-prem
+1067 resin-rust-core-for-agent-built-inference-engines
+1068 oracle-deep-nl2sql-gold-sql-regression-tests
