@@ -1056,3 +1056,4 @@
 1053 solidcraft-0-22-1-adds-itself-to-ai-clients-mcp-by-default
 1054 aws-infinity-rust-agent-runtime-suspends-agents-at-tool-calls
 1055 redwood-simulated-control-evals-llm-fakes-tool-outputs
+1056 grok-bot-tag-on-x
