@@ -24,7 +24,7 @@ Contents: 1 Scope and principles. 2 Where things live. 3 Decisions so far. 4 Rol
 | Box: voice | `/workspace/kokoro-venv/` (Python venv with `kokoro-onnx`, `faster-whisper`, `soundfile`, Pillow); model files in `/workspace/tts-samples-2026-10-08/models/` (`kokoro-v1.0.onnx`, `voices-v1.0.bin`); pronunciation lexicon in `/workspace/tts-samples-2026-10-08/ask-again/enhanced/lexicon.json` | Shared tooling. Add new pronunciations to the lexicon or a per-video `EXTRA_LEX`. | Any desk may use it. Changes to the venv or lexicon: note them in `script.md`. |
 | R2 bot bucket | `aitamer-bots`, public at `https://bots.aitamer.news/videos/<slug>/` | `<stem>-1080p.mp4`, `<stem>-720p.mp4` (v1 and later `-v2` stems side by side), `<slug>-poster.webp`, `<slug>-poster.jpg`, `<stem>.en.vtt`, `manifest.json`, and `art/01.jpg` and up (backup of the source images). | The producing desk, create-only. Nobody overwrites or deletes. **Never `aitamer-media`.** |
 | Repo: this guide | `docs/guides/video-protocol.md` | The protocol. | Any desk by PR. Docs-only PRs go through normal review. |
-| Repo: captions | `public/videos/<slug>/<stem>.en.vtt` | The captions the site serves (the build fails if the file is missing). Must match the R2 copy byte for byte. | The producing desk, in the post PR. |
+| Site: captions URL | `https://aitamer.news/videos/<slug>/<stem>.en.vtt` | Not a file in the repo. The captions proxy (`functions/videos/[[path]].js`) fetches the R2 copy and serves it on our domain, so the `<track>` is same-origin. Never add a `.vtt` under `public/`: a static file would shadow the proxy. | Site code; changes need Wiz Cat's review. |
 | Repo: post | `src/content/posts/<post-slug>.md` | The `selfHostedVideo` frontmatter block and any `corrections` entry. | The producing desk opens the PR; the EIC merges content PRs. |
 | Repo: site code | `src/components/SelfHostedVideo.astro`, `src/content/post-schema.ts`, `scripts/csp-headers.mjs`, `POST.md` | The player, schema, CSP `media-src` and field docs. | Only by a site-code PR that **Wiz Cat reviews**. The EIC does not merge site code. |
 | YouTube | `@aitamernews` (pending) | The same final MP4, the `.vtt` as a caption file, the description with the post link and AI note. | Wiz Cat or the EIC, by hand, at first. Bots never hold the channel password. |
@@ -53,7 +53,7 @@ Each gate writes its verdict (CLEAR, CLEAR with conditions, FIX, HOLD, STOP) int
 5. **Render.** Only after Fact and Legal are CLEAR or their fixes are applied. A render after fixes gets a new version stem (`-v2`).
 6. **QA look.** Contact sheet, spot frames, STT transcript check, ffprobe, loudness (section 13).
 7. **Upload** to the R2 bot bucket, then read back.
-8. **Post PR.** `selfHostedVideo` frontmatter plus the `.vtt` in `public/videos/<slug>/`. The EIC merges content PRs only. **Site code changes need Wiz Cat's review.**
+8. **Post PR.** Only the `selfHostedVideo` frontmatter in the post's own `.md`; no other file. The captions are already in R2. The EIC merges content PRs only. **Site code changes need Wiz Cat's review.**
 
 ## 5. Format
 
@@ -240,7 +240,7 @@ The LEANN build lives in `/workspace/aitamer-news-ops/youtube/pilot-leann/build/
    ```
 
    Pass: 200, size and sha256 match, correct Content-Type, and 206 on a Range request for each MP4.
-8. **Captions are served from the site**, at `public/videos/<slug>/<stem>.en.vtt` in the repo, until CORS is set up on the R2 bucket (a cross-origin `<track>` needs it). Keep the R2 copy too, identical.
+8. **Captions live in R2 next to the video** (`videos/<slug>/<stem>.en.vtt`). The page loads them from our own domain at `/videos/<slug>/<stem>.en.vtt`, where the captions proxy serves the R2 copy (GET and HEAD only, caption paths only, upstream 200 only, at most 1 MB). The bucket has no CORS policy and does not need one. Read back `https://aitamer.news/videos/<slug>/<stem>.en.vtt` after the deploy: 200, `text/vtt`, same sha256 as R2.
 
 ## 10. Site embed
 
@@ -259,7 +259,7 @@ Needs the site code from PR #357 (`SelfHostedVideo` component, `selfHostedVideo`
      disclosure: "AI use: narration is a synthetic voice (Kokoro-82M). The illustrations were made with AI for aitamer.news. The script was written and checked by the aitamer.news desk."
    ```
 
-   `key` is the R2 folder (posters are `<key>-poster.webp` and `.jpg`). `stem` defaults to `key`; set it for a re-cut. The `.vtt` must be at `public/videos/<key>/<stem>.en.vtt` or the build fails. Field docs: `POST.md`.
+   `key` is the R2 folder (posters are `<key>-poster.webp` and `.jpg`). `stem` defaults to `key`; set it for a re-cut. The `.vtt` must be in R2 at `videos/<key>/<stem>.en.vtt` before the post merges; nothing goes in the repo besides the post. Field docs: `POST.md`.
 2. **The component** (`src/components/SelfHostedVideo.astro`) renders a plain `<video>` above the body with both MP4 sources, the poster, the captions track and the disclosure line under the player. No third-party player, no script, no tracker, no analytics pixel for the video.
 3. **CSP:** `media-src 'self' https://bots.aitamer.news` (in `scripts/csp-headers.mjs`). Any change is site code.
 4. **JSON-LD:** the component emits a `VideoObject` (name, description, thumbnail, upload date, duration, content URL) from the frontmatter.
@@ -316,7 +316,7 @@ Waiting for Wiz Cat to create **`@aitamernews`** under a **Brand Account** with 
 
 **Post PR**
 - [ ] `selfHostedVideo` block with the exact disclosure line.
-- [ ] `public/videos/<slug>/<stem>.en.vtt` added.
+- [ ] `<stem>.en.vtt` is in R2 (read back 200); nothing added under `public/`. The PR changes only the post's `.md`.
 - [ ] Dated `corrections` entry if facts changed on a live post.
 - [ ] No site code in a content PR. Site code goes in its own PR for Wiz Cat's review.
 
