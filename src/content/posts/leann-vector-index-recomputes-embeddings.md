@@ -21,6 +21,14 @@ wildness:
   verified: "The arXiv paper (v2), the MLSys 2026 award PDF and the MIT-licensed GitHub repo, read 27 October."
   claimed: "The 97% and 60M-chunks-in-6GB storage figures and the Claude Code test are the project's own numbers."
 verdict: "A smart trade if your RAG index lives on a laptop: you pay seconds of GPU or CPU time per query instead of gigabytes of disk. Not a fit for high-QPS servers."
+selfHostedVideo:
+  key: leann-explainer
+  stem: leann-explainer-v2
+  title: "This vector index throws away its vectors (LEANN, an MLSys 2026 best paper)"
+  description: "A 2:32 aitamer.news explainer: how LEANN keeps a pruned graph instead of stored embeddings and recomputes the few it needs at search time."
+  durationSeconds: 152
+  uploadDate: "2026-10-27"
+  disclosure: "AI use: narration is a synthetic voice (Kokoro-82M). The illustrations were made with AI for aitamer.news. The script was written and checked by the aitamer.news desk."
 sources:
   - title: "arXiv: LEANN: A Low-Storage Vector Index (2506.08276, v2 25 November 2025)"
     url: https://arxiv.org/abs/2506.08276
@@ -30,7 +38,7 @@ sources:
     url: https://github.com/StarTrail-org/LEANN
 ---
 
-Most vector databases store one embedding per chunk, and that is where the disk goes. **LEANN** stores almost none of them. It keeps a slimmed-down graph of which chunks are near which, and recomputes the few embeddings a search actually touches, on the fly. The paper behind it, from a Berkeley-led team of 13 authors including Ion Stoica, Matei Zaharia and Joseph Gonzalez, won the [Best Research Paper award at MLSys 2026](https://mlsys.org/media/mlsys-2026/best-papers/Best-Research-Paper-LEANN.pdf) in May. The [open-source project](https://github.com/StarTrail-org/LEANN) (MIT licence, about 13,400 GitHub stars) shipped v0.3.8 on 28 September and is still being updated.
+Most vector databases store one embedding per chunk, and that is where the disk goes. **LEANN** stores almost none of them. It keeps a slimmed-down graph of which chunks are near which, and recomputes the few embeddings a search actually touches, on the fly. The paper behind it, from a Berkeley-led team of 13 authors including Ion Stoica, Matei Zaharia and Joseph Gonzalez, won a [Best Research Paper award at MLSys 2026](https://mlsys.org/media/mlsys-2026/best-papers/Best-Research-Paper-LEANN.pdf) in May. The [open-source project](https://github.com/StarTrail-org/LEANN) (MIT licence, about 13,400 GitHub stars) shipped v0.3.8 on 28 September and is still being updated.
 
 If you have read our [vector database explainer](/posts/vectors-plainly-1-what-a-vector-database-is/) and [the one on index internals](/posts/vectors-plainly-2-inside-the-index/), this is the step that series did not cover: what if you simply do not keep the vectors?
 
@@ -44,7 +52,7 @@ The [paper](https://arxiv.org/abs/2506.08276) reports indexes below 5% of the ra
 
 ## What you pay for it
 
-Recomputing embeddings is not free. In the paper's own table (RTX 4090, target 90% Recall@3), a retrieval takes 2.48 s on Natural Questions, 2.96 s on TriviaQA, 1.12 s on GPQA and 7.12 s on HotpotQA, against about 0.05 s for a plain in-memory HNSW index. The authors frame this against the LLM's answer time: retrieval adds 10.6%, 14.7%, 1.6% and 23.4% respectively to end-to-end latency. The text says "less than 20%"; HotpotQA in the same table is above that, so judge by your own workload.
+Recomputing embeddings is not free. In the paper's own table (RTX 4090, target 90% Recall@3), a retrieval takes 2.48 s on Natural Questions, 2.96 s on TriviaQA, 1.12 s on GPQA and 7.12 s on HotpotQA, against about 0.05 s for a plain in-memory HNSW index. The authors frame this against the LLM's answer time: retrieval is 10.6%, 14.7%, 1.6% and 23.4% of total answer time (retrieval plus generation), respectively. The text says "less than 20%"; HotpotQA in the same table is above that, so judge by your own workload.
 
 So LEANN is a laptop and workstation tool. It suits a private index of your mail, notes or a large codebase where disk matters and a second or two per query does not. It does not suit a server answering thousands of queries a second. The paper also covers Apple-silicon results and index updates.
 
