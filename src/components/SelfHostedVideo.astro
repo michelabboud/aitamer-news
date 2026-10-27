@@ -1,12 +1,12 @@
 ---
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import { toJsonLd } from '../lib/json-ld';
 /**
  * A video the desk made, played by the browser's own `<video>` element: no third-party player,
  * no script, no tracker. The files come from the bot bucket's public host (allowed by `media-src`
- * in scripts/csp-headers.mjs); the caption track is served from this site, because a cross-origin
- * track needs CORS on the bucket. Only the frontmatter `key` and `stem` name the files (post-schema.ts).
+ * in scripts/csp-headers.mjs). The caption file sits in the bucket next to the video, but the track
+ * asks this site for it (`/videos/<key>/<stem>.en.vtt`): a cross-origin track needs CORS on the
+ * bucket, so the captions proxy (functions/videos/[[path]].js) fetches it from the bucket instead.
+ * Only the frontmatter `key` and `stem` name the files (post-schema.ts).
  */
 interface Props {
   video: { key: string; stem?: string; title: string; description: string; durationSeconds: number; uploadDate: Date; disclosure: string };
@@ -17,10 +17,6 @@ const stem = video.stem ?? video.key;
 const poster = `${folder}${video.key}-poster`;
 const base = `${folder}${stem}`;
 const captions = `/videos/${video.key}/${stem}.en.vtt`;
-// Fail the build rather than ship a player whose caption track is missing.
-if (!existsSync(join(process.cwd(), 'public', captions))) {
-  throw new Error(`SelfHostedVideo: captions file public${captions} is missing for "${video.key}"`);
-}
 const minutes = Math.floor(video.durationSeconds / 60);
 const seconds = video.durationSeconds % 60;
 const length = `${minutes}:${String(seconds).padStart(2, '0')}`;
