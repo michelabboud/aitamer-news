@@ -22,8 +22,8 @@ verdict: "Stampe is tabling a proposal to amend copyright law, not announcing a 
 sources:
   - title: "Guard against imitations is on this year's legislative programme (Ministry of Culture, 6 October 2026)"
     url: https://kum.dk/aktuelt/nyheder/vaern-mod-efterligninger-medieombudsmand-og-scenekunstreform-er-paa-aarets-lovprogram
-  - title: "Culture minister wants to ban sharing AI copies of people (Ritzau, via DKNyt)"
-    url: https://www.dknyt.dk/ritzau/26887a46-52d8-4b3c-adcb-ee1dd490e176
+  - title: "Culture minister wants to ban sharing AI copies of people (Ritzau, via DKNyt, archived copy)"
+    url: https://web.archive.org/web/20261008081232/https://www.dknyt.dk/ritzau/26887a46-52d8-4b3c-adcb-ee1dd490e176
   - title: "Culture minister wants to ban sharing AI copies of people (Berlingske)"
     url: https://www.berlingske.dk/politik/kulturminister-vil-forbyde-at-dele-ai-kopier-af-personer
   - title: "Denmark introduces bill to protect people's faces and voices from deepfakes (Euronews, 8 October 2026)"
@@ -34,7 +34,7 @@ sources:
     url: https://aitamer.news/posts/google-synthid-detector-public/
 ---
 
-On Thursday, Culture Minister Zenia Stampe was tabling a bill against sharing realistic digital copies of a person's appearance or voice without consent, the Danish wire [Ritzau reported](https://www.dknyt.dk/ritzau/26887a46-52d8-4b3c-adcb-ee1dd490e176). [Berlingske](https://www.berlingske.dk/politik/kulturminister-vil-forbyde-at-dele-ai-kopier-af-personer) carried the same story. [Euronews](https://www.euronews.com/2026/10/08/denmark-introduces-a-bill-protecting-peoples-faces-and-voices-from-deepfakes) said Denmark was due to introduce the bill that day. None of those reports says parliament has passed it.
+On Thursday, Culture Minister Zenia Stampe was tabling a bill against sharing realistic digital copies of a person's appearance or voice without consent, the Danish wire [Ritzau reported](https://web.archive.org/web/20261008081232/https://www.dknyt.dk/ritzau/26887a46-52d8-4b3c-adcb-ee1dd490e176). [Berlingske](https://www.berlingske.dk/politik/kulturminister-vil-forbyde-at-dele-ai-kopier-af-personer) carried the same story. [Euronews](https://www.euronews.com/2026/10/08/denmark-introduces-a-bill-protecting-peoples-faces-and-voices-from-deepfakes) said Denmark was due to introduce the bill that day. None of those reports says parliament has passed it.
 
 Stampe represents Radikale Venstre, which Euronews calls the Social Liberal Party. A deepfake here means a picture, video or audio clip made so someone appears to say or do something they did not. The bill, as these outlets describe it, is aimed at realistic copies.
 
