@@ -85,6 +85,12 @@ sources:
     url: https://github.com/xerj-org/xerj/pull/2377
   - title: "XERJ PR #2380, route native document writes to the shard primary (GitHub, merged 25 October 2026)"
     url: https://github.com/xerj-org/xerj/pull/2380
+  - title: "GitHub: XERJ v1.0.0-rc.100 release (27 October 2026)"
+    url: https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.100
+  - title: "XERJ blog: autoindex and search performance improvements"
+    url: https://xerj.org/blog/autoindex-search-performance-improvements.html
+  - title: "XERJ feedback.rs at the rc.100 tag"
+    url: https://github.com/xerj-org/xerj/blob/v1.0.0-rc.100/engine/crates/xerj-common/src/feedback.rs
 ---
 
 On 16 October 2026 at 14:51 UTC, XERJ published [v1.0.0-rc.96](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.96). The [changelog](https://raw.githubusercontent.com/xerj-org/xerj/v1.0.0-rc.96/CHANGELOG.md) dates that section 15 October. The version string is a release candidate. GitHub's release record does not flag it as a prerelease.
@@ -169,3 +175,18 @@ The field-report text is unchanged: [`feedback.rs`](https://github.com/xerj-org/
 Our rc.99 note above says cluster mode routes document writes to the primary. That holds for the `PUT /{index}/_doc/{id}` path, but not for XERJ's own native document API. [PR #2380](https://github.com/xerj-org/xerj/pull/2380), merged to main at 06:11 UTC on 25 October, says `POST /v1/indices/{name}/docs`, `DELETE /v1/indices/{name}/docs/{id}` and `POST /v1/indices/{name}/docs/_bulk` "wrote on the node that accepted them. A cluster member could acknowledge a document the shard primary never stored, and the in-sync replica never saw it."
 
 Those three calls now use the same primary and replica quorum. The commit adds that logs, OTLP, syslog, turbo and pipeline ingest "still write locally". With the `_delete_by_query` fix in #2377, that makes two write paths fixed on main after the tag. Neither is in a release yet: rc.99 was still the latest tag when we checked on the afternoon of 25 October. The commit names `PUT /{index}/_doc/{id}` as the path that already used the quorum, so cluster users on rc.99 may want to check which API their writers call.
+
+## Update, 27 October 2026: rc.100 ships both write-path fixes and undoes a 5x slowdown the agents caused
+
+XERJ published [v1.0.0-rc.100](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.100) at 14:49 UTC on 27 October, with 20 binaries. It includes the two cluster fixes we noted above as unreleased: the batch of 11 fixes in [PR #2377](https://github.com/xerj-org/xerj/pull/2377), including `_delete_by_query`, and [PR #2380](https://github.com/xerj-org/xerj/pull/2380), which sends native document writes to the shard primary. If you run cluster mode, this is the release to move to.
+
+The [accompanying blog post](https://xerj.org/blog/autoindex-search-performance-improvements.html) opens with an apology: "In rc.78 our agentic swarm shipped a change that made every background merge compress stored documents with zstd at level 19". XERJ says that made autoindex about five times slower: a 200 MB bulk test ran at about 41,000 documents per second on rc.77 and 5,000 to 14,000 on rc.78 through rc.99. Merges now skip that setting ([PR #2441](https://github.com/xerj-org/xerj/pull/2441)).
+
+Other figures from the post, all XERJ's own runs:
+
+- File checks before indexing: 1,095 ms down to 1.1 ms.
+- A 5 GB folder that rc.99 split into 454 indices now gets at most 32.
+- Peak autoindex client memory: 732 MB, against 2,830 MB on rc.99.
+- A cold CLI search: 13.3 to 15.3 s down to 1.07 s.
+
+The post credits "217 agent field reports". The field-report text is still unchanged: [`feedback.rs`](https://github.com/xerj-org/xerj/blob/v1.0.0-rc.100/engine/crates/xerj-common/src/feedback.rs) at the rc.100 tag still tells agents to send reports automatically, with "no need to ask the user".

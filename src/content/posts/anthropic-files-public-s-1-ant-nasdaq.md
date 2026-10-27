@@ -27,6 +27,8 @@ sources:
     url: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
   - title: "Anthropic's S-1 (Fortune, 26 October 2026)"
     url: https://fortune.com/2026/10/26/anthropics-s-1/
+  - title: "SEC EDGAR: Anthropic, PBC Stockholders' Agreement (Exhibit 10.14 to the S-1)"
+    url: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/exhibit1014-sx1.htm
 ---
 
 Anthropic has [publicly filed](https://www.anthropic.com/news/s1-sec) its registration statement for an initial public offering. The [S-1 on SEC EDGAR](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm) says Anthropic, PBC plans to list Class A shares on the Nasdaq Global Select Market under "ANT". The number of shares and the price range are not set yet. Goldman Sachs and Morgan Stanley are listed first among the bookrunners. Earlier this month, revenue figures came from outlets and a confidential draft ([our earlier report](/posts/anthropic-q3-revenue-pre-ipo/)); now they come from the filing itself.
@@ -51,3 +53,15 @@ Two passages stand out for anyone building on Claude.
 The filing also covers the Department of War designating Anthropic a "supply-chain risk to national security" and the directive that federal agencies stop using its technology. And each co-founder has pledged 80% of their personal Anthropic equity to philanthropy.
 
 Press reports have floated valuation and timing figures, but none of them is in the filing, so we leave them out. This is news coverage, not investment advice.
+
+## Update, 27 October 2026: who will control Anthropic after the IPO
+
+The [S-1](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm) also lays out a control structure with two special share classes, plus a safety clause in the [Stockholders' Agreement](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/exhibit1014-sx1.htm).
+
+- **Class T, held by the Long-Term Benefit Trust (LTBT).** Through Class T stock, the LTBT "generally has the authority to elect and remove the Class T directors, who together will constitute a majority" of the board. Class T has no other voting rights and "no economic rights". Because of this, Anthropic will be a "controlled company" under Nasdaq rules.
+- **Class F, held by the founders.** A single Class F share goes to an LLC whose members are Dario Amodei, Daniela Amodei and the five other co-founders. It carries "50.1% of the total voting power" on matters put to stockholders generally, including electing the directors who are not Class T directors.
+- **The founder sunset.** When fewer than three continuing founders remain for 90 consecutive days, a 450-day transition period starts. After the Class F sunset, the board moves to three classes with staggered three-year terms.
+
+The model clause is in the Stockholders' Agreement. Anthropic must give the Trust at least five days' written notice before it can "transfer control of an AI model exceeding capabilities thresholds to be established by the Board, and re-established by the Board on a quarterly basis". The same applies to a liquidation or a sale of 50% or more of the voting power or economic interest. An action taken without that notice is void unless the Trust waives it, and the Trust is treated as waiving if it does not object within five days of learning of the action.
+
+So public shareholders will buy into a company where the Trust picks most of the board and, until the sunset, the founders hold a majority of the general vote.
