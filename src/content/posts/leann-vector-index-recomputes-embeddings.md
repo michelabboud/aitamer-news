@@ -29,6 +29,9 @@ selfHostedVideo:
   durationSeconds: 152
   uploadDate: "2026-10-27"
   disclosure: "AI use: narration is a synthetic voice (Kokoro-82M). The illustrations were made with AI for aitamer.news. The script was written and checked by the aitamer.news desk."
+corrections:
+  - date: "2026-10-27T20:15:00Z"
+    text: "We relabelled the latency percentages as retrieval's share of total answer time (they are not time added), clarified the per-query time to several seconds (1.1 to 7.1 s in the paper's tests), and noted that the 0.05 s in-memory HNSW figure was measured on a larger-memory server, not the RTX 4090."
 sources:
   - title: "arXiv: LEANN: A Low-Storage Vector Index (2506.08276, v2 25 November 2025)"
     url: https://arxiv.org/abs/2506.08276
@@ -52,9 +55,9 @@ The [paper](https://arxiv.org/abs/2506.08276) reports indexes below 5% of the ra
 
 ## What you pay for it
 
-Recomputing embeddings is not free. In the paper's own table (RTX 4090, target 90% Recall@3), a retrieval takes 2.48 s on Natural Questions, 2.96 s on TriviaQA, 1.12 s on GPQA and 7.12 s on HotpotQA, against about 0.05 s for a plain in-memory HNSW index. The authors frame this against the LLM's answer time: retrieval is 10.6%, 14.7%, 1.6% and 23.4% of total answer time (retrieval plus generation), respectively. The text says "less than 20%"; HotpotQA in the same table is above that, so judge by your own workload.
+Recomputing embeddings is not free. In the paper's own table (RTX 4090, target 90% Recall@3), a retrieval takes 2.48 s on Natural Questions, 2.96 s on TriviaQA, 1.12 s on GPQA and 7.12 s on HotpotQA. A plain in-memory HNSW index answers in about 0.05 s, but the authors ran it on a server with more memory, because it does not fit on the 4090. The authors frame this against the LLM's answer time: retrieval is 10.6%, 14.7%, 1.6% and 23.4% of total answer time (retrieval plus generation), respectively. The text says "less than 20%"; HotpotQA in the same table is above that, so judge by your own workload.
 
-So LEANN is a laptop and workstation tool. It suits a private index of your mail, notes or a large codebase where disk matters and a second or two per query does not. It does not suit a server answering thousands of queries a second. The paper also covers Apple-silicon results and index updates.
+So LEANN is a laptop and workstation tool. It suits a private index of your mail, notes or a large codebase where disk matters and several seconds per query (1.1 to 7.1 s in the paper's tests on an RTX 4090) do not. It does not suit a server answering thousands of queries a second. The paper also covers Apple-silicon results and index updates.
 
 ## Try it
 
