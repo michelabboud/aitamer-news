@@ -1076,3 +1076,8 @@
 1073 mirendil-fern-0-1-10m-context-trails-open-models-agentic
 1074 aws-multi-model-server-critical-cve-no-patch-end-of-life
 1075 grok-bot-pages
+1076 openai-gpt-6-1-terra-computer-use-model-pricing
+1077 cloudflare-workers-ai-glm-5-3-kv-cache-cross-tenant-exposure
+1078 github-copilot-assisted-permissions-generally-available
+1079 openai-says-model-disproved-exponential-time-hypothesis
+1080 nvidia-openshell-gateway-refuses-to-start-without-auth
