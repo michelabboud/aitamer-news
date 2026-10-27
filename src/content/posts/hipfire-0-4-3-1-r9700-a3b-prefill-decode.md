@@ -26,6 +26,8 @@ sources:
     url: https://github.com/warpfront/hipfire/releases/tag/v0.4.3
   - title: "hipfire v0.4.3.1 release notes (GitHub, 24 October 2026)"
     url: https://github.com/warpfront/hipfire/releases/tag/v0.4.3.1
+  - title: "GitHub: hipfire v0.4.4 release (27 October 2026)"
+    url: https://github.com/warpfront/hipfire/releases/tag/v0.4.4
 ---
 
 hipfire, the Rust inference engine for AMD GPUs, shipped two releases on 24 October. [v0.4.3](https://github.com/warpfront/hipfire/releases/tag/v0.4.3) went out at 05:24 UTC and the [v0.4.3.1](https://github.com/warpfront/hipfire/releases/tag/v0.4.3.1) patch followed at 20:37 UTC. Install the patch, not 0.4.3.
@@ -67,3 +69,18 @@ curl -fsSL https://hipfire.dev/install.sh | bash -s -- --tag v0.4.3.1
 ## Why it matters
 
 Local inference on AMD cards still depends on engines tuned per chip, and hipfire's notes show both sides of that: large gains on one card and one quant, and an explicit warning that other cards do not get them. All numbers are the project's own runs on its test cards. Our earlier coverage: [hipfire 0.4.2](/posts/hipfire-0-4-2-npu-trunk-dflash/) and [0.4.0](/posts/hipfire-0-4-0-rdna-rust-inference/).
+
+## Update, 27 October 2026: hipfire 0.4.4 brings a Strix Halo wave and faster image turns
+
+hipfire shipped [v0.4.4](https://github.com/warpfront/hipfire/releases/tag/v0.4.4) on 27 October. The notes lead with speculative-decode speed on the 7900 XTX, generic tensor parallelism as the default dense route, vision on by default and batched prefill for every LLaMA-architecture model. As before, the notes flag where each number comes from, and "contributor-measured" means the merge gate ran build, CPU tests and a smoke on a different card, "not the contributor's benchmark on the contributor's card".
+
+Rows that stand out, all the project's own runs:
+
+| Change | Before | After | Provenance |
+|---|---:|---:|---|
+| Strix Halo, Qwen3-8B DFlash, 7,741-token prompt | 538 s | 13.1 s | contributor-measured |
+| Strix Halo, 9B DFlash, 2K | 45.7 tok/s | 59.6 tok/s | contributor-measured, "shared box (indicative)" |
+| R9700, 27B vision, 1024x1024 image TTFT | 37.3 s | 0.51 s | release notes |
+| Llama-3.2-1B batched prefill | 463 tok/s | 8,130 tok/s | gate run |
+
+The new generic tensor-parallel route is faster on long prompts (TP2 pp2048 +22.3%) but slightly slower on very short ones (pp16 -3.3%, pp32 -2.5%), and `HIPFIRE_DENSE_TP_ROUTE=hand` rolls it back. Several speedups are marked "NUMERIC, not byte-identical", so greedy output can differ from the previous build. Check your own prompts before relying on exact reproducibility.
