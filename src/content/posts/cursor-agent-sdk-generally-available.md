@@ -27,7 +27,7 @@ sources:
   - title: "Cursor docs: Agent SDK"
     url: https://cursor.com/docs/agent-sdk
   - title: "Cursor docs: Agent SDK deploy"
-    url: https://cursor.com/docs/agent-sdk/deploy
+    url: https://cursor.com/docs/agent-sdk/deployment
   - title: "Cursor docs: Agent SDK evals"
     url: https://cursor.com/docs/agent-sdk/evals
   - title: "Cursor docs: Agent SDK changelog (0.3.0, 23 October 2026)"
@@ -50,7 +50,7 @@ Cursor's examples: an internal team built an agent that checks every pull reques
 
 - **Install.** The [docs](https://cursor.com/docs/agent-sdk) say to check for Node 22.13 or newer and run `npm install --global @grok/agent-sdk`. Note the package name: the blog's sample code imports `@cursor/agent-sdk`, but on 27 October the npm registry had no package by that name, while `@grok/agent-sdk` was at 0.3.0. The docs say it was formerly `@cursor/bdk`.
 - **Hosted.** `agent-sdk deploy` runs the agent on Cursor's infrastructure.
-- **Self-hosted.** [One Node process](https://cursor.com/docs/agent-sdk/deploy), which can go in a container, via `agent-sdk serve`. It still needs a `CURSOR_API_KEY`. The docs say to keep `--bearer-token` on unless a proxy authenticates every caller, put TLS or an authenticating proxy in front, and keep `--state-root` on a backed-up persistent volume. Node only: "never Bun".
+- **Self-hosted.** [One Node process](https://cursor.com/docs/agent-sdk/deployment), which can go in a container, via `agent-sdk serve`. It still needs a `CURSOR_API_KEY`. The docs say to keep `--bearer-token` on unless a proxy authenticates every caller, put TLS or an authenticating proxy in front, and keep `--state-root` on a backed-up persistent volume. Node only: "never Bun".
 
 ## The fine print
 
