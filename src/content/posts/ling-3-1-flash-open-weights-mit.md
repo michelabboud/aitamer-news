@@ -35,6 +35,10 @@ sources:
     url: https://en.wikipedia.org/wiki/Ant_Group
   - title: "Ant Group Open-Sources Ling-3.1-flash Weights Under MIT (Pandaily, 15 October 2026)"
     url: https://pandaily.com/ant-group-ling-3-1-flash-open-weights-mit-560b-moe-25b-active-1m-context
+  - title: "Hugging Face: inclusionAI/Ling-3.1-flash-1019 (27 October 2026)"
+    url: https://huggingface.co/inclusionAI/Ling-3.1-flash-1019
+  - title: "Hugging Face: inclusionAI/Ling-3.1-flash-base"
+    url: https://huggingface.co/inclusionAI/Ling-3.1-flash-base
 ---
 
 [inclusionAI/Ling-3.1-flash](https://huggingface.co/inclusionAI/Ling-3.1-flash) is a public Hugging Face repository of weights. The Hub API records `createdAt` 2026-10-13T11:16:41.000Z and `lastModified` 2026-10-15T02:30:27.000Z, with commit `a4ccd6b45c002ddb236f9cb77d52cc427482bf19`. The [organization page](https://huggingface.co/inclusionAI) calls inclusionAI the home of Ant Group's artificial general intelligence work, and it points at Robbyant as another organization under Ant Group. [Wikipedia's Ant Group page](https://en.wikipedia.org/wiki/Ant_Group) carries the short description "Chinese financial services company" and the category "Companies based in Hangzhou."
@@ -62,3 +66,21 @@ The card's recommended path is SGLang, with image `lmsysorg/sglang:dev-ling-3.1-
 ## The trial, as Pandaily tells it
 
 The model card read here does not describe an API trial. [Pandaily](https://pandaily.com/ant-group-ling-3-1-flash-open-weights-mit-560b-moe-25b-active-1m-context), with a CMS `publishedDate` of 2026-10-15T03:50:00.000Z, says the model was announced on 30 September with a two-week free API trial capped at a 256K-token context, that the team then said it planned to open the full 1 million token context and open-source the weights after the free period, and that the free period closed on 14 October as the weights went up. The 30 September announcement was not opened for this story. Pandaily's 256K cap is the same token count as `max_position_embeddings` in the config file opened on 15 October. The Hub API's `createdAt` for the repository is 13 October, a day before the date Pandaily gives for the weights going up.
+
+## Update, 27 October 2026: Ling-3.1-flash-1019 and a base model
+
+inclusionAI has posted [Ling-3.1-flash-1019](https://huggingface.co/inclusionAI/Ling-3.1-flash-1019), "an upgraded version" of Ling-3.1-flash with the same 560B total and 25B active parameters. The card again declares MIT, and again the repository has no separate LICENSE file. The model is not gated.
+
+The card says further post-training improved reasoning and agent tasks. Its figures, attributed to Artificial Analysis:
+
+| Benchmark | Ling-3.1-flash | 1019 |
+|---|---:|---:|
+| AA Intelligence Index v4.3.2 | 41 | 44 |
+| AA-Briefcase (Elo) | about 1400 | 1524 |
+| AutomationBench-AA | 62% | 68% |
+| CritPt | 18% | 26% |
+| SciCode | 54% | 57% |
+
+The same context mismatch remains: the card says 1M tokens, while `config.json` in the 1019 repository still sets `max_position_embeddings` to 262,144.
+
+inclusionAI also posted [Ling-3.1-flash-base](https://huggingface.co/inclusionAI/Ling-3.1-flash-base), the pretrained checkpoint, under MIT on 25 October, which is useful if you want to run your own fine-tune.

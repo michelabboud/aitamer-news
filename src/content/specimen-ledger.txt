@@ -1093,3 +1093,9 @@
 1090 xint-compaction-smuggling-openai-reasoning-traces
 1091 chroma-joins-replit-chroma-cloud-wind-down
 1092 akamai-inference-agent-sandbox-beta
+1093 axiom-cfsg-finite-simple-groups-lean-proof-ai-agents
+1094 spice-ai-2-4-sql-decision-functions-cayenne-default
+1095 opera-webai-local-ai-models-in-browser-preview
+1096 mistral-rs-advisory-document-text-forged-tool-calls
+1097 deepseek-v4-1-flash-1017-fangcun-shutdown-safety-evaluation
+1098 baidu-unlimited-ocr-2-long-document-parsing
