@@ -27,6 +27,12 @@ sources:
     url: https://en.ilsole24ore.com/art/anthropic-debt-60-billion-google-and-blackstone-chips-returns-of-over-10-per-cent-AJ1kwmmB
   - title: "AI Tamer: Outlets put Anthropic's third-quarter revenue at $16.8 billion"
     url: https://aitamer.news/posts/anthropic-q3-revenue-pre-ipo/
+  - title: "Broadcom: Bank of America, Blackstone, Citi and Morgan Stanley announce landmark $63 billion financing structure (26 October 2026)"
+    url: https://investors.broadcom.com/news-releases/news-release-details/bank-america-blackstone-citi-and-morgan-stanley-announce
+  - title: "Broadcom: investor presentation on the North Star financing (26 October 2026)"
+    url: https://investors.broadcom.com/static-files/f4bda79d-cc66-4748-919b-40d08c658f2d
+  - title: "Milbank: Milbank advises North Star on landmark $63B AI financing (26 October 2026)"
+    url: https://www.milbank.com/en/news/milbank-advises-north-star-on-landmark-dollar63b-financing-structure-to-enable-ai-compute-capacity-in-partnership-with-broadcom.html
 ---
 
 A Reuters brief carried by [Yahoo Finance](https://finance.yahoo.com/technology/ai/articles/anthropic-offers-blackstone-double-digit-010109537.html), with a published time of 2026-10-17T01:01:09Z and a 16 October dateline, says the Financial Times reported on Friday that Anthropic is offering Blackstone a yield of more than 10% to finance its latest chip deal. The brief says Blackstone funds would invest $9 billion in that debt, backed by Anthropic's five-year lease payments on the chips. It cites people familiar with the matter. Reuters says it could not immediately verify the report. The brief does not say whether Anthropic, Blackstone or Google commented.
@@ -48,3 +54,15 @@ Il Sole also says that four months earlier Anthropic raised around $4.4 billion 
 Subordinated debt is paid after the senior lenders. If the lease payments are not enough for every creditor, that slice waits. The yield is the extra return these reports say was offered for taking that later place. A higher yield is a higher cost of the money, for the borrower. Il Sole presents the step from the 8.5% it attributes to Project Big Sky, via an earlier Financial Times report, up to a yield above 10%, as a higher cost of debt for Anthropic. That comparison has the same limit as the rest of the story: it is unnamed people, relayed from the Financial Times, and Reuters says it has not verified the report. It is not a filing.
 
 A separate set of reports, on Anthropic's third-quarter revenue, is covered in [a 15 October post](/posts/anthropic-q3-revenue-pre-ipo/). Those revenue figures are not in the debt briefs read here.
+
+## Update, 27 October 2026: the banks have announced a $63 billion structure
+
+The deal is now public, from the parties themselves rather than unnamed sources. On 26 October Bank of America, Blackstone, Citi and Morgan Stanley [announced](https://investors.broadcom.com/news-releases/news-release-details/bank-america-blackstone-citi-and-morgan-stanley-announce) a **$63 billion** transaction, released through Broadcom. A newly formed special purpose vehicle, with committed financing from the four, will buy Broadcom XPU AI accelerators and networking equipment and lease them to Anthropic. The release says this is part of the compute capacity agreement Broadcom announced earlier, with deliveries expected from calendar 2027.
+
+- **First lien.** Arranged by Bank of America, Citi and Morgan Stanley.
+- **Second lien.** Blackstone is "the sole provider of the committed portion of the second lien financing". That is the junior slice the earlier reports described.
+- **Broadcom's support.** Broadcom provides residual value support to the vehicle equal to the first lien portion. Broadcom's [investor presentation](https://investors.broadcom.com/static-files/f4bda79d-cc66-4748-919b-40d08c658f2d) on the deal says its possible liability is any gap between 72.5% of what is still owed on the leases and the value of the AI racks, with peak exposure expected at $43 billion and falling to zero over five years of lease payments. It says this is not a direct cash outlay.
+
+Law firm [Milbank](https://www.milbank.com/en/news/milbank-advises-north-star-on-landmark-dollar63b-financing-structure-to-enable-ai-compute-capacity-in-partnership-with-broadcom.html) says it represented Northstar Compute LLC ("North Star"), a new compute financing vehicle, on $63 billion of debt and equity financing, which matches the project name in Il Sole's account.
+
+The announcements do not give an interest rate or yield, the size of each tranche, or the 1.5 gigawatts mentioned in earlier reports, and they do not mention Google. The above-10% yield remains a report relayed from the Financial Times, not a disclosed figure. The $63 billion total is the parties' number; the $60 billion figure came from press reports.
