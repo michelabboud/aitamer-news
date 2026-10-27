@@ -1087,3 +1087,9 @@
 1084 leann-vector-index-recomputes-embeddings
 1085 nvidia-invests-3-billion-meta-equity-offering-muse
 1086 runway-app-studio-build-creative-apps
+1087 gemini-api-generate-content-stores-requests-by-default
+1088 apple-creator-studio-assistant-openai-mcp-keynote-pages-numbers
+1089 sarvam-mou-indian-armed-forces-ai
+1090 xint-compaction-smuggling-openai-reasoning-traces
+1091 chroma-joins-replit-chroma-cloud-wind-down
+1092 akamai-inference-agent-sandbox-beta

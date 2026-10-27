@@ -26,6 +26,8 @@ sources:
     url: https://nvidianews.nvidia.com/news/nvidia-and-meta-to-expand-collaboration-on-muse-and-muse-family-of-models-amid-robust-growth
   - title: "Meta: Meta Announces Pricing of Offering of Depositary Shares and Class A Common Stock (26 October 2026)"
     url: https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-Announces-Pricing-of-Offering-of-Depositary-Shares-Representing-Series-A-Mandatory-Convertible-Preferred-Stock-and-Offering-of-Class-A-Common-Stock-in-Connection-with-Forward-Sale-Agreements/default.aspx
+  - title: "AMD: AMD and Meta Advance Strategic Partnership to Power Meta's Superintelligence Infrastructure (27 October 2026)"
+    url: https://ir.amd.com/news-events/press-releases/detail/1302/amd-and-meta-advance-strategic-partnership-to-power-metas-superintelligence-infrastructure
 ---
 
 Nvidia "will invest $3 billion in Meta's equity offering", it said in a [release](https://nvidianews.nvidia.com/news/nvidia-and-meta-to-expand-collaboration-on-muse-and-muse-family-of-models-amid-robust-growth) on Tuesday announcing a wider collaboration on **Muse**, Meta's family of models.
@@ -41,3 +43,15 @@ Meta [priced its offerings](https://investor.atmeta.com/investor-news/press-rele
 - **Agent security, maybe.** The companies "will also consider" collaborating on Nvidia's OpenShell Reference Architecture, including OpenShell for safe agent deployment ([our story on its gateway](/posts/nvidia-openshell-gateway-refuses-to-start-without-auth/)) and Nvidia Sentry for monitoring agent behaviour. That is a consideration, not a commitment.
 
 Jensen Huang and Mark Zuckerberg are both quoted in the release. Neither the release nor Meta's says how much of Meta's spending on Nvidia hardware the $3 billion relates to.
+
+## Update, 27 October 2026: AMD is putting in $1 billion too
+
+Nvidia is not the only chip supplier buying into the sale. Later the same day AMD [said](https://ir.amd.com/news-events/press-releases/detail/1302/amd-and-meta-advance-strategic-partnership-to-power-metas-superintelligence-infrastructure) that it "will invest $1 billion in Meta's equity offering", in a release about its own partnership with Meta. The release does not give a share count or price, or tie the amount to any purchase.
+
+What else AMD says:
+
+- **Helios at Meta.** Initial AMD Helios rack-scale systems "are installed and being tested by Meta on the path to a broader deployment in the near future".
+- **Muse.** AMD EPYC processors "support the dedicated computing environments behind Meta's Muse personal AI agent", and AMD gave Day-0 support for Muse Spark Open on Instinct GPUs and for Muse Glimmer on Ryzen AI PCs and Radeon GPUs.
+- **Custom GPU.** Meta was an early definition customer for the Instinct MI450 architecture and "will deploy a custom AMD Instinct GPU that is optimized for its workloads".
+
+So two suppliers have now said they will buy into Meta's offering: Nvidia with $3 billion and AMD with $1 billion. Neither release says how the investment relates to Meta's hardware orders.
