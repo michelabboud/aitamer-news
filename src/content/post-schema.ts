@@ -67,6 +67,27 @@ const video = z
   })
   .strict();
 
+/**
+ * A video the desk made and hosts itself, played by a plain `<video>` near the top of the post
+ * (`src/components/SelfHostedVideo.astro`). Only slugs, never a URL: the files live in the bot
+ * bucket under `https://bots.aitamer.news/videos/<key>/`: `<stem>-1080p.mp4`, `<stem>-720p.mp4`,
+ * `<key>-poster.webp` and `<key>-poster.jpg`. `stem` defaults to `key`; a re-cut gets a new stem
+ * (`<key>-v2`) because bucket objects are never overwritten. The English captions are served from
+ * this site at `/videos/<key>/<stem>.en.vtt` (`public/videos/`), because a cross-origin caption
+ * track needs CORS on the bucket. `disclosure` is the AI-use line shown directly under the player.
+ */
+const selfHostedVideo = z
+  .object({
+    key: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'selfHostedVideo.key must be a lowercase slug, not a URL'),
+    stem: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'selfHostedVideo.stem must be a lowercase slug, not a URL').optional(),
+    title: z.string().min(1).max(200),
+    description: z.string().min(1).max(400),
+    durationSeconds: z.number().int().min(1).max(7200),
+    uploadDate: strictDate(),
+    disclosure: z.string().min(1).max(300),
+  })
+  .strict();
+
 const correction = z
   .object({
     date: strictDate(),
@@ -136,6 +157,8 @@ export const postSchema = z
     verdict: z.string().min(1).max(240).optional(),
     sunset: sunset.optional(),
     video: video.optional(),
+    /** A self-hosted video from the bot bucket, shown above the body (see `selfHostedVideo` above). */
+    selfHostedVideo: selfHostedVideo.optional(),
     /** Dated corrections, shown on the post. Add one; never edit or remove an old one. */
     corrections: z.array(correction).default([]),
     /** Set to take a post down: its URL stays with this notice; it leaves every list and feed. */

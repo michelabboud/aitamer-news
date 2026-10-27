@@ -1,0 +1,56 @@
+---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { toJsonLd } from '../lib/json-ld';
+/**
+ * A video the desk made, played by the browser's own `<video>` element: no third-party player,
+ * no script, no tracker. The files come from the bot bucket's public host (allowed by `media-src`
+ * in scripts/csp-headers.mjs); the caption track is served from this site, because a cross-origin
+ * track needs CORS on the bucket. Only the frontmatter `key` and `stem` name the files (post-schema.ts).
+ */
+interface Props {
+  video: { key: string; stem?: string; title: string; description: string; durationSeconds: number; uploadDate: Date; disclosure: string };
+}
+const { video } = Astro.props;
+const folder = `https://bots.aitamer.news/videos/${video.key}/`;
+const stem = video.stem ?? video.key;
+const poster = `${folder}${video.key}-poster`;
+const base = `${folder}${stem}`;
+const captions = `/videos/${video.key}/${stem}.en.vtt`;
+// Fail the build rather than ship a player whose caption track is missing.
+if (!existsSync(join(process.cwd(), 'public', captions))) {
+  throw new Error(`SelfHostedVideo: captions file public${captions} is missing for "${video.key}"`);
+}
+const minutes = Math.floor(video.durationSeconds / 60);
+const seconds = video.durationSeconds % 60;
+const length = `${minutes}:${String(seconds).padStart(2, '0')}`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoObject',
+  name: video.title,
+  description: video.description,
+  thumbnailUrl: [`${poster}.jpg`, `${poster}.webp`],
+  contentUrl: `${base}-1080p.mp4`,
+  uploadDate: video.uploadDate.toISOString(),
+  duration: `PT${minutes ? `${minutes}M` : ''}${seconds ? `${seconds}S` : ''}`,
+};
+---
+<figure class="video video--self" data-pagefind-ignore>
+  <script type="application/ld+json" set:html={toJsonLd(jsonLd)} />
+  <p class="video__intro">Watch our {length} explainer</p>
+  <video
+    class="video__player"
+    controls
+    preload="metadata"
+    playsinline
+    poster={`${poster}.webp`}
+    width="1920"
+    height="1080"
+    aria-label={video.title}
+  >
+    <source src={`${base}-720p.mp4`} type="video/mp4" media="(max-width: 800px)" />
+    <source src={`${base}-1080p.mp4`} type="video/mp4" />
+    <track kind="captions" srclang="en" label="English" src={captions} default />
+  </video>
+  <figcaption class="video__caption">{video.disclosure}</figcaption>
+</figure>
