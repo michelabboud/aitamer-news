@@ -1081,3 +1081,9 @@
 1078 github-copilot-assisted-permissions-generally-available
 1079 openai-says-model-disproved-exponential-time-hypothesis
 1080 nvidia-openshell-gateway-refuses-to-start-without-auth
+1081 ai-voice-models-openai-vs-gemini-tts
+1082 cursor-agent-sdk-generally-available
+1083 noyb-gdpr-complaints-scale-ai-outlier-tracking
+1084 leann-vector-index-recomputes-embeddings
+1085 nvidia-invests-3-billion-meta-equity-offering-muse
+1086 runway-app-studio-build-creative-apps

@@ -29,6 +29,10 @@ sources:
     url: https://agmai.org/
   - title: "The Verge: OpenAI announces three big science discoveries and a new way to work with academics (26 October 2026)"
     url: https://www.theverge.com/ai-artificial-intelligence/1019143/openai-eth-kaseya-science-math-physics
+  - title: "Hexagon: A 2^o(n) Time Algorithm for 3-SAT, contributor Anthropic (hexagon:2610.00577v1, 27 October 2026)"
+    url: https://hexagonmath.org/2610.00577v1
+  - title: "Hexagon: About"
+    url: https://hexagonmath.org/about
 ---
 
 Three weeks after it [posted 722 AI-written manuscripts](/posts/openai-math-722-manuscripts/), and later [withdrew three of them](/posts/openai-math-withdraws-three-manuscripts/), OpenAI is back with three more claims. In a [post on Monday](https://openai.com/index/building-scientific-understanding-with-academic-communities/) it says its models produced new results in mathematics, computer science and physics. The headline one: OpenAI says its system proved that the Exponential Time Hypothesis is false.
@@ -56,3 +60,13 @@ On 26 October AGMAI went further and called on OpenAI "to make public without de
 ## What to watch
 
 The ETH proof is the one anyone can test today. A Lean formalization is strong evidence the stated theorem was proved, but it only helps if the formal statement says what the paper claims, and OpenAI's last release showed that its human-language manuscripts can contain errors. The working group's report, and whether the physics group releases its materials, will say more than any announcement.
+
+## Update, 27 October 2026: a preprint submitted on behalf of Anthropic claims the same result
+
+A preprint submitted on behalf of a second lab now claims to have refuted ETH. The paper, titled "A 2^o(n) Time Algorithm for 3-SAT", was posted on 27 October to [Hexagon](https://hexagonmath.org/2610.00577v1), a mathematics repository in public beta run by the Hexagon Mathematics Foundation. It lists Anthropic as the contributor and says it was submitted by Jelani Nelson on behalf of Anthropic. It is licensed CC BY 4.0.
+
+The abstract claims a **deterministic** algorithm for 3-SAT on n variables that runs in subexponential time (2 to the power o(n)), which would refute ETH, and says it in fact solves the harder counting problem #3-SAT. The paper says the result has been formalized in Lean 4.
+
+Its provenance statement says the core algorithm was found on 16 October by "an internal Claude research model" using 14 million output tokens "and no human input", and that Anthropic researchers then worked with Claude to improve the presentation. It adds: "Independently and concurrently, an internal model at OpenAI claims to have proven a similar result." The page's AI-use label reads "Primarily AI-generated", with human understanding of some parts.
+
+As of about 13:20 Israel time on 27 October we found no Anthropic blog post, research page or company statement about it, so everything above rests on the preprint page. Whether the two proofs use the same idea, and whether each Lean statement matches its paper's claim, is the next thing to check. Two independent formal proofs of the same surprising theorem would be stronger evidence than either alone, but neither has yet been reviewed by outside experts.
