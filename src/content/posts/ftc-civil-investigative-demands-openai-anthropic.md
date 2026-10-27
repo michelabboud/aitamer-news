@@ -40,6 +40,12 @@ sources:
     url: https://aitamer.news/posts/state-attorneys-general-sue-openai-chatgpt/
   - title: "EU tech chief says the bloc is well equipped for very capable AI models"
     url: https://aitamer.news/posts/eu-ai-act-information-requests-ai-providers/
+  - title: "FTC demands Anthropic execs testify in expanding AI safety probe (Axios, 26 October 2026)"
+    url: https://www.axios.com/2026/10/26/ftc-ai-safety-probe-anthropic-openai
+  - title: "Miranda Nazzaro, FTC demands Anthropic leaders testify in consumer harm investigation (The Hill, 26 October 2026)"
+    url: https://thehill.com/policy/technology/6173134-ftc-demands-anthropic-ai-testimony/
+  - title: "FTC seeks testimony from Anthropic executives in AI probe (Fox News Digital live updates, 26 October 2026)"
+    url: https://www.foxnews.com/live-news/ai-news-claude-anthropic-10-26-26
 ---
 
 On 15 October 2026, [CBS News](https://www.cbsnews.com/news/ftc-subpoenas-anthropic-openai-consumer-protection/) reported that a spokesperson for the Federal Trade Commission confirmed the agency has subpoenaed Anthropic and OpenAI "to gather information about potential consumer protection violations." CBS says [Axios](https://www.axios.com/2026/10/15/ftc-openai-anthropic-ai-safety-investigation) reported the development first, and that the agency declined further comment on the probe.
@@ -75,3 +81,11 @@ CBS calls the Wednesday demands a development two weeks after the FTC said it wa
 ## Other proceedings
 
 State attorneys general announced their own lawsuits against OpenAI on 14 October. Those are separate filings, set out in [Eight states sued OpenAI](https://aitamer.news/posts/state-attorneys-general-sue-openai-chatgpt/). Information requests under the EU AI Act are a different process, covered in [the Commission's requests to model providers](https://aitamer.news/posts/eu-ai-act-information-requests-ai-providers/).
+
+## Update, 27 October 2026: the FTC has demanded testimony from Anthropic executives
+
+The testimony step that Axios first reported as planned has now started, at least for one company. On Monday 26 October the FTC sent demands for Anthropic executives to testify in its consumer harm probe, an FTC spokesperson told [Axios](https://www.axios.com/2026/10/26/ftc-ai-safety-probe-anthropic-openai). A spokesperson separately confirmed the demand to [The Hill](https://thehill.com/policy/technology/6173134-ftc-demands-anthropic-ai-testimony/) and to [FOX Business](https://www.foxnews.com/live-news/ai-news-claude-anthropic-10-26-26).
+
+According to Axios, the spokesperson said individuals at other AI companies have also received demands to testify, without saying who. The FTC has only confirmed demands for testimony to Anthropic. The Hill says the agency did not confirm whether the same demands went to OpenAI, which remains under investigation. Axios notes that OpenAI is the only other AI company subpoenaed earlier this month, and that the FTC has said more organizations will get investigative demands later.
+
+The demand came on the same day Anthropic made its IPO filing public, which we covered in [Anthropic files a public S-1](/posts/anthropic-files-public-s-1-ant-nasdaq/). Axios reads the FTC's focus on Anthropic as consistent with a warning in that filing that the company is likely to keep facing disproportionate government scrutiny. Neither company's response was reported in the coverage read here.
