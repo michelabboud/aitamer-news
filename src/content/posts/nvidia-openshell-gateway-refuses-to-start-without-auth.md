@@ -20,7 +20,7 @@ wildness:
   rating: 2
   verified: "Issue #4814, pull request #4821 and the v0.1.6 release notes in the NVIDIA/OpenShell repository."
   claimed: "Nothing beyond the repository. No security advisory has been published for this change."
-verdict: "If you run an OpenShell gateway from v0.1.5 or earlier, check that it has OIDC, mTLS, operator auth or gateway JWTs configured. OpenShell v0.1.6 refuses to start a gateway without one; on older releases, the startup warning is your only signal."
+verdict: "On OpenShell v0.1.5 or earlier, check your gateway has OIDC, mTLS, operator auth or gateway JWTs. v0.1.6 refuses to start without one; older releases only warn at startup."
 sources:
   - title: "NVIDIA/OpenShell issue #4814: refuse to start without user authentication unless allow_unauthenticated_users is set"
     url: https://github.com/NVIDIA/OpenShell/issues/4814
