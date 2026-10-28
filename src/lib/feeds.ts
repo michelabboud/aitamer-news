@@ -1,6 +1,6 @@
 /**
  * Machine-readable feeds: shared shapes and pure builders for `/rss.xml`, the per-Habitat feeds
- * under `/rss/` (`src/pages/rss/`), `/feed.json` and `/llms.txt`. No Astro imports, so `npm test` can run this directly against plain objects —
+ * under `/rss/` (`src/pages/rss/`), `/feed.json` and `/llms.txt`. No Astro imports, so `npm test` can run this directly against plain objects;
  * the pages under `src/pages/*.ts` do the Astro-side work (resolving authors, canonical URLs,
  * absolute image URLs) and hand the result to these functions.
  *
