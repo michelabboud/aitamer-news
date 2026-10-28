@@ -243,6 +243,23 @@ Exit 0 and `status: ok` are required. If it fails, inspect the result and give `
 
 For an evergreen article instead, run `npm run preflight -- --next-slot 5`, choose a free slot, pass it as `--pubDate`, and omit `--news` from builder and preflight. Do not alter another writer's date.
 
+### Optional: our own explainer video
+
+A post may carry one video the desk made itself. It is only a frontmatter field: no other file in the repo changes, so the post stays in this lane. Before the post PR, upload every file create-only to the bot bucket under `videos/<key>/` (see `docs/guides/video-protocol.md` when it is on main): `<stem>-1080p.mp4`, `<stem>-720p.mp4`, `<stem>.en.vtt`, `<key>-poster.webp` and `<key>-poster.jpg`. Check each public URL answers 200. The captions stay in R2 next to the video; the site serves them on its own domain at `/videos/<key>/<stem>.en.vtt` through the captions proxy, so never add a `.vtt` (or anything else) under `public/`.
+
+To use it, add this block to the frontmatter the builder wrote, after `verdict`, remove the leading `# ` from each line and fill in the values. Leave it out for a post without a video. Field rules are in `POST.md` (`selfHostedVideo`).
+
+```yaml
+# selfHostedVideo:
+#   key: my-story-explainer          # lowercase slug, at most 120 characters: the R2 folder videos/<key>/
+#   stem: my-story-explainer-v2      # optional, defaults to key; a re-cut gets a new stem, files are never replaced
+#   title: "The video's title"
+#   description: "One or two sentences on what the video shows."
+#   durationSeconds: 152             # whole seconds, as shown on the player
+#   uploadDate: "2026-10-27"
+#   disclosure: "AI use: narration is a synthetic voice (Kokoro-82M). The illustrations were made with AI for aitamer.news. The script was written and checked by the aitamer.news desk."
+```
+
 ## 6. Check and commit the article, then validate the candidate
 
 The builder's `--ledger "$BUNDLE/builder-events.jsonl"` is a private misstep log, not the permanent specimen ledger. New article frontmatter must omit `specimen`; do not run `npm run stamp`, write a number or stage `src/content/specimen-ledger.txt`.
