@@ -1,6 +1,6 @@
 ---
 title: "NVIDIA OpenShell closes a fail-open default: gateways with no auth will refuse to start"
-description: "An OpenShell gateway with no auth configured gave every caller admin rights. A fix merged on 27 October makes it refuse to start unless you opt in."
+description: "An OpenShell gateway with no auth configured gave every caller admin rights. OpenShell v0.1.6, out 27 October, makes it refuse to start unless you opt in."
 pubDate: "2026-10-27T10:07:00Z"
 specimen: 1080
 section: rust
@@ -18,9 +18,9 @@ heroAlt: "A paper-cut collage of a firmly closed steel-blue gate with a small ke
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Issue #4814 and merged pull request #4821 in the NVIDIA/OpenShell repository, and its releases page."
+  verified: "Issue #4814, pull request #4821 and the v0.1.6 release notes in the NVIDIA/OpenShell repository."
   claimed: "Nothing beyond the repository. No security advisory has been published for this change."
-verdict: "If you run an OpenShell gateway from v0.1.5 or earlier, check that it has OIDC, mTLS, operator auth or gateway JWTs configured. Until the next release, the startup warning is the only thing telling you it does not."
+verdict: "On OpenShell v0.1.5 or earlier, check your gateway has OIDC, mTLS, operator auth or gateway JWTs. v0.1.6 refuses to start without one; older releases only warn at startup."
 sources:
   - title: "NVIDIA/OpenShell issue #4814: refuse to start without user authentication unless allow_unauthenticated_users is set"
     url: https://github.com/NVIDIA/OpenShell/issues/4814
@@ -28,6 +28,8 @@ sources:
     url: https://github.com/NVIDIA/OpenShell/pull/4821
   - title: "NVIDIA/OpenShell releases"
     url: https://github.com/NVIDIA/OpenShell/releases
+  - title: "NVIDIA/OpenShell v0.1.6 release (27 October 2026)"
+    url: https://github.com/NVIDIA/OpenShell/releases/tag/v0.1.6
 ---
 
 [OpenShell](https://github.com/NVIDIA/OpenShell), NVIDIA's Apache-2.0 Rust runtime for autonomous AI agents (its own tagline: "the safe, private runtime"), has merged a change that flips one of its defaults from fail-open to fail-closed. [Pull request #4821](https://github.com/NVIDIA/OpenShell/pull/4821) from GitHub user TaylorMutch landed on 27 October at 04:44 Israel time. It makes a gateway with no user authentication configured refuse to start, unless you explicitly say that is what you want.
@@ -55,6 +57,14 @@ The PR says it covers all 32 combinations of authentication and opt-in settings,
 
 ## Is it out yet?
 
-Not in a release. The latest stable OpenShell is v0.1.5, published on 20 October, so anyone on a release still has the old behaviour until the next one ships. The maintainers have not published a security advisory, and nothing in the issue or PR says the fail-open path was abused. It reads as a hardening change to a risky default.
+Yes. OpenShell v0.1.6, released on 27 October, refuses to start an unauthenticated gateway. Anyone still on v0.1.5 or earlier has the old behaviour. The maintainers have not published a security advisory, and nothing in the issue or PR says the fail-open path was abused. It reads as a hardening change to a risky default.
 
-If you run a gateway today, the fix is configuration, not an upgrade: make sure one of the four auth mechanisms is set, and treat that startup warning as an error.
+If you cannot upgrade yet, the fix is configuration: make sure one of the four auth mechanisms is set, and treat that startup warning as an error.
+
+## Update, 28 October 2026: the change shipped in OpenShell v0.1.6
+
+NVIDIA published [OpenShell v0.1.6](https://github.com/NVIDIA/OpenShell/releases/tag/v0.1.6) as a stable release on 27 October at 19:56 Israel time. The fail-closed gateway change from pull request #4821 is the first item in its upgrade notes: "Gateways now refuse to start unless OIDC, mTLS user or operator authentication, or gateway JWTs are configured." The `allow_unauthenticated_users = true` opt-in for trusted local development is unchanged.
+
+Before upgrading, read the second upgrade note too. New sandboxes now open the control connection to their supervisor, and the notes say to "Upgrade the supervisor and sandbox runtime binaries together, because older binaries reject the new sandboxes."
+
+There is still no security advisory for the old default, so treat this as a hardening release, not a vulnerability fix.
