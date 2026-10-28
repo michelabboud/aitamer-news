@@ -17,6 +17,7 @@ import { revDocument } from '../../lib/freshness';
 import ShareLinks from '../../components/ShareLinks.astro';
 import SpecimenTag from '../../components/SpecimenTag.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
+import SelfHostedVideo from '../../components/SelfHostedVideo.astro';
 import WildnessPanel from '../../components/WildnessPanel.astro';
 import {
   SECTION_LABELS,
@@ -260,6 +261,8 @@ const breadcrumbs = {
             {generated ? `Generated cover art (${SECTION_LABELS[section]} motif). Not a photo.` : 'Generated cover art. Not a photo.'}
           </figcaption>
         </figure>
+
+        {data.selfHostedVideo && !withdrawn && <SelfHostedVideo video={data.selfHostedVideo} />}
 
         <div class="article__body">
           <Content />

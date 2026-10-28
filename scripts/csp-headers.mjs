@@ -197,6 +197,8 @@ export const ORIGINS = {
    * `stats.g.doubleclick.net` origin; this exception does not admit other DoubleClick hosts.
    */
   analyticsConnect: ['https://*.google-analytics.com', 'https://*.google.com', 'https://stats.g.doubleclick.net'],
+  /** SelfHostedVideo's files: the bot bucket's public host (videos under /videos/). */
+  botMedia: 'https://bots.aitamer.news',
   /** VideoEmbed's click-to-load player. */
   youtubeNoCookie: 'https://www.youtube-nocookie.com',
   /** Only the one grandfathered post that embeds raw YouTube iframes (made-on-youtube-2026-gemini-ask-studio). */
@@ -221,6 +223,8 @@ export function directives({ hashes, endpoints, wasm = false, enforce = CSP_ENFO
     ['font-src', ["'self'"]],
     // Human posts may use an image from any https host (and gtag's pixel is one).
     ['img-src', ["'self'", 'data:', 'https:']],
+    // Self-hosted video (SelfHostedVideo.astro) plays from the bot bucket; captions are same-origin.
+    ['media-src', ["'self'", ORIGINS.botMedia]],
     ['connect-src', ["'self'", endpoints.comments, endpoints.contact, ...(endpoints.data ? [endpoints.data] : []), ORIGINS.gtag, ...ORIGINS.analyticsConnect]],
     ['frame-src', [ORIGINS.turnstile, ORIGINS.youtubeNoCookie, ORIGINS.youtube]],
     ['form-action', ["'self'", endpoints.comments, endpoints.contact]],
