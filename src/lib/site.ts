@@ -85,7 +85,7 @@ export const REACTIONS_LIVE = false;
 /**
  * Where a story page's reaction totals come from, the twin of `COMMENTS_SOURCE`. `'baked'` (today):
  * `src/content/reactions/<slug>.json`, built into the page. `'r2'`: the browser reads
- * `v1/reactions/<slug>.json` from `COMMENTS_DATA_BASE` (the comments Worker writes it,
+ * `v2/reactions/<slug>.json` from `COMMENTS_DATA_BASE` (the comments Worker writes it,
  * docs/plans/2026-10-24-comments-on-r2.md §2.5, task R4), and the build no longer reads the
  * reactions collection for the story pages. Flipped in source, never by environment, with
  * `REACTIONS_LIVE` and the privacy page's date. It ships as `'baked'`, so this changes no output.

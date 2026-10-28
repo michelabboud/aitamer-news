@@ -37,6 +37,7 @@ import {
   storedAuthorIsBot,
 } from './check-rendered-body.mjs';
 import { tempDir } from './test-support.mjs';
+import { SLUG, SLUG_MAX_LENGTH } from './slug.mjs';
 
 const post = (body, author = 'desk-bot') => `---\ntitle: "A test"\nauthor: ${author}\n---\n\n${body}\n`;
 const problems = (findings) => findings.map((f) => `${f.path}${f.attribute ? `@${f.attribute}` : ''}: ${f.problem}`);
@@ -272,6 +273,29 @@ test('heading ids: slugger shape only, never an id the page uses', () => {
   refusedBy('<h2 id="a b">x</h2>', /slugger shape/);
   refusedBy('<h2>no id</h2>', /<h2> is missing id/);
   refusedBy('<h2 id="x">a</h2><h3 id="x">b</h3>', /used twice/);
+});
+
+test('heading ids: reaction status ids cannot shadow the story status for any supported slug shape', () => {
+  for (const slug of ['a', '0', 'grok-4-7', 'a--b-', 'x'.repeat(120)]) {
+    refusedBy(`<h2 id="reactions-status-${slug}">x</h2>`, /collides with an id the story page uses/);
+  }
+});
+
+test('reaction status protection follows post slug grammar without reserving unrelated headings', () => {
+  for (const suffix of ['a', '0', 'grok-4-7', 'a--b-', '', '-story', '_story', 'story_part', 'ünicode', 'Story']) {
+    assert.equal(isProtectedId(`reactions-status-${suffix}`), SLUG.test(suffix), `status suffix ${JSON.stringify(suffix)}`);
+  }
+  for (const id of ['reactions-status', 'reactions-status-', 'reactions-status--story', 'reactions-status-_story', 'reactions-status-story_part', 'reactions-status-ünicode']) {
+    assert.deepEqual(problems(checkRenderedHtml(`<h2 id="${id}">x</h2>`)), [], `ordinary heading ${id}`);
+  }
+});
+
+test('reaction status protection ends at the maximum story slug length', () => {
+  const maximumSlug = 'x'.repeat(SLUG_MAX_LENGTH);
+  refusedBy(`<h2 id="reactions-status-${maximumSlug}">x</h2>`, /collides with an id the story page uses/);
+  const ordinaryHeading = `reactions-status-${maximumSlug}x`;
+  assert.equal(isProtectedId(ordinaryHeading), false, 'a 121-character suffix cannot be a story slug');
+  assert.deepEqual(problems(checkRenderedHtml(`<h2 id="${ordinaryHeading}">x</h2>`)), []);
 });
 
 for (const id of ['comment-disclosure', 'comment-retry']) {
@@ -694,6 +718,7 @@ test('after the build: no data store is a finding, never a pass', async () => {
 const DYNAMIC_IDS = {
   'post.id': null, // <CommentCount id={post.id}>: the post's slug, used in a link, never as an element id
   panelId: 'reactions-panel-grok-4-7',
+  statusId: 'reactions-status-grok-4-7',
   'comment.anchor': 'c-01K63M4Q3ZJ8W3Y8N5V2R7T9AB',
   'comment.nameId': 'c-01K63M4Q3ZJ8W3Y8N5V2R7T9AB-name',
   COMMENT_HELD_ANCHOR: 'comment-held',

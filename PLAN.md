@@ -70,3 +70,7 @@ Michel requested finishing his profile and optimizing the reported first-load We
 ## CSP enforcement · running 2026-10-26
 
 Michel authorized [enforcement through apps SSH staging](docs/plans/2026-10-26-csp-enforcement.md), without a custom staging domain. Template enforcement is under security review. Public integration, deployment guard, full artifact/browser qualification, protected merge and actual live acceptance are pending. No provider/cache changes.
+
+## Inert reaction v2 reader integration · running 2026-10-28
+
+[Execution plan](docs/plans/2026-10-28-reactions-v2-inert-integration.md). Reviewed integration from template commit `5ff88c5280d580600a43ac69e977f2d4e2a315c1` onto public baseline `f0d1fbd8abe07de8ba5eef93be4998405ecdcd29`. Clean full tests, content/media checks, build and artifact checks pass. Reactions remain disabled and baked; comments remain on R2. Privacy wording approval, real backend and device qualification, merge and activation are separate gates.

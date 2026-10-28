@@ -1,5 +1,7 @@
 # Backlog
 
+- 2026-10-28 · inert reaction v2 integration · open, required qualification — Obtain WebKit/iOS/VoiceOver/device acceptance, reaction persistence privacy approval and real backend qualification before activation. Reviewed source, clean full tests, content/media checks, build and artifact checks passed; flags remain disabled/baked. No privacy approval inferred. See [source report](docs/reports/2026-10-28-reactions-v2-inert-integration.md).
+
 - 2026-10-25 · build dependency audit · source fixed in0.2.126; review/integration pending — compatible lock resolutions leave npm audit at zero without source/contract changes. The http-cache-semantics advisory is disputed upstream; record audit range resolution rather than claiming a demonstrated security patch. See docs/reports/2026-10-25-build-dependency-repair.md.
 
 - 2026-10-25 · comments flip (S6) · open — The deploy's publisher step judges a push with the script as it was before the push, so the closed lanes (nothing may change) take effect from the first push after the flip is on `main`. Until then the old two-lane script is the judge; the publisher job is switched off on the desk's host first (cutover step C3), so no publisher push is expected in between.

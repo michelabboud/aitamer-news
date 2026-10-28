@@ -9,22 +9,32 @@
  * - **`'baked'`** (today): baked into the page from `src/content/reactions/<slug>.json` (absent =
  *   zero), so reading costs nothing and the counts show without script.
  * - **`'r2'`** (docs/plans/2026-10-24-comments-on-r2.md §2.5, task R4): the script fetches
- *   `v1/reactions/<slug>.json` from the data host (`COMMENTS_DATA_BASE`, carried in
+ *   `v2/reactions/<slug>.json` from the data host (`COMMENTS_DATA_BASE`, carried in
  *   `data-comments-base`, which is also what puts the host in the CSP's `connect-src`) once, with
- *   `credentials: 'omit'`, through the data host's shared load machine (`src/lib/data-host.ts`).
- *   A 404 is zero. A file `validateReactionFile` refuses, an error status, no answer or the 10 s
+ *   `credentials: 'omit'`, through the bounded v2 reader (`src/lib/reactions.ts`).
+ *   An initial 404 is zero; a later 404 keeps the durable envelope, including an empty barrier. A file `parseReactionV2File` refuses, an error status, no answer or the 10 s
  *   timeout leave the buttons working with no count anywhere (the choices read "Overhyped", the
  *   summary stays empty); opening the panel loads again, quietly, after a failure. The summary
  *   keeps its place and width while it is empty (`data-reserved`, `visibility: hidden`), so the
  *   counts arriving move nothing. A closed story's summary is filled the same way.
  *
- * The reader's own choice comes from `localStorage` (never a cookie). Choosing costs one small
- * `POST /react` to the comments Worker, sent with `keepalive`. The counts on the page move
+ * Live totals and private processing receipts share a transactional browser journal. Provisional
+ * numbers stay pinned while issued intents await receipt/publication coverage. Selection remains
+ * responsive; a receipt proves processing or supersession, never a personal contribution.
+ * Live totals use a bounded public-envelope record per story in IndexedDB to fence reloads and
+ * concurrent tabs. Storage errors hide totals and prevent sending unjournaled choices. This new
+ * persistence requires approved reactions privacy wording before activation (see the persistence
+ * module's privacy gate and reset semantics).
+ *
+ * Baked reactions remember the reader's choice in `localStorage` (never a cookie) and use
+ * `POST /react`. Live reactions keep private capability/intents in the IndexedDB journal and use
+ * `/react/v1/stream`, `/react/v1/intent` and authenticated terminal `/react/v1/close`. The existing
+ * baked request is sent to the comments Worker with `keepalive`. The counts on the page move
  * optimistically for this visit only (+1 new, −1 old), without fetching the totals again; a tap
  * made before the totals arrived is laid over them when they do (`liveCounts`). The file catches up
  * on a later publish (baked) or within about a minute (r2).
  *
- * A choice is stored as **unsent** until the Worker answers `ok` (a removal as an unsent
+ * In baked mode a choice is stored as **unsent** until the Worker answers `ok` (a removal as an unsent
  * tombstone), so nothing is lost when the reader leaves before a request goes out, or when the
  * Worker refuses quietly (a rate limit, the daily cap, offline, a timeout): the choice stays shown,
  * and the page sends it again **once per load of that story** until the desk confirms it or the
@@ -82,6 +92,7 @@ const summary = summaryLabel(totals);
 const countOf = (id: string) => totals.known.get(id as never) ?? 0;
 const emojiOf = (id: string) => REACTIONS.find((r) => r.id === id)!.emoji;
 const panelId = `reactions-panel-${slug}`;
+const statusId = `reactions-status-${slug}`;
 const counts = JSON.stringify(Object.fromEntries(totals.known));
 const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) => sum + n, 0);
 ---
@@ -133,7 +144,8 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
         <p class="reactions__caption" aria-hidden="true"></p>
         <noscript><p class="reactions__caption">{REACTIONS_NO_SCRIPT_MESSAGE}</p></noscript>
       </div>
-      <p class="reactions__note" role="status" aria-live="polite" tabindex="-1"></p>
+      <p id={statusId} class="reactions__note" role="status" aria-live="polite" tabindex="-1"></p>
+      <button type="button" class="reactions__reset reactions__react" aria-describedby={statusId} hidden>Reset local confirmation</button>
     </>
   )}
 </section>
@@ -155,18 +167,16 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
     reactionOutcome,
     reactionsHostAllowed,
     reactionStorageKey,
-    reactionsFileUrl,
-    reactionsReader,
     settledRecord,
     parseStoredReaction,
     summaryLabel,
     topReactions,
-    type ClientReactionFile,
     type ReactionId,
     type ReactionOutcome,
     type StoredReaction,
   } from '../lib/reactions';
-  import { fetchDataFile, initialLoadState, loadTransition, type DataEvent, type LoadState } from '../lib/data-host';
+  import { createReactionJournal, REACTION_RESET_DISCLOSURE, type ReactionJournalReader } from '../lib/reaction-journal';
+  import { loadPersistentReactionV2Totals, subscribeReactionV2Fence, notifyReactionV2Fence, type PersistentReactionV2State, type PersistentReactionV2Reader } from '../lib/reactions-v2-persistence';
 
   const EMOJI = new Map<string, string>(REACTIONS.map((r) => [r.id, r.emoji]));
   const LABEL = new Map<string, string>(REACTIONS.map((r) => [r.id, r.label]));
@@ -175,28 +185,12 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
   /**
    * Loads a story's totals from the data host (`REACTIONS_SOURCE = 'r2'`) and reports every state
    * the load enters. An answer to an earlier attempt is ignored by the machine.
-   * @returns a retry, which does something only after a failure
+   * @returns the persistent reader, including explicit ready-data reloads for receipt settlement
    */
-  function loadTotals(slug: string, base: string, onState: (state: LoadState<ClientReactionFile>) => void): () => void {
-    let url: string;
-    try {
-      url = reactionsFileUrl(base, slug);
-    } catch (error) {
-      console.error('reactions: the data address is not usable', error);
-      return () => {};
-    }
-    const reader = reactionsReader(slug);
-    let state = initialLoadState<ClientReactionFile>();
-    function transition(event: DataEvent): void {
-      const next = loadTransition(state, event, reader);
-      if (next === state) return;
-      state = next;
-      if (state.phase === 'failed') console.warn(`reactions: totals not shown (${state.failure}: ${state.reason})`);
-      onState(state);
-      if (state.phase === 'loading') void fetchDataFile(url, state.attempt).then(transition);
-    }
-    void fetchDataFile(url, state.attempt).then(transition);
-    return () => transition({ type: 'retry' });
+  function loadTotals(slug: string, base: string, onState: (state: PersistentReactionV2State) => void): PersistentReactionV2Reader {
+    const reader = loadPersistentReactionV2Totals({ slug, base, onState,
+      subscribe: subscribeReactionV2Fence, notify: notifyReactionV2Fence });
+    return reader;
   }
 
   /** The summary's stack of top emoji and its total, built with DOM calls only. */
@@ -226,6 +220,7 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
     const spoken = summary?.querySelector<HTMLElement>('.sr-only');
     if (!slug || !base || !summary || !stack || !totalText || !spoken) return;
     loadTotals(slug, base, (state) => {
+      if (state.fenceFailure) { summary.setAttribute('data-reserved', ''); return; }
       if (state.phase !== 'ready') return;
       const { counts, unknown } = liveCounts(state.value, null, null);
       const known = knownOf(counts);
@@ -295,6 +290,7 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
     const totalText = root.querySelector<HTMLElement>('.reactions__total')!;
     const caption = panel.querySelector<HTMLElement>('.reactions__caption')!;
     const note = root.querySelector<HTMLElement>('.reactions__note')!;
+    const resetButton = root.querySelector<HTMLButtonElement>('.reactions__reset');
     const choices = Array.from(panel.querySelectorAll<HTMLButtonElement>('.reactions__choice'));
     const openers = [reactButton, summaryButton];
     const key = reactionStorageKey(slug);
@@ -315,8 +311,20 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
 
     let record = readRecord(key);
     let choice: ReactionId | null = record?.r ?? null;
-    /** The choice the page remembered as it loaded: the totals are taken to include it. */
-    const choiceAtLoad = choice;
+    let journal: ReactionJournalReader | undefined;
+    let publicReader: PersistentReactionV2Reader | undefined;
+    let publicationTimer: ReturnType<typeof setTimeout> | undefined;
+    const PUBLICATION_RECHECK_MS = 5000;
+    function watchPublication(provisional: boolean) {
+      if (!provisional) { clearTimeout(publicationTimer); publicationTimer = undefined; return; }
+      if (publicationTimer !== undefined) return;
+      publicationTimer = setTimeout(() => {
+        publicationTimer = undefined;
+        void publicReader?.reload();
+        // A journal refresh schedules the next check only while the interval is unresolved.
+        void journal?.refresh();
+      }, PUBLICATION_RECHECK_MS);
+    }
     let opener: HTMLButtonElement = reactButton;
     let closedNow = false;
     let focusWasInside = false;
@@ -576,6 +584,13 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
       button.addEventListener('click', () => {
         if (closedNow) return;
         const next = nextChoice(choice, id as ReactionId);
+        if (base !== undefined) {
+          choice = next;
+          void journal?.choose(next);
+          if (next !== null) rise(EMOJI.get(next)!);
+          hide();
+          return;
+        }
         counts = applyChoice(counts, choice, next);
         choice = next;
         record = { r: next, at: new Date().toISOString(), unsent: true };
@@ -599,17 +614,60 @@ const unknownTotal = totals.total - [...totals.known.values()].reduce((sum, n) =
     }
 
     render();
-    // A choice the desk has not confirmed goes again, once, on this load.
-    if (record?.unsent) send(record, false);
     if (base !== undefined) {
-      retryTotals = loadTotals(slug, base, (state) => {
-        if (state.phase !== 'ready') return;
-        // Laid over the file: whatever the reader chose while it loaded still counts.
-        ({ counts, unknown: unknownTotal } = liveCounts(state.value, choiceAtLoad, choice));
-        countsKnown = true;
-        render();
+      journal = createReactionJournal({ slug, base, endpoint, initialChoice: choice,
+        onState: (state) => {
+          choice = state.choice;
+          counts = state.counts;
+          unknownTotal = state.unknown;
+          countsKnown = state.known;
+          note.textContent = state.canReset ? `${state.notice} ${REACTION_RESET_DISCLOSURE}` : state.notice;
+          if (resetButton) resetButton.hidden = !state.canReset;
+          watchPublication(state.provisional && !state.storageFailure);
+          render();
+        },
       });
+      let resetPending = false;
+      resetButton?.addEventListener('click', () => {
+        if (resetPending) return;
+        resetPending = true;
+        const hadFocus = document.activeElement === resetButton;
+        resetButton.disabled = true;
+        resetButton.setAttribute('aria-busy', 'true');
+        resetButton.textContent = 'Resetting local confirmation…';
+        // Disabling the focused button may leave focus on the document body. Preserve
+        // that fallback for keyboard users, but relinquish focus as soon as the reader
+        // tabs, points elsewhere, or focuses another control while recovery is pending.
+        let focusMoved = false;
+        const movedFocus = (event: FocusEvent) => { if (event.target !== resetButton) focusMoved = true; };
+        const pointedElsewhere = (event: PointerEvent) => { if (event.target instanceof Node && !resetButton.contains(event.target)) focusMoved = true; };
+        const movedByKeyboard = (event: KeyboardEvent) => { if (event.key === 'Tab') focusMoved = true; };
+        document.addEventListener('focusin', movedFocus, true);
+        document.addEventListener('pointerdown', pointedElsewhere, true);
+        document.addEventListener('keydown', movedByKeyboard, true);
+        void journal!.reset().finally(() => {
+          document.removeEventListener('focusin', movedFocus, true);
+          document.removeEventListener('pointerdown', pointedElsewhere, true);
+          document.removeEventListener('keydown', movedByKeyboard, true);
+          const active = document.activeElement;
+          const restoreFocus = hadFocus && !focusMoved && (active === resetButton || active === document.body || active === document.documentElement);
+          resetPending = false;
+          resetButton.disabled = false;
+          resetButton.removeAttribute('aria-busy');
+          resetButton.textContent = 'Reset local confirmation';
+          if (restoreFocus) (resetButton.hidden ? reactButton! : resetButton).focus();
+        });
+      });
+      publicReader = loadTotals(slug, base, (state) => {
+        if (state.fenceFailure) { journal!.block(); return; }
+        if (state.phase === 'ready') void journal!.refresh(true);
+      });
+      retryTotals = () => { void publicReader!.reload(); void journal!.retry(); };
+    } else if (record?.unsent) {
+      // The baked/v1 path retains its existing queue, choice storage and POST contract.
+      send(record, false);
     }
+
   }
 
   sweep(new Date());
