@@ -5,6 +5,7 @@ pubDate: 2026-09-23T17:51:54Z
 specimen: 9
 section: tools
 heroImage: https://media.aitamer.news/heroes/copilot-runtime-rust-migration.jpg
+heroAlt: "Paper-cut gears and hexagons in plum and sage on the left break apart into fragments that turn into paper birds flying right past small cream clouds."
 subsection: agents
 tags:
   - github-copilot
@@ -25,9 +26,11 @@ verdict: "A concrete case study for teams weighing agent-assisted rewrites. The 
 sources:
   - title: "Migrating the GitHub Copilot runtime to Rust, using Copilot — Stephen Toub"
     url: https://github.blog/ai-and-ml/generative-ai/migrating-the-github-copilot-runtime-to-rust-using-copilot/
+  - title: "Microsoft Foundry blog: Microsoft Copilot harness in Foundry Agent Service (28 October 2026)"
+    url: https://devblogs.microsoft.com/foundry/microsoft-copilot-harness-in-foundry/
 ---
 
-Stephen Toub’s GitHub Blog post (**2026-09-16**) is a primary engineering write-up of how the **Copilot agent runtime** — the harness behind Copilot CLI, the Copilot app, and the Copilot SDK — left TypeScript on Node/V8 for **more than 800,000 lines of production Rust**, with **AI agents writing most of the code**. As Toub put it, a rewrite of this size “wasn’t affordable before agents.”
+Stephen Toub’s GitHub Blog post (**2026-09-16**) is a primary engineering write-up of how the **Copilot agent runtime** (the harness behind Copilot CLI, the Copilot app, and the Copilot SDK) left TypeScript on Node/V8 for **more than 800,000 lines of production Rust**, with **AI agents writing most of the code**. As Toub put it, a rewrite of this size “wasn’t affordable before agents.”
 
 The lines-of-code, latency, token and dollar figures below are GitHub’s own, from its primary post and vendor engineering claims.
 
@@ -45,7 +48,7 @@ Toub says the port landed **incrementally** (not one cutover). Selected ship met
 | Production Rust by 2026-08-21 | **832,378** LoC (+ **468,689** Rust unit-test LoC) |
 | Temporary N-API/TypeScript seam | **0** |
 
-Strategy was **in-place atomic replacement** — component-by-component TypeScript → Rust with temporary interop — so `main` stayed shippable while other developers kept landing features.
+Strategy was **in-place atomic replacement**: component-by-component TypeScript → Rust with temporary interop, so `main` stayed shippable while other developers kept landing features.
 
 ## Latency claims (read the caveats)
 
@@ -67,3 +70,9 @@ Toub attributes roughly **136.3B** total tokens and about **$120,000** in token 
 ## Who should care
 
 This is a tools-desk eng story: a shared Copilot agent harness left Node/V8 for an embeddable Rust binary, agents did most of the line-volume, and in-process C ABI hosting is the lasting architectural bet. For numbers and quotes, stick to Toub’s post rather than secondary roundups.
+
+## Update, 28 October 2026: the Rust runtime now ships to Foundry customers
+
+Microsoft has put the same agent harness behind GitHub Copilot into [Foundry Agent Service as a public preview](https://devblogs.microsoft.com/foundry/microsoft-copilot-harness-in-foundry/), with an SDK. Microsoft says the harness powers Copilot Code, Copilot Studio, the GitHub Copilot app, Copilot CLI and VS Code, and that it "recently ported the harness runtime to Rust", the move described above. In Foundry it works with more than 20 frontier models or your own, plus MCP servers, skills and plugins.
+
+Preview limits: you pick the harness when you create an agent and cannot switch it yet, and Foundry manages CPU and memory for you. Billing starts on 1 December 2026; until then the runtime is free. From that date, sandbox compute costs $0.0994 per vCPU-hour and $0.0118 per GiB-hour of memory, with model inference billed separately, and Microsoft notes prices may vary by region and agreement.
