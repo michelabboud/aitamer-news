@@ -25,6 +25,10 @@ sources:
     url: https://github.com/ai-dynamo/dynamo/releases/tag/v1.6.0
   - title: "ai-dynamo/dynamo README"
     url: https://github.com/ai-dynamo/dynamo
+  - title: "ai-dynamo/dynamo v1.6.1 release"
+    url: https://github.com/ai-dynamo/dynamo/releases/tag/v1.6.1
+  - title: "crates.io: kvbm-engine"
+    url: https://crates.io/crates/kvbm-engine
 ---
 
 NVIDIA's Dynamo, the open-source serving layer that sits above vLLM, SGLang and TensorRT-LLM, shipped [v1.6.0](https://github.com/ai-dynamo/dynamo/releases/tag/v1.6.0) on 22 October. The project's [README](https://github.com/ai-dynamo/dynamo) describes it as built in Rust for performance and Python for extensibility. The notes count 654 pull requests from 148 contributors, 58 of them outside NVIDIA.
@@ -51,3 +55,9 @@ Bundled engines move to SGLang v0.5.21, TensorRT-LLM v1.3.0rc29 and vLLM v0.31.0
 ## Why it matters
 
 Coding agents send long, repetitive prompts with many subagents. Dynamo is tuning routing around that pattern, which is where cache hits and GPU cost are won or lost.
+
+## Update, 28 October 2026: the Rust KVBM crates skipped 1.6.0 and arrived at 1.6.1
+
+If you looked for the KV block manager crates at 1.6.0, they were not there. The [Dynamo v1.6.1 release notes](https://github.com/ai-dynamo/dynamo/releases/tag/v1.6.1) explain why: `kvbm-kernels`, `kvbm-logical` and `kvbm-physical` lost their package `description` in v1.6.0, crates.io rejects a crate without one, and so those three and `kvbm-engine`, which depends on them, were never published for 1.6.0. We checked crates.io: all four now list 1.6.1 as their newest version, published on 27 October at 08:47 Israel time, and [`kvbm-engine`](https://crates.io/crates/kvbm-engine) goes straight from 1.5.1 to 1.6.1.
+
+The same patch release moves the TLS roots compiled into the `ai-dynamo-runtime` and `kvbm` wheels to `rustls-webpki` 0.103.16 and `webpki-roots` 1.0.10, dropping the emSign ECC Root CA - G3. The notes mark that as breaking for endpoints whose certificates chain to that root.
