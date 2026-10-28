@@ -74,6 +74,8 @@ export const PROTECTED_IDS = Object.freeze(
     'corrections-title',
     'sunset-title',
     'sources-title',
+    // src/components/PostNarration.astro
+    'narration-label',
     // src/components/Comments.astro and CommentForm.astro (`COMMENT_HELD_ANCHOR` is `comment-held`)
     'comments',
     'comments-title',

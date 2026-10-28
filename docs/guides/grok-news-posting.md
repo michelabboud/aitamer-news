@@ -260,6 +260,33 @@ To use it, add this block to the frontmatter the builder wrote, after `verdict`,
 #   disclosure: "AI use: narration is a synthetic voice (Kokoro-82M). The illustrations were made with AI for aitamer.news. The script was written and checked by the aitamer.news desk."
 ```
 
+### Optional: audio narration of the post
+
+A post may carry one narration: the article read aloud. Like the video, it is only a frontmatter field, so no other file in the repo changes and the post stays in this lane. The page shows a plain audio player under the byline, labelled "Listen to this article (M:SS)", with the disclosure under it. It never autoplays and downloads nothing until the reader presses play.
+
+House voice rule: all of our own narration uses Kokoro-82M with the voice `af_heart`. HeyGen presenter videos are a separate thing and do not change this rule.
+
+R2 path rule: the file lives in the bot bucket at `audio/<key>/<file>.mp3`, served as `https://bots.aitamer.news/audio/<key>/<file>.mp3`. `key` and `file` are lowercase slugs (`a-z`, `0-9` and single hyphens; at most 120 and 140 characters). Never write a URL or `.mp3` in the frontmatter. Uploads are create-only: a re-render gets a new `file` (for example `<key>-v2`), never a replaced object.
+
+Quick start:
+
+1. Render the article text with Kokoro-82M, voice `af_heart`. Read the body as published, without the sources list.
+2. Encode MP3, mono, 64 to 96 kbps, loudness about -16 LUFS (for example `ffmpeg -i narration.wav -af loudnorm=I=-16:TP=-1.5:LRA=11 -ac 1 -b:a 80k <file>.mp3`).
+3. Note the length in whole seconds (`ffprobe -v error -show_entries format=duration -of csv=p=0 <file>.mp3`, rounded).
+4. Upload create-only to the bot bucket under `audio/<key>/` and check that the public URL answers 200 with `Content-Type: audio/mpeg`.
+5. Add the block below to the frontmatter the builder wrote, after `verdict` (and after `selfHostedVideo` if there is one), remove the leading `# ` from each line and fill in the values. Leave it out for a post without narration. Field rules are in `POST.md` (`narration`).
+
+```yaml
+# narration:
+#   key: my-story                     # lowercase slug, at most 120 characters: the R2 folder audio/<key>/
+#   file: my-story-v1                 # lowercase slug, at most 140 characters: audio/<key>/<file>.mp3
+#   durationSeconds: 245              # whole seconds, as shown in the label
+#   voice: "Kokoro-82M af_heart"      # optional, this is the default and the house voice
+#   disclosure: "AI use: this narration is a synthetic voice (Kokoro-82M). The text was written and checked by the aitamer.news desk."
+```
+
+Use that default disclosure text unless the editor asks for another. If the text changes after the narration was rendered (a correction or an update), render again under a new `file` and update the frontmatter.
+
 ## 6. Check and commit the article, then validate the candidate
 
 The builder's `--ledger "$BUNDLE/builder-events.jsonl"` is a private misstep log, not the permanent specimen ledger. New article frontmatter must omit `specimen`; do not run `npm run stamp`, write a number or stage `src/content/specimen-ledger.txt`.
