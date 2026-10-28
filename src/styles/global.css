@@ -1234,3 +1234,8 @@ a.archive-month__name:hover { color: var(--ember-text); }
 .video--self { margin: 0 0 2rem; }
 .video__intro { margin: 0 0 0.5rem; font-family: var(--font-machine); font-size: 0.8rem; letter-spacing: 0.04em; color: var(--ink-muted); }
 .video__player { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--night-sunk); border: 1px solid var(--line); }
+/* Habitat pages: the RSS line under the lede; /feeds/: the feed list. */
+.page-feed { margin: 0.75rem 0 0; font-family: var(--font-machine); font-size: 0.8rem; letter-spacing: 0.04em; color: var(--ink-muted); }
+.feeds { margin: 0 0 2.5rem; }
+.feeds__list { list-style: none; padding: 0; margin: 0.75rem 0 0; display: grid; gap: 0.6rem; }
+.feeds__sub { list-style: none; padding: 0 0 0 1.25rem; margin: 0.4rem 0 0; display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; font-size: 0.9rem; }

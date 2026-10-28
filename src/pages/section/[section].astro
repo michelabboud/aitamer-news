@@ -16,10 +16,12 @@ import {
   getPublishedPosts,
   isSection,
   resolveAuthor,
+  withBase,
   type Section,
 } from '../../lib/site';
 import { postCover, coverForSection } from '../../lib/covers';
 import { resolveMedia, shareImageUrl } from '../../lib/media';
+import { habitatFeedPath } from '../../lib/feeds';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -70,6 +72,7 @@ const newestShown = posts.reduce((max, post) => (post.data.pubDate > max ? post.
 /* Share cards keep JPEG: a bot WebP hero shares its same-name JPEG twin (src/lib/media.ts shareImageUrl). */
 const leadHero = cards[0]?.post.data.heroImage?.trim();
 const ogImage = leadHero ? resolveMedia(shareImageUrl(leadHero)) : coverForSection(section);
+const feedHref = withBase(habitatFeedPath(section));
 ---
 {stub ? <Fragment set:html={stub} /> : (
 <BaseLayout
@@ -78,10 +81,12 @@ const ogImage = leadHero ? resolveMedia(shareImageUrl(leadHero)) : coverForSecti
   image={ogImage}
   habitat={habitat.slug}
 >
+  <link slot="head" rel="alternate" type="application/rss+xml" title={`${habitat.name} RSS`} href={feedHref} />
   <header class="page-head">
     <p class="page-kicker">Habitat {habitat.code} · {cards.length} {cards.length === 1 ? 'sighting' : 'sightings'}</p>
     <h1 class="page-title">{habitat.name}</h1>
     <p class="lede">{habitat.blurb} Every sighting here, newest first, with its specimen number{habitat.slug === 'voices' ? ', and a wildness rating where it reports a claim.' : ' and wildness rating.'}</p>
+    <p class="page-feed"><a href={feedHref}>RSS for {habitat.name}</a> · <a href={withBase('/feeds/')}>All feeds</a></p>
   </header>
 
   <Freshness mode="stories" newest={newestShown} section={section} />

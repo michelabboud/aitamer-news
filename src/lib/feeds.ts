@@ -1,6 +1,6 @@
 /**
- * Machine-readable feeds: shared shapes and pure builders for `/rss.xml`, `/feed.json` and
- * `/llms.txt`. No Astro imports, so `npm test` can run this directly against plain objects —
+ * Machine-readable feeds: shared shapes and pure builders for `/rss.xml`, the per-Habitat feeds
+ * under `/rss/` (`src/pages/rss/`), `/feed.json` and `/llms.txt`. No Astro imports, so `npm test` can run this directly against plain objects —
  * the pages under `src/pages/*.ts` do the Astro-side work (resolving authors, canonical URLs,
  * absolute image URLs) and hand the result to these functions.
  *
@@ -10,8 +10,12 @@
  */
 import { formatSpecimen } from './specimen.ts';
 
-/** Newest posts kept in every feed (RSS, JSON Feed, llms.txt's "Latest" list). */
-export const FEED_LIMIT = 50;
+/**
+ * Newest posts kept in every feed (the site-wide RSS, each per-Habitat RSS feed, JSON Feed and
+ * llms.txt's "Latest" list). Raised from 50 to 100 on 2026-10-28, when the per-Habitat feeds were
+ * added: about a week of posts at the current pace.
+ */
+export const FEED_LIMIT = 100;
 
 /** https://www.jsonfeed.org/version/1.1/ */
 export const JSON_FEED_VERSION = 'https://jsonfeed.org/version/1.1';
@@ -189,4 +193,70 @@ export function llmsTxtLatestLine(post: FeedPost): string {
 /** The whole "Latest" section body (one line per post, newline-joined), capped to `limit`. */
 export function llmsTxtLatestSection(posts: readonly FeedPost[], limit: number = FEED_LIMIT): string {
   return takeNewest(posts, limit).map(llmsTxtLatestLine).join('\n');
+}
+
+/**
+ * Per-Habitat RSS feeds: `/rss/<section>.xml` for every habitat and `/rss/<section>/<subsection>.xml`
+ * for every subsection a published post uses. `subsection` is free text in frontmatter, so only a
+ * lowercase slug (after trimming and lower-casing) gets a feed; anything else stays only in its
+ * habitat's feed and the site-wide one.
+ */
+const FEED_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/** A frontmatter `subsection` as its feed slug, or undefined when it cannot name a feed path. */
+export function subsectionFeedSlug(subsection: string | undefined): string | undefined {
+  const slug = subsection?.trim().toLowerCase();
+  return slug && slug.length <= 60 && FEED_SLUG.test(slug) ? slug : undefined;
+}
+
+/** Site-relative path of a habitat's feed (callers add the base path). */
+export function habitatFeedPath(section: string): string {
+  return `/rss/${section}.xml`;
+}
+
+/** Site-relative path of a subsection's feed (callers add the base path). */
+export function subsectionFeedPath(section: string, subsection: string): string {
+  return `/rss/${section}/${subsection}.xml`;
+}
+
+export interface SubsectionFeed {
+  section: string;
+  subsection: string;
+  /** Published posts in it (the feed itself is still capped at `FEED_LIMIT`). */
+  count: number;
+}
+
+/**
+ * Every (habitat, subsection) pair that gets a feed, from posts already filtered to published.
+ * Sorted by habitat in `sectionOrder`, then subsection name, so pages and tests see a stable list.
+ */
+export function subsectionFeeds(
+  posts: readonly { section: string; subsection?: string }[],
+  sectionOrder: readonly string[],
+): SubsectionFeed[] {
+  const counts = new Map<string, SubsectionFeed>();
+  for (const post of posts) {
+    const subsection = subsectionFeedSlug(post.subsection);
+    if (!subsection) continue;
+    const key = `${post.section}/${subsection}`;
+    const feed = counts.get(key) ?? { section: post.section, subsection, count: 0 };
+    feed.count += 1;
+    counts.set(key, feed);
+  }
+  const rank = (section: string) => {
+    const index = sectionOrder.indexOf(section);
+    return index === -1 ? sectionOrder.length : index;
+  };
+  return [...counts.values()].sort(
+    (a, b) => rank(a.section) - rank(b.section) || a.section.localeCompare(b.section) || a.subsection.localeCompare(b.subsection),
+  );
+}
+
+/** Posts that belong in one subsection's feed. `posts` keeps its newest-first order. */
+export function inSubsection<T extends { data: { section: string; subsection?: string } }>(
+  posts: readonly T[],
+  section: string,
+  subsection: string,
+): T[] {
+  return posts.filter((post) => post.data.section === section && subsectionFeedSlug(post.data.subsection) === subsection);
 }
