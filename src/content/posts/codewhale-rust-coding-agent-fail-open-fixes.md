@@ -53,6 +53,10 @@ sources:
     url: https://github.com/codewhale-hq/Codewhale/releases/tag/v0.10.2
   - title: "Codewhale CHANGELOG at v0.10.2"
     url: https://github.com/codewhale-hq/Codewhale/blob/v0.10.2/CHANGELOG.md
+  - title: "Codewhale commit 0e9c5be: protect git hooks, git config and .codewhale from sandboxed writes (28 October 2026)"
+    url: https://github.com/codewhale-hq/Codewhale/commit/0e9c5beba5fe5f265e1bf88bac70d019edaadaaf
+  - title: "Codewhale commit cf10ca1: bound MCP catalog revalidation and harden hunk patch parsing (28 October 2026)"
+    url: https://github.com/codewhale-hq/Codewhale/commit/cf10ca1446ae51252835112e43a7cf652cdf86e4
 ---
 
 On 17 and 18 October 2026, commits on the main branch of [codewhale-hq/Codewhale](https://github.com/codewhale-hq/Codewhale) changed how this terminal coding agent treats file reads, sub-agents, workflow approval, and sandboxed commands. The [changelog's Unreleased section](https://github.com/codewhale-hq/Codewhale/blob/main/CHANGELOG.md) describes the fixes. They are fixed on main, due in the next release.
@@ -94,3 +98,13 @@ Related on this site: [Moli](/posts/moli-rust-headless-browser-ai-agents/), [Rig
 Codewhale [v0.10.2](https://github.com/codewhale-hq/Codewhale/releases/tag/v0.10.2) was published on GitHub on 24 October at 17:31 UTC, and npm's `codewhale` and crates.io's `codewhale-cli` both list 0.10.2 as the latest version. The GitHub compare view shows the newest of the seven fix commits named above is included in the tag. The [changelog at the tag](https://github.com/codewhale-hq/Codewhale/blob/v0.10.2/CHANGELOG.md) describes the same fixes: `validate_data`, `review` and `verify` honor the read deny-list, `fim_edit` honors it too, and a `tool_call_before` hook that answers `ask` now always shows the approval prompt. It adds more: sandboxed commands can no longer reach Codewhale's Runtime daemon socket, and unauthenticated `--insecure` servers answer only requests addressed to localhost, to block DNS rebinding.
 
 The same changelog has a Known limits section "from a pre-release security review of the local network surfaces, not yet fixed". With `codewhale serve --insecure` or `app-server --insecure-no-auth`, the `Origin` header is not checked, so a page on an allowed development origin such as `localhost:3000` can drive the Runtime API. The one-time `codewhale web` bootstrap capability passes through browser-launcher arguments other local users can read, and the opt-in control socket does not check the connecting user. One change also loosens a rule: sandboxed shells can again read tools' own auth config for `gh`, `aws`, `npm`, `cargo`, `docker`, `kubectl` and `git`, while Codewhale's file tools stay blocked from those files.
+
+## Update, 28 October 2026: a sandbox gap through git hooks, fixed on main only
+
+Two commits pushed to Codewhale's main branch early on 28 October (03:31 and 03:39 Israel time) cite a pre-launch security review dated 27 October. Neither is in a release: the newest tag is still v0.10.2, and no new advisory has been published.
+
+The first, [commit `0e9c5be`](https://github.com/codewhale-hq/Codewhale/commit/0e9c5beba5fe5f265e1bf88bac70d019edaadaaf), closes a way out of the sandbox. In its words: "In workspace-write mode a sandboxed command could write .git/hooks/* or .git/config (for example core.hooksPath), which later runs outside the sandbox on the next git operation". In other words, a command that is sandboxed now could leave behind a hook that runs unsandboxed later. The commit also says `.codewhale/` "was protected only if it already existed." Now `.git/hooks` and `.git/config` are read-only to sandboxed commands, and `.codewhale/` is always protected. The commit reports a before-and-after probe in which hook writes, config edits and `.codewhale` creation were all denied after the fix.
+
+The second, [commit `cf10ca1`](https://github.com/codewhale-hq/Codewhale/commit/cf10ca1446ae51252835112e43a7cf652cdf86e4), deals with MCP servers. A server-supplied `ttlMs` "had no floor", so a value of 0 made the tool catalog stale on every 5-second tick, and revalidation runs while holding the MCP pool lock: "Any configured server could keep every MCP operation waiting." Catalog TTLs are now clamped to at least 60 seconds. The commit is open about what remains: "Still open: running discovery outside the lock, and rate-limiting list_changed-driven revalidation." It also fixes a panic on multi-byte characters in patch hunk headers.
+
+Both commits were made by "CodeWhale Bot" with a Claude co-author line. Nothing in them says either issue was exploited. Until a release ships them, the practical check is the one above: do not let sandboxed commands write to a repository's `.git` directory.
