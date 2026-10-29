@@ -1119,3 +1119,9 @@
 1116 surge-dayjob-tax-agent-benchmark
 1117 amazon-sde-role-guideline-ai-outcomes-not-token-counts
 1118 anthropic-agents-judgment-calls-analysts-defer
+1119 cisco-project-quarry-agent-detection-rules
+1120 openai-chatgpt-pro-business-api-credits-up-to-500
+1121 cosmos-db-emulator-per-coding-agent-isolated-ci
+1122 irregular-glm-5-3-cyscenariobench-open-weight-cyber-operations
+1123 mistral-responses-api-public-preview
+1124 ignis-0-9-cpu-speech-to-text-rust-local-inference
