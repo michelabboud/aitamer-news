@@ -1131,3 +1131,9 @@
 1128 particle-1-token-efficient-deepseek-v4-1-flash
 1129 ai-image-models-grok-imagine
 1130 weekly-builders-roundup-2026-10-29
+1131 deepgram-acquiring-daily-pipecat-foundation-real-time-context-standard
+1132 lancedb-0-41-0-stops-trusting-embedding-settings-in-table-metadata
+1133 openai-model-spec-2026-10-29-five-values-gpt
+1134 draw-things-local-code-open-source-mac-agent-deepseek-v4-1-flash
+1135 radware-github-issues-command-injection-61-repos-ci-secrets
+1136 diffuspace-clover-35b-a3b-diffusion-llm-open-weights
