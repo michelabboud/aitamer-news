@@ -1125,3 +1125,9 @@
 1122 irregular-glm-5-3-cyscenariobench-open-weight-cyber-operations
 1123 mistral-responses-api-public-preview
 1124 ignis-0-9-cpu-speech-to-text-rust-local-inference
+1125 claude-enterprise-smart-reports-surveys-pooled-budgets
+1126 furiosaai-620m-series-d-rngd
+1127 assemblyai-tts-1-voice-agents
+1128 particle-1-token-efficient-deepseek-v4-1-flash
+1129 ai-image-models-grok-imagine
+1130 weekly-builders-roundup-2026-10-29
