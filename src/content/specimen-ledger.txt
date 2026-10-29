@@ -1113,3 +1113,9 @@
 1110 artificial-analysis-intelligence-index-v5-private-test-sets
 1111 ai-movie-models-grok-imagine
 1112 grok-bot-images-and-video
+1113 tract-stable-diffusion-1-5-browser-webgpu-demo
+1114 nvidia-nemotron-3-5-transcribe-granary-v2
+1115 epics-base-7-0-11-ai-agent-found-cves
+1116 surge-dayjob-tax-agent-benchmark
+1117 amazon-sde-role-guideline-ai-outcomes-not-token-counts
+1118 anthropic-agents-judgment-calls-analysts-defer
