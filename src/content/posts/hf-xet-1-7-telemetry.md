@@ -31,6 +31,8 @@ sources:
     url: https://rustsec.org/advisories/RUSTSEC-2026-0258.html
   - title: "RUSTSEC-2026-0285 (rustls)"
     url: https://rustsec.org/advisories/RUSTSEC-2026-0285.html
+  - title: "hf-xet v1.7.1 release (huggingface/xet-core)"
+    url: https://github.com/huggingface/xet-core/releases/tag/v1.7.1
 ---
 On 6 October 2026 GitHub shows [hf-xet v1.7.0](https://github.com/huggingface/xet-core/releases/tag/v1.7.0) published at 20:11:40Z. The title is "Telemetry, Dynamic Download Buffers, and fixes." The notes add client-side telemetry for each upload and download, link the [Hub telemetry page](https://huggingface.co/docs/hub/main/en/xet/telemetry), and bump the hf-xet Python package and the crates to 1.7.0. The [using Xet storage](https://huggingface.co/docs/hub/main/en/xet/using-xet-storage) page says `hf_xet` and Git Xet are both powered by xet-core.
 
@@ -66,3 +68,7 @@ The second feature is download buffers sized from RAM on the machine or in a con
 The release also names two RustSec bumps. "bump h2 past RUSTSEC-2026-0258" (#950) points at [RUSTSEC-2026-0258](https://rustsec.org/advisories/RUSTSEC-2026-0258.html), "h2 unbounded empty DATA frames," low severity, patched in h2 0.4.16 and later. "bump rustls to 0.23.45 to fix RUSTSEC-2026-0285" (#976) points at [RUSTSEC-2026-0285](https://rustsec.org/advisories/RUSTSEC-2026-0285.html), handshake messages accepted across TLS 1.3 encryption levels, patched in rustls 0.23.45 and later, CVSS 5.3. The advisory says the handshake transcript stays authenticated. "Cap untrusted shard parser memory allocations" (#941) and a GIL release while waiting for the next stream chunk (#990) are on the same notes. The shard line prints no byte cap.
 
 On 1.7.0, expect a report after each Hub transfer unless an opt-out above is set. `HF_XET_TELEMETRY_ENABLED=0` covers this client only. `HF_HUB_DISABLE_TELEMETRY=1` is the switch the page shares with `huggingface_hub`. IP, account, repository, and token scope are what the telemetry page says the server adds when it stores the report.
+
+## Update, 29 October 2026: 1.7.1 fixes dedup silently stopping on long uploads
+
+xet-core published [hf-xet 1.7.1](https://github.com/huggingface/xet-core/releases/tag/v1.7.1) on 28 October. It is a bug-fix release. The main fix: deduplication "silently stops once the in-memory chunk index reaches size limit", which the notes say made a long upload session by MicroAGI slow down dramatically. A second fix stops one failed commit or download-group construction, such as a token-refresh 403 from a bad CAS refresh URL or an `HF_TOKEN` without the right access, from making every later group fail. The release also honours `HF_XET_MIN_SPACING_BETWEEN_GLOBAL_DEDUP_QUERIES` (alias `HF_XET_DATA_MIN_SPACING_BETWEEN_GLOBAL_DEDUP_QUERIES`). If you push large or long-running uploads to the Hub, upgrade. The 1.7.1 notes do not mention telemetry, so treat the defaults above as still in place.
