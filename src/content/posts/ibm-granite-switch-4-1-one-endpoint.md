@@ -47,6 +47,12 @@ sources:
     url: https://huggingface.co/spaces/hf-audio/open_asr_leaderboard
   - title: "generative-computing/granite-switch"
     url: https://github.com/generative-computing/granite-switch
+  - title: "Granite Switch 4.1.1: Update models like you update software (Hugging Face Blog, 29 October 2026)"
+    url: https://huggingface.co/blog/ibm-granite/granite-switch-4-1-1
+  - title: "ibm-granite/granite-switch-4.1-30b model card, revision 4.1.1"
+    url: https://huggingface.co/ibm-granite/granite-switch-4.1-30b
+  - title: "ibm-granite/granite-switch-4.1-8b model card, revision 4.1.1"
+    url: https://huggingface.co/ibm-granite/granite-switch-4.1-8b
 ---
 
 On 15 October 2026, IBM researchers Kate Soule, Subhajit Chaudhury, Hendrik Strobelt, and Luis Lastras published [Granite Switch 4.1: Chat, Decisions, and Speech from One Endpoint](https://huggingface.co/blog/ibm-granite/granite-switch-4-1). The post says Granite-Switch-4.1-8B and Granite-Switch-4.1-30B can move among chat, decision checks, and speech-to-text from one hosted endpoint.
@@ -82,3 +88,9 @@ The blog and both cards call Granite-Speech-5.0-Turbo-CTC the fastest model on t
 IBM says these two checkpoints are a ready-made set, and that other combinations come from Granite Libraries through the [granite-switch](https://github.com/generative-computing/granite-switch) composer. The cards' command takes a base, the guardian and core libraries, only `guardian-core` and `decision`, and audio turned on. Named runtimes are Hugging Face Transformers and vLLM. An Adapter SDK for training new adapters in Mellea is described as planned, on the blog and on the cards. The decision card says Mellea does not yet offer a built-in call for that adapter.
 
 For a single deployment of chat, a safety check, a labeled choice, and English transcription, these Apache 2.0 checkpoints are the published bundle. The memory saving IBM describes depends on the adapter reusing a matching base-model prefix. The index scores, the Guardian comparison, and the speech rank are IBM's.
+
+## Update, 29 October 2026: revision 4.1.1 adds multilingual speech and new decision weights
+
+IBM shipped [Granite Switch 4.1.1](https://huggingface.co/blog/ibm-granite/granite-switch-4-1-1), which it calls a patch release that is "fully backwards compatible with 4.1". Both checkpoints keep the same two adapters. The `decision` aLoRA gets updated weights with the same prompt format and readout, and the embedded Granite Speech 5.0 TurboCTC encoder now returns punctuated, capitalized transcripts in more languages. The cards list seven: English, French, German, Spanish, Portuguese, Italian and Japanese. The blog says 10 languages, so we report the cards' list. IBM says the base model is untouched.
+
+The cards date revision 4.1.1 to 27 October. It sits on `main`, and the previous release can be pinned with the revision tag `granite-switch-4.1-30b` or `granite-switch-4.1-8b`. On what the cards call the public Jev Decision Index v0.3 set, the new decision adapter scores 51.33 overall on the 30B checkpoint and 46.72 on the 8B. Those are IBM's numbers, and they are not directly comparable with the 4.1 figures above, which came from a 1,068-row fast subset. The cards also repeat a limitation worth planning for: the speech model is not fine-tuned jointly with the LLM or adapters, so "a mistranscription can silently change what the model (or an adapter) responds to." The Adapter SDK for building your own adapters is still described as coming.
