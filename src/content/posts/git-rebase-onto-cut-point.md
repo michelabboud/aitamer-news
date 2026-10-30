@@ -30,7 +30,7 @@ A common shape: `feature-b` starts from `feature-a` because it needs that branch
 
 ## What a rebase replays
 
-The [git-rebase manual](https://git-scm.com/docs/git-rebase) describes the first step of every rebase: make "a list of all commits on your current branch since it branched off from <upstream> that do not have an equivalent commit in <upstream>". Git then checks out the new starting point, replays those commits one by one, and moves the branch to the last one. `--onto <newbase>` sets that starting point. Without it, the manual says, "the starting point is <upstream>".
+The [git-rebase manual](https://git-scm.com/docs/git-rebase) describes the first step of every rebase: make "a list of all commits on your current branch since it branched off from `<upstream>` that do not have an equivalent commit in `<upstream>`". Git then checks out the new starting point, replays those commits one by one, and moves the branch to the last one. `--onto <newbase>` sets that starting point. Without it, the manual says, "the starting point is `<upstream>`".
 
 So in the plain form, `<upstream>` does two jobs: it is the place to build on and the boundary of what to copy. `--onto` separates them.
 
