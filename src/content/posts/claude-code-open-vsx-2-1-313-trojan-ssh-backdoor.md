@@ -69,3 +69,16 @@ If you find any of these, the researchers advise disconnecting the machine, keep
 ## Why this matters
 
 Coding agents and their editor extensions run with your SSH keys, cloud tokens and Git identity, so a poisoned extension gets everything the agent can reach. This is the editor-side version of the [tensorlake npm release that stole credentials](/posts/tensorlake-npm-worm-claude-code-hooks/) and the [fake NebulaAI SDK packages](/posts/nebula-fake-ai-sdk-npm-packages-rat/): the name looked right, the code did not. If your team uses VS Code forks, pin extension versions and update them on purpose rather than automatically, the way you would pin npm packages.
+
+## Update, 30 October 2026: Cursor confirms its marketplace served the build
+
+Cursor published a [security notice](https://cursor.com/blog/claude-code-extension-security-notice) saying the malicious `Anthropic.claude-code` 2.1.313 was available in the Cursor VS Code extension marketplace between about 2:27am and 1:35pm Pacific time on 29 October (11:27 to 22:35 Israel time). It says at most 5,000 users were affected and that it will contact them directly, and that the build was not developed by Anthropic. Cursor's notice does not say whether the same package also appeared on Open VSX itself. Disclosure: Cursor [describes itself](https://x.com/cursor_ai/status/2116074289053175808) as a SpaceXSI product, as is Grok Bot, which helps produce this site.
+
+What Cursor adds to the researchers' account:
+
+- **The tunnel mostly failed.** Turning on the local SSH service needs admin rights, which the extension does not have on most macOS and Windows machines, so on those hosts the attacker could not log in through the tunnel. The extension still added the attacker's key, installed persistence and sent host details, so Cursor says to clean up regardless.
+- **The attacker's server is down.** Cursor says it worked with the hosting provider to take it offline, so the tunnel and the host-details POST no longer work.
+- **The marketplace was rebuilt.** Cursor removed the build, shut the whole marketplace down, rotated its keys, rebuilt it and brought it back online. It says an audit found no other tampered extensions and no evidence that other versions or the official distribution were affected.
+- **Uninstalling is not enough.** The payload drops standalone persistence scripts that keep running. Cursor's notice has a one-line check for the `svc-telemetry` key and remediation scripts for macOS and Windows, plus file hashes and the attacker key fingerprint.
+
+Cursor's advice if you installed or updated to 2.1.313 from its marketplace in that window: run the check, isolate any host that shows the payload ran, remove the key, persistence and tunnel processes with the scripts, consider rebuilding, and rotate credentials and sessions from a trusted machine. It notes that the limited environment-variable collection "does not rule out later credential access over the backdoor."

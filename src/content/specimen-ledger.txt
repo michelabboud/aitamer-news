@@ -1142,3 +1142,7 @@
 1139 claude-code-open-vsx-2-1-313-trojan-ssh-backdoor
 1140 new-york-bans-unsafe-ai-companion-features-for-minors
 1141 symantec-grey-market-relay-codex-claude-code-sandbox-off
+1142 ai-voice-models-grok-voice
+1143 openai-misalignment-monitoring-layers-api-pause-webhooks
+1144 epoch-ai-glm-5-3-firefox-patch-gap-exploits
+1145 wikimedia-amicus-nyt-openai-training-fair-rag-not
