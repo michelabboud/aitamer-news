@@ -130,7 +130,7 @@ test('a withdrawal comes and goes only through withdraw and restore, and is neve
 
 test('notice dates sit between pubDate and now; updatedDate only moves forward and is never removed', async () => {
   const early = await editPost({ baseText: post(), currentText: post(), now: new Date('2026-10-01T00:00:00Z'), fetcher: ok200, action: 'correct', text: 'Before publication.' });
-  assert.ok(early.problems.some((p) => p.code === 'notice-date'));
+  assert.equal(early.status, 'error', 'a post not yet live is changed with edit, not corrected');
   const future = await run({ action: 'edit', currentText: post({ extraFm: 'updatedDate: "2027-01-01T00:00:00Z"\n' }) });
   assert.ok(future.problems.some((p) => p.code === 'notice-date' && p.field === 'updatedDate'));
   const withUpdate = post({ extraFm: 'updatedDate: "2026-10-29T00:00:00Z"\n' });
@@ -184,12 +184,59 @@ test('the CLI edits a post on main in a git checkout and refuses one that is not
   const log = console.log; const err = console.error; const lines = [];
   console.log = (s) => lines.push(s); console.error = () => {};
   try {
-    assert.equal(await main(['correct', '--slug', 'vendor-api', '--base', 'main', '--now', NOW.toISOString(), '--text', 'Fixed a number.'], { cwd: dir, fetcher: ok200 }), 0);
-    assert.equal(fm(readFileSync(join(dir, 'src/content/posts/vendor-api.md'), 'utf8')).corrections.length, 1);
+    // A --now on the command line is ignored: notices are dated by the real clock (here the injected one).
+    assert.equal(await main(['correct', '--slug', 'vendor-api', '--base', 'main', '--now', '2031-01-01T00:00:00Z', '--text', 'Fixed a number.'], { cwd: dir, fetcher: ok200, now: NOW }), 0);
+    assert.deepEqual(fm(readFileSync(join(dir, 'src/content/posts/vendor-api.md'), 'utf8')).corrections, [{ date: '2026-10-30T08:00:00Z', text: 'Fixed a number.' }]);
+    writeFileSync(join(dir, 'src/content/posts/ends-in-hyphen-.md'), post()); git('add', '.'); git('commit', '-qm', 'hyphen');
+    assert.equal(await main(['correct', '--slug', 'ends-in-hyphen-', '--base', 'main', '--text', 'A fix.'], { cwd: dir, fetcher: ok200, now: NOW }), 0, 'a real slug ends in a hyphen');
     writeFileSync(join(dir, 'src/content/posts/new-post.md'), post());
     assert.equal(await main(['edit', '--slug', 'new-post', '--base', 'main'], { cwd: dir, fetcher: ok200 }), 1);
     assert.match(lines.at(-1), /not-on-main/);
     assert.equal(await main(['edit', '--slug', '../etc/passwd'], { cwd: dir }), 2);
     assert.equal(await main(['publish', '--slug', 'vendor-api'], { cwd: dir }), 2);
   } finally { console.log = log; console.error = err; }
+});
+
+test('a correction is added only by correct or restore, one at a time, never backdated', async () => {
+  const hand = post({ extraFm: 'corrections:\n  - date: "2026-10-27T13:07:00Z"\n    text: "Always there."\n' });
+  assert.ok((await run({ action: 'edit', currentText: hand })).problems.some((p) => p.code === 'corrections-history'));
+  const base = post({ extraFm: 'corrections:\n  - date: "2026-10-29T10:00:00Z"\n    text: "First."\n' });
+  const backdated = base.replace('    text: "First."\n', '    text: "First."\n  - date: "2026-10-28T10:00:00Z"\n    text: "Slipped in before."\n');
+  assert.ok(checkEdit(base, backdated, { action: 'correct', now: NOW }).problems.some((p) => p.code === 'notice-date'));
+  const two = base.replace('    text: "First."\n', '    text: "First."\n  - date: "2026-10-30T08:00:00Z"\n    text: "A."\n  - date: "2026-10-30T08:00:00Z"\n    text: "B."\n');
+  assert.ok(checkEdit(base, two, { action: 'correct', now: NOW }).problems.some((p) => p.message.includes('one correction')));
+});
+
+test('a scheduled post takes edit and withdraw, not correct or update', async () => {
+  const scheduled = post().replace('2026-10-27T13:07:00Z', '2026-11-05T09:00:00Z');
+  const s = (o) => editPost({ baseText: scheduled, currentText: scheduled, now: NOW, fetcher: ok200, ...o });
+  assert.equal((await s({ action: 'withdraw', reason: 'Pulled before it ran.' })).status, 'ok');
+  assert.equal((await s({ action: 'correct', text: 'x' })).status, 'error');
+  assert.equal((await s({ action: 'update', heading: 'h', text: 't' })).status, 'error');
+  assert.equal((await s({ action: 'edit', currentText: scheduled.replace('It is cheaper.', 'It is far cheaper.') })).status, 'ok');
+});
+
+test('broken YAML and CRLF files are reported, not thrown', async () => {
+  for (const currentText of [post().replace('section: dev', 'section: [dev'), post().replace(/\n/g, '\r\n')]) {
+    for (const action of ['edit', 'withdraw', 'restore', 'correct']) {
+      const r = await run({ action, currentText, text: 'x', reason: 'y' });
+      assert.notEqual(r.status, 'ok', action);
+      assert.ok(r.problems.length, action);
+    }
+  }
+});
+
+test('restore follows main: a withdrawal already removed by hand is restored with its note', async () => {
+  const withdrawn = post({ extraFm: 'withdrawn:\n  date: "2026-10-28T10:00:00Z"\n  reason: "Retracted."\n' });
+  const r = await editPost({ baseText: withdrawn, currentText: post(), now: NOW, fetcher: ok200, action: 'restore', text: 'Back.' });
+  assert.equal(r.status, 'ok', JSON.stringify(r.problems));
+  assert.equal(fm(r.file).corrections.length, 1);
+});
+
+test('a second working note is caught even when main already has one; a dropped source link is flagged', async () => {
+  const noted = post({ body: 'Vendor says [the API](https://a.example/post) is out. Do not invent prices.\n' });
+  const r = await editPost({ baseText: noted, currentText: noted.replace('out.', 'out. Never invent dates.'), now: NOW, fetcher: ok200, action: 'edit' });
+  assert.ok(r.problems.some((p) => p.code === 'leak'));
+  const unlinked = await run({ action: 'edit', currentText: post().replace('[the API](https://a.example/post)', 'the API') });
+  assert.ok(unlinked.warnings.some((w) => w.code === 'source-not-linked'));
 });
