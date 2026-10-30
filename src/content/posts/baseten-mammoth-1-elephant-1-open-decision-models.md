@@ -31,6 +31,10 @@ sources:
     url: https://huggingface.co/baselabs/elephant-1
   - title: "Vercel on X: mammoth-1 and elephant-1 free on AI Gateway through 27 October"
     url: https://x.com/vercel_dev/status/2113027949738000520
+  - title: "Decisions for a penny: introducing joey-1 (Baseten, 29 October 2026)"
+    url: https://www.baseten.co/blog/decisions-for-a-penny-introducing-joey-1/
+  - title: "baselabs/joey-1 (Hugging Face)"
+    url: https://huggingface.co/baselabs/joey-1
 ---
 
 Base Labs, the research team at Baseten, released two [decision models](https://www.baseten.co/blog/the-best-decision-models-in-the-world-mammoth-1-and-elephant-1/) on 21 October: [mammoth-1](https://huggingface.co/baselabs/mammoth-1), post-trained from Qwen3.5-27B, and [elephant-1](https://huggingface.co/baselabs/elephant-1), from Qwen3.5-9B. Both are open weights under the MIT license.
@@ -67,3 +71,11 @@ Training, per the report: 6.21 million decision examples, a calibration term in 
 - **Self-hosted:** the model card's `setup.sh` installs a pinned serving runtime on one CUDA GPU.
 
 Base Labs' own advice is the right one: test accuracy on hard cases, check whether its confidence matches how often it is right, and measure cost per decision at your real traffic.
+
+## Update, 30 October 2026: a third, smaller model, joey-1
+
+Base Labs [added joey-1](https://www.baseten.co/blog/decisions-for-a-penny-introducing-joey-1/) on 29 October, a 2B decision model post-trained from Qwen3.5-2B with the same data and recipe as mammoth-1 and elephant-1. The [weights are on Hugging Face](https://huggingface.co/baselabs/joey-1) under the MIT license, like the other two.
+
+Baseten says joey-1 answers an average 2,000-token request at a median end-to-end latency of 20 ms, against 49 ms for elephant-1, and costs $0.01 per million tokens, a tenth of mammoth-1. Its example: 10 million support tickets a month at about 500 tokens each comes to about $50 on joey-1 and $500 on mammoth-1. The claim that joey-1 is the strongest decision model at 3B parameters or fewer comes from internal testing that Baseten says it will detail later, so treat it as unverified for now.
+
+On Model APIs all three models take a 16k context; dedicated deployments unlock the full 262k context and fine-tuned weights, and joey-1 and elephant-1 can be fine-tuned on Baseten Training Jobs. Baseten suggests using joey-1 as the first-line classifier and escalating to elephant-1 or mammoth-1 when its confidence score is low, which is a pattern you can test on your own labels before committing.
