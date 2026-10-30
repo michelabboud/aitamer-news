@@ -2,6 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   FEED_LIMIT,
+  habitatFeedPath,
+  inSubsection,
+  subsectionFeedPath,
+  subsectionFeedSlug,
+  subsectionFeeds,
   JSON_FEED_VERSION,
   RSS_MODIFIED_NAMESPACE,
   buildJsonFeed,
@@ -27,7 +32,7 @@ function post(overrides: Partial<FeedPost> = {}): FeedPost {
 }
 
 test('FEED_LIMIT is the named cap every feed uses by default', () => {
-  assert.equal(FEED_LIMIT, 50);
+  assert.equal(FEED_LIMIT, 100);
 });
 
 test('takeNewest slices to the limit and keeps order', () => {
@@ -164,4 +169,48 @@ test('rssModifiedData is a UTC dcterms:modified element, and nothing for an unch
   );
   assert.equal(rssModifiedData(undefined), undefined);
   assert.equal(RSS_MODIFIED_NAMESPACE.dcterms, 'http://purl.org/dc/terms/');
+});
+
+test('subsectionFeedSlug keeps lowercase slugs and refuses anything that cannot be a feed path', () => {
+  assert.equal(subsectionFeedSlug('agents'), 'agents');
+  assert.equal(subsectionFeedSlug(' AI-Business '), 'ai-business');
+  for (const bad of [undefined, '', '  ', 'a b', 'a/b', '../x', 'a_b', '-a', 'a-', 'a--b', 'x.xml', 'a'.repeat(61)]) {
+    assert.equal(subsectionFeedSlug(bad), undefined, String(bad));
+  }
+});
+
+test('feed paths: one per habitat, one per habitat and subsection', () => {
+  assert.equal(habitatFeedPath('models'), '/rss/models.xml');
+  assert.equal(subsectionFeedPath('dev', 'agents'), '/rss/dev/agents.xml');
+});
+
+test('subsectionFeeds counts each habitat and subsection pair, in habitat order, and skips unusable values', () => {
+  const feeds = subsectionFeeds(
+    [
+      { section: 'dev', subsection: 'agents' },
+      { section: 'models', subsection: 'gemini' },
+      { section: 'dev', subsection: 'Agents' },
+      { section: 'dev', subsection: 'cli' },
+      { section: 'tools', subsection: 'agents' },
+      { section: 'dev' },
+      { section: 'dev', subsection: 'not a slug' },
+    ],
+    ['models', 'dev', 'tools'],
+  );
+  assert.deepEqual(feeds, [
+    { section: 'models', subsection: 'gemini', count: 1 },
+    { section: 'dev', subsection: 'agents', count: 2 },
+    { section: 'dev', subsection: 'cli', count: 1 },
+    { section: 'tools', subsection: 'agents', count: 1 },
+  ]);
+});
+
+test('inSubsection narrows to one habitat and subsection and keeps newest-first order', () => {
+  const entries = [
+    { id: 'c', data: { section: 'dev', subsection: 'agents' } },
+    { id: 'b', data: { section: 'tools', subsection: 'agents' } },
+    { id: 'a', data: { section: 'dev', subsection: 'AGENTS' } },
+    { id: 'z', data: { section: 'dev' } },
+  ];
+  assert.deepEqual(inSubsection(entries, 'dev', 'agents').map((e) => e.id), ['c', 'a']);
 });
