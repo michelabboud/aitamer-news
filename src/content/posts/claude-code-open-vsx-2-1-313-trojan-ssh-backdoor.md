@@ -1,13 +1,13 @@
 ---
-title: "A trojanized Claude Code 2.1.313 on Open VSX planted an SSH backdoor"
-description: "A malicious anthropic.claude-code 2.1.313 on Open VSX added an attacker SSH key and a reverse tunnel. Here is what to check if you use a VS Code fork."
+title: "A trojanized Claude Code 2.1.313 in Cursor's marketplace planted an SSH backdoor"
+description: "Cursor's extension marketplace served a malicious Claude Code 2.1.313 that added an attacker SSH key and reverse tunnel. What Cursor users should check."
 pubDate: "2026-10-30T08:37:00Z"
 specimen: 1139
 section: general
 subsection: security
 tags:
   - claude-code
-  - open-vsx
+  - cursor
   - supply-chain
   - vs-code
   - anthropic
@@ -18,19 +18,26 @@ heroAlt: "A paper-cut collage of plug-in tiles in a navy frame, one raised tile 
 author: desk-bot
 wildness:
   rating: 4
-  verified: "OpenSourceMalware's analysis, plus our 30 Oct checks of Open VSX, the Marketplace, npm and the changelog."
-  claimed: "How the build was published is unverified, and Anthropic had not commented when we checked."
-verdict: "If you ran Claude Code from Open VSX in the last day, check for version 2.1.313 and the svc-telemetry SSH key now. Treat a hit as a compromised machine."
+  verified: "Cursor's notice, OpenSourceMalware's corrected analysis, and our 30 Oct registry and changelog checks."
+  claimed: "How the build got into Cursor's marketplace is unexplained, and Anthropic had not commented when we checked."
+verdict: "If you use Claude Code in Cursor and installed or updated it on 29 October, check for version 2.1.313 and the svc-telemetry SSH key now. Treat a hit as a compromised machine."
+corrections:
+  - date: "2026-10-30T11:56:00Z"
+    text: "An earlier version of this story said the malicious Claude Code 2.1.313 was published on Open VSX. OpenSourceMalware has since corrected its report after Cursor said the compromise was in the Cursor Marketplace. The Open VSX, npm and Microsoft VS Code Marketplace builds were not affected. We have changed the headline, summary and advice to match."
 sources:
   - title: "Trojanized Claude Code Extension Plants an SSH Backdoor (OpenSourceMalware)"
     url: https://opensourcemalware.com/blog/trojanized-claude-code-extension-plants-persistent-ssh-backdoor
+  - title: "Security notice: malicious Anthropic.claude-code 2.1.313 in the Cursor Extension Marketplace (Cursor)"
+    url: https://cursor.com/blog/claude-code-extension-security-notice
+  - title: "Trojanized Claude Code Extension 2.1.313 in Cursor Marketplace Plants SSH Backdoor (Rescana)"
+    url: https://www.rescana.com/post/claude-code-extension-2-1-313-cursor-marketplace-trojanized-ssh-backdoor
   - title: "anthropic.claude-code on Open VSX (registry API)"
     url: https://open-vsx.org/api/anthropic/claude-code
   - title: "Claude Code CHANGELOG"
     url: https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
 ---
 
-A malicious build of the Claude Code extension, labeled `anthropic.claude-code` version 2.1.313, was published on Open VSX, the extension registry that VS Code forks such as Cursor, Windsurf and VSCodium use. [OpenSourceMalware's analysis](https://opensourcemalware.com/blog/trojanized-claude-code-extension-plants-persistent-ssh-backdoor) found a 66-line loader placed in front of the normal extension code. The rest of the package, including the bundled Claude Code binary, matched the official release.
+A malicious build of the Claude Code extension, labeled `anthropic.claude-code` version 2.1.313, was served by Cursor's own VS Code extension marketplace on 29 October, according to [Cursor's security notice](https://cursor.com/blog/claude-code-extension-security-notice) and the corrected [OpenSourceMalware analysis](https://opensourcemalware.com/blog/trojanized-claude-code-extension-plants-persistent-ssh-backdoor). Cursor says the build was not developed by Anthropic and that at most 5,000 of its users were affected. OpenSourceMalware now says the Claude Code builds on Open VSX, npm and Microsoft's VS Code Marketplace are not malicious. Its analysis found a 66-line loader placed in front of the normal extension code. The rest of the package, including the bundled Claude Code binary, matched the official release.
 
 ## What the loader does
 
@@ -46,20 +53,20 @@ The researchers say the loader downloads no further payload. That does not make 
 
 ## What we could confirm
 
-The researchers confirm only the Open VSX artifact. They opened threat reports for the VS Code Marketplace version "in an abundance of caution", and their write-up says it does not show that Anthropic's official release or distribution infrastructure was compromised. How the build was published is still unknown.
+OpenSourceMalware first attributed the build to Open VSX, and so did the first version of this story. Its updated post says Cursor told it that the Claude Code extension "in the Cursor Marketplace experienced some form of compromise", and it now lists the npm package, the Open VSX extension and the Microsoft VS Code extension as not malicious. Its write-up also says the artifact does not show that Anthropic's official release or distribution infrastructure was compromised. How the package got into Cursor's marketplace has not been explained.
 
-We checked the registries on 30 October around 08:30 IDT:
+We checked the public registries on 30 October around 08:30 Israel time, and rechecked Open VSX around 13:55:
 
-- **Open VSX** lists 2.1.314 as the latest version, published at 03:07 IDT on 30 October. Version 2.1.313 is no longer in its version list, which goes from 2.1.312 to 2.1.314.
-- **VS Code Marketplace** shows 2.1.314 (published from 03:17 IDT) and 2.1.312 before it. No 2.1.313 is listed.
+- **Open VSX** lists 2.1.314 as the latest version, published at 03:07 Israel time on 30 October. Version 2.1.313 is not in its version list, which goes from 2.1.312 to 2.1.314.
+- **VS Code Marketplace** shows 2.1.314 (published from 03:17 Israel time) and 2.1.312 before it. No 2.1.313 is listed.
 - **npm** (`@anthropic-ai/claude-code`) has no 2.1.313 either. Its `latest` tag points to 2.1.314.
 - The [Claude Code changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md) goes from 2.1.312 straight to 2.1.314.
 
-Anthropic had not published a statement when we checked. We cannot tell from public data whether 2.1.313 was ever on the Marketplace or npm and then removed.
+[Rescana](https://www.rescana.com/post/claude-code-extension-2-1-313-cursor-marketplace-trojanized-ssh-backdoor) found the same: no 2.1.313 on Open VSX, npm or the Microsoft Marketplace. Anthropic had not published a statement when we checked.
 
 ## What to check
 
-1. In Cursor, Windsurf, VSCodium or another fork, open the Extensions view and check the Claude Code version. Update to 2.1.314 or later, or remove it.
+1. In Cursor, open the Extensions view and check the Claude Code version. If you installed or updated to 2.1.313 from Cursor's marketplace between about 11:27 and 22:35 Israel time on 29 October, follow the steps below even if you have since updated to 2.1.314. Users of VS Code, VSCodium, Windsurf and other editors that install from Open VSX or Microsoft's Marketplace were not served this build, according to OpenSourceMalware's corrected report.
 2. Search `~/.ssh/authorized_keys` for `svc-telemetry`.
 3. Look for `~/.config/.smt`, `~/.config/.smtk`, `~/Library/LaunchAgents/com.apple.sysmond.plist`, an `@reboot` crontab line, or a `SysMon` scheduled task.
 4. Check for long-running `ssh` or `autossh` processes with `-R *:0:localhost:22`, and block `134.209.82.225` on ports 22 and 8099.
@@ -68,11 +75,11 @@ If you find any of these, the researchers advise disconnecting the machine, keep
 
 ## Why this matters
 
-Coding agents and their editor extensions run with your SSH keys, cloud tokens and Git identity, so a poisoned extension gets everything the agent can reach. This is the editor-side version of the [tensorlake npm release that stole credentials](/posts/tensorlake-npm-worm-claude-code-hooks/) and the [fake NebulaAI SDK packages](/posts/nebula-fake-ai-sdk-npm-packages-rat/): the name looked right, the code did not. If your team uses VS Code forks, pin extension versions and update them on purpose rather than automatically, the way you would pin npm packages.
+Coding agents and their editor extensions run with your SSH keys, cloud tokens and Git identity, so a poisoned extension gets everything the agent can reach. This is the editor-side version of the [tensorlake npm release that stole credentials](/posts/tensorlake-npm-worm-claude-code-hooks/) and the [fake NebulaAI SDK packages](/posts/nebula-fake-ai-sdk-npm-packages-rat/): the name looked right, the code did not. This one came through an editor maker's own marketplace, not the publisher or the main registries. If your team uses Cursor or another VS Code fork, know which marketplace each editor installs from, pin extension versions and update them on purpose rather than automatically, the way you would pin npm packages.
 
 ## Update, 30 October 2026: Cursor confirms its marketplace served the build
 
-Cursor published a [security notice](https://cursor.com/blog/claude-code-extension-security-notice) saying the malicious `Anthropic.claude-code` 2.1.313 was available in the Cursor VS Code extension marketplace between about 2:27am and 1:35pm Pacific time on 29 October (11:27 to 22:35 Israel time). It says at most 5,000 users were affected and that it will contact them directly, and that the build was not developed by Anthropic. Cursor's notice does not say whether the same package also appeared on Open VSX itself. Disclosure: Cursor [describes itself](https://x.com/cursor_ai/status/2116074289053175808) as a SpaceXSI product, as is Grok Bot, which helps produce this site.
+Cursor published a [security notice](https://cursor.com/blog/claude-code-extension-security-notice) saying the malicious `Anthropic.claude-code` 2.1.313 was available in the Cursor VS Code extension marketplace between about 2:27am and 1:35pm Pacific time on 29 October (11:27 to 22:35 Israel time). It says at most 5,000 users were affected and that it will contact them directly, and that the build was not developed by Anthropic. Disclosure: Cursor [describes itself](https://x.com/cursor_ai/status/2116074289053175808) as a SpaceXSI product, as is Grok Bot, which helps produce this site.
 
 What Cursor adds to the researchers' account:
 
