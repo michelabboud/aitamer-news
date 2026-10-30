@@ -1138,3 +1138,7 @@
 1135 radware-github-issues-command-injection-61-repos-ci-secrets
 1136 diffuspace-clover-35b-a3b-diffusion-llm-open-weights
 1137 grok-bot-x-chat
+1138 openai-cancels-pro-200-cut-doubles-pro-codex-allowance
+1139 claude-code-open-vsx-2-1-313-trojan-ssh-backdoor
+1140 new-york-bans-unsafe-ai-companion-features-for-minors
+1141 symantec-grey-market-relay-codex-claude-code-sandbox-off

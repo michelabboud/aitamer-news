@@ -1,6 +1,6 @@
 ---
 title: "ChatGPT Pro 500 is $500 a month, the only Pro plan with Ultrafast"
-description: "OpenAI lists Pro 100, Pro 200, and Pro 500 at $100, $200, and $500. New Pro 200 plans include a lower allowance. Grandfathered Pro 200 usage holds through October 29, 2026."
+description: "OpenAI lists Pro 100, Pro 200, and Pro 500 at $100, $200, and $500. Ultrafast is Pro 500 only. Update: the planned Pro 200 allowance cut is canceled."
 pubDate: "2026-10-06T21:17:00Z"
 specimen: 455
 section: tools
@@ -19,7 +19,7 @@ wildness:
   rating: 2
   verified: "Help Center Pro tiers table, grandfather window, and 2 Oct changelog Pro 500 note"
   claimed: "Nothing rests on secondary syndication for the dollar rows"
-verdict: "Three Pro prices: $100, $200, $500. Among Pro plans, Ultrafast is Pro 500 only; credits on Pro 100 or 200 do not unlock it at launch. Pro 200 keeps a lower allowance at $200, with grandfathering through 29 Oct 2026."
+verdict: "Three Pro prices: $100, $200, $500. Among Pro plans, Ultrafast is Pro 500 only; credits on Pro 100 or 200 do not unlock it at launch. Since 29 Oct 2026 every Pro 200 plan gets the higher allowance."
 sources:
   - title: "About ChatGPT Pro tiers"
     url: "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
@@ -35,6 +35,8 @@ sources:
     url: "https://developers.openai.com/api/docs/guides/ultrafast-mode"
   - title: "OpenAI API pricing, Ultrafast"
     url: "https://developers.openai.com/api/docs/pricing?latest-pricing=ultrafast"
+  - title: "ChatGPT release notes, 29 October 2026 (OpenAI Help Center)"
+    url: https://help.openai.com/en/articles/6825453-chatgpt-release-notes
 ---
 
 OpenAI's Help Center lists three monthly ChatGPT Pro plans. **Pro 500** is $500 and, among those plans, the one that includes Astra Ultrafast. **Pro 200** is open to new subscribers again at $200, with a lower included allowance when the account is outside the grandfather window.
@@ -70,3 +72,7 @@ Shoppers who want Ultrafast on a Pro plan are on the $500 tier at launch. Pro 20
 Ultrafast is not only a ChatGPT plan feature. OpenAI's [API changelog](https://developers.openai.com/api/docs/changelog) for 8 October adds Ultrafast mode for GPT-6.1 Sol in the Responses API: set the model to `gpt-6.1-sol` and `service_tier` to `"ultrafast"`. OpenAI says it is available to all API users, subject to rate limits, with global processing and US and EU data residency. GPT-6 Astra Ultrafast, added on 7 October, supports US data residency and global processing only.
 
 The [Ultrafast mode guide](https://developers.openai.com/api/docs/guides/ultrafast-mode) lists separate default rate limits for GPT-6.1 Sol Ultrafast: 1,000,000 tokens per minute on the Build tier, 4,000,000 on Launch, and 40,000,000 on Grow. OpenAI recommends WebSockets for agentic apps that make many quick tool calls. API prices are on OpenAI's [Ultrafast pricing table](https://developers.openai.com/api/docs/pricing?latest-pricing=ultrafast).
+
+## Update, 30 October 2026: the Pro 200 cut is canceled
+
+The Pro 200 section above is out of date. On 29 October OpenAI canceled the reduction announced on 29 September, so grandfathered accounts do not move to a lower allowance. Pro 200 subscriptions on the lower allowance had it doubled to match, and every Pro 200 subscription now gets the same Work and Codex allowance at $200. Pro 100 and Pro 500 now include twice their previous Work and Codex allowance, and Ultrafast is still Pro 500 only. The change is in OpenAI's [ChatGPT release notes](https://help.openai.com/en/articles/6825453-chatgpt-release-notes) for 29 October.
