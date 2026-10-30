@@ -1161,3 +1161,14 @@
 1158 python-remove-prefix
 1159 content-digest-integrity
 1160 go-loop-variables-go-mod
+1161 python-default-argument-evaluated-once
+1162 websocket-handshake-client-masking
+1163 javascript-sort-compares-strings
+1164 tcp-time-wait-belongs-to-the-closer
+1165 http2-flow-control-windows
+1166 cors-preflight-asks-the-server
+1167 safe-file-replacement-temp-and-rename
+1168 103-early-hints
+1169 umask-clears-permission-bits
+1170 lowercasing-depends-on-locale
+1171 git-rebase-onto-cut-point
