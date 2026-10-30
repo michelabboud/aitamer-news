@@ -46,9 +46,9 @@ The kernel's [pressure stall information](https://docs.kernel.org/accounting/psi
 
 A practical order when load is high:
 
-1. Read CPU use per core (`mpstat` or `top`). If the CPUs are not saturated, load is not CPU demand.
+1. Read CPU use per core (`mpstat -P ALL 1`, or `top` and press 1). If the CPUs are not saturated, load is not CPU demand.
 2. Read `/proc/pressure/memory` and `/proc/pressure/io`. A high `some` average names the resource.
-3. Count tasks in state D: `ps -eo state= | grep -c D`.
+3. Count threads in state D: `ps -eLo state= | grep -c D`. Load counts threads, so `-L` matters.
 4. Only then decide whether the fix is fewer jobs, more memory, or faster storage.
 
 **Lantern note:** load average counts waiting, and on Linux waiting for a disk counts the same as waiting for a CPU.

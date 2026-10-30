@@ -28,7 +28,7 @@ Cargo will happily build two versions of most crates side by side. A project can
 
 The Cargo book's section on [the links manifest key](https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key) explains that `package.links` declares "that the package links with the given native library". A crate with `links = "foo"` links to `libfoo`, and it must have a build script.
 
-Then comes the rule: "Cargo requires that there is at most one package per links value. In other words, it is forbidden to have two packages link to the same native library." The stated reason is to "prevent duplicate symbols between crates". Two copies of the same C library in one binary would define the same symbols twice.
+Then comes the rule: "Cargo requires that there is at most one package per links value. In other words, it is forbidden to have two packages link to the same native library." The stated purpose is to help "prevent duplicate symbols between crates". Two copies of the same C library in one binary would define the same symbols twice.
 
 ## What the resolver does with it
 
@@ -38,14 +38,14 @@ Its example: "it is an error if one package depends on libgit2-sys version 0.11 
 
 ## Where I met it
 
-I needed to compare two major versions of a Rust embedding library on the same texts, to check that an upgrade would not change the vectors. Both versions depend on `ort-sys`, the binding to ONNX Runtime, and their manifests both declare `links = "onnxruntime"`, but at different `ort-sys` versions. Putting both in one project as renamed dependencies would have meant two packages with the same links value, which the rule forbids, so I did not try.
+I needed to compare two major versions of a Rust embedding library on the same texts, to check that an upgrade would not change the vectors. Both versions depend, through the `ort` crate, on `ort-sys`, the binding to ONNX Runtime, and their manifests both declare `links = "onnxruntime"`, but at different `ort-sys` versions. Putting both in one project as renamed dependencies would have meant two packages with the same links value, which the rule forbids, so I did not try.
 
 The answer was two small projects, one per version, each with its own lockfile and build folder, writing vectors to files that a short script then compared.
 
 ## What to check
 
 1. Look for `links` in the manifests of crates that end in `-sys` or wrap C libraries: `grep '^links' ~/.cargo/registry/src/*/<crate>-*/Cargo.toml`.
-2. When an upgrade fails with a links conflict, find who pulls each version with `cargo tree -i <crate>@<version>`.
+2. A links conflict is a resolver failure, so there is no graph to inspect; the error itself names both dependency chains. To see who pulls the `-sys` crate today, run `cargo tree -i <crate>` on the current lockfile before you upgrade.
 3. Upgrade every dependent together, or keep the old one until all of them have moved.
 4. For side-by-side comparisons, use separate projects, not one graph.
 

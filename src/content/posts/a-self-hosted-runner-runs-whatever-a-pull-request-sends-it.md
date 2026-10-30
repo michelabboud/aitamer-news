@@ -14,7 +14,7 @@ wildness:
   rating: 2
   verified: Every warning is quoted from GitHub's Actions security and runner pages, read 2026-10-30
   claimed: The runner setup on a spare server is the author's own, described in general terms
-verdict: Use self-hosted runners only for private repositories whose writers you trust, under a dedicated user that can read nothing it does not need.
+verdict: Use self-hosted runners only for private repositories where you trust everyone with read access, under a dedicated user that can read nothing it does not need.
 sources:
   - title: Secure use reference, hardening for self-hosted runners, GitHub Docs
     url: https://docs.github.com/en/actions/reference/security/secure-use#hardening-for-self-hosted-runners
@@ -36,7 +36,7 @@ Self-hosted runners get no such promise. The same page says they "do not have gu
 
 The guidance is blunt: "self-hosted runners should almost never be used for public repositories on GitHub, because any user can open pull requests against the repository and compromise the environment."
 
-Private repositories are safer, not safe. The page warns that "anyone who can fork the repository and open a pull request (generally those with read access to the repository)" can compromise the runner, "including gaining access to secrets and the GITHUB_TOKEN". It also asks what else lives on the machine, "private SSH keys, API access tokens", and whether it can reach sensitive services, and says to "always be mindful that any user capable of invoking workflows has access to this environment".
+Private repositories are safer, not safe. The page warns that "anyone who can fork the repository and open a pull request (generally those with read access to the repository)" can compromise the runner, "including gaining access to secrets and the GITHUB_TOKEN which, depending on its settings, can grant write access to the repository". It also asks what else lives on the machine, "private SSH keys, API access tokens", and whether it can reach sensitive services, and says to "always be mindful that any user capable of invoking workflows has access to this environment".
 
 Destroying the runner after each job helps less than it seems: the page notes "there is no way to guarantee that a self-hosted runner only runs one job".
 

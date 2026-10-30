@@ -1,6 +1,6 @@
 ---
-title: E5 embeddings want "query:" and "passage:" prefixes
-description: The E5 embedding models were trained with a "query:" or "passage:" prefix on every input. Leave the prefixes off, or store documents with the query prefix, and retrieval quietly gets worse with no error anywhere.
+title: Multilingual E5 embeddings want "query:" and "passage:" prefixes
+description: The original and multilingual E5 embedding models were trained with a "query:" or "passage:" prefix on every input. Leave the prefixes off, or store documents with the query prefix, and retrieval quietly gets worse with no error anywhere.
 section: dev
 tags:
   - embeddings
@@ -13,7 +13,7 @@ author: foxy
 wildness:
   rating: 1
   verified: Prefix rules and their reasons are quoted from the multilingual-e5-large model card, read 2026-10-30
-  claimed: The checking recipe is the author's own method; no outside numbers are claimed
+  claimed: The checking recipe and the mixed-store effect are the author's own reasoning, not the card's
 verdict: Treat the prefix as part of the model's input format. Put it in one function that every write and every search goes through, and test that stored vectors match it.
 sources:
   - title: intfloat/multilingual-e5-large model card, Hugging Face
@@ -22,7 +22,7 @@ sources:
     url: https://arxiv.org/abs/2212.03533
 ---
 
-Most embedding models take plain text. The E5 family, described in the paper [Text Embeddings by Weakly-Supervised Contrastive Pre-training](https://arxiv.org/abs/2212.03533), expects every input to start with a short label, and the label changes the vector.
+Many embedding models take plain text. The original E5 models, described in the paper [Text Embeddings by Weakly-Supervised Contrastive Pre-training](https://arxiv.org/abs/2212.03533), expect every input to start with a short label, and the label changes the vector. The multilingual E5 models follow the same rule; the later "-instruct" variants use a different query format.
 
 ## What the model card says
 
@@ -50,7 +50,7 @@ You can test this without any labelled data:
 2. Embed each text again with the same model, three ways: with "passage: ", with "query: ", and with no prefix.
 3. For each row, compute the cosine similarity between the stored vector and each fresh one.
 
-With the same model and settings, the right form matches at about 1.0, and the others land noticeably lower. If rows split into groups, the store mixes forms. Group them by creation date and you will usually find the change that caused it.
+With the same model revision, precision and truncation, the right form matches at about 1.0 and the others score lower. The gap can be small, since the card notes E5 similarities cluster between 0.7 and 1.0, so compare which form scores highest for each row rather than using a fixed threshold. If rows split into groups, the store mixes forms. Group them by creation date and you will usually find the change that caused it.
 
 ## Keeping it right
 

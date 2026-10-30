@@ -14,7 +14,7 @@ wildness:
   rating: 2
   verified: RFC 3128, the tokio 1.53.3 notes and RUSTSEC-2026-0386 are quoted from their own pages, read 2026-10-30
   claimed: The upgrade advice is the author's reading of the advisory, not tokio's own guidance
-verdict: If you are on tokio 1.52.x or older 1.53, move to 1.53.3 or later, and treat any deprecation warning about AsyncFd::new as a real finding, not noise.
+verdict: On any tokio below 1.51.6, on 1.52.x, or on 1.53.0 to 1.53.2, move to 1.53.3 or later, and audit every AsyncFd call the warnings show you.
 sources:
   - title: "RFC 3128: I/O safety"
     url: https://rust-lang.github.io/rfcs/3128-io-safety.html
@@ -40,18 +40,18 @@ The RFC's answer is two types, `OwnedFd` and `BorrowedFd<'fd>`, "conceptual repl
 
 The advisory [RUSTSEC-2026-0386](https://rustsec.org/advisories/RUSTSEC-2026-0386.html) says `tokio::io::unix::AsyncFd` had safe constructors, `new`, `with_interest`, `try_new` and `try_with_interest`, that "accept any `T: AsRawFd` rather than requiring proof of ownership or validity of the file descriptor".
 
-It describes two consequences. Safe code could obtain a `BorrowedFd` for a descriptor it did not own. And because tokio's driver stores a pointer in the epoll or kqueue registration, a duplicated and closed descriptor whose number the OS then reuses could leave a stale registration behind, "leading to a use-after-free when a readiness event fires".
+It describes two consequences. Safe code could obtain a `BorrowedFd` for a descriptor it did not own. And because tokio's driver stores a pointer in the epoll or kqueue registration, a duplicated and closed descriptor whose number the OS then reuses on the same runtime could leave a stale registration behind, "leading to a use-after-free when a readiness event fires".
 
 The advisory lists patched versions as `>=1.51.6, <1.52.0` and `>=1.53.3`. The [tokio 1.53.3 release notes](https://github.com/tokio-rs/tokio/releases/tag/tokio-1.53.3) record the change: they add `AsyncFd::register` and `AsyncFd::register_with_interest`, and "deprecate AsyncFd::{new, with_interest, try_new, try_with_interest}". The new constructors are `unsafe`, so the caller now states in code that the descriptor stays valid and open.
 
 ## What to do
 
-1. Check your lockfile: `cargo tree -i tokio` shows the version and who pulls it in.
+1. Check your lockfile: `cargo tree -i tokio` shows the version and who pulls it in (add `@<version>` if several are present).
 2. Upgrade to 1.53.3 or later, or to 1.51.6 if you stay on 1.51.
-3. Build and read the warnings. A deprecation warning on one of the four constructors marks a place where your own code trusts a raw number.
-4. Run `cargo audit` afterwards, so the advisory shows as resolved.
+3. Build and read the warnings. Each deprecation warning on one of the four constructors marks a call site to audit and move to `register`, inside an `unsafe` block that says why the descriptor stays valid and open.
+4. Run `cargo audit` afterwards, so the advisory no longer appears.
 
-Most programs never call these constructors directly. A dependency might, and you will not see its warning: the [rustc book](https://doc.rust-lang.org/rustc/lints/levels.html#capping-lints) says Cargo "will pass --cap-lints allow when compiling your dependencies". Search their sources for `AsyncFd::new` instead. The old constructors are deprecated, not removed: the fix for such a dependency is a version of it that moved to `register`.
+Most programs never call these constructors directly. A registry or git dependency might, and you will not see its warning: the [rustc book](https://doc.rust-lang.org/rustc/lints/levels.html#capping-lints) says Cargo "will pass --cap-lints allow when compiling your dependencies". Search their sources for `AsyncFd::` instead. The old constructors are deprecated, not removed: the fix for such a dependency is a version of it that moved to `register`.
 
 **Lantern note:** a file descriptor is a capability with the safety of an integer. Types that own it are what make it safe.
 

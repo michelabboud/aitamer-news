@@ -13,8 +13,8 @@ author: foxy
 wildness:
   rating: 2
   verified: Cargo's build script, OUT_DIR and net.offline rules are quoted from the Cargo book, read 2026-10-30
-  claimed: The 403 from a download host and the run-time loading fix are the author's own, from one project
-verdict: Find every build script that downloads, and decide before the outage where the binary comes from: a checked copy you keep, a system package, or loading at run time.
+  claimed: The 403, the run-time loading fix and the hash check are the author's own, from one project
+verdict: Find every build script that downloads, and decide before the outage where the binary comes from, whether a checked copy you keep, a system package, or loading at run time.
 sources:
   - title: Build scripts, The Cargo Book
     url: https://doc.rust-lang.org/cargo/reference/build-scripts.html
@@ -24,7 +24,7 @@ sources:
     url: https://github.com/microsoft/onnxruntime/releases/tag/v1.31.0
 ---
 
-A Rust project that uses a large C or C++ library often never compiles that library. A crate's build script downloads a prebuilt copy, links it, and the build moves on. That convenience has a failure mode that only shows on a clean machine.
+A Rust project that uses a large C or C++ library often never compiles it. A crate's build script downloads a prebuilt copy, and the build moves on. That convenience fails only on a clean machine.
 
 ## What a build script is allowed to do
 
@@ -36,11 +36,11 @@ The page asks scripts to keep their output in `OUT_DIR`: "Scripts should not mod
 
 Cargo has an offline switch. The [configuration reference](https://doc.rust-lang.org/cargo/reference/config.html#netoffline) says that with `net.offline` set to true, "Cargo will avoid accessing the network, and attempt to proceed with locally cached data".
 
-That describes Cargo's own fetching of crates and indexes. A download inside a build script happens in the script's code, so whether it respects offline mode depends on that crate. Read its documentation before you count on it.
+In practice that covers Cargo's own fetching of crates and indexes. A download inside a build script happens in the script's code, so whether it respects offline mode depends on that crate. The crate in my story does check: its build script skips the download when `CARGO_NET_OFFLINE` is set, and then needs the library from somewhere else. Read its documentation before you count on it.
 
 ## How it failed for me
 
-A project of mine depended on a crate that downloads ONNX Runtime from its maintainers' host during the build. For months nothing went wrong, because the first successful download was cached on the build machine.
+A project of mine depended on a crate that downloads ONNX Runtime from its maintainers' host during the build. For months nothing went wrong, because the first download was cached.
 
 Then I built an upgraded version in a fresh project. The download returned HTTP 403 with a browser challenge page. I tried the URL for the older runtime version too, and it was refused the same way. Every build on that machine had been working only because of the cache. A new machine or a cleared cache would have failed.
 
@@ -48,7 +48,7 @@ The fix taken was to stop downloading at build time. The crate offers a mode tha
 
 ## A short audit
 
-1. Search your dependencies' build scripts for network calls: `grep -rlE 'https?://' ~/.cargo/registry/src/*/*/build.rs`.
+1. Search your dependencies' build scripts for URLs: `grep -rlE 'https?://' ~/.cargo/registry/src/*/*/build.rs ~/.cargo/registry/src/*/*/build/`. A script can live at any path set by `build =` in its manifest, and some download through a helper crate, so treat a clean grep as a hint, not proof.
 2. For each hit, read the crate's documentation for a way to supply the library yourself: a path variable, a system library, or loading at run time.
 3. Keep the binary you use somewhere you control, with its hash written down.
 4. Prove it in CI with a clean cache and no network access during the build.

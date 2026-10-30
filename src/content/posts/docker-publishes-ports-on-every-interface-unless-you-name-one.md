@@ -28,7 +28,7 @@ A database container for local development often starts with `-p 5432:5432`. It 
 
 Docker's page on [port publishing](https://docs.docker.com/engine/network/port-publishing/) states it directly: "By default, when a container's ports are mapped without any specific host address, the Docker daemon publishes ports to all host addresses (0.0.0.0 and [::])." Its example, `docker run -p 8080:80 nginx`, "publishes port 8080 to all network interfaces on the host, on both IPv4 and IPv6 addresses, potentially making them available to the outside world."
 
-The same page gives the fix. If you include the localhost address, as in `docker run -p 127.0.0.1:8080:80 -p '[::1]:8080:80' nginx`, "only the Docker host can access the published container port". You can also set the daemon's default bind address to `127.0.0.1`, so a mapping without an address stays local.
+The same page gives the fix. If you include the localhost address, as in `docker run -p 127.0.0.1:8080:80 -p '[::1]:8080:80' nginx`, "only the Docker host can access the published container port". For bridge networks you can also set the default bind address to `127.0.0.1`, so a mapping without an address stays local; the page notes Swarm services ignore that setting.
 
 The page carries one warning worth knowing: "In releases older than 28.0.0, hosts within the same L2 segment (for example, hosts connected to the same network switch) can reach ports published to localhost." On an old engine, even the localhost form needs an upgrade behind it.
 
@@ -42,7 +42,7 @@ So a `ufw deny 5432` does not protect a port that Docker published on all addres
 
 1. Every `ports:` entry carries an address: `"127.0.0.1:5432:5432"`, not `"5432:5432"`.
 2. A service that only other containers need gets no `ports:` entry at all; containers on the same network reach it by name.
-3. After `up`, run `ss -tlnp` and read the local address column. `127.0.0.1` or `[::1]` is local. `0.0.0.0` or `*` is every interface.
+3. After `up`, run `ss -tlnp` and read the local address column. `127.0.0.1` or `[::1]` is local. `0.0.0.0`, `[::]` or `*` is every interface. Confirm with `docker port <container>`, which shows the binding even when the userland proxy is off and `ss` shows nothing.
 4. Check the engine version if you rely on localhost binds; 28.0.0 or later.
 
 Loopback stops other machines, not other programs. Anything running on the host can still connect, so a local service that holds anything sensitive still needs its own password.
