@@ -173,6 +173,19 @@ test("Pagefind's worker and the search page get 'wasm-unsafe-eval', each with ex
   for (const path of ['/', '/posts/a/', '/_astro/x.js']) assert.ok(!scriptSrc(written, path).includes("'wasm-unsafe-eval'"), path);
 });
 
+test("the worker's policy is the same in every build, whatever the site's inline scripts are", () => {
+  // Cloudflare's edge revalidates the unchanged worker by ETag and keeps serving its stored
+  // headers, so a worker policy that moved with the site's hashes failed production (2026-10-30).
+  const name = cspHeaderName().toLowerCase();
+  const before = built().text();
+  const after = built({ ...SITE, 'index.html': page('<script>window.newInlineScript = 2;</script>') }).text();
+  assert.notDeepEqual(scriptSrc(before, '/'), scriptSrc(after, '/'), 'the page policy does follow the hashes');
+  assert.equal(headersFor(after, `/${PAGEFIND_WORKER}`).get(name), headersFor(before, `/${PAGEFIND_WORKER}`).get(name));
+  assert.deepEqual(scriptSrc(after, `/${PAGEFIND_WORKER}`), ["'self'", "'wasm-unsafe-eval'"]);
+  // The rest of /pagefind/ (a missing file there is answered by the 404 page) keeps the full policy.
+  assert.ok(scriptSrc(after, '/pagefind/missing.js').some((source) => source.startsWith("'sha256-")));
+});
+
 test('without the detach line, the search path would get two policies, and the guard says so', () => {
   const { dist, publicHeaders, text } = built();
   const name = cspHeaderName();
@@ -183,7 +196,7 @@ test('without the detach line, the search path would get two policies, and the g
 
 test('a worker policy without WebAssembly fails the guard', () => {
   const { dist, publicHeaders, text } = built();
-  writeFileSync(join(dist, '_headers'), text().replace(/\n\/pagefind\/\*\n.*\n.*\n/, '\n'));
+  writeFileSync(join(dist, '_headers'), text().replace(/\n\/pagefind\/pagefind-worker\.js\n.*\n.*\n/, '\n').replace(/\n\/pagefind\/\*\n.*\n.*\n/, '\n'));
   assert.ok(checkSitePolicy(dist, { env: ENV, publicHeaders }).some((f) => f.startsWith(`${PAGEFIND_WORKER}:`)));
 });
 

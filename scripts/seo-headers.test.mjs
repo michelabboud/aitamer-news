@@ -130,7 +130,8 @@ test('inline hashes are enforced and only search and its worker can compile WebA
     const policy = parsePolicy(headers.get(enforced));
     assert.equal(policy.has('upgrade-insecure-requests'), true, path);
     const sources = policy.get('script-src');
-    assert.equal(sources.filter((source) => source === expectedHash).length, 1, path);
+    // The worker's fixed policy names no page hash; every page policy names each hash once.
+    assert.equal(sources.filter((source) => source === expectedHash).length, path === '/pagefind/pagefind-worker.js' ? 0 : 1, path);
     assert.equal(sources.includes("'unsafe-inline'"), false, path);
     assert.equal(sources.includes("'unsafe-eval'"), false, path);
     assert.equal(sources.includes("'wasm-unsafe-eval'"), path === '/search/' || path === '/pagefind/pagefind-worker.js', path);
@@ -161,7 +162,8 @@ test('explicit report-only rollback preserves hashes and worker overrides while 
     const policy = parsePolicy(headers.get(reportOnly));
     assert.equal(policy.has('upgrade-insecure-requests'), false, path);
     const sources = policy.get('script-src');
-    assert.equal(sources.filter((source) => source === expectedHash).length, 1, path);
+    // The worker's fixed policy names no page hash; every page policy names each hash once.
+    assert.equal(sources.filter((source) => source === expectedHash).length, path === '/pagefind/pagefind-worker.js' ? 0 : 1, path);
     assert.equal(sources.includes("'unsafe-inline'"), false, path);
     assert.equal(sources.includes("'unsafe-eval'"), false, path);
     assert.equal(sources.includes("'wasm-unsafe-eval'"), path !== '/', path);
@@ -203,7 +205,7 @@ test('the deploy guard rejects a worker policy without its WebAssembly permissio
     'pagefind/pagefind-worker.js': '// disposable worker response fixture',
   });
   const text = generate(dist);
-  const altered = text.replace(/(\/pagefind\/\*\n  ! Content-Security-Policy\n  Content-Security-Policy:[^\n]*)/, (block) => block.replace(" 'wasm-unsafe-eval'", ''));
+  const altered = text.replace(/(\/pagefind\/pagefind-worker\.js\n  ! Content-Security-Policy\n  Content-Security-Policy:[^\n]*)/, (block) => block.replace(" 'wasm-unsafe-eval'", ''));
   assert.notEqual(altered, text);
   writeFileSync(join(dist, '_headers'), altered);
   const findings = checkSitePolicy(dist, { env: endpoints });
