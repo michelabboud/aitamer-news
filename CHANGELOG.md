@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.130 · 2026-10-30
+
+- Give the search worker (`/pagefind/pagefind-worker.js`) its own fixed Content-Security-Policy, `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; base-uri 'none'`, instead of the site policy with every page's inline-script hashes. The worker's bytes never change, so Cloudflare's edge revalidates it by ETag and keeps serving its stored headers; a policy that moved with the hashes was stale after any build that changed them, and the production smoke check rolled deploys back (6 of 9 on 2026-10-29, all three on 2026-10-30, `cf-cache-status: REVALIDATED`). The rest of `/pagefind/*` keeps the full WebAssembly policy, because a missing file there is answered with the 404 page. New test: the worker policy is identical across builds with different inline scripts (fails on the previous builder). Full suite 1483/1484 (the one failure needs a git checkout and is environmental to the scratch copy); production build 1505 pages; `check:csp` passes; on staging, search returns results through the worker with no console error. Version 0.2.129 stays held by the reactions v2 draft.
+
 ## 0.2.128 · 2026-10-26
 
 - Enforce build-derived script hashes while preserving search-worker WebAssembly, SVG sandboxing, comments reads and handwritten cache/security headers. Keep explicit report-only source rollback. Deny the rotating edge-injected detection wrapper without broad inline exceptions or provider/cache changes.

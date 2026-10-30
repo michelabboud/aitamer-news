@@ -33,6 +33,16 @@
  * lists every hash on the site, so a page served under one of those paths that is not the search
  * page (the 404 page, for one) still passes.
  *
+ * **The worker's own policy is fixed.** The worker file itself gets an exact-path rule with a
+ * policy that names no hash: a worker runs no page's inline script, so it needs only `'self'` and
+ * `'wasm-unsafe-eval'`. The policy must not change from one build to the next because the worker's
+ * bytes do not: Cloudflare's edge keeps `pagefind-worker.js` for hours, revalidates it by ETag,
+ * and on "not modified" goes on serving the stored copy **with the stored headers**. A policy
+ * that listed the site's hashes was therefore stale after any build that changed them, and the
+ * production smoke test rolled the deploy back (2026-10-29 and 2026-10-30, `cf-cache-status:
+ * REVALIDATED`, unchanged ETag). The rest of `/pagefind/*` keeps the full WebAssembly policy,
+ * since a missing file there is answered with the 404 page and its inline scripts.
+ *
  * **The parse.** parse5 (a WHATWG-conformant parser, already the rendered-body gate's) reads each
  * page the way a browser does, so the text hashed here is the text the browser hashes. Which
  * `<script>` elements run follows the HTML standard's rules for the `type` attribute: classic and
@@ -76,6 +86,8 @@ export const PRODUCTION_HOST_RULE = `https://${PRODUCTION_HOST}/*`;
 export const WASM_RULES = ['/search/*', '/pagefind/*'];
 /** The worker script whose response must carry `'wasm-unsafe-eval'`, when the build has one. */
 export const PAGEFIND_WORKER = 'pagefind/pagefind-worker.js';
+/** The exact-path rule that gives the worker its fixed policy (`workerDirectives`). */
+export const PAGEFIND_WORKER_RULE = `/${PAGEFIND_WORKER}`;
 /**
  * Diagrams (ADR 0016): SVG files that bots and AI writers may add. Shown through `<img>` they run
  * nothing; opened on their own they are documents on this origin, so their folder gets an
@@ -233,6 +245,23 @@ export function directives({ hashes, endpoints, wasm = false, enforce = CSP_ENFO
     ['frame-ancestors', ["'none'"]],
     // Browsers ignore this in a report-only policy and log an error on every page saying so, so it
     // arrives with enforcement.
+    ...(enforce ? [/** @type {[string, string[]]} */ (['upgrade-insecure-requests', []])] : []),
+  ];
+}
+
+/**
+ * The worker's policy: fixed, with no hash and no endpoint, so it is the same in every build (see
+ * "The worker's own policy is fixed" above). Pagefind's worker loads its WebAssembly and index
+ * from `/pagefind/`, which `default-src 'self'` covers.
+ * @param {{ enforce?: boolean }} [input]
+ * @returns {[string, string[]][]} the policy's directives, in order
+ */
+export function workerDirectives({ enforce = CSP_ENFORCE } = {}) {
+  return [
+    ['default-src', ["'self'"]],
+    ['script-src', ["'self'", "'wasm-unsafe-eval'"]],
+    ['object-src', ["'none'"]],
+    ['base-uri', ["'none'"]],
     ...(enforce ? [/** @type {[string, string[]]} */ (['upgrade-insecure-requests', []])] : []),
   ];
 }
@@ -527,6 +556,10 @@ export function generatedBlock(pages, endpoints, enforce = CSP_ENFORCE) {
     // Cloudflare joins two values of one header with a comma (two policies, both enforced), so
     // each WebAssembly rule removes the site-wide one before adding its own.
     ...WASM_RULES.flatMap((rule) => [rule, `  ! ${name}`, `  ${name}: ${wasm}`]),
+    // After /pagefind/*, so it detaches that rule's policy: the worker's never changes.
+    PAGEFIND_WORKER_RULE,
+    `  ! ${name}`,
+    `  ${name}: ${policyText(workerDirectives({ enforce }))}`,
     DIAGRAM_RULE,
     `  ! ${name}`,
     `  Content-Security-Policy: ${DIAGRAM_POLICY}`,
