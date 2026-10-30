@@ -89,6 +89,24 @@ const selfHostedVideo = z
   })
   .strict();
 
+/**
+ * An audio narration of the post, played by a plain `<audio>` under the byline
+ * (`src/components/PostNarration.astro`). Only slugs, never a URL: the file lives in the bot bucket
+ * at `https://bots.aitamer.news/audio/<key>/<file>.mp3` (`src/lib/narration.ts`). A re-render gets
+ * a new `file`, because bucket objects are never overwritten. The house voice is Kokoro-82M
+ * `af_heart`; `voice` records it and `disclosure` is the AI-use line shown under the player.
+ */
+export const NARRATION_DEFAULT_VOICE = 'Kokoro-82M af_heart';
+const narration = z
+  .object({
+    key: z.string().max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'narration.key must be a lowercase slug, not a URL'),
+    file: z.string().max(140).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'narration.file must be a lowercase slug (the file name without .mp3), not a URL'),
+    durationSeconds: z.number().int().min(1).max(7200),
+    voice: z.string().min(1).max(80).default(NARRATION_DEFAULT_VOICE),
+    disclosure: z.string().min(1).max(300),
+  })
+  .strict();
+
 const correction = z
   .object({
     date: strictDate(),
@@ -160,6 +178,8 @@ export const postSchema = z
     video: video.optional(),
     /** A self-hosted video from the bot bucket, shown above the body (see `selfHostedVideo` above). */
     selfHostedVideo: selfHostedVideo.optional(),
+    /** An audio narration from the bot bucket, shown under the byline (see `narration` above). */
+    narration: narration.optional(),
     /** Dated corrections, shown on the post. Add one; never edit or remove an old one. */
     corrections: z.array(correction).default([]),
     /** Set to take a post down: its URL stays with this notice; it leaves every list and feed. */
