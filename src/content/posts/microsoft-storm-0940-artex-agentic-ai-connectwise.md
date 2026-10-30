@@ -27,6 +27,8 @@ sources:
     url: https://status.connectwise.com/pages/incident/619cf82551fec9053d612f09/6ad263692dc48705ab3da2cb
   - title: "ConnectWise Trust Center advisories: Cloud Backup service interruption (updated 22 October 2026)"
     url: https://www.connectwise.com/company/trust/advisories
+  - title: "CrowdStrike: VAPOR PANDA Uses AI-Driven ARTEX to Scale a Global Espionage Campaign (29 October 2026)"
+    url: https://www.crowdstrike.com/en-us/blog/vapor-panda-uses-artex-to-scale-global-campaign/
 ---
 
 [Microsoft Threat Intelligence](https://www.microsoft.com/en-us/security/blog/2026/10/21/storm-0940-uses-artex-agentic-ai-connectwise-supply-chain-compromise/) says a group it tracks as Storm-0940, which it calls China-state aligned, has used ARTEX, an agentic AI penetration-testing framework, to automate attacks on hundreds of organizations since as early as September. Microsoft also assesses that Storm-0940 was behind the recent compromise of ConnectWise Cloud Backup, a multi-tenant app with access to customers' Microsoft 365 environments.
@@ -55,3 +57,16 @@ Microsoft's list, in short:
 5. Look for new app credentials, owners, consent grants, privileged role assignments and Conditional Access changes. Rotate credentials once you confirm anything suspicious.
 
 The wider lesson from Microsoft's account is speed: an agent does not stop at night, so alerts that a human team would handle the next morning can arrive after the damage is done.
+
+## Update, 30 October 2026: CrowdStrike sees a second China-nexus group using ARTEX
+
+CrowdStrike [reported on 29 October](https://www.crowdstrike.com/en-us/blog/vapor-panda-uses-artex-to-scale-global-campaign/) that a group it tracks as VAPOR PANDA has also been running ARTEX, in a campaign it says is separate from the Storm-0940 activity above. Both attributions are the vendors' own assessments.
+
+According to CrowdStrike:
+
+- From 17 October, a single ARTEX controller it links to VAPOR PANDA was used against more than 200 organizations in at least 14 countries over 11 days, including foreign ministries in Latin America, Europe, Asia and the Middle East and US semiconductor, defense and think tank organizations.
+- The agents ran mainly on DeepSeek, with a second subscription-based commercial model CrowdStrike could not identify. One intrusion's planning agents used on the order of 1.4 billion input tokens.
+- A human operator stayed in the loop, issuing instructions in Chinese. In one case the operator told the agents to find Windows machines without the CrowdStrike Falcon sensor.
+- The agents chained an unsigned SAML assertion with an XXE flaw to reach a cloud metadata service, and in another case reused authentication keys from a 2022 mail-server export that had likely never been rotated.
+
+CrowdStrike reads this as a sign that ARTEX is spreading among several China-nexus groups. It recommends that defenders rotate signing keys and service credentials after any suspected exposure, including keys in old backups and directory exports; enforce SAML signature validation and IMDSv2; keep cloud roles' command permissions narrow; and hunt for `artx` or `artex` command-line strings, `artx`-prefixed cloud roles and the `C:\ProgramData\artx5v\` directory. The full IOC list is in CrowdStrike's post.

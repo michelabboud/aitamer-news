@@ -1146,3 +1146,9 @@
 1143 openai-misalignment-monitoring-layers-api-pause-webhooks
 1144 epoch-ai-glm-5-3-firefox-patch-gap-exploits
 1145 wikimedia-amicus-nyt-openai-training-fair-rag-not
+1146 hf-xet-1-8-direct-to-s3-xorb-uploads
+1147 factory-droid-1-0-script-tool-programmatic-tool-calling
+1148 yoagent-0-26-mcp-redirects-stay-same-origin
+1149 tbc-mischief-1-neuron-derived-video-model-half-cent-a-second
+1150 cognizant-25000-openai-frontier-capability-group
+1151 canva-brush-figma-post-train-own-design-editing-models
