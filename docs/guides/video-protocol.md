@@ -1,6 +1,6 @@
 # aitamer.news Video Protocol v1
 
-**How we make, check, store and publish our own explainer videos.** Version 1, 2026-10-27, written from the LEANN pilot (`leann-explainer`). It will be updated as we learn. Owner: Wiz Cat. Questions go to the EIC.
+**How we make, check, store and publish our own explainer videos.** Version 1.1, 2026-10-30 (v1 2026-10-27), written from the LEANN pilot (`leann-explainer`). It will be updated as we learn. Owner: Wiz Cat. Questions go to the EIC.
 
 This file covers **our own videos only**. Third-party YouTube videos on posts follow the embed policy (click-to-load, privacy-enhanced player, allow-listed uploaders), not this file. Hero images follow [`hero-procedure.md`](hero-procedure.md) and [`hero-image-style.txt`](hero-image-style.txt).
 
@@ -16,13 +16,25 @@ Contents: 1 Scope and principles. 2 Where things live. 3 Decisions so far. 4 Rol
 
 ## 2. Where things live
 
+This repository is public, so box paths appear here only as shell variables. Set them once per shell from the ops workspace notes on the box; their real values are not written in this guide:
+
+| Variable | What it points at |
+|---|---|
+| `$VIDEO_WORK` | the root of the per-video working folders |
+| `$R2_STAGING` | the root of the R2 staging folders |
+| `$UPLOAD_RUNS` | the root of the per-upload run folders |
+| `$KOKORO_VENV` | the Python venv with `kokoro-onnx`, `faster-whisper`, `soundfile` and Pillow |
+| `$KOKORO_MODELS` | the folder holding `kokoro-v1.0.onnx` and `voices-v1.0.bin` |
+| `$KOKORO_LEXICON` | the shared pronunciation lexicon (`lexicon.json`) |
+| `$R2_PUT` | the create-only upload script (`node "$R2_PUT" <file> <key>`) |
+
 | Place | Path or key | What goes there | Who may write it |
 |---|---|---|---|
-| Box: video working folder | `/workspace/aitamer-news-ops/youtube/<slug>/` | `script.md` (narration, timed shot list, claim list, QA notes), `description.txt`, `fact-ruling.md`, `legal-ruling.md`, `art/01.jpg` to `art/08.jpg`, `build/` (scripts, `narration.wav`, `timeline.json`, `shots.json`, `plates/`, `clips/`, STT text), drafts and contact sheets. On a re-render, move the old take to `build/v1-backup/` first. | The producing desk (video bot). Fact and Legal write only their ruling files. |
-| Box: R2 staging | `/workspace/aitamer-news-ops/r2-staging/videos/<slug>/` | The exact files that will be uploaded: MP4s, posters, `.vtt`, `manifest.json`. Nothing else. | The producing desk. Never edit a file here after it is uploaded; make a new version. |
-| Box: upload run folder | `/workspace/<slug>-r2-<date>/` (LEANN: `/workspace/leann-video-r2-2026-10-27/`) | `upload-receipts.txt`, `readback.txt`, the upload script copy, screenshots of the live player. | The producing desk. |
-| Box: voice | `/workspace/kokoro-venv/` (Python venv with `kokoro-onnx`, `faster-whisper`, `soundfile`, Pillow); model files in `/workspace/tts-samples-2026-10-08/models/` (`kokoro-v1.0.onnx`, `voices-v1.0.bin`); pronunciation lexicon in `/workspace/tts-samples-2026-10-08/ask-again/enhanced/lexicon.json` | Shared tooling. Add new pronunciations to the lexicon or a per-video `EXTRA_LEX`. | Any desk may use it. Changes to the venv or lexicon: note them in `script.md`. |
-| R2 bot bucket | `aitamer-bots`, public at `https://bots.aitamer.news/videos/<slug>/` | `<stem>-1080p.mp4`, `<stem>-720p.mp4` (v1 and later `-v2` stems side by side), `<slug>-poster.webp`, `<slug>-poster.jpg`, `<stem>.en.vtt`, `manifest.json`, and `art/01.jpg` and up (backup of the source images). | The producing desk, create-only. Nobody overwrites or deletes. **Never `aitamer-media`.** |
+| Box: video working folder | `$VIDEO_WORK/<slug>/` | `script.md` (narration, timed shot list, claim list, QA notes), `description.txt`, `fact-ruling.md`, `legal-ruling.md`, `art/01.jpg` to `art/08.jpg`, `build/` (scripts, `narration.wav`, `timeline.json`, `shots.json`, `plates/`, `clips/`, STT text), drafts and contact sheets. On a re-render, move the old take to `build/v1-backup/` first. | The producing desk (video bot). Fact and Legal write only their ruling files. |
+| Box: R2 staging | `$R2_STAGING/videos/<slug>/` | The exact files that will be uploaded: MP4s, `.vtt` and manifest per version; posters and `art/` once per folder. Nothing else. | The producing desk. Never edit a file here after it is uploaded; make a new version. |
+| Box: upload run folder | `$UPLOAD_RUNS/<slug>-r2-<date>/` | `upload-receipts.txt`, `readback.txt`, screenshots of the live player. | The producing desk. |
+| Box: voice | `$KOKORO_VENV`, `$KOKORO_MODELS`, `$KOKORO_LEXICON` | Shared tooling. Add new pronunciations to the lexicon or a per-video `EXTRA_LEX`. | Any desk may use it. Changes to the venv or lexicon: note them in `script.md`. |
+| R2 bot bucket | `aitamer-bots`, public at `https://bots.aitamer.news/videos/<slug>/` | Per version: `<stem>-1080p.mp4`, `<stem>-720p.mp4`, `<stem>.en.vtt`, `<stem>.manifest.json` (v1 and later `-v2` stems side by side). Once per folder: `<slug>-poster.webp`, `<slug>-poster.jpg`, and `art/01.jpg` and up (backup of the source images). | The producing desk, create-only. Nobody overwrites or deletes. **Never `aitamer-media`.** |
 | Repo: this guide | `docs/guides/video-protocol.md` | The protocol. | Any desk by PR. Docs-only PRs go through normal review. |
 | Site: captions URL | `https://aitamer.news/videos/<slug>/<stem>.en.vtt` | Not a file in the repo. The captions proxy (`functions/videos/[[path]].js`) fetches the R2 copy and serves it on our domain, so the `<track>` is same-origin. Never add a `.vtt` under `public/`: a static file would shadow the proxy. | Site code; changes need Wiz Cat's review. |
 | Repo: post | `src/content/posts/<post-slug>.md` | The `selfHostedVideo` frontmatter block and any `corrections` entry. | The producing desk opens the PR; the EIC merges content PRs. |
@@ -72,9 +84,10 @@ This is the shortest path that meets the protocol: narration, still plates with 
 ```bash
 SLUG=my-explainer                     # lowercase slug, also the R2 folder name
 STEM=$SLUG                            # a re-render after fixes becomes $SLUG-v2
-W=/workspace/aitamer-news-ops/youtube/$SLUG
-OUT=/workspace/aitamer-news-ops/r2-staging/videos/$SLUG
-mkdir -p "$W/art" "$W/build/plates" "$W/build/clips" "$OUT"
+W=$VIDEO_WORK/$SLUG
+OUT=$R2_STAGING/videos/$SLUG
+RUN=$UPLOAD_RUNS/$SLUG-r2-$(date +%F)
+mkdir -p "$W/art" "$W/build/plates" "$W/build/clips" "$OUT" "$RUN"
 cd "$W/build"
 ```
 
@@ -83,11 +96,11 @@ cd "$W/build"
 **Step 3. Synthesize the voice** (Kokoro-82M, voice `af_heart`, speed 1.0).
 
 ```bash
-source /workspace/kokoro-venv/bin/activate
+source "$KOKORO_VENV/bin/activate"
 python3 - <<'PY'
-import json, numpy as np, soundfile as sf
+import json, os, numpy as np, soundfile as sf
 from kokoro_onnx import Kokoro
-M = "/workspace/tts-samples-2026-10-08/models/"
+M = os.environ["KOKORO_MODELS"].rstrip("/") + "/"
 k = Kokoro(M + "kokoro-v1.0.onnx", M + "voices-v1.0.bin")
 SR = 24000; LEAD, GAP_S, GAP_B, TAIL = 0.6, 0.32, 0.85, 4.0
 beats = [b.strip().split("\n") for b in open("../narration.txt").read().strip().split("\n\n")]
@@ -168,9 +181,14 @@ with open("captions.srt", "w") as f:
         f.write(f"{i}\n{ts(x['start']).replace('.', ',')} --> {ts(x['end']).replace('.', ',')}\n{x['text']}\n\n")
 PY
 ffmpeg -y -v error -i captions.srt "$OUT/$STEM.en.vtt"
-ffmpeg -y -v error -ss 3 -i "$OUT/$STEM-1080p.mp4" -frames:v 1 -vf scale=1280:720 "$OUT/$SLUG-poster.jpg"
-ffmpeg -y -v error -i "$OUT/$SLUG-poster.jpg" -c:v libwebp -quality 82 "$OUT/$SLUG-poster.webp"
+# Posters belong to the folder, not the version: make them for the first version only.
+if [ ! -e "$OUT/$SLUG-poster.jpg" ]; then
+  ffmpeg -n -v error -ss 3 -i "$OUT/$STEM-1080p.mp4" -frames:v 1 -vf scale=1280:720 "$OUT/$SLUG-poster.jpg"
+  ffmpeg -n -v error -i "$OUT/$SLUG-poster.jpg" -c:v libwebp -quality 82 "$OUT/$SLUG-poster.webp"
+fi
 ```
+
+The site builds the poster address from the folder (`key`) alone, so every version of a video shares one poster. A re-cut never regenerates it; once uploaded it is permanent. If a video truly needs a new poster, it needs a new `key` (a new R2 folder).
 
 If you respelled a word for the voice ("A I tamer dot news"), fix the cue text back to the written form. Long sentences: split them into cues of at most two 42-character lines (`make_captions.py` does this).
 
@@ -187,14 +205,14 @@ ffmpeg -y -v error -i "$OUT/$STEM-1080p.mp4" -vf "fps=1/6,scale=480:-1,tile=5x6"
 
 Read `stt.txt` against `narration.txt` (homophones and numerals may differ; words may not). Look at the contact sheet: no garbled text, no cut-off labels, no black frames.
 
-**Step 10. Manifest, upload, read back.** Write `$OUT/manifest.json` (section 9), upload every file create-only, read each one back, then open the post PR (section 10).
+**Step 10. Manifest, upload, read back.** Write `$OUT/$STEM.manifest.json` (section 9), upload this version's files create-only (plus posters and `art/` if this is the folder's first version), read each one back, then open the post PR (section 10).
 
 ## 7. Full production pipeline (as in LEANN)
 
-The LEANN build lives in `/workspace/aitamer-news-ops/youtube/pilot-leann/build/`. Copy it as the starting point for a polished video.
+The LEANN build lives in `$VIDEO_WORK/pilot-leann/build/`. Copy it as the starting point for a polished video.
 
 1. **Storyboard.** `script.md` with narration per beat, a timed shot list (time, beat, visual, on-screen text, motion), pronunciation notes and the claim list. `beats.py` holds the same narration as `BEATS = [(beat_name, [sentences])]` plus `EXTRA_LEX` pronunciations.
-2. **Voice.** `render_audio.py`: Kokoro-82M through `kokoro-onnx` in `/workspace/kokoro-venv` on CPU, voice `af_heart`, speed 1.0, `lang="en-us"`, phonemes from the shared lexicon plus `EXTRA_LEX`, edges trimmed and faded, 0.6 s lead, 0.32 s between sentences, 0.85 s between beats, 4 s tail. Writes `narration.wav` (24 kHz) and `timeline.json` (sentence start and end times).
+2. **Voice.** `render_audio.py`: Kokoro-82M through `kokoro-onnx` in `$KOKORO_VENV` on CPU, voice `af_heart`, speed 1.0, `lang="en-us"`, phonemes from the shared lexicon plus `EXTRA_LEX`, edges trimmed and faded, 0.6 s lead, 0.32 s between sentences, 0.85 s between beats, 4 s tail. Writes `narration.wav` (24 kHz) and `timeline.json` (sentence start and end times).
 3. **Fix-ups without a full re-take.** `render_audio_v2.py` re-synthesizes only changed sentences and reuses the old take sample for sample. Back up the old take to `build/v1-backup/` first.
 4. **Art.** 5 to 8 text-free images in the house hero style (LEANN used 6). Legal checks them on a contact sheet.
 5. **Plates.** `make_plates.py` draws 3840x2160 plates: art with baked-on labels, number cards, bar charts and the end card. Fonts: DejaVu Serif Bold for titles, DejaVu Sans and Sans Bold for labels, DejaVu Sans Mono for commands. House colours are in the file. Every chart names its source on the plate.
@@ -202,7 +220,7 @@ The LEANN build lives in `/workspace/aitamer-news-ops/youtube/pilot-leann/build/
 7. **Render.** `render_nocaps_r2_v2.py` chains the clips with 0.6 s `xfade` crossfades, normalizes audio (`loudnorm=I=-14:TP=-1.5:LRA=11`, measured about -15 LUFS integrated on LEANN v2), and encodes 1920x1080 30 fps H.264 High yuv420p CRF 22 plus 1280x720 CRF 23, AAC 128k 48 kHz stereo, `+faststart`, `-preset slow`, `-g 60`. **Caption-free.** Captions ship as a separate `.vtt`.
 8. **Captions.** `make_captions.py` builds cues from `timeline.json` (at most two 42-character lines); convert the SRT to WebVTT.
 9. **QA.** faster-whisper `base.en` transcript (`stt.txt`), contact sheet, spot frames at the timestamps Fact names, ffprobe, loudness. Record the results in `script.md`.
-10. **Versioning.** A re-render after fixes gets a new stem: `<slug>-v2-1080p.mp4`, `<slug>-v2-720p.mp4`, `<slug>-v2.en.vtt`. Old files stay in R2, marked `superseded` in the manifest.
+10. **Versioning.** A re-render after fixes gets a new stem: `<slug>-v2-1080p.mp4`, `<slug>-v2-720p.mp4`, `<slug>-v2.en.vtt` and its own `<slug>-v2.manifest.json`, which names the stem it supersedes. Old files and old manifests stay in R2 unchanged; nothing already uploaded is edited to mark it superseded. The posters and `art/` from the first version are reused.
 
 ## 8. Disclosure
 
@@ -218,33 +236,58 @@ The LEANN build lives in `/workspace/aitamer-news-ops/youtube/pilot-leann/build/
 ## 9. R2 storage
 
 1. **Bucket:** the bot bucket `aitamer-bots` only, public at `https://bots.aitamer.news/`. **Never `aitamer-media`.**
-2. **Keys** under `videos/<slug>/`:
-   - `<stem>-1080p.mp4` and `<stem>-720p.mp4` for v1, and again for each later version (`<slug>-v2-...`);
-   - `<slug>-poster.webp` and `<slug>-poster.jpg` (1280x720);
-   - `<stem>.en.vtt`;
-   - `manifest.json`;
-   - `art/01.jpg` and up: a backup of the source images.
-3. **Manifest** (see `r2-staging/videos/leann-explainer/manifest.json`): slug, title, prefix, captions key, poster keys, the disclosure line, the article URL, and for every file its `key`, `bytes`, `sha256`, `mime`, `duration_s` (video and captions), width and height, codecs, `faststart`, `burned_in_captions: false`, `version`, and `status` (`current` or `superseded` with `superseded_by`). Get the numbers with `stat -c %s` and `sha256sum`.
-4. **Upload create-only.** The upload script (LEANN: `/workspace/leann-video-r2-2026-10-27/r2put-media.mjs`, run as `node r2put-media.mjs <file> <key>`) signs a PUT with `If-None-Match: *`, the right `Content-Type` per extension (`video/mp4`, `image/webp`, `image/jpeg`, `text/vtt`, `application/json`) and `Cache-Control: public, max-age=31536000, immutable`. The bucket keys come from the environment; never print them.
-5. **No HEAD or GET before upload.** Just PUT. **A 412 means the key exists: stop**, do not retry under force, and pick a new stem.
+2. **Keys** under `videos/<slug>/`. Every key is written exactly once, so each one is either per version (contains the stem) or per folder (uploaded with the first version and reused by every later one):
+   - per version: `<stem>-1080p.mp4`, `<stem>-720p.mp4`, `<stem>.en.vtt`, `<stem>.manifest.json`;
+   - per folder: `<slug>-poster.webp` and `<slug>-poster.jpg` (1280x720), and `art/01.jpg` and up (a backup of the source images).
+3. **Manifest, one per version** (`<stem>.manifest.json`): slug, stem, version, title, prefix, captions key, poster keys, the disclosure line, the article URL, `supersedes` (the previous stem, or `null` for the first version), and for every file of this version its `key`, `bytes`, `sha256`, `mime`, `duration_s` (video and captions), width and height, codecs, `faststart`, `burned_in_captions: false`. List the shared posters and `art/` keys too, with their sha256, so each manifest is complete on its own. A manifest is never rewritten: the newest manifest is the current version, and older ones stay as they were. Get the numbers with `stat -c %s` and `sha256sum`. (LEANN's v1 used a single `manifest.json` key, written before this rule; it describes v1 only and stays as it is.)
+4. **Upload create-only.** The upload script (`node "$R2_PUT" <file> <key>`) signs a PUT with `If-None-Match: *`, the right `Content-Type` per extension (`video/mp4`, `image/webp`, `image/jpeg`, `text/vtt`, `application/json`) and `Cache-Control: public, max-age=31536000, immutable`. The bucket keys come from the environment; never print them. Upload the per-folder files only with a folder's first version.
+5. **No HEAD or GET before upload.** Just PUT. **A 412 means the key exists: stop.** Do not retry under force. Then read the existing key back and compare its sha256 with your local file:
+   - **Same sha256:** that file was already uploaded (for example, an upload that stopped half-way). Record it in the receipts and carry on with the next file.
+   - **Different sha256, per-version key:** you are reusing a stem. Render again under a new stem.
+   - **Different sha256, per-folder key** (poster, `art/`): you regenerated a file that must be reused. Restore the uploaded copy into staging from the public host and use it; a truly new poster needs a new `key` (a new folder).
 6. **Never overwrite or delete** anything in the bucket.
-7. **Read back after upload**, for every key, from the public host, and save it to `readback.txt`:
+7. **Read back after upload**, for every key you uploaded in this run, from the public host. The script writes `readback.txt` in the run folder and exits non-zero if any check fails:
 
    ```bash
    U=https://bots.aitamer.news/videos/$SLUG
-   for f in "$STEM-1080p.mp4" "$STEM-720p.mp4" "$STEM.en.vtt" "$SLUG-poster.webp" "$SLUG-poster.jpg" manifest.json; do
-     curl -s -o "/tmp/rb-$f" -w "$f %{http_code} %{size_download} %{content_type}\n" "$U/$f"
-     echo "  local=$(stat -c %s "$OUT/$f") sha=$( [ "$(sha256sum < "/tmp/rb-$f")" = "$(sha256sum < "$OUT/$f")" ] && echo match || echo MISMATCH)"
-   done
-   curl -s -o /dev/null -r 0-1023 -w "range %{http_code}\n" "$U/$STEM-1080p.mp4"   # must be 206
+   KEYS=("$STEM-1080p.mp4" "$STEM-720p.mp4" "$STEM.en.vtt" "$STEM.manifest.json")
+   if [ "$FIRST_VERSION" = yes ]; then              # this run also uploaded the per-folder files
+     KEYS+=("$SLUG-poster.webp" "$SLUG-poster.jpg")
+     for a in "$OUT"/art/*.jpg; do KEYS+=("art/$(basename "$a")"); done
+   fi
+   RB=$(mktemp -d)
+   {
+     fail=0
+     for f in "${KEYS[@]}"; do
+       case "$f" in
+         *.mp4) want=video/mp4 ;; *.webp) want=image/webp ;; *.jpg) want=image/jpeg ;;
+         *.vtt) want=text/vtt ;; *.json) want=application/json ;; *) want=unknown ;;
+       esac
+       code=$(curl -sS -D "$RB/head" -o "$RB/body" -w '%{http_code}' "$U/$f") || code=000
+       type=$(grep -i '^content-type:' "$RB/head" | tr -d '\r' | cut -d' ' -f2- | cut -d';' -f1)
+       cache=$(grep -i '^cache-control:' "$RB/head" | tr -d '\r' | cut -d' ' -f2-)
+       remote=$(sha256sum < "$RB/body" | cut -d' ' -f1)
+       local_=$(sha256sum < "$OUT/$f" | cut -d' ' -f1)
+       if [ "$code" = 200 ] && [ "$type" = "$want" ] && [ "$remote" = "$local_" ] && [[ "$cache" == *immutable* ]]; then r=PASS; else r=FAIL; fail=1; fi
+       echo "$r $f status=$code type=$type cache=\"$cache\" bytes=$(stat -c %s "$RB/body") sha256=$remote local=$local_"
+     done
+     for f in "$STEM-1080p.mp4" "$STEM-720p.mp4"; do
+       code=$(curl -sS -o /dev/null -r 0-1023 -w '%{http_code}' "$U/$f") || code=000
+       if [ "$code" = 206 ]; then echo "PASS range $f 206"; else echo "FAIL range $f $code"; fail=1; fi
+     done
+     [ "$fail" = 0 ] && echo "result: PASS" || echo "result: FAIL"
+   } > "$RUN/readback.txt"
+   rm -r "$RB"
+   cat "$RUN/readback.txt"
+   grep -qx 'result: PASS' "$RUN/readback.txt"
    ```
 
-   Pass: 200, size and sha256 match, correct Content-Type, and 206 on a Range request for each MP4.
+   Pass: every line PASS: status 200, the expected Content-Type, `immutable` caching, sha256 equal to the staged file, and 206 on a Range request for both MP4s.
 8. **Captions live in R2 next to the video** (`videos/<slug>/<stem>.en.vtt`). The page loads them from our own domain at `/videos/<slug>/<stem>.en.vtt`, where the captions proxy serves the R2 copy (GET and HEAD only, caption paths only, upstream 200 only, at most 1 MB). The bucket has no CORS policy and does not need one. Read back `https://aitamer.news/videos/<slug>/<stem>.en.vtt` after the deploy: 200, `text/vtt`, same sha256 as R2.
 
 ## 10. Site embed
 
-Needs the site code from PR #357 (`SelfHostedVideo` component, `selfHostedVideo` frontmatter schema, CSP `media-src 'self' https://bots.aitamer.news`). As of 2026-10-27 that PR is open and waiting for Wiz Cat's review.
+Uses the site code from PR #357, merged through #361 on 2026-10-28 (`SelfHostedVideo` component, `selfHostedVideo` frontmatter schema, captions proxy, CSP `media-src 'self' https://bots.aitamer.news`).
 
 1. **Frontmatter** in the post (the LEANN example from PR #358):
 
@@ -305,14 +348,14 @@ Waiting for Wiz Cat to create **`@aitamernews`** under a **Brand Account** with 
 - [ ] faster-whisper transcript matches the script.
 - [ ] Contact sheet looked at: no garbled text, no clipped labels, no black frames.
 - [ ] End card says "Read more at aitamer.news".
-- [ ] Re-render after fixes uses a new stem (`-v2`).
+- [ ] Re-render after fixes uses a new stem (`-v2`); posters and `art/` were not regenerated.
 
 **Upload**
 - [ ] Bucket is `aitamer-bots`, keys under `videos/<slug>/`.
-- [ ] MP4s, posters (webp and jpg), `.vtt`, `manifest.json`, `art/`.
-- [ ] Manifest has bytes, sha256, mime, duration for each file.
-- [ ] Create-only PUT, no HEAD or GET first; stopped on any 412.
-- [ ] Read back: 200, size, sha256, Content-Type, 206 on Range; saved to `readback.txt`.
+- [ ] This version's MP4s, `.vtt` and `<stem>.manifest.json`; posters (webp and jpg) and `art/` only with the folder's first version.
+- [ ] Manifest has bytes, sha256, mime, duration for each file, and `supersedes`.
+- [ ] Create-only PUT, no HEAD or GET first; on any 412, stopped and compared sha256 (section 9, item 5).
+- [ ] Readback script ended `result: PASS`: 200, Content-Type, `immutable`, sha256, 206 on Range for both MP4s; `readback.txt` saved in the run folder.
 
 **Post PR**
 - [ ] `selfHostedVideo` block with the exact disclosure line.
@@ -330,3 +373,4 @@ Waiting for Wiz Cat to create **`@aitamernews`** under a **Brand Account** with 
 | Version | Date | Change |
 |---|---|---|
 | v1 | 2026-10-27 | First version, from the LEANN pilot (`leann-explainer`, v1 and v2 renders, R2 upload, PRs #357 and #358). |
+| v1.1 | 2026-10-30 | Create-only made consistent: one manifest per version (`<stem>.manifest.json`, with `supersedes`) instead of rewriting `manifest.json`; posters and `art/` are per folder, uploaded once and never regenerated; what to do on a 412; readback script now checks status, type, caching, sha256 and Range for both MP4s and every uploaded key, writes `readback.txt` and fails on any miss; box paths replaced by variables; #357 status updated. |
