@@ -42,7 +42,7 @@ In practice that covers Cargo's own fetching of crates and indexes. A download i
 
 A project of mine depended on a crate that downloads ONNX Runtime from its maintainers' host during the build. For months nothing went wrong, because the first download was cached.
 
-Then I built an upgraded version in a fresh project. The download returned HTTP 403 with a browser challenge page. I tried the URL for the older runtime version too, and it was refused the same way. Every build on that machine had been working only because of the cache. A new machine or a cleared cache would have failed.
+Then the upgraded version went into a fresh project, with an empty cache. The download returned HTTP 403 with a browser challenge page. The URL for the older runtime version was refused the same way. Every build on that machine had been working only because of the cache. A new machine or a cleared cache would have failed.
 
 The fix taken was to stop downloading at build time. The crate offers a mode that loads the runtime library when the program starts, from a path in an environment variable. The project already shipped a checked copy of the library, so builds stopped touching the network and the runtime under the program did not change. For one test I also used Microsoft's [official release](https://github.com/microsoft/onnxruntime/releases/tag/v1.31.0) and checked the archive's hash before unpacking it.
 
