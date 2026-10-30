@@ -37,6 +37,10 @@ sources:
     url: https://web.archive.org/web/20261023150605/https://www.facebook.com/legal/commercial_terms_preview
   - title: "News Publishers Deliver Letter to Meta Demanding It Withdraw New Harmful Terms of Use (News/Media Alliance)"
     url: https://www.newsmediaalliance.org/letter-to-meta-demanding-withdrawal-of-new-terms-of-use/
+  - title: "CMA: CMA opens investigation into Meta's commercial terms (30 October 2026)"
+    url: https://www.gov.uk/government/news/cma-opens-investigation-into-metas-commercial-terms--2
+  - title: "CMA case page: Suspected abuse of a dominant position in relation to Meta's commercial terms"
+    url: https://www.gov.uk/cma-cases/suspected-abuse-of-a-dominant-position-in-relation-to-metas-commercial-terms
 ---
 
 Update, 17 October 2026. The sentence that said Meta may train on pages it crawls is gone from the commercial-terms preview. The preview still authorizes crawlers on domains tied to a business user's products, and it still says the update takes effect on 30 October 2026. This follows [the 16 October report](/posts/meta-commercial-terms-crawl-train-ai/) on the earlier wording.
@@ -78,3 +82,13 @@ Meta has moved the new commercial terms from 30 October to 20 November 2026. An 
 The delay follows publisher pressure. The [News/Media Alliance](https://www.newsmediaalliance.org/letter-to-meta-demanding-withdrawal-of-new-terms-of-use/), which says it represents over 2,000 publishers, sent Mark Zuckerberg a letter asking Meta to withdraw the crawling provision. The letter argues that publishers "cannot practically disallow or block Meta's crawlers without harming their ability to promote content as a business account user." The Verge also reports that advertisers and publishers in the EU and the UK urged regulators to stop the terms.
 
 What has not changed: in the 23 October capture, the crawl paragraph is the same as on 17 October. Only the date moved. If you run a business account on Meta's platforms and object to the crawl permission, you now have until 20 November to decide what to do, rather than 30 October.
+
+## Update, 30 October 2026: Meta pauses the terms, and the UK CMA opens an investigation
+
+The UK Competition and Markets Authority [opened an investigation](https://www.gov.uk/government/news/cma-opens-investigation-into-metas-commercial-terms--2) into Meta's commercial terms on 30 October, under Chapter II of the Competition Act 1998, which covers abuse of a dominant position. The CMA says it is concerned that making publishers and other businesses accept terms that let Meta collect content from their websites and use it for its own products, including AI features, "without those businesses getting a choice," could amount to imposing unfair trading conditions. It names the News Media Association and Movement for an Open Web among the groups that raised concerns.
+
+The CMA also records that Meta announced on 28 October a pause to the rollout of the terms, pending a consultation with industry groups. So the 20 November date above is on hold, according to the regulator.
+
+This is the start of a case, not a finding. The CMA says no decision has been made on whether Meta broke the law. Its [case page](https://www.gov.uk/cma-cases/suspected-abuse-of-a-dominant-position-in-relation-to-metas-commercial-terms) lists Meta Platforms, Inc., Facebook UK Limited and Facebook Ireland Limited, with information gathering from Meta and third parties planned for October 2026 to January 2027. The investigation will first test whether Meta is dominant in a UK market at all. Separately, the CMA is asking Meta about its Meta One business subscription and Federation of Small Businesses concerns about paying to post external links; that sits outside this case.
+
+If you run a business account on Meta's platforms, nothing new takes effect while the pause holds. Keep the crawl paragraph in mind if a revised version comes back after the consultation.
