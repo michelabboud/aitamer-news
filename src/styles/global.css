@@ -1013,6 +1013,7 @@ a.archive-month__name:hover { color: var(--ember-text); }
 .reactions__summary { background: transparent; padding-inline: 0.6rem; }
 .reactions__summary--static { margin: 0; cursor: default; border-color: var(--line); }
 .reactions__summary[hidden] { display: none; }
+.reactions__reset[hidden] { display: none; }
 /* Totals read in the browser (REACTIONS_SOURCE = 'r2'): the summary holds its place and the width of
    three emoji and a five-digit total while it has nothing to show (loading, failed, or zero), so
    the counts arriving move nothing. visibility: hidden also keeps it out of the tab order and the

@@ -36,7 +36,9 @@ test('actual reaction component reconciles private receipts with public envelope
   const container = await experimental_AstroContainer.create();
   const markup = await container.renderToString(Component, { props: { slug: 'a-story' } });
   await writeFile(join(directory, 'markup.html'), markup);
-  const html = `<!doctype html><meta charset="utf-8"><style>[data-reserved]{visibility:hidden}</style>${markup}<button id="fixture-other-control" style="position:fixed;right:10px;top:10px">Continue reading</button><script>
+  // The site's own stylesheet, so a control the client hides is checked as rendered, not only as an attribute.
+  const siteStyles = await readFile(new URL('../styles/global.css', import.meta.url), 'utf8');
+  const html = `<!doctype html><meta charset="utf-8"><style>${siteStyles}</style><style>[data-reserved]{visibility:hidden}</style>${markup}<button id="fixture-other-control" style="position:fixed;right:10px;top:10px">Continue reading</button><script>
 window.delayNextDatabaseOpen=()=>{const nativeOpen=indexedDB.open;indexedDB.open=function(...args){indexedDB.open=nativeOpen;const request=nativeOpen.apply(this,args);request.addEventListener('success',event=>{event.stopImmediatePropagation();window.releaseReset=()=>{window.releaseReset=undefined;request.onsuccess?.call(request,event)}},{once:true});return request}};
 window.postCalls=0;window.getCalls=0;window.streamCalls=0;window.intentCalls=[];window.intentResponses=0;window.urls=[];
 window.generation='1';window.reactions=[];window.receiptGeneration='2';window.closeGeneration='13';window.closeStatus=200;window.closeCalls=0;window.hold=false;window.pending=[];
@@ -63,6 +65,7 @@ window.fetch=async(url,init)=>{window.urls.push(String(url));if(init?.method==='
     await harness.call('Page.navigate', { url: pathToFileURL(fixture).href }, sessionId);
     await poll("window.componentReady && document.querySelector('.reactions__total')?.textContent==='0' && getCalls===1");
     await capture('generation 1 empty');
+    assert.equal(await evaluate("(()=>{const button=document.querySelector('.reactions__reset');return button.hidden&&getComputedStyle(button).display==='none'})()"), true, 'a hidden reset control must not render');
     await evaluate("document.querySelector('[data-reaction=love]').click()");
     await poll('postCalls===1 || intentCalls.length===1');
     assert.equal((await capture('Love chosen')).total, '1');
@@ -183,6 +186,7 @@ window.fetch=async(url,init)=>{window.urls.push(String(url));if(init?.method==='
     await poll('pending.length===1');
     await evaluate("window.clock=Date.parse(expiresAt)+2*86400000;document.querySelector('.reactions__react').click()");
     await poll("document.querySelector('.reactions__reset').hidden===false");
+    assert.notEqual(await evaluate("getComputedStyle(document.querySelector('.reactions__reset')).display"), 'none', 'an offered reset control must render');
     assert.equal(await evaluate("document.querySelector('.reactions__note').getAttribute('role')"), 'status');
     assert.equal(await evaluate("document.querySelector('.reactions__note').getAttribute('aria-live')"), 'polite');
     assert.equal(await evaluate("document.querySelector('.reactions__note').textContent.includes('requests already sent may still finish')"), true);
