@@ -1172,3 +1172,9 @@
 1169 umask-clears-permission-bits
 1170 lowercasing-depends-on-locale
 1171 git-rebase-onto-cut-point
+1172 northflank-security-incident-assume-env-vars-decrypted
+1173 french-publishers-eu-complaint-google-ai-overviews-ai-mode
+1174 claude-max-20x-renamed-ultra-drops-5-hour-limit
+1175 pika-h3-flex-open-weights-video-model-license-excludes-us-eu
+1176 google-jules-winds-down-antigravity-export-before-nov-11
+1177 microsoft-mage-vl-cowork-4b-computer-use-model

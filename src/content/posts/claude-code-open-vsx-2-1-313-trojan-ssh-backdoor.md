@@ -35,6 +35,10 @@ sources:
     url: https://open-vsx.org/api/anthropic/claude-code
   - title: "Claude Code CHANGELOG"
     url: https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
+  - title: "Hacker News: Felix Rieseberg (Anthropic) on the Cursor marketplace incident"
+    url: https://news.ycombinator.com/item?id=50304129
+  - title: "Connor Jones, Anthropic: That Claude Code extension compromise... couldn't be us (The Register, 30 October 2026)"
+    url: https://www.theregister.com/cyber-crime/2026/10/30/anthropic-that-claude-code-extension-compromise-couldnt-be-us/5306682
 ---
 
 A malicious build of the Claude Code extension, labeled `anthropic.claude-code` version 2.1.313, was served by Cursor's own VS Code extension marketplace on 29 October, according to [Cursor's security notice](https://cursor.com/blog/claude-code-extension-security-notice) and the corrected [OpenSourceMalware analysis](https://opensourcemalware.com/blog/trojanized-claude-code-extension-plants-persistent-ssh-backdoor). Cursor says the build was not developed by Anthropic and that at most 5,000 of its users were affected. OpenSourceMalware now says the Claude Code builds on Open VSX, npm and Microsoft's VS Code Marketplace are not malicious. Its analysis found a 66-line loader placed in front of the normal extension code. The rest of the package, including the bundled Claude Code binary, matched the official release.
@@ -89,3 +93,9 @@ What Cursor adds to the researchers' account:
 - **Uninstalling is not enough.** The payload drops standalone persistence scripts that keep running. Cursor's notice has a one-line check for the `svc-telemetry` key and remediation scripts for macOS and Windows, plus file hashes and the attacker key fingerprint.
 
 Cursor's advice if you installed or updated to 2.1.313 from its marketplace in that window: run the check, isolate any host that shows the payload ran, remove the key, persistence and tunnel processes with the scripts, consider rebuilding, and rotate credentials and sessions from a trusted machine. It notes that the limited environment-variable collection "does not rule out later credential access over the backdoor."
+
+## Update, 30 October 2026: Anthropic says its own systems were not involved
+
+Anthropic has responded to suggestions that the tampered build came from a breach on its side. Felix Rieseberg, a member of Anthropic's technical staff, [wrote](https://news.ycombinator.com/item?id=50304129) that "it wasn't a compromise of Anthropic's systems or employee laptops," that "a malicious actor used access to Cursor's marketplace to publish a tampered copy of the Claude Code extension, which we didn't build or publish," and that versions on Anthropic's official channels are not affected. In the same thread another Anthropic engineer said 2.1.313 was never published on Open VSX, the Microsoft VS Code Marketplace or any Anthropic host, and that Anthropic numbered its next real release 2.1.314 so the two could not be confused.
+
+As [The Register notes](https://www.theregister.com/cyber-crime/2026/10/30/anthropic-that-claude-code-extension-compromise-couldnt-be-us/5306682), neither company has said how the tampered build reached Cursor's marketplace. The checks above are unchanged: they apply to anyone who installed 2.1.313 from Cursor's marketplace in the 29 October window, and not to users of other editors.
