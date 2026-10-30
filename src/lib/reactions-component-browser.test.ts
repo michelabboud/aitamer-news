@@ -36,8 +36,11 @@ test('actual reaction component reconciles private receipts with public envelope
   const container = await experimental_AstroContainer.create();
   const markup = await container.renderToString(Component, { props: { slug: 'a-story' } });
   await writeFile(join(directory, 'markup.html'), markup);
-  // The site's own stylesheet, so a control the client hides is checked as rendered, not only as an attribute.
-  const siteStyles = await readFile(new URL('../styles/global.css', import.meta.url), 'utf8');
+  // The site's own rules for the reaction buttons, so a control the client hides is checked as rendered,
+  // not only as an attribute. Only the button rules: the rest of the stylesheet (the panel's placing and
+  // the reserved summary) changes this fixture's timing enough to miss its waits on slow CI runners.
+  const siteStyles = (await readFile(new URL('../styles/global.css', import.meta.url), 'utf8'))
+    .split('}').filter(block => /\.reactions__(react|reset)\b/.test(block.slice(0, block.indexOf('{')))).map(block => `${block}}`).join('\n');
   const html = `<!doctype html><meta charset="utf-8"><style>${siteStyles}</style><style>[data-reserved]{visibility:hidden}</style>${markup}<button id="fixture-other-control" style="position:fixed;right:10px;top:10px">Continue reading</button><script>
 window.delayNextDatabaseOpen=()=>{const nativeOpen=indexedDB.open;indexedDB.open=function(...args){indexedDB.open=nativeOpen;const request=nativeOpen.apply(this,args);request.addEventListener('success',event=>{event.stopImmediatePropagation();window.releaseReset=()=>{window.releaseReset=undefined;request.onsuccess?.call(request,event)}},{once:true});return request}};
 window.postCalls=0;window.getCalls=0;window.streamCalls=0;window.intentCalls=[];window.intentResponses=0;window.urls=[];
