@@ -1234,3 +1234,8 @@ a.archive-month__name:hover { color: var(--ember-text); }
 .video--self { margin: 0 0 2rem; }
 .video__intro { margin: 0 0 0.5rem; font-family: var(--font-machine); font-size: 0.8rem; letter-spacing: 0.04em; color: var(--ink-muted); }
 .video__player { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--night-sunk); border: 1px solid var(--line); }
+/* PostNarration: the browser's own audio player under the byline, full column width. */
+.narration { margin: 0 0 2rem; }
+.narration__label { margin: 0 0 0.5rem; font-family: var(--font-machine); font-size: 0.8rem; letter-spacing: 0.04em; color: var(--ink-muted); }
+.narration__player { display: block; width: 100%; }
+.narration__disclosure { margin-top: 0.5rem; font-family: var(--font-machine); font-size: 0.75rem; color: var(--ink-muted); }

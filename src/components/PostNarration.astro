@@ -1,0 +1,23 @@
+---
+import { narrationLength, narrationUrl, type Narration } from '../lib/narration';
+/**
+ * The post read aloud, played by the browser's own `<audio>` element: no script, no autoplay, no
+ * third-party player, and nothing downloads until the reader presses play (`preload="none"`).
+ * The file comes from the bot bucket's public host (allowed by `media-src` in
+ * scripts/csp-headers.mjs). Only the frontmatter `key` and `file` name it (post-schema.ts).
+ */
+interface Props {
+  narration: Narration;
+}
+const { narration } = Astro.props;
+const src = narrationUrl(narration);
+const length = narrationLength(narration.durationSeconds);
+---
+<figure class="narration" data-pagefind-ignore>
+  <p class="narration__label" id="narration-label">Listen to this article ({length})</p>
+  <audio class="narration__player" controls preload="none" aria-labelledby="narration-label">
+    <source src={src} type="audio/mpeg" />
+    <a href={src}>Download the narration (MP3, {length})</a>
+  </audio>
+  <figcaption class="narration__disclosure">{narration.disclosure}</figcaption>
+</figure>
