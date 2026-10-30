@@ -51,8 +51,10 @@ function fixtureDist() {
  */
 async function host({ fault = null, faultPath = null, flakyFirst = 0, robots = null } = {}) {
   let served = 0;
+  const sent = [];
   const server = createServer((req, res) => {
     served += 1;
+    sent.push({ userAgent: req.headers['user-agent'], ciTest: req.headers['x-ci-test'] });
     if (served <= flakyFirst) {
       res.writeHead(503).end();
       return;
@@ -108,7 +110,7 @@ async function host({ fault = null, faultPath = null, flakyFirst = 0, robots = n
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
-  return { base, requests: () => served, close: () => new Promise((resolve) => server.close(resolve)) };
+  return { base, requests: () => served, sent, close: () => new Promise((resolve) => server.close(resolve)) };
 }
 
 const FAST = { rounds: 1, roundDelayMs: 0, attempts: 1, attemptDelayMs: 0 };
@@ -139,6 +141,17 @@ test('the plan: every page but 404 and redirected fallbacks, root files and the 
   writeFileSync(join(dist, 'topics', 'a', 'index.html'), authoredPage('A'));
   assert.deepEqual(plan(dist, 1).pages.map((p) => p.path), ['/', '/news/', '/search/', '/posts/story/']);
   assert.deepEqual(plan(dist, 5).pages.map((p) => p.path), ['/', '/news/', '/search/', '/posts/story/', '/topics/a/']);
+});
+
+test('every smoke request names the tool and is marked as CI, so analytics can leave it out', async () => {
+  const h = await host();
+  try {
+    assert.equal((await smoke(h.base, 'production', fixtureDist(), FAST)).ok, true);
+  } finally {
+    await h.close();
+  }
+  assert.ok(h.sent.length > 0);
+  assert.ok(h.sent.every(({ userAgent, ciTest }) => userAgent?.startsWith('aitamer-deploy-smoke/1') && ciTest === 'true'), JSON.stringify(h.sent.slice(0, 3)));
 });
 
 test('a deployment that serves the build correctly passes, as production and as a preview', async () => {

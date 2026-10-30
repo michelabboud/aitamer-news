@@ -58,6 +58,11 @@ export const MAX_PAGES = 1_000;
 export const KEY_PAGES = ['/', '/news/', '/columns/', '/search/', '/about/'];
 /** Identifies these requests in Cloudflare's logs. */
 export const USER_AGENT = 'aitamer-deploy-smoke/1 (+https://github.com/michelabboud/aitamer-news)';
+/**
+ * Sent with every request. The User-Agent names the tool, and `X-CI-Test` marks the request as an
+ * automated check, so Cloudflare analytics and logs can leave CI traffic out (filter on either).
+ */
+export const REQUEST_HEADERS = Object.freeze({ 'user-agent': USER_AGENT, 'x-ci-test': 'true' });
 /** Root files that are the host's configuration, never served as files. */
 const HOST_CONFIG_FILES = new Set(['_headers', '_redirects', '_routes.json']);
 const EXPECTS = new Set(['preview', 'production']);
@@ -195,7 +200,7 @@ export async function request(url, { redirect = 'manual', attempts = ATTEMPTS, a
   for (let i = 0; i < attempts; i += 1) {
     if (i > 0) await sleep(attemptDelayMs);
     try {
-      const res = await fetch(url, { redirect, headers: { 'user-agent': USER_AGENT }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+      const res = await fetch(url, { redirect, headers: { ...REQUEST_HEADERS }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
       const body = await res.text();
       if (res.status >= 500) {
         last = `answered ${res.status}`;
