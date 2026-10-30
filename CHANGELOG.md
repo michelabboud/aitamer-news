@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.132 · 2026-10-30
+
+- Add `scripts/post-edit.mjs` (`npm run post-edit`), the one way to change a post already on main: `edit` (a checked copy fix, no notice), `correct` (a dated `corrections` entry), `update` (a `## Update, <d Month yyyy>: <heading>` section and `updatedDate`), `withdraw` (`withdrawn`) and `restore` (removes `withdrawn` and records a dated correction; the post keeps its own specimen number). Michel's request: writers own changes to their own posts, through the normal admission lane, with no owner approval. Before writing, it checks the post against main: schema; `pubDate`, `specimen`, `author` and `draft` unchanged; earlier corrections kept byte for byte; a withdrawal added or removed only by its action; `updatedDate` only moving forward; new body links sourced and answering; no new working notes. Other frontmatter lines are left as written. Until now 37 posts carried a hand-written update section, but only 2 set `updatedDate`, so most updates never reached the "Updated" date, the feeds, the sitemap or the freshness file. New guide [Editing a live post](docs/guides/editing-posts.md), linked from the Grok guide (new section 11), the bot content contract, POST.md, the builder guide and AGENTS.md. 17 new tests; three of the checks were disabled one at a time to show a test fails. Every action applied to all 1,136 live posts on main succeeds (3,408 of 3,408).
+
 ## 0.2.131 · 2026-10-30
 
 - Mark the media check's and the deploy smoke test's requests with `X-CI-Test: true` (Michel's request), so Cloudflare analytics and logs can leave CI traffic out. Their existing User-Agents (`aitamer-check-media/1`, `aitamer-deploy-smoke/1`) are unchanged. Tests assert every request carries both. Suite 1484/1485 (the one failure needs a git checkout; environmental to the scratch copy).

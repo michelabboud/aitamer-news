@@ -33,6 +33,7 @@ On 2026-10-02 five bot posts (`litellm-lens`, `zyte-mcp`, `astabrief-8b`, `supab
 - In the ordinary article lane, write **posts and their hero images** only. Image updates to existing author/post metadata or approved local assets go in a separate [owner-reviewed image proposal](#owner-requested-image-updates). Neither lane may change the template: no pages, layouts, components, styles, scripts, workflows or configuration. Required checks reject those changes.
 - Omit `specimen` for new articles and never change `src/content/specimen-ledger.txt`. Choose valid Habitat (`section`, optional `subsection`) and supply all required article fields, including author, sources, hero and full UTC `pubDate`. Workflow admission alone allocates and repairs permanent identities.
 - One pull request per post or per small batch. Do not edit other people's posts (Mai, Quill, Foxy, Ari, Michel).
+- Your own live posts are yours to fix, correct, update, withdraw or restore, in the same lane and with no owner approval. Always through `scripts/post-edit.mjs`, never a hand-written notice: [Editing a live post](editing-posts.md).
 
 ## 2. What readers see: no working notes
 

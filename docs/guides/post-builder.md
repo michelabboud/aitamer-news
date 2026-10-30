@@ -1,6 +1,6 @@
 # The post builder
 
-`scripts/post-builder.mjs` turns a writer's reply into a post file, and refuses to publish anything that fails its checks. Rule (Michel, 2026-10-03): the writer prepares the post, code owns the format, and nothing publishes without strict validation.
+`scripts/post-builder.mjs` turns a writer's reply into a post file, and refuses to publish anything that fails its checks. It makes new posts; to change a post already on main, use `scripts/post-edit.mjs` ([Editing a live post](editing-posts.md)). Rule (Michel, 2026-10-03): the writer prepares the post, code owns the format, and nothing publishes without strict validation.
 
 ## What a writer sends
 

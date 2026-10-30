@@ -124,7 +124,7 @@ The site publishes by `draft: false` and `pubDate`. Workflow admission supplies 
 
 **Ledger history.** `src/content/specimen-ledger.txt` holds issuance and historical void events. The workflow preserves its trusted-main byte prefix exactly and only appends valid new allocations. A submitted number or ledger row reserves nothing. Withdrawn and historical slugs never regain somebody else's identity. Parallel submissions do not pick numbers themselves: stale generated allocations must be recomputed and revalidated against current main before merge. Keep failed runs and repair evidence; do not hand-edit void lines, delete specimen fields for collision repair, restore old ledger copies or force-push.
 
-Times are UTC and end in `Z`. For a substantive update use `updatedDate`, preserving the published `pubDate` and specimen. Posts sharing a time are ordered by slug.
+Times are UTC and end in `Z`. For a substantive update use `updatedDate`, preserving the published `pubDate` and specimen. `scripts/post-edit.mjs` makes every change to a post already on main (copy fix, correction, update, withdrawal, restore) and writes `updatedDate`, `corrections` and `withdrawn` for you: [Editing a live post](docs/guides/editing-posts.md). Posts sharing a time are ordered by slug.
 
 ## 5. What happens on a push to `main`
 
