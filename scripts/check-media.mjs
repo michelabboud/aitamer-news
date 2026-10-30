@@ -45,6 +45,11 @@ export const CONCURRENCY = 8;
 export const REQUEST_TIMEOUT_MS = 15_000;
 /** Identifies these requests in Cloudflare's logs. */
 export const USER_AGENT = 'aitamer-check-media/1 (+https://github.com/michelabboud/aitamer-news)';
+/**
+ * Sent with every request. The User-Agent names the tool, and `X-CI-Test` marks the request as an
+ * automated check, so Cloudflare analytics and logs can leave CI traffic out (filter on either).
+ */
+export const REQUEST_HEADERS = Object.freeze({ 'user-agent': USER_AGENT, 'x-ci-test': 'true' });
 /** The content type a JPEG hero is uploaded with (POST.md §3). */
 export const HERO_CONTENT_TYPE = 'image/jpeg';
 /** The content type of every hero's WebP twin (same name as its canonical JPEG). */
@@ -98,7 +103,7 @@ export async function head(url, { attempts = ATTEMPTS, attemptDelayMs = ATTEMPT_
   let last;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      const res = await fetch(url, { method: 'HEAD', redirect: 'manual', headers: { 'user-agent': USER_AGENT }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+      const res = await fetch(url, { method: 'HEAD', redirect: 'manual', headers: { ...REQUEST_HEADERS }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
       if (res.status < 500) return { status: res.status, headers: res.headers };
       last = { error: `answered ${res.status} after ${attempts} tries` };
     } catch (error) {

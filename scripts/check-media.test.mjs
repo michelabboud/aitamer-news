@@ -36,9 +36,11 @@ function fixture({ cHero } = {}) {
  */
 async function host(objects, override = () => false) {
   const seen = [];
+  const sent = [];
   const server = createServer((req, res) => {
     const key = decodeURIComponent(new URL(req.url, 'http://x').pathname.slice(1));
     seen.push(`${req.method} ${key}`);
+    sent.push({ userAgent: req.headers['user-agent'], ciTest: req.headers['x-ci-test'] });
     if (override(key, res)) return;
     if (!Object.hasOwn(objects, key)) {
       res.writeHead(404).end();
@@ -49,7 +51,7 @@ async function host(objects, override = () => false) {
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
-  return { origin, seen, close: () => new Promise((resolve) => server.close(resolve)) };
+  return { origin, seen, sent, close: () => new Promise((resolve) => server.close(resolve)) };
 }
 
 const run = (argv, options) => quietlyAsync(() => main(argv, { attempts: 2, attemptDelayMs: 1, siteImages: [], ...options }));
@@ -197,6 +199,9 @@ test('every local file on the host byte for byte, and every post hero there: exi
     assert.match(output, /6\/6 post heroes on .* answer 200 image\/jpeg/);
     assert.ok(media.seen.every((line) => line.startsWith('HEAD ')), 'only HEAD requests');
     assert.ok(!media.seen.some((line) => line.includes('d.jpg')), 'a hero off the media host is not requested');
+    // Every request names the tool and is marked as CI, so analytics can leave it out.
+    assert.ok(media.sent.length > 0);
+    assert.ok(media.sent.every(({ userAgent, ciTest }) => userAgent?.startsWith('aitamer-check-media/1') && ciTest === 'true'), JSON.stringify(media.sent.slice(0, 3)));
   } finally {
     await media.close();
   }
