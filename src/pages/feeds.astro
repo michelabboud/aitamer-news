@@ -1,0 +1,57 @@
+---
+/** Every feed the site publishes: site-wide, per habitat and per subsection (src/pages/rss/). */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { FEED_LIMIT, habitatFeedPath, subsectionFeedPath, subsectionFeeds } from '../lib/feeds';
+import { ALL_SECTIONS, HABITAT_LIST, getPublishedPosts, habitatHref, withBase } from '../lib/site';
+
+const posts = await getPublishedPosts();
+const subsections = subsectionFeeds(posts.map((post) => post.data), ALL_SECTIONS);
+const habitats = HABITAT_LIST.map((habitat) => ({
+  habitat,
+  count: posts.filter((post) => post.data.section === habitat.slug).length,
+  subsections: subsections.filter((feed) => feed.section === habitat.slug),
+}));
+---
+<BaseLayout
+  title="Feeds"
+  description="Every AI Tamer feed: the whole site, each habitat and each subsection, in RSS, plus JSON Feed and llms.txt."
+>
+  <header class="page-head">
+    <p class="page-kicker">Field guide · feeds</p>
+    <h1 class="page-title">Feeds</h1>
+    <p class="lede">
+      Follow the whole field guide or only the habitats you care about. Each feed carries the newest {FEED_LIMIT} sightings, titles and summaries with a link to the story.
+    </p>
+  </header>
+
+  <section class="feeds" aria-labelledby="feeds-site">
+    <h2 id="feeds-site">The whole site</h2>
+    <ul class="feeds__list">
+      <li><a href={withBase('/rss.xml')}>RSS: every sighting</a> <span class="muted">/rss.xml</span></li>
+      <li><a href={withBase('/feed.json')}>JSON Feed: every sighting</a> <span class="muted">/feed.json</span></li>
+      <li><a href={withBase('/llms.txt')}>Guide for language models</a> <span class="muted">/llms.txt</span></li>
+    </ul>
+  </section>
+
+  <section class="feeds" aria-labelledby="feeds-habitats">
+    <h2 id="feeds-habitats">By habitat</h2>
+    <ul class="feeds__list">
+      {habitats.map(({ habitat, count, subsections: subs }) => (
+        <li>
+          <a href={withBase(habitatFeedPath(habitat.slug))}>RSS: {habitat.name}</a>{' '}
+          <span class="muted">Habitat {habitat.code} · {count} {count === 1 ? 'sighting' : 'sightings'} · <a href={habitatHref(habitat)}>page</a></span>
+          {subs.length > 0 && (
+            <ul class="feeds__sub">
+              {subs.map((feed) => (
+                <li>
+                  <a href={withBase(subsectionFeedPath(feed.section, feed.subsection))}>{feed.subsection}</a>{' '}
+                  <span class="muted">{feed.count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
