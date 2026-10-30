@@ -24,8 +24,6 @@ verdict: "A first test of whether GDPR protects the people who train AI models, 
 sources:
   - title: "noyb: AI training platform Outlier illegally surveils European platform workers (27 October 2026)"
     url: https://noyb.eu/en/ai-training-platform-outlier-illegally-surveils-european-platform-workers
-  - title: "noyb: complaint against Scale AI, Netherlands (redacted)"
-    url: https://noyb.eu/sites/default/files/2026-10/NL%20complaint%20redacted.pdf
   - title: "CNA (Reuters): Privacy group files complaints against Scale AI over alleged worker surveillance (27 October 2026)"
     url: https://www.channelnewsasia.com/business/privacy-group-files-complaints-against-scale-ai-over-alleged-worker-surveillance-6495901
 ---
@@ -36,7 +34,7 @@ Everything below is what noyb alleges. No authority has ruled. Scale did not imm
 
 ## What noyb alleges
 
-- **Trackers while you work.** noyb says its technical analysis found trackers from companies including TikTok, LinkedIn, Facebook, the survey platform Sprig and Datadog running while workers use Outlier, sending their personal data to third parties "every few seconds", without valid consent. The [Dutch complaint](https://noyb.eu/sites/default/files/2026-10/NL%20complaint%20redacted.pdf) lists Fullstory, Sprig, LinkedIn, PostHog, Segment, Run.app and Google among the third parties receiving a complainant's data. It describes Fullstory as a session replay tool that records mouse movements, clicks and keystrokes, with its tracker sending a request every few seconds.
+- **Trackers while you work.** noyb says its technical analysis found trackers from companies including TikTok, LinkedIn, Facebook, the survey platform Sprig and Datadog running while workers use Outlier, sending their personal data to third parties "every few seconds", without valid consent. The [Dutch complaint](https://noyb.eu/en/ai-training-platform-outlier-illegally-surveils-european-platform-workers) lists Fullstory, Sprig, LinkedIn, PostHog, Segment, Run.app and Google among the third parties receiving a complainant's data. It describes Fullstory as a session replay tool that records mouse movements, clicks and keystrokes, with its tracker sending a request every few seconds.
 - **Reuters' count.** The complaints seen by Reuters say up to 19 trackers follow workers, and that DiPLab found the recorded data could be rebuilt into a video replaying a whole work session.
 - **Repeated biometric checks.** noyb says workers must repeatedly verify their identity through Persona, with ID documents and face video, and argues this goes far beyond what is necessary.
 - **Ignored access requests.** noyb says Scale did not answer the complainants' requests for their own data, which would breach the GDPR's right of access.
@@ -46,3 +44,7 @@ noyb argues there is no legal basis for the trackers, that they break the GDPR's
 ## Why it matters
 
 Data-labelling platforms are the least visible part of the AI supply chain, and their workers are usually contractors with little leverage. Meta owns 49% of Scale AI, Reuters noted. If the regulators agree with noyb, every platform that monitors remote AI trainers in the EU will have to check what its in-browser analytics actually send.
+
+## Update, 30 October 2026: noyb pulls the complaint PDF
+
+noyb has removed the redacted Dutch complaint PDF from its site, so the "Dutch complaint" link above now points to noyb's press release.
