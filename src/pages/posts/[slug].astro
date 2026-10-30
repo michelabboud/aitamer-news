@@ -18,6 +18,8 @@ import ShareLinks from '../../components/ShareLinks.astro';
 import SpecimenTag from '../../components/SpecimenTag.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
 import SelfHostedVideo from '../../components/SelfHostedVideo.astro';
+import PostNarration from '../../components/PostNarration.astro';
+import { narrationAudioObject } from '../../lib/narration';
 import WildnessPanel from '../../components/WildnessPanel.astro';
 import {
   SECTION_LABELS,
@@ -138,6 +140,8 @@ const jsonLd = withdrawn
       publisher: publisherOrganization(),
       citation: data.sources?.map((source) => source.url),
       isAccessibleForFree: true,
+      // The post read aloud (`narration`); undefined, so the key is left out, when there is none.
+      audio: narrationAudioObject(data.narration),
       // No comment count or schema.org Comments: comments are read in the browser from the data host
       // (`COMMENTS_SOURCE = 'r2'`, ADR 0047), so they are not in the build to describe. `commentsJsonLd`
       // stays in `comment-text.ts` for the way back to baked HTML.
@@ -221,6 +225,7 @@ const breadcrumbs = {
       </section>
     ) : (
       <>
+        {data.narration && <PostNarration narration={data.narration} />}
         {corrections.length > 0 && (
           <section class="notice notice--corrections" aria-labelledby="corrections-title">
             <h2 id="corrections-title">{corrections.length === 1 ? 'Correction' : 'Corrections'}</h2>
