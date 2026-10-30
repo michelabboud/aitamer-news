@@ -124,11 +124,13 @@ export const PROTECTED_IDS = Object.freeze(
  * - `c-<ULID>` and `c-<ULID>-name`: each baked comment (`commentAnchor` in `src/lib/comment-text.ts`);
  *   ULIDs are upper case and heading ids lower case, and the pattern ignores case anyway.
  * - `reactions-panel-<slug>`: the reactions menu (`src/components/Reactions.astro`).
+ * - `reactions-status-<slug>`: the reactions status message, with the post slug grammar (`scripts/slug.mjs`).
  * - `user-content-…`: satteri's footnote namespace; a heading there could hijack a footnote link.
  */
 export const PROTECTED_ID_PATTERNS = Object.freeze([
   /^c-[0-9a-z]{26}(?:-name)?$/i,
   /^reactions-panel-/,
+  /^reactions-status-[a-z0-9][a-z0-9-]{0,119}$/,
   /^user-content-/,
 ]);
 

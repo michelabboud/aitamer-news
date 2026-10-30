@@ -22,7 +22,7 @@
  */
 
 import { COMMENT_SLUG, COMMENT_SLUG_MAX } from '../content/comment-limits.ts';
-import { dataBaseUrl, type DataCheck, type DataReader } from './data-host.ts';
+import { DATA_FETCH_TIMEOUT_MS, dataBaseUrl, type DataEvent, type LoadState, type DataCheck, type DataReader } from './data-host.ts';
 import { SITE } from './site-meta.ts';
 
 /** One reaction a reader can choose. */
@@ -457,4 +457,150 @@ export function liveCounts(file: ClientReactionFile, atLoad: ReactionId | null, 
   const known = new Map<string, number>(REACTIONS.map((r) => [r.id, totals.known.get(r.id) ?? 0]));
   const unknown = [...totals.unknown.values()].reduce((sum, n) => sum + n, 0);
   return { counts: applyChoice(known, atLoad, now), unknown };
+}
+
+// --- v2 live totals: bounded canonical bytes and a retained publication fence ----------------
+
+/** These limits match the writer's reaction-v2-contract.mjs; baked v1 remains independent. */
+export const REACTION_V2_CONTRACT_VERSION = 2;
+export const REACTION_V2_MAX_BYTES = 8192;
+export const REACTION_V2_MAX_GENERATION = '9223372036854775807';
+export const REACTION_V2_GENERATION_PATTERN = /^[1-9][0-9]{0,18}(?![\s\S])/;
+const REACTION_V2_ID = /^[a-z][a-z0-9-]{0,23}(?![\s\S])/;
+const REACTION_V2_SLUG = /^[a-z0-9][a-z0-9-]*(?![\s\S])/;
+const REACTION_V2_PREFIX = 'v2/reactions/';
+
+export interface ClientReactionV2File extends ClientReactionFile {
+  readonly version: 2;
+  readonly slug: string;
+  readonly generation: string;
+}
+
+/** Positive SQLite int64, kept as a string so revisions above 2^53 remain exact. */
+export function isReactionV2Generation(value: unknown): value is string {
+  return typeof value === 'string' && REACTION_V2_GENERATION_PATTERN.test(value) &&
+    BigInt(value) <= BigInt(REACTION_V2_MAX_GENERATION);
+}
+
+export function reactionsV2FileUrl(base: string, slug: string): string {
+  const root = dataBaseUrl(base);
+  if (!isSlug(slug) || !REACTION_V2_SLUG.test(slug)) throw new TypeError('reactionsV2FileUrl: not a slug');
+  return new URL(`${REACTION_V2_PREFIX}${slug}.json`, root).href;
+}
+
+function exactReactionKeys(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+  return isRecord(value) && Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
+}
+
+/** Validate shape before any public value is rendered; no metadata reaches a DOM sink. */
+export function validateReactionV2File(value: unknown, slug: string): DataCheck<ClientReactionV2File> {
+  if (!isSlug(slug) || !REACTION_V2_SLUG.test(slug)) throw new TypeError('validateReactionV2File: not a slug');
+  const invalid = (): DataCheck<ClientReactionV2File> => ({ ok: false, reason: 'the v2 reactions envelope is invalid' });
+  if (!exactReactionKeys(value, ['version', 'slug', 'generation', 'reactions']) || value.version !== REACTION_V2_CONTRACT_VERSION || value.slug !== slug || !isReactionV2Generation(value.generation)) return invalid();
+  if (!Array.isArray(value.reactions) || value.reactions.length > REACTIONS_PER_FILE_MAX) return invalid();
+  const reactions: { id: string; n: number }[] = [];
+  let previous: string | undefined;
+  for (const entry of value.reactions) {
+    if (!exactReactionKeys(entry, ['id', 'n'])) return invalid();
+    const { id, n } = entry;
+    if (typeof id !== 'string' || !REACTION_V2_ID.test(id) || typeof n !== 'number' || !Number.isSafeInteger(n) || n < 1 || (previous !== undefined && id <= previous)) return invalid();
+    reactions.push({ id, n });
+    previous = id;
+  }
+  return { ok: true, value: { version: 2, slug, generation: value.generation, reactions } };
+}
+
+/**
+ * The writer serializes this exact object order plus one newline. Comparing canonical bytes
+ * rejects duplicate JSON keys, alternate number spellings and hidden fields before trusting a
+ * generation. The bound is UTF-8 bytes, rather than JavaScript string length.
+ */
+export function parseReactionV2File(text: unknown, slug: string): DataCheck<ClientReactionV2File> {
+  const invalid = (): DataCheck<ClientReactionV2File> => ({ ok: false, reason: 'the v2 reactions bytes are invalid' });
+  if (typeof text !== 'string' || text.length > REACTION_V2_MAX_BYTES || new TextEncoder().encode(text).byteLength > REACTION_V2_MAX_BYTES) return invalid();
+  let body: unknown;
+  try { body = JSON.parse(text); } catch { return invalid(); }
+  const checked = validateReactionV2File(body, slug);
+  if (!checked.ok) return checked;
+  return `${JSON.stringify(checked.value)}\n` === text ? checked : invalid();
+}
+
+/** Last accepted envelope survives loading and failure; an absence is never a revision. */
+export type ReactionV2State = LoadState<ClientReactionFile> & { readonly latest?: ClientReactionV2File };
+
+export function initialReactionV2State(): ReactionV2State {
+  return { phase: 'loading', attempt: 1 };
+}
+
+/**
+ * Attempt numbers reject late responses before parsing, and generations reject older publications
+ * across attempts. A 404 after a publication retains it, including an empty zero-state barrier.
+ * `retry` also supports an explicit refresh of ready data; callers choose when to refresh.
+ */
+export function reactionV2Transition(state: ReactionV2State, event: DataEvent, slug: string): ReactionV2State {
+  if (event.type === 'retry') {
+    return state.phase === 'loading' ? state : { phase: 'loading', attempt: state.attempt + 1, latest: state.latest };
+  }
+  if (state.phase !== 'loading' || event.attempt !== state.attempt) return state;
+  const { attempt, latest } = state;
+  const failed = (failure: 'invalid' | 'unavailable', reason: string): ReactionV2State => ({ phase: 'failed', attempt, latest, failure, reason });
+  if (event.type === 'network-error') return failed('unavailable', 'the data host did not answer');
+  if (event.type === 'unreadable') return failed('invalid', 'the v2 reactions bytes are unreadable or too large');
+  if (event.status === 404) return { phase: 'ready', attempt, latest, value: latest ?? { reactions: [] } };
+  if (!Number.isInteger(event.status) || event.status < 200 || event.status > 299) return failed('unavailable', 'the data host did not answer successfully');
+  const checked = parseReactionV2File(event.body, slug);
+  if (!checked.ok) return failed('invalid', checked.reason);
+  const incoming = checked.value;
+  if (latest) {
+    const generation = BigInt(incoming.generation);
+    const previous = BigInt(latest.generation);
+    if (generation < previous) return failed('invalid', 'the reactions generation went backwards');
+    if (generation === previous && JSON.stringify(incoming) !== JSON.stringify(latest)) return failed('invalid', 'the same reactions generation changed its payload');
+  }
+  return { phase: 'ready', attempt, latest: incoming, value: incoming };
+}
+
+/** Stream only the bounded bytes needed by v2. No unbounded response.json()/text() allocation. */
+export type ReactionV2Fetch = (url: string, init: RequestInit) => Promise<Pick<Response, 'ok' | 'status' | 'headers' | 'body'>>;
+
+export async function fetchReactionV2File(url: string, attempt: number, fetchImpl: ReactionV2Fetch = (u, init) => fetch(u, init)): Promise<DataEvent> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DATA_FETCH_TIMEOUT_MS);
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  try {
+    const response = await fetchImpl(url, { credentials: 'omit', mode: 'cors', redirect: 'error', signal: controller.signal });
+    if (!response.ok) {
+      void response.body?.cancel().catch(() => {});
+      return { type: 'response', attempt, status: response.status };
+    }
+    const contentLength = response.headers.get('content-length');
+    if (contentLength !== null && (!/^[0-9]+$/.test(contentLength) || Number(contentLength) > REACTION_V2_MAX_BYTES)) {
+      void response.body?.cancel().catch(() => {});
+      return { type: 'unreadable', attempt };
+    }
+    if (!response.body) return { type: 'unreadable', attempt };
+    reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
+    let text = '';
+    let size = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > REACTION_V2_MAX_BYTES) {
+        void reader.cancel().catch(() => {});
+        return { type: 'unreadable', attempt };
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+    return { type: 'response', attempt, status: response.status, body: text };
+  } catch (error) {
+    void reader?.cancel().catch(() => {});
+    const invalid = error instanceof TypeError && !controller.signal.aborted && reader !== undefined;
+    return { type: invalid ? 'unreadable' : 'network-error', attempt };
+  } finally {
+    clearTimeout(timer);
+    reader?.releaseLock();
+  }
 }

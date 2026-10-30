@@ -1,0 +1,98 @@
+{
+  "baseline": "f0d1fbd8abe07de8ba5eef93be4998405ecdcd29",
+  "accepted_template_source": "5ff88c5280d580600a43ac69e977f2d4e2a315c1",
+  "files": [
+    {
+      "path": "src/components/Reactions.astro",
+      "source": "templates/aitamer-news/src/components/Reactions.astro",
+      "sha256": "526b966c606da7ed85ce33231d4773baab1909a46d280f0850fd116a1a0536fb",
+      "bytes": 32236,
+      "replaced_baseline_sha256": "390a156e6782e86d8a60c947cb2229b7724c58aca406fc9d5756cf4bdf58e1a9"
+    },
+    {
+      "path": "src/lib/reactions.ts",
+      "source": "templates/aitamer-news/src/lib/reactions.ts",
+      "sha256": "6a2bc7c5bf3476162631f81c61a8ffdd9aafd9fc5664ddbf46c91469870290f5",
+      "bytes": 31411,
+      "replaced_baseline_sha256": "da36643979459311c46a7a3af2ea7efd912ecc4060e2e8c042a201d6a009240e"
+    },
+    {
+      "path": "src/lib/reactions-v2-persistence.ts",
+      "source": "templates/aitamer-news/src/lib/reactions-v2-persistence.ts",
+      "sha256": "c9a26c4e30462c8784b365f5265780a2d71cd0d86365f9d7d4f318f5cb4daec7",
+      "bytes": 12250
+    },
+    {
+      "path": "src/lib/reaction-journal.ts",
+      "source": "templates/aitamer-news/src/lib/reaction-journal.ts",
+      "sha256": "cb5e9b0ac39d116696811355dfe0a646b2c51b586734b8735fd2e2f7afe1dc3f",
+      "bytes": 25691
+    },
+    {
+      "path": "src/lib/reaction-receipts.ts",
+      "source": "templates/aitamer-news/src/lib/reaction-receipts.ts",
+      "sha256": "9bb7d244fbefe69a553020a543d3bb1242808c3139ac08c5d926a55b17039e2b",
+      "bytes": 9532
+    },
+    {
+      "path": "src/content/reaction-schema-v2.ts",
+      "source": "templates/aitamer-news/src/content/reaction-schema-v2.ts",
+      "sha256": "b6c714f012a9606fb681c3bf355bd8d6b535614701cc3833163e5e2b11a4964a",
+      "bytes": 3281
+    },
+    {
+      "path": "src/content/reaction-schema.v2.snapshot.json",
+      "source": "templates/aitamer-news/src/content/reaction-schema.v2.snapshot.json",
+      "sha256": "695ab5d629a9afdead8c005998dafe0e3aae65c45d1c8791f8a14b318dcc8b37",
+      "bytes": 2579
+    },
+    {
+      "path": "src/pages/contract/v2/reactions.schema.json.ts",
+      "source": "templates/aitamer-news/src/pages/contract/v2/reactions.schema.json.ts",
+      "sha256": "9552aee0b328feef780c1172a99207556747acae8e1e585037e40060f8373a89",
+      "bytes": 427
+    },
+    {
+      "path": "src/lib/reactions-v2.test.ts",
+      "source": "templates/aitamer-news/src/lib/reactions-v2.test.ts",
+      "sha256": "77328fe8e64025e8d4dfc871a741fb81220f08d48bc6921c470ce71c9b9ccc0a",
+      "bytes": 10513
+    },
+    {
+      "path": "src/lib/reactions-v2-persistence.test.ts",
+      "source": "templates/aitamer-news/src/lib/reactions-v2-persistence.test.ts",
+      "sha256": "b5e599bc72b14d7457c1433475677b28ecf79aef31677dc310c706a8ad769a64",
+      "bytes": 1664
+    },
+    {
+      "path": "src/lib/reactions-v2-persistence-browser.test.ts",
+      "source": "templates/aitamer-news/src/lib/reactions-v2-persistence-browser.test.ts",
+      "sha256": "43f38df8ca72aa4292ea4687cb55d83edbc0e993ce4f80f02e9a6a3b669a77b9",
+      "bytes": 15726
+    },
+    {
+      "path": "src/lib/reactions-component-browser.test.ts",
+      "source": "templates/aitamer-news/src/lib/reactions-component-browser.test.ts",
+      "sha256": "c52d4112169a6a66c9e16dba6a78c138ea0a78816cfd8968b615f1bfcdecffa8",
+      "bytes": 41982
+    },
+    {
+      "path": "src/lib/reaction-contract-v2.test.ts",
+      "source": "templates/aitamer-news/src/lib/reaction-contract-v2.test.ts",
+      "sha256": "b26545431cf8551662de92730ced512ff314e2fe73307e6dc60d98c59f8bdfd9",
+      "bytes": 2881
+    },
+    {
+      "path": "src/lib/reaction-journal.test.ts",
+      "source": "templates/aitamer-news/src/lib/reaction-journal.test.ts",
+      "sha256": "d3b24fb9cb43fd2901124f9e45f79a5b25d1360a34f93f8bf290309af4238931",
+      "bytes": 12790
+    },
+    {
+      "path": "src/lib/reaction-receipts.test.ts",
+      "source": "templates/aitamer-news/src/lib/reaction-receipts.test.ts",
+      "sha256": "183ddcb1c44f2858733e76d5662298f0a211eb8af9e39d8682e8834d7545e53a",
+      "bytes": 5420
+    }
+  ]
+}

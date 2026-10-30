@@ -1,5 +1,7 @@
 # Progress
 
+2026-10-28 — Accepted reaction v2 reader/journal sources ported inert from `5ff88c5280d580600a43ac69e977f2d4e2a315c1` onto public baseline `f0d1fbd8abe07de8ba5eef93be4998405ecdcd29`. Independent source reviews accepted the reader and subsequent status-ID correction; clean local dependencies, 1,457 full tests, content/media checks, production build and artifact checks pass. Comments stay on R2; reactions stay baked and disabled. Privacy approval, real backend qualification, device acceptance and activation remain open. [Evidence](docs/reports/2026-10-28-reactions-v2-inert-integration.md).
+
 2026-10-26 — CSP enforcement and exact-policy deployment guard integrated from the independently accepted template source. Focused76/76 and full1423/1423 tests pass. Full-content build, SSH staging, intercepted production compatibility, reviews and normal deployment/live acceptance are in progress. [Plan](docs/plans/2026-10-26-csp-enforcement.md), ADR0048.
 
 2026-10-26 — Candidate0.2.127 combines the accepted v2 reader, reviewed clean dependency lock and current main. Last updated26October, historical cutoff25October. Owner authorized the two baked-file removals. Exact-candidate checks/reviews/deployment remain pending at this record's initial write. [Record](docs/reports/2026-10-26-comments-cutover-date.md).

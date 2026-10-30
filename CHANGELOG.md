@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.129 · 2026-10-28 · inert reaction v2 source integration
+
+- Port the reviewed reaction v2 reader, frozen v2 schema route, durable browser journal and private receipt validation. Protect its status element from article heading collisions. Comments remain on R2; reactions remain baked and disabled. Full local tests, content and media checks, build and artifact checks pass; privacy approval, real backend qualification and activation remain separate. [Evidence](docs/reports/2026-10-28-reactions-v2-inert-integration.md).
+
 ## 0.2.128 · 2026-10-26
 
 - Enforce build-derived script hashes while preserving search-worker WebAssembly, SVG sandboxing, comments reads and handwritten cache/security headers. Keep explicit report-only source rollback. Deny the rotating edge-injected detection wrapper without broad inline exceptions or provider/cache changes.
