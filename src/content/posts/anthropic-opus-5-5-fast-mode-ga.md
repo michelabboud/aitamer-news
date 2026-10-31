@@ -28,6 +28,8 @@ sources:
     url: https://platform.claude.com/docs/en/about-claude/pricing
   - title: "Speed up responses with fast mode (Claude Code Docs)"
     url: https://code.claude.com/docs/en/fast-mode
+  - title: "Claude API release notes, 30 October 2026"
+    url: https://docs.claude.com/en/release-notes/api
   - title: "ClaudeDevs, Opus 5.5 fast mode (15 October 2026, 20:09 UTC)"
     url: https://x.com/ClaudeDevs/status/2110825294655562048
   - title: "AI Tamer: Claude Opus 5.5 for developers"
@@ -63,3 +65,7 @@ Opus 5.5 has a default fast rate limit on the Start, Build, and Scale usage tier
 ## Claude Code uses a different switch
 
 [Fast mode in Claude Code](https://code.claude.com/docs/en/fast-mode) is the `/fast` command. That page still calls fast mode a research preview whose pricing and availability may change. The ClaudeDevs post says fast mode in Claude Code remains unchanged and uses extra usage credits. The Code page says subscription plans (Pro, Max, Team, and Enterprise) pay for `/fast` from usage credits, outside the subscription's included limits, and that Team and Enterprise need an Owner to enable it. It also says this Claude Code path is not available on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or Claude Platform on AWS. That sentence is about `/fast` in Claude Code. API availability on Azure-hosted Foundry is the separate path above.
+
+## Update, 31 October 2026: fast mode on Opus 4.8 ends on 30 November
+
+Anthropic's [release notes for 30 October](https://docs.claude.com/en/release-notes/api) deprecate fast mode for Claude Opus 4.8, with removal on 30 November 2026. After that date, requests to `claude-opus-4-8` with `speed: "fast"` return an error. Anthropic's advice is to move to Opus 5.5 to keep fast mode, and the [fast-mode page](https://platform.claude.com/docs/en/build-with-claude/fast-mode) now marks the Opus 4.8 option as deprecated. Opus 5 fast mode is still a research preview that needs an account manager or the waitlist. On the docs' price table, moving from Opus 4.8 fast at $10 and $50 per million tokens to Opus 5.5 fast at $8 and $40 is also cheaper.
