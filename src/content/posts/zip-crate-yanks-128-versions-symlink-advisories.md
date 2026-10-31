@@ -1,6 +1,6 @@
 ---
 title: "zip yanked 127 of 136 versions after three extraction advisories"
-description: "crates.io listed 127 of 136 zip versions yanked on 16 October. Nine remain, including 8.6.0, which one advisory names."
+description: "crates.io listed 127 of 136 zip versions yanked on 16 October. Update: most were unyanked on 17 October, and 9.1.3 is the safe target."
 pubDate: "2026-10-16T20:52:00Z"
 specimen: 866
 section: rust
@@ -18,7 +18,7 @@ wildness:
   rating: 2
   verified: "The crates.io version list and the three October GitHub advisories were opened."
   claimed: "The proof-of-concept impact is the reporters' account. No in-the-wild exploitation is stated."
-verdict: "Use 9.0.4 if you are moving to the 9.0 line. 8.6.0 is still published, and GHSA-4684 names it. These three October ids were not on the RustSec index."
+verdict: "Update 30 Oct: the yanks were reversed and the advisory list grew, including a critical bug in 9.0.4 and earlier. Move to 9.1.3, the current release."
 sources:
   - title: "zip2 security advisories"
     url: https://github.com/zip-rs/zip2/security/advisories
@@ -46,6 +46,12 @@ sources:
     url: https://rustsec.org/advisories/RUSTSEC-2025-0168.html
   - title: "AI Tamer: Cargo.lock, SemVer and the update that broke your build"
     url: https://aitamer.news/posts/cargo-lock-semver-and-the-update-that-broke-your-build/
+  - title: "zip2 security advisories (GitHub)"
+    url: https://github.com/zip-rs/zip2/security/advisories
+  - title: "GHSA-m665-v7pm-7grj: Dual-Header Inconsistencies (Zip Cloaking)"
+    url: https://github.com/zip-rs/zip2/security/advisories/GHSA-m665-v7pm-7grj
+  - title: "RustSec advisories for zip"
+    url: https://rustsec.org/packages/zip.html
 ---
 
 On 16 October 2026, the crates.io API listed 136 published versions of the Rust `zip` crate and marked 127 yanked. Nine were not: 9.0.4, 9.0.3, 8.6.0, 7.4.0, 6.0.0, 5.1.1, 4.6.1, 3.0.0, and 2.6.1. That is the [`/api/v1/crates/zip`](https://crates.io/api/v1/crates/zip) response at 17:50 UTC. The crate record shows 302,851,851 all-time downloads. It names 9.0.4 as newest and default, created at 09:09:57 UTC that day, with 5,282 downloads.
@@ -75,3 +81,20 @@ The [zip2 advisories page](https://github.com/zip-rs/zip2/security/advisories) l
 The [reverse-dependency list](https://crates.io/api/v1/crates/zip/reverse_dependencies?per_page=1) totaled 3,984 direct registry dependents, which is not a count of applications.
 
 On the 9.0 line, 9.0.4 is the newest unyanked release. A refresh will not select 9.0.0, 9.0.1, or 9.0.2 while they stay yanked, and it can still select 8.6.0. What a lockfile freezes is the subject of [Cargo.lock, SemVer and the update that broke your build](/posts/cargo-lock-semver-and-the-update-that-broke-your-build/).
+
+## Update, 30 October 2026: the yanks were reversed, and the advisory list grew
+
+**Most versions are back.** The crates.io audit log shows Pr0methean unyanked the 9.0.0 line and older releases early on 17 October, starting at 02:19 IDT. On 30 October the API listed 141 versions with 17 yanked, almost all of them 0.0.x and 0.1.x releases from the crate's early years. 8.6.0 is still unyanked and now shows about 32 million downloads, so a plain `zip = "8"` requirement still resolves to it. The newest release is 9.1.3, published 27 October.
+
+**The advisory list is longer.** The [zip2 advisories page](https://github.com/zip-rs/zip2/security/advisories) now lists 17 reports published in October, two of them added late on 30 October (UTC). Four that appeared on 22 October now carry CVE ids and are in GitHub's global advisory database, all affecting versions before 9.0.0:
+
+- GHSA-hjqx-j4rw-g7xv (CVE-2026-115908, high, 7.4): files written outside the extraction directory, because symlink targets are checked lexically.
+- GHSA-q7v9-x93c-xqv3 (CVE-2026-115909, high, 7.5): unbounded symlink targets can abort or exhaust memory during extraction.
+- GHSA-9hj8-73fh-9963 (CVE-2026-115907, high, 7.5): denial of service in the legacy Shrink, Reduce and Implode decoders through an attacker-set ZIP64 size.
+- GHSA-8hxf-qr8p-62x4 (CVE-2026-115906, medium, 6.5): AES entry HMAC check bypassed on premature end of file.
+
+The most serious is [GHSA-m665-v7pm-7grj](https://github.com/zip-rs/zip2/security/advisories/GHSA-m665-v7pm-7grj) (CVE-2026-115905, critical), which affects 9.0.4 and earlier and is fixed in 9.0.5. `ZipArchive` trusts the central directory while `ZipStreamReader` trusts the local file headers, so one archive can show different file names and contents depending on which reader opens it. That matters if you scan an archive with one API and extract it with the other. Two medium advisories published on 26 October are fixed only in 9.1.0.
+
+**cargo audit now sees some of it.** RustSec has added the three advisories this post originally covered as RUSTSEC-2026-0367, 0368 and 0369, patched from 9.0.0. The newer CVEs above were not in RustSec's zip folder when we checked, so a clean `cargo audit` does not mean a clean `zip`.
+
+The practical advice has changed: 9.0.4 is no longer a safe target. Move to 9.1.3, the current release, which is past every fixed version listed on the advisories page.

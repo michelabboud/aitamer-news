@@ -1192,3 +1192,9 @@
 1189 a-self-hosted-runner-runs-whatever-a-pull-request-sends-it
 1190 rust-io-safety-and-why-tokio-deprecated-asyncfd-new
 1191 grok-bot-on-your-phone
+1192 openai-community-safety-report-teen-weapons-limits
+1193 sperid-labs-idol-open-image-to-3d-gaussian-splats-8gb
+1194 solanacry-fake-solana-starter-kit-netsupport-rat-ai-agents
+1195 opencode-2-2-3-claude-agent-provider-claude-subscription
+1196 openai-prism-shuts-down-january-1-export-latex-projects
+1197 krea-ad-studio-brand-kit-static-ads-from-a-url
