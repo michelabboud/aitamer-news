@@ -21,7 +21,7 @@ Using an installation token of the App:
 - creating `probe-1793476936`: 422, refused.
 
 ## Found while checking, not changed
-Ruleset 24468307 ("main updates only by admins and existing publishing Apps") lists `grok-bots-app` (5189850) as a bypass actor, while `docs/reports/2026-10-05-grok-app-access.md` says that rule excludes Grok. Main still requires a PR with both checks (24029855), so Grok cannot push to main directly, but it can merge its own PR once checks pass. Raised with Michel for a decision.
+Ruleset 24468307 ("main updates only by admins and existing publishing Apps") lists `grok-bots-app` (5189850) as a bypass actor, while `docs/reports/2026-10-05-grok-app-access.md` says that rule excludes Grok. Main still requires a PR with both checks (24029855), so Grok cannot push to main directly, but it can merge its own PR once checks pass. Raised with Michel; **resolved the same day, Michel's word: "yes grok need to be able to post into main".** Grok's place on the main-update rule is intended and stays; this report supersedes the 2026-10-05 line on that point. Main still requires a PR with all three required checks, so Grok merges only what passes them.
 
 ## Undo
 Delete ruleset 26285798, remove `refs/heads/eic/*` from the two exclude lists, delete the variable, and uninstall or delete the App in Michel's GitHub settings.
