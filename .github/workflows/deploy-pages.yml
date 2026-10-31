@@ -32,8 +32,10 @@ jobs:
     permissions: {}
     # A newer run cancels an older one still waiting here: that is the whole debounce. Nothing else
     # happens in this job, so cancelling it never interrupts a deploy.
+    # The daily scheduled run settles in a group of its own: it must never cancel a merge's settle,
+    # or that merge's run would end "cancelled" and never deploy (deep review of the pinning PR, M2).
     concurrency:
-      group: pages-settle
+      group: ${{ github.event_name == 'schedule' && 'pages-settle-schedule' || 'pages-settle' }}
       cancel-in-progress: true
     steps:
       - name: Wait for more merges
@@ -73,6 +75,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          # A scheduled run builds main as it is when the deploy starts, not the commit main had
+          # when the schedule fired: if a merge's run waiting here was replaced by this one, this
+          # one still ships that merge. Push and dispatch runs keep their own commit, as before.
+          ref: ${{ github.event_name == 'schedule' && 'refs/heads/main' || '' }}
 
       - name: The publisher may change nothing
         # Defence in depth behind the required check `publisher-paths` (check-publisher-pr.yml):
@@ -267,7 +273,7 @@ jobs:
           OUTCOME: ${{ job.status }}
         run: |
           {
-            echo "### Deploy of ${GITHUB_SHA::7}: ${OUTCOME}"
+            echo "### Deploy of $(git rev-parse --short=7 HEAD): ${OUTCOME}"
             echo "- live before: ${LIVE_BEFORE:-none recorded}"
             echo "- preview: ${PREVIEW_URL:-not deployed}"
             echo "- production deployment: ${DEPLOYED:-not deployed}"

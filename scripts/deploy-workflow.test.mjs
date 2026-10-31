@@ -17,7 +17,8 @@ const runs = (pattern) => (step) => typeof step.run === 'string' && pattern.test
 const deploysTo = (branch) => (step) => typeof step.with?.command === 'string' && step.with.command.includes('pages deploy') && step.with.command.endsWith(`--branch=${branch}`);
 
 test('a burst of merges becomes one deploy, and a started deploy is never cut short', () => {
-  assert.deepEqual(settle.concurrency, { group: 'pages-settle', 'cancel-in-progress': true });
+  // Merges and dispatches share one settle group; the daily schedule settles apart (tested below).
+  assert.deepEqual(settle.concurrency, { group: "${{ github.event_name == 'schedule' && 'pages-settle-schedule' || 'pages-settle' }}", 'cancel-in-progress': true });
   assert.deepEqual(deploy.concurrency, { group: 'pages-production', 'cancel-in-progress': false });
   assert.equal(deploy.needs, 'settle');
   assert.equal(workflow.concurrency, undefined, 'a workflow-level group would cancel a deploy mid-flight');
@@ -111,5 +112,14 @@ test('a daily scheduled deploy runs after midnight Israel time in both winter an
     assert.ok(hour <= 1, `${day}: ${hour}h is shortly after midnight`);
     assert.equal(date, Number(day.slice(8)) + 1, `${day}: the run falls on the next local day`);
   }
+});
+
+test('the scheduled run can neither cancel a merge\'s deploy nor ship an older commit than main', () => {
+  const settle = workflow.jobs.settle.concurrency;
+  assert.equal(settle['cancel-in-progress'], true);
+  assert.match(settle.group, /github\.event_name == 'schedule' && 'pages-settle-schedule' \|\| 'pages-settle'/);
+  const checkout = workflow.jobs.deploy.steps.find((step) => String(step.uses ?? '').startsWith('actions/checkout@'));
+  assert.equal(checkout.with.ref, "${{ github.event_name == 'schedule' && 'refs/heads/main' || '' }}");
+  assert.equal(workflow.jobs.deploy.concurrency.group, 'pages-production', 'one production deploy at a time, schedule included');
 });
 
