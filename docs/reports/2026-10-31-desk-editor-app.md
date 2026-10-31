@@ -25,3 +25,28 @@ Ruleset 24468307 ("main updates only by admins and existing publishing Apps") li
 
 ## Undo
 Delete ruleset 26285798, remove `refs/heads/eic/*` from the two exclude lists, delete the variable, and uninstall or delete the App in Michel's GitHub settings.
+
+# The desk admin GitHub App (same day)
+
+Michel's word, 2026-10-31: one App for posts and another for the template, named `aitamer-desk-admin`; "the admin should also manage the template in news".
+
+## What exists now
+- **App:** `aitamer-desk-admin`, App id 5559033, owned by `michelabboud`, private. Bot account `aitamer-desk-admin[bot]`, account id 350853873. Same permissions as the editor App: contents (write), pull requests (write), metadata (read); no events, no webhook.
+- **Installation:** 177316046, on `michelabboud/aitamer-news` and `michelabboud/aitamer-uiux` only.
+- **Key:** written by the manifest flow to a file only Michel's user can read; never printed.
+
+## Repository settings changed
+- aitamer-news: variable `ADMIN_ACTOR_ID=350853873`; new ruleset **26286125** "only desk admin App and admins write admin branches" (`refs/heads/admin/*`, bypass admin role 5 and Integration 5559033); `refs/heads/admin/*` added to the exclude lists of 24029856 and 24520133.
+  - An earlier attempt to create 26286125 before the App was installed failed (GitHub requires an installed App as a bypass actor). The two exclude-list additions made just before it were reverted at once and re-applied only after the ruleset existed; for a few seconds `admin/*` was open to any App with write access. No branch was created in that window that we know of.
+- aitamer-uiux: new ruleset **26285953** "main changes only by pull request; admins bypass": PR required with 1 approval given after the last push, stale approvals dismissed, no force-push, no deletion; admin role bypasses (Michel's own pushes keep working). Before this, aitamer-uiux main had no protection at all.
+- The admin App is **not** a bypass actor of aitamer-news's main-update rule (24468307), so it cannot merge its own PRs; Michel merges them.
+
+## Verified with the App's own installation token
+- aitamer-news: create `admin/probe-1793477401` 201, deleted 204; create `grok/…` 422; create `eic/…` 422; move main directly 422 ("Changes must be made through a pull request").
+- aitamer-uiux: create `admin/probe-1793477401` 201, deleted 204; move main directly 422.
+
+## Still to do
+- The admin lane in `scripts/check-publisher-paths.mjs`, as its own reviewed PR. Allowed: `src/components/`, `src/layouts/`, `src/styles/`, `src/pages/`, `src/assets/`, `public/` images and fonts. Refused: `.github/`, `scripts/`, `workers/`, `src/content/`, `src/data/`, `package.json` and the lockfile, `astro.config.mjs`, `wrangler.toml`, the CSP headers. Until it lands, the admin App's aitamer-news PRs fail the path guard and cannot merge.
+
+## Undo
+Delete rulesets 26286125 (aitamer-news) and 26285953 (aitamer-uiux), remove `refs/heads/admin/*` from the two exclude lists, delete `ADMIN_ACTOR_ID`, and uninstall or delete the App.
