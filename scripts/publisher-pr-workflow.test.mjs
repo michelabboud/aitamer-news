@@ -134,3 +134,18 @@ test('quill/ pull requests are observed like grok/ ones: same names, and the ins
   assert.match(String(check.env.ADMISSION_OBSERVATION), quill);
   assert.match(job.name, quill);
 });
+
+test('the pins lane: the check gets EIC_ACTOR_ID, nothing is installed for the desk editor App, and eic/ is never an observation', () => {
+  assert.equal(check.env.EIC_ACTOR_ID, '${{ vars.EIC_ACTOR_ID }}', 'unsetting this repository variable closes the pins lane');
+  const run = runInstall({ POSTS_ACTOR_ID: POSTS, PR_AUTHOR_ID: '350852201' });
+  assert.equal(run.status, 0, run.output);
+  assert.deepEqual(run.calls, []);
+  // An observation name and the observe-paths route skip this script's verdict (and its kill
+  // switch), so eic/ pull requests must keep the required name and the path guard.
+  const job = yaml.load(readFileSync(WORKFLOW, 'utf8')).jobs['publisher-paths'];
+  for (const text of [job.name, install.env.ADMISSION_OBSERVATION, check.env.ADMISSION_OBSERVATION]) {
+    assert.doesNotMatch(String(text), /'eic/);
+  }
+  const checked = runCheck({ EIC_ACTOR_ID: '350852201' });
+  assert.deepEqual(checked.calls, ['node scripts/check-publisher-paths.mjs pr --base base --head head']);
+});
