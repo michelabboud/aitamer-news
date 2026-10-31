@@ -1198,3 +1198,15 @@
 1195 opencode-2-2-3-claude-agent-provider-claude-subscription
 1196 openai-prism-shuts-down-january-1-export-latex-projects
 1197 krea-ad-studio-brand-kit-static-ads-from-a-url
+1198 ai-movie-models-runway-vs-luma
+1199 nace-drex-max-v1-27b-decision-model-rail-m-licence
+1200 cloudflare-emudhra-weak-keys-forged-certificates-clients-still-trust
+1201 hipfire-0-4-5-strix-halo-copy-lane-raon-7900-xtx
+1202 openai-gpt-6-rosalind-research-life-sciences-model-api
+1203 anthropic-claude-agents-find-benign-looking-misalignment-training-data
+1204 clickhouse-cve-2026-116366-unauthenticated-rce-patch
+1205 openai-daybreak-blue-personal-accounts-training-api-change
+1206 vercel-agent-desktop-1-0-accessibility-tree-desktop-control
+1207 wiz-black-october-ai-developer-platform-breaches-llmjacking
+1208 ramen-aura-autopilot-ai-playtesting-unreal-unity-godot
+1209 chatgpt-custom-gpts-retire-december-11-migrate-to-plugins
