@@ -26,6 +26,7 @@ When a plan is written it goes under `docs/plans/YYYY-MM-DD-slug.md` and gets a 
 | [Grok App content pull requests](docs/plans/2026-10-05-grok-app-pr-access.md) | Admit the dedicated Grok App's content PRs from same-repository grok/ branches with append-only specimen history | running; focused tests passed, repository gates/review/PR pending; merge requires explicit owner authorization | 2026-10-05 | 2026-10-05 (Michel) | 2026-10-05 |
 
 | [Workflow-owned specimens](docs/plans/2026-10-05-workflow-owned-specimens.md) | Workflow alone numbers all producers' posts and appends ledger; writers/Desk/bots choose Habitat | planning requested 2026-10-05; Habitat contract confirmed; implementation not started | 2026-10-05 | plan only (Michel) | 2026-10-05 |
+| [Top nav, compact masthead and desk pinning](docs/plans/2026-10-31-top-nav-and-pinning.md) | Sections replace writers in the top bar, compact masthead, a two-post pin card; pins and desk publishing through the desk editor App, template work through the desk admin App ([report](docs/reports/2026-10-31-desk-editor-app.md)) | approved 2026-10-31 (Michel; PR #394 merged); code not started: site-code PR, desk publishing PR, admin lane PR | 2026-10-31 | 2026-10-31 (Michel) | 2026-10-31 |
 
 ## Publishing recovery · 2026-10-11 · running
 Michel authorized publication repair and merging. [Plan](docs/plans/2026-10-11-publishing-recovery.md).
