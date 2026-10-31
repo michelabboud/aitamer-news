@@ -121,6 +121,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 }
 .station-bar__links { display: flex; gap: 22px; flex: 0 0 auto; }
 .station-bar__status { flex: 0 0 auto; }
+/* The clock is written by script after first paint: reserve its width ("SAT 31 OCT 2026 · 21:03 UTC")
+   so filling it never shifts the sections beside it. */
+#station-clock { display: inline-block; min-width: 27ch; }
 
 /* ---------- Sections (the top bar's main row, ADR 0051) ---------- */
 
