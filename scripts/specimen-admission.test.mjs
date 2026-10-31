@@ -169,6 +169,31 @@ test('accepted dispatch with lost response does not dispatch again while success
   assert.equal(api.calls.filter(c=>c.path.endsWith('/dispatches')).length,1);
 });
 
+test('a successor that already succeeded stops recovery from an older run, without a receipt or dispatch', async () => {
+  // PR #390, 2026-10-31: a sweep chose to recover from an older run while its successor was still
+  // running; the successor succeeded seconds before the dispatch, so the in-progress guard missed it,
+  // another numbering commit replaced the successor's certified head, and the retry bound ran out.
+  const api = new API();
+  api.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  assert.equal(await recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),'superseded');
+  assert.equal(api.calls.filter(c=>c.path.endsWith('/dispatches')).length,0);
+  assert.equal(api.comments.get(7)?.length ?? 0,0);
+});
+
+test('a successor that failed does not stop recovery from the older successful run', async () => {
+  const api = new API();
+  api.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'failure',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  assert.equal(await recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),'dispatched');
+});
+
+test('an older run of another request, or of another source, does not stop recovery', async () => {
+  const api = new API();
+  api.runs.push(run(9,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=0`}));
+  api.runs.push(run(12,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=8 head=${SOURCE} recovery=0`}));
+  api.runs.push(run(13,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${'e'.repeat(40)} recovery=0`}));
+  assert.equal(await recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),'dispatched');
+});
+
 test('editorial changes and withdrawn approvals prevent recovery without mutations', async () => {
   for (const change of ['body','closed','draft','fork','base','revoked','original']) {
     const api = new API();

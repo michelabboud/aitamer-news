@@ -256,7 +256,14 @@ export async function recoverRequest(api, run, env, { now = Date.now(), ...depen
   for await (const other of stream(api, '/actions/workflows/specimen-admission.yml/runs', 'workflow_runs')) {
     if (other.id === run.id || !trustedRun(other, api.repo, owner)) continue;
     let r; try { r = requestOf(other); } catch { continue; }
-    if (r.pr === request.pr && r.source === request.source && other.status !== 'completed') return 'pending';
+    if (r.pr !== request.pr || r.source !== request.source) continue;
+    if (other.status !== 'completed') return 'pending';
+    // A newer run that already succeeded owns the request: the sweep finalizes the newest success.
+    // The in-progress check above misses a successor that finished between the sweep's selection
+    // and this dispatch; recovering from the older run then appends another numbering commit and
+    // invalidates the newer run's certified head (PR #390, 2026-10-31). A newer failure does not
+    // stop recovery: the sweep keeps finalizing the older success, which recovers from itself.
+    if (other.id > run.id && other.conclusion === 'success') return 'superseded';
   }
   const attempts = (await retryReceipts(api, request.pr)).filter(r=>r.kind==='admission' && r.rootRun===request.rootRun);
   if (attempts.length >= MAX_RECOVERY_ATTEMPTS) throw new Error('admission retry limit reached; owner intervention required');
