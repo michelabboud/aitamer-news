@@ -252,14 +252,6 @@ export async function getPostsByHabitat(habitat: HabitatView): Promise<Collectio
   return getPostsBySection(habitat.slug);
 }
 
-/** Published post count per habitat slug. Home page only (see BaseLayout's `home` prop). */
-export async function getHabitatCounts(): Promise<Map<string, number>> {
-  const posts = await getPublishedPosts();
-  const counts = new Map<string, number>(HABITAT_LIST.map((h) => [h.slug, 0]));
-  for (const post of posts) counts.set(post.data.section, (counts.get(post.data.section) ?? 0) + 1);
-  return counts;
-}
-
 export function habitatHref(habitat: HabitatView): string {
   return sectionHref(habitat.slug);
 }

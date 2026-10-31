@@ -237,9 +237,28 @@ export function unpinPost({ slug, pinsPath }) {
   return { file: next };
 }
 
+/**
+ * Approve a proposed pin (approve mode: the EIC proposes, a person approves). Only `state` changes,
+ * so an approved auto pin keeps `source: auto` and its place behind manual pins.
+ * @param {{ slug: string, pinsPath: string, postsDir: string, now: Date }} o
+ * @returns {{ file: import('../src/lib/pins.ts').PinsFile }}
+ * @throws {PinCommandError} when the slug is not pinned, already active, or not a published post
+ */
+export function approvePin({ slug, pinsPath, postsDir, now }) {
+  const current = readPins(pinsPath);
+  const pin = current.pins.find((p) => p.slug === slug);
+  if (!pin) throw new PinCommandError(`"${slug}" is not pinned; nothing to approve`);
+  if (pin.state === 'active') throw new PinCommandError(`"${slug}" is already active; nothing to approve`);
+  if (!loadPublishedIds(postsDir, now).ids.has(slug)) throw new PinCommandError(`"${slug}" is not a published post; unpin it instead`);
+  const next = { mode: current.mode, pins: current.pins.map((p) => (p.slug === slug ? { ...p, state: 'active' } : p)) };
+  writeFileAtomic(pinsPath, serializePinsFile(next));
+  return { file: parsePinsText(serializePinsFile(next)) };
+}
+
 const USAGE = `usage:
   pins.mjs pin <slug> --by <name> [--until <date|timestamp>] [--proposed] [--auto]
-  pins.mjs unpin <slug>`;
+  pins.mjs unpin <slug>
+  pins.mjs approve <slug>`;
 
 /**
  * @param {string[]} argv `['pin' | 'unpin', ...flags]`
@@ -248,7 +267,7 @@ const USAGE = `usage:
  */
 export function main(argv, { cwd = REPO_ROOT, now = new Date(), stdout = console.log, stderr = console.error } = {}) {
   const [command, ...rest] = argv;
-  if (command !== 'pin' && command !== 'unpin') {
+  if (command !== 'pin' && command !== 'unpin' && command !== 'approve') {
     stderr(USAGE);
     return 2;
   }
@@ -282,6 +301,10 @@ export function main(argv, { cwd = REPO_ROOT, now = new Date(), stdout = console
     if (command === 'pin') {
       const { action, file } = pinPost({ slug: positionals[0], by: values.by, until: values.until, proposed: values.proposed, auto: values.auto, pinsPath, postsDir, now });
       stdout(`${action} ${positionals[0]}${action === 'updated' ? ' (it was already pinned; the entry was restated from these flags)' : ''}`);
+      for (const line of describeCard(file, postsDir, now)) stdout(line);
+    } else if (command === 'approve') {
+      const { file } = approvePin({ slug: positionals[0], pinsPath, postsDir, now });
+      stdout(`approved ${positionals[0]}`);
       for (const line of describeCard(file, postsDir, now)) stdout(line);
     } else {
       const { file } = unpinPost({ slug: positionals[0], pinsPath });

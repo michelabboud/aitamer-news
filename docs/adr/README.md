@@ -60,3 +60,5 @@
 - [0048: Enforce the build-derived Content Security Policy](0048-enforce-build-derived-content-security-policy.md)
 
 - [0050 · The desk editor App's pins lane](0050-desk-editor-pins-lane.md) — accepted 2026-10-31: pull requests whose author and sender are both `EIC_ACTOR_ID`, on `opened` or `synchronize`, from a same-repository `eic/pins-<suffix>` branch, may change exactly `src/data/pins.json` (added or modified, a plain file) and nothing else; every other App still fails on it; unsetting the variable closes the lane.
+
+- [0051 · Sections lead the top bar, one compact masthead, and a desk pin card](0051-sections-lead-the-top-bar-and-one-compact-masthead.md) — accepted 2026-10-31, **supersedes 0032's navigation rule, amends 0013's navigation order**: News, the five topics and Voices in the top bar with a More menu (Columns, General, Extinction Watch, Archive, All habitats); the row under the masthead and its counts are gone; one compact masthead on every page; up to two pinned posts in a text-only card above the lead, not repeated in the feed.

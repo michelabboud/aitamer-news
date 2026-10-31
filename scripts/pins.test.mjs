@@ -300,3 +300,31 @@ test('pinPost reads an .mdx post too', () => {
   writeFileSync(join(postsDir, 'an-mdx.mdx'), post());
   assert.equal(pinPost({ slug: 'an-mdx', by: 'michel', pinsPath, postsDir, now: NOW }).action, 'pinned');
 });
+
+// ---------- approve ----------
+
+test('approve turns a proposed auto pin active and keeps it an auto pin behind manual ones', () => {
+  const { cwd, pinsPath } = site();
+  run(cwd, ['pin', 'live-one', '--by', 'eic', '--auto', '--proposed']);
+  const { code, out } = run(cwd, ['approve', 'live-one']);
+  assert.equal(code, 0);
+  const [entry] = JSON.parse(read(pinsPath)).pins;
+  assert.equal(entry.state, 'active');
+  assert.equal(entry.source, 'auto');
+  assert.equal(entry.pinnedBy, 'eic');
+  assert.match(out, /^approved live-one/);
+});
+
+test('approve refuses a pin that is missing, already active, or names a post that is not live, and writes nothing', () => {
+  const { cwd, pinsPath } = site({ mode: 'approve', pins: [
+    { slug: 'live-two', source: 'manual', state: 'active', pinnedBy: 'michel', pinnedAt: '2026-10-30T10:00:00Z' },
+    { slug: 'was-withdrawn', source: 'auto', state: 'proposed', pinnedBy: 'eic', pinnedAt: '2026-10-30T10:00:00Z' },
+  ] });
+  const before = read(pinsPath);
+  for (const [slug, reason] of [['live-one', /is not pinned/], ['live-two', /already active/], ['was-withdrawn', /not a published post/]]) {
+    const { code, err } = run(cwd, ['approve', slug]);
+    assert.equal(code, 1, slug);
+    assert.match(err, reason);
+  }
+  assert.equal(read(pinsPath), before);
+});

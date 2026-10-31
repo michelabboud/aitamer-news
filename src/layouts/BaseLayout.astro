@@ -6,8 +6,7 @@ import newsreaderLatin from '../assets/fonts/newsreader-latin.woff2?url';
 import hankenLatin from '../assets/fonts/hanken-grotesk-latin.woff2?url';
 import { ANALYTICS_ID, HABITAT_LIST, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
 import { DEFAULT_SOCIAL_IMAGE, resolveMedia } from '../lib/media';
-import { getCollection } from 'astro:content';
-import { isFeaturedWriter, orderWriterCards, writerAuthorPath } from '../lib/writer-pages.ts';
+import { MORE_LINKS, PHONE_MENU_LINKS, SECTION_LINKS, UTILITY_LINKS, navCurrent, type NavLink } from '../lib/site-nav.ts';
 
 interface Props {
   title?: string;
@@ -23,18 +22,16 @@ interface Props {
   ogType?: 'website' | 'article';
   /** When true, emit robots noindex. */
   noindex?: boolean;
-  /** Habitat slug to mark in the habitat nav (desk and story pages). */
+  /** Habitat slug to mark in the section nav (desk and story pages). */
   habitat?: string;
   /** The reading view this page belongs to (News or Columns, ADR 0013), marked in the nav on every page of it. */
   nav?: 'news' | 'columns';
   /**
-   * Home only: the big wordmark, with counts in the habitat nav (the tagline, search and counters
-   * live in the home page's right panel). Other pages leave this out
-   * so their HTML does not change when an unrelated post lands (incremental build cache).
+   * Home only: the wordmark is the page's h1 and the main column gets the home layout. The masthead
+   * is the same compact height on every page (ADR 0051), and nothing here depends on post counts,
+   * so other pages' HTML does not change when an unrelated post lands (incremental build cache).
    */
-  home?: {
-    habitatCounts: Map<string, number>;
-  };
+  home?: boolean;
 }
 const {
   title,
@@ -54,36 +51,15 @@ const canonicalUrl = canonical ?? canonicalUrlFor(Astro.url.pathname);
 const imagePath = resolveMedia(image?.trim() || DEFAULT_SOCIAL_IMAGE);
 const absoluteImage = new URL(imagePath, SITE.url).toString();
 
-function isCurrent(href: string): boolean {
-  const target = withBase(href).replace(/\/$/, '') || '/';
-  const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-  return path === target;
-}
-const current = (href: string) => (isCurrent(href) ? 'page' : undefined);
+/** The nav marks links against the page's own path, both with the base applied. */
+const navContext = { path: Astro.url.pathname, nav, habitat: currentHabitat };
+const based = (link: NavLink): NavLink => ({ ...link, href: withBase(link.href) });
+const linkCurrent = (link: NavLink) => navCurrent(based(link), navContext);
+/** The More button shows when the page belongs to one of its links. */
+const moreCurrent = MORE_LINKS.some((link) => linkCurrent(link) !== undefined);
 
-/** The two reading views that lead the navigation row, before the topics (ADR 0013). */
-const READING_VIEWS = [
-  { key: 'news', href: '/news/', code: 'Everything', name: 'News' },
-  { key: 'columns', href: '/columns/', code: 'Our writers', name: 'Columns' },
-  // AI self-expression (ADR 0017): a habitat, shown here so it stands next to Columns.
-  { key: 'voices', href: '/section/voices/', code: 'In their own words', name: 'Voices' },
-] as const;
-
-/** Featured writers lead the station links in the same order as homepage cards (ADR 0032). */
-const writerLinks = orderWriterCards((await getCollection('authors')).filter(isFeaturedWriter))
-  .map((a) => ({ href: writerAuthorPath(a), label: a.data.name }));
-
-/** Station links: the top bar on wide screens, the menu on phones. */
-const STATION_LINKS = [
-  ...writerLinks,
-  { href: "/authors/", label: "Authors" },
-  { href: '/search/', label: 'Search' },
-  { href: '/about/', label: 'About' },
-  { href: '/campfire/', label: 'Campfire' },
-  { href: '/about/?topic=sighting#contact', label: 'Report a sighting' },
-  { href: '/about/#contact', label: 'Contact' },
-  { href: '/rss.xml', label: 'RSS' },
-];
+/** Footer links: the current page is marked; links into a page (#contact) never are. */
+const current = (href: string) => (navCurrent(based({ key: href, href, label: '' }), { path: Astro.url.pathname }) === 'page' ? 'page' : undefined);
 ---
 <!doctype html>
 <html lang="en">
@@ -156,72 +132,57 @@ const STATION_LINKS = [
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
-    <div class="station-bar">
-      <div class="site-shell station-bar__inner">
-        <div class="station-bar__status">
-          <span class="station-bar__online"><span class="station-bar__pulse" aria-hidden="true"></span>STATION ONLINE</span>
-          <span id="station-clock"></span>
-        </div>
-        <nav class="station-bar__links" aria-label="Station">
-          {STATION_LINKS.map((link) => (
-            <a href={withBase(link.href)} aria-current={link.href.includes('#') ? undefined : current(link.href)}>{link.label}</a>
-          ))}
-        </nav>
-      </div>
-    </div>
-
-    <header class:list={['masthead', { 'masthead--home': home }]}>
-      <div class="site-shell masthead__inner">
-        <div class="masthead__brand">
-          <a class="wordmark" href={withBase('/')}>
-            <span class="wordmark__kicker">A FIELD GUIDE TO THE MACHINES</span>
-            {home ? <h1 class="wordmark__name">{SITE.title}</h1> : <span class="wordmark__name">{SITE.title}</span>}
-          </a>
-        </div>
-        <details class="menu">
-          <summary aria-label="Menu"><span></span><span></span></summary>
-          <nav class="menu__panel" aria-label="Station menu">
-            {STATION_LINKS.map((link) => (
-              <a href={withBase(link.href)} aria-current={link.href.includes('#') ? undefined : current(link.href)}>{link.label}</a>
-            ))}
-            <a href={withBase('/archive/')} aria-current={current('/archive/')}>Archive</a>
+    <div class="site-head">
+      <div class="station-bar">
+        <div class="site-shell station-bar__inner">
+          <div class="station-bar__status">
+            <span class="station-bar__online"><span class="station-bar__pulse" aria-hidden="true"></span>STATION ONLINE</span>
+            <span id="station-clock"></span>
+          </div>
+          <nav class="sections" aria-label="Sections">
+            <ul class="sections__list">
+              {SECTION_LINKS.map((link) => (
+                <li><a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a></li>
+              ))}
+              <li class="sections__more">
+                <details class="nav-more">
+                  <summary class:list={{ 'is-current': moreCurrent }}>More<span class="nav-more__caret" aria-hidden="true"></span></summary>
+                  <ul class="nav-more__panel">
+                    {MORE_LINKS.map((link) => (
+                      <li><a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a></li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            </ul>
           </nav>
-        </details>
+          <nav class="station-bar__links" aria-label="Station">
+            {UTILITY_LINKS.map((link) => (
+              <a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a>
+            ))}
+          </nav>
+        </div>
       </div>
-    </header>
 
-    <nav class="site-shell habitat-bar" aria-label="Habitats">
-      <ul class="habitat-nav">
-        <li class="habitat-nav__all">
-          <a href={withBase('/')} aria-current={current('/')}><span class="habitat-nav__name">All</span></a>
-        </li>
-        {READING_VIEWS.map((view, i) => (
-          <li class:list={['habitat-nav__reading', { 'habitat-nav__reading--last': i === READING_VIEWS.length - 1 }]}>
-            <a href={withBase(view.href)} aria-current={nav === view.key || isCurrent(view.href) ? 'page' : undefined}>
-              <span class="habitat-nav__code">{view.code}{home && ` · ${home.habitatCounts.get(view.key) ?? 0}`}</span>
-              <span class="habitat-nav__name">{view.name}</span>
+      <header class="masthead">
+        <div class="site-shell masthead__inner">
+          <div class="masthead__brand">
+            <a class="wordmark" href={withBase('/')}>
+              <span class="wordmark__kicker">A FIELD GUIDE TO THE MACHINES</span>
+              {home ? <h1 class="wordmark__name">{SITE.title}</h1> : <span class="wordmark__name">{SITE.title}</span>}
             </a>
-          </li>
-        ))}
-        {HABITAT_LIST.filter((h) => h.inNav).map((h) => (
-          <li>
-            <a
-              href={habitatHref(h)}
-              aria-current={isCurrent(`/section/${h.slug}/`) ? 'page' : currentHabitat === h.slug ? 'true' : undefined}
-            >
-              <span class="habitat-nav__code">{h.code}{home && ` · ${home.habitatCounts.get(h.slug) ?? 0}`}</span>
-              <span class="habitat-nav__name">{h.name}</span>
-            </a>
-          </li>
-        ))}
-        <li class="habitat-nav__watch">
-          <a href={withBase('/extinction-watch/')} aria-current={current('/extinction-watch/')}>
-            <span class="habitat-nav__code" data-watch-soon>SHUTDOWNS, COUNTED DOWN</span>
-            <span class="habitat-nav__name">Extinction Watch <span aria-hidden="true">→</span></span>
-          </a>
-        </li>
-      </ul>
-    </nav>
+          </div>
+          <details class="menu">
+            <summary aria-label="Menu"><span></span><span></span></summary>
+            <nav class="menu__panel" aria-label="Station menu">
+              {PHONE_MENU_LINKS.map((link) => (
+                <a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a>
+              ))}
+            </nav>
+          </details>
+        </div>
+      </header>
+    </div>
 
     <main id="main" class:list={['site-shell', 'site-main', { 'site-main--home': home }]}>
       <slot />
@@ -253,7 +214,7 @@ const STATION_LINKS = [
         <nav aria-labelledby="footer-station">
           <h2 id="footer-station">Station</h2>
           <a href={withBase('/about/')} aria-current={current('/about/')}>About</a>
-          <a href={withBase('/authors/')}>Authors</a>
+          <a href={withBase('/authors/')} aria-current={current('/authors/')}>Authors</a>
           <a href={withBase('/campfire/')} aria-current={current('/campfire/')}>The Campfire</a>
           <a href={withBase('/about/?topic=sighting#contact')}>Report a sighting</a>
           <a href={withBase('/about/#contact')}>Contact</a>
@@ -290,6 +251,29 @@ const STATION_LINKS = [
         }
         tick();
         setInterval(tick, 30000);
+      })();
+    </script>
+
+    <script is:inline>
+      // On phones the sections scroll sideways: bring the current one into view without moving the page.
+      (function () {
+        var list = document.querySelector('.sections__list');
+        var current = list && list.querySelector('a[aria-current]');
+        if (!list || !current || list.scrollWidth <= list.clientWidth) return;
+        list.scrollLeft = current.offsetLeft - (list.clientWidth - current.offsetWidth) / 2;
+      })();
+      // The More menu closes on Escape (focus returns to its button) and on a click outside it.
+      (function () {
+        var more = document.querySelector('.nav-more');
+        if (!more) return;
+        document.addEventListener('keydown', function (event) {
+          if (event.key !== 'Escape' || !more.open) return;
+          more.open = false;
+          more.querySelector('summary').focus();
+        });
+        document.addEventListener('click', function (event) {
+          if (more.open && !more.contains(event.target)) more.open = false;
+        });
       })();
     </script>
 
