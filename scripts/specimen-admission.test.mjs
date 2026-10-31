@@ -200,6 +200,18 @@ test('a successor the sweep cannot select does not stall recovery from the older
   assert.equal(await recoverRequest(otherRoot,run(12,{conclusion:'failure'}),ENV,{now:NOW,...dependencies}),'dispatched');
 });
 
+test('a transport failure while checking a successor leaves the request pending, without a receipt or dispatch', async () => {
+  // Only the successor's own recorded refusals make it unselectable. A lost read is not one:
+  // dispatching on it would overtake a successor the sweep would have finalized, as on PR #390.
+  const api = new API();
+  api.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  api.prs.push(generatedPR({number:101,head:{sha:HEAD,ref:'specimens/run-11',repo:{full_name:REPO}}}));
+  api.before = path=>{ if (path==='/actions/runs/10') throw new Error('GitHub GET /actions/runs/10 transport failed (ECONNRESET)'); };
+  await assert.rejects(recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),/transport failed/);
+  assert.equal(api.calls.filter(c=>c.path.endsWith('/dispatches')).length,0);
+  assert.equal(api.comments.get(7)?.length ?? 0,0);
+});
+
 test('a successor that failed does not stop recovery from the older successful run', async () => {
   const api = new API();
   api.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'failure',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
