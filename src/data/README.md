@@ -18,7 +18,7 @@ Optional, maintained by hand. Topic pages (`/topics/<slug>/`, ADR 0046) exist fo
 
 # Pins (`pins.json`)
 
-The desk's pinned posts for the homepage card (plan `docs/plans/2026-10-31-top-nav-and-pinning.md`). Do not edit by hand: use `npm run pin -- <slug> --by <name> [--until <date|timestamp>] [--proposed] [--auto]` and `npm run unpin -- <slug>`, which validate, write atomically and print what the card will show. `npm run check:pins [-- --strict]` validates the file (`--strict` also fails on an active pin whose post is not published).
+The desk's pinned posts for the homepage card (plan `docs/plans/2026-10-31-top-nav-and-pinning.md`). Do not edit by hand: use `npm run pin -- <slug> --by <name> [--until <date|timestamp>] [--proposed] [--auto]` `npm run unpin -- <slug>` and `npm run approve-pin -- <slug>`, which validate, write atomically and print what the card will show. `npm run check:pins [-- --strict]` validates the file (`--strict` also fails on an active pin whose post is not published).
 
 ```json
 {
@@ -29,7 +29,7 @@ The desk's pinned posts for the homepage card (plan `docs/plans/2026-10-31-top-n
 }
 ```
 
-- `mode`: `auto` (the editor pins directly) or `approve` (the editor proposes, a person flips `state` to `active`).
+- `mode`: `auto` (the editor pins directly) or `approve` (the editor's automatic pins must be `--proposed`; a person approves one with `npm run approve-pin -- <slug>`, which flips `state` to `active` and keeps it an auto pin). Pinning also removes any active pin whose post is no longer published, so a retraction never fails the next pin pull request.
 - `state`: only `active` pins show; `proposed` pins are ignored by the site.
 - `source`: `manual` pins take the two card slots before `auto` pins; within each kind the newest `pinnedAt` wins.
 - `until` is optional: a timestamp with an offset or `Z`, or a bare `YYYY-MM-DD`, which means the end of that day in Israel time (`Asia/Jerusalem`). A timestamp without an offset is rejected. `pinnedAt` follows the same timestamp rule.

@@ -56,7 +56,6 @@ function countOf(daysLeft: number, date: Date) {
   const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
   const fmt = (d: Date) =>
     d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).toUpperCase();
-  let soon = 0;
   document.querySelectorAll<HTMLElement>('.watch-item[data-sunset]').forEach((item) => {
     const date = new Date(item.dataset.sunset!);
     item.removeAttribute('data-static-date');
@@ -71,10 +70,6 @@ function countOf(daysLeft: number, date: Date) {
       big.textContent = String(days);
       unit.textContent = days === 0 ? 'Goes today' : days === 1 ? 'Day left' : 'Days left';
       item.dataset.state = days <= 7 ? 'soon' : 'later';
-      if (days <= 7) soon += 1;
     }
-  });
-  document.querySelectorAll<HTMLElement>('[data-watch-soon]').forEach((el) => {
-    el.textContent = soon > 0 ? `${soon} going extinct this week` : 'Shutdowns, counted down';
   });
 </script>

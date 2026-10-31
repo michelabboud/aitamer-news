@@ -51,3 +51,11 @@ test('an empty site has no lead and no card', () => {
   assert.deepEqual(out.pinned, []);
   assert.deepEqual(out.feedPosts, []);
 });
+
+test('a pinned lead does not cost the card a slot: the next eligible pin fills it', () => {
+  const out = splitPinned(posts, file(
+    pin('newest', '2026-10-31T10:00:00Z'), pin('c', '2026-10-31T09:00:00Z'), pin('d', '2026-10-31T08:00:00Z'),
+  ), NOW);
+  assert.deepEqual(ids(out.pinned), ['c', 'd']);
+  assert.deepEqual(ids(out.feedPosts), ['newest', 'b', 'e']);
+});

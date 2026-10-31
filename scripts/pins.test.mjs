@@ -111,8 +111,10 @@ test('re-pinning a slug UPDATES its entry in place instead of adding a duplicate
 });
 
 test('the card preview ranks manual over auto, reports a slot loss and keeps the mode', () => {
+  // An approved auto pin in approve mode: active, but still behind manual pins.
   const { cwd, pinsPath } = site({ mode: 'approve', pins: [] });
-  run(cwd, ['pin', 'live-one', '--by', 'eic', '--auto'], new Date('2026-10-31T10:00:00Z'));
+  run(cwd, ['pin', 'live-one', '--by', 'eic', '--auto', '--proposed'], new Date('2026-10-31T10:00:00Z'));
+  run(cwd, ['approve', 'live-one'], new Date('2026-10-31T10:30:00Z'));
   run(cwd, ['pin', 'live-two', '--by', 'michel'], new Date('2026-10-31T11:00:00Z'));
   const { out } = run(cwd, ['pin', 'live-three', '--by', 'michel'], new Date('2026-10-31T12:00:00Z'));
   const lines = out.split('\n');
@@ -327,4 +329,28 @@ test('approve refuses a pin that is missing, already active, or names a post tha
     assert.match(err, reason);
   }
   assert.equal(read(pinsPath), before);
+});
+
+// ---------- approve mode and pruning ----------
+
+test('in approve mode an automatic pin must be proposed; a manual pin is still direct', () => {
+  const { cwd, pinsPath } = site({ mode: 'approve', pins: [] });
+  const refused = run(cwd, ['pin', 'live-one', '--by', 'eic', '--auto']);
+  assert.equal(refused.code, 1);
+  assert.match(refused.err, /approve mode/);
+  assert.deepEqual(JSON.parse(read(pinsPath)).pins, []);
+  assert.equal(run(cwd, ['pin', 'live-one', '--by', 'eic', '--auto', '--proposed']).code, 0);
+  assert.equal(run(cwd, ['pin', 'live-two', '--by', 'michel']).code, 0);
+  assert.deepEqual(JSON.parse(read(pinsPath)).pins.map((p) => [p.slug, p.state]), [['live-one', 'proposed'], ['live-two', 'active']]);
+});
+
+test('pinning removes active pins whose post is no longer published, and says so', () => {
+  const { cwd, pinsPath } = site({ mode: 'auto', pins: [
+    { slug: 'was-withdrawn', source: 'auto', state: 'active', pinnedBy: 'eic', pinnedAt: '2026-10-30T10:00:00Z' },
+    { slug: 'live-two', source: 'manual', state: 'active', pinnedBy: 'michel', pinnedAt: '2026-10-30T09:00:00Z' },
+  ] });
+  const { code, out } = run(cwd, ['pin', 'live-one', '--by', 'eic', '--auto']);
+  assert.equal(code, 0);
+  assert.match(out, /removed the pin on was-withdrawn/);
+  assert.deepEqual(JSON.parse(read(pinsPath)).pins.map((p) => p.slug), ['live-two', 'live-one']);
 });

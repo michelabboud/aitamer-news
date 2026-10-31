@@ -1,15 +1,14 @@
 import { root } from 'astro:config/server';
 import { getCollection } from 'astro:content';
 import { HOME_FEED_SETTINGS } from '../config/home-feed.ts';
-import { entryStamp, getPublishedPosts } from './site';
+import { BUILD_TIME, entryStamp, getPublishedPosts } from './site';
 import { partitionHomeFeed } from './home-feed.ts';
 import { fingerprintHomeFeedSources, homeFeedSnapshot } from './home-feed-snapshot.ts';
 import { droppedPinWarnings, splitPinned } from './home-pins.ts';
 import { parsePinsFile } from './pins.ts';
 import pinsFile from '../data/pins.json' with { type: 'json' };
 
-/** One build, one clock: every page that reads the feed sees the same pins. */
-const BUILD_TIME = new Date();
+/** Pins expire on the same clock that decides which posts are live (`site.ts`). */
 let warned = false;
 
 export async function getHomeFeed() {
@@ -34,7 +33,7 @@ export async function getHomeFeed() {
     authorStamps: [...consumedAuthors.values()], renderingSource: await fingerprintHomeFeedSources(root),
     renderContext: { base: import.meta.env.BASE_URL, mediaBase: import.meta.env.PUBLIC_MEDIA_BASE?.trim() ?? '' },
   });
-  return { ...partition, posts, pinned, authors, authorOf, snapshot, settings: HOME_FEED_SETTINGS };
+  return { ...partition, posts, feedPosts, pinned, authors, authorOf, snapshot, settings: HOME_FEED_SETTINGS };
 }
 
 function splitPinnedOnce<T extends { id: string }>(posts: readonly T[]) {

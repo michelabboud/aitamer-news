@@ -7,6 +7,7 @@
 - **Pinned by the desk**: up to two posts in a text-only card above the lead, from `src/data/pins.json`. A pinned post is not repeated in the homepage feed, the Field log or the loaded batches; a pinned lead is not repeated in the card. A pin naming a post that is not live is dropped from the build with a warning; a broken file fails the build. `npm run pin`, `npm run unpin`, `npm run approve-pin` and `npm run check:pins` (strict in the pull-request check when the file changes).
 - **Desk pins lane** in the path guard (ADR 0050): only the desk editor App (`EIC_ACTOR_ID`) from `eic/pins-*` branches, changing `src/data/pins.json` alone; every other App still fails on it.
 - **Daily scheduled deploy** at 22:10 UTC (00:10 Israel winter time, 01:10 summer time), so a pin's end date takes effect within a day on a quiet day.
+- Every author is listed in the footer. On phones the masthead comes before the section chips in reading and tab order. The More button tells screen readers when it holds the current page. In approve mode an automatic pin must be proposed; pinning removes pins whose post is gone, so a retraction never fails the next pin pull request. A pinned lead no longer costs the card a slot. The daily deploy settles in its own group and builds main's head, so it can never cancel or undercut a merge's deploy. (Mechanical and deep review of the branch.)
 - Plan corrected: the site does have analytics (not readable by the build), which does not change the decision to leave early engagement out of pinning.
 
 ## 0.2.133 · 2026-10-31

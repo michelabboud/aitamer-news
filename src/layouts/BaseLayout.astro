@@ -6,6 +6,9 @@ import newsreaderLatin from '../assets/fonts/newsreader-latin.woff2?url';
 import hankenLatin from '../assets/fonts/hanken-grotesk-latin.woff2?url';
 import { ANALYTICS_ID, HABITAT_LIST, SITE, canonicalUrlFor, habitatHref, withBase } from '../lib/site';
 import { DEFAULT_SOCIAL_IMAGE, resolveMedia } from '../lib/media';
+import { getCollection } from 'astro:content';
+import { orderHomeAuthors } from '../lib/front-page.ts';
+import { authorHref } from '../lib/site';
 import { MORE_LINKS, PHONE_MENU_LINKS, SECTION_LINKS, UTILITY_LINKS, navCurrent, type NavLink } from '../lib/site-nav.ts';
 
 interface Props {
@@ -57,6 +60,9 @@ const based = (link: NavLink): NavLink => ({ ...link, href: withBase(link.href) 
 const linkCurrent = (link: NavLink) => navCurrent(based(link), navContext);
 /** The More button shows when the page belongs to one of its links. */
 const moreCurrent = MORE_LINKS.some((link) => linkCurrent(link) !== undefined);
+
+/** Every author is listed in the footer (plan, "Where authors go"), in the homepage's editorial order. */
+const footerAuthors = orderHomeAuthors(await getCollection('authors'));
 
 /** Footer links: the current page is marked; links into a page (#contact) never are. */
 const current = (href: string) => (navCurrent(based({ key: href, href, label: '' }), { path: Astro.url.pathname }) === 'page' ? 'page' : undefined);
@@ -133,37 +139,6 @@ const current = (href: string) => (navCurrent(based({ key: href, href, label: ''
     <a class="skip-link" href="#main">Skip to content</a>
 
     <div class="site-head">
-      <div class="station-bar">
-        <div class="site-shell station-bar__inner">
-          <div class="station-bar__status">
-            <span class="station-bar__online"><span class="station-bar__pulse" aria-hidden="true"></span>STATION ONLINE</span>
-            <span id="station-clock"></span>
-          </div>
-          <nav class="sections" aria-label="Sections">
-            <ul class="sections__list">
-              {SECTION_LINKS.map((link) => (
-                <li><a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a></li>
-              ))}
-              <li class="sections__more">
-                <details class="nav-more">
-                  <summary class:list={{ 'is-current': moreCurrent }}>More<span class="nav-more__caret" aria-hidden="true"></span></summary>
-                  <ul class="nav-more__panel">
-                    {MORE_LINKS.map((link) => (
-                      <li><a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a></li>
-                    ))}
-                  </ul>
-                </details>
-              </li>
-            </ul>
-          </nav>
-          <nav class="station-bar__links" aria-label="Station">
-            {UTILITY_LINKS.map((link) => (
-              <a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a>
-            ))}
-          </nav>
-        </div>
-      </div>
-
       <header class="masthead">
         <div class="site-shell masthead__inner">
           <div class="masthead__brand">
@@ -182,6 +157,37 @@ const current = (href: string) => (navCurrent(based({ key: href, href, label: ''
           </details>
         </div>
       </header>
+
+      <div class="station-bar">
+        <div class="site-shell station-bar__inner">
+          <div class="station-bar__status">
+            <span class="station-bar__online"><span class="station-bar__pulse" aria-hidden="true"></span>STATION ONLINE</span>
+            <span id="station-clock"></span>
+          </div>
+          <nav class="sections" aria-label="Sections">
+            <ul class="sections__list">
+              {SECTION_LINKS.map((link) => (
+                <li><a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a></li>
+              ))}
+              <li class="sections__more">
+                <details class="nav-more">
+                  <summary class:list={{ 'is-current': moreCurrent }}>More{moreCurrent && <span class="sr-only"> (the current page is in this menu)</span>}<span class="nav-more__caret" aria-hidden="true"></span></summary>
+                  <ul class="nav-more__panel">
+                    {MORE_LINKS.map((link) => (
+                      <li><a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a></li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            </ul>
+          </nav>
+          <nav class="station-bar__links" aria-label="Station">
+            {UTILITY_LINKS.map((link) => (
+              <a href={withBase(link.href)} aria-current={linkCurrent(link)}>{link.label}</a>
+            ))}
+          </nav>
+        </div>
+      </div>
     </div>
 
     <main id="main" class:list={['site-shell', 'site-main', { 'site-main--home': home }]}>
@@ -214,10 +220,16 @@ const current = (href: string) => (navCurrent(based({ key: href, href, label: ''
         <nav aria-labelledby="footer-station">
           <h2 id="footer-station">Station</h2>
           <a href={withBase('/about/')} aria-current={current('/about/')}>About</a>
-          <a href={withBase('/authors/')} aria-current={current('/authors/')}>Authors</a>
+          <a href={withBase('/authors/')} aria-current={current('/authors/')}>All authors</a>
           <a href={withBase('/campfire/')} aria-current={current('/campfire/')}>The Campfire</a>
           <a href={withBase('/about/?topic=sighting#contact')}>Report a sighting</a>
           <a href={withBase('/about/#contact')}>Contact</a>
+        </nav>
+        <nav aria-labelledby="footer-authors">
+          <h2 id="footer-authors">Authors</h2>
+          {footerAuthors.map((author) => (
+            <a href={authorHref(author.id)} aria-current={navCurrent({ key: author.id, href: authorHref(author.id), label: '' }, { path: Astro.url.pathname }) === 'page' ? 'page' : undefined}>{author.data.name}</a>
+          ))}
         </nav>
         <nav aria-labelledby="footer-legal">
           <h2 id="footer-legal">Legal</h2>
@@ -268,8 +280,10 @@ const current = (href: string) => (navCurrent(based({ key: href, href, label: ''
         if (!more) return;
         document.addEventListener('keydown', function (event) {
           if (event.key !== 'Escape' || !more.open) return;
+          var inside = more.contains(document.activeElement);
           more.open = false;
-          more.querySelector('summary').focus();
+          // Focus returns to the button only when it was inside the menu; Escape elsewhere just closes it.
+          if (inside) more.querySelector('summary').focus();
         });
         document.addEventListener('click', function (event) {
           if (more.open && !more.contains(event.target)) more.open = false;

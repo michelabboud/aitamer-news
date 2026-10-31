@@ -157,7 +157,7 @@ const writers = orderedAuthors.filter((author) => isFeaturedWriter(author) || au
       <HomeFeed
         cards={feed.initialCards}
         authorOf={authorOf}
-        initialIds={posts.slice(0, feed.initialCount).map((post) => post.id)}
+        initialIds={feed.feedPosts.slice(0, feed.initialCount).map((post) => post.id)}
         manifest={{
           snapshot: feed.snapshot, initialCount: feed.initialCount,
           initialLimit: feed.settings.initialPostCount, batchSize: feed.settings.nextBatchSize,

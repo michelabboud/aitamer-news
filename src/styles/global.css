@@ -121,9 +121,14 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 }
 .station-bar__links { display: flex; gap: 22px; flex: 0 0 auto; }
 .station-bar__status { flex: 0 0 auto; }
-/* The clock is written by script after first paint: reserve its width ("SAT 31 OCT 2026 · 21:03 UTC")
-   so filling it never shifts the sections beside it. */
-#station-clock { display: inline-block; min-width: 27ch; }
+/* The clock is written by script after first paint: reserve its widest form, 28 characters plus
+   their letter-spacing ("THU 17 SEPT 2026 · 21:03 UTC"), so filling it never shifts the sections. */
+#station-clock { display: inline-block; min-width: calc(28ch + 28 * 0.06em); }
+
+/* The masthead comes first in the page (so phones read and tab in the order they show), and the
+   top bar is drawn above it on wider screens. */
+.site-head { display: flex; flex-direction: column; }
+.site-head > .station-bar { order: -1; }
 
 /* ---------- Sections (the top bar's main row, ADR 0051) ---------- */
 
@@ -172,8 +177,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 /* On the home page the wordmark is the page's h1; keep it looking exactly like the span. */
 h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 
-/* One compact masthead on every page, the home page included (ADR 0051): content starts higher. */
-
 /* The masthead is the wordmark alone: the tagline, search and counters live in the home page's right panel. */
 .masthead__brand { min-width: 0; }
 .station-card { display: flex; flex-direction: column; gap: 16px; }
@@ -196,7 +199,7 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 .stats .is-ai { color: var(--ai); }
 .stats .is-human { color: var(--human); }
 
-/* Phone menu: holds the station links. Hidden on wide screens. */
+/* Phone menu: the utility links, the More menu's links and the station links. Hidden on wide screens. */
 .menu { display: none; position: relative; align-self: center; }
 .menu summary {
   list-style: none; cursor: pointer;
@@ -929,12 +932,10 @@ a.archive-month__name:hover { color: var(--ember-text); }
   /* Phones: the top bar dissolves; the masthead comes first and the sections scroll sideways
      under it, above the content. The utility links and More's links live in the menu instead
      (a scrolling row would clip a drop-down). The tab bar stays at the bottom, apart. */
-  .site-head { display: flex; flex-direction: column; }
   .station-bar { display: contents; }
   .station-bar__inner { display: contents; }
   .station-bar__links, .sections__more { display: none; }
-  .masthead { order: 1; }
-  .sections { order: 2; width: 100%; border-bottom: 1px solid var(--line); }
+  .sections { width: 100%; border-bottom: 1px solid var(--line); }
   .sections__list {
     position: relative; gap: 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
     width: 100%; padding: 0 var(--gutter) 12px;

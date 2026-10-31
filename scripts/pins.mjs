@@ -19,6 +19,7 @@
  *
  * Exit 0 on success; 1 on any refusal or error (with a message on stderr); 2 on a usage error.
  */
+import { randomBytes } from 'node:crypto';
 import { closeSync, fsyncSync, openSync, readdirSync, readFileSync, renameSync, unlinkSync, writeSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -90,7 +91,8 @@ export function loadPublishedIds(postsDir, now) {
  * @param {string} text
  */
 export function writeFileAtomic(path, text) {
-  const temp = join(dirname(path), `.${basename(path)}.${process.pid}.tmp`);
+  // A random name, so a temp file a crashed run left behind never blocks the next write.
+  const temp = join(dirname(path), `.${basename(path)}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`);
   const fd = openSync(temp, 'wx', 0o644);
   try {
     writeSync(fd, text);
@@ -161,7 +163,7 @@ export function describeCard(file, postsDir, now) {
  * @param {string} o.pinsPath
  * @param {string} o.postsDir
  * @param {Date} o.now
- * @returns {{ action: 'pinned' | 'updated', file: import('../src/lib/pins.ts').PinsFile }}
+ * @returns {{ action: 'pinned' | 'updated', file: import('../src/lib/pins.ts').PinsFile, pruned: string[] }}
  * @throws {PinCommandError} on any refusal; the file is untouched
  */
 export function pinPost({ slug, by, until, proposed = false, auto = false, pinsPath, postsDir, now }) {
@@ -203,6 +205,15 @@ export function pinPost({ slug, by, until, proposed = false, auto = false, pinsP
   }
 
   const current = readPins(pinsPath);
+  // Approve mode (plan, "Mode toggle"): the desk's automatic pins wait for a person's approval.
+  if (current.mode === 'approve' && auto && !proposed) {
+    throw new PinCommandError('pins.json is in approve mode: an automatic pin must be --proposed and approved with npm run approve-pin');
+  }
+  // A pin whose post is no longer live would fail this pull request's strict check: remove it here,
+  // so a retraction never blocks the desk's next pin.
+  const { ids: live } = loadPublishedIds(postsDir, now);
+  const pruned = current.pins.filter((p) => p.slug !== slug && p.state === 'active' && !live.has(p.slug)).map((p) => p.slug);
+  const kept = current.pins.filter((p) => !pruned.includes(p.slug));
   const entry = {
     slug,
     source: auto ? 'auto' : 'manual',
@@ -211,8 +222,8 @@ export function pinPost({ slug, by, until, proposed = false, auto = false, pinsP
     pinnedAt: stampNow(now),
     ...(until === undefined ? {} : { until }),
   };
-  const index = current.pins.findIndex((p) => p.slug === slug);
-  const pins = index === -1 ? [...current.pins, entry] : current.pins.map((p, i) => (i === index ? entry : p));
+  const index = kept.findIndex((p) => p.slug === slug);
+  const pins = index === -1 ? [...kept, entry] : kept.map((p, i) => (i === index ? entry : p));
   let text;
   try {
     text = serializePinsFile({ mode: current.mode, pins });
@@ -220,7 +231,7 @@ export function pinPost({ slug, by, until, proposed = false, auto = false, pinsP
     throw new PinCommandError(`the new file would be invalid, nothing was changed: ${error.message}`);
   }
   writeFileAtomic(pinsPath, text);
-  return { action: index === -1 ? 'pinned' : 'updated', file: parsePinsText(text) };
+  return { action: index === -1 ? 'pinned' : 'updated', file: parsePinsText(text), pruned };
 }
 
 /**
@@ -299,8 +310,9 @@ export function main(argv, { cwd = REPO_ROOT, now = new Date(), stdout = console
   const postsDir = join(cwd, POSTS_DIR);
   try {
     if (command === 'pin') {
-      const { action, file } = pinPost({ slug: positionals[0], by: values.by, until: values.until, proposed: values.proposed, auto: values.auto, pinsPath, postsDir, now });
+      const { action, file, pruned } = pinPost({ slug: positionals[0], by: values.by, until: values.until, proposed: values.proposed, auto: values.auto, pinsPath, postsDir, now });
       stdout(`${action} ${positionals[0]}${action === 'updated' ? ' (it was already pinned; the entry was restated from these flags)' : ''}`);
+      for (const gone of pruned) stdout(`removed the pin on ${gone}: its post is no longer published`);
       for (const line of describeCard(file, postsDir, now)) stdout(line);
     } else if (command === 'approve') {
       const { file } = approvePin({ slug: positionals[0], pinsPath, postsDir, now });

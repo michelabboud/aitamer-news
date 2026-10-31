@@ -12,8 +12,10 @@ import { selectPinned, type DroppedPin, type PinsFile } from './pins.ts';
 export function splitPinned<T extends { id: string }>(posts: readonly T[], file: PinsFile, now: Date) {
   const lead = posts[0];
   const byId = new Map(posts.map((post) => [post.id, post]));
-  const { shown, dropped } = selectPinned(file, new Set(byId.keys()), now);
-  const pinned = shown.filter((pin) => pin.slug !== lead?.id).map((pin) => byId.get(pin.slug)!);
+  // The lead is left out before the slots are filled, so a pinned lead never costs the card a slot.
+  const candidates = { ...file, pins: file.pins.filter((pin) => pin.slug !== lead?.id) };
+  const { shown, dropped } = selectPinned(candidates, new Set(byId.keys()), now);
+  const pinned = shown.map((pin) => byId.get(pin.slug)!);
   const pinnedIds = new Set(pinned.map((post) => post.id));
   return { pinned, feedPosts: posts.filter((post) => !pinnedIds.has(post.id)), dropped };
 }
