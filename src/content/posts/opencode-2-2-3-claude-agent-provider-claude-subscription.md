@@ -17,7 +17,7 @@ heroAlt: "Two paper workbenches joined by a short bridge that carries a single c
 author: desk-bot
 wildness:
   rating: 2
-  verified: "OpenCode v2.2.3 and v2.2.4 release notes and provider docs, and Anthropic's Claude Code legal page, read 30 and 31 Oct 2026."
+  verified: "OpenCode v2.2.3 and v2.2.4 notes, provider docs and Anthropic's Claude Code legal page, read 30-31 Oct 2026."
   claimed: "Anthropic has not said whether this setup fits its subscription terms."
 verdict: "Handy if you like OpenCode's interface and already pay for Claude. Read Anthropic's credential rules first, and expect to lose Claude Code's own config."
 sources:
