@@ -1186,3 +1186,8 @@
 1183 content-encoding-vs-transfer-encoding
 1184 a-build-that-downloads-a-binary-breaks-when-the-host-says-no
 1185 clear-site-data-logout
+1186 e5-embeddings-want-query-and-passage-prefixes
+1187 csp-nonces-strict-dynamic
+1188 linux-load-average-counts-tasks-that-are-not-using-the-cpu
+1189 a-self-hosted-runner-runs-whatever-a-pull-request-sends-it
+1190 rust-io-safety-and-why-tokio-deprecated-asyncfd-new
