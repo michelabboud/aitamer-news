@@ -250,7 +250,7 @@ async function retryReceipts(api, pr) {
 async function recordAttempt(api, pr, receipt, now) {
   await api.request(`/issues/${integer(pr)}/comments`, 'POST', { body: RETRY_MARKER + JSON.stringify({ ...receipt, time: new Date(now).toISOString() }) });
 }
-// The refusals approvedRequest derives from a run's own recorded request. Only these make a
+// The refusals approvedRequest raises about a run's approval or ancestry. Only these make a
 // successor unselectable; a transport or paging failure is rethrown so the request stays pending
 // rather than turning into a dispatch that overtakes a successor the sweep would have finalized.
 const SUCCESSOR_REFUSAL = /^(invalid recovery ancestry|recovery changed approved request|recovery has no owner request|recovery predecessor did not complete|owner request unexpectedly claims recovery|owner dispatch or authorized Grok identity required without review|owner editorial approval withdrawn or changed|owner approval has no immutable root|owner approval source rebound; original request retained|immutable owner approval receipt required)$/;
@@ -264,7 +264,11 @@ async function sweepSelects(api, successor, request, owner) {
     if (prs[0].state !== 'open') return false;
   }
   let root;
-  try { ({ rootRun: root } = await approvedRequest(api, successor, owner)); } catch (error) { if (error.status || !SUCCESSOR_REFUSAL.test(error.message)) throw error; return false; }
+  try { ({ rootRun: root } = await approvedRequest(api, successor, owner)); } catch (error) {
+    if (!error.status && SUCCESSOR_REFUSAL.test(error.message)) return false;
+    // The caller logs under the older run's ID; name the successor that actually failed.
+    throw Object.assign(new Error(`successor run ${successor.id}: ${error.message}`, { cause: error }), error.status ? { status: error.status } : {});
+  }
   return root === request.rootRun;
 }
 export async function recoverRequest(api, run, env, { now = Date.now(), ...dependencies } = {}) {
