@@ -28,6 +28,8 @@ sources:
     url: https://github.com/gpillon/ignis/releases/tag/v0.9.2
   - title: "Hugging Face: gpillon/Qwen3-ASR-1.7B-GGUF-ignis"
     url: https://huggingface.co/gpillon/Qwen3-ASR-1.7B-GGUF-ignis
+  - title: "ignis v0.9.3 release notes"
+    url: https://github.com/gpillon/ignis/releases/tag/v0.9.3
 ---
 
 [Ignis](https://github.com/gpillon/ignis) is a small Rust and CUDA inference server that serves Qwen models to local coding agents through OpenAI-compatible routes. Version 0.9 adds speech recognition, and it runs on the CPU, "in host memory rather than VRAM", so the GPU stays with the text or image model.
@@ -52,3 +54,9 @@ Measured CPU-only by the author: the 1.7B model runs at 4.1 to 4.7 times real ti
 ## Before you try it
 
 The GPU kernels are compiled for SM120a (RTX 50-series Blackwell) only, and the engine needs a separate `.ninfer` model artifact. The Qwen3-ASR conversions on Hugging Face are Apache-2.0; the diarization weights carry NVIDIA's own licence, so read it before commercial use. Ignis is a small project, with about 45 GitHub stars and nearly all commits from one account, which is worth weighing for anything beyond a home lab.
+
+## Update, 31 October 2026: 0.9.3 turns on vision for 16 GB RTX 50 cards
+
+[Ignis 0.9.3](https://github.com/gpillon/ignis/releases/tag/v0.9.3), released on 30 October, adds a `--vision-residency host|device` setting. Under the new default, `host`, the 27B model's 296 MB vision tower stays in pinned host RAM and is streamed to the GPU through three 25 MB slots for each image, and the image embedding pool is host-mapped, so neither holds VRAM between images. With that, the `rtx50-16gb` profile now turns vision on, with a 4,096-token image envelope.
+
+The project's own numbers, measured on an RTX 5090 held to a 16 GB budget: with vision on, the KV cache pool stays at 7,956 pages, the same as text-only, against 7,437 and 7,384 pages under `device`. A 1,024-token image encode costs about 7 ms more (49 ms against 42), decode speed is unchanged and image embeddings are identical to the bit. Upgrade notes: a 32 GB card's start now needs about 18.6 GB of host RAM instead of about 18, a `host` start that cannot pin the tower is refused rather than falling back, and anyone who wants the text-only load on a 16 GB card must pass `--vision-enabled false`.
