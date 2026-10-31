@@ -36,7 +36,7 @@ Based on the homepage mockup reviewed on 2026-10-31. The site-code PR attaches t
 - Every newsroom bot pushes through the same GitHub App (the Grok App), so the check cannot tell the Editor-in-Chief from another bot by who pushed. The rule is therefore a lane rule on the pull request's shape:
   - A Grok App pull request may change `src/data/pins.json` only when its head branch starts with `grok/eic-pins-` **and** that file is the only path it changes (added or modified, a plain file; no delete, no rename).
   - Any other Grok App pull request that touches the file fails the path guard (`scripts/check-publisher-paths.mjs`), and so does any other bot's.
-  - The maintainer (Wiz Cat's own account) edits it freely, as today.
+  - The maintainer (Wiz Cat's own account) edits it freely, as today. That includes Claude working from Wiz Cat's account: Wiz Cat and Claude may both pin and unpin posts directly, and their pins are manual pins that take priority over EIC auto pins.
 - **What this does and does not stop.** It stops a ship run, a stray edit or a confused bot from changing pins as a side effect, which is the realistic failure. It does not authenticate the EIC: any bot holding the Grok App's key can name a branch `grok/eic-pins-…`. That is accepted because the harm is bounded: the file can only reorder up to two already-published posts on the homepage, the build validates its schema, and every change is a reviewable pull request with history. If pinning ever needs real separation, the EIC gets its own GitHub App with its own numeric actor id, and the guard checks that id the way it already checks the posts App and the Quill App; that is a later plan, not this one.
 
 ### Publisher-paths allowance
