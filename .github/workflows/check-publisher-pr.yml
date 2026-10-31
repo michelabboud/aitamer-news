@@ -22,6 +22,12 @@ name: Publisher paths
 # modified author keeps its kind and name, and an added author takes no other author's name. The posts App gains nothing else, and
 # the publisher, with no lane, gains nothing. The rules and why: the script's header.
 #
+# The desk editor App's pins lane (ADR 0050): author and sender both EIC_ACTOR_ID by numeric id
+# (unset, empty or not a number: nobody gets the lane), `opened` or `synchronize`, a same-repository
+# eic/pins-<suffix> branch, may change exactly src/data/pins.json, added or modified, a plain file.
+# It installs nothing and is deliberately not an observation prefix below: eic/ pull requests get
+# the required `publisher-paths` name and this script's verdict.
+#
 # pull_request_target: the workflow, and the script it runs, always come from main — never from
 # the pull request. Nothing from the pull request's head is checked out or executed. For every pull
 # request but the posts App's, no dependency is installed (the script needs only node's built-ins).
@@ -117,6 +123,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GROK_ACTOR_ID: ${{ vars.GROK_ACTOR_ID }}
           QUILL_ACTOR_ID: ${{ vars.QUILL_ACTOR_ID }}
+          EIC_ACTOR_ID: ${{ vars.EIC_ACTOR_ID }}
           PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           PR_BASE_REPO: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
