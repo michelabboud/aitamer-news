@@ -12,6 +12,13 @@ name: Deploy Cloudflare Pages
 on:
   push:
     branches: [main]
+  # Daily rebuild (plan docs/plans/2026-10-31-top-nav-and-pinning.md, "Daily scheduled deploy"): the
+  # site is static, so a pin's end date only takes effect at a build, and a quiet day has no merge.
+  # GitHub's cron is UTC only and Israel moves between UTC+2 and UTC+3: 22:10 UTC is 00:10 Israel
+  # winter time and 01:10 summer time, always after midnight there, so a pin ending on a bare date
+  # is gone by the morning. GitHub may start a scheduled run late; a late run still expires the pin.
+  schedule:
+    - cron: '10 22 * * *'
   workflow_dispatch:
     inputs:
       wait:

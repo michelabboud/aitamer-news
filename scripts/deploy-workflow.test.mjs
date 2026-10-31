@@ -100,3 +100,16 @@ test('the secondary schedule checks recently due posts before dispatching the no
   assert.equal(scheduledSteps[trigger].env.GH_TOKEN, '${{ secrets.GITHUB_TOKEN }}');
   assert.deepEqual(schedule.on.schedule, [{ cron: '7,17,27,37,47,57 * * * *' }]);
 });
+
+test('a daily scheduled deploy runs after midnight Israel time in both winter and summer', () => {
+  assert.deepEqual(workflow.on.schedule, [{ cron: '10 22 * * *' }]);
+  for (const day of ['2026-01-15', '2026-07-15']) {
+    const run = new Date(`${day}T22:10:00Z`);
+    const local = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', day: '2-digit' }).formatToParts(run);
+    const hour = Number(local.find((p) => p.type === 'hour').value);
+    const date = Number(local.find((p) => p.type === 'day').value);
+    assert.ok(hour <= 1, `${day}: ${hour}h is shortly after midnight`);
+    assert.equal(date, Number(day.slice(8)) + 1, `${day}: the run falls on the next local day`);
+  }
+});
+
