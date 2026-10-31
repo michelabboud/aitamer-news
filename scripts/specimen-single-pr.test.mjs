@@ -394,6 +394,26 @@ test('automatic Grok stale-base recovery retains immutable source without consul
   assert.ok(!f.api.calls.some(call=>call.path==='/pulls/7/reviews'));
 });
 
+test('same-PR recovery stops for a successor of the same approval that already succeeded',async t=>{
+  // PR #390 (2026-10-31) was a same-PR request: recovery overtook a successor that succeeded just
+  // before the dispatch, its numbering commit made that successor's certified head stale, three times.
+  const f=fixture(t);await prepare(f.api,f.env,dependencies);
+  f.api.current=f.commit(f.git('show','-s','--format=%T',f.base),[f.base],'main advanced');
+  f.api.runs.push(f.run(11,{head_sha:f.api.current,display_title:`Specimen same-pr pr=7 head=${f.source} review=1 recovery=10`}));
+  const before=f.api.mutations().length;
+  assert.equal(await recoverRequest(f.api,f.api.runs[0],f.env,{...dependencies,now:Date.parse('2026-10-05T12:00:00Z')}),'superseded');
+  assert.equal(f.api.mutations().length,before);
+});
+
+test('same-PR recovery is not stopped by a successor the sweep cannot select',async t=>{
+  // A successor bound to a review that is no longer the owner's decisive one is never finalized.
+  const f=fixture(t);await prepare(f.api,f.env,dependencies);
+  f.api.current=f.commit(f.git('show','-s','--format=%T',f.base),[f.base],'main advanced');
+  f.api.runs.push(f.run(11,{head_sha:f.api.current,display_title:`Specimen same-pr pr=7 head=${f.source} review=2 recovery=0`}));
+  assert.equal(await recoverRequest(f.api,f.api.runs[0],f.env,{...dependencies,now:Date.parse('2026-10-05T12:00:00Z')}),'dispatched');
+  assert.deepEqual(f.api.mutations().at(-1).body.inputs,{pr_number:'7',head_sha:f.source,recovery_run:'10',same_pr:'true',review_id:'1'});
+});
+
 test('merged owner-review receipts retain immutable PR binding when GitHub drops pull_requests',async t=>{
   const f=fixture(t),request={pr:7,review:1,source:f.source,approvedBase:f.base};
   f.api.wakes[0].pull_requests=[];

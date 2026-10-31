@@ -169,6 +169,63 @@ test('accepted dispatch with lost response does not dispatch again while success
   assert.equal(api.calls.filter(c=>c.path.endsWith('/dispatches')).length,1);
 });
 
+test('a successor that already succeeded stops recovery from an older run, without a receipt or dispatch', async () => {
+  // PR #390, 2026-10-31: a sweep chose to recover from an older run while its successor was still
+  // running; the successor succeeded seconds before the dispatch, so the in-progress guard missed it,
+  // another numbering commit replaced the successor's certified head, and the retry bound ran out.
+  for (const state of ['open','merged']) {
+    const api = new API();
+    api.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+    api.prs.push(generatedPR({number:101,head:{sha:HEAD,ref:'specimens/run-11',repo:{full_name:REPO}},...(state==='merged' ? {state:'closed',merged:true,merged_at:new Date(NOW).toISOString()} : {})}));
+    assert.equal(await recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),'superseded',state);
+    assert.equal(api.calls.filter(c=>c.path.endsWith('/dispatches')).length,0,state);
+    assert.equal(api.comments.get(7)?.length ?? 0,0,state);
+  }
+});
+
+test('a successor the sweep cannot select does not stall recovery from the older run', async () => {
+  // A newer success under an older root, or whose generated PR was closed, is never finalized.
+  // Treating it as the owner would leave every sweep returning superseded with nothing to merge.
+  const closed = new API();
+  closed.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  closed.prs.push(generatedPR({number:101,state:'closed',head:{sha:HEAD,ref:'specimens/run-11',repo:{full_name:REPO}}}));
+  assert.equal(await recoverRequest(closed,run(),ENV,{now:NOW,...dependencies}),'dispatched');
+  const missing = new API();
+  missing.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  assert.equal(await recoverRequest(missing,run(),ENV,{now:NOW,...dependencies}),'dispatched');
+  const otherRoot = new API();
+  otherRoot.runs.push(run(12,{conclusion:'failure'}));
+  otherRoot.runs.push(run(13,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  otherRoot.prs.push(generatedPR({number:103,head:{sha:HEAD,ref:'specimens/run-13',repo:{full_name:REPO}}}));
+  assert.equal(await recoverRequest(otherRoot,run(12,{conclusion:'failure'}),ENV,{now:NOW,...dependencies}),'dispatched');
+});
+
+test('a transport failure while checking a successor leaves the request pending, without a receipt or dispatch', async () => {
+  // Only the successor's own recorded refusals make it unselectable. A lost read is not one:
+  // dispatching on it would overtake a successor the sweep would have finalized, as on PR #390.
+  const api = new API();
+  api.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  api.prs.push(generatedPR({number:101,head:{sha:HEAD,ref:'specimens/run-11',repo:{full_name:REPO}}}));
+  api.before = path=>{ if (path==='/actions/runs/10') throw new Error('GitHub GET /actions/runs/10 transport failed (ECONNRESET)'); };
+  await assert.rejects(recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),/^Error: successor run 11: GitHub GET \/actions\/runs\/10 transport failed/);
+  assert.equal(api.calls.filter(c=>c.path.endsWith('/dispatches')).length,0);
+  assert.equal(api.comments.get(7)?.length ?? 0,0);
+});
+
+test('a successor that failed does not stop recovery from the older successful run', async () => {
+  const api = new API();
+  api.runs.push(run(11,{actor:{id:ACTIONS},status:'completed',conclusion:'failure',display_title:`Specimen request pr=7 head=${SOURCE} recovery=10`}));
+  assert.equal(await recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),'dispatched');
+});
+
+test('an older run of another request, or of another source, does not stop recovery', async () => {
+  const api = new API();
+  api.runs.push(run(9,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${SOURCE} recovery=0`}));
+  api.runs.push(run(12,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=8 head=${SOURCE} recovery=0`}));
+  api.runs.push(run(13,{actor:{id:ACTIONS},status:'completed',conclusion:'success',display_title:`Specimen request pr=7 head=${'e'.repeat(40)} recovery=0`}));
+  assert.equal(await recoverRequest(api,run(),ENV,{now:NOW,...dependencies}),'dispatched');
+});
+
 test('editorial changes and withdrawn approvals prevent recovery without mutations', async () => {
   for (const change of ['body','closed','draft','fork','base','revoked','original']) {
     const api = new API();

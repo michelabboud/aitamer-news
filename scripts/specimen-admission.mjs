@@ -250,13 +250,44 @@ async function retryReceipts(api, pr) {
 async function recordAttempt(api, pr, receipt, now) {
   await api.request(`/issues/${integer(pr)}/comments`, 'POST', { body: RETRY_MARKER + JSON.stringify({ ...receipt, time: new Date(now).toISOString() }) });
 }
+// The refusals approvedRequest raises about a run's approval or ancestry. Only these make a
+// successor unselectable; a transport or paging failure is rethrown so the request stays pending
+// rather than turning into a dispatch that overtakes a successor the sweep would have finalized.
+const SUCCESSOR_REFUSAL = /^(invalid recovery ancestry|recovery changed approved request|recovery has no owner request|recovery predecessor did not complete|owner request unexpectedly claims recovery|owner dispatch or authorized Grok identity required without review|owner editorial approval withdrawn or changed|owner approval has no immutable root|owner approval source rebound; original request retained|immutable owner approval receipt required)$/;
+async function sweepSelects(api, successor, request, owner) {
+  // The sweep finalizes a merged generated PR, otherwise the newest success of the latest root
+  // whose PR is open. A successor it cannot select must not stop recovery: that stalls silently.
+  if (!request.samePR) {
+    const prs = await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${successor.id}`)}`);
+    if (prs.length !== 1) return false;
+    if (prs[0].merged_at || prs[0].merged) return true;
+    if (prs[0].state !== 'open') return false;
+  }
+  let root;
+  try { ({ rootRun: root } = await approvedRequest(api, successor, owner)); } catch (error) {
+    if (!error.status && SUCCESSOR_REFUSAL.test(error.message)) return false;
+    // The caller logs under the older run's ID; name the successor that actually failed.
+    throw Object.assign(new Error(`successor run ${successor.id}: ${error.message}`, { cause: error }), error.status ? { status: error.status } : {});
+  }
+  return root === request.rootRun;
+}
 export async function recoverRequest(api, run, env, { now = Date.now(), ...dependencies } = {}) {
   const owner = integer(env.MAINTAINER_ID);
   const { request, digest } = await approvalPlan(api, run, owner, dependencies);
   for await (const other of stream(api, '/actions/workflows/specimen-admission.yml/runs', 'workflow_runs')) {
     if (other.id === run.id || !trustedRun(other, api.repo, owner)) continue;
     let r; try { r = requestOf(other); } catch { continue; }
-    if (r.pr === request.pr && r.source === request.source && other.status !== 'completed') return 'pending';
+    if (r.pr !== request.pr || r.source !== request.source) continue;
+    if (other.status !== 'completed') return 'pending';
+    // A newer success the sweep will select owns the request. The in-progress check above misses a
+    // successor that finished between the sweep's selection and this dispatch; recovering from the
+    // older run then appends another numbering commit and invalidates the newer run's certified head
+    // (PR #390, 2026-10-31). A newer failure does not stop recovery: the sweep keeps finalizing the
+    // older success, which recovers from itself.
+    if (other.id > run.id && other.conclusion === 'success' && await sweepSelects(api, other, request, owner)) {
+      console.log(`Admission run ${run.id}: superseded by successful run ${other.id}; the sweep finalizes it.`);
+      return 'superseded';
+    }
   }
   const attempts = (await retryReceipts(api, request.pr)).filter(r=>r.kind==='admission' && r.rootRun===request.rootRun);
   if (attempts.length >= MAX_RECOVERY_ATTEMPTS) throw new Error('admission retry limit reached; owner intervention required');
