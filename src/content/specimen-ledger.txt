@@ -1210,3 +1210,9 @@
 1207 wiz-black-october-ai-developer-platform-breaches-llmjacking
 1208 ramen-aura-autopilot-ai-playtesting-unreal-unity-godot
 1209 chatgpt-custom-gpts-retire-december-11-migrate-to-plugins
+1210 cisco-talos-volta-infostealer-llm-ranks-victims-openrouter
+1211 nvidia-cuda-oxide-0-3-stable-rust-cute-rs-qwen3-blackwell
+1212 aipref-ai-training-token-robots-txt-google-openai
+1213 russh-0-65-advisories-ssh-add-confirm-bypass-pre-auth-crash
+1214 prospero-lean-cpp-coding-harness-local-models-nullprogram
+1215 deepseek-dsh-superagent-prototype-proactive-github-coding-agent
