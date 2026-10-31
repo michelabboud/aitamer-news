@@ -1178,3 +1178,11 @@
 1175 pika-h3-flex-open-weights-video-model-license-excludes-us-eu
 1176 google-jules-winds-down-antigravity-export-before-nov-11
 1177 microsoft-mage-vl-cowork-4b-computer-use-model
+1178 a-folder-on-tmpfs-is-memory-and-a-disk-check-never-sees-it
+1179 hsts-one-header-stop-asking
+1180 docker-publishes-ports-on-every-interface-unless-you-name-one
+1181 no-cache-vs-no-store
+1182 cargo-allows-one-package-per-native-library
+1183 content-encoding-vs-transfer-encoding
+1184 a-build-that-downloads-a-binary-breaks-when-the-host-says-no
+1185 clear-site-data-logout
