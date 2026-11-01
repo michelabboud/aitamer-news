@@ -68,6 +68,7 @@ export const PROTECTED_IDS = Object.freeze(
     'footer-habitats',
     'footer-guide',
     'footer-station',
+    'footer-authors',
     'footer-legal',
     // src/pages/posts/[slug].astro
     'withdrawn-title',

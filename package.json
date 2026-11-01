@@ -33,7 +33,11 @@
     "post-builder": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/post-builder.mjs",
     "post-edit": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/post-edit.mjs",
     "preflight": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/bot-preflight.mjs",
-    "check:candidate": "node scripts/check-candidate-posts.mjs"
+    "check:candidate": "node scripts/check-candidate-posts.mjs",
+    "pin": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/pins.mjs pin",
+    "unpin": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/pins.mjs unpin",
+    "approve-pin": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/pins.mjs approve",
+    "check:pins": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-pins.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.2",

@@ -55,6 +55,20 @@ jobs:
             npm run check:posts
           fi
 
+      # Pins (plan docs/plans/2026-10-31-top-nav-and-pinning.md): a pull request that changes
+      # src/data/pins.json fails here when a pin names a post that is not live. Any other pull
+      # request only gets a warning for a dangling pin, so a retraction never needs to edit pins
+      # (only the desk's pin pull requests may). A broken file fails every check, strict or not.
+      - name: Check pins
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -n "$BASE_SHA" ] && ! git diff --quiet "$BASE_SHA"...HEAD -- src/data/pins.json; then
+            npm run check:pins -- --strict
+          else
+            npm run check:pins
+          fi
+
       # Heroes live on R2 (ADR 0020): a live post whose hero was never uploaded fails its pull
       # request here, not the deploy of main. One HEAD per post hero, retried on a network error or
       # a 5xx; a draft's or a future-scheduled post's missing hero is only listed. deploy-pages.yml

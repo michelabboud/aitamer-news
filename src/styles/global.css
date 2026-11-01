@@ -119,7 +119,41 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
   width: 7px; height: 7px; border-radius: 50%; background: var(--tamed);
   box-shadow: 0 0 0 3px rgba(143, 212, 160, 0.18);
 }
-.station-bar__links { display: flex; gap: 22px; }
+.station-bar__links { display: flex; gap: 22px; flex: 0 0 auto; }
+.station-bar__status { flex: 0 0 auto; }
+/* The clock is written by script after first paint: reserve its widest form, 28 characters plus
+   their letter-spacing ("THU 17 SEPT 2026 · 21:03 UTC"), so filling it never shifts the sections. */
+#station-clock { display: inline-block; min-width: calc(28ch + 28 * 0.06em); }
+
+/* The masthead comes first in the page (so phones read and tab in the order they show), and the
+   top bar is drawn above it on wider screens. */
+.site-head { display: flex; flex-direction: column; }
+.site-head > .station-bar { order: -1; }
+
+/* ---------- Sections (the top bar's main row, ADR 0051) ---------- */
+
+.sections { flex: 1 1 auto; min-width: 0; display: flex; justify-content: center; }
+.sections__list { display: flex; align-items: stretch; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.sections__list > li { display: flex; }
+.sections a, .nav-more summary {
+  display: flex; align-items: center; min-height: 36px; padding: 0 10px;
+  font-family: var(--font-reading); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.01em;
+  color: var(--ink-soft); text-decoration: none; cursor: pointer;
+}
+.sections a:hover, .nav-more summary:hover { color: var(--bone); }
+.sections__list > li > a[aria-current], .nav-more summary.is-current { color: var(--bone); box-shadow: inset 0 -2px 0 var(--ember); }
+.nav-more { position: relative; display: flex; }
+.nav-more summary { list-style: none; gap: 6px; }
+.nav-more summary::-webkit-details-marker { display: none; }
+.nav-more__caret { width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.nav-more[open] .nav-more__caret { transform: translateY(1px) rotate(225deg); }
+.nav-more__panel {
+  position: absolute; right: 0; top: 100%; z-index: 60; min-width: 13rem;
+  list-style: none; margin: 0; padding: 6px 0;
+  background: var(--night-raised); border: 1px solid var(--line-strong); box-shadow: var(--shadow-drop);
+}
+.nav-more__panel a { min-height: var(--tap-min); padding: 0 16px; color: var(--bone); font-size: 0.95rem; }
+.nav-more__panel a:hover, .nav-more__panel a[aria-current] { color: var(--ember-text); }
 .station-bar__links a { color: inherit; text-decoration: none; }
 .station-bar__links a:hover, .station-bar__links a[aria-current="page"] { color: var(--bone); }
 
@@ -143,11 +177,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 /* On the home page the wordmark is the page's h1; keep it looking exactly like the span. */
 h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 
-.masthead--home .masthead__inner { padding: 36px 0 26px; }
-.masthead--home .wordmark { gap: 10px; }
-.masthead--home .wordmark__name { font-size: 148px; line-height: 0.82; letter-spacing: -0.035em; }
-
-/* The home masthead is the wordmark alone: the tagline, search and counters live in the right panel. */
+/* The masthead is the wordmark alone: the tagline, search and counters live in the home page's right panel. */
 .masthead__brand { min-width: 0; }
 .station-card { display: flex; flex-direction: column; gap: 16px; }
 .station-card__about { margin: 0; font-size: 1rem; line-height: 1.5; color: var(--ink-soft); }
@@ -169,7 +199,7 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 .stats .is-ai { color: var(--ai); }
 .stats .is-human { color: var(--human); }
 
-/* Phone menu: holds the station links. Hidden on wide screens. */
+/* Phone menu: the utility links, the More menu's links and the station links. Hidden on wide screens. */
 .menu { display: none; position: relative; align-self: center; }
 .menu summary {
   list-style: none; cursor: pointer;
@@ -191,33 +221,22 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 }
 .menu__panel a:hover, .menu__panel a[aria-current="page"] { color: var(--ember-text); }
 
-/* ---------- Habitat nav ---------- */
+/* ---------- Pinned by the desk (home, above the lead) ---------- */
 
-.habitat-nav {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr)) 1.3fr;
-  border-top: 1px solid var(--bone);
-  border-bottom: 1px solid var(--line);
-  list-style: none; margin-block: 0; padding: 0;
+/* Text only, no image: the lead's hero stays the page's largest paint, and the card's height is
+   known before fonts load, so it cannot shift the lead after first paint. */
+.pin-card { border-top: 1px solid var(--bone); border-bottom: 1px solid var(--line); padding: 12px 0 14px; }
+/* The card belongs to the lead: half the column's usual gap between them. */
+.front__main > .pin-card { margin-bottom: -28px; }
+.pin-card__label {
+  margin: 0 0 8px; font-family: var(--font-machine); font-size: 0.6875rem; font-weight: 400;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember-text);
 }
-.habitat-nav__all { display: none; }
-.habitat-nav a {
-  height: 100%;
-  padding: 14px 12px; display: flex; flex-direction: column; gap: 3px;
-  border-right: 1px solid var(--line); color: var(--bone); text-decoration: none;
-}
-.habitat-nav__code {
-  text-transform: uppercase;
-  font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.1em; color: var(--ink-muted);
-}
-.habitat-nav__name { font-size: 1rem; font-weight: 600; }
-.habitat-nav a:hover .habitat-nav__name, .habitat-nav a[aria-current] .habitat-nav__name { color: var(--ember-text); }
-.habitat-nav a[aria-current] { box-shadow: inset 0 -2px 0 var(--ember); }
-.habitat-nav__watch a { background: var(--ember-field); border-right: 0; padding-left: 14px; }
-/* News, Columns and Voices sort by how you read (Voices: by who is speaking), the topics by what: a heavier rule after the reading views separates them. */
-.habitat-nav__reading--last a { border-right: 1px solid var(--bone); }
-.habitat-nav__watch .habitat-nav__code, .habitat-nav__watch .habitat-nav__name { color: var(--ember-text); }
-.habitat-nav__watch a:hover .habitat-nav__name { color: var(--bone); }
+.pin-card__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 10px 32px; }
+.pin-card__item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pin-card__title { font-family: var(--font-headline); font-size: 1.25rem; line-height: 1.2; color: var(--bone); text-decoration: none; }
+.pin-card__title:hover { color: var(--ember-text); }
+.pin-card__meta { font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--ink-muted); }
 
 /* ---------- Main ---------- */
 
@@ -884,14 +903,13 @@ a.archive-month__name:hover { color: var(--ember-text); }
 /* ---------- Responsive ---------- */
 
 @media (max-width: 1100px) {
-  .masthead--home .wordmark__name { font-size: clamp(72px, 12vw, 148px); }
+  .station-bar #station-clock { display: none; }
   .lead__title { font-size: clamp(34px, 4.4vw, 52px); }
   .site-footer__grid { grid-template-columns: repeat(3, 1fr); }
   .site-footer__brand { grid-column: 1 / -1; }
 }
 
 @media (max-width: 900px) {
-  .masthead--home .masthead__inner { grid-template-columns: 1fr; gap: 24px; }
   .split, .about-hero { grid-template-columns: 1fr; gap: 40px; }
   .lead__story { grid-template-columns: 1fr; grid-template-areas: "photo" "body" "details"; gap: 24px; }
   /* On phones and small tablets the posts come first, and the right panel follows below them. */
@@ -903,40 +921,38 @@ a.archive-month__name:hover { color: var(--ember-text); }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .contact-panel { grid-template-columns: 1fr; }
 
-  /* The habitat row becomes a sideways strip of chips (2b), edge to edge. */
-  .habitat-bar { width: 100%; }
-  .habitat-nav {
-    display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
-    border-top: 0; padding: 0 0 12px;
-    width: 100%; padding-inline: var(--gutter);
-  }
-  .habitat-nav::-webkit-scrollbar { display: none; }
-  .habitat-nav li { flex: 0 0 auto; }
-  .habitat-nav__all { display: block; }
-  .habitat-nav a {
-    flex-direction: row; align-items: center;
-    min-height: var(--tap-min); padding: 0 12px;
-    border: 1px solid var(--line); border-radius: var(--radius);
-    font-size: 0.875rem;
-  }
-  .habitat-nav__code { display: none; }
-  .habitat-nav__name { font-size: 0.875rem; }
-  .habitat-nav a[aria-current] { background: var(--bone); border-color: var(--bone); box-shadow: none; }
-  .habitat-nav a[aria-current] .habitat-nav__name { color: var(--night); }
-  .habitat-nav__watch a { background: transparent; border-color: var(--ember-line); padding-left: 12px; }
-  .habitat-nav__reading--last a { border-right: 1px solid var(--line); }
+  /* Narrow screens: the top bar keeps the sections and the small links; the clock and status go. */
+  .station-bar__status { display: none; }
+  .sections { justify-content: flex-start; }
 }
 
 @media (max-width: 720px) {
   body { font-size: 1.0625rem; padding-bottom: 74px; }
-  .station-bar { display: none; }
   .menu { display: block; }
-  .masthead__inner, .masthead--home .masthead__inner {
+  /* Phones: the top bar dissolves; the masthead comes first and the sections scroll sideways
+     under it, above the content. The utility links and More's links live in the menu instead
+     (a scrolling row would clip a drop-down). The tab bar stays at the bottom, apart. */
+  .station-bar { display: contents; }
+  .station-bar__inner { display: contents; }
+  .station-bar__links, .sections__more { display: none; }
+  .sections { width: 100%; border-bottom: 1px solid var(--line); }
+  .sections__list {
+    position: relative; gap: 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    width: 100%; padding: 0 var(--gutter) 12px;
+  }
+  .sections__list::-webkit-scrollbar { display: none; }
+  .sections__list > li { flex: 0 0 auto; }
+  .sections__list > li > a {
+    min-height: var(--tap-min); padding: 0 12px; font-size: 0.875rem; color: var(--bone);
+    border: 1px solid var(--line); border-radius: var(--radius);
+  }
+  .sections__list > li > a[aria-current] { background: var(--bone); border-color: var(--bone); color: var(--night); box-shadow: none; }
+  .masthead__inner {
     grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 16px 0 12px;
   }
-  .wordmark, .masthead--home .wordmark { gap: 0; }
+  .wordmark { gap: 0; }
   .wordmark__kicker { font-size: 0.5625rem; letter-spacing: 0.18em; }
-  .wordmark__name, .masthead--home .wordmark__name { font-size: 34px; line-height: 0.95; letter-spacing: -0.02em; }
+  .wordmark__name { font-size: 34px; line-height: 0.95; letter-spacing: -0.02em; }
 
   .site-main { padding-top: 18px; }
   .site-main--home { gap: 44px; }

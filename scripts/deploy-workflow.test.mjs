@@ -17,7 +17,8 @@ const runs = (pattern) => (step) => typeof step.run === 'string' && pattern.test
 const deploysTo = (branch) => (step) => typeof step.with?.command === 'string' && step.with.command.includes('pages deploy') && step.with.command.endsWith(`--branch=${branch}`);
 
 test('a burst of merges becomes one deploy, and a started deploy is never cut short', () => {
-  assert.deepEqual(settle.concurrency, { group: 'pages-settle', 'cancel-in-progress': true });
+  // Merges and dispatches share one settle group; the daily schedule settles apart (tested below).
+  assert.deepEqual(settle.concurrency, { group: "${{ github.event_name == 'schedule' && 'pages-settle-schedule' || 'pages-settle' }}", 'cancel-in-progress': true });
   assert.deepEqual(deploy.concurrency, { group: 'pages-production', 'cancel-in-progress': false });
   assert.equal(deploy.needs, 'settle');
   assert.equal(workflow.concurrency, undefined, 'a workflow-level group would cancel a deploy mid-flight');
@@ -100,3 +101,25 @@ test('the secondary schedule checks recently due posts before dispatching the no
   assert.equal(scheduledSteps[trigger].env.GH_TOKEN, '${{ secrets.GITHUB_TOKEN }}');
   assert.deepEqual(schedule.on.schedule, [{ cron: '7,17,27,37,47,57 * * * *' }]);
 });
+
+test('a daily scheduled deploy runs after midnight Israel time in both winter and summer', () => {
+  assert.deepEqual(workflow.on.schedule, [{ cron: '10 22 * * *' }]);
+  for (const day of ['2026-01-15', '2026-07-15']) {
+    const run = new Date(`${day}T22:10:00Z`);
+    const local = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', day: '2-digit' }).formatToParts(run);
+    const hour = Number(local.find((p) => p.type === 'hour').value);
+    const date = Number(local.find((p) => p.type === 'day').value);
+    assert.ok(hour <= 1, `${day}: ${hour}h is shortly after midnight`);
+    assert.equal(date, Number(day.slice(8)) + 1, `${day}: the run falls on the next local day`);
+  }
+});
+
+test('the scheduled run can neither cancel a merge\'s deploy nor ship an older commit than main', () => {
+  const settle = workflow.jobs.settle.concurrency;
+  assert.equal(settle['cancel-in-progress'], true);
+  assert.match(settle.group, /github\.event_name == 'schedule' && 'pages-settle-schedule' \|\| 'pages-settle'/);
+  const checkout = workflow.jobs.deploy.steps.find((step) => String(step.uses ?? '').startsWith('actions/checkout@'));
+  assert.equal(checkout.with.ref, "${{ github.event_name == 'schedule' && 'refs/heads/main' || '' }}");
+  assert.equal(workflow.jobs.deploy.concurrency.group, 'pages-production', 'one production deploy at a time, schedule included');
+});
+
