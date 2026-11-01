@@ -103,8 +103,12 @@ test('the published JSON Schema documents narration with voice optional', () => 
   assert.equal(field.additionalProperties, false);
 });
 
-test('narrationUrl builds the fixed bot bucket path', () => {
-  assert.equal(narrationUrl(narration), 'https://bots.aitamer.news/audio/grok-4-7-pricing/grok-4-7-pricing-v1.mp3');
+const BOT_HERO = 'https://bots.aitamer.news/heroes/grok-4-7-pricing-0123abcd.jpg';
+const DESK_HERO = 'https://media.aitamer.news/heroes/grok-4-7-pricing-0123abcd.jpg';
+
+test('narrationUrl puts the file under audio/ on the origin it is given', () => {
+  assert.equal(narrationUrl(narration, 'https://bots.aitamer.news'), 'https://bots.aitamer.news/audio/grok-4-7-pricing/grok-4-7-pricing-v1.mp3');
+  assert.equal(narrationUrl(narration, 'https://media.aitamer.news'), 'https://media.aitamer.news/audio/grok-4-7-pricing/grok-4-7-pricing-v1.mp3');
 });
 
 test('narrationLength is M:SS, or H:MM:SS from one hour', () => {
@@ -122,12 +126,24 @@ test('isoDuration is an ISO 8601 duration', () => {
 });
 
 test('narrationAudioObject is undefined without narration, an AudioObject with it', () => {
-  assert.equal(narrationAudioObject(undefined), undefined);
-  assert.equal(JSON.stringify({ a: 1, audio: narrationAudioObject(undefined) }), '{"a":1}');
-  assert.deepEqual(narrationAudioObject(narration), {
+  assert.equal(narrationAudioObject(undefined, BOT_HERO), undefined);
+  assert.equal(narrationAudioObject(undefined, undefined), undefined, 'no narration needs no hero');
+  assert.equal(JSON.stringify({ a: 1, audio: narrationAudioObject(undefined, BOT_HERO) }), '{"a":1}');
+  assert.deepEqual(narrationAudioObject(narration, BOT_HERO), {
     '@type': 'AudioObject',
     contentUrl: 'https://bots.aitamer.news/audio/grok-4-7-pricing/grok-4-7-pricing-v1.mp3',
     encodingFormat: 'audio/mpeg',
     duration: 'PT4M5S',
   });
+});
+
+test('narration lives in the hero\'s bucket: bots for a bot\'s post, media for a desk writer\'s', () => {
+  assert.equal(narrationAudioObject(narration, BOT_HERO)?.contentUrl, 'https://bots.aitamer.news/audio/grok-4-7-pricing/grok-4-7-pricing-v1.mp3');
+  assert.equal(narrationAudioObject(narration, DESK_HERO)?.contentUrl, 'https://media.aitamer.news/audio/grok-4-7-pricing/grok-4-7-pricing-v1.mp3');
+});
+
+test('a narrated post whose hero is on neither bucket fails instead of guessing a host', () => {
+  for (const hero of [undefined, '/heroes/x.jpg', 'https://example.com/heroes/x.jpg', 'https://media.aitamer.news.evil.example/x.jpg']) {
+    assert.throws(() => narrationAudioObject(narration, hero), /heroImage must be on https:\/\/media\.aitamer\.news or https:\/\/bots\.aitamer\.news/, String(hero));
+  }
 });

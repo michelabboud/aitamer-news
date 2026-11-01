@@ -3,14 +3,16 @@ import { narrationLength, narrationUrl, type Narration } from '../lib/narration'
 /**
  * The post read aloud, played by the browser's own `<audio>` element: no script, no autoplay, no
  * third-party player, and nothing downloads until the reader presses play (`preload="none"`).
- * The file comes from the bot bucket's public host (allowed by `media-src` in
- * scripts/csp-headers.mjs). Only the frontmatter `key` and `file` name it (post-schema.ts).
+ * The file comes from the hero's bucket, `origin` (`postFilesOrigin` in src/lib/media.ts; both
+ * hosts are allowed by `media-src` in scripts/csp-headers.mjs). Only the frontmatter `key` and
+ * `file` name it (post-schema.ts).
  */
 interface Props {
   narration: Narration;
+  origin: string;
 }
-const { narration } = Astro.props;
-const src = narrationUrl(narration);
+const { narration, origin } = Astro.props;
+const src = narrationUrl(narration, origin);
 const length = narrationLength(narration.durationSeconds);
 ---
 <figure class="narration" data-pagefind-ignore>

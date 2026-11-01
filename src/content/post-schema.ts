@@ -69,11 +69,13 @@ const video = z
 
 /**
  * A video the desk made and hosts itself, played by a plain `<video>` near the top of the post
- * (`src/components/SelfHostedVideo.astro`). Only slugs, never a URL: the files live in the bot
- * bucket under `https://bots.aitamer.news/videos/<key>/`: `<stem>-1080p.mp4`, `<stem>-720p.mp4`,
+ * (`src/components/SelfHostedVideo.astro`). Only slugs, never a URL: the files live in the post
+ * hero's bucket (`postFilesOrigin` in src/lib/media.ts: bots.aitamer.news or media.aitamer.news)
+ * under `videos/<key>/`: `<stem>-1080p.mp4`, `<stem>-720p.mp4`,
  * `<key>-poster.webp` and `<key>-poster.jpg`. `stem` defaults to `key`; a re-cut gets a new stem
  * (`<key>-v2`) because bucket objects are never overwritten. The English captions are in the same
- * folder, `<stem>.en.vtt`; the page loads them from this site at `/videos/<key>/<stem>.en.vtt`,
+ * folder, `<stem>.en.vtt`; the page loads them from this site at `/videos/<key>/<stem>.en.vtt`
+ * (bot bucket) or `/videos/media/<key>/<stem>.en.vtt` (media bucket),
  * which the captions proxy (functions/videos/[[path]].js) fetches from the bucket. The length caps
  * match the proxy's path pattern. `disclosure` is the AI-use line shown directly under the player.
  */
@@ -91,8 +93,8 @@ const selfHostedVideo = z
 
 /**
  * An audio narration of the post, played by a plain `<audio>` under the byline
- * (`src/components/PostNarration.astro`). Only slugs, never a URL: the file lives in the bot bucket
- * at `https://bots.aitamer.news/audio/<key>/<file>.mp3` (`src/lib/narration.ts`). A re-render gets
+ * (`src/components/PostNarration.astro`). Only slugs, never a URL: the file lives in the post hero's
+ * bucket at `<hero host>/audio/<key>/<file>.mp3` (`src/lib/narration.ts`). A re-render gets
  * a new `file`, because bucket objects are never overwritten. The house voice is Kokoro-82M
  * `af_heart`; `voice` records it and `disclosure` is the AI-use line shown under the player.
  */
@@ -176,9 +178,9 @@ export const postSchema = z
     verdict: z.string().min(1).max(240).optional(),
     sunset: sunset.optional(),
     video: video.optional(),
-    /** A self-hosted video from the bot bucket, shown above the body (see `selfHostedVideo` above). */
+    /** A self-hosted video from the hero's bucket, shown above the body (see `selfHostedVideo` above). */
     selfHostedVideo: selfHostedVideo.optional(),
-    /** An audio narration from the bot bucket, shown under the byline (see `narration` above). */
+    /** An audio narration from the hero's bucket, shown under the byline (see `narration` above). */
     narration: narration.optional(),
     /** Dated corrections, shown on the post. Add one; never edit or remove an old one. */
     corrections: z.array(correction).default([]),

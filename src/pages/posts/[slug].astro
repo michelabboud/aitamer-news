@@ -45,7 +45,7 @@ import {
   type Section,
 } from '../../lib/site';
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
-import { DEFAULT_SOCIAL_IMAGE, resolveMedia, shareImageUrl } from '../../lib/media';
+import { DEFAULT_SOCIAL_IMAGE, postFilesOrigin, resolveMedia, shareImageUrl } from '../../lib/media';
 import HeroImage from '../../components/HeroImage.astro';
 
 export async function getStaticPaths() {
@@ -141,7 +141,7 @@ const jsonLd = withdrawn
       citation: data.sources?.map((source) => source.url),
       isAccessibleForFree: true,
       // The post read aloud (`narration`); undefined, so the key is left out, when there is none.
-      audio: narrationAudioObject(data.narration),
+      audio: narrationAudioObject(data.narration, data.heroImage),
       // No comment count or schema.org Comments: comments are read in the browser from the data host
       // (`COMMENTS_SOURCE = 'r2'`, ADR 0047), so they are not in the build to describe. `commentsJsonLd`
       // stays in `comment-text.ts` for the way back to baked HTML.
@@ -225,7 +225,7 @@ const breadcrumbs = {
       </section>
     ) : (
       <>
-        {data.narration && <PostNarration narration={data.narration} />}
+        {data.narration && <PostNarration narration={data.narration} origin={postFilesOrigin(data.heroImage)} />}
         {corrections.length > 0 && (
           <section class="notice notice--corrections" aria-labelledby="corrections-title">
             <h2 id="corrections-title">{corrections.length === 1 ? 'Correction' : 'Corrections'}</h2>
@@ -267,7 +267,7 @@ const breadcrumbs = {
           </figcaption>
         </figure>
 
-        {data.selfHostedVideo && !withdrawn && <SelfHostedVideo video={data.selfHostedVideo} />}
+        {data.selfHostedVideo && !withdrawn && <SelfHostedVideo video={data.selfHostedVideo} origin={postFilesOrigin(data.heroImage)} />}
 
         <div class="article__body">
           <Content />

@@ -29,8 +29,8 @@ const compiled = await build({
 const { default: PostNarration } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const container = await AstroContainer.create();
 const DISCLOSURE = 'AI use: this narration is a synthetic voice (Kokoro-82M). The text was written and checked by the aitamer.news desk.';
-const render = (extra = {}) => container.renderToString(PostNarration, {
-  props: { narration: { key: 'grok-4-7-pricing', file: 'grok-4-7-pricing-v1', durationSeconds: 245, voice: 'Kokoro-82M af_heart', disclosure: DISCLOSURE, ...extra } },
+const render = (extra = {}, origin = 'https://bots.aitamer.news') => container.renderToString(PostNarration, {
+  props: { narration: { key: 'grok-4-7-pricing', file: 'grok-4-7-pricing-v1', durationSeconds: 245, voice: 'Kokoro-82M af_heart', disclosure: DISCLOSURE, ...extra }, origin },
 });
 
 test('renders a native, labelled, no-autoplay audio player from the bot bucket', async () => {
@@ -41,6 +41,13 @@ test('renders a native, labelled, no-autoplay audio player from the bot bucket',
   assert.match(html, /<figcaption class="narration__disclosure">AI use: this narration is a synthetic voice \(Kokoro-82M\)\./);
   assert.match(html, /data-pagefind-ignore/);
   assert.doesNotMatch(html, /autoplay|<script|<iframe/i);
+});
+
+test('a desk writer\'s post plays the narration from the media bucket', async () => {
+  const html = await render({}, 'https://media.aitamer.news');
+  assert.match(html, /<source src="https:\/\/media\.aitamer\.news\/audio\/grok-4-7-pricing\/grok-4-7-pricing-v1\.mp3" type="audio\/mpeg">/);
+  assert.match(html, /<a href="https:\/\/media\.aitamer\.news\/audio\/grok-4-7-pricing\/grok-4-7-pricing-v1\.mp3">/);
+  assert.doesNotMatch(html, /bots\.aitamer\.news/);
 });
 
 test('without JS a browser that cannot play it still gets a download link', async () => {
@@ -65,7 +72,7 @@ const page = readFileSync('src/pages/posts/[slug].astro', 'utf8');
 test('the post page renders the player only when narration is present, after the header and above the body', () => {
   const uses = page.match(/<PostNarration\b[^>]*>/g) ?? [];
   assert.equal(uses.length, 1);
-  assert.match(page, /\{data\.narration && <PostNarration narration=\{data\.narration\} \/>\}/);
+  assert.match(page, /\{data\.narration && <PostNarration narration=\{data\.narration\} origin=\{postFilesOrigin\(data\.heroImage\)\} \/>\}/);
   const header = page.indexOf('</header>');
   const withdrawnBranch = page.indexOf(') : (', header);
   const player = page.indexOf('<PostNarration');
@@ -74,12 +81,12 @@ test('the post page renders the player only when narration is present, after the
 });
 
 test('the article JSON-LD carries audio only through narrationAudioObject (undefined without narration)', () => {
-  assert.match(page, /audio: narrationAudioObject\(data\.narration\),/);
+  assert.match(page, /audio: narrationAudioObject\(data\.narration, data\.heroImage\),/);
   assert.equal((page.match(/narrationAudioObject\(/g) ?? []).length, 1);
 });
 
-test('the CSP already lets the bot bucket serve media', () => {
-  const csp = readFileSync('scripts/csp-headers.mjs', 'utf8');
-  assert.match(csp, /botMedia: 'https:\/\/bots\.aitamer\.news'/);
-  assert.match(csp, /\['media-src', \["'self'", ORIGINS\.botMedia\]\]/);
+test('the CSP lets both buckets serve media, and no other host', async () => {
+  const { directives } = await import('./csp-headers.mjs');
+  const media = new Map(directives({ hashes: [], endpoints: { comments: 'https://comments.aitamer.news/', contact: 'https://contact.aitamer.news/' } })).get('media-src');
+  assert.deepEqual(media, ["'self'", 'https://bots.aitamer.news', 'https://media.aitamer.news']);
 });

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, isOwnHeroUrl, resolveMedia, shareImageUrl, visualHeroSources, webpHeroUrl } from './media.ts';
+import { DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, heroUrl, isOwnHeroUrl, postFilesOrigin, resolveMedia, shareImageUrl, visualHeroSources, webpHeroUrl } from './media.ts';
 import { WEBP_HERO_JPEGS } from './hero-webp-catalog.ts';
 
 test('heroUrl builds the full R2 URL for a slug', () => {
@@ -235,4 +235,12 @@ test('local previews use the JPEG fallback even for an explicitly selected bot W
   assert.deepEqual(visualHeroSources(webp, '/media-local'), {
     src: '/media-local/heroes/a--b--0123abcd.jpg',
   });
+});
+
+test('postFilesOrigin: a post\'s narration and video live in its hero\'s bucket, exact origins only', () => {
+  assert.equal(postFilesOrigin('https://bots.aitamer.news/heroes/x-0123abcd.jpg'), 'https://bots.aitamer.news');
+  assert.equal(postFilesOrigin('https://media.aitamer.news/heroes/x-0123abcd.jpg'), 'https://media.aitamer.news');
+  for (const hero of [undefined, '', '/heroes/x.jpg', 'https://example.com/x.jpg', 'https://bots.aitamer.news.evil.example/x.jpg', 'https://media.aitamer.newsx/x.jpg', 'http://media.aitamer.news/x.jpg']) {
+    assert.throws(() => postFilesOrigin(hero), /live in the hero's bucket/, String(hero));
+  }
 });

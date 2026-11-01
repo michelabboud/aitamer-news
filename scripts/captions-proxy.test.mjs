@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { handleCaptions, MAX_BYTES, UPSTREAM } from '../functions/videos/[[path]].js';
+import { captionSource, handleCaptions, MAX_BYTES, MEDIA_UPSTREAM, UPSTREAM } from '../functions/videos/[[path]].js';
 
 const VTT = 'WEBVTT\n\n00:00.000 --> 00:01.000\nHello\n';
 const PATH = '/videos/leann-explainer/leann-explainer-v2.en.vtt';
@@ -96,4 +96,22 @@ test('a body over the cap is refused, declared or not', async () => {
 test('_routes.json runs the function only under /videos/', () => {
   const routes = JSON.parse(readFileSync(new URL('../public/_routes.json', import.meta.url), 'utf8'));
   assert.deepEqual(routes, { version: 1, include: ['/videos/*'], exclude: [] });
+});
+
+test('a media-bucket caption path fetches the same file from the media bucket', async () => {
+  const { impl, calls } = fakeFetch(upstreamOk);
+  const res = await handleCaptions(new Request('https://aitamer.news/videos/media/desk-explainer/desk-explainer-v1.en.vtt'), impl);
+  assert.equal(res.status, 200);
+  assert.equal(await res.text(), VTT);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, `${MEDIA_UPSTREAM}/videos/desk-explainer/desk-explainer-v1.en.vtt`);
+});
+
+test('each path shape has exactly one fixed upstream; nothing else is fetched', () => {
+  assert.equal(captionSource('/videos/a/b.en.vtt'), `${UPSTREAM}/videos/a/b.en.vtt`);
+  assert.equal(captionSource('/videos/media/b.en.vtt'), `${UPSTREAM}/videos/media/b.en.vtt`, 'a bot folder named media stays on the bot bucket');
+  assert.equal(captionSource('/videos/media/a/b.en.vtt'), `${MEDIA_UPSTREAM}/videos/a/b.en.vtt`);
+  for (const path of ['/videos/media/a/b/c.en.vtt', '/videos/bots/a/b.en.vtt', '/videos/media/A/b.en.vtt', '/videos/media/a/b.mp4', '/videos/media//b.en.vtt', '/videos/media/../a/b.en.vtt']) {
+    assert.equal(captionSource(path), null, path);
+  }
 });

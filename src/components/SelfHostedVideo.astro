@@ -2,21 +2,26 @@
 import { toJsonLd } from '../lib/json-ld';
 /**
  * A video the desk made, played by the browser's own `<video>` element: no third-party player,
- * no script, no tracker. The files come from the bot bucket's public host (allowed by `media-src`
- * in scripts/csp-headers.mjs). The caption file sits in the bucket next to the video, but the track
- * asks this site for it (`/videos/<key>/<stem>.en.vtt`): a cross-origin track needs CORS on the
- * bucket, so the captions proxy (functions/videos/[[path]].js) fetches it from the bucket instead.
+ * no script, no tracker. The files come from the hero's bucket, `origin` (`postFilesOrigin` in
+ * src/lib/media.ts: bots.aitamer.news for a bot's post, media.aitamer.news for a desk writer's; both
+ * allowed by `media-src` in scripts/csp-headers.mjs). The caption file sits in the bucket next to the
+ * video, but the track asks this site for it: a cross-origin track needs CORS on the bucket, so the
+ * captions proxy (functions/videos/[[path]].js) fetches it instead, from `/videos/<key>/<stem>.en.vtt`
+ * for the bot bucket and `/videos/media/<key>/<stem>.en.vtt` for the media bucket.
  * Only the frontmatter `key` and `stem` name the files (post-schema.ts).
  */
+import { MEDIA_ORIGIN, MEDIA_ORIGINS } from '../lib/media';
 interface Props {
   video: { key: string; stem?: string; title: string; description: string; durationSeconds: number; uploadDate: Date; disclosure: string };
+  origin: string;
 }
-const { video } = Astro.props;
-const folder = `https://bots.aitamer.news/videos/${video.key}/`;
+const { video, origin } = Astro.props;
+if (!MEDIA_ORIGINS.includes(origin)) throw new Error(`SelfHostedVideo: origin must be ${MEDIA_ORIGINS.join(' or ')}, got ${JSON.stringify(origin)}`);
+const folder = `${origin}/videos/${video.key}/`;
 const stem = video.stem ?? video.key;
 const poster = `${folder}${video.key}-poster`;
 const base = `${folder}${stem}`;
-const captions = `/videos/${video.key}/${stem}.en.vtt`;
+const captions = `/videos/${origin === MEDIA_ORIGIN ? 'media/' : ''}${video.key}/${stem}.en.vtt`;
 const minutes = Math.floor(video.durationSeconds / 60);
 const seconds = video.durationSeconds % 60;
 const length = `${minutes}:${String(seconds).padStart(2, '0')}`;
