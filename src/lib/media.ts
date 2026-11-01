@@ -96,6 +96,18 @@ export function mediaOrigin(value: string): string | undefined {
 }
 
 /**
+ * The bucket a post's own narration and self-hosted video live in: the same as its hero's
+ * (Michel, 2026-11-01). A bot's post keeps them on bots.aitamer.news, a desk writer's on
+ * media.aitamer.news. Any other hero throws, so the build fails instead of a player pointing at
+ * the wrong bucket.
+ */
+export function postFilesOrigin(heroImage: string | undefined): string {
+  const origin = heroImage ? mediaOrigin(heroImage) : undefined;
+  if (!origin) throw new Error(`narration and self-hosted video files live in the hero's bucket, so heroImage must be on ${MEDIA_ORIGINS.join(' or ')}; got ${heroImage ? JSON.stringify(heroImage) : 'no heroImage'}`);
+  return origin;
+}
+
+/**
  * Reads the build-time `PUBLIC_MEDIA_BASE` var. Guarded so this module also loads under the plain
  * Node test runner (`npm test`), where `import.meta.env` (a Vite/Astro global) does not exist.
  */

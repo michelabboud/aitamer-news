@@ -235,7 +235,7 @@ The LEANN build lives in `$VIDEO_WORK/pilot-leann/build/`. Copy it as the starti
 
 ## 9. R2 storage
 
-1. **Bucket:** the bot bucket `aitamer-bots` only, public at `https://bots.aitamer.news/`. **Never `aitamer-media`.**
+1. **Bucket:** the post hero's bucket (Michel, 2026-11-01). A bot's post, with its hero on `bots.aitamer.news`, uses the bot bucket `aitamer-bots`, public at `https://bots.aitamer.news/`; a bot never writes to `aitamer-media`. A desk writer's post, with its hero on `media.aitamer.news`, uses the media bucket `aitamer-media` under the same `videos/<slug>/` keys. The site picks the host from `heroImage`.
 2. **Keys** under `videos/<slug>/`. Every key is written exactly once, so each one is either per version (contains the stem) or per folder (uploaded with the first version and reused by every later one):
    - per version: `<stem>-1080p.mp4`, `<stem>-720p.mp4`, `<stem>.en.vtt`, `<stem>.manifest.json`;
    - per folder: `<slug>-poster.webp` and `<slug>-poster.jpg` (1280x720), and `art/01.jpg` and up (a backup of the source images).
@@ -304,7 +304,7 @@ Uses the site code from PR #357, merged through #361 on 2026-10-28 (`SelfHostedV
 
    `key` is the R2 folder (posters are `<key>-poster.webp` and `.jpg`). `stem` defaults to `key`; set it for a re-cut. The `.vtt` must be in R2 at `videos/<key>/<stem>.en.vtt` before the post merges; nothing goes in the repo besides the post. Field docs: `POST.md`.
 2. **The component** (`src/components/SelfHostedVideo.astro`) renders a plain `<video>` above the body with both MP4 sources, the poster, the captions track and the disclosure line under the player. No third-party player, no script, no tracker, no analytics pixel for the video.
-3. **CSP:** `media-src 'self' https://bots.aitamer.news` (in `scripts/csp-headers.mjs`). Any change is site code.
+3. **CSP:** `media-src 'self' https://bots.aitamer.news https://media.aitamer.news` (in `scripts/csp-headers.mjs`). Any change is site code. Captions load from `/videos/<key>/<stem>.en.vtt` for the bot bucket and `/videos/media/<key>/<stem>.en.vtt` for the media bucket.
 4. **JSON-LD:** the component emits a `VideoObject` (name, description, thumbnail, upload date, duration, content URL) from the frontmatter.
 5. **Corrections:** when a video changes facts on a live post, add a dated entry to the post's `corrections` list (ISO time, plain sentence of what changed), as in #358. A re-cut video also gets a new stem.
 
@@ -351,7 +351,7 @@ Waiting for Wiz Cat to create **`@aitamernews`** under a **Brand Account** with 
 - [ ] Re-render after fixes uses a new stem (`-v2`); posters and `art/` were not regenerated.
 
 **Upload**
-- [ ] Bucket is `aitamer-bots`, keys under `videos/<slug>/`.
+- [ ] Bucket is the hero's: `aitamer-bots` for a bot's post, `aitamer-media` for a desk writer's; keys under `videos/<slug>/`.
 - [ ] This version's MP4s, `.vtt` and `<stem>.manifest.json`; posters (webp and jpg) and `art/` only with the folder's first version.
 - [ ] Manifest has bytes, sha256, mime, duration for each file, and `supersedes`.
 - [ ] Create-only PUT, no HEAD or GET first; on any 412, stopped and compared sha256 (section 9, item 5).

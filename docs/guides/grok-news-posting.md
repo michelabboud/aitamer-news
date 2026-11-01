@@ -266,7 +266,7 @@ A post may carry one narration: the article read aloud. Like the video, it is on
 
 House voice rule: all of our own narration uses Kokoro-82M with the voice `af_heart`. HeyGen presenter videos are a separate thing and do not change this rule.
 
-R2 path rule: the file lives in the bot bucket at `audio/<key>/<file>.mp3`, served as `https://bots.aitamer.news/audio/<key>/<file>.mp3`. `key` and `file` are lowercase slugs (`a-z`, `0-9` and single hyphens; at most 120 and 140 characters). Never write a URL or `.mp3` in the frontmatter. Uploads are create-only: a re-render gets a new `file` (for example `<key>-v2`), never a replaced object.
+R2 path rule: narration and video live in the same bucket as the post's hero. Your heroes are on the bot bucket, so the file lives in the bot bucket at `audio/<key>/<file>.mp3`, served as `https://bots.aitamer.news/audio/<key>/<file>.mp3`. `key` and `file` are lowercase slugs (`a-z`, `0-9` and single hyphens; at most 120 and 140 characters). Never write a URL or `.mp3` in the frontmatter. Uploads are create-only: a re-render gets a new `file` (for example `<key>-v2`), never a replaced object.
 
 Quick start:
 
