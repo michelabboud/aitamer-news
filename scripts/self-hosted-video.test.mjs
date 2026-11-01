@@ -57,3 +57,9 @@ test('the post page passes the hero\'s bucket to both players', () => {
   assert.match(page, /<SelfHostedVideo video=\{data\.selfHostedVideo\} origin=\{postFilesOrigin\(data\.heroImage\)\} \/>/);
   assert.equal((page.match(/postFilesOrigin\(/g) ?? []).length, 2);
 });
+
+test('any origin other than the two buckets is refused, never sent to the bot caption path', async () => {
+  for (const origin of ['https://example.com', 'https://media.aitamer.news/', 'http://bots.aitamer.news', '']) {
+    await assert.rejects(render(origin), /SelfHostedVideo: origin must be/, origin);
+  }
+});

@@ -34,9 +34,9 @@ This repository is public, so box paths appear here only as shell variables. Set
 | Box: R2 staging | `$R2_STAGING/videos/<slug>/` | The exact files that will be uploaded: MP4s, `.vtt` and manifest per version; posters and `art/` once per folder. Nothing else. | The producing desk. Never edit a file here after it is uploaded; make a new version. |
 | Box: upload run folder | `$UPLOAD_RUNS/<slug>-r2-<date>/` | `upload-receipts.txt`, `readback.txt`, screenshots of the live player. | The producing desk. |
 | Box: voice | `$KOKORO_VENV`, `$KOKORO_MODELS`, `$KOKORO_LEXICON` | Shared tooling. Add new pronunciations to the lexicon or a per-video `EXTRA_LEX`. | Any desk may use it. Changes to the venv or lexicon: note them in `script.md`. |
-| R2 bot bucket | `aitamer-bots`, public at `https://bots.aitamer.news/videos/<slug>/` | Per version: `<stem>-1080p.mp4`, `<stem>-720p.mp4`, `<stem>.en.vtt`, `<stem>.manifest.json` (v1 and later `-v2` stems side by side). Once per folder: `<slug>-poster.webp`, `<slug>-poster.jpg`, and `art/01.jpg` and up (backup of the source images). | The producing desk, create-only. Nobody overwrites or deletes. **Never `aitamer-media`.** |
+| R2: the post hero's bucket | `aitamer-bots` (public at `https://bots.aitamer.news/videos/<slug>/`) for a bot's post; `aitamer-media` (`https://media.aitamer.news/videos/<slug>/`) for a desk writer's post (section 9) | Per version: `<stem>-1080p.mp4`, `<stem>-720p.mp4`, `<stem>.en.vtt`, `<stem>.manifest.json` (v1 and later `-v2` stems side by side). Once per folder: `<slug>-poster.webp`, `<slug>-poster.jpg`, and `art/01.jpg` and up (backup of the source images). | The producing desk, create-only. Nobody overwrites or deletes. **Never `aitamer-media`.** |
 | Repo: this guide | `docs/guides/video-protocol.md` | The protocol. | Any desk by PR. Docs-only PRs go through normal review. |
-| Site: captions URL | `https://aitamer.news/videos/<slug>/<stem>.en.vtt` | Not a file in the repo. The captions proxy (`functions/videos/[[path]].js`) fetches the R2 copy and serves it on our domain, so the `<track>` is same-origin. Never add a `.vtt` under `public/`: a static file would shadow the proxy. | Site code; changes need Wiz Cat's review. |
+| Site: captions URL | `https://aitamer.news/videos/<slug>/<stem>.en.vtt` (bot bucket) or `https://aitamer.news/videos/media/<slug>/<stem>.en.vtt` (media bucket) | Not a file in the repo. The captions proxy (`functions/videos/[[path]].js`) fetches the R2 copy and serves it on our domain, so the `<track>` is same-origin. Never add a `.vtt` under `public/`: a static file would shadow the proxy. | Site code; changes need Wiz Cat's review. |
 | Repo: post | `src/content/posts/<post-slug>.md` | The `selfHostedVideo` frontmatter block and any `corrections` entry. | The producing desk opens the PR; the EIC merges content PRs. |
 | Repo: site code | `src/components/SelfHostedVideo.astro`, `src/content/post-schema.ts`, `scripts/csp-headers.mjs`, `POST.md` | The player, schema, CSP `media-src` and field docs. | Only by a site-code PR that **Wiz Cat reviews**. The EIC does not merge site code. |
 | YouTube | `@aitamernews` (pending) | The same final MP4, the `.vtt` as a caption file, the description with the post link and AI note. | Wiz Cat or the EIC, by hand, at first. Bots never hold the channel password. |
@@ -249,7 +249,8 @@ The LEANN build lives in `$VIDEO_WORK/pilot-leann/build/`. Copy it as the starti
 7. **Read back after upload**, for every key you uploaded in this run, from the public host. The script writes `readback.txt` in the run folder and exits non-zero if any check fails:
 
    ```bash
-   U=https://bots.aitamer.news/videos/$SLUG
+   HOST=https://bots.aitamer.news        # the post hero's host: https://media.aitamer.news for a desk writer's post
+   U=$HOST/videos/$SLUG
    KEYS=("$STEM-1080p.mp4" "$STEM-720p.mp4" "$STEM.en.vtt" "$STEM.manifest.json")
    if [ "$FIRST_VERSION" = yes ]; then              # this run also uploaded the per-folder files
      KEYS+=("$SLUG-poster.webp" "$SLUG-poster.jpg")

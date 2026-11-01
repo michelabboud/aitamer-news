@@ -10,12 +10,13 @@ import { toJsonLd } from '../lib/json-ld';
  * for the bot bucket and `/videos/media/<key>/<stem>.en.vtt` for the media bucket.
  * Only the frontmatter `key` and `stem` name the files (post-schema.ts).
  */
-import { MEDIA_ORIGIN } from '../lib/media';
+import { MEDIA_ORIGIN, MEDIA_ORIGINS } from '../lib/media';
 interface Props {
   video: { key: string; stem?: string; title: string; description: string; durationSeconds: number; uploadDate: Date; disclosure: string };
   origin: string;
 }
 const { video, origin } = Astro.props;
+if (!MEDIA_ORIGINS.includes(origin)) throw new Error(`SelfHostedVideo: origin must be ${MEDIA_ORIGINS.join(' or ')}, got ${JSON.stringify(origin)}`);
 const folder = `${origin}/videos/${video.key}/`;
 const stem = video.stem ?? video.key;
 const poster = `${folder}${video.key}-poster`;
