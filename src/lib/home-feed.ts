@@ -36,6 +36,9 @@ export function partitionHomeFeed<T extends { id: string; data: { pubDate: Date 
   }
   return {
     lead: initial[0], initialCards: initial.slice(1), initialCount: initial.length,
-    plannedCount, batches, log: posts.slice(plannedCount, plannedCount + HOME_FIELD_LOG_SIZE),
+    // The Field log is the latest news: the newest posts after the lead, even though they also
+    // appear as cards (Michel, 2026-11-01). It used to start after the last loadable batch, which
+    // left it days behind the lead.
+    plannedCount, batches, log: posts.slice(1, 1 + HOME_FIELD_LOG_SIZE),
   };
 }

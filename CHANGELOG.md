@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.135 · 2026-11-01
+
+- The homepage Field log is the latest news again: the eight newest posts after the lead, newest first (ADR 0052). It had started after the last post the feed can load, which left it days behind the lead.
+
 ## 0.2.134 · 2026-10-31
 
 - **Sections lead the top bar** (plan `docs/plans/2026-10-31-top-nav-and-pinning.md`, ADR 0051, superseding ADR 0032's navigation rule and amending ADR 0013's order): News, Models, Dev, Tools, DevOps & IT, Rust, Voices and a More menu (Columns, General, Extinction Watch, Archive, All habitats). The writers' names leave the top bar; the row under the masthead and its homepage counts are removed. Authors and Search stay small at the right. On phones the sections scroll sideways under the masthead; the menu holds the rest. Navigation is one tested module, `src/lib/site-nav.ts`.
