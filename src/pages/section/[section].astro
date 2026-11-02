@@ -22,9 +22,12 @@ import {
 import { postCover, coverForSection } from '../../lib/covers';
 import { resolveMedia, shareImageUrl } from '../../lib/media';
 import { habitatFeedPath } from '../../lib/feeds';
+import { pinCacheMark } from '../../lib/home-pins.ts';
+import { loadHomepagePins } from '../../lib/shown-pins.ts';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
+  const pinCard = await loadHomepagePins();
   const authors = await getCollection('authors');
   const authorById = new Map(authors.map((author) => [author.id, author]));
   // Retired desks get a redirect page at their old URL; the cache key is the target only.
@@ -33,8 +36,8 @@ export async function getStaticPaths() {
     cacheKey: `legacy:${target}`,
   }));
   const habitats = ALL_SECTIONS.map((section) => {
-    const stamps = posts
-      .filter((post) => post.data.section === section)
+    const sectionPosts = posts.filter((post) => post.data.section === section);
+    const stamps = sectionPosts
       .flatMap((post) => {
         const author = authorById.get(post.data.author.id);
         return [entryStamp(post), author ? entryStamp(author) : 'missing-author'];
@@ -42,7 +45,7 @@ export async function getStaticPaths() {
       .sort();
     return {
       params: { section },
-      cacheKey: stamps.join('|'),
+      cacheKey: [stamps.join('|'), pinCacheMark(sectionPosts.map((post) => post.id), pinCard.ids)].join('|'),
     };
   });
   return [...habitats, ...legacy];
@@ -60,6 +63,7 @@ const stub = legacyTarget
 if (!stub && !isSection(raw)) throw new Error(`Unknown section ${raw}`);
 const section = (legacyTarget ?? raw) as Section;
 const posts = await getPostsBySection(section);
+const pinCard = await loadHomepagePins();
 const cards = await Promise.all(
   posts.map(async (post) => {
     const author = await resolveAuthor(post);
@@ -96,7 +100,7 @@ const feedHref = withBase(habitatFeedPath(section));
   ) : (
     <ul class="cards listing">
       {cards.map(({ post, author }, i) => (
-        <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} /></li>
+        <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} pinned={pinCard.ids.has(post.id)} /></li>
       ))}
     </ul>
   )}

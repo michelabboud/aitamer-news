@@ -238,6 +238,17 @@ h1.wordmark__name { margin: 0; font-weight: 400; color: inherit; }
 .pin-card__title:hover { color: var(--ember-text); }
 .pin-card__meta { font-family: var(--font-machine); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--ink-muted); }
 
+/* The same posts the card shows, labelled on the story and on listing cards. Machine face, ember,
+   uppercase, like the card's own label. The icon takes currentColor from this rule. */
+.pin-badge {
+  display: inline-flex; align-items: center; gap: 0.35em;
+  font-family: var(--font-machine); font-size: 0.6875rem; font-weight: 500;
+  letter-spacing: 0.14em; line-height: 1; text-transform: uppercase;
+  color: var(--ember-text); white-space: nowrap;
+}
+.pin-badge__icon { width: 1em; height: 1em; flex: none; display: block; }
+.page-kicker .pin-badge { font-size: inherit; letter-spacing: inherit; font-weight: inherit; }
+
 /* ---------- Main ---------- */
 
 .site-main { padding: 40px 0 0; }
@@ -426,7 +437,8 @@ a.watch-item__what:hover { color: var(--ember-text); text-decoration: underline;
   position: absolute; top: 10px; left: 10px; background: var(--night); color: var(--bone);
   font-family: var(--font-machine); font-size: 0.6875rem; letter-spacing: 0.1em; padding: 4px 7px;
 }
-.card__meta { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: var(--font-machine); font-size: 0.75rem; letter-spacing: 0.08em; }
+.card__meta { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-family: var(--font-machine); font-size: 0.75rem; letter-spacing: 0.08em; }
+.card__place { display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0; }
 .card__meta a { color: var(--ink-muted); text-decoration: none; }
 .card__meta a:hover { color: var(--bone); }
 .card__by { font-weight: 600; }
