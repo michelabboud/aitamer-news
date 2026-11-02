@@ -1232,3 +1232,9 @@
 1229 android-studio-rabbit-2-bring-your-own-agent-acp-claude-code-codex-plugins
 1230 matsakis-trust-but-verify-evidence-files-for-agent-work
 1231 google-deepmind-psychiatric-intake-rl-simulation-gemini-flash-lite
+1232 azure-functions-in-process-model-dotnet-8-end-november-10
+1233 trigger-dev-security-incident-environment-variables
+1234 meituan-longcat-2-5-multimodal-agentic-model-api
+1235 eks-cluster-ca-rotation-dashboard-ten-year-certificates
+1236 github-copilot-verified-mcp-connectors-connect-once
+1237 aks-app-routing-nginx-ingress-support-ends-november-2026
