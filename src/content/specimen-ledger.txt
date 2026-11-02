@@ -1222,3 +1222,9 @@
 1219 chatgpt-codex-shared-usage-allowance-december
 1220 rig-0-46-coding-agent-mcp-approval-acp-zed
 1221 reddit-logged-in-only-scraping-ai-data-licensing
+1222 xai-grok-api-text-watermark-default-november-7
+1223 vade-rust-inference-engine-dgx-spark-exact-tokens
+1224 nvidia-skillspector-scan-agent-skills-before-install
+1225 google-streamvibe-proactive-video-agent-benchmark
+1226 sensetime-sensenova-loop-9b-preview-looped-open-weights
+1227 tencent-tdsql-c-agents-20000-databases-a-day
