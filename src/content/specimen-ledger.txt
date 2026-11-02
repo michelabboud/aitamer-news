@@ -1228,3 +1228,7 @@
 1225 google-streamvibe-proactive-video-agent-benchmark
 1226 sensetime-sensenova-loop-9b-preview-looped-open-weights
 1227 tencent-tdsql-c-agents-20000-databases-a-day
+1228 anthropic-claude-messages-api-rust-port-claude-wrote-shadow-traffic
+1229 android-studio-rabbit-2-bring-your-own-agent-acp-claude-code-codex-plugins
+1230 matsakis-trust-but-verify-evidence-files-for-agent-work
+1231 google-deepmind-psychiatric-intake-rl-simulation-gemini-flash-lite
