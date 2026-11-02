@@ -13,6 +13,7 @@ import {
 } from '../lib/site';
 import { postCoverSource } from '../lib/covers';
 import HeroImage from './HeroImage.astro';
+import SeriesBadge from './SeriesBadge.astro';
 
 interface Props {
   post: CollectionEntry<'posts'>;
@@ -24,7 +25,7 @@ interface Props {
   heading?: 'h2' | 'h3';
   context?: 'home-card' | 'listing';
   /** Live series badge, when this post is a part that is up. */
-  series?: { href: string; label: string };
+  series?: { href: string; label: string; slug: string };
 }
 const { post, author, showDesc = false, eager = false, heading = 'h3', context = 'listing', series } = Astro.props;
 const Heading = heading;
@@ -51,7 +52,7 @@ const kind = author.data.kind;
     <a href={habitatHref(habitat)}>{habitat.name.toUpperCase()}</a>
     <span class:list={['card__by', `by--${kind}`]}>{kindLabel(kind).toUpperCase()} · {author.data.name.toUpperCase()}</span>
   </div>
-  {series && <p class="card__series"><a href={withBase(series.href)}>{series.label}</a></p>}
+  {series && <SeriesBadge href={withBase(series.href)} label={series.label} slug={series.slug} variant="card" />}
   <Heading class="card__title"><a href={href}>{post.data.title}</a></Heading>
   {showDesc && <p class="card__desc">{post.data.description}</p>}
   {level && (

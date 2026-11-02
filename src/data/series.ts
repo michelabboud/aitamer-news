@@ -7,6 +7,12 @@ export interface SeriesMeta {
   slug: string;
   title: string;
   description: string;
+  /**
+   * Optional remote hero, `https://…`. Leave both unset until the file is on the media host.
+   * A missing or blank image is omitted; the page does not show a broken picture.
+   */
+  heroImage?: string;
+  heroAlt?: string;
 }
 
 export const SERIES: readonly SeriesMeta[] = [

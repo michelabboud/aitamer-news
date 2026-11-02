@@ -512,9 +512,12 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 .series-badge { margin: 0.85rem 0 0; }
 .series-badge a,
 .card__series a {
+  display: inline-flex; align-items: center; gap: 0.4rem;
   font-family: var(--font-machine); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--ember-text); text-decoration: none;
 }
+.series-icon { display: inline-flex; width: 20px; height: 20px; flex: none; }
+.series-icon svg { width: 20px; height: 20px; display: block; }
 .series-badge a { font-size: 0.75rem; }
 .series-badge a:hover, .series-badge a:focus-visible,
 .card__series a:hover, .card__series a:focus-visible { color: var(--bone); text-decoration: underline; }
@@ -540,10 +543,18 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 
 .series-index, .series-parts { list-style: none; margin: 0; padding: 0; }
 .series-index > li, .series-part { padding: 1.15rem 0; border-top: 1px solid var(--line); }
+.series-index > li { display: grid; gap: 0.35rem 1.5rem; align-items: center; }
+.series-index > li:has(.series-index__photo) { grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); }
+.series-index__photo { display: block; }
+.series-index__photo img, .series-hero img {
+  width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); background: var(--night-raised);
+}
+.series-hero { margin: 0 0 2.25rem; }
 .series-index__title, .series-part__title { margin: 0; line-height: 1.2; }
 .series-index__title { font-size: 1.75rem; }
 .series-part__title { font-size: 1.5rem; }
 .series-index__title a, .series-part__title a { color: var(--bone); text-decoration: none; }
+.series-index__title a { display: inline-flex; align-items: center; gap: 0.55rem; }
 .series-index__title a:hover, .series-index__title a:focus-visible,
 .series-part__title a:hover, .series-part__title a:focus-visible { color: var(--ember-text); }
 .series-index__meta, .series-part__kicker {
@@ -974,6 +985,7 @@ a.archive-month__name:hover { color: var(--ember-text); }
 @media (max-width: 720px) {
   .series-nav { grid-template-columns: 1fr; }
   .series-nav a[rel="next"] { text-align: left; align-items: flex-start; }
+  .series-index > li:has(.series-index__photo) { grid-template-columns: 1fr; }
   body { font-size: 1.0625rem; padding-bottom: 74px; }
   .menu { display: block; }
   /* Phones: the top bar dissolves; the masthead comes first and the sections scroll sideways

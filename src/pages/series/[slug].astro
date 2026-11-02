@@ -3,7 +3,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { toJsonLd } from '../../lib/json-ld';
 import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
-import { seriesViews } from '../../lib/series.ts';
+import { seriesHero, seriesViews } from '../../lib/series.ts';
 import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
 import { SITE, canonicalUrlFor, formatDate, getPublishedPosts, withBase } from '../../lib/site';
 
@@ -20,8 +20,9 @@ export async function getStaticPaths() {
 const { view } = Astro.props;
 const url = canonicalUrlFor(view.href);
 const count = view.parts.length;
+const hero = seriesHero(view);
 ---
-<BaseLayout title={view.title} description={view.description} nav="series">
+<BaseLayout title={view.title} description={view.description} nav="series" image={hero?.src}>
   <script
     slot="head"
     type="application/ld+json"
@@ -33,6 +34,7 @@ const count = view.parts.length;
       description: view.description,
       inLanguage: SITE_LANGUAGE,
       isPartOf: { '@type': 'WebSite', name: SITE.title, url: SITE.url + '/' },
+      ...(hero ? { image: hero.src } : {}),
       hasPart: view.parts.map((part) => ({
         '@type': 'NewsArticle',
         position: part.order,
@@ -46,6 +48,11 @@ const count = view.parts.length;
     <h1 class="page-title">{view.title}</h1>
     <p class="lede">{view.description}</p>
   </header>
+  {hero && (
+    <figure class="series-hero">
+      <img src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
+    </figure>
+  )}
   <ol class="series-parts">
     {view.parts.map((part, i) => (
       <li>

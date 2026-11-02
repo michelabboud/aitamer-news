@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.138 · 2026-11-02
+
+- Each series has a small monochrome icon, inlined so it uses the surrounding ink. It sits in the part badge on a post, on listing cards, and beside the name on `/series/`. The picture is hidden from assistive tech; the series name stays in the text. A series may also carry `heroImage` and `heroAlt` in `src/data/series.ts`. When both are set to an `https://` hero, `/series/<slug>/` shows it at the top and uses it as the share image, and `/series/` uses it as the card image. Until a URL is filled in, those pages show no picture.
+
 ## 0.2.137 · 2026-11-02
 
 - Posts can belong to a series. Optional frontmatter `series` (a lowercase slug from `src/data/series.ts`) and `series_order` (a positive integer, required when `series` is set, unique inside that series, including drafts and posts that are not live yet). `/series/` lists every series that has a live part, and `/series/<slug>/` lists those parts in order with the date and description. A live part shows a badge (`Grok Bot tutorial · Part 3 of 22`) and previous/next links to the other live parts. Drafts, future `pubDate`s and withdrawn posts stay off those lists. The Grok Bot tutorials (22 episodes), the AI image, movie and voice model reviews, and Vectors, Plainly now carry their episode numbers. Series pages are in the sitemap, with `lastmod` from the newest listed part, and a post in a series adds `isPartOf` to its article JSON-LD. `npm run check:posts` refuses a duplicate order or an unknown slug.

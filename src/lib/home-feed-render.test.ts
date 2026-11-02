@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parse } from 'parse5';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
@@ -23,6 +23,14 @@ const compiled = await build({
   entryPoints: ['src/pages/home-feed/[batch].astro'], bundle: true, platform: 'node', format: 'esm', write: false,
   define: { 'import.meta.env': JSON.stringify({ BASE_URL: '/preview/' }) },
   plugins: [{ name: 'home-feed-render-fixtures', setup(builder: any) {
+    builder.onResolve({ filter: /\.svg\?raw$/ }, (args: { path: string; resolveDir: string }) => ({
+      path: join(args.resolveDir, args.path),
+      namespace: 'svg-raw',
+    }));
+    builder.onLoad({ filter: /.*/, namespace: 'svg-raw' }, ({ path }: { path: string }) => ({
+      contents: `export default ${JSON.stringify(readFileSync(path.replace(/\?raw$/, ''), 'utf8'))};`,
+      loader: 'js',
+    }));
     builder.onResolve({ filter: /home-feed-server\.ts$/ }, () => ({ path: 'server', namespace: 'home-feed-fixture' }));
     builder.onResolve({ filter: /^astro:content$/ }, () => ({ path: 'content', namespace: 'home-feed-fixture' }));
     builder.onResolve({ filter: /^astro:config\/server$/ }, () => ({ path: 'config', namespace: 'home-feed-fixture' }));

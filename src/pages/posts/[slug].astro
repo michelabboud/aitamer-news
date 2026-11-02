@@ -48,6 +48,7 @@ import {
 import { coverForSection, usesGeneratedCover } from '../../lib/covers';
 import { DEFAULT_SOCIAL_IMAGE, postFilesOrigin, resolveMedia, shareImageUrl } from '../../lib/media';
 import HeroImage from '../../components/HeroImage.astro';
+import SeriesBadge from '../../components/SeriesBadge.astro';
 import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
 
 export async function getStaticPaths() {
@@ -216,9 +217,7 @@ const breadcrumbs = {
           Habitat {habitat.code} · <span data-pagefind-filter="habitat" data-pagefind-meta="habitat">{habitat.name}</span>
         </a>
       </p>
-      {series && (
-        <p class="series-badge"><a href={withBase(series.href)}>{series.label}</a></p>
-      )}
+      {series && <SeriesBadge href={withBase(series.href)} label={series.label} slug={series.view.slug} />}
       <h1 class="article__title">{data.title}</h1>
       {!withdrawn && <p class="lede">{data.description}</p>}
       <div class="byline">

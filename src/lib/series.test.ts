@@ -6,6 +6,7 @@ import { SERIES } from '../data/series.ts';
 import { postFrontmatterJsonSchema, postSchema } from '../content/post-schema.ts';
 import { readFrontmatter } from '../../scripts/frontmatter.mjs';
 import {
+  seriesHero,
   seriesLabel,
   seriesPlacements,
   seriesProblems,
@@ -230,4 +231,53 @@ test('published posts use known series, unique orders, and the episode order the
     if (member.has(post.id)) assert.equal(post.seriesOrder, EXPECTED[String(post.series)].indexOf(post.id) + 1, post.id);
     else assert.equal(post.series, undefined, post.id);
   }
+});
+
+test('a series hero is omitted until it is an https URL, and a missing alt uses the title', () => {
+  assert.equal(seriesHero({ title: 'Grok Bot tutorial' }), null);
+  assert.equal(seriesHero({ title: 'Grok Bot tutorial', heroImage: '  ', heroAlt: 'A laptop.' }), null);
+  assert.equal(seriesHero({ title: 'Grok Bot tutorial', heroImage: '/heroes/grok.jpg', heroAlt: 'A laptop.' }), null);
+  const named = seriesHero({
+    title: 'Grok Bot tutorial',
+    heroImage: 'https://bots.aitamer.news/heroes/grok-bot-series.jpg',
+    heroAlt: 'A cream laptop facing a slate computer.',
+  });
+  assert.deepEqual(named, {
+    src: 'https://bots.aitamer.news/heroes/grok-bot-series.jpg',
+    alt: 'A cream laptop facing a slate computer.',
+  });
+  const untitled = seriesHero({
+    title: 'Grok Bot tutorial',
+    heroImage: 'https://bots.aitamer.news/heroes/grok-bot-series.jpg',
+  });
+  assert.equal(untitled?.alt, 'Grok Bot tutorial');
+  for (const series of SERIES) {
+    assert.equal(series.heroImage, undefined, series.slug);
+    assert.equal(series.heroAlt, undefined, series.slug);
+    assert.equal(seriesHero(series), null, series.slug);
+  }
+});
+
+test('each series has a monochrome inline icon and the badge hides it from the name', () => {
+  const dir = 'src/assets/series-icons';
+  const files = new Set(readdirSync(dir));
+  for (const series of SERIES) {
+    const name = `${series.slug}.svg`;
+    assert.equal(files.has(name), true, name);
+    const svg = readFileSync(join(dir, name), 'utf8');
+    assert.match(svg, /viewBox="0 0 24 24"/);
+    assert.match(svg, /currentColor/);
+    assert.doesNotMatch(svg, /<script/i);
+    assert.doesNotMatch(svg, /<text[\s>]/i);
+    assert.doesNotMatch(svg, /#[0-9a-fA-F]{3,8}/);
+  }
+  const badge = readFileSync('src/components/SeriesBadge.astro', 'utf8');
+  const icon = readFileSync('src/components/SeriesIcon.astro', 'utf8');
+  assert.match(icon, /aria-hidden="true"/);
+  assert.match(badge, /<SeriesIcon/);
+  assert.match(badge, /<span>\{label\}<\/span>/);
+  const page = readFileSync('src/pages/series/[slug].astro', 'utf8');
+  assert.match(page, /const hero = seriesHero\(view\)/);
+  assert.match(page, /\{hero && \(/);
+  assert.doesNotMatch(page, /<img[^>]+src="" /);
 });

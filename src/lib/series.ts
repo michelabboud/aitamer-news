@@ -15,6 +15,9 @@ export interface SeriesMeta {
   slug: string;
   title: string;
   description: string;
+  /** Optional `https://` hero. Absent, blank, or any other value is not shown. */
+  heroImage?: string;
+  heroAlt?: string;
 }
 
 /** The fields a series check needs. A content entry satisfies this. */
@@ -49,6 +52,8 @@ export interface SeriesView {
   href: string;
   /** Live parts, `series_order` ascending. */
   parts: SeriesPart[];
+  heroImage?: string;
+  heroAlt?: string;
 }
 
 export interface SeriesPlacement {
@@ -73,8 +78,16 @@ export function seriesLabel(title: string, index: number, total: number): string
   return `${title} · Part ${index} of ${total}`;
 }
 
-export function seriesMark(placement: SeriesPlacement | undefined): { href: string; label: string } | undefined {
-  return placement ? { href: placement.href, label: placement.label } : undefined;
+export function seriesMark(placement: SeriesPlacement | undefined): { href: string; label: string; slug: string } | undefined {
+  return placement ? { href: placement.href, label: placement.label, slug: placement.view.slug } : undefined;
+}
+
+/** An `https://` hero with alt text, or null when the series has no image to show. */
+export function seriesHero(series: { title: string; heroImage?: string; heroAlt?: string }): { src: string; alt: string } | null {
+  const src = typeof series.heroImage === 'string' ? series.heroImage.trim() : '';
+  if (!/^https:\/\/\S+$/.test(src)) return null;
+  const alt = typeof series.heroAlt === 'string' && series.heroAlt.trim() ? series.heroAlt.trim() : series.title;
+  return { src, alt };
 }
 
 function hasSeries(series: unknown): series is string {
@@ -174,6 +187,8 @@ export function seriesPlacements(
       description: meta.description,
       href: seriesHref(meta.slug),
       parts,
+      heroImage: meta.heroImage,
+      heroAlt: meta.heroAlt,
     };
     parts.forEach((part, i) => {
       placements.set(part.id, {
