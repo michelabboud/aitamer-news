@@ -78,6 +78,8 @@ Save **one JSON object** to `$BUNDLE/fields.json`, with these keys and actual re
 
 This is a schema example, **not publishable example content**. Use 250–800 useful words for this procedure. Title <120 characters; description <260; each wildness line <110; verdict <=240. Wildness is 1–5 (1 independently verified, 5 vendor claim only); choose the actual evidence level. Sections are `models`, `dev`, `tools`, `devops`, `rust`, `general`, `voices`; `news` is not a section. For news use the appropriate topic habitat, not `voices`.
 
+Optional keys on the same object, both or neither: `series` (a slug already listed in `src/data/series.ts`) and `series_order` (a positive integer, unique in that series). Field rules are in `POST.md`.
+
 No YAML, `pubDate`, `author`, `draft`, hero URL or specimen number in writer JSON; code supplies these. No em-dashes, hype, unsupported claims, internal working notes, secret names, credentials or account IDs. Every body link must appear in `sources`. Record opened URLs and the claims checked in `$BUNDLE/source-checks.md`.
 
 ```bash

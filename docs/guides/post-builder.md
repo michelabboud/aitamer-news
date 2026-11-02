@@ -9,8 +9,11 @@ One JSON object of fields, nothing else. No YAML, no `pubDate`, no `author`, no 
 ```json
 { "title": "...", "description": "...", "section": "devops", "tags": ["a", "b"],
   "body": "markdown", "sources": [{ "title": "...", "url": "https://..." }],
-  "wildness": { "rating": 3, "verified": "...", "claimed": "..." }, "verdict": "..." }
+  "wildness": { "rating": 3, "verified": "...", "claimed": "..." }, "verdict": "...",
+  "series": "grok-bot", "series_order": 3 }
 ```
+
+`series` and `series_order` are optional. Set both, or leave both out. `series` is a slug from `src/data/series.ts`. `series_order` is a positive integer, unique in that series. The rules are in [POST.md](../../POST.md).
 
 ## Run it
 

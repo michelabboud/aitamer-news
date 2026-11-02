@@ -27,8 +27,8 @@ interface Props {
   noindex?: boolean;
   /** Habitat slug to mark in the section nav (desk and story pages). */
   habitat?: string;
-  /** The reading view this page belongs to (News or Columns, ADR 0013), marked in the nav on every page of it. */
-  nav?: 'news' | 'columns';
+  /** The reading view this page belongs to (News, Columns, or Series), marked in the nav on every page of it. */
+  nav?: 'news' | 'columns' | 'series';
   /**
    * Home only: the wordmark is the page's h1 and the main column gets the home layout. The masthead
    * is the same compact height on every page (ADR 0051), and nothing here depends on post counts,
@@ -212,6 +212,7 @@ const current = (href: string) => (navCurrent(based({ key: href, href, label: ''
           <a href={withBase('/search/')} aria-current={current('/search/')}>Search</a>
           <a href={withBase('/section/')} aria-current={current('/section/')}>All habitats</a>
           <a href={withBase('/archive/')} aria-current={current('/archive/')}>Archive</a>
+          <a href={withBase('/series/')} aria-current={current('/series/')}>Series</a>
           <a href={withBase('/extinction-watch/')} aria-current={current('/extinction-watch/')}>Extinction Watch</a>
           <a href={withBase('/about/#wildness')}>Wildness ratings</a>
           <a href={withBase('/rss.xml')}>RSS</a>

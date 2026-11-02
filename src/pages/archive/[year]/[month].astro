@@ -7,8 +7,11 @@ import {
   entryStamp,
   formatArchiveMonth,
   getArchiveMonths,
+  getPublishedPosts,
   resolveAuthor,
 } from '../../../lib/site';
+import { seriesMark } from '../../../lib/series.ts';
+import { placementsFor } from '../../../lib/series-live.ts';
 
 export async function getStaticPaths() {
   const months = await getArchiveMonths();
@@ -33,6 +36,7 @@ export async function getStaticPaths() {
 
 const { year, month } = Astro.params;
 const { posts, newer, older } = Astro.props;
+const placements = placementsFor(await getPublishedPosts());
 const label = formatArchiveMonth(year, month);
 const cards = await Promise.all(
   posts.map(async (post) => {
@@ -51,7 +55,7 @@ const cards = await Promise.all(
 
   <ul class="cards listing">
     {cards.map(({ post, author }, i) => (
-      <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} /></li>
+      <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} series={seriesMark(placements.get(post.id))} /></li>
     ))}
   </ul>
 

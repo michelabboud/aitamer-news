@@ -1,0 +1,55 @@
+---
+/** Every series that has at least one live part, in catalog order. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { toJsonLd } from '../../lib/json-ld';
+import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
+import { seriesViews } from '../../lib/series.ts';
+import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
+import { SITE, canonicalUrlFor, getPublishedPosts, withBase } from '../../lib/site';
+
+await assertSeriesCollection();
+const series = seriesViews(placementsFor(await getPublishedPosts()));
+const url = canonicalUrlFor('/series/');
+---
+<BaseLayout
+  title="Series"
+  description="Posts meant to be read in order: tutorials and model comparisons, each part linked from one page."
+  nav="series"
+>
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={toJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `Series · ${SITE.title}`,
+      url,
+      description: 'Posts meant to be read in order.',
+      inLanguage: SITE_LANGUAGE,
+      isPartOf: { '@type': 'WebSite', name: SITE.title, url: SITE.url + '/' },
+      hasPart: series.map((item) => ({
+        '@type': 'CreativeWorkSeries',
+        name: item.title,
+        url: canonicalUrlFor(item.href),
+      })),
+    })}
+  />
+  <header class="page-head">
+    <p class="page-kicker">Series · {series.length}</p>
+    <h1 class="page-title">Read it in order</h1>
+    <p class="lede">A series is a set of posts written to be read from the first part to the last. Each page lists the parts that are up.</p>
+  </header>
+  {series.length === 0 ? (
+    <p class="empty">No series is up yet.</p>
+  ) : (
+    <ul class="series-index">
+      {series.map((item) => (
+        <li>
+          <h2 class="series-index__title"><a href={withBase(item.href)}>{item.title}</a></h2>
+          <p class="series-index__meta">{item.parts.length} {item.parts.length === 1 ? 'part' : 'parts'}</p>
+          <p class="series-index__desc">{item.description}</p>
+        </li>
+      ))}
+    </ul>
+  )}
+</BaseLayout>

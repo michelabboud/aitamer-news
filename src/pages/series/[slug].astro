@@ -1,0 +1,62 @@
+---
+/** One series: its live parts, in series_order, with the date and description of each. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { toJsonLd } from '../../lib/json-ld';
+import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
+import { seriesViews } from '../../lib/series.ts';
+import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
+import { SITE, canonicalUrlFor, formatDate, getPublishedPosts, withBase } from '../../lib/site';
+
+export async function getStaticPaths() {
+  await assertSeriesCollection();
+  const views = seriesViews(placementsFor(await getPublishedPosts()));
+  return views.map((view) => ({
+    params: { slug: view.slug },
+    props: { view },
+    cacheKey: view.parts.map((part) => `${part.order}:${part.stamp}`).join('|'),
+  }));
+}
+
+const { view } = Astro.props;
+const url = canonicalUrlFor(view.href);
+const count = view.parts.length;
+---
+<BaseLayout title={view.title} description={view.description} nav="series">
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={toJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `${view.title} · ${SITE.title}`,
+      url,
+      description: view.description,
+      inLanguage: SITE_LANGUAGE,
+      isPartOf: { '@type': 'WebSite', name: SITE.title, url: SITE.url + '/' },
+      hasPart: view.parts.map((part) => ({
+        '@type': 'NewsArticle',
+        position: part.order,
+        name: part.title,
+        url: canonicalUrlFor(`/posts/${part.id}/`),
+      })),
+    })}
+  />
+  <header class="page-head">
+    <p class="page-kicker"><a href={withBase('/series/')}>Series</a> · {count} {count === 1 ? 'part' : 'parts'}</p>
+    <h1 class="page-title">{view.title}</h1>
+    <p class="lede">{view.description}</p>
+  </header>
+  <ol class="series-parts">
+    {view.parts.map((part, i) => (
+      <li>
+        <article class="series-part">
+          <p class="series-part__kicker">
+            Part {i + 1} · <time datetime={part.pubDate.toISOString()}>{formatDate(part.pubDate)}</time>
+          </p>
+          <h2 class="series-part__title"><a href={withBase(`/posts/${part.id}/`)}>{part.title}</a></h2>
+          <p class="series-part__desc">{part.description}</p>
+        </article>
+      </li>
+    ))}
+  </ol>
+</BaseLayout>

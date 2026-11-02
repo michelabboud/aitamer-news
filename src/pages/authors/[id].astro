@@ -8,6 +8,8 @@ import WriterProfile from '../../components/WriterProfile.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import { SITE, canonicalUrlFor, entryStamp, getPostsByAuthor, getPublishedPosts, resolveAuthor, withBase } from '../../lib/site';
+import { seriesMark } from '../../lib/series.ts';
+import { placementsFor } from '../../lib/series-live.ts';
 
 export async function getStaticPaths() {
   const authors = await getCollection('authors');
@@ -36,6 +38,7 @@ const image = featured ? portrait : author.data.avatar;
 const pageUrl = canonicalUrlFor(writerAuthorPath(author));
 const sameAs = authorSameAs(kind, author.data.website);
 const posts = await getPostsByAuthor(author.id);
+const placements = placementsFor(await getPublishedPosts());
 const [poems, pieces] = splitPoems(posts);
 const cards = await Promise.all(
   posts.map(async (post) => {
@@ -66,17 +69,17 @@ const cards = await Promise.all(
   <WriterProfile author={author} count={posts.length} poemCount={poems.length} pieceCount={pieces.length} imageSrc={image ? withBase(image) : undefined}>
     <ul slot="poems" class="cards listing">
       {poems.map((post, i) => (
-        <li><PostCard post={post} author={author} heading="h3" showDesc eager={i < 3} /></li>
+        <li><PostCard post={post} author={author} heading="h3" showDesc eager={i < 3} series={seriesMark(placements.get(post.id))} /></li>
       ))}
     </ul>
     <ul slot="pieces" class="cards listing">
       {pieces.map((post, i) => (
-        <li><PostCard post={post} author={author} heading="h3" showDesc eager={poems.length === 0 && i < 3} /></li>
+        <li><PostCard post={post} author={author} heading="h3" showDesc eager={poems.length === 0 && i < 3} series={seriesMark(placements.get(post.id))} /></li>
       ))}
     </ul>
     <ul slot="sightings" class="cards listing">
       {cards.map(({ post, author: a }, i) => (
-        <li><PostCard post={post} author={a} heading="h3" showDesc eager={i < 3} /></li>
+        <li><PostCard post={post} author={a} heading="h3" showDesc eager={i < 3} series={seriesMark(placements.get(post.id))} /></li>
       ))}
     </ul>
   </WriterProfile>

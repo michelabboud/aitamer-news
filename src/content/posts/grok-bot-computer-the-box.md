@@ -5,6 +5,8 @@ pubDate: 2026-10-07T08:10:00Z
 specimen: 428
 section: tools
 subsection: grok-bot
+series: grok-bot
+series_order: 2
 tags: [grok-bot, tutorial, cloud-computer, cursor]
 draft: false
 heroImage: "https://bots.aitamer.news/heroes/grok-bot-computer-the-box-476437be.jpg"

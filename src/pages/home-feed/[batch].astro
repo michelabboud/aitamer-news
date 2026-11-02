@@ -3,6 +3,7 @@ import type { GetStaticPaths } from 'astro';
 import PostCard from '../../components/PostCard.astro';
 import { HOME_FEED_SCHEMA } from '../../lib/home-feed.ts';
 import { getHomeFeed } from '../../lib/home-feed-server.ts';
+import { seriesMark } from '../../lib/series.ts';
 
 // Inert HTML only: no layout, client scripts or page styles in this response.
 export const partial = true;
@@ -12,7 +13,7 @@ export const getStaticPaths = (async () => {
     params: { batch: String(batch.index) },
     props: {
       snapshot: feed.snapshot, index: batch.index, offset: batch.offset,
-      items: batch.posts.map((post) => ({ post, author: feed.authorOf(post) })),
+      items: batch.posts.map((post) => ({ post, author: feed.authorOf(post), series: seriesMark(feed.seriesById.get(post.id)) })),
     },
     cacheKey: `${feed.snapshot}:${batch.index}`,
   }));
@@ -28,7 +29,7 @@ const { snapshot, index, offset, items } = Astro.props;
   data-home-feed-ids={JSON.stringify(items.map(({ post }) => post.id))}
   data-pagefind-ignore
 >
-  {items.map(({ post, author }) => (
-    <li data-home-post={post.id} id={`home-post-${post.id}`}><PostCard post={post} author={author} context="home-card" heading="h3" /></li>
+  {items.map(({ post, author, series }) => (
+    <li data-home-post={post.id} id={`home-post-${post.id}`}><PostCard post={post} author={author} context="home-card" heading="h3" series={series} /></li>
   ))}
 </template>

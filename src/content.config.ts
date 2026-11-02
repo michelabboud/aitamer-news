@@ -26,7 +26,9 @@ const authors = defineCollection({
  */
 const posts = defineCollection({
   loader: glob({ base: './src/content/posts', pattern: '**/*.{md,mdx}' }),
-  schema: postSchema.extend({ author: reference('authors') }),
+  // safeExtend: postSchema ends in a refinement (series requires series_order), and Zod 4
+  // refuses .extend() on a schema that has one.
+  schema: postSchema.safeExtend({ author: reference('authors') }),
 });
 
 /**

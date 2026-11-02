@@ -4,6 +4,8 @@ description: "Grok Imagine Image 2.0: up to 2K, 15 aspect ratios, 5 references a
 pubDate: "2026-10-29T17:37:00Z"
 specimen: 1129
 section: tools
+series: ai-image-models
+series_order: 3
 tags:
   - ai-image-models
   - xai

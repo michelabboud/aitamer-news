@@ -28,6 +28,7 @@ export const MORE_LINKS: readonly NavLink[] = [
   { key: 'columns', href: '/columns/', label: 'Columns' },
   { key: 'general', href: '/section/general/', label: 'General' },
   { key: 'extinction-watch', href: '/extinction-watch/', label: 'Extinction Watch' },
+  { key: 'series', href: '/series/', label: 'Series' },
   { key: 'archive', href: '/archive/', label: 'Archive' },
   { key: 'habitats', href: '/section/', label: 'All habitats' },
 ];
@@ -56,8 +57,8 @@ export const PHONE_MENU_LINKS: readonly NavLink[] = [
 export interface NavContext {
   /** The page's path with the base removed, e.g. `/section/dev/` or `/news/2/`. */
   path: string;
-  /** The reading view a page declares (News or Columns pages, pagination included). */
-  nav?: 'news' | 'columns';
+  /** The reading view a page declares (News, Columns, or Series, pagination included). */
+  nav?: 'news' | 'columns' | 'series';
   /** The habitat a story or desk page belongs to. */
   habitat?: string;
 }

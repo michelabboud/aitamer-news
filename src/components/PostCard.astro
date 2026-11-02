@@ -8,6 +8,7 @@ import {
   habitatHref,
   habitatOfPost,
   postHref,
+  withBase,
   type WildnessRating,
 } from '../lib/site';
 import { postCoverSource } from '../lib/covers';
@@ -22,8 +23,10 @@ interface Props {
   /** h3 under a section heading (home), h2 directly under the page title (listings). */
   heading?: 'h2' | 'h3';
   context?: 'home-card' | 'listing';
+  /** Live series badge, when this post is a part that is up. */
+  series?: { href: string; label: string };
 }
-const { post, author, showDesc = false, eager = false, heading = 'h3', context = 'listing' } = Astro.props;
+const { post, author, showDesc = false, eager = false, heading = 'h3', context = 'listing', series } = Astro.props;
 const Heading = heading;
 const habitat = habitatOfPost(post);
 const href = postHref(post);
@@ -48,6 +51,7 @@ const kind = author.data.kind;
     <a href={habitatHref(habitat)}>{habitat.name.toUpperCase()}</a>
     <span class:list={['card__by', `by--${kind}`]}>{kindLabel(kind).toUpperCase()} · {author.data.name.toUpperCase()}</span>
   </div>
+  {series && <p class="card__series"><a href={withBase(series.href)}>{series.label}</a></p>}
   <Heading class="card__title"><a href={href}>{post.data.title}</a></Heading>
   {showDesc && <p class="card__desc">{post.data.description}</p>}
   {level && (

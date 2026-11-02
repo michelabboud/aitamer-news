@@ -22,6 +22,8 @@ import {
 import { postCover, coverForSection } from '../../lib/covers';
 import { resolveMedia, shareImageUrl } from '../../lib/media';
 import { habitatFeedPath } from '../../lib/feeds';
+import { seriesMark } from '../../lib/series.ts';
+import { placementsFor } from '../../lib/series-live.ts';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -60,6 +62,7 @@ const stub = legacyTarget
 if (!stub && !isSection(raw)) throw new Error(`Unknown section ${raw}`);
 const section = (legacyTarget ?? raw) as Section;
 const posts = await getPostsBySection(section);
+const placements = placementsFor(await getPublishedPosts());
 const cards = await Promise.all(
   posts.map(async (post) => {
     const author = await resolveAuthor(post);
@@ -96,7 +99,7 @@ const feedHref = withBase(habitatFeedPath(section));
   ) : (
     <ul class="cards listing">
       {cards.map(({ post, author }, i) => (
-        <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} /></li>
+        <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} series={seriesMark(placements.get(post.id))} /></li>
       ))}
     </ul>
   )}

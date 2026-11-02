@@ -508,6 +508,51 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 .pager__link[rel="next"] { justify-self: end; }
 .pager__where { font-size: 0.75rem; letter-spacing: 0.08em; }
 
+/* A series badge (post header and cards) and the previous/next part links. */
+.series-badge { margin: 0.85rem 0 0; }
+.series-badge a,
+.card__series a {
+  font-family: var(--font-machine); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ember-text); text-decoration: none;
+}
+.series-badge a { font-size: 0.75rem; }
+.series-badge a:hover, .series-badge a:focus-visible,
+.card__series a:hover, .card__series a:focus-visible { color: var(--bone); text-decoration: underline; }
+.card__series { margin: 0; }
+.card__series a { font-size: 0.6875rem; letter-spacing: 0.06em; }
+
+.series-nav {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px;
+  margin-top: 2.5rem; padding-top: 20px; border-top: 1px solid var(--line);
+}
+.series-nav a {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  color: var(--bone); text-decoration: none;
+}
+.series-nav a[rel="next"] { text-align: right; align-items: flex-end; }
+.series-nav__dir {
+  font-family: var(--font-machine); font-size: 0.6875rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ember-text);
+}
+.series-nav__title { font-weight: 600; overflow-wrap: anywhere; }
+.series-nav a:hover .series-nav__title,
+.series-nav a:focus-visible .series-nav__title { color: var(--ember-text); }
+
+.series-index, .series-parts { list-style: none; margin: 0; padding: 0; }
+.series-index > li, .series-part { padding: 1.15rem 0; border-top: 1px solid var(--line); }
+.series-index__title, .series-part__title { margin: 0; line-height: 1.2; }
+.series-index__title { font-size: 1.75rem; }
+.series-part__title { font-size: 1.5rem; }
+.series-index__title a, .series-part__title a { color: var(--bone); text-decoration: none; }
+.series-index__title a:hover, .series-index__title a:focus-visible,
+.series-part__title a:hover, .series-part__title a:focus-visible { color: var(--ember-text); }
+.series-index__meta, .series-part__kicker {
+  margin: 0.35rem 0 0; font-family: var(--font-machine); font-size: 0.6875rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted);
+}
+.series-part__kicker { margin: 0 0 0.35rem; }
+.series-index__desc, .series-part__desc { margin: 0.45rem 0 0; color: var(--ink-soft); max-width: 44rem; }
+
 /* ---------- Station row (Tamers, Campfire, Report) ---------- */
 
 .station-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
@@ -927,6 +972,8 @@ a.archive-month__name:hover { color: var(--ember-text); }
 }
 
 @media (max-width: 720px) {
+  .series-nav { grid-template-columns: 1fr; }
+  .series-nav a[rel="next"] { text-align: left; align-items: flex-start; }
   body { font-size: 1.0625rem; padding-bottom: 74px; }
   .menu { display: block; }
   /* Phones: the top bar dissolves; the masthead comes first and the sections scroll sideways

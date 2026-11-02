@@ -4,6 +4,8 @@ description: "A vector database answers â€œwhat is closest in meaning to this?â€
 pubDate: 2026-09-28T03:40:56Z
 specimen: 39
 section: dev
+series: vectors-plainly
+series_order: 1
 tags:
   - vectors-plainly
   - vector-databases

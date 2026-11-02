@@ -5,6 +5,8 @@ pubDate: "2026-10-30T12:07:00Z"
 specimen: 1142
 section: models
 subsection: speech
+series: ai-voice-models
+series_order: 3
 tags:
   - ai-voice-models
   - xai

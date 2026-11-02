@@ -26,7 +26,7 @@ function asDate(value) {
  * @param {string} slug
  * @param {Record<string, any>} data parsed frontmatter
  * @param {Date} now build time
- * @returns {{ slug: string, listed: boolean, lastmod: Date | null, tags: string[] }}
+ * @returns {{ slug: string, listed: boolean, lastmod: Date | null, tags: string[], series: string | null, seriesOrder: number | null }}
  */
 export function sitemapEntry(slug, data, now) {
   const published = asDate(data.pubDate);
@@ -35,10 +35,12 @@ export function sitemapEntry(slug, data, now) {
     .filter((d) => d !== null);
   const lastmod = changes.length ? new Date(Math.max(...changes.map((d) => d.valueOf()))) : null;
   const tags = Array.isArray(data.tags) ? data.tags.filter((tag) => typeof tag === 'string') : [];
-  return { slug, listed: live && !data.withdrawn, lastmod, tags };
+  const series = typeof data.series === 'string' && data.series ? data.series : null;
+  const seriesOrder = Number.isInteger(data.series_order) && data.series_order > 0 ? data.series_order : null;
+  return { slug, listed: live && !data.withdrawn, lastmod, tags, series, seriesOrder };
 }
 
-/** @returns {Map<string, { listed: boolean, lastmod: Date | null, tags: string[] }>} keyed by slug */
+/** @returns {Map<string, { listed: boolean, lastmod: Date | null, tags: string[], series: string | null, seriesOrder: number | null }>} keyed by slug */
 export function loadSitemapData(dir = POSTS_DIR, now = new Date()) {
   const entries = new Map();
   for (const name of readdirSync(dir)) {
@@ -47,8 +49,8 @@ export function loadSitemapData(dir = POSTS_DIR, now = new Date()) {
     const fm = readFrontmatter(readFileSync(join(dir, name), 'utf8'));
     if (fm === null) throw new Error(`sitemap: ${join(dir, name)} has no frontmatter (POST.md §2)`);
     const { data } = fm;
-    const { listed, lastmod, tags } = sitemapEntry(slug, data, now);
-    entries.set(slug, { listed, lastmod, tags });
+    const { listed, lastmod, tags, series, seriesOrder } = sitemapEntry(slug, data, now);
+    entries.set(slug, { listed, lastmod, tags, series, seriesOrder });
   }
   return entries;
 }
