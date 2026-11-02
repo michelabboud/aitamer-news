@@ -20,26 +20,36 @@ export const SERIES: readonly SeriesMeta[] = [
     slug: 'grok-bot',
     title: 'Grok Bot tutorial',
     description: 'Numbered tutorials on Grok Bot, from the desktop app and the shared computer through the phone.',
+    heroImage: 'https://bots.aitamer.news/heroes/series-grok-bot-a478a6b9.jpg',
+    heroAlt: 'Paper-cut laptop linked by a coral cord to a slate-blue desktop monitor on cream paper',
   },
   {
     slug: 'ai-image-models',
     title: 'AI image models',
     description: 'Image models, one or two per part, answered on the same questions from each vendor\'s own pages.',
+    heroImage: 'https://bots.aitamer.news/heroes/series-ai-image-models-926c11a2.jpg',
+    heroAlt: 'Torn-paper frame around layered slate mountains under a small coral sun',
   },
   {
     slug: 'ai-movie-models',
     title: 'AI movie models',
     description: 'Video models, one or two per part, answered on the same questions from each vendor\'s own pages.',
+    heroImage: 'https://bots.aitamer.news/heroes/series-ai-movie-models-2c4a00b4.jpg',
+    heroAlt: 'Paper film strip of three frames with a coral middle frame above torn cream paper',
   },
   {
     slug: 'ai-voice-models',
     title: 'AI voice models',
     description: 'Voice models, one or two per part, answered on the same questions from each vendor\'s own pages.',
+    heroImage: 'https://bots.aitamer.news/heroes/series-ai-voice-models-55ff602e.jpg',
+    heroAlt: 'Torn-paper sound waves fanning out from a cream circle, one coral and one slate-blue',
   },
   {
     slug: 'vectors-plainly',
     title: 'Vectors, Plainly',
     description: 'What a vector database does, in six parts: the idea, the index, tenancy, retrieval quality, RAG, and production.',
+    heroImage: 'https://bots.aitamer.news/heroes/series-vectors-plainly-2fcbf32f.jpg',
+    heroAlt: 'Slate-blue paper dots with a coral point linked to its two nearest neighbors',
   },
 ];
 

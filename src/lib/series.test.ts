@@ -252,9 +252,9 @@ test('a series hero is omitted until it is an https URL, and a missing alt uses 
   });
   assert.equal(untitled?.alt, 'Grok Bot tutorial');
   for (const series of SERIES) {
-    assert.equal(series.heroImage, undefined, series.slug);
-    assert.equal(series.heroAlt, undefined, series.slug);
-    assert.equal(seriesHero(series), null, series.slug);
+    assert.match(String(series.heroImage), /^https:\/\/bots\.aitamer\.news\/heroes\/series-[a-z0-9-]+-[0-9a-f]{8}\.jpg$/, series.slug);
+    assert.ok(series.heroAlt && series.heroAlt.trim(), series.slug);
+    assert.deepEqual(seriesHero(series), { src: series.heroImage, alt: series.heroAlt }, series.slug);
   }
 });
 
