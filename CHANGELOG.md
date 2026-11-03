@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.140 · 2026-11-03
+
+- Series pages show each part's existing article hero as a compact, lazy-loaded 16:9 thumbnail, WebP first with JPEG fallback. Rows keep one title focus target, shrink images on phones and remain readable if an image is absent. Thumbnail metadata participates in series cache keys. Updated standalone preview remains separate from production; main merge is held.
+
 ## 0.2.139 · 2026-11-03
 
 - Combine the submitted series and pinned badges, repair series cache dependencies and the public series-field contract, use WebP-first/JPEG-fallback series heroes with catalog media checks, and document maintainer submission without expanding publisher permissions. A standalone HTML review artifact is prepared before merge.

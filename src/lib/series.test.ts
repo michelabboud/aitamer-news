@@ -12,6 +12,7 @@ import {
   seriesProblems,
   seriesSitemapDates,
   seriesViews,
+  seriesViewCacheMark,
   type SeriesPost,
 } from './series.ts';
 
@@ -299,4 +300,25 @@ test('the published JSON Schema requires the paired series fields exactly as the
     assert.equal(postSchema.safeParse(input).success, expected, JSON.stringify(fields));
     assert.equal(acceptsDependencies(input), expected, `published schema: ${JSON.stringify(fields)}`);
   }
+});
+
+
+test('series parts retain each article hero and its alt, and hero edits invalidate the view cache', () => {
+  const inputs = [
+    post('first', { series: 'grok-bot', seriesOrder: 1, heroImage: 'https://media.aitamer.news/heroes/first.jpg', heroAlt: 'First cover', stamp: 'first@unchanged' }),
+    post('second', { series: 'grok-bot', seriesOrder: 2, heroImage: 'https://media.aitamer.news/heroes/second.jpg', heroAlt: 'Second cover' }),
+    post('no-cover', { series: 'grok-bot', seriesOrder: 3 }),
+  ];
+  const view = seriesPlacements(inputs, SERIES, now).get('first')!.view;
+  assert.deepEqual(view.parts.map(({ id, heroImage, heroAlt }) => ({ id, heroImage, heroAlt })), [
+    { id: 'first', heroImage: inputs[0].heroImage, heroAlt: 'First cover' },
+    { id: 'second', heroImage: inputs[1].heroImage, heroAlt: 'Second cover' },
+    { id: 'no-cover', heroImage: undefined, heroAlt: undefined },
+  ]);
+  const before = seriesViewCacheMark(view);
+  view.parts[0].heroImage = 'https://media.aitamer.news/heroes/revised.jpg';
+  assert.notEqual(seriesViewCacheMark(view), before);
+  const revised = seriesViewCacheMark(view);
+  view.parts[0].heroAlt = 'Revised cover';
+  assert.notEqual(seriesViewCacheMark(view), revised);
 });

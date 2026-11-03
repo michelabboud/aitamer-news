@@ -1,6 +1,7 @@
 /** Render both real series routes through the shared production HeroImage component. */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { parse } from 'parse5';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -73,10 +74,58 @@ for (const [name, Page] of [['index', Index], ['detail', Detail]] as const) {
     }
   });
   test(`the series ${name} keeps an absent hero out of the page`, async () => {
-    const withoutHero = { ...view, heroImage: undefined };
+    const withoutHero = { ...view, heroImage: undefined, parts: view.parts.map((part) => ({ ...part, heroImage: undefined })) };
     (globalThis as any).__seriesHeroRenderView = withoutHero;
     const html = await container.renderToString(Page, { props: { view: withoutHero } });
     assert.doesNotMatch(html, /<picture[\s>]|<img[\s>]/);
     assert.match(html, /Fixture part|Grok Bot tutorial/);
   });
 }
+
+
+test('series part thumbnails use the matching article, WebP and lazy JPEG, with one accessible title link', async () => {
+  const withThumbnails = { ...view, parts: [
+    { ...view.parts[0], id: 'first', title: 'First article', heroImage: 'https://media.aitamer.news/heroes/first.jpg', heroAlt: 'First cover' },
+    { ...view.parts[0], id: 'second', title: 'Second article', order: 2, heroImage: 'https://bots.aitamer.news/heroes/second-0123abcd.jpg', heroAlt: 'Second cover' },
+    { ...view.parts[0], id: 'no-cover', title: 'Article without a cover', order: 3, heroImage: undefined },
+  ] };
+  const html = await container.renderToString(Detail, { props: { view: withThumbnails } });
+  const nodes: any[] = [];
+  function visit(node: any) { nodes.push(node); for (const child of node.childNodes ?? []) visit(child); }
+  visit(parse(html));
+  const attribute = (node: any, name: string) => node.attrs?.find((attr: any) => attr.name === name)?.value;
+  const articles = nodes.filter((node) => node.tagName === 'article' && attribute(node, 'class') === 'series-part');
+  assert.equal(articles.length, 3);
+  for (const [index, article] of articles.entries()) {
+    const descendants: any[] = [];
+    function collect(node: any) { descendants.push(node); for (const child of node.childNodes ?? []) collect(child); }
+    collect(article);
+    const part = withThumbnails.parts[index];
+    const anchors = descendants.filter((node) => node.tagName === 'a');
+    const thumb = anchors.find((node) => attribute(node, 'class') === 'series-part__photo');
+    const titleLink = anchors.find((node) => node !== thumb);
+    assert.ok(titleLink, 'each article keeps its linked title');
+    assert.equal(attribute(titleLink, 'href'), `/preview/posts/${part.id}/`);
+    assert.equal(attribute(titleLink, 'tabindex'), undefined);
+    assert.equal(attribute(titleLink, 'aria-hidden'), undefined);
+    if (!part.heroImage) {
+      assert.equal(thumb, undefined);
+      assert.equal(anchors.length, 1);
+      assert.equal(descendants.filter((node) => node.tagName === 'img').length, 0);
+      continue;
+    }
+    assert.ok(thumb, `${part.id} thumbnail`);
+    assert.equal(attribute(thumb, 'href'), `/preview/posts/${part.id}/`);
+    assert.equal(attribute(thumb, 'tabindex'), '-1');
+    assert.equal(attribute(thumb, 'aria-hidden'), 'true');
+    const image = descendants.find((node) => node.tagName === 'img');
+    assert.equal(attribute(image, 'src'), part.heroImage);
+    assert.equal(attribute(image, 'alt'), '');
+    assert.equal(attribute(image, 'loading'), 'lazy');
+    assert.equal(attribute(image, 'width'), '1600');
+    assert.equal(attribute(image, 'height'), '900');
+    const source = descendants.find((node) => node.tagName === 'source');
+    assert.equal(attribute(source, 'type'), 'image/webp');
+    assert.equal(attribute(source, 'srcset'), part.heroImage.replace(/\.jpg$/, '.webp'));
+  }
+});

@@ -139,3 +139,21 @@ test('home feed snapshot changes when a pinned sibling changes the rendered seri
   assert.equal(after.seriesById.get('listed').label, 'Grok tutorial · Part 1 of 1');
   assert.notEqual(after.snapshot, before.snapshot);
 });
+
+
+test('the real series route maps article hero metadata and invalidates thumbnail edits without relying on a changed digest', async () => {
+  current = fixture();
+  const first = { heroImage: 'https://media.aitamer.news/heroes/listed.jpg', heroAlt: 'Listed cover' };
+  const second = { heroImage: 'https://bots.aitamer.news/heroes/sibling-0123abcd.jpg', heroAlt: 'Sibling cover' };
+  Object.assign(current.posts[0].data, first);
+  Object.assign(current.posts[1].data, second);
+  const paths = await loadKeyBuilder('src/pages/series/[slug].astro');
+  const result = async () => (await paths()).find((row: any) => row.params.slug === 'grok-bot');
+  const before = await result();
+  assert.deepEqual(before.props.view.parts.map((part: any) => ({ heroImage: part.heroImage, heroAlt: part.heroAlt })), [first, second]);
+  Object.assign(current.posts[1].data, { heroImage: 'https://bots.aitamer.news/heroes/sibling-fedcba98.jpg' });
+  const changed = await result();
+  assert.notEqual(changed.cacheKey, before.cacheKey);
+  Object.assign(current.posts[1].data, { heroAlt: 'Changed sibling cover' });
+  assert.notEqual((await result()).cacheKey, changed.cacheKey);
+});

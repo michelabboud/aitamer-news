@@ -33,6 +33,9 @@ export interface SeriesPost {
   /** Frontmatter `series_order`, unchecked until `seriesProblems`. */
   seriesOrder?: unknown;
   stamp?: string;
+  /** This article's existing hero, used as a decorative part thumbnail. */
+  heroImage?: string;
+  heroAlt?: string;
 }
 
 export interface SeriesPart {
@@ -42,6 +45,8 @@ export interface SeriesPart {
   pubDate: Date;
   order: number;
   stamp: string;
+  heroImage?: string;
+  heroAlt?: string;
 }
 
 export interface SeriesView {
@@ -180,6 +185,8 @@ export function seriesPlacements(
         pubDate: post.pubDate,
         order: post.seriesOrder!,
         stamp: post.stamp ?? post.id,
+        heroImage: post.heroImage,
+        heroAlt: post.heroAlt,
       }));
     const view: SeriesView = {
       slug: meta.slug,
@@ -211,7 +218,7 @@ export function seriesViewCacheMark(view: SeriesView): string {
   return JSON.stringify({
     slug: view.slug, title: view.title, description: view.description, href: view.href,
     heroImage: view.heroImage ?? null, heroAlt: view.heroAlt ?? null,
-    parts: view.parts.map((part) => [part.id, part.order, part.stamp, part.title, part.description, part.pubDate.toISOString()]),
+    parts: view.parts.map((part) => [part.id, part.order, part.stamp, part.title, part.description, part.pubDate.toISOString(), part.heroImage ?? null, part.heroAlt ?? null]),
   });
 }
 

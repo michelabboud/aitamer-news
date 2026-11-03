@@ -12,6 +12,8 @@ export function seriesPostOf(post: CollectionEntry<'posts'>): SeriesPost {
     id: post.id,
     title: post.data.title,
     description: post.data.description,
+    heroImage: post.data.heroImage,
+    heroAlt: post.data.heroAlt,
     pubDate: post.data.pubDate,
     draft: post.data.draft,
     withdrawn: Boolean(post.data.withdrawn),
