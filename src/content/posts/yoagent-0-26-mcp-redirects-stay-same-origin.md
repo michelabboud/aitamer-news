@@ -30,6 +30,10 @@ sources:
     url: https://github.com/yologdev/yoagent/pull/386
   - title: "yoagent on crates.io"
     url: https://crates.io/crates/yoagent
+  - title: "yoagent v0.26.8 release notes"
+    url: https://github.com/yologdev/yoagent/releases/tag/v0.26.8
+  - title: "yoagent PR #418"
+    url: https://github.com/yologdev/yoagent/pull/418
 ---
 
 [yoagent](https://github.com/yologdev/yoagent), a Rust agent library, shipped two releases in a day that change how its MCP client treats credentials. [v0.26.0](https://github.com/yologdev/yoagent/releases/tag/v0.26.0) landed on 29 October and [v0.26.1](https://github.com/yologdev/yoagent/releases/tag/v0.26.1) followed on 30 October. Both are on crates.io.
@@ -55,3 +59,11 @@ When we checked on 30 October, the project had not filed a GitHub security advis
 ## Why this matters
 
 Custom headers are the usual way to pass API keys to hosted MCP servers, and most HTTP clients only protect the standard `Authorization` header across redirects. If your Rust agent talks to MCP servers through yoagent, update to 0.26.1 and check any `match` on `McpError`. If you use another client, test what it does with a cross-host redirect. As the [rmcp 3.6.0 changes](/posts/rmcp-3-6-0-rust-mcp-sdk-request-ban/) and [Codewhale's fail-open fixes](/posts/codewhale-rust-coding-agent-fail-open-fixes/) showed, agent plumbing is where these gaps hide.
+
+## Update, 3 November 2026: stdio MCP servers can start without your keys
+
+[v0.26.8](https://github.com/yologdev/yoagent/releases/tag/v0.26.8), released on 3 November and on crates.io, covers the stdio side of the same problem. Before it, [PR #418](https://github.com/yologdev/yoagent/pull/418) explains, "a host could add variables to a stdio MCP server's environment but not remove inherited ones, so its provider keys always reached the server." Setting a key to an empty string was not a fix, because "an empty credential is still a value, and some servers fail on one."
+
+The release adds three options on `StdioOptions`. `env_remove(name)` and `env_remove_all(names)` start the server with those variables unset, and `env_clear_except(names)` passes only an allow-list. They apply in a fixed order: clear, then remove, then the caller's own `env` map, which wins. The suggested recipe is `StdioOptions::new().env_remove_all(provider::api_key_variables())`, which keeps every provider key yoagent knows about out of the server, and a new `Agent::with_mcp_server_stdio_with` takes these options on the `Agent` path. The docs that recommended blank keys now point to this.
+
+This is additive and opt-in: the existing `with_mcp_server_stdio` keeps its defaults, so a server still inherits the host's environment unless you pass the new options. The PR says it unblocks a planned default scrub in the downstream yoyo-evolve project. If your Rust agent launches local MCP servers through yoagent, update to 0.26.8 and add `env_remove_all` (or an allow-list) to each one.

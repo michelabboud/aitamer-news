@@ -1257,3 +1257,9 @@
 1254 crowdstrike-dreadnode-falcon-guardian-claude-cowork
 1255 deep-principle-hydrogen-1-0-open-science-model
 1256 solidcraft-0-30-1-acp-agent-permission-auto-approve-advisories
+1257 playwright-1-64-chromium-156-predates-chrome-security-fixes
+1258 google-schools-turn-off-ai-lose-search
+1259 zvec-grep-0-3-rust-rewrite-agent-local-search
+1260 postman-desktop-auto-installs-claude-code-codex-plugins
+1261 pruna-p-h3-image-open-weights-minimax-h3
+1262 apple-app-store-18-plus-ai-companion-apps
