@@ -2,7 +2,7 @@
 
 ## 0.2.139 · 2026-11-03
 
-- Combine the submitted series and pinned badges, repair series cache dependencies and the public series-field contract, and document maintainer submission without expanding publisher permissions. A standalone HTML review artifact is prepared before merge.
+- Combine the submitted series and pinned badges, repair series cache dependencies and the public series-field contract, use WebP-first/JPEG-fallback series heroes with catalog media checks, and document maintainer submission without expanding publisher permissions. A standalone HTML review artifact is prepared before merge.
 
 ## 0.2.138 · 2026-11-02
 

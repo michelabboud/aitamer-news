@@ -1,6 +1,7 @@
 ---
 /** Every series that has at least one live part, in catalog order. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import HeroImage from '../../components/HeroImage.astro';
 import SeriesIcon from '../../components/SeriesIcon.astro';
 import { toJsonLd } from '../../lib/json-ld';
 import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
@@ -50,7 +51,7 @@ const url = canonicalUrlFor('/series/');
           <li>
             {hero && (
               <a class="series-index__photo" href={withBase(item.href)} tabindex="-1" aria-hidden="true">
-                <img src={hero.src} alt="" width="1600" height="900" loading="lazy" decoding="async" />
+                <HeroImage src={hero.src} alt="" width="1600" height="900" loading="lazy" decoding="async" />
               </a>
             )}
             <div class="series-index__body">

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parse } from 'parse5';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
@@ -24,6 +24,13 @@ function astroPlugin() {
   return {
     name: 'pin-badge-render',
     setup(builder) {
+      builder.onResolve({ filter: /\.svg\?raw$/ }, (args) => ({
+        path: join(args.resolveDir, args.path), namespace: 'svg-raw',
+      }));
+      builder.onLoad({ filter: /.*/, namespace: 'svg-raw' }, ({ path }) => ({
+        contents: `export default ${JSON.stringify(readFileSync(path.replace(/\?raw$/, ''), 'utf8'))};`,
+        loader: 'js',
+      }));
       builder.onResolve({ filter: /^astro:content$/ }, () => ({ path: 'content', namespace: 'pin-badge-stub' }));
       builder.onResolve({ filter: /^astro:config\/server$/ }, () => ({ path: 'config', namespace: 'pin-badge-stub' }));
       builder.onResolve({ filter: /^astro:assets$/ }, () => ({ path: 'assets', namespace: 'pin-badge-stub' }));

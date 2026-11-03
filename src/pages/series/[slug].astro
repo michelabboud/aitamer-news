@@ -1,6 +1,7 @@
 ---
 /** One series: its live parts, in series_order, with the date and description of each. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import HeroImage from '../../components/HeroImage.astro';
 import { toJsonLd } from '../../lib/json-ld';
 import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
 import { seriesHero, seriesViews, seriesViewCacheMark } from '../../lib/series.ts';
@@ -50,7 +51,7 @@ const hero = seriesHero(view);
   </header>
   {hero && (
     <figure class="series-hero">
-      <img src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
+      <HeroImage src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
     </figure>
   )}
   <ol class="series-parts">
