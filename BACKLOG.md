@@ -1,5 +1,7 @@
 # Backlog
 
+- 2026-11-03 · PR404/405/407 review · fixed in candidate0.2.139 — paired series fields now agree in the public schema, cache keys include cross-page series dependencies, pin and series labels coexist, and the submission guide retains publisher permission boundaries. Separate nightly context-summary workflow implementation remains outside these PRs.
+
 - 2026-10-25 · build dependency audit · source fixed in0.2.126; review/integration pending — compatible lock resolutions leave npm audit at zero without source/contract changes. The http-cache-semantics advisory is disputed upstream; record audit range resolution rather than claiming a demonstrated security patch. See docs/reports/2026-10-25-build-dependency-repair.md.
 
 - 2026-10-25 · comments flip (S6) · open — The deploy's publisher step judges a push with the script as it was before the push, so the closed lanes (nothing may change) take effect from the first push after the flip is on `main`. Until then the old two-lane script is the judge; the publisher job is switched off on the desk's host first (cutover step C3), so no publisher push is expected in between.

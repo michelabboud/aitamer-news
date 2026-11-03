@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { SITE_IMAGES, bareEtag, collect, contentTypeFor, judge, main, md5Hex } from './check-media.mjs';
+import { SERIES } from '../src/data/series.ts';
 import { quietlyAsync, tempDir } from './test-support.mjs';
 
 const MEDIA = 'https://media.aitamer.news';
@@ -54,7 +55,7 @@ async function host(objects, override = () => false) {
   return { origin, seen, sent, close: () => new Promise((resolve) => server.close(resolve)) };
 }
 
-const run = (argv, options) => quietlyAsync(() => main(argv, { attempts: 2, attemptDelayMs: 1, siteImages: [], ...options }));
+const run = (argv, options) => quietlyAsync(() => main(argv, { attempts: 2, attemptDelayMs: 1, siteImages: [], seriesCatalog: [], ...options }));
 const ALL = {
   'heroes/a.jpg': 'AAAA', 'heroes/b.jpg': 'BBBBBB', 'heroes/c.jpg': 'CC',
   'heroes/a.webp': 'WEBP A', 'heroes/b.webp': 'WEBP B', 'heroes/c.webp': 'WEBP C',
@@ -498,4 +499,75 @@ test('the judge takes the expected type', () => {
   const headers = (h) => new Headers(h);
   assert.equal(judge({ status: 200, headers: headers({ 'content-type': 'image/webp' }) }, null, 'image/webp'), null);
   assert.match(judge({ status: 200, headers: headers({ 'content-type': 'image/webp' }) }, null), /expected image\/jpeg/);
+});
+
+
+test('the media CLI includes every configured series JPEG and WebP twin by default', async () => {
+  const { postsDir } = fixture();
+  const seriesObjects = Object.fromEntries(SERIES.flatMap(({ heroImage }) => {
+    const key = heroImage.slice(BOTS.length + 1);
+    return [[key, 'JPEG'], [key.replace(/\.jpg$/, '.webp'), 'WEBP']];
+  }));
+  const media = await host(ALL);
+  const bots = await host(seriesObjects);
+  try {
+    // Call main without the fixture wrapper's seriesCatalog override: this is the CLI default.
+    const { result, output } = await quietlyAsync(() => main([], {
+      postsDir, origin: media.origin, botOrigin: bots.origin, attempts: 1, siteImages: [],
+    }));
+    assert.equal(result, 0, output);
+    assert.equal(bots.seen.length, SERIES.length * 2);
+    for (const key of Object.keys(seriesObjects)) assert.ok(bots.seen.includes(`HEAD ${key}`), key);
+  } finally {
+    await media.close();
+    await bots.close();
+  }
+});
+
+test('a configured series hero fails the media gate if either twin is missing or has the wrong MIME type', async () => {
+  const { postsDir } = fixture();
+  for (const origin of [MEDIA, BOTS]) {
+    const slug = 'series-fixture';
+    const jpeg = `heroes/${slug}-0123abcd.jpg`;
+    const webp = jpeg.replace(/\.jpg$/, '.webp');
+    for (const broken of [jpeg, webp]) for (const wrongType of [false, true]) {
+      const media = await host(ALL);
+      const seriesHost = await host({ ...ALL, [jpeg]: 'JPEG', [webp]: 'WEBP' }, (key, res) => {
+        if (key !== broken) return false;
+        res.writeHead(wrongType ? 200 : 404, { 'content-type': 'text/html' }).end();
+        return true;
+      });
+      try {
+        const { result, output } = await run([], {
+          postsDir, origin: origin === MEDIA ? seriesHost.origin : media.origin, botOrigin: seriesHost.origin,
+          seriesCatalog: [{ slug: 'fixture', title: 'Fixture', description: 'Fixture series.', heroImage: `${origin}/${jpeg}` }],
+        });
+        assert.equal(result, 1, output);
+        assert.ok(seriesHost.seen.includes(`HEAD ${broken}`), broken);
+        assert.match(output, /series "fixture"/);
+        assert.ok(output.includes(`${seriesHost.origin}/${broken}`), output);
+        assert.match(output, wrongType ? /expected image\/(?:jpeg|webp)/ : /answered 404, expected 200/);
+      } finally {
+        await media.close();
+        await seriesHost.close();
+      }
+    }
+  }
+});
+
+test('the media collector skips absent series heroes and refuses off-contract catalog URLs before requests', async () => {
+  const { postsDir } = fixture();
+  assert.equal(collect({ postsDir, seriesCatalog: [{ slug: 'no-hero', title: 'No hero', description: 'None.' }] }).targets.length, 6);
+  for (const heroImage of [
+    'https://bots.aitamer.news.evil.example/heroes/series-fixture-0123abcd.jpg',
+    `${BOTS}/heroes/other-series-0123abcd.jpg`,
+  ]) {
+    const { result, output } = await run([], {
+      postsDir, origin: 'http://127.0.0.1:9', botOrigin: 'http://127.0.0.1:9',
+      seriesCatalog: [{ slug: 'fixture', title: 'Fixture', description: 'Fixture series.', heroImage }],
+    });
+    assert.equal(result, 1, output);
+    assert.match(output, /nothing was requested/);
+    assert.match(output, /series "fixture"/);
+  }
 });

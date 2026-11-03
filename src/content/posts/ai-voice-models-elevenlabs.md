@@ -5,6 +5,8 @@ pubDate: "2026-10-24T10:37:00Z"
 specimen: 1028
 section: models
 subsection: speech
+series: ai-voice-models
+series_order: 1
 tags:
   - ai-voice-models
   - elevenlabs

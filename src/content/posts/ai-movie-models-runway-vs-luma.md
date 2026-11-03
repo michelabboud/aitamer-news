@@ -5,6 +5,8 @@ pubDate: "2026-10-31T12:07:00Z"
 specimen: 1198
 section: tools
 subsection: movie-gen
+series: ai-movie-models
+series_order: 4
 tags:
   - ai-video-models
   - runway

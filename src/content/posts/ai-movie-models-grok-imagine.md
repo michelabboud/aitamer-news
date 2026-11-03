@@ -5,6 +5,8 @@ pubDate: "2026-10-28T22:07:00Z"
 specimen: 1111
 section: tools
 subsection: movie-gen
+series: ai-movie-models
+series_order: 3
 tags:
   - ai-video-models
   - xai

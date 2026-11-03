@@ -1,0 +1,26 @@
+---
+/**
+ * The series mark, inlined so it inherits `currentColor`. Hidden from assistive tech:
+ * the series name sits in the text beside it.
+ */
+import grokBot from '../assets/series-icons/grok-bot.svg?raw';
+import imageModels from '../assets/series-icons/ai-image-models.svg?raw';
+import movieModels from '../assets/series-icons/ai-movie-models.svg?raw';
+import voiceModels from '../assets/series-icons/ai-voice-models.svg?raw';
+import vectors from '../assets/series-icons/vectors-plainly.svg?raw';
+
+interface Props {
+  slug: string;
+}
+
+const ICONS: Record<string, string> = {
+  'grok-bot': grokBot,
+  'ai-image-models': imageModels,
+  'ai-movie-models': movieModels,
+  'ai-voice-models': voiceModels,
+  'vectors-plainly': vectors,
+};
+
+const svg = ICONS[Astro.props.slug];
+---
+{svg && <span class="series-icon" aria-hidden="true" set:html={svg} />}

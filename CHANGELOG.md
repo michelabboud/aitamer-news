@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.140 · 2026-11-03
+
+- Series pages show each part's existing article hero as a compact, lazy-loaded 16:9 thumbnail, WebP first with JPEG fallback. Rows keep one title focus target, shrink images on phones and remain readable if an image is absent. Thumbnail metadata participates in series cache keys. Updated standalone preview remains separate from production; main merge is held.
+
+## 0.2.139 · 2026-11-03
+
+- Combine the submitted series and pinned badges, repair series cache dependencies and the public series-field contract, use WebP-first/JPEG-fallback series heroes with catalog media checks, and document maintainer submission without expanding publisher permissions. A standalone HTML review artifact is prepared before merge.
+
+## 0.2.138 · 2026-11-02
+
+- Each series has a small monochrome icon, inlined so it uses the surrounding ink. It sits in the part badge on a post, on listing cards, and beside the name on `/series/`. The picture is hidden from assistive tech; the series name stays in the text. A series may also carry `heroImage` and `heroAlt` in `src/data/series.ts`. When both are set to an `https://` hero, `/series/<slug>/` shows it at the top and uses it as the share image, and `/series/` uses it as the card image. Until a URL is filled in, those pages show no picture.
+
+## 0.2.137 · 2026-11-02
+
+- **Pinned label.** A post the homepage pin card is showing carries a Pinned label on its page, in the kicker, and on listing cards (habitat, News, Columns, topics, author pages, archive months): a decorative pin icon and the word "Pinned", in the card's machine face and ember. The homepage feed leaves those posts out, so its cards carry no label. The label and the card are one decision (`resolvePinCard`): active pins, `until` (a timestamp, or the end of a bare date in Asia/Jerusalem), manual pins ahead of automatic ones, at most two, and a pinned lead left out. Story and listing pages that cache their HTML include that membership in the cache key, so a later pin change re-renders the pages whose label changes. ADR 0053 records the added labels. `npm test` 1632/1632; `check:posts` passed; build 1614 pages.
+
+- Posts can belong to a series. Optional frontmatter `series` (a lowercase slug from `src/data/series.ts`) and `series_order` (a positive integer, required when `series` is set, unique inside that series, including drafts and posts that are not live yet). `/series/` lists every series that has a live part, and `/series/<slug>/` lists those parts in order with the date and description. A live part shows a badge (`Grok Bot tutorial · Part 3 of 22`) and previous/next links to the other live parts. Drafts, future `pubDate`s and withdrawn posts stay off those lists. The Grok Bot tutorials (22 episodes), the AI image, movie and voice model reviews, and Vectors, Plainly now carry their episode numbers. Series pages are in the sitemap, with `lastmod` from the newest listed part, and a post in a series adds `isPartOf` to its article JSON-LD. `npm run check:posts` refuses a duplicate order or an unknown slug.
+
 ## 0.2.136 · 2026-11-01
 
 - Narration and self-hosted video now play from the same bucket as the post's hero (Michel, 2026-11-01: bots use `aitamer-bots`, the desk uses the media bucket). Until now both players were fixed to `bots.aitamer.news`, so a desk writer's narration or video on `media.aitamer.news` could not play. New `postFilesOrigin(heroImage)` in `src/lib/media.ts` returns the hero's exact origin (`bots.aitamer.news` or `media.aitamer.news`) and throws for any other hero, so a narrated or video post on another host fails the build instead of pointing a player at the wrong bucket. `PostNarration` and `SelfHostedVideo` take that origin (the video component refuses any other); the narration JSON-LD follows it. The captions proxy keeps `/videos/<key>/<stem>.en.vtt` for the bot bucket and adds `/videos/media/<key>/<stem>.en.vtt` for the media bucket; each path shape has one fixed upstream and the shapes cannot overlap. CSP `media-src` adds `https://media.aitamer.news`. The existing LEANN video page is byte-for-byte the same host and captions path. Docs: `POST.md` (`narration`, `selfHostedVideo`), the video protocol's bucket rule, the Grok guide's narration path rule, and the schema comments. New render test for `SelfHostedVideo` (both buckets) and tests for both buckets, refused heroes and the proxy's path shapes; each fails when the host is forced back to the bot bucket. Independent review: accept with fixes (three stale lines in the video guide: storage table, captions URL, read-back host; fixed). `npm test` 1624/1624; build 1593 pages.

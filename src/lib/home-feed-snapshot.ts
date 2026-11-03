@@ -27,6 +27,7 @@ export async function fingerprintHomeFeedSources(root: URL): Promise<string> {
 
 export function homeFeedSnapshot(input: {
   settings: HomeFeedSettings; postStamps: readonly string[]; authorStamps: readonly string[]; renderingSource: string;
+  seriesStamp?: string;
   renderContext?: { base: string; mediaBase: string };
 }): string {
   validateHomeFeedSettings(input.settings);
@@ -34,7 +35,7 @@ export function homeFeedSnapshot(input: {
     schema: HOME_FEED_SCHEMA, settings: {
       initialPostCount: input.settings.initialPostCount, nextBatchSize: input.settings.nextBatchSize, maxAutoBatches: input.settings.maxAutoBatches,
     }, posts: input.postStamps,
-    authors: [...input.authorStamps].sort(), renderingSource: input.renderingSource,
+    authors: [...input.authorStamps].sort(), series: input.seriesStamp ?? '', renderingSource: input.renderingSource,
     base: input.renderContext?.base ?? '/', mediaBase: input.renderContext?.mediaBase ?? '',
   })).digest('hex');
 }

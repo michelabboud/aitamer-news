@@ -64,3 +64,5 @@
 - [0051 · Sections lead the top bar, one compact masthead, and a desk pin card](0051-sections-lead-the-top-bar-and-one-compact-masthead.md) — accepted 2026-10-31, **supersedes 0032's navigation rule, amends 0013's navigation order**: News, the five topics and Voices in the top bar with a More menu (Columns, General, Extinction Watch, Archive, All habitats); the row under the masthead and its counts are gone; one compact masthead on every page; up to two pinned posts in a text-only card above the lead, not repeated in the feed.
 
 - [0052 · The Field log is the latest news](0052-the-field-log-is-the-latest-news.md) — accepted 2026-11-01: the homepage Field log is the eight newest posts after the lead, newest first, even where they repeat feed cards; it no longer starts after the last loadable batch.
+
+- [Pinned labels share the homepage card decision](0053-pinned-labels-share-the-homepage-card.md) — supplements 0051; membership and incremental-cache inputs are shared.

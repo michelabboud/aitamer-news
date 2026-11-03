@@ -4,6 +4,8 @@ description: "How HNSW graphs, IVF cells and product quantization make nearest-n
 pubDate: 2026-09-29T09:00:00Z
 specimen: 40
 section: dev
+series: vectors-plainly
+series_order: 2
 tags:
   - vectors-plainly
   - vector-databases

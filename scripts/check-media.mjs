@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Check that the hero images the posts point at are really on the media host (ADR 0020).
+ * Check that the hero images the posts and series catalog point at are really on the media host (ADR 0020).
  *
  *   npm run check:media                          every post's hero answers 200 with its named image type, including required
  *                                                WebP twins and the JPEG share twin of an explicit .webp bot hero
@@ -23,7 +23,8 @@
  *   listed, since its hero may be uploaded before it goes live; the hourly scheduled deploy that puts it
  *   live runs this check again.
  *
- * Only a post's own `heroImage` on an allowlisted media host is requested; anything else is `check:posts`' business
+ * Only an owned `heroImage` on an allowlisted media host is requested. Invalid catalog heroes fail here;
+ * invalid post heroes are `check:posts`' business
  * (`scripts/stamp-post-times.mjs --check` refuses a published post whose hero is not its media URL).
  */
 import { createHash } from 'node:crypto';
@@ -34,6 +35,8 @@ import { BOT_MEDIA_ORIGIN, DEFAULT_SOCIAL_IMAGE, MEDIA_ORIGIN, isOwnHeroUrl, med
 import { isLive } from '../src/lib/schedule.ts';
 import { isPublishedDraftField, pubDateOf, readFrontmatter } from './frontmatter.mjs';
 import { POSTS_DIR } from './stamp-post-times.mjs';
+import { SERIES } from '../src/data/series.ts';
+import { seriesHero } from '../src/lib/series.ts';
 
 /** Tries per request, for a network error or a 5xx. */
 export const ATTEMPTS = 3;
@@ -130,12 +133,22 @@ async function pool(items, limit, fn) {
 
 /**
  * The heroes to check, each with its actual origin and key (`heroes/<slug>.jpg`, or the hashed form).
- * @param {{ postsDir: string, localDir?: string | null, now?: Date }} where `now` decides which posts are live
+ * @param {{ postsDir: string, localDir?: string | null, now?: Date, seriesCatalog?: readonly import('../src/data/series.ts').SeriesMeta[] }} where `now` decides which posts are live
  * @returns {{ targets: { origin: string, key: string, label: string, local: { size: number, md5: string } | null, required: boolean }[], errors: string[] }}
  */
-export function collect({ postsDir, localDir = null, now = new Date() }) {
+export function collect({ postsDir, localDir = null, now = new Date(), seriesCatalog = [] }) {
   const targets = [];
   const errors = [];
+  const addHero = (hero, label, required) => {
+    const origin = mediaOrigin(hero);
+    targets.push({ origin, key: hero.slice(origin.length + 1), label, local: null, required });
+    // Every owned JPEG selects its WebP twin for visual rendering. WebP heroes retain their
+    // JPEG share/fallback twin, on the original production host before main() substitutes it.
+    const webp = webpHeroUrl(hero);
+    if (webp && webp !== hero) targets.push({ origin, key: webp.slice(origin.length + 1), label: `${label} (WebP image)`, local: null, required });
+    const share = shareImageUrl(hero);
+    if (share !== hero) targets.push({ origin, key: share.slice(origin.length + 1), label: `${label} (share image)`, local: null, required });
+  };
   for (const name of readdirSync(postsDir).filter((n) => POST_FILE.test(n)).sort()) {
     const file = join(postsDir, name);
     let fm;
@@ -148,7 +161,6 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
     const hero = fm?.data.heroImage;
     const slug = basename(name).replace(POST_FILE, '');
     if (!isOwnHeroUrl(slug, hero)) continue;
-    const origin = mediaOrigin(hero);
     // A pubDate the stamper cannot read is reported as a problem here (and fails check:posts too),
     // instead of escaping as an unhandled rejection (deep review re-check, R2).
     let date;
@@ -159,14 +171,19 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
       continue;
     }
     const live = isPublishedDraftField(fm.data) === true && (date === null || isLive({ draft: false, pubDate: date }, now));
-    targets.push({ origin, key: hero.slice(origin.length + 1), label: file, local: null, required: live });
-    // Every owned JPEG automatically selects its WebP twin for visual rendering, so both must exist.
-    // Look up the original production URL, before any local host replacement done by main().
-    const webp = webpHeroUrl(hero);
-    if (webp && webp !== hero) targets.push({ origin, key: webp.slice(origin.length + 1), label: `${file} (WebP image)`, local: null, required: live });
-    // A WebP hero's share cards use its JPEG twin (src/lib/media.ts shareImageUrl), so that must be there too.
-    const share = shareImageUrl(hero);
-    if (share !== hero) targets.push({ origin, key: share.slice(origin.length + 1), label: `${file} (share image)`, local: null, required: live });
+    addHero(hero, file, live);
+  }
+  // A configured series hero is published by the catalog. Check its pair even when there is
+  // no current post fixture for that series; a catalog addition must not bypass this gate.
+  for (const meta of seriesCatalog) {
+    const hero = seriesHero(meta);
+    if (!hero) continue;
+    const label = `series "${meta.slug}" (src/data/series.ts)`;
+    if (!isOwnHeroUrl(`series-${meta.slug}`, hero.src)) {
+      errors.push(`${label}: hero must be its own series-<slug> JPEG or WebP on an allowlisted media host`);
+      continue;
+    }
+    addHero(hero.src, label, true);
   }
   if (localDir !== null) {
     for (const name of readdirSync(localDir).sort()) {
@@ -186,14 +203,14 @@ export function collect({ postsDir, localDir = null, now = new Date() }) {
 
 /**
  * @param {string[]} argv
- * @param {{ postsDir?: string, origin?: string, botOrigin?: string, now?: Date, attempts?: number, attemptDelayMs?: number, concurrency?: number }} [options]
+ * @param {{ postsDir?: string, origin?: string, botOrigin?: string, now?: Date, attempts?: number, attemptDelayMs?: number, concurrency?: number, seriesCatalog?: readonly import('../src/data/series.ts').SeriesMeta[] }} [options]
  *   `origin` and `botOrigin` independently stand in for the two media hosts (tests serve them locally).
  * @returns {Promise<number>} exit code
  */
 /** The site's own images on the media host that every page relies on: the default share card. */
 export const SITE_IMAGES = Object.freeze([DEFAULT_SOCIAL_IMAGE.slice(MEDIA_ORIGIN.length + 1)]);
 
-export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, botOrigin = BOT_MEDIA_ORIGIN, now = new Date(), attempts, attemptDelayMs, concurrency = CONCURRENCY, siteImages = SITE_IMAGES } = {}) {
+export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, botOrigin = BOT_MEDIA_ORIGIN, now = new Date(), attempts, attemptDelayMs, concurrency = CONCURRENCY, siteImages = SITE_IMAGES, seriesCatalog = SERIES } = {}) {
   const at = argv.indexOf('--local');
   const localDir = at >= 0 ? argv[at + 1] : null;
   const unknown = argv.filter((_, i) => at < 0 || (i !== at && i !== at + 1));
@@ -205,7 +222,7 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
     console.error(`check:media: ${localDir} does not exist`);
     return 2;
   }
-  const { targets, errors } = collect({ postsDir, localDir, now });
+  const { targets, errors } = collect({ postsDir, localDir, now, seriesCatalog });
   // Without the share card every page without its own image shares a broken preview.
   for (const key of siteImages) targets.push({ origin: MEDIA_ORIGIN, key, label: 'the default share image (src/lib/media.ts)', local: null, required: true });
   if (errors.length > 0) {
@@ -230,7 +247,7 @@ export async function main(argv, { postsDir = POSTS_DIR, origin = MEDIA_ORIGIN, 
   const ok = (list) => list.filter((r) => r.problem === null).length;
   if (localDir !== null) console.log(`check:media: ${ok(local)}/${local.length} files in ${localDir} are on ${origin} byte for byte (size and ETag = MD5).`);
   const checkedOrigins = [...new Set(posts.map((r) => new URL(r.url).origin))].join(', ') || origin;
-  console.log(`check:media: ${ok(posts)}/${posts.length} post heroes on ${checkedOrigins} answer 200 ${HERO_CONTENT_TYPE} or ${WEBP_CONTENT_TYPE} as named (${posts.filter((r) => r.target.required).length} of them live).`);
+  console.log(`check:media: ${ok(posts)}/${posts.length} ${seriesCatalog.length ? 'post and series heroes' : 'post heroes'} on ${checkedOrigins} answer 200 ${HERO_CONTENT_TYPE} or ${WEBP_CONTENT_TYPE} as named (${posts.filter((r) => r.target.required).length} of them live).`);
   return failing.length === 0 ? 0 : 1;
 }
 

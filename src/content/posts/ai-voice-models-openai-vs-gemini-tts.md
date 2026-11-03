@@ -5,6 +5,8 @@ pubDate: "2026-10-27T11:37:00Z"
 specimen: 1081
 section: models
 subsection: speech
+series: ai-voice-models
+series_order: 2
 tags:
   - ai-voice-models
   - openai

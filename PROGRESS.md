@@ -1,5 +1,9 @@
 # Progress
 
+2026-11-03 — Michel requested small thumbnails beside series parts after reviewing the offline artifact. Candidate0.2.140 adds the existing post imagery to those rows and refreshes the same self-contained preview. 1668/1668 tests, build1650, content/CSP/link/diagram guards and both source reviews pass. The updated offline preview verifies all39 thumbnails and phone widths320/390 without overflow. No merge or upload.
+
+2026-11-03 — Combined corrections for submitted PR404/405/407: series cache dependencies, public paired-field schema, shared pin/series rendering and maintainer submission guidance. 1665/1665 tests, build1645, content/CSP/link/diagram guards and both independent successor reviews pass. The self-contained HTML preview is being finalized before merge. No main merge or permission changes.
+
 2026-10-26 — CSP enforcement and exact-policy deployment guard integrated from the independently accepted template source. Focused76/76 and full1423/1423 tests pass. Full-content build, SSH staging, intercepted production compatibility, reviews and normal deployment/live acceptance are in progress. [Plan](docs/plans/2026-10-26-csp-enforcement.md), ADR0048.
 
 2026-10-26 — Candidate0.2.127 combines the accepted v2 reader, reviewed clean dependency lock and current main. Last updated26October, historical cutoff25October. Owner authorized the two baked-file removals. Exact-candidate checks/reviews/deployment remain pending at this record's initial write. [Record](docs/reports/2026-10-26-comments-cutover-date.md).
