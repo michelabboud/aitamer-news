@@ -1251,3 +1251,9 @@
 1248 cjeu-advocate-general-gemini-press-publishers-like-company
 1249 lxd-microcloud-cve-2026-112816-trusted-client-impersonation
 1250 llm-findings-shelf-life-stanford-zou-50-claims
+1251 anthropic-flashprove-provable-inference
+1252 pagerduty-paige-sre-agent-pd-reliability-platform
+1253 baidu-apollo-world-world-model-robotaxi-simulation
+1254 crowdstrike-dreadnode-falcon-guardian-claude-cowork
+1255 deep-principle-hydrogen-1-0-open-science-model
+1256 solidcraft-0-30-1-acp-agent-permission-auto-approve-advisories

@@ -38,6 +38,8 @@ sources:
     url: https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B
   - title: "Mistral Large 4 LICENSE (Mistral Ecosystem Open-Weight License)"
     url: https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/LICENSE
+  - title: "Mistral Large 4 technical report (PDF in the Hugging Face repository, added 2 November 2026)"
+    url: https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/assets/technical_report.pdf
 ---
 
 Mistral published [Introducing Mistral Large 4](https://mistral.ai/news/mistral-large-4/) on 6 October 2026 and said a public preview is available the same day on Mistral Studio. The post's nickname for the model is le Chonk. On the [docs page](https://docs.mistral.ai/models/mistral-large-4-0), also dated 6 October 2026 and marked Public Preview, the copy-to-clipboard control and the sample API calls use the model id `mistral-large-4`.
@@ -83,3 +85,9 @@ The model card puts it at 1 trillion total parameters with 49 billion active per
 The license is not plain Apache 2.0. It is the Mistral Ecosystem Open-Weight License, a modified MIT license. Most users get MIT-style rights, but if you or an affiliate operate a Model-as-a-Service business, meaning third parties get API or hosted access with meaningful control over inputs, parameters or training data, you need a separate commercial license from Mistral before any commercial use of the model. Internal use, and products that only embed the model inside specific features, are carved out.
 
 Mistral's own numbers for the release: 19.7% on FrontierCode 2.0, 48% on the Artificial Analysis Coding Agent Index (which Mistral calls effectively tied with GLM-5.3 while using 47% fewer tokens per task), 41% on Terminal-Bench 4.0, 13 points up on the preview, and a 96.6% refusal rate on malicious cyber prompts. We have not reproduced any of them. If you planned to resell access to it as a hosted API, talk to Mistral first; running it in-house or inside a product feature does not trigger that clause.
+
+## Update, 3 November 2026: the technical report
+
+On 2 November Mistral added a [technical report](https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/assets/technical_report.pdf) to the Hugging Face repository, and the model card now links to it. The weights and the license are unchanged from the 29 October release above. We did not find the report on arXiv when we checked on 3 November.
+
+The report gives the size as 52 billion active and 1 trillion total parameters. It says the NVFP4 checkpoint, which quantizes the routed experts and keeps other parts at higher precision, is 606 GB and runs on four GB300 GPUs, against eight GB300s for the FP8 baseline in its serving comparison. Mistral says that quantized version matches the FP8 reference on its evaluations. The report also says the model was pretrained on 3,840 NVIDIA GB200 GPUs, a little different from the 3,800 in the launch blog. It explains that the low, medium and high reasoning levels come from distilling several teacher checkpoints, to let users trade token use against accuracy. The scores in the report (19.7% on FrontierCode 2.0, 41% on Terminal-Bench 4.0, 50.9% on the Artificial Analysis Cyber Index) are Mistral's own. If you plan to self-host, start from the four-GPU NVFP4 figure, and check it on your own hardware before you buy.
