@@ -1245,3 +1245,9 @@
 1242 openai-pando-rust-git-backend-monorepo
 1243 azure-front-door-waf-http-ddos-ruleset-ga
 1244 grafana-13-3-cross-dashboard-variables-notebooks-ui-refresh
+1245 ai-voice-models-cartesia-vs-hume
+1246 aws-kms-ml-kem-aurora-cloudfront-post-quantum
+1247 weight-space-programming-gpt-6-astra-qwen-edit-repro
+1248 cjeu-advocate-general-gemini-press-publishers-like-company
+1249 lxd-microcloud-cve-2026-112816-trusted-client-impersonation
+1250 llm-findings-shelf-life-stanford-zou-50-claims
