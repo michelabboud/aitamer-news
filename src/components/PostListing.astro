@@ -7,6 +7,7 @@ import type { Page } from 'astro';
 import type { CollectionEntry } from 'astro:content';
 import PostCard from './PostCard.astro';
 import { withTrailingSlash } from '../lib/listing.ts';
+import { loadHomepagePins } from '../lib/shown-pins.ts';
 
 interface Props {
   page: Page<{ post: CollectionEntry<'posts'>; author: CollectionEntry<'authors'> }>;
@@ -19,6 +20,7 @@ interface Props {
 }
 
 const { page, name, kicker, heading, lede, empty } = Astro.props;
+const pinCard = await loadHomepagePins();
 // Astro's paginate gives page 1 as "/news"; every other address on the site ends in a slash.
 const prev = page.url.prev && withTrailingSlash(page.url.prev);
 const next = page.url.next && withTrailingSlash(page.url.next);
@@ -33,7 +35,7 @@ const next = page.url.next && withTrailingSlash(page.url.next);
 ) : (
   <ul class="cards listing">
     {page.data.map(({ post, author }, i) => (
-      <li><PostCard post={post} author={author} heading="h2" showDesc eager={page.currentPage === 1 && i < 3} /></li>
+      <li><PostCard post={post} author={author} heading="h2" showDesc eager={page.currentPage === 1 && i < 3} pinned={pinCard.ids.has(post.id)} /></li>
     ))}
   </ul>
 )}

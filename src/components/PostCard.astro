@@ -12,6 +12,7 @@ import {
 } from '../lib/site';
 import { postCoverSource } from '../lib/covers';
 import HeroImage from './HeroImage.astro';
+import PinBadge from './PinBadge.astro';
 
 interface Props {
   post: CollectionEntry<'posts'>;
@@ -22,8 +23,11 @@ interface Props {
   /** h3 under a section heading (home), h2 directly under the page title (listings). */
   heading?: 'h2' | 'h3';
   context?: 'home-card' | 'listing';
+  /** True when this post is in the homepage pin card. Listing cards show the label; the homepage feed does not. */
+  pinned?: boolean;
 }
-const { post, author, showDesc = false, eager = false, heading = 'h3', context = 'listing' } = Astro.props;
+const { post, author, showDesc = false, eager = false, heading = 'h3', context = 'listing', pinned = false } = Astro.props;
+const showPin = pinned && context !== 'home-card';
 const Heading = heading;
 const habitat = habitatOfPost(post);
 const href = postHref(post);
@@ -45,7 +49,14 @@ const kind = author.data.kind;
     {specimen && <span class="card__no">No.{formatSpecimen(specimen)}</span>}
   </a>
   <div class="card__meta">
-    <a href={habitatHref(habitat)}>{habitat.name.toUpperCase()}</a>
+    {showPin ? (
+      <span class="card__place">
+        <a href={habitatHref(habitat)}>{habitat.name.toUpperCase()}</a>
+        <PinBadge />
+      </span>
+    ) : (
+      <a href={habitatHref(habitat)}>{habitat.name.toUpperCase()}</a>
+    )}
     <span class:list={['card__by', `by--${kind}`]}>{kindLabel(kind).toUpperCase()} · {author.data.name.toUpperCase()}</span>
   </div>
   <Heading class="card__title"><a href={href}>{post.data.title}</a></Heading>
