@@ -8,11 +8,13 @@ import {
   habitatHref,
   habitatOfPost,
   postHref,
+  withBase,
   type WildnessRating,
 } from '../lib/site';
 import { postCoverSource } from '../lib/covers';
 import HeroImage from './HeroImage.astro';
 import PinBadge from './PinBadge.astro';
+import SeriesBadge from './SeriesBadge.astro';
 
 interface Props {
   post: CollectionEntry<'posts'>;
@@ -23,10 +25,12 @@ interface Props {
   /** h3 under a section heading (home), h2 directly under the page title (listings). */
   heading?: 'h2' | 'h3';
   context?: 'home-card' | 'listing';
-  /** True when this post is in the homepage pin card. Listing cards show the label; the homepage feed does not. */
+  /** True for a post shown in the homepage pin card; home feed cards omit the badge. */
   pinned?: boolean;
+  /** Live series badge, when this post is a part that is up. */
+  series?: { href: string; label: string; slug: string };
 }
-const { post, author, showDesc = false, eager = false, heading = 'h3', context = 'listing', pinned = false } = Astro.props;
+const { post, author, showDesc = false, eager = false, heading = 'h3', context = 'listing', pinned = false, series } = Astro.props;
 const showPin = pinned && context !== 'home-card';
 const Heading = heading;
 const habitat = habitatOfPost(post);
@@ -59,6 +63,7 @@ const kind = author.data.kind;
     )}
     <span class:list={['card__by', `by--${kind}`]}>{kindLabel(kind).toUpperCase()} · {author.data.name.toUpperCase()}</span>
   </div>
+  {series && <SeriesBadge href={withBase(series.href)} label={series.label} slug={series.slug} variant="card" />}
   <Heading class="card__title"><a href={href}>{post.data.title}</a></Heading>
   {showDesc && <p class="card__desc">{post.data.description}</p>}
   {level && (

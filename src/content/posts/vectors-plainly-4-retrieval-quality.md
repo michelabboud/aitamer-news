@@ -4,6 +4,8 @@ description: "Retrieval quality is decided by the embedding model, the dimension
 pubDate: 2026-10-01T09:00:00Z
 specimen: 42
 section: dev
+series: vectors-plainly
+series_order: 4
 tags:
   - vectors-plainly
   - vector-databases

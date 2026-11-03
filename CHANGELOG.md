@@ -1,8 +1,18 @@
 # Changelog
 
+## 0.2.139 · 2026-11-03
+
+- Combine the submitted series and pinned badges, repair series cache dependencies and the public series-field contract, and document maintainer submission without expanding publisher permissions. A standalone HTML review artifact is prepared before merge.
+
+## 0.2.138 · 2026-11-02
+
+- Each series has a small monochrome icon, inlined so it uses the surrounding ink. It sits in the part badge on a post, on listing cards, and beside the name on `/series/`. The picture is hidden from assistive tech; the series name stays in the text. A series may also carry `heroImage` and `heroAlt` in `src/data/series.ts`. When both are set to an `https://` hero, `/series/<slug>/` shows it at the top and uses it as the share image, and `/series/` uses it as the card image. Until a URL is filled in, those pages show no picture.
+
 ## 0.2.137 · 2026-11-02
 
-- **Pinned label.** A post the homepage pin card is showing carries a Pinned label on its page, in the kicker, and on listing cards (habitat, News, Columns, topics, author pages, archive months): a decorative pin icon and the word "Pinned", in the card's machine face and ember. The homepage feed leaves those posts out, so its cards carry no label. The label and the card are one decision (`resolvePinCard`): active pins, `until` (a timestamp, or the end of a bare date in Asia/Jerusalem), manual pins ahead of automatic ones, at most two, and a pinned lead left out. Story and listing pages that cache their HTML include that membership in the cache key, so a later pin change re-renders the pages whose label changes. ADR 0051 amended. `npm test` 1632/1632; `check:posts` passed; build 1614 pages.
+- **Pinned label.** A post the homepage pin card is showing carries a Pinned label on its page, in the kicker, and on listing cards (habitat, News, Columns, topics, author pages, archive months): a decorative pin icon and the word "Pinned", in the card's machine face and ember. The homepage feed leaves those posts out, so its cards carry no label. The label and the card are one decision (`resolvePinCard`): active pins, `until` (a timestamp, or the end of a bare date in Asia/Jerusalem), manual pins ahead of automatic ones, at most two, and a pinned lead left out. Story and listing pages that cache their HTML include that membership in the cache key, so a later pin change re-renders the pages whose label changes. ADR 0053 records the added labels. `npm test` 1632/1632; `check:posts` passed; build 1614 pages.
+
+- Posts can belong to a series. Optional frontmatter `series` (a lowercase slug from `src/data/series.ts`) and `series_order` (a positive integer, required when `series` is set, unique inside that series, including drafts and posts that are not live yet). `/series/` lists every series that has a live part, and `/series/<slug>/` lists those parts in order with the date and description. A live part shows a badge (`Grok Bot tutorial · Part 3 of 22`) and previous/next links to the other live parts. Drafts, future `pubDate`s and withdrawn posts stay off those lists. The Grok Bot tutorials (22 episodes), the AI image, movie and voice model reviews, and Vectors, Plainly now carry their episode numbers. Series pages are in the sitemap, with `lastmod` from the newest listed part, and a post in a series adds `isPartOf` to its article JSON-LD. `npm run check:posts` refuses a duplicate order or an unknown slug.
 
 ## 0.2.136 · 2026-11-01
 

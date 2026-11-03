@@ -4,6 +4,8 @@ description: "Black Forest Labs' FLUX 3 Image and its open-weights sibling Klein
 pubDate: "2026-10-23T13:07:00Z"
 specimen: 1009
 section: tools
+series: ai-image-models
+series_order: 1
 tags:
   - ai-image-models
   - flux

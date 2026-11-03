@@ -7,6 +7,7 @@ import { sitemapIncludes } from './src/lib/habitats.ts';
 import { isLegacyWriterAliasPath } from './src/lib/writer-pages.ts';
 import { loadSitemapData, postSlugOf } from './scripts/sitemap-data.mjs';
 import { topicLastmods } from './src/lib/topics.ts';
+import { seriesSitemapDates } from './src/lib/series.ts';
 import { HERO_REMOTE_PATTERNS } from './src/lib/responsive-hero.ts';
 import { plainBodyMarkdown } from './src/lib/plain-body-markdown.ts';
 
@@ -18,6 +19,7 @@ const base = process.env.ASTRO_BASE ?? '/';
 
 const postData = loadSitemapData();
 // Topic pages: `lastmod` is the newest change among the topic's stories (src/lib/topics.ts).
+const seriesDates = seriesSitemapDates([...postData.values()]);
 const topicDates = topicLastmods(
   [...postData].filter(([, entry]) => entry.listed).map(([id, entry]) => ({ id, tags: entry.tags, lastmod: entry.lastmod })),
 );
@@ -30,6 +32,15 @@ function topicPageLastmod(url) {
   if (path === '/topics/') return topicDates.newest;
   const match = /^\/topics\/([^/]+)\/$/.exec(path);
   return match ? topicDates.bySlug.get(match[1]) : undefined;
+}
+
+/** `lastmod` for `/series/` and `/series/<slug>/`: the newest change among that series' listed parts. */
+function seriesPageLastmod(url) {
+  const prefix = base.replace(/\/+$/, '');
+  const path = new URL(url).pathname.slice(prefix.length) || '/';
+  if (path === '/series/') return seriesDates.newest;
+  const match = /^\/series\/([^/]+)\/$/.exec(path);
+  return match ? seriesDates.bySlug.get(decodeURIComponent(match[1])) : undefined;
 }
 
 export default defineConfig({
@@ -47,13 +58,14 @@ export default defineConfig({
   },
   // Sitemap: no retired-section redirect pages, no withdrawn or scheduled posts, and each
   // post's lastmod is its newest publish, update or correction date (scripts/sitemap-data.mjs).
+  // Series pages use the newest lastmod among their listed parts.
   integrations: [
     mdx(),
     sitemap({
       // The search page is noindex, so it stays out too.
       filter: (page) => !isHomeFeedBatchPath(new URL(page).pathname, base) && !/\/search\/$/.test(new URL(page).pathname) && !isLegacyWriterAliasPath(new URL(page).pathname, base) && sitemapIncludes(page) && (postData.get(postSlugOf(page) ?? '')?.listed ?? true),
       serialize: (item) => {
-        const lastmod = postData.get(postSlugOf(item.url) ?? '')?.lastmod ?? topicPageLastmod(item.url);
+        const lastmod = postData.get(postSlugOf(item.url) ?? '')?.lastmod ?? topicPageLastmod(item.url) ?? seriesPageLastmod(item.url);
         return lastmod ? { ...item, lastmod: lastmod.toISOString() } : item;
       },
     }),

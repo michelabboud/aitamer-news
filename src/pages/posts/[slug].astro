@@ -33,6 +33,7 @@ import {
   entryStamp,
   getCommentThreads,
   getPostPages,
+  getPublishedPosts,
   getReactionThreads,
   habitatHref,
   habitatOfPost,
@@ -50,9 +51,14 @@ import HeroImage from '../../components/HeroImage.astro';
 import PinBadge from '../../components/PinBadge.astro';
 import { pinCacheMark } from '../../lib/home-pins.ts';
 import { loadHomepagePins } from '../../lib/shown-pins.ts';
+import SeriesBadge from '../../components/SeriesBadge.astro';
+import { seriesCacheMark } from '../../lib/series.ts';
+import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
 
 export async function getStaticPaths() {
   // Withdrawn posts keep their page (and URL); they only leave lists and feeds.
+  await assertSeriesCollection();
+  const seriesById = placementsFor(await getPublishedPosts());
   const posts = await getPostPages();
   const pinCard = await loadHomepagePins();
   // Loaded once for every post. Each page's key carries its own thread's and reactions file's
@@ -67,9 +73,10 @@ export async function getStaticPaths() {
       const author = await resolveAuthor(post);
       const thread = threads.get(post.id);
       const reactions = reactionFiles?.get(post.id);
+      const series = seriesById.get(post.id) ?? null;
       return {
         params: { slug: post.id },
-        props: { post, comments: thread?.data.comments ?? [], ...(reactionFiles ? { reactions: reactions?.data } : {}) },
+        props: { post, series, comments: thread?.data.comments ?? [], ...(reactionFiles ? { reactions: reactions?.data } : {}) },
         cacheKey: [
           entryStamp(post),
           author ? entryStamp(author) : 'missing-author',
@@ -78,13 +85,15 @@ export async function getStaticPaths() {
           // A tag gains or loses its topic page when other stories change, so the links belong in the key.
           topicSlugsForTags(topicIndex.slugByKey, post.data.tags).map(({ slug }) => slug).join(','),
           pinCacheMark([post.id], pinCard.ids),
+          // Previous and next change when another live part arrives or leaves.
+          seriesCacheMark([post.id], seriesById),
         ].join('|'),
       };
     }),
   );
 }
 
-const { post, comments, reactions } = Astro.props;
+const { post, comments, reactions, series } = Astro.props;
 const pinned = (await loadHomepagePins()).ids.has(post.id);
 const rev = revDocument(post);
 const author = await resolveAuthor(post);
@@ -148,18 +157,37 @@ const jsonLd = withdrawn
       isAccessibleForFree: true,
       // The post read aloud (`narration`); undefined, so the key is left out, when there is none.
       audio: narrationAudioObject(data.narration, data.heroImage),
+      ...(series
+        ? {
+            position: series.order,
+            isPartOf: {
+              '@type': 'CreativeWorkSeries',
+              name: series.view.title,
+              url: canonicalUrlFor(series.href),
+            },
+          }
+        : {}),
       // No comment count or schema.org Comments: comments are read in the browser from the data host
       // (`COMMENTS_SOURCE = 'r2'`, ADR 0047), so they are not in the build to describe. `commentsJsonLd`
       // stays in `comment-text.ts` for the way back to baked HTML.
     };
+const breadcrumbItems = [
+  { '@type': 'ListItem', position: 1, name: SITE.title, item: SITE.url + '/' },
+  { '@type': 'ListItem', position: 2, name: habitat.name, item: canonicalUrlFor(`/section/${habitat.slug}/`) },
+  ...(series
+    ? [{ '@type': 'ListItem', position: 3, name: series.view.title, item: canonicalUrlFor(series.href) }]
+    : []),
+];
+breadcrumbItems.push({
+  '@type': 'ListItem',
+  position: breadcrumbItems.length + 1,
+  name: data.title,
+  item: canonical,
+});
 const breadcrumbs = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: SITE.title, item: SITE.url + '/' },
-    { '@type': 'ListItem', position: 2, name: habitat.name, item: canonicalUrlFor(`/section/${habitat.slug}/`) },
-    { '@type': 'ListItem', position: 3, name: data.title, item: canonical },
-  ],
+  itemListElement: breadcrumbItems,
 };
 ---
 <BaseLayout
@@ -201,6 +229,7 @@ const breadcrumbs = {
           Habitat {habitat.code} · <span data-pagefind-filter="habitat" data-pagefind-meta="habitat">{habitat.name}</span>
         </a>
       </p>
+      {series && <SeriesBadge href={withBase(series.href)} label={series.label} slug={series.view.slug} />}
       <h1 class="article__title">{data.title}</h1>
       {!withdrawn && <p class="lede">{data.description}</p>}
       <div class="byline">
@@ -319,6 +348,23 @@ const breadcrumbs = {
             <>; updated <time datetime={changed.toISOString()}>{formatDate(changed)}</time></>
           )}.
         </p>
+
+        {series && (series.prev || series.next) && (
+          <nav class="series-nav" aria-label={`${series.view.title} parts`}>
+            {series.prev ? (
+              <a href={withBase(`/posts/${series.prev.id}/`)} rel="prev">
+                <span class="series-nav__dir">Previous</span>
+                <span class="series-nav__title">{series.prev.title}</span>
+              </a>
+            ) : <span aria-hidden="true"></span>}
+            {series.next ? (
+              <a href={withBase(`/posts/${series.next.id}/`)} rel="next">
+                <span class="series-nav__dir">Next</span>
+                <span class="series-nav__title">{series.next.title}</span>
+              </a>
+            ) : <span aria-hidden="true"></span>}
+          </nav>
+        )}
 
         {data.tags.length > 0 && (
           <ul class="tag-list" aria-label="Tags" style="margin-top: 2rem">

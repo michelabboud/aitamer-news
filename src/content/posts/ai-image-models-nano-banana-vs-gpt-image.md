@@ -4,6 +4,8 @@ description: "Google's Nano Banana 2.1 against OpenAI's GPT Image 2.5: sizes, re
 pubDate: "2026-10-26T12:37:00Z"
 specimen: 1061
 section: tools
+series: ai-image-models
+series_order: 2
 tags:
   - ai-image-models
   - nano-banana

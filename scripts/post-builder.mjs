@@ -12,7 +12,8 @@
  *        [--news] [--no-links] [--open-issue]
  *
  * fields.json: { title, description, section, tags[], body, sources:[{title,url}],
- *                wildness:{rating,verified,claimed}, verdict, subsection?, heroAlt? }
+ *                wildness:{rating,verified,claimed}, verdict, subsection?, heroAlt?,
+ *                series?, series_order? }
  *
  * Stdout is one JSON result: { status: "ok" | "retry" | "fallback", file, repairs, problems, warnings,
  * factCheckHints, retryPrompt, fallbackModel, issue }. Exit 0 on ok, 1 otherwise. The file is written
@@ -36,7 +37,7 @@ import { leaksIn } from './check-reader-text.mjs';
 import { heroProblems, newsSlotProblems, slotProblems, styleProblems, takenSlots } from './bot-preflight.mjs';
 
 /** The only keys a model may supply; everything else is dropped and recorded. */
-export const FIELD_KEYS = ['title', 'description', 'section', 'subsection', 'tags', 'body', 'sources', 'wildness', 'verdict', 'heroAlt'];
+export const FIELD_KEYS = ['title', 'description', 'section', 'subsection', 'series', 'series_order', 'tags', 'body', 'sources', 'wildness', 'verdict', 'heroAlt'];
 /** Section values models invent that map to a habitat (the schema's own aliases are applied first). */
 export const SECTION_FIXES = Object.freeze({ news: 'general', announcement: 'general', article: 'general', explainer: 'general', review: 'tools', tutorial: 'dev' });
 export const MAX_TAGS = 6;
@@ -119,6 +120,20 @@ export function repairFields(input) {
     if (fixed !== body) note('em-dash', 'body', 'rewrote em-dashes in the prose as commas', body, fixed);
     f.body = fixed;
   }
+  if (typeof f.series === 'string') {
+    const series = f.series.trim();
+    if (series !== f.series) note('whitespace', 'series', 'trimmed the series slug', f.series, series);
+    f.series = series;
+  }
+  if (f.series === '') {
+    note('series', 'series', 'dropped an empty series');
+    delete f.series;
+  }
+  if (typeof f.series_order === 'string' && /^[1-9]\d*$/.test(f.series_order)) {
+    const order = Number(f.series_order);
+    note('series_order', 'series_order', 'read a numeric string as an integer', f.series_order, String(order));
+    f.series_order = order;
+  }
   if (Array.isArray(f.tags)) {
     const tags = [...new Set(f.tags.map((t) => String(t).trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '')).filter(Boolean))].map((t) => t.slice(0, 60)).slice(0, MAX_TAGS);
     if (JSON.stringify(tags) !== JSON.stringify(f.tags)) note('tags', 'tags', 'normalised to lowercase-hyphenated, deduplicated, at most six', f.tags, tags);
@@ -142,6 +157,8 @@ export function assemble(f, { author, pubDate, heroImage, heroAlt }) {
   const data = {
     title: f.title, description: f.description, pubDate, section: f.section,
     ...(f.subsection ? { subsection: f.subsection } : {}),
+    ...(f.series ? { series: f.series } : {}),
+    ...(Number.isInteger(f.series_order) ? { series_order: f.series_order } : {}),
     tags: f.tags ?? [], draft: false,
     ...(heroImage ? { heroImage } : {}), ...((heroAlt ?? f.heroAlt) ? { heroAlt: heroAlt ?? f.heroAlt } : {}),
     wildness: f.wildness, verdict: f.verdict, sources: f.sources ?? [],
@@ -151,7 +168,7 @@ export function assemble(f, { author, pubDate, heroImage, heroAlt }) {
 
 export function renderPost(data, author, body) {
   const withAuthor = { ...data };
-  const order = ['title', 'description', 'pubDate', 'section', 'subsection', 'tags', 'draft', 'heroImage', 'heroAlt', 'author', 'wildness', 'verdict', 'sources'];
+  const order = ['title', 'description', 'pubDate', 'section', 'subsection', 'series', 'series_order', 'tags', 'draft', 'heroImage', 'heroAlt', 'author', 'wildness', 'verdict', 'sources'];
   const sorted = {};
   for (const k of order) { if (k === 'author') sorted.author = author; else if (k in withAuthor) sorted[k] = withAuthor[k]; }
   return `---\n${yaml.dump(sorted, { lineWidth: -1, quotingType: '"', forceQuotes: false }).trimEnd()}\n---\n\n${body.trim()}\n`;

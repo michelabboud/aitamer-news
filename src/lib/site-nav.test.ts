@@ -9,8 +9,8 @@ test('the top bar sections are the plan’s seven, in order', () => {
   assert.deepEqual(labels(SECTION_LINKS), ['News', 'Models', 'Dev', 'Tools', 'DevOps & IT', 'Rust', 'Voices']);
 });
 
-test('More holds Columns, General, Extinction Watch, Archive and All habitats', () => {
-  assert.deepEqual(labels(MORE_LINKS), ['Columns', 'General', 'Extinction Watch', 'Archive', 'All habitats']);
+test('More holds Columns, General, Extinction Watch, Series, Archive and All habitats', () => {
+  assert.deepEqual(labels(MORE_LINKS), ['Columns', 'General', 'Extinction Watch', 'Series', 'Archive', 'All habitats']);
 });
 
 test('no link appears twice across the sections, More and the utility links', () => {
@@ -53,6 +53,8 @@ test('pages in the More menu are marked inside it', () => {
   assert.equal(more('/posts/x/', { habitat: 'general' }), true);
   assert.equal(more('/archive/'), true);
   assert.equal(more('/archive/2026/10/'), false);
+  assert.equal(more('/series/'), true);
+  assert.equal(more('/series/grok-bot/', { nav: 'series' }), true);
   assert.equal(more('/section/dev/'), false);
   assert.equal(more('/'), false);
 });

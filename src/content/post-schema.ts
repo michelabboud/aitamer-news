@@ -1,5 +1,6 @@
 import { z } from 'astro/zod';
 import { FRONTMATTER_SECTIONS, normalizeSection } from '../lib/habitats.ts';
+import { SERIES_SLUG } from '../lib/series.ts';
 import { SITE } from '../lib/site-meta.ts';
 import { WILDNESS_MAX, WILDNESS_MIN } from '../lib/wildness.ts';
 
@@ -15,7 +16,7 @@ import { WILDNESS_MAX, WILDNESS_MIN } from '../lib/wildness.ts';
  * what the build actually enforces.
  *
  * No `astro:content` import: `postSchema` here validates every field except `author`, which
- * `content.config.ts` adds with `.extend({ author: reference('authors') })` before handing the
+ * `content.config.ts` adds with `.safeExtend({ author: reference('authors') })` before handing the
  * result to `defineCollection`. That keeps this file — and its own test,
  * `src/lib/post-contract.test.ts` — importable from plain `node:test`, with no Astro runtime.
  *
@@ -155,6 +156,17 @@ export const postSchema = z
       )
       .transform(normalizeSection),
     subsection: z.string().optional(),
+    /**
+     * Slug of a row in `src/data/series.ts` (for example `grok-bot`). When set, `series_order` is
+     * required. Pages list only live parts, in this order: see `src/lib/series.ts`.
+     */
+    series: z
+      .string()
+      .max(80)
+      .regex(SERIES_SLUG, 'series must be a lowercase slug')
+      .optional(),
+    /** Place in `series`: a positive integer, unique among posts that share the slug. */
+    series_order: z.number().int().positive().optional(),
     tags: z.array(z.string().min(1).max(60)).default([]),
     draft: z.boolean().default(false),
     /**
@@ -209,7 +221,15 @@ export const postSchema = z
       )
       .optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((post, ctx) => {
+    if (post.series && post.series_order == null) {
+      ctx.addIssue({ code: 'custom', path: ['series_order'], message: 'series_order is required when series is set' });
+    }
+    if (post.series_order != null && !post.series) {
+      ctx.addIssue({ code: 'custom', path: ['series'], message: 'series is required when series_order is set' });
+    }
+  });
 
 /** The post contract's version. Bump it, and add a sibling schema route, rather than editing this one in place. */
 export const POST_CONTRACT_VERSION = 1;
@@ -254,5 +274,8 @@ export function postFrontmatterJsonSchema(): Record<string, unknown> {
     description: POST_SCHEMA_DESCRIPTION,
     'x-contract-version': POST_CONTRACT_VERSION,
     ...generated,
+    // The generic converter cannot express superRefine's cross-field requirement.
+    // Both fields are optional together, but either one makes the other mandatory.
+    dependentRequired: { series: ['series_order'], series_order: ['series'] },
   };
 }

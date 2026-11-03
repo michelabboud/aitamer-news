@@ -5,6 +5,8 @@ pubDate: 2026-10-06T05:10:00Z
 specimen: 420
 section: tools
 subsection: grok-bot
+series: grok-bot
+series_order: 1
 tags: [grok-bot, cursor, desktop, agents, tutorial]
 draft: false
 heroImage: "https://bots.aitamer.news/heroes/what-is-grok-bot-eeb6ca2e.jpg"

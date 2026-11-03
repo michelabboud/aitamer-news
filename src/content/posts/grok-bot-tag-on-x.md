@@ -5,6 +5,8 @@ pubDate: "2026-10-26T07:37:00Z"
 specimen: 1056
 section: tools
 subsection: grok-bot
+series: grok-bot
+series_order: 17
 tags:
   - grok-bot
   - tutorial

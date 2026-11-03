@@ -4,6 +4,8 @@ description: "Midjourney V8.2 against Ideogram 4.5 and 4.0: resolution, referenc
 pubDate: "2026-11-01T16:07:00Z"
 specimen: 1216
 section: tools
+series: ai-image-models
+series_order: 4
 tags:
   - ai-image-models
   - midjourney

@@ -7,13 +7,17 @@ import {
   entryStamp,
   formatArchiveMonth,
   getArchiveMonths,
+  getPublishedPosts,
   resolveAuthor,
 } from '../../../lib/site';
 import { pinCacheMark } from '../../../lib/home-pins.ts';
 import { loadHomepagePins } from '../../../lib/shown-pins.ts';
+import { seriesCacheMark, seriesMark } from '../../../lib/series.ts';
+import { placementsFor } from '../../../lib/series-live.ts';
 
 export async function getStaticPaths() {
   const months = await getArchiveMonths();
+  const placements = placementsFor(await getPublishedPosts());
   const pinCard = await loadHomepagePins();
   const authors = await getCollection('authors');
   const authorById = new Map(authors.map((author) => [author.id, author]));
@@ -28,8 +32,8 @@ export async function getStaticPaths() {
     return {
       params: { year: entry.year, month: entry.month },
       props: { posts: entry.posts, newer, older },
-      // A past month only changes when one of its posts or authors does, a neighbour appears, or a pin label on this month changes.
-      cacheKey: [...stamps, `newer:${newer?.year}-${newer?.month}`, `older:${older?.year}-${older?.month}`, pinCacheMark(entry.posts.map((post) => post.id), pinCard.ids)].join('|'),
+      // A past month only changes when one of its posts or authors does, a neighbour appears, or a pin or series label on this month changes.
+      cacheKey: [...stamps, `newer:${newer?.year}-${newer?.month}`, `older:${older?.year}-${older?.month}`, pinCacheMark(entry.posts.map((post) => post.id), pinCard.ids), seriesCacheMark(entry.posts.map((post) => post.id), placements)].join('|'),
     };
   });
 }
@@ -37,6 +41,7 @@ export async function getStaticPaths() {
 const { year, month } = Astro.params;
 const { posts, newer, older } = Astro.props;
 const pinCard = await loadHomepagePins();
+const placements = placementsFor(await getPublishedPosts());
 const label = formatArchiveMonth(year, month);
 const cards = await Promise.all(
   posts.map(async (post) => {
@@ -55,7 +60,7 @@ const cards = await Promise.all(
 
   <ul class="cards listing">
     {cards.map(({ post, author }, i) => (
-      <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} pinned={pinCard.ids.has(post.id)} /></li>
+      <li><PostCard post={post} author={author} heading="h2" showDesc eager={i < 3} pinned={pinCard.ids.has(post.id)} series={seriesMark(placements.get(post.id))} /></li>
     ))}
   </ul>
 

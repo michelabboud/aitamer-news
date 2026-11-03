@@ -5,6 +5,8 @@ pubDate: "2026-10-22T07:37:00Z"
 specimen: 974
 section: tools
 subsection: movie-gen
+series: ai-movie-models
+series_order: 1
 tags:
   - ai-video-models
   - kling

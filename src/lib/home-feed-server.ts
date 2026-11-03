@@ -5,6 +5,8 @@ import { entryStamp } from './site';
 import { partitionHomeFeed } from './home-feed.ts';
 import { fingerprintHomeFeedSources, homeFeedSnapshot } from './home-feed-snapshot.ts';
 import { loadHomepagePins } from './shown-pins.ts';
+import { placementsFor } from './series-live.ts';
+import { seriesCacheMark } from './series.ts';
 
 export async function getHomeFeed() {
   // The card and the Pinned badge share this one resolution (`shown-pins.ts`).
@@ -21,10 +23,11 @@ export async function getHomeFeed() {
     const author = authorOf(post);
     return [author.id, entryStamp(author)];
   }));
+  const seriesById = placementsFor(posts);
   const snapshot = homeFeedSnapshot({
-    settings: HOME_FEED_SETTINGS, postStamps: feedPosts.map(entryStamp),
+    settings: HOME_FEED_SETTINGS, seriesStamp: seriesCacheMark(feedPosts.slice(0, partition.plannedCount).map((post) => post.id), seriesById), postStamps: feedPosts.map(entryStamp),
     authorStamps: [...consumedAuthors.values()], renderingSource: await fingerprintHomeFeedSources(root),
     renderContext: { base: import.meta.env.BASE_URL, mediaBase: import.meta.env.PUBLIC_MEDIA_BASE?.trim() ?? '' },
   });
-  return { ...partition, posts, feedPosts, pinned, authors, authorOf, snapshot, settings: HOME_FEED_SETTINGS };
+  return { ...partition, posts, feedPosts, pinned, authors, authorOf, snapshot, settings: HOME_FEED_SETTINGS, seriesById };
 }

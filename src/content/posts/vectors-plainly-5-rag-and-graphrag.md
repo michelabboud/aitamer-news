@@ -4,6 +4,8 @@ description: "Retrieval-augmented generation is an architecture, and the vector 
 pubDate: 2026-10-02T09:00:00Z
 specimen: 43
 section: dev
+series: vectors-plainly
+series_order: 5
 tags:
   - vectors-plainly
   - rag

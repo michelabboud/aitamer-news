@@ -4,6 +4,8 @@ description: "A vector index has no row-level security by default, and a missing
 pubDate: 2026-09-30T09:00:00Z
 specimen: 41
 section: dev
+series: vectors-plainly
+series_order: 3
 tags:
   - vectors-plainly
   - vector-databases

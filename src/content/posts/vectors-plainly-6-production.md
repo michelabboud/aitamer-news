@@ -4,6 +4,8 @@ description: "The parts tutorials skip: sharding and write freshness, memory and
 pubDate: 2026-10-03T09:00:00Z
 specimen: 44
 section: dev
+series: vectors-plainly
+series_order: 6
 tags:
   - vectors-plainly
   - vector-databases

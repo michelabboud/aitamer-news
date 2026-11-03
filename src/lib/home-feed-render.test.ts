@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parse } from 'parse5';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
@@ -20,9 +20,18 @@ const requireAstro = createRequire(createRequire(import.meta.url).resolve('astro
 const { transform } = await import(pathToFileURL(requireAstro.resolve('@astrojs/compiler-rs')).href);
 const { build } = await import(pathToFileURL(requireAstro.resolve('esbuild')).href);
 const compiled = await build({
-  entryPoints: ['src/pages/home-feed/[batch].astro'], bundle: true, platform: 'node', format: 'esm', write: false,
+  stdin: { contents: `export { default } from './src/pages/home-feed/[batch].astro'; export { default as PostCard } from './src/components/PostCard.astro';`, resolveDir: process.cwd(), loader: 'ts' },
+  bundle: true, platform: 'node', format: 'esm', write: false,
   define: { 'import.meta.env': JSON.stringify({ BASE_URL: '/preview/' }) },
   plugins: [{ name: 'home-feed-render-fixtures', setup(builder: any) {
+    builder.onResolve({ filter: /\.svg\?raw$/ }, (args: { path: string; resolveDir: string }) => ({
+      path: join(args.resolveDir, args.path),
+      namespace: 'svg-raw',
+    }));
+    builder.onLoad({ filter: /.*/, namespace: 'svg-raw' }, ({ path }: { path: string }) => ({
+      contents: `export default ${JSON.stringify(readFileSync(path.replace(/\?raw$/, ''), 'utf8'))};`,
+      loader: 'js',
+    }));
     builder.onResolve({ filter: /home-feed-server\.ts$/ }, () => ({ path: 'server', namespace: 'home-feed-fixture' }));
     builder.onResolve({ filter: /^astro:content$/ }, () => ({ path: 'content', namespace: 'home-feed-fixture' }));
     builder.onResolve({ filter: /^astro:config\/server$/ }, () => ({ path: 'config', namespace: 'home-feed-fixture' }));
@@ -45,7 +54,7 @@ const compiled = await build({
     });
   } }],
 });
-const { default: BatchPage } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
+const { default: BatchPage, PostCard } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const container = await AstroContainer.create();
 
 test('the real partial is inert and validates all meter levels, responsive home sizes, lazy JPEG fallbacks and exact metadata', async () => {
@@ -70,4 +79,26 @@ test('the real partial is inert and validates all meter levels, responsive home 
   assert.equal((html.match(/max-width: 591\.98px/g) ?? []).length, 5);
   assert.equal((html.match(/<img[^>]+src="https:\/\/media\.aitamer\.news\/heroes\/fixture-\d\.jpg"/g) ?? []).length, 5);
   assert.match(html, /data-pagefind-ignore/);
+});
+
+
+test('the real listing card renders pin and series badges together, while home cards omit the pin badge', async () => {
+  const props = {
+    post: { id: 'fixture-1', data: {
+      title: 'Pinned series part', description: 'Card render fixture.', section: 'models',
+      heroImage: 'https://media.aitamer.news/heroes/fixture-1.jpg', specimen: 1,
+    } },
+    author: { id: 'desk-bot', data: { name: 'Desk Bot', kind: 'bot' } },
+    pinned: true,
+    series: { href: '/series/grok-bot/', label: 'Grok tutorial · Part 1 of 2', slug: 'grok-bot' },
+  };
+  const listing = await container.renderToString(PostCard, { props });
+  assert.match(listing, /class="pin-badge"/);
+  assert.match(listing, /Pinned/);
+  assert.match(listing, /Grok tutorial · Part 1 of 2/);
+  assert.match(listing, /href="\/preview\/series\/grok-bot\/"/);
+  assert.match(listing, /Pinned series part/);
+  const home = await container.renderToString(PostCard, { props: { ...props, context: 'home-card' } });
+  assert.doesNotMatch(home, /class="pin-badge"/);
+  assert.match(home, /Grok tutorial · Part 1 of 2/);
 });

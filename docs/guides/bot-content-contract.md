@@ -57,6 +57,8 @@ Every new hero carries one visible site mark and truthful `heroAlt` after visual
 
 title 200, description 400, heroAlt 300, verdict 240, wildness.verified and wildness.claimed 120 each, each tag 60. An unknown field fails the build. Do not submit a new `specimen` or alter an existing identity or the specimen ledger. The trusted admission workflow assigns and repairs numbering. `npm run stamp` is reserved for that workflow, never a producer command.
 
+Optional series fields, both or neither: `series` (a lowercase slug from `src/data/series.ts`, such as `grok-bot`) and `series_order` (a positive integer). `series_order` is required when `series` is set. Two posts in one series cannot share an order, and that includes drafts and posts that are not live yet. `/series/<slug>/` lists only the live parts, in `series_order`. The field rules are in [POST.md](../../POST.md).
+
 ## 5. Words that break the deploy
 
 - Never write the literal name of a secret variable (for example the Cloudflare API token variable) anywhere in a post. The deploy's secrets guard stops the whole site when it sees one. Write "an API token passed as an environment variable".

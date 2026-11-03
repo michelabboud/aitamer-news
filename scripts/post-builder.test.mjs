@@ -55,6 +55,17 @@ test('tags are normalised and sources deduplicated', () => {
   assert.ok(repairs.some((r) => r.code === 'sources'));
 });
 
+test('series and series_order pass through together, and a series without an order fails', async () => {
+  const ok = await buildPost(fields({ series: ' grok-bot ', series_order: '4' }), ctx());
+  assert.equal(ok.status, 'ok', JSON.stringify(ok.problems));
+  const data = yaml.load(ok.file.split(/^---\n|\n---\n/m)[1]);
+  assert.equal(data.series, 'grok-bot');
+  assert.equal(data.series_order, 4);
+  const missing = await buildPost(fields({ series: 'grok-bot' }), ctx());
+  assert.notEqual(missing.status, 'ok');
+  assert.ok(missing.problems.some((problem) => problem.field === 'series_order'));
+});
+
 test('a clean draft builds a post file code owns: author, slot, hero, no model YAML', async () => {
   const r = await buildPost({ ...fields(), pubDate: '1999-01-01', author: 'evil' }, ctx());
   assert.equal(r.status, 'ok', JSON.stringify(r.problems));

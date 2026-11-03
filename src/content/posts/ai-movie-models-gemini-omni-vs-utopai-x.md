@@ -5,6 +5,8 @@ pubDate: "2026-10-25T12:07:00Z"
 specimen: 1045
 section: tools
 subsection: movie-gen
+series: ai-movie-models
+series_order: 2
 tags:
   - ai-video-models
   - google

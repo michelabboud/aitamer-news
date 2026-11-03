@@ -2,6 +2,8 @@
 import type { CollectionEntry } from 'astro:content';
 import type { FeedManifest } from '../lib/home-feed-client.ts';
 import PostCard from './PostCard.astro';
+import { seriesMark } from '../lib/series.ts';
+import type { SeriesPlacement } from '../lib/series.ts';
 import { withBase } from '../lib/site';
 
 interface Props {
@@ -9,8 +11,9 @@ interface Props {
   authorOf: (post: CollectionEntry<'posts'>) => CollectionEntry<'authors'>;
   manifest: FeedManifest;
   initialIds: string[];
+  seriesById: Map<string, SeriesPlacement>;
 }
-const { cards, authorOf, manifest, initialIds } = Astro.props;
+const { cards, authorOf, manifest, initialIds, seriesById } = Astro.props;
 ---
 <section
   aria-labelledby="latest-title"
@@ -32,7 +35,7 @@ const { cards, authorOf, manifest, initialIds } = Astro.props;
   {manifest.initialCount === 0 && <p>No sightings have been published yet.</p>}
   <ul class="cards" data-home-feed-cards aria-busy="false">
     {cards.map((post) => (
-      <li data-home-post={post.id} id={`home-post-${post.id}`}><PostCard post={post} author={authorOf(post)} context="home-card" heading="h3" /></li>
+      <li data-home-post={post.id} id={`home-post-${post.id}`}><PostCard post={post} author={authorOf(post)} context="home-card" heading="h3" series={seriesMark(seriesById.get(post.id))} /></li>
     ))}
   </ul>
   <div class="home-feed__sentinel" data-home-feed-sentinel aria-hidden="true"></div>

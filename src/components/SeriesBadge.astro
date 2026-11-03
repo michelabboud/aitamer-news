@@ -1,0 +1,19 @@
+---
+import SeriesIcon from './SeriesIcon.astro';
+
+interface Props {
+  href: string;
+  label: string;
+  slug: string;
+  /** `badge` on a post, `card` on a listing card. */
+  variant?: 'badge' | 'card';
+}
+
+const { href, label, slug, variant = 'badge' } = Astro.props;
+---
+<p class={variant === 'card' ? 'card__series' : 'series-badge'}>
+  <a href={href}>
+    <SeriesIcon slug={slug} />
+    <span>{label}</span>
+  </a>
+</p>
