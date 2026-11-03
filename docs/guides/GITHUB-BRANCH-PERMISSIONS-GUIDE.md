@@ -1,8 +1,8 @@
 # GitHub branch permissions for daily context summaries
 
-This guide explains why the nightly context summary work is stuck, what the repository rules say today, and the exact changes that unblock it. It is written for Wiz Cat and for any agent (Codex or Claude) working on Wiz Cat's account.
+This guide explains why the nightly context summary work is stuck, what the repository rules say today, and the maintainer submission route that gets it reviewed without expanding publisher authority. It is written for Wiz Cat and for any agent (Codex or Claude) working on Wiz Cat's account.
 
-Status as of 2026-11-02, 11:20 Asia/Jerusalem.
+Historical bot observations: 2026-11-02, 11:20 Asia/Jerusalem. Submission guidance corrected 2026-11-03. This document does not change permissions or install the proposed nightly workflow.
 
 ## Who does what
 
@@ -74,23 +74,28 @@ What this means:
 - `context-summaries` is not excluded today, so the workflow could neither create it (24029856) nor update it (24520133).
 - GitHub does not accept the built-in GitHub Actions app as a ruleset bypass actor (see `docs/adr/0031-workflow-owned-specimens.md`). Exclusion is the way to let `GITHUB_TOKEN` write the branch.
 
-## Exact changes requested
+## Maintainer submission: no publisher permission expansion
 
-Before merge (to get the PR open):
+The Grok Newsroom App does not need Workflows write permission to hand source to a maintainer for review. Its refusal to push workflow files is an intended trust boundary, not a reason to widen its daily publishing lane.
 
-- [ ] 1. Grant the Grok Newsroom GitHub App the **Workflows: Read and write** repository permission (in the App's settings, Permissions and events). Then Wiz Cat accepts the updated permissions on the installation for michelabboud/aitamer-news. Eden then pushes `grok/context-summaries-daily` and opens the PR. Alternative: Wiz Cat pushes that branch himself, then Eden opens the PR.
-- [ ] 2. Secondary option only, if the Cursor agent should push its own branches: add the Cursor agent's actor as a bypass actor on ruleset **24467961**, or find out why its push is not recognized as the Cursor App. Not needed if item 1 is done.
+1. Export the original source commits as a patch or share their immutable Git objects and recorded source/base hashes. Keep the original evidence and author attribution.
+2. The maintainer checks that the patch contains only the expected files, reviews the workflow and its permissions, and applies it on a maintainer-owned `claude/*` branch based on current main. Do not push into an App-owned `grok/*` or `cursor/*` branch using another identity.
+3. Open a maintainer-authored PR. Its checks must report the required `check`, `publisher-paths` and `specimen-integrity` certificates for the current head/base. Article-lane observation checks on a bot PR do not authorize site or workflow code.
+4. Merge normally with the exact reviewed head SHA after required checks pass. Never use `--admin`, direct-main pushes, ruleset weakening, borrowed App credentials or an open-PR description edit to make a blocked submission pass.
 
-After the PR merges (so the nightly workflow can write its data branch):
+Keep the publisher App's Workflows permission unchanged. No Cursor actor bypass is required. Granting an App the ability to change CI is a separate authority decision, not part of submitting this proposal.
 
-- [ ] 3. Ruleset **24029856**: add `refs/heads/context-summaries` to `conditions.ref_name.exclude` (lifts the creation and deletion restriction for that one branch).
-- [ ] 4. Ruleset **24520133**: add `refs/heads/context-summaries` to `conditions.ref_name.exclude` (lifts the update restriction).
-- [ ] 5. Optional: protect `refs/heads/context-summaries` with its own ruleset, the way 24488522 protects `specimens/*`, if you want to block anyone other than the workflow from writing it. If you do, check that the workflow can still push, since the Actions app cannot be a bypass actor.
+## Data-branch writing is a separate design gate
 
-Do not exclude anything else. Leave main protection as it is.
+The proposed nightly workflow source is not part of this documentation PR and has not been accepted by this guide. Review its exact implementation before selecting its writer or changing any ruleset.
 
-## Verification after the changes
+Do not simply exclude `context-summaries` from both catch-all rulesets: that also removes the branch's creation/deletion protections and does not authenticate which writer produced a summary. The eventual workflow must establish a narrowly scoped authenticated writer and preserve append/history evidence. Protect deletion and non-fast-forward updates; do not make data-branch protection optional. Use the existing workflow-owned state design as a reference, rather than assuming the built-in Actions token is an authenticated exception.
 
-- The PR from `grok/context-summaries-daily` exists and its checks pass.
-- After merge, run the workflow once with `workflow_dispatch` and a past date. Confirm `context-summaries` was created and holds one `context-summaries/YYYY-MM-DD.md` file.
-- Confirm no `deploy-pages.yml` run was triggered by that write.
+No branch exclusions, bypass actors, App permissions, workflow secrets or main protections are changed by this guide.
+
+## Verification when the implementation is separately accepted
+
+- Check the exact source/base, original attribution, intended nightly timezone handling, idempotence and backfill behavior in the maintainer PR.
+- Verify required checks and a normal pinned merge; preserve failed observations as history.
+- Verify authorized writes succeed on the dedicated data branch while unauthorized updates, deletion and non-fast-forward updates remain refused.
+- Run one accepted backfill and verify its dated file and evidence. Confirm that the data-branch write starts no production deployment.
