@@ -1,6 +1,6 @@
 # Progress
 
-2026-11-03 — Combined corrections for submitted PR404/405/407: series cache dependencies, public paired-field schema, shared pin/series rendering and maintainer submission guidance. Local focused checks pass; complete validation, independent review and self-contained HTML preview are in progress. No main merge or permission changes.
+2026-11-03 — Combined corrections for submitted PR404/405/407: series cache dependencies, public paired-field schema, shared pin/series rendering and maintainer submission guidance. 1665/1665 tests, build1645, content/CSP/link/diagram guards and both independent successor reviews pass. The self-contained HTML preview is being finalized before merge. No main merge or permission changes.
 
 2026-10-26 — CSP enforcement and exact-policy deployment guard integrated from the independently accepted template source. Focused76/76 and full1423/1423 tests pass. Full-content build, SSH staging, intercepted production compatibility, reviews and normal deployment/live acceptance are in progress. [Plan](docs/plans/2026-10-26-csp-enforcement.md), ADR0048.
 
