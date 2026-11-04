@@ -1269,3 +1269,6 @@
 1266 apache-arrow-rust-cve-2026-111959-run-end-encoded-oob-read
 1267 apple-siri-ai-app-intents-developer-preview-xcode-copilot
 1268 openai-gpt-6-astra-codex-hardware-device-benchcad
+1269 python-groupby-consecutive-runs
+1270 python-setdefault-eager-default
+1271 python-bisect-insertion-boundaries
