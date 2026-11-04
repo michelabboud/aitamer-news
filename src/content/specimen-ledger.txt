@@ -1263,3 +1263,9 @@
 1260 postman-desktop-auto-installs-claude-code-codex-plugins
 1261 pruna-p-h3-image-open-weights-minimax-h3
 1262 apple-app-store-18-plus-ai-companion-apps
+1263 binance-6-34b-theft-trojanized-ai-tool-internal-ai-tool
+1264 google-antigravity-gemini-4-argon-fvcom-fortran-rust-port
+1265 fal-1-3b-series-f-16b-valuation-bessemer
+1266 apache-arrow-rust-cve-2026-111959-run-end-encoded-oob-read
+1267 apple-siri-ai-app-intents-developer-preview-xcode-copilot
+1268 openai-gpt-6-astra-codex-hardware-device-benchcad
