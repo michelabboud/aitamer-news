@@ -30,6 +30,12 @@ sources:
     url: https://huggingface.co/gpillon/Qwen3-ASR-1.7B-GGUF-ignis
   - title: "ignis v0.9.3 release notes"
     url: https://github.com/gpillon/ignis/releases/tag/v0.9.3
+  - title: "ignis v0.9.6 release notes"
+    url: https://github.com/gpillon/ignis/releases/tag/v0.9.6
+  - title: "UkisAI, Swift Open License v1.0 (LICENSE in ukisai/Swift-1.5-Qwen3.8-27b)"
+    url: https://huggingface.co/ukisai/Swift-1.5-Qwen3.8-27b/blob/main/LICENSE
+  - title: "Hugging Face: gpillon/Swift-1.5-Qwen3.8-27B-trellis-3bpw-ignis"
+    url: https://huggingface.co/gpillon/Swift-1.5-Qwen3.8-27B-trellis-3bpw-ignis
 ---
 
 [Ignis](https://github.com/gpillon/ignis) is a small Rust and CUDA inference server that serves Qwen models to local coding agents through OpenAI-compatible routes. Version 0.9 adds speech recognition, and it runs on the CPU, "in host memory rather than VRAM", so the GPU stays with the text or image model.
@@ -60,3 +66,13 @@ The GPU kernels are compiled for SM120a (RTX 50-series Blackwell) only, and the 
 [Ignis 0.9.3](https://github.com/gpillon/ignis/releases/tag/v0.9.3), released on 30 October, adds a `--vision-residency host|device` setting. Under the new default, `host`, the 27B model's 296 MB vision tower stays in pinned host RAM and is streamed to the GPU through three 25 MB slots for each image, and the image embedding pool is host-mapped, so neither holds VRAM between images. With that, the `rtx50-16gb` profile now turns vision on, with a 4,096-token image envelope.
 
 The project's own numbers, measured on an RTX 5090 held to a 16 GB budget: with vision on, the KV cache pool stays at 7,956 pages, the same as text-only, against 7,437 and 7,384 pages under `device`. A 1,024-token image encode costs about 7 ms more (49 ms against 42), decode speed is unchanged and image embeddings are identical to the bit. Upgrade notes: a 32 GB card's start now needs about 18.6 GB of host RAM instead of about 18, a `host` start that cannot pin the tower is refused rather than falling back, and anyone who wants the text-only load on a 16 GB card must pass `--vision-enabled false`.
+
+## Update, 4 November 2026: 0.9.6 adds a fine-tune that is not Apache-2.0, and every catalog row now names its license
+
+[Ignis 0.9.6](https://github.com/gpillon/ignis/releases/tag/v0.9.6), released on 4 November, puts Swift 1.5 in the built-in catalog. Swift 1.5 is UkisAI's post-training of Qwen3.8-27B, shipped as two Ignis artifacts under one id: `swift-1.5-27b`, an NVFP4 build for 32 GB cards and larger (18.1 GiB), and `swift-1.5-27b-16g`, a trellis build for 16 GB cards (12.5 GiB) that a 16 GB card also loads when asked for `swift-1.5-27b`.
+
+The release notes say plainly that "Its license is not Apache-2.0". Both artifacts carry UkisAI's Swift Open License v1.0. Its [LICENSE](https://huggingface.co/ukisai/Swift-1.5-Qwen3.8-27b/blob/main/LICENSE) sets a "Threshold" of "gross revenue of one million United States dollars (US$1,000,000) or more, measured over the most recently completed fiscal year of You together with every Legal Entity that controls, is controlled by, or is under common control with You." Section 5 then says: "Any Commercial Use of the Work or a Derivative Work by a Legal Entity that exceeds the Threshold is not licensed under this License," and that such an entity "may obtain a separate written license for Commercial Use from Licensor (the 'Swift Enterprise License')." The threshold "shall not apply to a Qualified Non-Profit Organization's use of the Work or a Derivative Work for Non-Commercial or Research Purposes." Section 6 says the license does not limit "any rights You have in the Base Model", which stays under Apache-2.0, and Section 12 ends the license automatically on any breach. The LICENSE files in Ignis's two redistribution repositories are identical to UkisAI's.
+
+The bigger change for anyone running Ignis is that licenses are now visible in the tool. Per the notes, `model list` gains a `LICENSE` column (`license` in `--format json`), `model download` prints the license before it fetches, the Server view links it on each row, and `GET /v1/models/catalog` returns `license: {id, url}` for every entry. "No step asks to accept it: whoever downloads is bound by it." The project's ADR 0078 also records that the built-in catalog "may ship weights whose license restricts commercial use".
+
+The project's own measurements, against Swift's BF16 weights on an RTX 5090: top-64 KLD of 0.05355 for `swift-1.5-27b` and 0.04255 for the 16 GB build, and DFlash2 drafting decoding 3.71x to 5.27x and 3.91x to 5.22x faster than no drafter for the two builds, across 8,192 to 253,440 tokens of context. The release also adds an NVFP4 converter for Qwen3.8-27B fine-tunes, and the official binaries are still compiled for RTX 50 and RTX PRO 6000 Blackwell cards only. If you script `model download` in a commercial setting, read the `LICENSE` column first: on this catalog, not every row is Apache-2.0 any more.
