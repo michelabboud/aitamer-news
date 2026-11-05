@@ -1330,3 +1330,9 @@
 1327 rustingstrata-rust-moe-inference-qwen-12gb-rtx-3060
 1328 check-point-haiou-codex-jailbreak-prompt-adware
 1329 tencent-hy4-vision-computer-use-api-weights-pending
+1330 render-sandboxes-public-beta-firecracker-agents
+1331 baidu-ernie-5-5-flash-base-open-weights-license-excludes-eu-uk-korea
+1332 robocolosseum-open-real-robot-evaluation-hugging-face
+1333 moonshot-kimi-hosted-agents-harness-as-a-service
+1334 google-suncatcher-satellite-gemma-4-tpu-orbit
+1335 vectorize-hindsight-models-open-weights-memory
