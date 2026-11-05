@@ -1336,3 +1336,9 @@
 1333 moonshot-kimi-hosted-agents-harness-as-a-service
 1334 google-suncatcher-satellite-gemma-4-tpu-orbit
 1335 vectorize-hindsight-models-open-weights-memory
+1336 weekly-builders-roundup-2026-11-05
+1337 viggle-remake-open-weights-minimax-h3-video-recasting
+1338 claude-dispatch-thisbash-browser-extension-remote-code
+1339 alloydb-express-rapid-prototyping
+1340 acronis-bossai-12-agent-ai-attack-mesh-taiwan
+1341 jetbrains-rustrover-2026-3-air
