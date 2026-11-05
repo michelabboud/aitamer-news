@@ -1318,3 +1318,9 @@
 1315 python-heapq-merge-sorted-streams
 1316 progress-without-percentage
 1317 grok-bot-it-rollout
+1318 sarvam-prism-open-weights-decision-model
+1319 openai-images-2-6-gifs-flare-sunburst-api
+1320 meta-acquires-conductor-cloud-shuts-down-nov-20
+1321 ncsc-ai-malware-uk-critical-infrastructure-by-2028
+1322 openai-to-acquire-pierre-code-storage-codex
+1323 ripple-65b-open-weights-swe-2-flash-weights-withheld
