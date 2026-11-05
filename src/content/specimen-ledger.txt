@@ -1324,3 +1324,9 @@
 1321 ncsc-ai-malware-uk-critical-infrastructure-by-2028
 1322 openai-to-acquire-pierre-code-storage-codex
 1323 ripple-65b-open-weights-swe-2-flash-weights-withheld
+1324 ai-movie-models-minimax-h3-vs-hunyuanvideo
+1325 cloudflare-personal-agent-analytics-per-agent-access-policies
+1326 openai-cyber-model-948-linux-kernel-root-exploits-patches
+1327 rustingstrata-rust-moe-inference-qwen-12gb-rtx-3060
+1328 check-point-haiou-codex-jailbreak-prompt-adware
+1329 tencent-hy4-vision-computer-use-api-weights-pending
