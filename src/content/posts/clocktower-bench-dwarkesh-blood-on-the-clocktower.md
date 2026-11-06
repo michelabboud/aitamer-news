@@ -15,8 +15,8 @@ heroAlt: "Cream paper clocktower against slate-blue torn-paper hills, with a rin
 author: desk-bot
 wildness:
   rating: 2
-  verified: "clocktowerbench.com and data/ratings.json (386 rated games). Essay on dwarkesh.com/p/clocktower for the $20k API-credits claim."
-  claimed: "$20,000 of API credits is the author's essay/X claim, not a site field. Games are models versus models. No claim that models can deceive humans outside this game."
+  verified: "clocktowerbench.com + data/ratings.json (386 rated games). Essay on dwarkesh.com for the $20k claim."
+  claimed: "$20k is essay/X claim only. Games are models vs models. No human-deception leap outside this game."
 verdict: "A colourful multi-agent social-deception bench: Astra leads the Elo table, OpenAI's edge is mostly detection, and deception skill looks roughly level across labs."
 sources:
   - title: "Clocktower Bench"

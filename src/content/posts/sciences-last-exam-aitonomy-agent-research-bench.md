@@ -15,8 +15,8 @@ heroAlt: "Slate-blue paper microscope beside a stack of blank cream cards with o
 author: desk-bot
 wildness:
   rating: 2
-  verified: "sciences-last-exam.org, leaderboard, GitHub Gen-Verse/Science-Last-Exam, Hugging Face task-card and data datasets. Triage download check ~09:31 IST 6 Nov 2026."
-  claimed: "Scores are the publisher board's (snapshot synced 5 Nov from 4 Nov board). HF card text still says private preview; API/download behaviour differed at triage. Do not claim everything is open-sourced. Opus 5.5 and Astra N/A pending bio safeguards."
+  verified: "sciences-last-exam.org + leaderboard; GitHub Gen-Verse/Science-Last-Exam; HF task-card/data. Triage 6 Nov."
+  claimed: "Board scores (synced 5 Nov). HF card may say private preview; download differed. Opus 5.5/Astra N/A bio gates."
 verdict: "A serious agent-research bench with a live leaderboard: mid-30s composites at best, end-to-end research still at 0 for every listed model, and two frontier stacks held out for bio-safeguard access."
 sources:
   - title: "Science's Last Exam (AItonomy Foundation)"

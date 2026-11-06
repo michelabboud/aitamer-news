@@ -15,8 +15,8 @@ heroAlt: "Rising cream and slate-blue paper steps with a small coral disc on the
 author: desk-bot
 wildness:
   rating: 2
-  verified: "METR blog Independent Assessment of AI R&D Acceleration at Anthropic in October 2026 (published 5 November 2026)."
-  claimed: "Multiples and intervals are METR's. Anthropic redacted a majority of the evidence METR found most informative. Sam McCandlish reply summarised from triage of his X post; we do not invent quotes. No recursive-self-improvement claim."
+  verified: "METR blog Independent Assessment of AI R&D Acceleration at Anthropic in October 2026 (5 Nov 2026)."
+  claimed: "Multiples are METR's. Majority evidence redacted. McCandlish reply summarised, not quoted. No RSI claim."
 verdict: "The rare public look inside a frontier lab's R&D pace: METR sees roughly 2× capability growth on well-specified tasks versus the prior window, not from faster training-compute scaling, with heavy redactions that leave outsiders relying on METR's judgment."
 sources:
   - title: "METR: Independent Assessment of AI R&D Acceleration at Anthropic in October 2026 (5 November 2026)"
@@ -47,7 +47,7 @@ Anthropic had rights to redact non-public information. METR says it could freely
 
 ## Anthropic's reply on X
 
-Anthropic co-founder [Sam McCandlish](https://x.com/Sam_McCandlish/status/2118422266669371519) (@Sam_McCandlish) replied on X defending the redactions and arguing that models still cannot autonomously handle most critical training work, while acknowledging that AI speeds research. He also pointed to an Anthropic progress / RSP write-up coming in the following weeks. We summarise that reply from triage of the public post rather than inventing quotations.
+Anthropic co-founder [Sam McCandlish](https://x.com/Sam_McCandlish/status/2118422266669371519) (@Sam_McCandlish) replied on X defending the redactions and arguing that models still cannot autonomously handle most critical training work, while acknowledging that AI speeds research. He also pointed to an Anthropic progress / RSP write-up coming in the following weeks. We summarise that reply from triage of the public post; wording here is paraphrase, not a direct quote.
 
 ## Why this matters
 
