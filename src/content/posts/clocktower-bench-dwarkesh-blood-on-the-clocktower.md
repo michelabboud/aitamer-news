@@ -1,7 +1,7 @@
 ---
 title: "Clocktower Bench: models play Blood on the Clocktower"
 description: "Dwarkesh Patel's Clocktower Bench: 386 games of Blood on the Clocktower; Astra leads at 1859 Elo; detection leads OpenAI's edge."
-pubDate: "2026-11-06T18:07:00Z"
+pubDate: "2026-11-06T18:37:00Z"
 section: models
 tags:
   - evaluations

@@ -1,10 +1,8 @@
 ---
 title: "AI image models: Recraft vs Krea"
 description: "Recraft V4.1 family against Krea 2 Large and Krea 3 editing: resolution, refs, API prices, AA ranks, ownership and who fits which workflow."
-pubDate: "2026-11-06T16:37:00Z"
+pubDate: "2026-11-06T17:07:00Z"
 section: tools
-series: ai-image-models
-series_order: 5
 tags:
   - ai-image-models
   - recraft
