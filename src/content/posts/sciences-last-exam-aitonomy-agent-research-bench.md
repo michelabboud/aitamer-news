@@ -1,7 +1,7 @@
 ---
 title: "Science's Last Exam: AItonomy's agent research bench"
 description: "AItonomy's Science's Last Exam: 113 tasks across 9 disciplines; Opus 5 + Claude Code High 37.50; end-to-end still 0 for listed models."
-pubDate: "2026-11-06T16:37:00Z"
+pubDate: "2026-11-06T17:37:00Z"
 section: models
 tags:
   - evaluations

@@ -1,7 +1,7 @@
 ---
 title: "METR finds ~2× AI R&D acceleration inside Anthropic"
 description: "METR's Oct 2026 Anthropic assessment: AECI 1.9× since Oct 2025, subjective ~2× pace, compute not the driver, majority of key evidence redacted."
-pubDate: "2026-11-06T16:07:00Z"
+pubDate: "2026-11-06T17:07:00Z"
 section: general
 tags:
   - metr

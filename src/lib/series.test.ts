@@ -16,7 +16,7 @@ import {
   type SeriesPost,
 } from './series.ts';
 
-const now = new Date('2026-11-06T18:00:00Z');
+const now = new Date('2026-11-06T20:00:00Z');
 
 const post = (id: string, extra: Partial<SeriesPost> = {}): SeriesPost => ({
   id,
