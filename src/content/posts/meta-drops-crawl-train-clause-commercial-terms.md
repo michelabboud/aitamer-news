@@ -47,6 +47,10 @@ sources:
     url: https://www.poder360.com.br/poder-justica/justica-de-sp-proibe-meta-de-usar-conteudo-jornalistico-para-treinar-ia/
   - title: "Justiça proíbe Meta de usar conteúdo jornalístico sem autorização (G1, 3 November 2026)"
     url: https://g1.globo.com/sp/sao-paulo/noticia/2026/11/03/justica-proibe-meta-de-usar-conteudo-jornalistico-sem-autorizacao.ghtml
+  - title: "Samantha Cole, Everyone Everywhere Hated Meta's New AI Training Terms. Now, They're On Pause (404 Media, 5 November 2026)"
+    url: https://www.404media.co/everyone-everywhere-hated-metas-new-ai-training-terms-now-theyre-on-pause/
+  - title: "Hanaa' Tameez and Andrew Deck, Meta pulls down controversial terms of service (Nieman Lab, 5 November 2026)"
+    url: https://www.niemanlab.org/2026/11/meta-pulls-down-controversial-terms-of-service/
 ---
 
 Update, 17 October 2026. The sentence that said Meta may train on pages it crawls is gone from the commercial-terms preview. The preview still authorizes crawlers on domains tied to a business user's products, and it still says the update takes effect on 30 October 2026. This follows [the 16 October report](/posts/meta-commercial-terms-crawl-train-ai/) on the earlier wording.
@@ -116,3 +120,11 @@ On the merits so far, the court found the associations' case plausible under Bra
 This is not a final ruling. It was granted *inaudita altera parte*, without hearing Meta first. Meta has five days to contest it, and the associations have 30 working days to file their main claim. [G1](https://g1.globo.com/sp/sao-paulo/noticia/2026/11/03/justica-proibe-meta-de-usar-conteudo-jornalistico-sem-autorizacao.ghtml) reports that Meta will not comment, and [Poder360](https://www.poder360.com.br/poder-justica/justica-de-sp-proibe-meta-de-usar-conteudo-jornalistico-para-treinar-ia/) says Meta had not replied to it at publication. In a joint statement carried by Poder360, the associations say a Norwegian court temporarily suspended the terms on 28 October after a suit by ten media groups there; we have not seen that ruling.
 
 What this adds to the picture above: the court read the crawl permission that survived the removal of the word "train" as an AI-training licence in practice, and its order goes beyond suspending the clause, barring Meta from crawling member sites and from training or fine-tuning on that content. The decision still treats 20 November as the effective date, although the CMA records that Meta paused the rollout on 28 October. The order covers only the associations' member companies in Brazil. If your outlet is a member of ANJ, ANER or Abert, Meta must, for now, keep your accounts working even if you refuse the crawl clause.
+
+## Update, 5 November 2026: Meta Help Center says the November 20 updates are paused
+
+[404 Media](https://www.404media.co/everyone-everywhere-hated-metas-new-ai-training-terms-now-theyre-on-pause/) and [Nieman Lab](https://www.niemanlab.org/2026/11/meta-pulls-down-controversial-terms-of-service/) report that Meta replaced its commercial-terms preview notice with a Business Help Center update. The notice, as both outlets quote it, reads:
+
+> We recently shared that we were updating the Meta Commercial Terms, Product Catalog Terms, Self-Serve Ad Terms, and Ad Creative Generative AI Terms. These updates are now paused and will not take effect on November 20, 2026. We are continuing to consult with stakeholders and will provide a further update when we have more to share. In the meantime, our existing terms remain in effect.
+
+Nieman Lab also quotes a Meta spokesperson: "We're pausing the changes as we continue to engage with stakeholders and take our time to get this right." That is a pause while Meta consults, not a permanent withdrawal of the proposed terms. Existing terms remain in effect. For the earlier wording change that removed "train," see this post's 17 October section and the [16 October report](/posts/meta-commercial-terms-crawl-train-ai/).
