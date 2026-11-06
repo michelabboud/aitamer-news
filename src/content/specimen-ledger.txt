@@ -1351,3 +1351,7 @@
 1348 nvidia-cosmos-3-nano-interactive-world-simulation
 1349 perplexity-teammates-always-on-work-agents
 1350 meta-muse-voice-expressive-avatars-us
+1351 ai-image-models-recraft-vs-krea
+1352 metr-anthropic-ai-rd-acceleration-assessment
+1353 sciences-last-exam-aitonomy-agent-research-bench
+1354 clocktower-bench-dwarkesh-blood-on-the-clocktower
