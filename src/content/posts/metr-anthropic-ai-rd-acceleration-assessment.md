@@ -17,7 +17,7 @@ wildness:
   rating: 2
   verified: "METR blog Independent Assessment of AI R&D Acceleration at Anthropic in October 2026 (5 Nov 2026)."
   claimed: "Multiples are METR's. Majority evidence redacted. McCandlish reply summarised, not quoted. No RSI claim."
-verdict: "The rare public look inside a frontier lab's R&D pace: METR sees roughly 2× capability growth on well-specified tasks versus the prior window, not from faster training-compute scaling, with heavy redactions that leave outsiders relying on METR's judgment."
+verdict: "METR's rare high-access look inside Anthropic R&D: roughly 2× capability growth on well-specified tasks vs the prior window, not from faster training-compute scaling, with heavy redactions leaving outsiders on METR's judgment."
 sources:
   - title: "METR: Independent Assessment of AI R&D Acceleration at Anthropic in October 2026 (5 November 2026)"
     url: https://metr.org/blog/2026-11-05-anthropic-ai-rd-acceleration-assessment/
