@@ -189,6 +189,7 @@ const EXPECTED: Record<string, readonly string[]> = {
     'ai-image-models-nano-banana-vs-gpt-image',
     'ai-image-models-grok-imagine',
     'ai-image-models-midjourney-vs-ideogram',
+    'ai-image-models-recraft-vs-krea',
   ],
   'ai-movie-models': [
     'ai-movie-models-kling',
