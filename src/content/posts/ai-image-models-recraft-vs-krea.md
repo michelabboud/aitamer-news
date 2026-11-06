@@ -17,8 +17,8 @@ heroAlt: "Two cut-paper worktables: left with layered leaf, circle and a small c
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Recraft API models/pricing/styles/appendix/rights docs; Recraft free and paid plan docs; Krea pricing, Krea 2 and Krea 3 product pages, Krea ToS FAQ; Artificial Analysis T2I board. Read 6 Nov 2026."
-  claimed: "Vendor speed and quality lines are their own. Krea markets Krea 2 as open source on its model page; no concrete HF/license URL was in our src scrape. No fal samples. Verdict labelled opinion."
+  verified: "Recraft API/pricing/styles/rights; Recraft plans; Krea pricing/Krea 2/Krea 3/ToS FAQ; AA T2I. Read 6 Nov 2026."
+  claimed: "Vendor speed/quality are theirs. Krea markets Krea 2 open source; no concrete HF URL in src. Verdict opinion."
 verdict: "Recraft is the builder API pick for priced raster/vector generations and style refs; Krea is the studio pick for aesthetic moodboards plus a live editing API. Choose by whether you need SVG/API units or a creative suite."
 sources:
   - title: "Recraft docs: All models (read 6 November 2026)"
@@ -53,7 +53,6 @@ sources:
 
 *AI image models, episode 5. Previously: [FLUX](/posts/ai-image-models-flux/), [Nano Banana vs GPT Image](/posts/ai-image-models-nano-banana-vs-gpt-image/), [xAI Grok Imagine](/posts/ai-image-models-grok-imagine/) and [Midjourney vs Ideogram](/posts/ai-image-models-midjourney-vs-ideogram/). Next: Seedream vs Qwen-Image.*
 
-<!-- MUST GO LIVE 6 Nov 2026 IST (Asia/Jerusalem). Ship sets pubDate. -->
 
 Recraft and Krea sit on opposite sides of the same design problem. Recraft sells a pay-as-you-go image API with raster and SVG outputs, a Flash tier, and a dedicated styles model. Krea sells a creative studio with moodboards, in-house image models, and a Krea 3 editing API already in early access. We compare Recraft's current V4.1 family (default `recraftv4_1`, Utility, Flash, Styles, Pro) with Krea 2 Large for generation and Krea 3 where editing matters.
 
