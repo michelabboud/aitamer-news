@@ -25,6 +25,8 @@ sources:
     url: https://blog.cloudflare.com/personal-agents-visibility-control/
   - title: "Cloudflare docs: AI Crawler and Agent access policies"
     url: https://developers.cloudflare.com/bots/additional-configurations/block-ai-bots/
+  - title: "Cloudflare Blog: Trusted Agent Delegation (5 November 2026)"
+    url: https://blog.cloudflare.com/trusted-agent-delegation/
 ---
 
 Cloudflare [launched two things on 4 November](https://blog.cloudflare.com/personal-agents-visibility-control/) for sites dealing with personal agents, which it describes as agents turning "a person's instructions into requests and actions on websites": analytics that separate their traffic out, and access policies you can set agent by agent.
@@ -48,3 +50,15 @@ Cloudflare says its next step is carrying user context through agents (what the 
 ## Why this matters
 
 Sites such as [Yelp, Delta, JPMorgan Chase and Charles Schwab](/posts/websites-block-ai-agents-yelp-delta-banks/) have already limited consumer agents, and Cloudflare's own argument is that blocking agents altogether "can mean losing customers." If you run a site on Cloudflare, look at the Personal Assistants widget before you change anything, then use Block on pages with ads or per-agent Block only where the traffic costs you. Unlike the [robots.txt training token](/posts/aipref-ai-training-token-robots-txt-google-openai/), which is a signal labs say they will honor and does not stop crawling, a Block here is applied to matching requests at Cloudflare.
+
+## Update, 5 November 2026: Trusted Agent Delegation coalition
+
+One day after the Personal Assistants analytics and per-agent access policies above, Cloudflare published a longer essay, [Trusted Agent Delegation](https://blog.cloudflare.com/trusted-agent-delegation/) (5 November 2026). It is a protocol and standards pitch, not a second launch of those product controls.
+
+What is new in that essay:
+
+- Cloudflare is forming a **Trusted Agent Delegation (TAD)** coalition to gather operators, sites and standards people around how agents should identify themselves, carry user context, and respect site policy, with planned IETF side meetings and workshops.
+- The essay ties together workstreams Cloudflare wants sites and agents to use together: **Web Bot Auth** (signed agent identity), **MOLE** (privacy-preserving reputation / rate-limit signals, framed as a successor direction to Private Access Tokens), **AIPREF / AI Preferences** (machine-readable site preferences; Cloudflare notes the IETF AI Preferences work focuses on training, inference and search and does not yet cover the wider agent-action problem), and **OAuth** (account identity), alongside related efforts such as WIMSE.
+- The framing problem is accountability when an agent acts for a user: sites currently bear many of the costs (fraud, abuse, uncompensated consumption) while CAPTCHA hand-offs and overly broad OAuth scopes fail to say who answers when the agent is wrong.
+
+This update does **not** re-announce Personal Assistants in Security Analytics, per-account views under Account Abuse Protection, or WAF Hashed User ID mitigations; those remain as described in the 4 November sections above. TAD is the standards and coalition layer next to those controls.
