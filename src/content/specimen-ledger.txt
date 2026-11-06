@@ -1343,3 +1343,7 @@
 1340 acronis-bossai-12-agent-ai-attack-mesh-taiwan
 1341 jetbrains-rustrover-2026-3-air
 1342 grok-bot-sso-and-computers
+1343 google-gemini-omni-1-2-flash-ga
+1344 dropbox-tigris-dbx-agent-cloud
+1345 doj-super-intelligence-task-force
+1346 openai-gpt-6-cyber
