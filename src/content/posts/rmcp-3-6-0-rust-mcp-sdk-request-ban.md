@@ -41,6 +41,16 @@ sources:
     url: https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-5p52-q7pq-9fq2
   - title: "rmcp-v3.7.0 release (GitHub)"
     url: https://github.com/modelcontextprotocol/rust-sdk/releases/tag/rmcp-v3.7.0
+  - title: "rmcp-v3.9.0 release (modelcontextprotocol/rust-sdk, 5 November 2026)"
+    url: https://github.com/modelcontextprotocol/rust-sdk/releases/tag/rmcp-v3.9.0
+  - title: "rmcp 3.9.0 (crates.io)"
+    url: https://crates.io/crates/rmcp/3.9.0
+  - title: "PR #1392: support the Skills extension (SEP-2640)"
+    url: https://github.com/modelcontextprotocol/rust-sdk/pull/1392
+  - title: "PR #1412: enforce skills manifest boundaries and capability negotiation"
+    url: https://github.com/modelcontextprotocol/rust-sdk/pull/1412
+  - title: "GHSA-c9f9-cp8h-jcj5: unbounded response-body buffering in rmcp Streamable HTTP clients"
+    url: https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-c9f9-cp8h-jcj5
 ---
 
 [rmcp 3.6.0](https://github.com/modelcontextprotocol/rust-sdk/releases/tag/rmcp-v3.6.0), the Model Context Protocol project's official Rust SDK, was published to [crates.io](https://crates.io/crates/rmcp/3.6.0) on 20 October. It does not add support for the 2026-07-28 spec; rmcp 3.5.1 already treated 2026-07-28 as its latest protocol version. What 3.6.0 does is enforce one of that spec's rules, and that fixes a bug that failed silently.
@@ -77,3 +87,22 @@ The 2026-07-28 spec changed how [MCP](https://aitamer.news/posts/mcp-explained/)
 This post said the two transport fixes above had no security advisory. That is still true of them, but 3.6.0 also closed a separate High-severity advisory, published on 20 October, that we missed. [GHSA-4432-vg92-fqh6](https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-4432-vg92-fqh6) covers versions 3.0.0 up to 3.6.0: the `StreamableHttpService` cached tool schemas without a limit, so a client on protocol 2026-07-28 or later could exhaust server memory, without logging in if no auth layer sits in front. If you cannot upgrade, put authentication in front of the server or reject unknown tool names.
 
 A second advisory, [GHSA-5p52-q7pq-9fq2](https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-5p52-q7pq-9fq2), rated Moderate and published 22 October, affects 2.0.0 through 3.6.0, so 3.6.0 is not enough. An earlier fix for server-side request forgery in OAuth discovery checked host names as text, missed bracketed IPv6 addresses and skipped the token and registration endpoints. [rmcp 3.7.0](https://github.com/modelcontextprotocol/rust-sdk/releases/tag/rmcp-v3.7.0), out on 22 October, makes `AuthorizationManager::new` check every resolved address. Single sign-on on a private host name now needs `new_allowing_private_addresses`, and clients built with `new_with_oauth_http_client` still get only the text check. Neither advisory has a CVE number yet.
+
+## Update, 5 November 2026: rmcp 3.9.0 adds the Skills extension
+
+[rmcp 3.9.0](https://github.com/modelcontextprotocol/rust-sdk/releases/tag/rmcp-v3.9.0) landed on GitHub and [crates.io](https://crates.io/crates/rmcp/3.9.0) on 5 November 2026 (crates.io created 16:07 UTC). The release notes highlight:
+
+- **Skills extension (SEP-2640)** via [PR #1392](https://github.com/modelcontextprotocol/rust-sdk/pull/1392). Skills are served through the Resources primitive under the `io.modelcontextprotocol/skills` extension id (`skills/list`, `skills/get`). This is an **extension**, not a core MCP protocol requirement: servers that never declare skills keep working as before.
+- **Manifest containment** via [PR #1412](https://github.com/modelcontextprotocol/rust-sdk/pull/1412): `Skill::validate` rejects URIs that escape the skill root, sibling directories, and terminal dot segments, and capability negotiation refuses skills without the matching resources capability.
+- A **merge-from-fork** commit listed in the release (`3e0156c`) that tightens body-bound reads on oversized HTTP responses. It is a hardening merge, not a new public advisory.
+- Other fixes named in the notes: protected-resource discovery error structure, redirect logging, ProgressDispatcher lock placement, OAuth refresh scopes, session-worker cancellation, SIGTERM-before-kill on child shutdown, outputSchema generation, discover-session server-to-client request rejection, ID-JAG resource claim handling, Mcp-Param header validation, Accept media-type matching, URL elicitation without elicitationId, and preserving protocol errors across cancellation.
+
+The 5 November release notes listed a merge-from-fork body-bound hardening commit (`3e0156c`) without naming a new advisory at ship time. A related repo advisory for that class of bug is covered in the 6 November update below. The published advisory list still includes [GHSA-5p52-q7pq-9fq2](https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-5p52-q7pq-9fq2) among earlier issues. Upgrade path from the October advisories remains: get to a fixed line for those issues, then take 3.9.0 for Skills, the listed fixes and the Streamable HTTP body caps.
+
+## Update, 6 November 2026: GHSA-c9f9-cp8h-jcj5, Moderate body-buffer DoS in Streamable HTTP clients
+
+The rust-sdk repo published [GHSA-c9f9-cp8h-jcj5](https://github.com/modelcontextprotocol/rust-sdk/security/advisories/GHSA-c9f9-cp8h-jcj5) on 5 November 2026 (Moderate, CVSS 6.5). Affected versions are **>= 0.2.0, < 3.9.0**; patched in **3.9.0**. The built-in Streamable HTTP clients (reqwest and Unix-socket) read non-streaming response bodies into memory with no size limit, so a malicious or compromised MCP server can exhaust client memory (CWE-400 / CWE-770). The attack works during `initialize`, before authentication. The SSE path is not affected (events are already capped by `max_sse_event_size`, default 16 MiB).
+
+The fix caps successful JSON bodies at 16 MiB and non-success / error bodies at 64 KiB, counting bytes while streaming and rejecting oversized `Content-Length` before the body is read. Custom `StreamableHttpClient` implementations remain responsible for their own limits. The global GitHub Advisory Database may still 404 for this id; treat it as a **repo advisory published** on modelcontextprotocol/rust-sdk until the global DB catches up. No CVE is listed on the advisory page yet.
+
+If you run an rmcp Streamable HTTP client older than 3.9.0, upgrade. Until then, connect only to trusted MCP servers or use a custom client that enforces a body limit.
