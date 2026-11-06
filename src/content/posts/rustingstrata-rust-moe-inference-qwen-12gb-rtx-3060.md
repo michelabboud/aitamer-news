@@ -26,6 +26,8 @@ sources:
     url: https://github.com/RustingStudio/RustingStrata
   - title: "RustingStrata License 1.0 (LICENSE.md)"
     url: https://github.com/RustingStudio/RustingStrata/blob/main/LICENSE.md
+  - title: "RustingStrata v1.2.0 release (GitHub, 5 November 2026)"
+    url: https://github.com/RustingStudio/RustingStrata/releases/tag/v1.2.0
 ---
 
 [RustingStrata](https://github.com/RustingStudio/RustingStrata) is a new inference engine, written in Rust by Vasyl Trefilov, for running Qwen models in GGUF on a consumer GPU that is too small to hold them. Its reference machine is a 12 GB RTX 3060 running Qwen3.6-35B-A3B, an 11.7 GiB file that, as the README puts it, "does not fit in VRAM."
@@ -67,3 +69,15 @@ RustingStrata ships under its own RustingStrata License 1.0. You may use, modify
 ## Why this matters
 
 For mixture-of-experts models on a 12 GB card, the practical question is which experts sit in VRAM and which run on the CPU. RustingStrata answers it by adapting placement to observed routing, and on the author's RTX 3060 that decodes about 1.7 times faster than llama.cpp with a hand-tuned expert split. It joins other Rust engines we have covered with a narrower hardware focus: [Vade](/posts/vade-rust-inference-engine-dgx-spark-exact-tokens/) targets DGX Spark and [hipfire](/posts/hipfire-0-4-0-rdna-rust-inference/) targets AMD RDNA, while this one aims at the common NVIDIA card. If you own a 3060-class GPU it is a cheap test with `strata bench`, but treat the table as one person's measurements and check the license before building a paid product on it.
+
+## Update, 5 November 2026: v1.2.0 adds a local chat page, multi-GPU and Anthropic Messages
+
+[RustingStrata v1.2.0](https://github.com/RustingStudio/RustingStrata/releases/tag/v1.2.0) landed on 5 November 2026 with prebuilt Linux and Windows binaries. Highlights from the release notes:
+
+- **Built-in chat page.** Running plain `strata` starts the server on `http://127.0.0.1:8080` and opens a browser chat that can download models from Hugging Face (`HF_TOKEN` for gated repos), switch models in the models folder, and show context use, speed and memory.
+- **Multi-GPU.** `--device 0,1` splits layers across cards in proportion to free VRAM. Mixed cards and backends without peer access work; MTP drafting is off on a split model.
+- **Qwen3.8-Flash-Next (`qwen4exp`)** on CUDA and Vulkan, including QSA sparse attention, hyper-connections, PLE and split GGUF files.
+- **Anthropic Messages API** via `POST /v1/messages`, so Claude Code can use the server. OpenCode and other agents keep using the OpenAI-compatible address.
+- **`--preserve-thinking` is on by default**, so long agent sessions prefill only what was added.
+
+We are not repeating the repo's "2x llama.cpp" one-line blurb. Decode figures in the original post remain the author's measurements on one RTX 3060. The license is still source-available (RustingStrata License 1.0 / GitHub NOASSERTION), not OSI open source.
