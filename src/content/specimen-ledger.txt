@@ -1355,3 +1355,8 @@
 1352 metr-anthropic-ai-rd-acceleration-assessment
 1353 sciences-last-exam-aitonomy-agent-research-bench
 1354 clocktower-bench-dwarkesh-blood-on-the-clocktower
+1355 cursor-build-live-apps
+1356 thinking-machines-inkling-2-small
+1357 google-antigravity-remote-agents
+1358 underdog-woof-browser-tts
+1359 uk-cyber-bill-ai-agent-loss-of-control

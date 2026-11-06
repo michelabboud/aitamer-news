@@ -34,6 +34,8 @@ sources:
     url: https://github.com/yologdev/yoagent/releases/tag/v0.26.8
   - title: "yoagent PR #418"
     url: https://github.com/yologdev/yoagent/pull/418
+  - title: "yoagent v0.27.2 release notes"
+    url: https://github.com/yologdev/yoagent/releases/tag/v0.27.2
 ---
 
 [yoagent](https://github.com/yologdev/yoagent), a Rust agent library, shipped two releases in a day that change how its MCP client treats credentials. [v0.26.0](https://github.com/yologdev/yoagent/releases/tag/v0.26.0) landed on 29 October and [v0.26.1](https://github.com/yologdev/yoagent/releases/tag/v0.26.1) followed on 30 October. Both are on crates.io.
@@ -67,3 +69,13 @@ Custom headers are the usual way to pass API keys to hosted MCP servers, and mos
 The release adds three options on `StdioOptions`. `env_remove(name)` and `env_remove_all(names)` start the server with those variables unset, and `env_clear_except(names)` passes only an allow-list. They apply in a fixed order: clear, then remove, then the caller's own `env` map, which wins. The suggested recipe is `StdioOptions::new().env_remove_all(provider::api_key_variables())`, which keeps every provider key yoagent knows about out of the server, and a new `Agent::with_mcp_server_stdio_with` takes these options on the `Agent` path. The docs that recommended blank keys now point to this.
 
 This is additive and opt-in: the existing `with_mcp_server_stdio` keeps its defaults, so a server still inherits the host's environment unless you pass the new options. The PR says it unblocks a planned default scrub in the downstream yoyo-evolve project. If your Rust agent launches local MCP servers through yoagent, update to 0.26.8 and add `env_remove_all` (or an allow-list) to each one.
+
+## Update, 6 November 2026: 0.27.2 adds model limits as data and a Bedrock Anthropic id helper
+
+[yoagent v0.27.2](https://github.com/yologdev/yoagent/releases/tag/v0.27.2), released on 6 November 2026 and on [crates.io](https://crates.io/crates/yoagent), is additive. The notes say nothing breaks.
+
+Price-table entries may now carry `context_window` and `max_output` through `PriceEntry::with_limits`. First-party constructors use those limits when a model has no named preset, and the bundled snapshot's limits apply even when pricing is off (prices stay opt-in). models.dev `limit.context` and `limit.output` map into the same fields. Claude Opus 4.7, 4.6, and 4.5 get limit and price rows.
+
+`ModelConfig::bedrock_anthropic_id(id)` returns the Anthropic model id behind a Bedrock model id or inference profile id, so a host can price Bedrock usage from Anthropic rates with its own Bedrock rule. The README and loop diagram were refreshed. yoagent-rutis 0.13.0 and yoagent-workers 0.4.0 are unchanged.
+
+If you already ship on the 0.26 credential-redirect line of this post, bump the crate for the limit tables and Bedrock helper; there is no breaking MCP change in 0.27.2.
