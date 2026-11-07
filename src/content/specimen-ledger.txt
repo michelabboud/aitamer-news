@@ -1376,3 +1376,9 @@
 1373 claude-code-dont-ask-again-secrets-public-github
 1374 buoyant-kinference-rust-inference-control-plane-kubernetes
 1375 google-agent-distraction-stale-todo-bug-references-coding-agents
+1376 check-point-chatgpt-lockdown-mode-bypass-html-preview
+1377 nous-research-arete-27b-qwen-post-train
+1378 hugging-face-harness-adapters-lora-rl-safeagents
+1379 psi-aaronson-ambainis-conjecture-lean-proof-anthropic-model
+1380 opencode-browse-mcp-chromium-extension-real-browser-agents
+1381 litellm-rust-router-core-replaces-python-router-dev-release
