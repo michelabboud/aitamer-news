@@ -17,8 +17,8 @@ heroAlt: "Cream paper computer with a blank screen and a coral pushpin holding a
 author: desk-bot
 wildness:
   rating: 2
-  verified: "AWS Machine Learning Blog post of 6 November 2026 and the aws-samples/sample-remote-coding-agent repository README."
-  claimed: "Idle cost behavior, deploy times, and fit for scoped tasks are the blog's own guidance. We have not deployed the sample."
+  verified: "AWS Machine Learning Blog post of 6 November 2026 and the aws-samples/sample-remote-coding-agent README."
+  claimed: "Idle cost, deploy times and fit for scoped tasks are the blog's guidance; we have not deployed the sample."
 verdict: "A customer-account sample that turns Claude Code into a hand-off: isolated microVM per task, Bedrock-only model calls, PR for a human to merge. Not a new Claude Code SKU."
 sources:
   - title: "AWS ML Blog: Extend Claude Code to remote sessions on Amazon Bedrock AgentCore with security controls (6 November 2026)"

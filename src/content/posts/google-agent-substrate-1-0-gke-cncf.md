@@ -18,8 +18,8 @@ heroAlt: "Three cream paper room frames with a slate-blue suitcase and coral key
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Google Cloud Blog and Google Open Source Blog posts of 5 November 2026, plus GKE Agent Substrate docs last updated 4 November."
-  claimed: "Sub-500ms restore, ~10x density, and third-party gVisor users are Google's figures and statements. We have not measured density or latency."
+  verified: "Google Cloud and Open Source blog posts of 5 November 2026, plus GKE Agent Substrate docs."
+  claimed: "Sub-500ms restore, ~10x density and the gVisor user list are Google's claims; we have not measured them."
 verdict: "KubeCon-week open stack for agent sandboxes: 1.0 GA managed on GKE, plus CNCF Sandbox homes for Substrate, gVisor, and OpenRL. Treat density and wake latency as vendor claims."
 sources:
   - title: "Google Cloud Blog: Open infrastructure for autonomous agents comes to CNCF (5 November 2026)"
