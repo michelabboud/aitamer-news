@@ -1,7 +1,7 @@
 ---
 title: "Microsoft Foundry adds Kling, LTX and MiniMax video models through fal, in public preview"
 description: "Five fal-served video models roll into Microsoft Foundry as a first-party Azure service in public preview, priced per generated second."
-pubDate: "2026-11-07T10:07:00Z"
+pubDate: "2026-11-07T09:37:00Z"
 section: tools
 subsection: movie-gen
 tags:

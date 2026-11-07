@@ -1,7 +1,7 @@
 ---
 title: "AWS sample runs Claude Code remotely on Bedrock AgentCore microVMs"
 description: "AWS sample: Claude Code tasks on Bedrock AgentCore microVMs, Guardrails on prompts, short-lived GitHub tokens; the agent opens PRs and never merges."
-pubDate: "2026-11-07T08:37:00Z"
+pubDate: "2026-11-07T08:07:00Z"
 section: tools
 subsection: agents
 tags:

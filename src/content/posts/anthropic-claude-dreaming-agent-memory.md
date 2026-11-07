@@ -1,7 +1,7 @@
 ---
 title: "Anthropic explains how Claude \"dreams\" to clean up agent memory, and opens Dreams as a research preview"
 description: "Anthropic's engineering post shows Claude reorganizing memory between sessions. The Managed Agents Dreams API is a research preview."
-pubDate: "2026-11-07T09:37:00Z"
+pubDate: "2026-11-07T09:07:00Z"
 section: models
 subsection: agents
 tags:

@@ -1,7 +1,7 @@
 ---
 title: "OpenAI's BioBasicsBench tests agents on raw wet-lab data, and GPT-6 Astra scores 66.7%"
 description: "OpenAI and Ligo built 100 wet-lab tasks from raw gels, plates and microscopy. GPT-6 Astra gets 66.7% at xhigh; OpenAI lists where it still fails."
-pubDate: "2026-11-07T10:37:00Z"
+pubDate: "2026-11-07T10:07:00Z"
 section: models
 subsection: research
 tags:

@@ -1,7 +1,7 @@
 ---
 title: "GitHub Actions: pull_request_target brownouts start 9 November, and workflow lockfiles are GA"
 description: "Public repos lose pull_request_target by default on 2 December, with brownouts on 9 and 16 November. Actions lockfiles that pin action commits are GA."
-pubDate: "2026-11-07T08:07:00Z"
+pubDate: "2026-11-07T07:37:00Z"
 section: devops
 subsection: security
 tags:

@@ -1,7 +1,7 @@
 ---
 title: "Google Agent Substrate 1.0 goes GA on GKE and into the CNCF Sandbox"
 description: "Google Agent Substrate 1.0 is GA on GKE; Substrate, gVisor and OpenRL enter CNCF Sandbox. Vendor claims sub-500ms restore and ~10x density."
-pubDate: "2026-11-07T09:07:00Z"
+pubDate: "2026-11-07T08:37:00Z"
 section: devops
 subsection: infra
 tags:
