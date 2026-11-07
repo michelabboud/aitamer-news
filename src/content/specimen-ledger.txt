@@ -1373,3 +1373,6 @@
 1370 ai-voice-models-kokoro-vs-chatterbox-vs-drama-3
 1371 scope-ai-agents-database-signup-benchmark
 1372 linum-pjit-21k-text-to-image-model-21k-compute
+1373 claude-code-dont-ask-again-secrets-public-github
+1374 buoyant-kinference-rust-inference-control-plane-kubernetes
+1375 google-agent-distraction-stale-todo-bug-references-coding-agents
