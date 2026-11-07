@@ -1367,3 +1367,9 @@
 1364 anthropic-claude-dreaming-agent-memory
 1365 microsoft-foundry-fal-video-models-public-preview
 1366 openai-biobasicsbench-wet-lab-agent-benchmark
+1367 terraform-policy-agent-ga-sentinel-opa-conversion
+1368 deepmind-ai-agents-rsa-1024-cryptanalysis
+1369 rivet-rust-sdk-actors-ga
+1370 ai-voice-models-kokoro-vs-chatterbox-vs-drama-3
+1371 scope-ai-agents-database-signup-benchmark
+1372 linum-pjit-21k-text-to-image-model-21k-compute
