@@ -36,6 +36,10 @@ sources:
     url: https://github.com/yologdev/yoagent/pull/418
   - title: "yoagent v0.27.2 release notes"
     url: https://github.com/yologdev/yoagent/releases/tag/v0.27.2
+  - title: "yoagent v0.27.3 release notes"
+    url: https://github.com/yologdev/yoagent/releases/tag/v0.27.3
+  - title: "yoagent v0.27.4 release notes"
+    url: https://github.com/yologdev/yoagent/releases/tag/v0.27.4
 ---
 
 [yoagent](https://github.com/yologdev/yoagent), a Rust agent library, shipped two releases in a day that change how its MCP client treats credentials. [v0.26.0](https://github.com/yologdev/yoagent/releases/tag/v0.26.0) landed on 29 October and [v0.26.1](https://github.com/yologdev/yoagent/releases/tag/v0.26.1) followed on 30 October. Both are on crates.io.
@@ -79,3 +83,9 @@ Price-table entries may now carry `context_window` and `max_output` through `Pri
 `ModelConfig::bedrock_anthropic_id(id)` returns the Anthropic model id behind a Bedrock model id or inference profile id, so a host can price Bedrock usage from Anthropic rates with its own Bedrock rule. The README and loop diagram were refreshed. yoagent-rutis 0.13.0 and yoagent-workers 0.4.0 are unchanged.
 
 If you already ship on the 0.26 credential-redirect line of this post, bump the crate for the limit tables and Bedrock helper; there is no breaking MCP change in 0.27.2.
+
+## Update, 7 November 2026: 0.27.3 and 0.27.4 stop sending `temperature` to models that reject it
+
+[yoagent v0.27.3](https://github.com/yologdev/yoagent/releases/tag/v0.27.3) fixes a gotcha with current frontier models. Claude models from 4.7 on reject `temperature`, `top_p` and `top_k` with a 400, so setting `with_temperature` made every request to them fail. A new `ModelConfig::accepts_sampling_params` flag (default on) is now off for those ids in the Anthropic, OpenCode, Bedrock and OpenRouter presets, and the agent loop drops the temperature with a one-time warning. [v0.27.4](https://github.com/yologdev/yoagent/releases/tag/v0.27.4) does the same for `gpt-6` ids, citing OpenAI's guidance to remove `temperature` when reasoning effort is not `none`.
+
+Neither release breaks anything, but a config saved before 0.27.3 loads with the flag on, so rebuild saved configs after you bump the crate. For any other model that rejects a temperature, call `with_accepts_sampling_params(false)`.
