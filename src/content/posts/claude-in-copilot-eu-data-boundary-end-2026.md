@@ -27,9 +27,9 @@ sources:
   - title: "Microsoft Learn: Claude models from Anthropic in Microsoft Online Services"
     url: https://learn.microsoft.com/en-us/copilot/implement/connect-to-ai-subprocessor
   - title: "Copilot for legal"
-    url: /posts/microsoft-copilot-for-legal-general-availability/
+    url: https://aitamer.news/posts/microsoft-copilot-for-legal-general-availability/
   - title: "EU AI Office information requests to OpenAI and Anthropic"
-    url: /posts/eu-ai-office-information-requests-openai-anthropic/
+    url: https://aitamer.news/posts/eu-ai-office-information-requests-openai-anthropic/
 ---
 
 Microsoft says Claude models in Microsoft Copilot will be processed inside the EU Data Boundary for organizations in the European Union and the European Free Trade Association by the end of 2026. Charles Lamanna, executive vice president, Copilot, Agents, and Platform, published that on the [Microsoft Copilot blog](https://www.microsoft.com/en-us/copilot/blog/2026/11/05/bringing-claude-models-in-microsoft-copilot-into-the-eu-data-boundary/) on 5 November 2026. [Microsoft Source EMEA](https://news.microsoft.com/source/emea/2026/11/microsoft-ermoeglicht-mit-copilot-die-nutzung-von-anthropic-claude-innerhalb-der-eu-data-boundary/?lang=de) repeated the commitment in German on 6 November and linked that English post as the original.

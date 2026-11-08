@@ -29,11 +29,11 @@ sources:
   - title: "PyPI: gputaskman 0.3.3"
     url: https://pypi.org/project/gputaskman/0.3.3/
   - title: "memory-mapped weights still needing a real budget"
-    url: /posts/memory-mapped-weights-still-need-a-real-memory-budget/
+    url: https://aitamer.news/posts/memory-mapped-weights-still-need-a-real-memory-budget/
   - title: "what a GGUF file says before you load it"
-    url: /posts/what-a-gguf-file-says-before-you-load-it/
+    url: https://aitamer.news/posts/what-a-gguf-file-says-before-you-load-it/
   - title: "the KV cache as its own memory budget"
-    url: /posts/the-kv-cache-is-a-second-memory-budget/
+    url: https://aitamer.news/posts/the-kv-cache-is-a-second-memory-budget/
 ---
 
 Scott Hanselman has published GPU Taskman, a terminal monitor for what is using a local GPU, in the repository [shanselman/gputaskman](https://github.com/shanselman/gputaskman). The [LICENSE](https://github.com/shanselman/gputaskman/blob/main/LICENSE) file is the MIT license, copyright 2026 Scott Hanselman. The latest release tag is [v0.3.3](https://github.com/shanselman/gputaskman/releases/tag/v0.3.3), published at 07:24 UTC on 7 November 2026. [PyPI](https://pypi.org/project/gputaskman/0.3.3/) shows version 0.3.3 uploaded the same minute. The README calls the project early, experimental software. It lives in his repository, and the README does not present it as a feature of Windows.
