@@ -1382,3 +1382,7 @@
 1379 psi-aaronson-ambainis-conjecture-lean-proof-anthropic-model
 1380 opencode-browse-mcp-chromium-extension-real-browser-agents
 1381 litellm-rust-router-core-replaces-python-router-dev-release
+1382 aws-serverless-mcp-server-cve-2026-116635-path-traversal
+1383 rune-vork-rust-agent-first-rendering-tools
+1384 asd-acsc-open-weight-ai-models-security-guidance
+1385 hyperflow-h3-flash-open-weights-video-audio-minimax-h3-license
