@@ -3,6 +3,7 @@ title: "Rune and vork give an agent a render loop, under different licenses"
 description: "Anomaly's Rune is a pre-release MIT UI kit an agent can render to PNG. Voyager's vork 0.2.0 is source-available, and its license says it is not open source."
 pubDate: "2026-11-08T08:07:00Z"
 specimen: 1383
+updatedDate: "2026-11-09T07:15:00Z"
 section: rust
 subsection: ai
 tags:
@@ -58,6 +59,20 @@ sources:
     url: https://aitamer.news/posts/moli-rust-headless-browser-ai-agents/
   - title: "AI Tamer: agent-desktop 1.0"
     url: https://aitamer.news/posts/vercel-agent-desktop-1-0-accessibility-tree-desktop-control/
+  - title: "Phux Rune 0.1.0 release"
+    url: https://github.com/no-phux/phux/releases/tag/rune-v0.1.0
+  - title: "Phux Rune 0.1.1 release"
+    url: https://github.com/no-phux/phux/releases/tag/rune-v0.1.1
+  - title: "Phux Rune 0.1.5 release"
+    url: https://github.com/no-phux/phux/releases/tag/rune-v0.1.5
+  - title: "Phux Rune Cargo.toml at rune-v0.1.0"
+    url: https://raw.githubusercontent.com/no-phux/phux/rune-v0.1.0/clients/rune/Cargo.toml
+  - title: "Phux Rune Cargo.toml at rune-v0.1.1"
+    url: https://raw.githubusercontent.com/no-phux/phux/rune-v0.1.1/clients/rune/Cargo.toml
+  - title: "Phux Rune Cargo.toml at rune-v0.1.5"
+    url: https://raw.githubusercontent.com/no-phux/phux/rune-v0.1.5/clients/rune/Cargo.toml
+  - title: "Phux Rune client README at rune-v0.1.1"
+    url: https://raw.githubusercontent.com/no-phux/phux/rune-v0.1.1/clients/rune/README.md
 ---
 
 Two Rust tools let a coding agent render something, look at the result and change the code. Rune is a pre-release UI framework. vork shipped version 0.2.0 on 7 November. The licenses are not the same.
@@ -89,3 +104,9 @@ On 8 November 2026 the GitHub API listed 939 stars for vork.
 ## Why this matters
 
 Rune dumps an element tree and a PNG, which is the UI version of the accessibility snapshot in [agent-desktop](https://aitamer.news/posts/vercel-agent-desktop-1-0-accessibility-tree-desktop-control/), and vork's loop is the same shape for a shot: render, look, revise the code. [Moli](https://aitamer.news/posts/moli-rust-headless-browser-ai-agents/) is the browser version of that pattern, a Rust tool an agent drives and then reads back. Rune is MIT and pre-release, so pin a `dev` revision and expect issues, not pull requests. vork's preview license allows commercial use of this version, and it withholds a hosted render service and redistribution of a modified copy unless Nullframe agrees in writing.
+
+## Update, 9 November 2026: Phux ships a desktop client on Rune
+
+On 8 November 2026, Phux published Phux Rune, an Apache-2.0 desktop client built on Rune. [Phux Rune 0.1.0](https://github.com/no-phux/phux/releases/tag/rune-v0.1.0) (12:25 UTC) says it leaves the alpha train, and [Phux Rune 0.1.1](https://github.com/no-phux/phux/releases/tag/rune-v0.1.1) (12:55 UTC) follows with the Settings navigation and the motion fixes named in that release. At the 0.1.0 tag, `clients/rune/Cargo.toml` pins `rune`, `rune-notify` and `rune-perf` to git revision `5bcb541357e7da77e3357e0b8724f43fcb2ca8d0` of `anomalyco/rune`; the 0.1.1 tag moves that pin to `a7f276c3630f85a06a0230295da4d2bd172d8d3b`. The 0.1.1 client README calls the app young and says to keep the terminal UI at hand.
+
+Phux has kept tagging the client since. By 04:06 UTC on 9 November the latest was [Phux Rune 0.1.5](https://github.com/no-phux/phux/releases/tag/rune-v0.1.5); at that tag the client is still Apache-2.0 and pins the same three crates to revision `3ff3cc6152b9034a1d996e3a5575c51fab3b56b8`.
