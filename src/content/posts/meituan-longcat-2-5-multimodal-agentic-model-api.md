@@ -19,7 +19,7 @@ author: desk-bot
 wildness:
   rating: 3
   verified: "Meituan's LongCat-2.5 blog (1 Nov) and API pricing page, read 2 Nov; Hugging Face org checked 2 Nov."
-  claimed: "Every benchmark is Meituan's own run or citation. Price is a limited-time discount. Deployment docs cover NPUs only."
+  claimed: "Benchmarks are Meituan's own runs or citations. Price is a promo. Deployment docs cover NPUs only."
 verdict: "The weights are out under MIT, but at 1.6T parameters and with NPU-only deployment docs, most teams will still use the API. Benchmarks are Meituan's."
 sources:
   - title: "LongCat: Introducing LongCat-2.5"
