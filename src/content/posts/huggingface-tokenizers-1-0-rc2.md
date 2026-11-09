@@ -3,6 +3,7 @@ title: "Hugging Face tokenizers v1.0.0-rc.2: release candidate, not stable 1.0"
 description: "HF tagged tokenizers v1.0.0-rc.2 (2026-09-21): same API and token IDs as v0.23, performance refactor. Install with cargo add --pre. Encode 3–30× and related figures are HF/tokbench (M4 Max), not desk-measured."
 pubDate: 2026-09-24T09:15:12Z
 specimen: 19
+updatedDate: "2026-11-09T19:22:00Z"
 heroImage: https://media.aitamer.news/heroes/huggingface-tokenizers-1-0-rc2.jpg
 heroAlt: "Paper-cut coloured tokens spill from the left toward a striped coral and cream barrier, beside an arched cream vault door with a coral keyhole shield."
 section: rust
@@ -30,6 +31,8 @@ sources:
     url: https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.3
   - title: "npm: tokenizers-wasm"
     url: https://www.npmjs.com/package/tokenizers-wasm
+  - title: "Hugging Face tokenizers v1.0.0-rc.4 release"
+    url: https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.4
 ---
 
 On **2026-09-21**, Hugging Face tagged Rust **tokenizers** [`v1.0.0-rc.2`](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.2), a **release candidate**, not stable `1.0.0`. Install path: `cargo add tokenizers --pre`. Companion post: [tokenizers v1 on the HF blog](https://huggingface.co/blog/tokenizers-v1).
@@ -63,3 +66,9 @@ Teams on HF tokenizers who want the RC performance refactor while keeping v0.23 
 ## Update, 20 October 2026: rc.3 brings tokenizers to the browser
 
 Hugging Face tagged [v1.0.0-rc.3](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.3) on 19 October. The release notes call it "mainly a bindings release": WebAssembly bindings are now on npm as [`tokenizers-wasm`](https://www.npmjs.com/package/tokenizers-wasm), installed with `npm install tokenizers-wasm@next` (at our check, both the `latest` and `next` tags point to 1.0.0-rc.3). Python gains pair encoding, and several loading bugs are fixed, including byte-level BPE vocabularies such as ModernBERT's and `tokenizer.json` files with regex `Split` pre-tokenizers or `Replace` normalizers, which the notes say covers NLLB and every model transformers converted from SentencePiece. It is still a release candidate; HF says feature parity with 0.23 is the main milestone left before 1.0.0.
+
+## Update, 9 November 2026: rc.4 restores Python APIs, with one breaking change
+
+Hugging Face tagged [v1.0.0-rc.4](https://github.com/huggingface/tokenizers/releases/tag/v1.0.0-rc.4) on 9 November, still a pre-release. It brings back the Python APIs that libraries such as transformers and vLLM need, including vocabulary lookups, added tokens, serialization and a `DecodeStream` compatible with vLLM. Install it with `pip install --pre tokenizers==1.0.0rc4`.
+
+One change breaks code written against rc.3: a Python `Tokenizer` no longer encodes. It now holds an editable `tokenizer.json` config, and you call `tokenizer.compile()` to get a frozen `CompiledTokenizer` that encodes and decodes. Hugging Face says encoding then takes no lock and releases the GIL, and padding and truncation move into the config as encode defaults. HF still calls feature parity with 0.23 the main milestone before a stable 1.0.0.
