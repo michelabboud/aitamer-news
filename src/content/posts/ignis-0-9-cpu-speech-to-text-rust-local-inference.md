@@ -2,6 +2,7 @@
 title: "Ignis 0.9 adds CPU speech-to-text beside its GPU model; install 0.9.2, the earlier builds lacked CUDA"
 description: "The Rust local inference server now transcribes and labels speakers on the CPU behind OpenAI-style routes. Its 0.9.0 and 0.9.1 downloads shipped without CUDA."
 pubDate: "2026-10-29T14:07:00Z"
+updatedDate: "2026-11-09T15:30:00Z"
 specimen: 1124
 section: rust
 subsection: ai
@@ -20,7 +21,7 @@ wildness:
   rating: 2
   verified: "Ignis v0.9.0 and v0.9.2 release notes and the Hugging Face model cards, 28 and 29 October 2026."
   claimed: "Speed, WER and diarization figures are the project's own, on small test sets."
-verdict: "A neat local voice stack that keeps VRAM free for the main model. It is a small project with Blackwell-only GPU kernels, so check your card first and skip 0.9.0/0.9.1."
+verdict: "A neat local voice stack that keeps VRAM free for the main model. Since 0.10 the 27B runs on RTX 30 and 40 cards too, though with no published speeds yet."
 sources:
   - title: "ignis v0.9.0 release notes"
     url: https://github.com/gpillon/ignis/releases/tag/v0.9.0
@@ -36,6 +37,8 @@ sources:
     url: https://huggingface.co/ukisai/Swift-1.5-Qwen3.8-27b/blob/main/LICENSE
   - title: "Hugging Face: gpillon/Swift-1.5-Qwen3.8-27B-trellis-3bpw-ignis"
     url: https://huggingface.co/gpillon/Swift-1.5-Qwen3.8-27B-trellis-3bpw-ignis
+  - title: "Ignis v0.10.0 release"
+    url: https://github.com/gpillon/ignis/releases/tag/v0.10.0
 ---
 
 [Ignis](https://github.com/gpillon/ignis) is a small Rust and CUDA inference server that serves Qwen models to local coding agents through OpenAI-compatible routes. Version 0.9 adds speech recognition, and it runs on the CPU, "in host memory rather than VRAM", so the GPU stays with the text or image model.
@@ -76,3 +79,14 @@ The release notes say plainly that "Its license is not Apache-2.0". Both artifac
 The bigger change for anyone running Ignis is that licenses are now visible in the tool. Per the notes, `model list` gains a `LICENSE` column (`license` in `--format json`), `model download` prints the license before it fetches, the Server view links it on each row, and `GET /v1/models/catalog` returns `license: {id, url}` for every entry. "No step asks to accept it: whoever downloads is bound by it." The project's ADR 0078 also records that the built-in catalog "may ship weights whose license restricts commercial use".
 
 The project's own measurements, against Swift's BF16 weights on an RTX 5090: top-64 KLD of 0.05355 for `swift-1.5-27b` and 0.04255 for the 16 GB build, and DFlash2 drafting decoding 3.71x to 5.27x and 3.91x to 5.22x faster than no drafter for the two builds, across 8,192 to 253,440 tokens of context. The release also adds an NVFP4 converter for Qwen3.8-27B fine-tunes, and the official binaries are still compiled for RTX 50 and RTX PRO 6000 Blackwell cards only. If you script `model download` in a commercial setting, read the `LICENSE` column first: on this catalog, not every row is Apache-2.0 any more.
+
+## Update, 9 November 2026: 0.10 runs on RTX 30 and RTX 40 cards
+
+[Ignis 0.10.0](https://github.com/gpillon/ignis/releases/tag/v0.10.0), released at 00:33 UTC on 9 November, is the first release that is not Blackwell-only. Its Windows zip, Linux tarball and container image now carry kernels for compute capabilities 8.6 and 12.0.
+
+- **RTX 3090 and 3090 Ti** are listed as supported on the 27B model's 16 GB entries.
+- **RTX 4090 and the 16 GB RTX 40 cards** (4060 Ti 16 GB, 4080) are "verified for correctness". The project publishes no speed figures for RTX 30 or 40 cards yet and asks users for reports.
+- The NVFP4 27B, Flash-Next and the image model still need Blackwell. On an older card, a request for a Blackwell-only entry is refused with `409 model_above_gpu_generation`.
+- A new `rtx-24gb` profile gives the 27B's 16 GB entry 1,048,576 tokens of context on eight lanes on a 3090 or 4090, and a new INT8 prefill path is the default on RTX 30 and 40.
+
+If you held off because of the "check your card first" warning above, a 24 GB RTX 30 or 40 card is now on the list.
