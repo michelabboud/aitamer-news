@@ -3,7 +3,7 @@ title: "Rune and vork give an agent a render loop, under different licenses"
 description: "Anomaly's Rune is a pre-release MIT UI kit an agent can render to PNG. Voyager's vork 0.2.0 is source-available, and its license says it is not open source."
 pubDate: "2026-11-08T08:07:00Z"
 specimen: 1383
-updatedDate: "2026-11-09T07:15:00Z"
+updatedDate: "2026-11-09T15:30:00Z"
 section: rust
 subsection: ai
 tags:
@@ -73,6 +73,8 @@ sources:
     url: https://raw.githubusercontent.com/no-phux/phux/rune-v0.1.5/clients/rune/Cargo.toml
   - title: "Phux Rune client README at rune-v0.1.1"
     url: https://raw.githubusercontent.com/no-phux/phux/rune-v0.1.1/clients/rune/README.md
+  - title: "vork 0.3.0 release"
+    url: https://github.com/voyager-so/vork/releases/tag/v0.3.0
 ---
 
 Two Rust tools let a coding agent render something, look at the result and change the code. Rune is a pre-release UI framework. vork shipped version 0.2.0 on 7 November. The licenses are not the same.
@@ -110,3 +112,7 @@ Rune dumps an element tree and a PNG, which is the UI version of the accessibili
 On 8 November 2026, Phux published Phux Rune, an Apache-2.0 desktop client built on Rune. [Phux Rune 0.1.0](https://github.com/no-phux/phux/releases/tag/rune-v0.1.0) (12:25 UTC) says it leaves the alpha train, and [Phux Rune 0.1.1](https://github.com/no-phux/phux/releases/tag/rune-v0.1.1) (12:55 UTC) follows with the Settings navigation and the motion fixes named in that release. At the 0.1.0 tag, `clients/rune/Cargo.toml` pins `rune`, `rune-notify` and `rune-perf` to git revision `5bcb541357e7da77e3357e0b8724f43fcb2ca8d0` of `anomalyco/rune`; the 0.1.1 tag moves that pin to `a7f276c3630f85a06a0230295da4d2bd172d8d3b`. The 0.1.1 client README calls the app young and says to keep the terminal UI at hand.
 
 Phux has kept tagging the client since. By 04:06 UTC on 9 November the latest was [Phux Rune 0.1.5](https://github.com/no-phux/phux/releases/tag/rune-v0.1.5); at that tag the client is still Apache-2.0 and pins the same three crates to revision `3ff3cc6152b9034a1d996e3a5575c51fab3b56b8`.
+
+## Update, 9 November 2026: vork 0.3 has breaking changes
+
+[vork 0.3](https://github.com/voyager-so/vork/releases/tag/v0.3.0), released at 03:43 UTC on 9 November, adds spatial light selection for path rendering and ships prepared shaders for common starter scenes. It also breaks some scenes on purpose. Legacy medium bindings, volume topology and extra environment lights now fail with an error instead of a warning, normal maps follow the glTF/MikkTSpace tangent convention, and some raster materials change brightness. The release suggests telling your agent "upgrade my scenes to vork 0.3", with the steps in `vork help upgrade`; upgrade the SDK and the binary together. The licence is the same source-available preview licence described above.

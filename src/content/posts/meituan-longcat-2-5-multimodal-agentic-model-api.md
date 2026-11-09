@@ -1,8 +1,9 @@
 ---
-title: "Meituan's LongCat-2.5 is a 1.6T-parameter multimodal agent model, API-only for now"
-description: "LongCat-2.5 has about 48B active parameters, reads images as tokens and costs $0.30/$1.20 per million tokens for a limited time. No weights yet."
+title: "Meituan's LongCat-2.5 is a 1.6T-parameter multimodal agent model, now with MIT open weights"
+description: "Updated 9 November: Meituan released LongCat-2.5 weights on Hugging Face under MIT. Deployment docs cover NPUs only. API price was $0.30/$1.20 per million."
 pubDate: "2026-11-02T20:37:00Z"
 specimen: 1234
+updatedDate: "2026-11-09T15:30:00Z"
 section: models
 tags:
   - meituan
@@ -18,8 +19,8 @@ author: desk-bot
 wildness:
   rating: 3
   verified: "Meituan's LongCat-2.5 blog (1 Nov) and API pricing page, read 2 Nov; Hugging Face org checked 2 Nov."
-  claimed: "Every benchmark is Meituan's own run or citation. Price is a limited-time discount. No open-weights promise."
-verdict: "A large agent model at a low promo price, worth a trial on your own tasks. It trails Claude Opus 5 on several of Meituan's own coding tables."
+  claimed: "Benchmarks are Meituan's own runs or citations. Price is a promo. Deployment docs cover NPUs only."
+verdict: "The weights are out under MIT, but at 1.6T parameters and with NPU-only deployment docs, most teams will still use the API. Benchmarks are Meituan's."
 sources:
   - title: "LongCat: Introducing LongCat-2.5"
     url: https://longcat.ai/blog/longcat-2.5/
@@ -27,6 +28,12 @@ sources:
     url: https://longcat.ai/platform/docs/pricing/longcat-2.5
   - title: "Hugging Face: meituan-longcat"
     url: https://huggingface.co/meituan-longcat
+  - title: "meituan-longcat/LongCat-2.5 on Hugging Face (MIT)"
+    url: https://huggingface.co/meituan-longcat/LongCat-2.5
+  - title: "meituan-longcat/LongCat-2.5-W4A4 on Hugging Face"
+    url: https://huggingface.co/meituan-longcat/LongCat-2.5-W4A4
+  - title: "Meituan LongCat on X, 9 November 2026"
+    url: https://x.com/Meituan_LongCat/status/2119793531393040462
 ---
 
 Meituan, the Chinese delivery company, has released LongCat-2.5, which its [launch blog](https://longcat.ai/blog/longcat-2.5/) calls "a native multimodal model for long-horizon agentic tasks". It has 1.6 trillion total parameters with about 48 billion active per token, and builds on LongCat-2.0.
@@ -58,3 +65,9 @@ There are no weights. As of the evening of 2 November, [Meituan's Hugging Face p
 ## Why this matters
 
 If you route agent work by price, LongCat-2.5 is worth a test on your own tasks while the promo lasts, but plan for the price to change. Unlike [DeepSeek, which posted V4.1-Flash weights](/posts/deepseek-v4-1-flash-1017-open-weights/) at launch, or [Moonshot, which promised Kimi K3.1 Pro weights by a date](/posts/kimi-k3-1-pro-open-weights-by-nov-4/), Meituan offers API access only, so you cannot self-host it today. Check your own data rules before sending code or images to a new provider.
+
+## Update, 9 November 2026: the weights are out, under MIT
+
+A week after the API launch, Meituan has [released the LongCat-2.5 weights](https://huggingface.co/meituan-longcat/LongCat-2.5) on Hugging Face under the MIT License, along with a separate [W4A4 quantized repository](https://huggingface.co/meituan-longcat/LongCat-2.5-W4A4). Both repos were updated at 11:38 UTC on 9 November, and Meituan's LongCat account [announced the release](https://x.com/Meituan_LongCat/status/2119793531393040462) on X. The model card says the MIT terms cover the weights and do not grant rights to Meituan's trademarks or patents.
+
+Two things to know before you download. The model is still 1.6 trillion total parameters with about 48 billion active, so this is multi-node hardware, not a workstation. And the model card's deployment section currently covers NPU platforms only, through Meituan's SGLang-FluentLLM fork; the W4A4 build is described as enabling native INT4 on "domestic AI accelerators". There is no documented GPU serving path yet.

@@ -1398,3 +1398,9 @@
 1395 azd-microsoft-foundry-extension-1-0-ga
 1396 hermes-security-plugin-reachability-review
 1397 chimera-rust-wasm-physical-model-voice-synth
+1398 google-tpu-8tx-8i-max-xla-serving-engine
+1399 strutil-core-ruby-gem-worm-poisons-agent-configs
+1400 disney-adobe-firefly-foundry-custom-models
+1401 aws-hope-prunes-half-of-moe-experts
+1402 ferrite-rust-llm-engine-dgx-spark-rust-kernels
+1403 aws-agentcore-web-answer-ga
