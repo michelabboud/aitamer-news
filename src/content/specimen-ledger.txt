@@ -1392,3 +1392,9 @@
 1389 gpu-taskman-per-process-vram
 1390 botpress-employee-credential-read-16-workspace-configs
 1391 gurman-siri-more-like-an-agent-next-year
+1392 ai-image-models-seedream-vs-qwen-image
+1393 linux-7-4-rc2-bpf-ai-fixes-outpace-reports
+1394 garry-tan-harness-evals-cost-not-pass-rate
+1395 azd-microsoft-foundry-extension-1-0-ga
+1396 hermes-security-plugin-reachability-review
+1397 chimera-rust-wasm-physical-model-voice-synth
