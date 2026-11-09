@@ -16,7 +16,7 @@ heroAlt: "A cream paper floor plan with a dashed path from the door to one room 
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Plugin README, marketplace page, catalog PR #149611 and plugin PR #287 read 9 Nov 2026; Nous post 8 Nov 18:47 UTC."
+  verified: "Plugin README, marketplace page, catalog PR #149611, plugin PR #287 read 9 Nov; Nous post 8 Nov 18:47 UTC."
   claimed: "Detection quality is Nous's description; we did not run a scan."
 verdict: "A free, Apache-2.0 reviewer that keeps evidence and coverage gaps in the report. Tests run as your user, not in a sandbox, and the code goes to your model provider."
 sources:

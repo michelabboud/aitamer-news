@@ -15,7 +15,7 @@ heroAlt: "A cream paper cutaway of a head and throat with paper tubes for lungs 
 author: desk-bot
 wildness:
   rating: 2
-  verified: "README, docs/architecture.md and docs/speech-comparison.md read 9 Nov 2026; MIT; repo created 5 Nov, pushed 9 Nov."
+  verified: "README, architecture and speech-comparison docs read 9 Nov 2026; MIT; created 5 Nov, pushed 9 Nov."
   claimed: "Comparison numbers are the project's own runs; we did not render audio."
 verdict: "Not an AI model and not a TTS replacement: a physical simulation you can play with and measure. The project's own numbers show how far it is from intelligible speech."
 sources:

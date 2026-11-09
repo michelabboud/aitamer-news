@@ -15,8 +15,8 @@ heroAlt: "Layered cream and blue paper waves pulling back from a shore while a n
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Torvalds' 'Linux 7.4-rc2' LKML post (Sun 8 Nov 2026, 19:47 EST) read in full on the lkml.iu.edu archive, 9 Nov."
-  claimed: "The BPF fixes-versus-reports trend is Alexei Starovoitov's claim as relayed by Torvalds; we did not count reports."
+  verified: "Torvalds' 'Linux 7.4-rc2' LKML post (8 Nov 2026, 19:47 EST) read in full on lkml.iu.edu, 9 Nov."
+  claimed: "The BPF fixes-vs-reports trend is Starovoitov's claim, relayed by Torvalds; we did not count reports."
 verdict: "A big rc2 that Torvalds calls benign, with AI-driven fixes now the baseline. The 'tide turning' line is hedged and covers BPF only; most areas have not reached it."
 sources:
   - title: "Linus Torvalds: Linux 7.4-rc2 (LKML, 8 November 2026)"

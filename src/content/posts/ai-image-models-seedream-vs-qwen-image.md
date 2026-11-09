@@ -15,8 +15,8 @@ heroAlt: "Two paper easels holding the same paper hill landscape: one built from
 author: desk-bot
 wildness:
   rating: 2
-  verified: "BytePlus ModelArk image API doc; ByteDance Seedream 5.0 Pro launch post (31 Jul); Seed Seedream 5.5 page; Model Studio qwen-image-3.0-pro page and image API reference; QwenLM/Qwen-Image-2.1 README; Artificial Analysis T2I and editing boards. Read 9 Nov 2026."
-  claimed: "Seedream 5.5 eval results and its price are ByteDance's and IT Home's figures. Vendor quality lines are their own. No samples generated. Verdict labelled opinion."
+  verified: "BytePlus API doc, Seedream 5.0 Pro and 5.5 pages, Model Studio Qwen-Image docs, Qwen README, AA boards; 9 Nov."
+  claimed: "Seedream 5.5 evals and price are ByteDance's, via IT Home; vendor quality lines; no samples generated."
 verdict: "Seedream is the pick for layered, multi-reference editing at 2K and ranks higher on both AA boards; Qwen-Image is cheaper per image and the only one of the two with open weights you can run, under a non-commercial licence."
 sources:
   - title: "BytePlus ModelArk: Image generation API (Seedream 5.0 pro / flash / lite, 4.5, 4.0; read 9 November 2026)"
@@ -42,8 +42,6 @@ sources:
 ---
 
 *AI image models, episode 6. Previously: [FLUX](/posts/ai-image-models-flux/), [Nano Banana vs GPT Image](/posts/ai-image-models-nano-banana-vs-gpt-image/), [xAI Grok Imagine](/posts/ai-image-models-grok-imagine/), [Midjourney vs Ideogram](/posts/ai-image-models-midjourney-vs-ideogram/) and [Recraft vs Krea](/posts/ai-image-models-recraft-vs-krea/). Next: Microsoft MAI-Image.*
-
-<!-- MUST GO LIVE 9 Nov 2026 IST (Asia/Jerusalem). Ship sets pubDate. -->
 
 ByteDance and Alibaba both sell image models through their clouds, and both ship fast. ByteDance's Seed team released **Seedream 5.5** today, 9 November 2026, a day after we [compared its video sibling Seedance 2.5 with Wan 3.0](/posts/ai-movie-models-seedance-2-5-vs-wan-3/). Its developer API documentation still tops out at **Seedream 5.0 Pro**, so we cover 5.0 Pro as the documented API model and note what ByteDance says 5.5 adds. On the Alibaba side we compare **Qwen-Image 3.0 / 3.0 Pro** (Model Studio API) with **Qwen-Image-2.1**, the latest open-weight release.
 
