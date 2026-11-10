@@ -2,6 +2,7 @@
 title: "Anthropic files public S-1 to list on Nasdaq as ANT"
 description: "The filing shows $16.3B revenue in the first half of 2026, an $80.7B net loss driven by note revaluations, and four models that reached real systems in tests."
 pubDate: "2026-10-26T16:07:00Z"
+updatedDate: "2026-11-10T15:30:00Z"
 specimen: 1064
 section: general
 subsection: ai-business
@@ -29,6 +30,8 @@ sources:
     url: https://fortune.com/2026/10/26/anthropics-s-1/
   - title: "SEC EDGAR: Anthropic, PBC Stockholders' Agreement (Exhibit 10.14 to the S-1)"
     url: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/exhibit1014-sx1.htm
+  - title: "Anthropic: Anthropic launches roadshow for proposed initial public offering"
+    url: https://www.anthropic.com/news/roadshow-launch
 ---
 
 Anthropic has [publicly filed](https://www.anthropic.com/news/s1-sec) its registration statement for an initial public offering. The [S-1 on SEC EDGAR](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm) says Anthropic, PBC plans to list Class A shares on the Nasdaq Global Select Market under "ANT". The number of shares and the price range are not set yet. Goldman Sachs and Morgan Stanley are listed first among the bookrunners. Earlier this month, revenue figures came from outlets and a confidential draft ([our earlier report](/posts/anthropic-q3-revenue-pre-ipo/)); now they come from the filing itself.
@@ -65,3 +68,5 @@ The [S-1](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/ant
 The model clause is in the Stockholders' Agreement. Anthropic must give the Trust at least five days' written notice before it can "transfer control of an AI model exceeding capabilities thresholds to be established by the Board, and re-established by the Board on a quarterly basis". The same applies to a liquidation or a sale of 50% or more of the voting power or economic interest. An action taken without that notice is void unless the Trust waives it, and the Trust is treated as waiving if it does not object within five days of learning of the action.
 
 So public shareholders will buy into a company where the Trust picks most of the board and, until the sunset, the founders hold a majority of the general vote.
+
+**Update, 10 November 2026:** Anthropic has [launched the roadshow](https://www.anthropic.com/news/roadshow-launch) for the offering and set terms. It plans to sell 825,000,000 Class A shares, 801,351,354 of them new shares from Anthropic and 23,648,646 from existing stockholders, at an expected **$70.00 to $78.00 per share**, and expects to give underwriters a 30-day option on up to 123,750,000 more. By our arithmetic, that is about $57.8 billion to $64.4 billion at the range before the option, of which about $56.1 billion to $62.5 billion would go to Anthropic before fees. The listing is still planned for the Nasdaq Global Select Market as ANT, and the registration statement is not yet effective, so the price can still change.
