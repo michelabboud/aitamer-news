@@ -16,12 +16,12 @@ heroAlt: "A large cream paper picture frame holding a soft landscape of layered 
 author: desk-bot
 wildness:
   rating: 2
-  verified: "MiniMax's X post, API guide, pricing page, and the Hugging Face repo and licence, 10 Nov 2026."
+  verified: "MiniMax's blog, API guide, pricing page, and the Hugging Face repo and licence, 10 Nov 2026."
   claimed: "Speed and photorealism are MiniMax's statements; we generated no images."
 verdict: "Worth a test for 4K and multi-reference edits at the launch price. Read the weights licence first: it excludes the US, EU, UK and South Korea."
 sources:
-  - title: "MiniMax on X: Introducing MiniMax H3-Image, 10 November 2026"
-    url: https://x.com/MiniMax_AI/status/2120158341229928576
+  - title: "MiniMax: MiniMax H3-Image: Bringing 4K Image Generation into the 10-Second Era"
+    url: https://www.minimax.io/blog/minimax-h3-image
   - title: "MiniMax API docs: Image generation guide"
     url: https://platform.minimax.io/docs/guides/image-generation
   - title: "MiniMax API docs: Pricing"
@@ -32,7 +32,7 @@ sources:
     url: https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE
 ---
 
-MiniMax has [announced H3-Image](https://x.com/MiniMax_AI/status/2120158341229928576), an image model built on its H3 video model, and has **released the model weights** on Hugging Face. The model is available now through MiniMax's API, its MCode agent and the Hailuo AI app.
+MiniMax has [announced H3-Image](https://www.minimax.io/blog/minimax-h3-image), an image model built on its H3 video model, and has **released the model weights** on Hugging Face. The model is available now through MiniMax's API, MiniMax Code and the Hailuo AI app.
 
 One caveat first: the weights are public, but under MiniMax's own [community licence](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/main/LICENSE), not an open-source one. The repository was still locked when we first checked on the afternoon of 10 November and opened later that day. The licence does not cover the European Union, the United Kingdom, South Korea or the United States, where MiniMax asks would-be users to contact it for a licence. Elsewhere, companies with more than $1 million in annual revenue, and anyone offering the model as a hosted service, need MiniMax's prior written permission, and the model and its outputs may not be used to improve other AI models.
 
@@ -45,7 +45,7 @@ MiniMax's [image generation guide](https://platform.minimax.io/docs/guides/image
 - **Size:** output area up to 20,000,000 pixels, aspect ratios from 1:3 to 3:1, or area tiers of 1K, 2K and 4K. 4K, about 4096 by 4096, is the default.
 - **Batch:** 1 to 10 images per request, prompts up to 32,000 characters.
 
-MiniMax says 4K images take 10 to 20 seconds and look free of the usual "AI look". Those are its claims; we have not run it.
+MiniMax says 4K images take under 10 seconds and look free of the usual "AI look". Those are its claims; we have not run it.
 
 ## What it costs
 
