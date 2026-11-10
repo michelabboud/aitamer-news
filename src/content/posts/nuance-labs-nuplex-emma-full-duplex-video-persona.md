@@ -1,6 +1,6 @@
 ---
 title: "Nuance Labs' Emma is a video AI persona that reacts while you are still talking"
-description: "Nuance Labs launched Emma on Nuplex 1.0, a full-duplex audiovisual model that listens and speaks at once, with a beta API that bans cloning and adds watermarks."
+description: "Nuance Labs launched Emma on Nuplex 1.0, a full-duplex audiovisual model that listens as it speaks, with a beta API that bans cloning and adds watermarks."
 pubDate: "2026-11-10T16:07:00Z"
 specimen: 1420
 section: models
