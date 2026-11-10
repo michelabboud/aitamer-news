@@ -3,6 +3,7 @@ title: "Microsoft sets Claude in Copilot for the EU Data Boundary by the end of 
 description: "EU and EFTA tenants can enable Claude in the Microsoft 365 admin center. Boundary processing is dated to the end of 2026."
 pubDate: "2026-11-08T20:07:00Z"
 specimen: 1388
+updatedDate: "2026-11-10T15:30:00Z"
 section: general
 subsection: policy
 tags:
@@ -31,6 +32,10 @@ sources:
     url: https://aitamer.news/posts/microsoft-copilot-for-legal-general-availability/
   - title: "EU AI Office information requests to OpenAI and Anthropic"
     url: https://aitamer.news/posts/eu-ai-office-information-requests-openai-anthropic/
+  - title: "Microsoft 365 message center MC1546435 (public mirror)"
+    url: https://serv365.ai/changes/MC1546435
+  - title: "The Register: Microsoft is giving Claude the keys to UK Copilot tenants by default"
+    url: https://www.theregister.com/ai-and-ml/2026/11/10/microsoft-is-giving-claude-the-keys-to-uk-copilot-tenants-by-default/5308693
 ---
 
 Microsoft says Claude models in Microsoft Copilot will be processed inside the EU Data Boundary for organizations in the European Union and the European Free Trade Association by the end of 2026. Charles Lamanna, executive vice president, Copilot, Agents, and Platform, published that on the [Microsoft Copilot blog](https://www.microsoft.com/en-us/copilot/blog/2026/11/05/bringing-claude-models-in-microsoft-copilot-into-the-eu-data-boundary/) on 5 November 2026. [Microsoft Source EMEA](https://news.microsoft.com/source/emea/2026/11/microsoft-ermoeglicht-mit-copilot-die-nutzung-von-anthropic-claude-innerhalb-der-eu-data-boundary/?lang=de) repeated the commitment in German on 6 November and linked that English post as the original.
@@ -56,3 +61,5 @@ Regulated Copilot work, including [Copilot for legal](/posts/microsoft-copilot-f
 ## Why this matters
 
 An EU or EFTA admin who turns Claude on is using the control Microsoft documents now, and the Learn page dated 4 November 2026 still called those deployments excluded from the EU Data Boundary when opened on 8 November. The 5 November blog places the processing move at the end of 2026 and says tenants that already enabled Claude move automatically once that processing is available, with no extra migration step named. Microsoft's line that customer data is not used to train generative AI foundation models is the training commitment the blog states, and the blog states the region as a separate EU Data Boundary commitment with that end-of-2026 date. A processing record that needs the region has to carry the date, because the announcement describes a future move.
+
+**Update, 10 November 2026:** The UK is going the other way from the EU. In message center post MC1546435 ([public copy](https://serv365.ai/changes/MC1546435)), Microsoft says Claude models will be **enabled by default for UK tenants on 9 December 2026** if an admin has not already chosen a setting. It is also retiring the option that allowed Claude only in Copilot in Microsoft 365 apps; tenants using it move to All users that day. Existing choices to enable or disable are kept. UK tenants are not covered by the EU Data Boundary, and [The Register](https://www.theregister.com/ai-and-ml/2026/11/10/microsoft-is-giving-claude-the-keys-to-uk-copilot-tenants-by-default/5308693) notes Microsoft's documentation says Anthropic processes this data in the United States. To opt out, an AI Administrator or Global Administrator goes to Microsoft 365 admin center > Copilot > Settings > View all > AI providers operating as Microsoft subprocessors > Anthropic and selects No users, or Specific users and groups, before 9 December.
