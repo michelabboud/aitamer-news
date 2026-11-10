@@ -1425,3 +1425,9 @@
 1422 minimax-h3-image-4k-image-model-api
 1423 mittwald-mcp-server-breach-56-customer-projects
 1424 google-cloud-gemini-for-healthcare-preview
+1425 frontier-model-forum-jailbreak-rating-framework-cyber
+1426 claude-whiteboards-sheets-beta-claude-data-ga
+1427 mendix-studio-pro-fast-agent-mcp-servers-listen-on-all-interfaces
+1428 gemini-robotics-2-5-asimov-jailbreak-benchmark
+1429 openai-businesses-in-chatgpt-business-hub-agents-beta
+1430 val-town-winding-down-read-only-december-10
