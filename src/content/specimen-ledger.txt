@@ -1415,3 +1415,7 @@
 1412 astral-serc-rust-cpython-bytecode-compiler-codex
 1413 australia-frontier-ai-safety-regulator-mandatory-incident-reporting
 1414 openai-control-room-stop-research-model-workloads
+1415 gpustack-auth-bypass-cve-2026-102895-cisa-kev
+1416 zyphra-zonos3-mini-open-tts-voice-cloning
+1417 ai-voice-models-mistral-voxtral-vs-microsoft-mai-voice
+1418 near-ai-cloud-breach-sglang-rce-confidential-inference
