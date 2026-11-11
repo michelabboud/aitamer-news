@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">Preemption: a high-priority Pod evicts a low-priority one</title>
+<desc id="d">Both workers hold two filler Pods of PriorityClass batch-low, value 1000, each requesting 3500m. The Pod urgent, PriorityClass shop-critical, value 100000, requests 3500m and fails Filter with Insufficient cpu. In PostFilter, DefaultPreemption finds that removing one filler on k8s-ep28-worker makes room, sets urgent status.nominatedNodeName to k8s-ep28-worker, and evicts filler-5fb9bd9b79-qm9q5, highlighted, which gets its 5-second graceful termination. About 6 seconds after the first attempt, urgent is bound to k8s-ep28-worker and runs. The Deployment creates replacement filler-5fb9bd9b79-v6zjx, which stays Pending: no preemption victims found, because nothing of lower priority is left.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">urgent (100000) needs 3500m; fillers (1000) fill both workers</text>
+<rect class="box" x="24" y="52" width="470" height="50" rx="8"/>
+<circle class="dn" cx="46" cy="77" r="12"/>
+<text class="tm" x="46" y="82" text-anchor="middle">1</text>
+<text class="tm" x="70" y="73" text-anchor="start">urgent created</text>
+<text class="ts" x="70" y="92" text-anchor="start">Filter: 2 Insufficient cpu</text>
+<line class="ln" x1="260" y1="102" x2="260" y2="114"/>
+<rect class="box" x="24" y="114" width="470" height="50" rx="8"/>
+<circle class="dn" cx="46" cy="139" r="12"/>
+<text class="tm" x="46" y="144" text-anchor="middle">2</text>
+<text class="tm" x="70" y="135" text-anchor="start">PostFilter: DefaultPreemption</text>
+<text class="ts" x="70" y="154" text-anchor="start">victim: one filler on k8s-ep28-worker</text>
+<line class="ln" x1="260" y1="164" x2="260" y2="176"/>
+<rect class="boxb" x="24" y="176" width="470" height="50" rx="8"/>
+<circle class="dn" cx="46" cy="201" r="12"/>
+<text class="tm" x="46" y="206" text-anchor="middle">3</text>
+<text class="tm" x="70" y="197" text-anchor="start">nominatedNodeName set</text>
+<text class="ts" x="70" y="216" text-anchor="start">urgent Pending, NOMINATED k8s-ep28-worker</text>
+<line class="ln" x1="260" y1="226" x2="260" y2="238"/>
+<rect class="boxc" x="24" y="238" width="470" height="50" rx="8"/>
+<circle class="dn" cx="46" cy="263" r="12"/>
+<text class="tm" x="46" y="268" text-anchor="middle">4</text>
+<text class="tc" x="70" y="259" text-anchor="start">filler-5fb9bd9b79-qm9q5 Preempted</text>
+<text class="ts" x="70" y="278" text-anchor="start">graceful stop, 5s grace period</text>
+<line class="ln" x1="260" y1="288" x2="260" y2="300"/>
+<rect class="boxs" x="24" y="300" width="470" height="50" rx="8"/>
+<circle class="dn" cx="46" cy="325" r="12"/>
+<text class="tm" x="46" y="330" text-anchor="middle">5</text>
+<text class="tm" x="70" y="321" text-anchor="start">urgent bound, Running</text>
+<text class="ts" x="70" y="340" text-anchor="start">Scheduled about 6s after the first try</text>
+<line class="ln" x1="260" y1="350" x2="260" y2="362"/>
+<rect class="boxd" x="24" y="362" width="470" height="50" rx="8"/>
+<circle class="dn" cx="46" cy="387" r="12"/>
+<text class="tm" x="46" y="392" text-anchor="middle">6</text>
+<text class="tm" x="70" y="383" text-anchor="start">replacement filler-...-v6zjx Pending</text>
+<text class="ts" x="70" y="402" text-anchor="start">No preemption victims found</text>
+<rect class="panel" x="514" y="52" width="262" height="170" rx="10"/>
+<text class="tm" x="528" y="76" text-anchor="start">k8s-ep28-worker, 8 CPU</text>
+<rect class="boxs" x="528" y="90" width="234" height="30" rx="6"/>
+<text class="ts" x="540" y="110" text-anchor="start">filler t57cg  3500m</text>
+<rect class="boxc" x="528" y="126" width="234" height="30" rx="6"/>
+<text class="ts" x="540" y="146" text-anchor="start">qm9q5 evicted, urgent runs</text>
+<text class="ts" x="528" y="180" text-anchor="start">plus 100m system Pods</text>
+<text class="ts" x="528" y="200" text-anchor="start">7100m before, 7100m after</text>
+<rect class="panel" x="514" y="236" width="262" height="110" rx="10"/>
+<text class="tm" x="528" y="260" text-anchor="start">k8s-ep28-worker2, 8 CPU</text>
+<rect class="boxs" x="528" y="274" width="234" height="26" rx="6"/>
+<text class="ts" x="540" y="292" text-anchor="start">filler shww7  3500m</text>
+<rect class="boxs" x="528" y="306" width="234" height="26" rx="6"/>
+<text class="ts" x="540" y="324" text-anchor="start">filler wjqm2  3500m</text>
+<rect class="boxn" x="514" y="360" width="262" height="82" rx="10"/>
+<text class="tm" x="528" y="384" text-anchor="start">preemptionPolicy: Never</text>
+<text class="ts" x="528" y="404" text-anchor="start">queues ahead, evicts no one</text>
+<text class="ts" x="528" y="424" text-anchor="start">PDBs: respected, best effort</text>
+</svg>

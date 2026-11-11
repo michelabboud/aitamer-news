@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">The four Service types, and what each added on our kind cluster</title>
+<desc id="d">Four columns compare Service types. ClusterIP gives a stable virtual IP and DNS name reachable only inside the cluster; ours was 10.96.120.171 on port 80. NodePort adds a port from 30000 to 32767 on every node; ours was 30080, reached with curl from the host. LoadBalancer adds an external load balancer from a cloud provider; on kind with no provider its EXTERNAL-IP stayed pending. ExternalName has no IP at all and returns a DNS CNAME, here to kubernetes.io. A highlighted band says that ClusterIP, NodePort and LoadBalancer each build on the one before. A footer notes that a headless Service sets clusterIP None and returns Pod IPs.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Service types: who can reach it, and how</text>
+<rect class="boxb" x="24" y="52" width="178" height="250" rx="10"/>
+<text class="tm" x="36" y="78" text-anchor="start">ClusterIP</text>
+<text class="ts" x="36" y="100" text-anchor="start">default type</text>
+<text class="ts" x="36" y="140" text-anchor="start">reachable by</text>
+<text class="ts" x="36" y="160" text-anchor="start">inside the cluster only</text>
+<text class="ts" x="36" y="200" text-anchor="start">on our kind cluster</text>
+<text class="tm" x="36" y="220" text-anchor="start">10.96.120.171:80</text>
+<text class="ts" x="36" y="244" text-anchor="start">web.k8s-from-zero</text>
+<rect class="boxb" x="214" y="52" width="178" height="250" rx="10"/>
+<text class="tm" x="226" y="78" text-anchor="start">NodePort</text>
+<text class="ts" x="226" y="100" text-anchor="start">ClusterIP + node port</text>
+<text class="ts" x="226" y="140" text-anchor="start">reachable by</text>
+<text class="ts" x="226" y="160" text-anchor="start">clients that reach a node</text>
+<text class="ts" x="226" y="200" text-anchor="start">on our kind cluster</text>
+<text class="tm" x="226" y="220" text-anchor="start">node IP:30080</text>
+<text class="ts" x="226" y="244" text-anchor="start">range 30000-32767</text>
+<rect class="boxb" x="404" y="52" width="178" height="250" rx="10"/>
+<text class="tm" x="416" y="78" text-anchor="start">LoadBalancer</text>
+<text class="ts" x="416" y="100" text-anchor="start">NodePort + cloud LB</text>
+<text class="ts" x="416" y="140" text-anchor="start">reachable by</text>
+<text class="ts" x="416" y="160" text-anchor="start">clients outside, via the LB</text>
+<text class="ts" x="416" y="200" text-anchor="start">on our kind cluster</text>
+<text class="tm" x="416" y="220" text-anchor="start">EXTERNAL-IP &lt;pending&gt;</text>
+<text class="ts" x="416" y="244" text-anchor="start">needs a cloud provider</text>
+<rect class="boxd" x="594" y="52" width="178" height="250" rx="10"/>
+<text class="tm" x="606" y="78" text-anchor="start">ExternalName</text>
+<text class="ts" x="606" y="100" text-anchor="start">no IP, no proxy</text>
+<text class="ts" x="606" y="140" text-anchor="start">reachable by</text>
+<text class="ts" x="606" y="160" text-anchor="start">DNS lookups only</text>
+<text class="ts" x="606" y="200" text-anchor="start">on our kind cluster</text>
+<text class="tm" x="606" y="220" text-anchor="start">CNAME kubernetes.io</text>
+<text class="ts" x="606" y="244" text-anchor="start">points outside</text>
+<rect class="boxc" x="24" y="316" width="560" height="50" rx="10"/>
+<text class="tc" x="40" y="346" text-anchor="start">Each of these three adds a layer on top of the one to its left</text>
+<line class="lnc" x1="120" y1="316" x2="120" y2="304" marker-end="url(#ahc)"/>
+<line class="lnc" x1="310" y1="316" x2="310" y2="304" marker-end="url(#ahc)"/>
+<line class="lnc" x1="500" y1="316" x2="500" y2="304" marker-end="url(#ahc)"/>
+<rect class="panel" x="24" y="382" width="752" height="74" rx="10"/>
+<text class="tm" x="40" y="406" text-anchor="start">Headless: clusterIP: None</text>
+<text class="ts" x="40" y="428" text-anchor="start">No virtual IP and no load balancing; DNS returns the ready Pod IPs directly.</text>
+<text class="ts" x="40" y="446" text-anchor="start">Used by StatefulSets (part 14) and clients that pick their own backend.</text>
+</svg>

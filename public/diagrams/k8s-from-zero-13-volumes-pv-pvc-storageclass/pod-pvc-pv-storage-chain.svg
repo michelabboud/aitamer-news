@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" role="img" aria-labelledby="t d">
+<title id="t">From a Pod to a real disk: Pod, PVC, PV and storage</title>
+<desc id="d">A Pod in the k8s-from-zero namespace names a PersistentVolumeClaim called data in its volumes list. The claim, highlighted, lives in the same namespace and asks for 1Gi with access mode ReadWriteOnce from the StorageClass standard. The claim is bound one to one to a cluster-scoped PersistentVolume, which points at real storage: on kind, a directory under /var/local-path-provisioner on one node. The StorageClass and its provisioner, rancher.io/local-path, created that PersistentVolume on demand.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="440" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">You ask with a claim; the cluster finds or makes the volume</text>
+<rect class="boxd" x="24" y="52" width="404" height="236" rx="12"/>
+<text class="tm" x="40" y="76" text-anchor="start">namespace k8s-from-zero</text>
+<rect class="boxs" x="40" y="92" width="170" height="120" rx="10"/>
+<text class="tm" x="56" y="116" text-anchor="start">Pod writer</text>
+<text class="tm" x="56" y="140" text-anchor="start">volumes:</text>
+<text class="tm" x="56" y="160" text-anchor="start">  claimName: data</text>
+<text class="ts" x="56" y="190" text-anchor="start">mounts it at /data</text>
+<rect class="boxc" x="246" y="92" width="166" height="120" rx="10"/>
+<text class="tm" x="262" y="116" text-anchor="start">PVC data</text>
+<text class="tm" x="262" y="140" text-anchor="start">1Gi, RWO</text>
+<text class="tm" x="262" y="160" text-anchor="start">class: standard</text>
+<text class="tc" x="262" y="190" text-anchor="start">your request</text>
+<line class="ln" x1="210" y1="152" x2="244" y2="152" marker-end="url(#ah)"/>
+<text class="ts" x="40" y="240" text-anchor="start">Namespaced: you create these</text>
+<text class="ts" x="40" y="262" text-anchor="start">in your own namespace</text>
+<rect class="boxb" x="472" y="92" width="304" height="120" rx="10"/>
+<text class="tm" x="488" y="116" text-anchor="start">PersistentVolume</text>
+<text class="tm" x="488" y="140" text-anchor="start">pvc-812b73d8-...</text>
+<text class="tm" x="488" y="160" text-anchor="start">1Gi, RWO, reclaim: Delete</text>
+<text class="ts" x="488" y="190" text-anchor="start">cluster-scoped, bound 1 to 1</text>
+<line class="ln" x1="412" y1="152" x2="470" y2="152" marker-end="url(#ah)"/>
+<text class="ts" x="420" y="140" text-anchor="start">binds</text>
+<rect class="boxb" x="472" y="236" width="304" height="74" rx="10"/>
+<text class="tm" x="488" y="260" text-anchor="start">StorageClass standard</text>
+<text class="tm" x="488" y="284" text-anchor="start">provisioner: rancher.io/local-path</text>
+<line class="ln" x1="560" y1="236" x2="560" y2="214" marker-end="url(#ah)"/>
+<text class="ts" x="568" y="229" text-anchor="start">creates on demand</text>
+<rect class="boxn" x="24" y="330" width="752" height="90" rx="10"/>
+<text class="t" x="40" y="356" text-anchor="start">Real storage</text>
+<text class="tm" x="40" y="380" text-anchor="start">kind: a directory /var/local-path-provisioner/pvc-..._k8s-from-zero_data on one node</text>
+<text class="ts" x="40" y="402" text-anchor="start">a cloud cluster: a network disk or file share created through a CSI driver</text>
+<path class="ln" d="M776 152 L790 152 L790 375 L778 375" marker-end="url(#ah)"/>
+<text class="ts" x="700" y="226" text-anchor="start">points at</text>
+</svg>

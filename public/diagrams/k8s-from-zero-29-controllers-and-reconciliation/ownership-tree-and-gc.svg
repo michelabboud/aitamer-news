@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">Owner references and the three ways to delete</title>
+<desc id="d">Deployment web owns ReplicaSet web-54b4c486f7, which owns three Pods, web-54b4c486f7-6zx57, lf2cq and xrwxd; each link is an ownerReferences entry on the dependent with controller true and blockOwnerDeletion true, pointing up by uid. Below, three cascade modes. Background, the default: the owner is deleted at once and the garbage collector removes the dependents afterwards. Foreground, highlighted: the owner stays with deletionTimestamp and the foregroundDeletion finalizer until the dependents are gone; in our run the Deployment was still visible one second after kubectl said deleted. Orphan: the owner goes and the dependents stay without an owner, and a new ReplicaSet with a matching selector adopted them in our run.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Each dependent points up to its owner by uid</text>
+<rect class="boxb" x="300" y="50" width="200" height="46" rx="10"/>
+<text class="tm" x="400" y="79" text-anchor="middle">Deployment web</text>
+<rect class="box" x="290" y="130" width="220" height="46" rx="10"/>
+<text class="tm" x="400" y="159" text-anchor="middle">ReplicaSet web-54b4c486f7</text>
+<path class="ln" d="M 400 130 L 400 98" marker-end="url(#ah)"/>
+<rect class="boxs" x="150" y="210" width="170" height="40" rx="8"/>
+<text class="tm" x="235" y="235" text-anchor="middle">Pod ...-6zx57</text>
+<line class="ln" x1="235" y1="210" x2="400" y2="178" marker-end="url(#ah)"/>
+<rect class="boxs" x="340" y="210" width="170" height="40" rx="8"/>
+<text class="tm" x="425" y="235" text-anchor="middle">Pod ...-lf2cq</text>
+<line class="ln" x1="425" y1="210" x2="400" y2="178" marker-end="url(#ah)"/>
+<rect class="boxs" x="530" y="210" width="170" height="40" rx="8"/>
+<text class="tm" x="615" y="235" text-anchor="middle">Pod ...-xrwxd</text>
+<line class="ln" x1="615" y1="210" x2="400" y2="178" marker-end="url(#ah)"/>
+<text class="ts" x="560" y="110" text-anchor="start">ownerReferences:</text>
+<text class="ts" x="560" y="128" text-anchor="start">controller: true</text>
+<text class="ts" x="560" y="146" text-anchor="start">blockOwnerDeletion: true</text>
+<rect class="box" x="24" y="280" width="240" height="110" rx="10"/>
+<text class="tm" x="38" y="306" text-anchor="start">background (default)</text>
+<text class="ts" x="38" y="332" text-anchor="start">owner deleted now,</text>
+<text class="ts" x="38" y="352" text-anchor="start">GC removes dependents</text>
+<rect class="boxc" x="280" y="280" width="240" height="110" rx="10"/>
+<text class="tc" x="294" y="306" text-anchor="start">foreground</text>
+<text class="ts" x="294" y="332" text-anchor="start">owner stays: deletionTimestamp</text>
+<text class="ts" x="294" y="352" text-anchor="start">+ foregroundDeletion</text>
+<rect class="box" x="536" y="280" width="240" height="110" rx="10"/>
+<text class="tm" x="550" y="306" text-anchor="start">orphan</text>
+<text class="ts" x="550" y="332" text-anchor="start">owner deleted,</text>
+<text class="ts" x="550" y="352" text-anchor="start">dependents keep running</text>
+<text class="ts" x="38" y="376" text-anchor="start">kubectl delete rs solo</text>
+<text class="ts" x="294" y="376" text-anchor="start">--cascade=foreground</text>
+<text class="ts" x="550" y="376" text-anchor="start">--cascade=orphan, then adopt</text>
+<rect class="boxn" x="24" y="404" width="752" height="46" rx="10"/>
+<text class="ts" x="38" y="432" text-anchor="start">Finalizers hold any delete: deletionTimestamp is set, the object stays until the list is empty.</text>
+</svg>

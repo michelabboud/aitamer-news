@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" role="img" aria-labelledby="t d">
+<title id="t">The path of one API request through kube-apiserver</title>
+<desc id="d">A write request from kubectl, such as kubectl apply, enters kube-apiserver over HTTPS and passes six stages in order. Authentication decides who you are; a bad token stopped there with 401 Unauthorized. Authorization decides whether that user may do this verb on this resource; system:anonymous listing namespaces stopped there with 403 Forbidden. Mutating admission may change the object; LimitRanger added default requests and limits. Schema validation checks the object against the API schema. Validating admission may only accept or reject; the policy require-team-label rejected a Deployment without a team label. Only then is the object persisted to etcd. A side note says read requests such as get, list and watch skip admission.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="560" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">One write request: who, may they, change it, check it, store it</text>
+<rect class="box" x="24" y="56" width="150" height="40" rx="8"/>
+<text class="tm" x="99" y="81" text-anchor="middle">kubectl apply</text>
+<line class="ln" x1="99" y1="96" x2="99" y2="118" marker-end="url(#ah)"/>
+<rect class="boxb" x="24" y="120" width="420" height="58" rx="10"/>
+<text class="t" x="40" y="144" text-anchor="start">1  Authentication</text>
+<text class="ts" x="40" y="164" text-anchor="start">who is calling?</text>
+<rect class="panel" x="464" y="126" width="312" height="46" rx="8"/>
+<text class="ts" x="476" y="154" text-anchor="start">bogus token: 401 Unauthorized</text>
+<line class="lnf" x1="444" y1="149" x2="462" y2="149"/>
+<line class="ln" x1="234" y1="178" x2="234" y2="194" marker-end="url(#ah)"/>
+<rect class="boxb" x="24" y="196" width="420" height="58" rx="10"/>
+<text class="t" x="40" y="220" text-anchor="start">2  Authorization</text>
+<text class="ts" x="40" y="240" text-anchor="start">may this user do this verb here?</text>
+<rect class="panel" x="464" y="202" width="312" height="46" rx="8"/>
+<text class="ts" x="476" y="230" text-anchor="start">system:anonymous list namespaces: 403</text>
+<line class="lnf" x1="444" y1="225" x2="462" y2="225"/>
+<line class="ln" x1="234" y1="254" x2="234" y2="270" marker-end="url(#ah)"/>
+<rect class="boxs" x="24" y="272" width="420" height="58" rx="10"/>
+<text class="t" x="40" y="296" text-anchor="start">3  Mutating admission</text>
+<text class="ts" x="40" y="316" text-anchor="start">may change the object</text>
+<rect class="panel" x="464" y="278" width="312" height="46" rx="8"/>
+<text class="ts" x="476" y="306" text-anchor="start">LimitRanger added cpu and memory defaults</text>
+<line class="lnf" x1="444" y1="301" x2="462" y2="301"/>
+<line class="ln" x1="234" y1="330" x2="234" y2="346" marker-end="url(#ah)"/>
+<rect class="box" x="24" y="348" width="420" height="58" rx="10"/>
+<text class="t" x="40" y="372" text-anchor="start">4  Schema validation</text>
+<text class="ts" x="40" y="392" text-anchor="start">is the object well formed?</text>
+<rect class="panel" x="464" y="354" width="312" height="46" rx="8"/>
+<text class="ts" x="476" y="382" text-anchor="start">an object that breaks the schema is refused</text>
+<line class="lnf" x1="444" y1="377" x2="462" y2="377"/>
+<line class="ln" x1="234" y1="406" x2="234" y2="422" marker-end="url(#ah)"/>
+<rect class="boxs" x="24" y="424" width="420" height="58" rx="10"/>
+<text class="t" x="40" y="448" text-anchor="start">5  Validating admission</text>
+<text class="ts" x="40" y="468" text-anchor="start">accept or reject, no changes</text>
+<rect class="panel" x="464" y="430" width="312" height="46" rx="8"/>
+<text class="ts" x="476" y="458" text-anchor="start">require-team-label: Deployment denied</text>
+<line class="lnf" x1="444" y1="453" x2="462" y2="453"/>
+<line class="ln" x1="234" y1="482" x2="234" y2="498" marker-end="url(#ah)"/>
+<rect class="box" x="24" y="500" width="420" height="58" rx="10"/>
+<text class="t" x="40" y="524" text-anchor="start">6  Persist to etcd</text>
+<text class="ts" x="40" y="544" text-anchor="start">object stored, watchers notified</text>
+<rect class="panel" x="464" y="506" width="312" height="46" rx="8"/>
+<text class="ts" x="476" y="534" text-anchor="start">resourceVersion goes up</text>
+<line class="lnf" x1="444" y1="529" x2="462" y2="529"/>
+<text class="ts" x="24" y="588" text-anchor="start">Reads (get, list, watch) go through steps 1 and 2 only: admission does not act on reads.</text>
+</svg>

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="t d">
+<title id="t">Rollout history and what undo does to revision numbers</title>
+<desc id="d">A timeline of the revisions we created in the lab. Revision 1 ran nginx 1.28, revision 2 nginx 1.29, and revision 3 had a typo in the image name and never became ready. kubectl rollout undo went back to the template of revision 2, but recorded it as a new revision 4, so revision 2 disappears from the list. Undo to revision 1 created revision 5, and applying the 1.29 file again created revision 6. The highlighted point is that a rollback is a new rollout with an old template.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="420" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">rollout history: undo makes a new revision</text>
+<line class="lnf" x1="40" y1="150" x2="770" y2="150"/>
+<rect class="boxs" x="40" y="96" width="112" height="108" rx="10"/>
+<text class="tm" x="52" y="122" text-anchor="start">revision 1</text>
+<text class="tm" x="52" y="146" text-anchor="start">nginx 1.28</text>
+<text class="ts" x="52" y="170" text-anchor="start">first release</text>
+<rect class="boxs" x="164" y="96" width="112" height="108" rx="10"/>
+<text class="tm" x="176" y="122" text-anchor="start">revision 2</text>
+<text class="tm" x="176" y="146" text-anchor="start">nginx 1.29</text>
+<text class="ts" x="176" y="170" text-anchor="start">upgrade</text>
+<line class="ln" x1="152" y1="150" x2="162" y2="150" marker-end="url(#ah)"/>
+<rect class="box" x="288" y="96" width="112" height="108" rx="10"/>
+<text class="tm" x="300" y="122" text-anchor="start">revision 3</text>
+<text class="tm" x="300" y="146" text-anchor="start">1.29-alpne</text>
+<text class="ts" x="300" y="170" text-anchor="start">typo, stuck</text>
+<line class="ln" x1="276" y1="150" x2="286" y2="150" marker-end="url(#ah)"/>
+<rect class="boxc" x="412" y="96" width="112" height="108" rx="10"/>
+<text class="tm" x="424" y="122" text-anchor="start">revision 4</text>
+<text class="tm" x="424" y="146" text-anchor="start">= rev 2</text>
+<text class="ts" x="424" y="170" text-anchor="start">rollout undo</text>
+<line class="ln" x1="400" y1="150" x2="410" y2="150" marker-end="url(#ah)"/>
+<rect class="boxs" x="536" y="96" width="112" height="108" rx="10"/>
+<text class="tm" x="548" y="122" text-anchor="start">revision 5</text>
+<text class="tm" x="548" y="146" text-anchor="start">= rev 1</text>
+<text class="ts" x="548" y="170" text-anchor="start">undo to rev 1</text>
+<line class="ln" x1="524" y1="150" x2="534" y2="150" marker-end="url(#ah)"/>
+<rect class="boxs" x="660" y="96" width="112" height="108" rx="10"/>
+<text class="tm" x="672" y="122" text-anchor="start">revision 6</text>
+<text class="tm" x="672" y="146" text-anchor="start">nginx 1.29</text>
+<text class="ts" x="672" y="170" text-anchor="start">apply the file</text>
+<line class="ln" x1="648" y1="150" x2="658" y2="150" marker-end="url(#ah)"/>
+<rect class="panel" x="24" y="228" width="752" height="80" rx="10"/>
+<text class="t" x="40" y="252" text-anchor="start">kubectl rollout history deployment/web, at the end of the lab</text>
+<text class="tm" x="40" y="284" text-anchor="start">REVISION 3</text>
+<text class="tm" x="40" y="302" text-anchor="start">typo release</text>
+<text class="tm" x="280" y="284" text-anchor="start">REVISION 5</text>
+<text class="tm" x="280" y="302" text-anchor="start">first release, nginx 1.28</text>
+<text class="tm" x="520" y="284" text-anchor="start">REVISION 6</text>
+<text class="tm" x="520" y="302" text-anchor="start">upgrade to nginx 1.29</text>
+<rect class="box" x="24" y="324" width="752" height="80" rx="10"/>
+<text class="ts" x="40" y="348" text-anchor="start">Undo copies an old Pod template into a new revision; the old number leaves the list.</text>
+<text class="ts" x="40" y="370" text-anchor="start">Only template changes create revisions. Scaling does not.</text>
+<text class="ts" x="40" y="392" text-anchor="start">History lives in old ReplicaSets: revisionHistoryLimit keeps 10 by default.</text>
+</svg>

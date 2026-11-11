@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" role="img" aria-labelledby="t d">
+<title id="t">A taint repels Pods, a toleration lets one through</title>
+<desc id="d">Top: worker3 carries the taint dedicated=gpu:NoSchedule, highlighted. The Deployment web with six replicas and no toleration landed 3 on worker and 3 on worker2, none on worker3. The Pod trainer has a toleration for dedicated=gpu NoSchedule and a nodeSelector for worker3, so it ran there. A note says a toleration only permits; the nodeSelector is what pulled trainer to worker3. Bottom: a NoExecute taint maintenance=true on worker. The Pod impatient, with no matching toleration, was evicted within 5 seconds. The Pod patient tolerated it for tolerationSeconds 20 and was gone when we checked 25 seconds later.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="480" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">NoSchedule keeps new Pods off; NoExecute also removes running ones</text>
+<rect class="boxs" x="24" y="56" width="240" height="180" rx="12"/>
+<text class="tm" x="40" y="82" text-anchor="start">worker</text>
+<rect class="box" x="40" y="100" width="64" height="30" rx="6"/>
+<text class="tm" x="48" y="120" text-anchor="start">web</text>
+<rect class="box" x="112" y="100" width="64" height="30" rx="6"/>
+<text class="tm" x="120" y="120" text-anchor="start">web</text>
+<rect class="box" x="184" y="100" width="64" height="30" rx="6"/>
+<text class="tm" x="192" y="120" text-anchor="start">web</text>
+<rect class="boxs" x="280" y="56" width="240" height="180" rx="12"/>
+<text class="tm" x="296" y="82" text-anchor="start">worker2</text>
+<rect class="box" x="296" y="100" width="64" height="30" rx="6"/>
+<text class="tm" x="304" y="120" text-anchor="start">web</text>
+<rect class="box" x="368" y="100" width="64" height="30" rx="6"/>
+<text class="tm" x="376" y="120" text-anchor="start">web</text>
+<rect class="box" x="440" y="100" width="64" height="30" rx="6"/>
+<text class="tm" x="448" y="120" text-anchor="start">web</text>
+<rect class="boxc" x="536" y="56" width="240" height="180" rx="12"/>
+<text class="tc" x="552" y="82" text-anchor="start">worker3</text>
+<text class="tc" x="552" y="104" text-anchor="start">dedicated=gpu:NoSchedule</text>
+<rect class="box" x="552" y="150" width="208" height="34" rx="6"/>
+<text class="tm" x="564" y="172" text-anchor="start">trainer (tolerates)</text>
+<text class="ts" x="40" y="170" text-anchor="start">6 web replicas, no toleration:</text>
+<text class="ts" x="40" y="192" text-anchor="start">none landed on worker3</text>
+<text class="ts" x="296" y="170" text-anchor="start">toleration = permission,</text>
+<text class="ts" x="296" y="192" text-anchor="start">nodeSelector = direction</text>
+<text class="ts" x="552" y="212" text-anchor="start">+ nodeSelector worker3</text>
+<text class="t" x="24" y="270" text-anchor="start">Then: kubectl taint nodes worker maintenance=true:NoExecute</text>
+<rect class="box" x="24" y="286" width="368" height="110" rx="10"/>
+<text class="tm" x="40" y="312" text-anchor="start">impatient</text>
+<text class="ts" x="40" y="338" text-anchor="start">no toleration</text>
+<text class="ts" x="40" y="362" text-anchor="start">evicted at once (gone by 5 s)</text>
+<text class="ts" x="40" y="384" text-anchor="start">TaintManagerEviction event</text>
+<rect class="box" x="408" y="286" width="368" height="110" rx="10"/>
+<text class="tm" x="424" y="312" text-anchor="start">patient</text>
+<text class="ts" x="424" y="338" text-anchor="start">tolerationSeconds: 20</text>
+<text class="ts" x="424" y="362" text-anchor="start">kept running, then evicted</text>
+<text class="ts" x="424" y="384" text-anchor="start">gone at the 25 s check</text>
+<rect class="panel" x="24" y="412" width="752" height="56" rx="10"/>
+<text class="ts" x="40" y="436" text-anchor="start">Every Pod gets default NoExecute tolerations for not-ready and unreachable, 300 s each:</text>
+<text class="ts" x="40" y="456" text-anchor="start">that is why Pods wait about five minutes before leaving a dead node.</text>
+</svg>

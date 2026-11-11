@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">Raft: one leader, a majority to commit</title>
+<desc id="d">Three etcd members. The leader, member m1, receives a write from kube-apiserver, appends it to its log and sends it to the two followers, m2 and m3. Once a majority, two of three members including the leader, has the entry on disk, the leader commits it, highlighted, applies it and answers the client. The leader sends heartbeats every 100 milliseconds by default; a follower that hears nothing for the election timeout, 1000 milliseconds by default, starts an election for a new, higher term. In our lab, stopping the leader moved leadership to another member and the term went from 2 to 3.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Raft in etcd: the leader replicates, a majority commits</text>
+<rect class="boxb" x="300" y="56" width="200" height="48" rx="10"/>
+<text class="t" x="400.0" y="76.0" text-anchor="middle">kube-apiserver</text>
+<text class="t" x="400.0" y="94.0" text-anchor="middle">PUT /registry/...</text>
+<rect class="boxb" x="300" y="150" width="200" height="90" rx="10"/>
+<text class="t" x="400.0" y="178.0" text-anchor="middle">m1 (leader)</text>
+<text class="t" x="400.0" y="200.0" text-anchor="middle">term 2</text>
+<text class="t" x="400.0" y="222.0" text-anchor="middle">log: ... e7 e8</text>
+<rect class="box" x="40" y="300" width="200" height="90" rx="10"/>
+<text class="t" x="140.0" y="328.0" text-anchor="middle">m2 (follower)</text>
+<text class="t" x="140.0" y="350.0" text-anchor="middle">term 2</text>
+<text class="t" x="140.0" y="372.0" text-anchor="middle">log: ... e7 e8</text>
+<rect class="box" x="560" y="300" width="200" height="90" rx="10"/>
+<text class="t" x="660.0" y="328.0" text-anchor="middle">m3 (follower)</text>
+<text class="t" x="660.0" y="350.0" text-anchor="middle">term 2</text>
+<text class="t" x="660.0" y="372.0" text-anchor="middle">log: ... e7 (e8 on the way)</text>
+<line class="ln" x1="400" y1="104" x2="400" y2="148" marker-end="url(#ah)"/>
+<line class="ln" x1="300" y1="215" x2="240" y2="300" marker-end="url(#ah)"/>
+<text class="ts" x="214" y="250" text-anchor="middle">1. append e8</text>
+<line class="ln" x1="500" y1="215" x2="560" y2="300" marker-end="url(#ah)"/>
+<text class="ts" x="590" y="250" text-anchor="middle">1. append e8</text>
+<path class="lnc" d="M240 330 C 280 300, 290 250, 300 232" marker-end="url(#ahc)"/>
+<text class="tc" x="250" y="290" text-anchor="end">2. ack</text>
+<text class="tc" x="400" y="272" text-anchor="middle">3. 2 of 3 have e8:</text>
+<text class="tc" x="400" y="290" text-anchor="middle">commit, apply, reply</text>
+<rect class="panel" x="24" y="404" width="752" height="54" rx="8"/>
+<text class="ts" x="40" y="426" text-anchor="start">Heartbeat every 100 ms (default). No heartbeat for the election timeout (1000 ms default): a follower starts an election, term + 1.</text>
+<text class="ts" x="40" y="446" text-anchor="start">In our lab: stopping m1 made m3 leader at term 3; a new write succeeded with two of three members up.</text>
+</svg>

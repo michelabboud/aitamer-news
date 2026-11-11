@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">One Pod through kube-scheduler: queue, scheduling cycle, binding cycle</title>
+<desc id="d">A new Pod with no node enters the scheduling queue, sorted by priority with PrioritySort; failed Pods wait in a backoff queue or an unschedulable list until QueueingHints say a cluster change may help. The scheduling cycle runs for one Pod at a time: PreFilter and Filter drop nodes that cannot run the Pod, PostFilter runs only when no node passed and is where DefaultPreemption lives, PreScore, Score and NormalizeScore rank the rest, highlighted, then Reserve and Permit hold the choice. The binding cycle, which may run concurrently for several Pods, runs PreBind, Bind and PostBind; DefaultBinder writes spec.nodeName through the API server, and the kubelet on that node starts the Pod.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Filter, then score, then bind: every step is a plugin</text>
+<rect class="boxb" x="24" y="56" width="200" height="150" rx="10"/>
+<text class="tm" x="38" y="80" text-anchor="start">scheduling queue</text>
+<rect class="box" x="38" y="92" width="172" height="30" rx="6"/>
+<text class="ts" x="48" y="112" text-anchor="start">active (PrioritySort)</text>
+<rect class="boxd" x="38" y="128" width="172" height="30" rx="6"/>
+<text class="ts" x="48" y="148" text-anchor="start">backoff</text>
+<rect class="boxd" x="38" y="164" width="172" height="30" rx="6"/>
+<text class="ts" x="48" y="184" text-anchor="start">unschedulable list</text>
+<line class="ln" x1="224" y1="130" x2="250" y2="130" marker-end="url(#ah)"/>
+<rect class="panel" x="252" y="56" width="524" height="150" rx="10"/>
+<text class="tm" x="266" y="80" text-anchor="start">scheduling cycle: one Pod at a time</text>
+<rect class="box" x="266" y="96" width="112" height="40" rx="8"/>
+<text class="tm" x="322" y="121" text-anchor="middle">PreFilter</text>
+<line class="ln" x1="378" y1="116" x2="390" y2="116" marker-end="url(#ah)"/>
+<rect class="box" x="392" y="96" width="112" height="40" rx="8"/>
+<text class="tm" x="448" y="121" text-anchor="middle">Filter</text>
+<line class="ln" x1="504" y1="116" x2="516" y2="116" marker-end="url(#ah)"/>
+<rect class="boxd" x="518" y="96" width="112" height="40" rx="8"/>
+<text class="tm" x="574" y="121" text-anchor="middle">PostFilter</text>
+<line class="ln" x1="630" y1="116" x2="642" y2="116" marker-end="url(#ah)"/>
+<rect class="box" x="644" y="96" width="112" height="40" rx="8"/>
+<text class="tm" x="700" y="121" text-anchor="middle">PreScore</text>
+<rect class="boxc" x="266" y="152" width="112" height="40" rx="8"/>
+<text class="tc" x="322" y="177" text-anchor="middle">Score</text>
+<line class="ln" x1="378" y1="172" x2="390" y2="172" marker-end="url(#ah)"/>
+<rect class="box" x="392" y="152" width="112" height="40" rx="8"/>
+<text class="tm" x="448" y="177" text-anchor="middle">Normalize</text>
+<line class="ln" x1="504" y1="172" x2="516" y2="172" marker-end="url(#ah)"/>
+<rect class="box" x="518" y="152" width="112" height="40" rx="8"/>
+<text class="tm" x="574" y="177" text-anchor="middle">Reserve</text>
+<line class="ln" x1="630" y1="172" x2="642" y2="172" marker-end="url(#ah)"/>
+<rect class="box" x="644" y="152" width="112" height="40" rx="8"/>
+<text class="tm" x="700" y="177" text-anchor="middle">Permit</text>
+<path class="ln" d="M 700 136 L 700 144 L 322 144 L 322 150" marker-end="url(#ah)"/>
+<text class="ts" x="266" y="222" text-anchor="start">PostFilter runs only if no node passed Filter: DefaultPreemption</text>
+<line class="ln" x1="514" y1="206" x2="514" y2="250" marker-end="url(#ah)"/>
+<rect class="panel" x="252" y="252" width="524" height="80" rx="10"/>
+<text class="tm" x="266" y="276" text-anchor="start">binding cycle: may run for several Pods at once</text>
+<rect class="box" x="266" y="288" width="156" height="32" rx="8"/>
+<text class="tm" x="344" y="309" text-anchor="middle">PreBind</text>
+<line class="ln" x1="422" y1="304" x2="434" y2="304" marker-end="url(#ah)"/>
+<rect class="box" x="436" y="288" width="156" height="32" rx="8"/>
+<text class="tm" x="514" y="309" text-anchor="middle">Bind (DefaultBinder)</text>
+<line class="ln" x1="592" y1="304" x2="604" y2="304" marker-end="url(#ah)"/>
+<rect class="box" x="606" y="288" width="156" height="32" rx="8"/>
+<text class="tm" x="684" y="309" text-anchor="middle">PostBind</text>
+<line class="ln" x1="514" y1="332" x2="514" y2="356" marker-end="url(#ah)"/>
+<rect class="boxs" x="252" y="358" width="250" height="52" rx="10"/>
+<text class="tm" x="266" y="382" text-anchor="start">API server</text>
+<text class="ts" x="266" y="400" text-anchor="start">sets spec.nodeName</text>
+<line class="ln" x1="502" y1="384" x2="524" y2="384" marker-end="url(#ah)"/>
+<rect class="boxs" x="526" y="358" width="250" height="52" rx="10"/>
+<text class="tm" x="540" y="382" text-anchor="start">kubelet on that node</text>
+<text class="ts" x="540" y="400" text-anchor="start">starts the containers</text>
+<rect class="boxn" x="24" y="226" width="200" height="184" rx="10"/>
+<text class="tm" x="38" y="250" text-anchor="start">skips this path</text>
+<text class="ts" x="38" y="274" text-anchor="start">spec.nodeName set by</text>
+<text class="ts" x="38" y="292" text-anchor="start">hand: straight to the</text>
+<text class="ts" x="38" y="310" text-anchor="start">kubelet</text>
+<text class="ts" x="38" y="342" text-anchor="start">unknown schedulerName:</text>
+<text class="ts" x="38" y="360" text-anchor="start">nobody picks it up,</text>
+<text class="ts" x="38" y="378" text-anchor="start">Pending, no events</text>
+<text class="ts" x="24" y="446" text-anchor="start">Scoring counts requests, never live usage. Ties are broken at random.</text>
+</svg>

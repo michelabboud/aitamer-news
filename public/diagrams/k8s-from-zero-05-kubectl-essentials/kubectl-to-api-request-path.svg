@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">What happens when you run kubectl get pods</title>
+<desc id="d">kubectl first reads the kubeconfig file and picks the current context, which names a cluster with its server address, a user with credentials, and an optional default namespace. It turns the command into one HTTPS request, highlighted: GET /api/v1/namespaces/k8s-from-zero/pods with a limit of 500. The kube-apiserver checks who you are and whether you may do it, reads the objects from etcd, and returns JSON. kubectl then prints the JSON as a table, or as YAML, JSON, JSONPath or custom columns when you ask with -o.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">kubectl get pods is one HTTPS request</text>
+<rect class="box" x="24" y="56" width="220" height="190" rx="10"/>
+<text class="t" x="40" y="82" text-anchor="start">1. kubectl reads</text>
+<text class="tm" x="40" y="104" text-anchor="start">~/.kube/config</text>
+<text class="tm" x="40" y="128" text-anchor="start">current-context</text>
+<text class="ts" x="56" y="148" text-anchor="start">cluster: server URL</text>
+<text class="ts" x="56" y="166" text-anchor="start">user: credentials</text>
+<text class="ts" x="56" y="184" text-anchor="start">namespace (optional)</text>
+<text class="ts" x="40" y="216" text-anchor="start">$KUBECONFIG overrides the path</text>
+<text class="ts" x="40" y="236" text-anchor="start">-n / --namespace overrides ns</text>
+<line class="ln" x1="244" y1="150" x2="282" y2="150" marker-end="url(#ah)"/>
+<rect class="boxc" x="284" y="56" width="300" height="190" rx="10"/>
+<text class="tc" x="300" y="82" text-anchor="start">2. one HTTPS request</text>
+<text class="tm" x="300" y="112" text-anchor="start">GET</text>
+<text class="tm" x="300" y="134" text-anchor="start">/api/v1/namespaces/</text>
+<text class="tm" x="300" y="154" text-anchor="start">  k8s-from-zero/pods?limit=500</text>
+<text class="ts" x="300" y="186" text-anchor="start">see it with kubectl get pods -v=6</text>
+<text class="ts" x="300" y="206" text-anchor="start">or call it yourself with</text>
+<text class="tm" x="300" y="226" text-anchor="start">kubectl get --raw /api/v1/...</text>
+<line class="ln" x1="584" y1="150" x2="622" y2="150" marker-end="url(#ah)"/>
+<rect class="boxb" x="624" y="56" width="152" height="190" rx="10"/>
+<text class="t" x="640" y="82" text-anchor="start">3. kube-apiserver</text>
+<text class="ts" x="640" y="110" text-anchor="start">who are you?</text>
+<text class="ts" x="640" y="132" text-anchor="start">are you allowed?</text>
+<text class="ts" x="640" y="154" text-anchor="start">is the object valid?</text>
+<text class="ts" x="640" y="176" text-anchor="start">read or write</text>
+<line class="ln" x1="700" y1="246" x2="700" y2="288" marker-end="url(#ah)"/>
+<rect class="boxn" x="624" y="290" width="152" height="70" rx="10"/>
+<text class="tm" x="640" y="318" text-anchor="start">etcd</text>
+<text class="ts" x="640" y="340" text-anchor="start">stored objects</text>
+<path class="ln" d="M624 325 L520 325" marker-end="url(#ah)"/>
+<text class="ts" x="420" y="318" text-anchor="middle">JSON back</text>
+<rect class="boxs" x="24" y="280" width="320" height="170" rx="10"/>
+<text class="t" x="40" y="306" text-anchor="start">4. kubectl prints it</text>
+<text class="tm" x="40" y="332" text-anchor="start">(default)</text>
+<text class="ts" x="200" y="332" text-anchor="start">table</text>
+<text class="tm" x="40" y="352" text-anchor="start">-o wide</text>
+<text class="ts" x="200" y="352" text-anchor="start">table plus IP and node</text>
+<text class="tm" x="40" y="372" text-anchor="start">-o yaml / -o json</text>
+<text class="ts" x="200" y="372" text-anchor="start">the full object</text>
+<text class="tm" x="40" y="392" text-anchor="start">-o jsonpath=...</text>
+<text class="ts" x="200" y="392" text-anchor="start">pick fields</text>
+<text class="tm" x="40" y="412" text-anchor="start">-o custom-columns=...</text>
+<text class="ts" x="200" y="412" text-anchor="start">your own table</text>
+<text class="tm" x="40" y="432" text-anchor="start">-o name</text>
+<text class="ts" x="200" y="432" text-anchor="start">pod/web, for scripts</text>
+<path class="ln" d="M420 330 L420 365 L346 365" marker-end="url(#ah)"/>
+</svg>

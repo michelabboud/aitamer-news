@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-labelledby="t d">
+<title id="t">HPA, VPA and KEDA compared</title>
+<desc id="d">A comparison table. The HorizontalPodAutoscaler is built into Kubernetes, changes the number of replicas, reads CPU, memory, custom or external metrics, and never goes below minReplicas, at least 1 by default. The VerticalPodAutoscaler is an add-on from the Kubernetes autoscaler project, changes the CPU and memory requests of each Pod, either only recommending, at creation, by recreating Pods, or in place, and needs metrics-server. KEDA, highlighted, is a CNCF graduated add-on that scales on events such as queue length, feeds those metrics to an HPA it manages, and can scale a workload to zero and back. A footer warns not to let an HPA and a VPA both act on CPU or memory for the same workload.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="450" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Three autoscalers, three different knobs</text>
+<rect class="panel" x="24" y="56" width="170" height="34" rx="6"/>
+<text class="t" x="34" y="78" text-anchor="start"></text>
+<rect class="boxb" x="200" y="56" width="194" height="34" rx="6"/>
+<text class="th" x="210" y="78" text-anchor="start">HPA</text>
+<rect class="boxs" x="400" y="56" width="182" height="34" rx="6"/>
+<text class="th" x="410" y="78" text-anchor="start">VPA</text>
+<rect class="boxc" x="588" y="56" width="182" height="34" rx="6"/>
+<text class="th" x="598" y="78" text-anchor="start">KEDA</text>
+<rect class="box" x="24" y="100" width="752" height="30" rx="4"/>
+<text class="t" x="34" y="120" text-anchor="start">Ships with</text>
+<text class="ts" x="210" y="120" text-anchor="start">Kubernetes (built in)</text>
+<text class="ts" x="410" y="120" text-anchor="start">add-on, autoscaler project</text>
+<text class="ts" x="598" y="120" text-anchor="start">add-on, CNCF graduated</text>
+<rect class="box" x="24" y="134" width="752" height="30" rx="4"/>
+<text class="t" x="34" y="154" text-anchor="start">Changes</text>
+<text class="ts" x="210" y="154" text-anchor="start">number of replicas</text>
+<text class="ts" x="410" y="154" text-anchor="start">requests per Pod</text>
+<text class="ts" x="598" y="154" text-anchor="start">replicas, via an HPA</text>
+<rect class="box" x="24" y="168" width="752" height="30" rx="4"/>
+<text class="t" x="34" y="188" text-anchor="start">Reads</text>
+<text class="ts" x="210" y="188" text-anchor="start">CPU, memory, custom</text>
+<text class="ts" x="410" y="188" text-anchor="start">usage history from</text>
+<text class="ts" x="598" y="188" text-anchor="start">events: queues, streams,</text>
+<rect class="box" x="24" y="202" width="752" height="30" rx="4"/>
+<text class="t" x="34" y="222" text-anchor="start"></text>
+<text class="ts" x="210" y="222" text-anchor="start">or external metrics</text>
+<text class="ts" x="410" y="222" text-anchor="start">metrics-server</text>
+<text class="ts" x="598" y="222" text-anchor="start">databases, cron</text>
+<rect class="box" x="24" y="236" width="752" height="30" rx="4"/>
+<text class="t" x="34" y="256" text-anchor="start">Range</text>
+<text class="ts" x="210" y="256" text-anchor="start">minReplicas..max</text>
+<text class="ts" x="410" y="256" text-anchor="start">min/max per container</text>
+<text class="ts" x="598" y="256" text-anchor="start">0..max (scale to zero)</text>
+<rect class="box" x="24" y="270" width="752" height="30" rx="4"/>
+<text class="t" x="34" y="290" text-anchor="start">Applies by</text>
+<text class="ts" x="210" y="290" text-anchor="start">scale subresource</text>
+<text class="ts" x="410" y="290" text-anchor="start">Off, Initial, Recreate,</text>
+<text class="ts" x="598" y="290" text-anchor="start">its operator for 0 and 1,</text>
+<rect class="box" x="24" y="304" width="752" height="30" rx="4"/>
+<text class="t" x="34" y="324" text-anchor="start"></text>
+<text class="ts" x="210" y="324" text-anchor="start"></text>
+<text class="ts" x="410" y="324" text-anchor="start">InPlaceOrRecreate</text>
+<text class="ts" x="598" y="324" text-anchor="start">the HPA above 1</text>
+<rect class="box" x="24" y="338" width="752" height="30" rx="4"/>
+<text class="t" x="34" y="358" text-anchor="start">Tested here</text>
+<text class="ts" x="210" y="358" text-anchor="start">yes, on kind</text>
+<text class="ts" x="410" y="358" text-anchor="start">recommender only</text>
+<text class="ts" x="598" y="358" text-anchor="start">no (docs only)</text>
+<text class="tc" x="24" y="388" text-anchor="start">Do not let an HPA and a VPA both act on CPU or memory for the same workload: each would fight the other.</text>
+<text class="ts" x="24" y="410" text-anchor="start">The usual pairing: HPA on CPU for replicas, VPA in Off mode for request recommendations.</text>
+<text class="ts" x="24" y="430" text-anchor="start">In-place Pod resize (stable since Kubernetes v1.35) is what VPA&#x27;s InPlaceOrRecreate mode uses.</text>
+</svg>

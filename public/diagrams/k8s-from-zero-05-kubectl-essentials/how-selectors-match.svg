@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">How a label selector matches Pods</title>
+<desc id="d">Four Pods sit in the k8s-from-zero namespace with different labels. The selector tier=frontend,environment=prod requires both labels, because a comma means AND. Only shop-web-prod has both, so it is the one highlighted match. shop-web-dev fails on environment, shop-api-prod fails on tier, and scratch has neither label. Below, a set-based selector environment in (dev,prod) matches the three shop Pods, and !environment matches only scratch.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">A selector is a filter on labels</text>
+<rect class="boxb" x="24" y="52" width="752" height="56" rx="10"/>
+<text class="tm" x="40" y="76" text-anchor="start">kubectl get pods -l</text>
+<text class="tm" x="190" y="76" text-anchor="start">tier=frontend,environment=prod</text>
+<text class="ts" x="40" y="96" text-anchor="start">the comma means AND: a Pod must carry every label in the selector</text>
+<rect class="box" x="24" y="140" width="176" height="140" rx="10"/>
+<text class="ts" x="38" y="166" text-anchor="start">Pod</text>
+<text class="tm" x="70" y="166" text-anchor="start">shop-web-dev</text>
+<rect class="boxs" x="36" y="178" width="152" height="26" rx="6"/>
+<text class="tm" x="44" y="196" text-anchor="start">tier=frontend</text>
+<rect class="boxs" x="36" y="210" width="152" height="26" rx="6"/>
+<text class="tm" x="44" y="228" text-anchor="start">environment=dev</text>
+<text class="ts" x="38" y="264" text-anchor="start">no: environment</text>
+<line class="lnf" x1="112" y1="110" x2="112" y2="138"/>
+<rect class="boxc" x="214" y="140" width="176" height="140" rx="10"/>
+<text class="ts" x="228" y="166" text-anchor="start">Pod</text>
+<text class="tm" x="260" y="166" text-anchor="start">shop-web-prod</text>
+<rect class="boxs" x="226" y="178" width="152" height="26" rx="6"/>
+<text class="tm" x="234" y="196" text-anchor="start">tier=frontend</text>
+<rect class="boxs" x="226" y="210" width="152" height="26" rx="6"/>
+<text class="tm" x="234" y="228" text-anchor="start">environment=prod</text>
+<text class="tc" x="228" y="264" text-anchor="start">match</text>
+<line class="lnc" x1="302" y1="110" x2="302" y2="138" marker-end="url(#ahc)"/>
+<rect class="box" x="404" y="140" width="176" height="140" rx="10"/>
+<text class="ts" x="418" y="166" text-anchor="start">Pod</text>
+<text class="tm" x="450" y="166" text-anchor="start">shop-api-prod</text>
+<rect class="boxs" x="416" y="178" width="152" height="26" rx="6"/>
+<text class="tm" x="424" y="196" text-anchor="start">tier=backend</text>
+<rect class="boxs" x="416" y="210" width="152" height="26" rx="6"/>
+<text class="tm" x="424" y="228" text-anchor="start">environment=prod</text>
+<text class="ts" x="418" y="264" text-anchor="start">no: tier</text>
+<line class="lnf" x1="492" y1="110" x2="492" y2="138"/>
+<rect class="box" x="594" y="140" width="176" height="140" rx="10"/>
+<text class="ts" x="608" y="166" text-anchor="start">Pod</text>
+<text class="tm" x="640" y="166" text-anchor="start">scratch</text>
+<rect class="boxs" x="606" y="178" width="152" height="26" rx="6"/>
+<text class="tm" x="614" y="196" text-anchor="start">(no tier)</text>
+<rect class="boxs" x="606" y="210" width="152" height="26" rx="6"/>
+<text class="tm" x="614" y="228" text-anchor="start">(no environment)</text>
+<text class="ts" x="608" y="264" text-anchor="start">no: neither</text>
+<line class="lnf" x1="682" y1="110" x2="682" y2="138"/>
+<rect class="panel" x="24" y="304" width="752" height="150" rx="10"/>
+<text class="t" x="40" y="330" text-anchor="start">Other selector forms we ran</text>
+<text class="tm" x="40" y="360" text-anchor="start">-l tier!=frontend</text>
+<text class="ts" x="320" y="360" text-anchor="start">shop-api-prod, scratch (no tier counts as not equal)</text>
+<text class="tm" x="40" y="384" text-anchor="start">-l 'environment in (dev,prod)'</text>
+<text class="ts" x="320" y="384" text-anchor="start">the three shop Pods</text>
+<text class="tm" x="40" y="408" text-anchor="start">-l '!environment'</text>
+<text class="ts" x="320" y="408" text-anchor="start">scratch only: the label is missing</text>
+<text class="tm" x="40" y="432" text-anchor="start">-l tier=Frontend</text>
+<text class="ts" x="320" y="432" text-anchor="start">nothing: values are case-sensitive</text>
+</svg>

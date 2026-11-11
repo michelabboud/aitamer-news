@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">Filter removes nodes that cannot run the Pod; Score ranks the rest</title>
+<desc id="d">Top: the Pod too-big requests 9 CPU. The control plane fails the TaintToleration filter because of its node-role.kubernetes.io/control-plane taint. Both workers fail NodeResourcesFit because each has 8 CPU allocatable. Result: 0/3 nodes available, and preemption is not helpful. Bottom: the bin-packing profile uses NodeResourcesFit with the MostAllocated strategy. k8s-ep28-worker already had 1600m of CPU requests and k8s-ep28-worker2 had 600m, so worker scores higher, highlighted, and all four packed Pods of 500m landed there, bringing it to 3600m. The default profile uses LeastAllocated, which prefers the emptier node.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Pod too-big, requests cpu 9: Filter</text>
+<rect class="boxd" x="24" y="50" width="240" height="96" rx="10"/>
+<text class="tm" x="38" y="74" text-anchor="start">k8s-ep28-control-plane</text>
+<text class="ts" x="38" y="100" text-anchor="start">fails TaintToleration</text>
+<text class="ts" x="38" y="122" text-anchor="start">untolerated taint</text>
+<rect class="boxd" x="280" y="50" width="240" height="96" rx="10"/>
+<text class="tm" x="294" y="74" text-anchor="start">k8s-ep28-worker</text>
+<text class="ts" x="294" y="100" text-anchor="start">fails NodeResourcesFit</text>
+<text class="ts" x="294" y="122" text-anchor="start">Insufficient cpu (8)</text>
+<rect class="boxd" x="536" y="50" width="240" height="96" rx="10"/>
+<text class="tm" x="550" y="74" text-anchor="start">k8s-ep28-worker2</text>
+<text class="ts" x="550" y="100" text-anchor="start">fails NodeResourcesFit</text>
+<text class="ts" x="550" y="122" text-anchor="start">Insufficient cpu (8)</text>
+<rect class="boxn" x="24" y="158" width="752" height="36" rx="8"/>
+<text class="tm" x="38" y="181" text-anchor="start">0/3 nodes are available ... preemption: 3 Preemption is not helpful</text>
+<line class="lnf" x1="24" y1="214" x2="776" y2="214"/>
+<text class="th" x="24" y="246" text-anchor="start">Profile bin-packing: Score with MostAllocated</text>
+<rect class="boxc" x="24" y="264" width="360" height="118" rx="10"/>
+<text class="tm" x="38" y="290" text-anchor="start">k8s-ep28-worker</text>
+<text class="ts" x="38" y="314" text-anchor="start">before: 1600m requested</text>
+<text class="ts" x="38" y="336" text-anchor="start">fuller, scores higher</text>
+<text class="tm" x="38" y="360" text-anchor="start">gets all 4 packed Pods: 3600m</text>
+<rect class="box" x="416" y="264" width="360" height="118" rx="10"/>
+<text class="tm" x="430" y="290" text-anchor="start">k8s-ep28-worker2</text>
+<text class="ts" x="430" y="314" text-anchor="start">before: 600m requested</text>
+<text class="ts" x="430" y="336" text-anchor="start">emptier, scores lower</text>
+<text class="tm" x="430" y="360" text-anchor="start">gets none</text>
+<rect class="panel" x="24" y="398" width="752" height="52" rx="10"/>
+<text class="ts" x="38" y="420" text-anchor="start">default-scheduler uses LeastAllocated: emptier nodes win,</text>
+<text class="ts" x="38" y="440" text-anchor="start">so the same Pods would lean toward k8s-ep28-worker2.</text>
+</svg>

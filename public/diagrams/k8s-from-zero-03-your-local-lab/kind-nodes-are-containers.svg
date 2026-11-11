@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">kind nodes are containers</title>
+<desc id="d">Your computer runs Docker. kind asks Docker to start one container per Kubernetes node: lab-control-plane, lab-worker and lab-worker2, all from the kindest/node image. Inside each node container, systemd runs the kubelet and containerd, and containerd runs that node&#x27;s pods as nested containers. The control-plane container also runs the API server, and Docker publishes its port 6443 on a random port of 127.0.0.1 on your computer, which is where kubectl connects. That published port is highlighted.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">kind: each Kubernetes node is a container on your computer</text>
+<rect class="panel" x="24" y="50" width="752" height="400" rx="10"/>
+<text class="th" x="40" y="76" text-anchor="start">Your computer (Linux, macOS or Windows)</text>
+<rect class="box" x="40" y="92" width="170" height="52" rx="10"/>
+<text class="tm" x="125.0" y="114.5" text-anchor="middle">kubectl</text>
+<text class="tm" x="125.0" y="131.5" text-anchor="middle">~/.kube/config</text>
+<rect class="boxc" x="40" y="170" width="170" height="60" rx="10"/>
+<text class="tm" x="125.0" y="196.5" text-anchor="middle">127.0.0.1:46163</text>
+<text class="tm" x="125.0" y="213.5" text-anchor="middle">to node port 6443</text>
+<line class="lnc" x1="125" y1="144" x2="125" y2="168" marker-end="url(#ahc)"/>
+<rect class="boxd" x="236" y="92" width="524" height="338" rx="10"/>
+<text class="t" x="252" y="116" text-anchor="start">Docker (or Podman, nerdctl)</text>
+<rect class="box" x="252" y="130" width="156" height="286" rx="10"/>
+<text class="tm" x="330" y="152" text-anchor="middle">lab-control-plane</text>
+<text class="ts" x="330" y="170" text-anchor="middle">kindest/node:v1.37.0</text>
+<rect class="boxs" x="262" y="184" width="136" height="32" rx="10"/>
+<text class="tm" x="330.0" y="205.0" text-anchor="middle">kubelet</text>
+<rect class="box" x="262" y="224" width="136" height="32" rx="10"/>
+<text class="tm" x="330.0" y="245.0" text-anchor="middle">containerd</text>
+<rect class="boxb" x="262" y="266" width="136" height="70" rx="10"/>
+<text class="ts" x="330.0" y="289.0" text-anchor="middle">kube-apiserver</text>
+<text class="ts" x="330.0" y="306.0" text-anchor="middle">etcd, scheduler,</text>
+<text class="ts" x="330.0" y="323.0" text-anchor="middle">controller-manager</text>
+<rect class="boxs" x="262" y="346" width="136" height="56" rx="10"/>
+<text class="ts" x="330.0" y="370.5" text-anchor="middle">kindnet,</text>
+<text class="ts" x="330.0" y="387.5" text-anchor="middle">kube-proxy</text>
+<rect class="box" x="420" y="130" width="156" height="286" rx="10"/>
+<text class="tm" x="498" y="152" text-anchor="middle">lab-worker</text>
+<text class="ts" x="498" y="170" text-anchor="middle">kindest/node:v1.37.0</text>
+<rect class="boxs" x="430" y="184" width="136" height="32" rx="10"/>
+<text class="tm" x="498.0" y="205.0" text-anchor="middle">kubelet</text>
+<rect class="box" x="430" y="224" width="136" height="32" rx="10"/>
+<text class="tm" x="498.0" y="245.0" text-anchor="middle">containerd</text>
+<rect class="boxs" x="430" y="266" width="136" height="70" rx="10"/>
+<text class="ts" x="498.0" y="306.0" text-anchor="middle">your pods</text>
+<rect class="boxs" x="430" y="346" width="136" height="56" rx="10"/>
+<text class="ts" x="498.0" y="370.5" text-anchor="middle">kindnet,</text>
+<text class="ts" x="498.0" y="387.5" text-anchor="middle">kube-proxy</text>
+<rect class="box" x="588" y="130" width="156" height="286" rx="10"/>
+<text class="tm" x="666" y="152" text-anchor="middle">lab-worker2</text>
+<text class="ts" x="666" y="170" text-anchor="middle">kindest/node:v1.37.0</text>
+<rect class="boxs" x="598" y="184" width="136" height="32" rx="10"/>
+<text class="tm" x="666.0" y="205.0" text-anchor="middle">kubelet</text>
+<rect class="box" x="598" y="224" width="136" height="32" rx="10"/>
+<text class="tm" x="666.0" y="245.0" text-anchor="middle">containerd</text>
+<rect class="boxs" x="598" y="266" width="136" height="70" rx="10"/>
+<text class="ts" x="666.0" y="306.0" text-anchor="middle">your pods</text>
+<rect class="boxs" x="598" y="346" width="136" height="56" rx="10"/>
+<text class="ts" x="666.0" y="370.5" text-anchor="middle">kindnet,</text>
+<text class="ts" x="666.0" y="387.5" text-anchor="middle">kube-proxy</text>
+<line class="lnc" x1="210" y1="200" x2="250" y2="200" marker-end="url(#ahc)"/>
+<text class="ts" x="400" y="446" text-anchor="middle">Nested containers: pods run inside the node containers, not directly on your Docker.</text>
+</svg>
