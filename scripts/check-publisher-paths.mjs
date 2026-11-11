@@ -963,8 +963,14 @@ function collect(cwd, from, to, { copies = false } = {}) {
 export function collectPullRequest({ cwd, base, head, copies = false }) {
   const baseId = requireCommit(cwd, objectId('--base', base));
   const headId = requireCommit(cwd, objectId('--head', head));
-  const mergeBase = git(cwd, ['merge-base', baseId, headId]).trim();
-  if (!OBJECT_ID.test(mergeBase)) throw new UnjudgeableError(`the base and head have no merge base (${JSON.stringify(mergeBase)})`);
+  // Every merge base, not one: with a criss-cross history (a head that merges two parents main
+  // also merged) git would pick one base, and a head tailored to that base could show only lane
+  // files here while reverting the other parent's work in what main actually receives. No honest
+  // lane branch has that shape, so more than one base fails closed (ADR 0054).
+  const mergeBases = git(cwd, ['merge-base', '--all', baseId, headId]).split('\n').map((line) => line.trim()).filter(Boolean);
+  if (mergeBases.length > 1) throw new UnjudgeableError(`the base and head have ${mergeBases.length} merge bases (a criss-cross history); rebuild the branch from main`);
+  const [mergeBase] = mergeBases;
+  if (!OBJECT_ID.test(mergeBase ?? '')) throw new UnjudgeableError(`the base and head have no merge base (${JSON.stringify(mergeBase ?? '')})`);
   return { ...collect(cwd, mergeBase, headId, { copies }), mergeBase, head: headId, base: baseId };
 }
 

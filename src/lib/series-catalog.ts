@@ -31,10 +31,12 @@ export const SERIES_HERO_ALT_MAX_LENGTH = 200;
 export const SERIES_HERO = /^https:\/\/bots\.aitamer\.news\/heroes\/series-([a-z0-9]+(?:-[a-z0-9]+)*)-[0-9a-f]{8}\.jpg$/;
 
 /**
- * Plain text only: no control characters (line breaks included), no angle brackets. Astro escapes
- * text anyway; this keeps a title from ever looking like markup in a feed, a log or a review.
+ * Plain text only: no control characters (line breaks included), no angle brackets, and no
+ * invisible formatting characters (zero-width, direction marks and overrides, the byte-order mark),
+ * which could make a title render reversed or differ from what a reviewer sees in the diff. Astro
+ * escapes text anyway; this keeps a title from ever looking like markup or hiding text.
  */
-const NOT_PLAIN = /[\u0000-\u001f\u007f-\u009f<>]/;
+const NOT_PLAIN = /[\u0000-\u001f\u007f-\u009f<>\u00ad\u061c\u180e\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff\ufff9-\ufffb]/;
 
 export class SeriesCatalogError extends Error {
   constructor(message: string) {
@@ -47,7 +49,7 @@ function plainText(value: unknown, where: string, field: string, max: number): s
   if (typeof value !== 'string') throw new SeriesCatalogError(`${where}: ${field} must be a string`);
   if (value.trim() === '') throw new SeriesCatalogError(`${where}: ${field} is empty`);
   if (value !== value.trim()) throw new SeriesCatalogError(`${where}: ${field} has leading or trailing spaces`);
-  if (NOT_PLAIN.test(value)) throw new SeriesCatalogError(`${where}: ${field} must be plain text (no line breaks, control characters, < or >)`);
+  if (NOT_PLAIN.test(value)) throw new SeriesCatalogError(`${where}: ${field} must be plain text (no line breaks, control or invisible formatting characters, < or >)`);
   if ([...value].length > max) throw new SeriesCatalogError(`${where}: ${field} is longer than ${max} characters`);
   return value;
 }

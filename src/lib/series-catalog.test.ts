@@ -37,6 +37,7 @@ test('a row without a hero, and one with a hero named for its own series, are ac
   assert.deepEqual(parseSeriesCatalog([]), []);
   assert.equal(parseSeriesCatalog([row({ title: 't'.repeat(SERIES_TITLE_MAX_LENGTH) })]).length, 1);
   assert.equal(parseSeriesCatalog([row({ description: 'é'.repeat(SERIES_DESCRIPTION_MAX_LENGTH) })]).length, 1, 'characters, not bytes');
+  assert.equal(parseSeriesCatalog([row({ title: 'Vectors, Plainly — “quotes” & accents: café, 日本語' })]).length, 1, 'ordinary punctuation and scripts pass');
 });
 
 test('the file must be an array of objects with known keys only', () => {
@@ -65,7 +66,7 @@ test('title, description and hero alt are trimmed plain text within their length
     refuses([row({ [field]: 42 })], new RegExp(`${field} must be a string`));
     refuses([row({ [field]: '   ' })], new RegExp(`${field} is empty`));
     refuses([row({ [field]: ' padded' })], new RegExp(`${field} has leading or trailing spaces`));
-    for (const bad of ['two\nlines', 'tab\there', 'nul\u0000', 'bell\u0007', 'c1\u0085', '<b>bold</b>', 'a > b']) {
+    for (const bad of ['two\nlines', 'tab\there', 'nul\u0000', 'bell\u0007', 'c1\u0085', '<b>bold</b>', 'a > b', 'rev\u202eersed', 'zero\u200bwidth', 'rtl\u200fmark', 'iso\u2066late', 'bom\ufeffmid', 'line\u2028sep', 'soft\u00adhyphen']) {
       refuses([row({ [field]: bad })], new RegExp(`${field} must be plain text`));
     }
   }

@@ -165,3 +165,15 @@ test('the series lane: the check gets CURSOR_ACTOR_ID, nothing is installed for 
   const checked = runCheck({ CURSOR_ACTOR_ID: '206951365' });
   assert.deepEqual(checked.calls, ['node scripts/check-publisher-paths.mjs pr --base base --head head']);
 });
+
+test('series/ and cursor/ are not observation prefixes in any workflow that names required checks (ADR 0054)', () => {
+  // An observation name turns a required check into a non-blocking one. `check` is the only gate
+  // that validates series.json, and `publisher-paths` the only gate on what a series PR changes.
+  for (const file of ['check-publisher-pr.yml', 'check-posts.yml', 'check-specimen-pr.yml']) {
+    const text = readFileSync(new URL(`../.github/workflows/${file}`, import.meta.url), 'utf8');
+    assert.match(text, /'grok\//, `${file} still observes grok/ (the test reads the right file)`);
+    assert.doesNotMatch(text, /'series|'cursor/, file);
+  }
+  const approval = readFileSync(new URL('./image-approval.mjs', import.meta.url), 'utf8');
+  assert.doesNotMatch(approval, /'series|'cursor/);
+});

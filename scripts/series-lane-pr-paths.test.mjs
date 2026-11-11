@@ -193,7 +193,7 @@ test('CLI: the series lane refuses adding, deleting, renaming or copying the cat
     ['add', false, addKubernetes, /"src\/data\/series\.json": added; the series lane only modifies src\/data\/series\.json/],
     ['delete', true, (repo) => rmSync(join(repo.dir, SERIES_PATH)), /"src\/data\/series\.json": deleted; the series lane only modifies/],
     ['rename out', true, (repo) => repo.git(['mv', SERIES_PATH, 'src/data/series-old.json']), /"src\/data\/series-old\.json": outside the series lane[^]*renamed from "src\/data\/series\.json"/],
-    ['symlink replacing the file', true, (repo) => { rmSync(join(repo.dir, SERIES_PATH)); symlinkSync('series.ts', join(repo.dir, SERIES_PATH)); }, /"src\/data\/series\.json"/],
+    ['symlink replacing the file', true, (repo) => { rmSync(join(repo.dir, SERIES_PATH)); symlinkSync('series.ts', join(repo.dir, SERIES_PATH)); }, /"src\/data\/series\.json": (changed with status "T"; the series lane only modifies[^]*)?mode "120000" \(a symbolic link\) is refused/],
     ['executable', true, (repo) => { addKubernetes(repo); chmodSync(join(repo.dir, SERIES_PATH), 0o755); }, /"src\/data\/series\.json": mode "100755" \(an executable\) is refused/],
   ]) {
     const repo = repository({ withCatalog });
@@ -202,6 +202,13 @@ test('CLI: the series lane refuses adding, deleting, renaming or copying the cat
     assert.equal(result.code, 1, `${label}: ${result.output}`);
     assert.match(result.output, /this pull request changes what the Cursor App may not/, label);
     assert.match(result.output, expected, `${label}: ${result.output}`);
+  }
+});
+
+test('seriesLaneProblems refuses a symlink or submodule mode even on an ordinary modify', () => {
+  for (const [mode, kind] of [['120000', 'a symbolic link'], ['160000', 'a submodule'], ['100755', 'an executable']]) {
+    assert.deepEqual(seriesLaneProblems({ changes: [{ status: 'M', path: SERIES_PATH }], modes: new Map([[SERIES_PATH, mode]]) }),
+      [`"src/data/series.json": mode "${mode}" (${kind}) is refused; only a plain file (100644) may be added or changed`]);
   }
 });
 
@@ -250,4 +257,27 @@ test('the maintainer stays exempt; the series lane never applies to a push', asy
   const push = await quietlyAsync(() => main(['push', '--before', repo.base, '--after', maintainer.head], env(), repo.dir));
   assert.equal(push.result, 1, push.output);
   assert.match(push.output, /src\/data\/series\.json: outside the publisher's lanes/);
+});
+
+test('CLI: a head with two merge bases (criss-cross) cannot be judged, so it fails, even when its own diff is only the catalog', async () => {
+  // main: base -> P1, and a feature P2 merged into main as M. The bot's head merges P1 and P2
+  // itself (never M) and edits the catalog. Against either single merge base its diff can look
+  // like the catalog alone, while against M it would revert one side.
+  const repo = repository();
+  repo.git(['switch', '-q', '-c', 'feature', repo.base]);
+  repo.write('src/feature.ts', 'export const feature = 1;\n');
+  const p2 = repo.commit('feature');
+  repo.git(['switch', '-q', '-C', 'main-line', repo.base]);
+  repo.write('src/main-line.ts', 'export const line = 1;\n');
+  const p1 = repo.commit('main line');
+  repo.git(['merge', '-q', '--no-ff', '-m', 'merge feature', p2]);
+  const main_ = repo.git(['rev-parse', 'HEAD']).trim();
+  repo.git(['switch', '-q', '-C', 'series/k8s-from-zero', p1]);
+  repo.git(['merge', '-q', '--no-ff', '-s', 'ours', '-m', 'bot merge', p2]);
+  addKubernetes(repo);
+  const head = repo.commit('catalog');
+  assert.equal(repo.git(['merge-base', '--all', main_, head]).trim().split('\n').length, 2, 'the fixture really is criss-cross');
+  const { result, output } = await quietlyAsync(() => main(['pr', '--base', main_, '--head', head], env(), repo.dir));
+  assert.equal(result, 1, output);
+  assert.match(output, /cannot be judged, so it fails[^]*2 merge bases \(a criss-cross history\)/);
 });

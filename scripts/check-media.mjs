@@ -178,7 +178,7 @@ export function collect({ postsDir, localDir = null, now = new Date(), seriesCat
   for (const meta of seriesCatalog) {
     const hero = seriesHero(meta);
     if (!hero) continue;
-    const label = `series "${meta.slug}" (src/data/series.ts)`;
+    const label = `series "${meta.slug}" (src/data/series.json)`;
     if (!isOwnHeroUrl(`series-${meta.slug}`, hero.src)) {
       errors.push(`${label}: hero must be its own series-<slug> JPEG or WebP on an allowlisted media host`);
       continue;

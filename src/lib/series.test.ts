@@ -216,9 +216,16 @@ test('published posts use known series, unique orders, and the episode order the
   assert.deepEqual(seriesProblems(posts, SERIES), []);
   const placements = seriesPlacements(posts, SERIES, now);
   const views = seriesViews(placements);
-  assert.deepEqual(views.map((view) => view.slug), SERIES.map((meta) => meta.slug));
+  // The index lists catalog series in catalog order. A series may be in the catalog before any
+  // part is live (the row lands first, ADR 0054), so the views are the catalog minus those.
+  const catalogOrder = SERIES.map((meta) => meta.slug);
+  const viewed = views.map((view) => view.slug);
+  assert.deepEqual(viewed, catalogOrder.filter((slug) => viewed.includes(slug)));
+  for (const slug of Object.keys(EXPECTED)) assert.ok(viewed.includes(slug), `${slug} still has its live parts`);
   for (const view of views) {
-    assert.deepEqual(view.parts.map((part) => part.id), EXPECTED[view.slug]);
+    // Episodes already published keep their numbers; new ones may follow them. A series this
+    // list does not name yet is held to the generic rules below.
+    if (EXPECTED[view.slug]) assert.deepEqual(view.parts.slice(0, EXPECTED[view.slug].length).map((part) => part.id), EXPECTED[view.slug]);
     view.parts.forEach((part, i) => {
       const place = placements.get(part.id)!;
       assert.equal(part.order, i + 1);
@@ -230,7 +237,9 @@ test('published posts use known series, unique orders, and the episode order the
   const member = new Set(Object.values(EXPECTED).flat());
   for (const post of posts) {
     if (member.has(post.id)) assert.equal(post.seriesOrder, EXPECTED[String(post.series)].indexOf(post.id) + 1, post.id);
-    else assert.equal(post.series, undefined, post.id);
+    else if (post.series !== undefined && EXPECTED[String(post.series)]) {
+      assert.ok(Number(post.seriesOrder) > EXPECTED[String(post.series)].length, `${post.id} takes a published episode's number`);
+    } else if (post.series !== undefined) assert.ok(catalogOrder.includes(String(post.series)), post.id);
   }
 });
 
