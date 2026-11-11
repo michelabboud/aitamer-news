@@ -8,6 +8,7 @@ import imageModels from '../assets/series-icons/ai-image-models.svg?raw';
 import movieModels from '../assets/series-icons/ai-movie-models.svg?raw';
 import voiceModels from '../assets/series-icons/ai-voice-models.svg?raw';
 import vectors from '../assets/series-icons/vectors-plainly.svg?raw';
+import k8sFromZero from '../assets/series-icons/k8s-from-zero.svg?raw';
 
 interface Props {
   slug: string;
@@ -19,6 +20,7 @@ const ICONS: Record<string, string> = {
   'ai-movie-models': movieModels,
   'ai-voice-models': voiceModels,
   'vectors-plainly': vectors,
+  'k8s-from-zero': k8sFromZero,
 };
 
 const svg = ICONS[Astro.props.slug];

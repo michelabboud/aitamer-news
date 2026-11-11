@@ -51,6 +51,11 @@ export const SERIES: readonly SeriesMeta[] = [
     heroImage: 'https://bots.aitamer.news/heroes/series-vectors-plainly-2fcbf32f.jpg',
     heroAlt: 'Slate-blue paper dots with a coral point linked to its two nearest neighbors',
   },
+  {
+    slug: 'k8s-from-zero',
+    title: 'Kubernetes from Zero',
+    description: 'A numbered path from your first container to running production Kubernetes, with labs, diagrams and cheat sheets.',
+  },
 ];
 
 export function seriesMeta(slug: string): SeriesMeta | undefined {

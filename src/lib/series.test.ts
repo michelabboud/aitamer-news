@@ -216,7 +216,8 @@ test('published posts use known series, unique orders, and the episode order the
   assert.deepEqual(seriesProblems(posts, SERIES), []);
   const placements = seriesPlacements(posts, SERIES, now);
   const views = seriesViews(placements);
-  assert.deepEqual(views.map((view) => view.slug), SERIES.map((meta) => meta.slug));
+  // A catalog row with no live part yet stays off the index. seriesViews already omits it.
+  assert.deepEqual(views.map((view) => view.slug), SERIES.map((meta) => meta.slug).filter((slug) => slug in EXPECTED));
   for (const view of views) {
     assert.deepEqual(view.parts.map((part) => part.id), EXPECTED[view.slug]);
     view.parts.forEach((part, i) => {
@@ -253,6 +254,10 @@ test('a series hero is omitted until it is an https URL, and a missing alt uses 
   });
   assert.equal(untitled?.alt, 'Grok Bot tutorial');
   for (const series of SERIES) {
+    if (!series.heroImage && !series.heroAlt) {
+      assert.equal(seriesHero(series), null, series.slug);
+      continue;
+    }
     assert.match(String(series.heroImage), /^https:\/\/bots\.aitamer\.news\/heroes\/series-[a-z0-9-]+-[0-9a-f]{8}\.jpg$/, series.slug);
     assert.ok(series.heroAlt && series.heroAlt.trim(), series.slug);
     assert.deepEqual(seriesHero(series), { src: series.heroImage, alt: series.heroAlt }, series.slug);
