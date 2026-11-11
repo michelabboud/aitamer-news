@@ -1,5 +1,7 @@
 # Progress
 
+2026-11-11 — 0.2.141: series catalog moved to build-time JSON with a strict reader, and a series lane in the publisher path guard for the Grok and Cursor Apps (ADR 0054). Rulesets for `series/*` and the `CURSOR_ACTOR_ID` variable set on GitHub. Full site tests, posts check, build and CSP/link checks pass locally; PR open for Michel's merge.
+
 2026-11-03 — Michel requested small thumbnails beside series parts after reviewing the offline artifact. Candidate0.2.140 adds the existing post imagery to those rows and refreshes the same self-contained preview. 1668/1668 tests, build1650, content/CSP/link/diagram guards and both source reviews pass. The updated offline preview verifies all39 thumbnails and phone widths320/390 without overflow. No merge or upload.
 
 2026-11-03 — Combined corrections for submitted PR404/405/407: series cache dependencies, public paired-field schema, shared pin/series rendering and maintainer submission guidance. 1665/1665 tests, build1645, content/CSP/link/diagram guards and both independent successor reviews pass. The self-contained HTML preview is being finalized before merge. No main merge or permission changes.

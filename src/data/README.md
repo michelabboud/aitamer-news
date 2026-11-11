@@ -35,3 +35,26 @@ The desk's pinned posts for the homepage card (plan `docs/plans/2026-10-31-top-n
 - `until` is optional: a timestamp with an offset or `Z`, or a bare `YYYY-MM-DD`, which means the end of that day in Israel time (`Asia/Jerusalem`). A timestamp without an offset is rejected. `pinnedAt` follows the same timestamp rule.
 - Unknown keys, a duplicate slug and a bad value fail validation. A pin on an unpublished post is dropped with a warning at build time, never a failure.
 - The posts the card is showing also carry a Pinned label on the story page and on listing cards. The label is decided when the site is built. A pinned lead is not in the card, so it has no label.
+
+# Series (`series.json`)
+
+The series catalog (ADR 0054). Each row is a series a post can join with frontmatter `series` and `series_order`; the order of the rows is the order of `/series/`. The file is read when the site is built (by `series.ts`, through the strict reader `src/lib/series-catalog.ts`) and never shipped as a file.
+
+```json
+[
+  {
+    "slug": "k8s-from-zero",
+    "title": "Kubernetes from Zero",
+    "description": "Kubernetes from the first container to a production cluster, one idea per part.",
+    "heroImage": "https://bots.aitamer.news/heroes/series-k8s-from-zero-0123abcd.jpg",
+    "heroAlt": "What the hero shows, in one plain sentence"
+  }
+]
+```
+
+- `slug`: lowercase letters, digits and single hyphens; unique. Add the row before any post names it.
+- `title` (at most 80 characters) and `description` (at most 240): plain text, no line breaks, no `<` or `>`, no leading or trailing spaces.
+- `heroImage` and `heroAlt` are optional and go together. The image must be `https://bots.aitamer.news/heroes/series-<this slug>-<8 hex>.jpg`, uploaded with its WebP twin first (`npm run check:media` checks both). Leave both out until the picture is on the media host; the series pages then show no picture.
+- Any other key, a duplicate slug or a bad value fails the build and names the row. Removing a row that posts still use fails the build too.
+- A series without its own icon in `src/assets/series-icons/` shows the default icon.
+- Who may change it: the maintainer, and the Grok and Cursor Apps through the series lane. A pull request from `series/<name>` (Grok or Cursor) or `cursor/series-<name>` (Cursor) that changes only this file passes the `publisher-paths` check; changing anything else in the same pull request fails it.

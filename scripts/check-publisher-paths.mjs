@@ -20,6 +20,7 @@
  *     GROK_ACTOR_ID    the Grok App's numeric bot account id (repository variable)
  *     QUILL_ACTOR_ID   the Quill App's numeric bot account id (repository variable; unset closes the Quill lane)
  *     EIC_ACTOR_ID     the desk editor App's numeric bot account id (repository variable; unset closes the pins lane)
+ *     CURSOR_ACTOR_ID  the Cursor App's numeric bot account id (repository variable; unset closes the series lane to Cursor)
  *     PR_HEAD_REPO     github.event.pull_request.head.repo.full_name
  *     PR_BASE_REPO     github.repository (trusted repository hosting the check)
  *
@@ -114,6 +115,19 @@
  * ruleset lets only the desk editor App and admins write `eic/*` branches; that is defence in depth,
  * the numeric identity here is the rule. Unsetting `EIC_ACTOR_ID` closes the lane. A later lane for
  * desk posts (`eic/posts-*`) needs its own reviewed change and the trusted admission workflow.
+ *
+ * The series lane (ADR 0054), pull requests only: a pull request whose author AND this event's
+ * sender are the Grok App (`GROK_ACTOR_ID`) on a head branch `series/<suffix>`, or the Cursor App
+ * (numeric id, repository variable `CURSOR_ACTOR_ID`; unset, empty or not a number gives Cursor
+ * nothing) on `series/<suffix>` or `cursor/series-<suffix>`, on an `opened` or `synchronize`
+ * event, in this repository (the suffix as the pins lane's), is judged by this lane's rule INSTEAD
+ * of the publisher's, and gains nothing else: exactly one changed path, `src/data/series.json`,
+ * modified (no add, delete, rename or copy), a plain file. The catalog is data: the code that reads
+ * it (`src/data/series.ts`, `src/lib/series-catalog.ts`) checks every row, and the required check
+ * `check` builds the site with it. Grok's branch is `series/`, never `grok/`, because every `grok/`
+ * pull request is routed to the article admission workflow and never reaches this script. Live
+ * rulesets let only the Grok App, the Cursor App and admins write `series/*` (and only Cursor and
+ * admins `cursor/*`); that is defence in depth, the numeric identity here is the rule.
  */
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -396,25 +410,92 @@ export function pinsLaneScope({ action, authorId, senderId, headRef, eicActorId,
  * @param {{ changes: { status: string, path: string, from?: string }[], modes: Map<string, string> }} collected
  * @returns {string[]}
  */
-export function pinsLaneProblems({ changes, modes }) {
+export function pinsLaneProblems(collected) {
+  return singleFileLaneProblems(collected, { lane: 'pins', path: PINS_PATH, statuses: PINS_LANE_STATUSES, allowed: 'adds or modifies' });
+}
+
+/**
+ * The rule the pins and series lanes share: exactly one changed path, `path`, with a status in
+ * `statuses`, a plain file. Pure. `lane` and `allowed` only word the messages.
+ */
+function singleFileLaneProblems({ changes, modes }, { lane, path: lanePath, statuses, allowed }) {
   if (changes.length !== 1) {
     const listed = changes.map((change) => JSON.stringify(change.path)).join(', ') || 'none';
-    return [`the pins lane changes exactly one file, ${PINS_PATH}; this pull request changes ${changes.length} (${listed})`];
+    return [`the ${lane} lane changes exactly one file, ${lanePath}; this pull request changes ${changes.length} (${listed})`];
   }
   const [{ status, path, from }] = changes;
   // Shown quoted: the path came from the pull request, and may hold a line break.
   const shown = JSON.stringify(path);
   const problems = [];
-  if (path !== PINS_PATH) problems.push(`${shown}: outside the pins lane; only ${PINS_PATH} may change`);
-  if (!PINS_LANE_STATUSES.has(status)) {
-    const what = status === 'D' ? 'deleted' : status === 'R' ? `renamed from ${JSON.stringify(from)}` : status === 'C' ? `copied from ${JSON.stringify(from)}` : `changed with status ${JSON.stringify(status)}`;
-    problems.push(`${shown}: ${what}; the pins lane only adds or modifies ${PINS_PATH}`);
+  if (path !== lanePath) problems.push(`${shown}: outside the ${lane} lane; only ${lanePath} may change`);
+  if (!statuses.has(status)) {
+    const what = status === 'A' ? 'added' : status === 'D' ? 'deleted' : status === 'R' ? `renamed from ${JSON.stringify(from)}` : status === 'C' ? `copied from ${JSON.stringify(from)}` : `changed with status ${JSON.stringify(status)}`;
+    problems.push(`${shown}: ${what}; the ${lane} lane only ${allowed} ${lanePath}`);
   }
   if (status !== 'D' && modes.get(path) !== MODE_FILE) {
     const mode = modes.get(path);
     problems.push(`${shown}: mode ${JSON.stringify(mode)} (${MODE_NAMES[mode] ?? 'an unknown kind'}) is refused; only a plain file (${MODE_FILE}) may be added or changed`);
   }
   return problems;
+}
+
+// ---- the series lane: the Grok and Cursor Apps (ADR 0054) ----
+
+/** The one file the series lane may change: the series catalog the build reads. */
+export const SERIES_PATH = 'src/data/series.json';
+/** The series-lane branch either App may use; a live ruleset lets only Grok, Cursor and admins write `series/*`. */
+export const SERIES_BRANCH_PREFIX = 'series/';
+/** Cursor's own form, for its default `cursor/` branch naming; only Cursor and admins write `cursor/*`. */
+export const CURSOR_SERIES_BRANCH_PREFIX = 'cursor/series-';
+/** The catalog already exists on main: the lane only modifies it, never adds, deletes or moves it. */
+const SERIES_LANE_STATUSES = new Set(['M']);
+
+function hasLaneSuffix(ref, prefix) {
+  if (typeof ref !== 'string' || !ref.startsWith(prefix)) return false;
+  const suffix = ref.slice(prefix.length);
+  return suffix.length <= PINS_BRANCH_SUFFIX_MAX_LENGTH && PINS_BRANCH_SUFFIX.test(suffix);
+}
+
+/** `series/<suffix>`, the suffix as strict as the pins lane's; never a revision expression. */
+export function isSeriesBranch(ref) {
+  return hasLaneSuffix(ref, SERIES_BRANCH_PREFIX);
+}
+
+/** `cursor/series-<suffix>`, the same suffix rule. */
+export function isCursorSeriesBranch(ref) {
+  return hasLaneSuffix(ref, CURSOR_SERIES_BRANCH_PREFIX);
+}
+
+/**
+ * No login fallback: absent or malformed configuration never grants the series lane. Grok gets it
+ * on `series/<suffix>` only; Cursor on `series/<suffix>` or `cursor/series-<suffix>`.
+ * `seriesApp` is true when the pull request is one of those Apps' and plausibly meant for this
+ * lane (Cursor's, or Grok's on a `series/` branch), so a refusal can say why it was not admitted.
+ */
+export function seriesLaneScope({ action, authorId, senderId, headRef, grokActorId, cursorActorId, headRepo, baseRepo }) {
+  const event = { action, authorId, senderId, headRef, headRepo, baseRepo };
+  const grok = appLaneScope({ app: 'Grok', variable: 'GROK_ACTOR_ID', branchText: `${SERIES_BRANCH_PREFIX}<suffix>`, isBranch: isSeriesBranch },
+    { ...event, actorId: grokActorId });
+  if (grok.applies) return { applies: true, app: 'Grok', reason: grok.reason, seriesApp: true };
+  const cursor = appLaneScope({
+    app: 'Cursor', variable: 'CURSOR_ACTOR_ID', branchText: `${SERIES_BRANCH_PREFIX}<suffix> or ${CURSOR_SERIES_BRANCH_PREFIX}<suffix>`,
+    isBranch: (ref) => isSeriesBranch(ref) || isCursorSeriesBranch(ref),
+  }, { ...event, actorId: cursorActorId });
+  if (cursor.applies) return { applies: true, app: 'Cursor', reason: cursor.reason, seriesApp: true };
+  if (cursor.isApp) return { applies: false, app: 'Cursor', reason: cursor.reason, seriesApp: true };
+  const grokSeries = grok.isApp && typeof headRef === 'string' && headRef.startsWith(SERIES_BRANCH_PREFIX);
+  return { applies: false, app: grokSeries ? 'Grok' : null, reason: grokSeries ? grok.reason : cursor.reason, seriesApp: grokSeries };
+}
+
+/**
+ * Every problem with a pull request in the series lane: exactly one changed path,
+ * `src/data/series.json`, modified, a plain file. Pure. What the file says is the required check
+ * `check`'s: the build reads it with `parseSeriesCatalog`, which refuses any bad row.
+ * @param {{ changes: { status: string, path: string, from?: string }[], modes: Map<string, string> }} collected
+ * @returns {string[]}
+ */
+export function seriesLaneProblems(collected) {
+  return singleFileLaneProblems(collected, { lane: 'series', path: SERIES_PATH, statuses: SERIES_LANE_STATUSES, allowed: 'modifies' });
 }
 
 // ---- the posts App's authors lane (ADR 0018) ----
@@ -986,7 +1067,7 @@ export function collectPush({ cwd, before, after }) {
 }
 
 const USAGE = [
-  'usage: check-publisher-paths.mjs pr --base <sha> --head <sha>   (env: PR_ACTION, PR_AUTHOR_ID, EVENT_SENDER_ID, MAINTAINER_ID, PR_HEAD_REF, POSTS_ACTOR_ID, GROK_ACTOR_ID, QUILL_ACTOR_ID, EIC_ACTOR_ID, PR_HEAD_REPO, PR_BASE_REPO)',
+  'usage: check-publisher-paths.mjs pr --base <sha> --head <sha>   (env: PR_ACTION, PR_AUTHOR_ID, EVENT_SENDER_ID, MAINTAINER_ID, PR_HEAD_REF, POSTS_ACTOR_ID, GROK_ACTOR_ID, QUILL_ACTOR_ID, EIC_ACTOR_ID, CURSOR_ACTOR_ID, PR_HEAD_REPO, PR_BASE_REPO)',
   '       check-publisher-paths.mjs push --before <sha> --after <sha>',
 ].join('\n');
 
@@ -1026,6 +1107,7 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   let grok = { applies: false };
   let quill = { applies: false };
   let eic = { applies: false };
+  let series = { applies: false };
   if (mode === 'pr') {
     const { enforced, reason } = pullRequestScope({
       action: env.PR_ACTION,
@@ -1072,11 +1154,23 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
       headRepo: env.PR_HEAD_REPO,
       baseRepo: env.PR_BASE_REPO,
     });
-    if (eic.applies) why = `in the desk editor App's pins lane because ${eic.reason}`;
+    series = seriesLaneScope({
+      action: env.PR_ACTION,
+      authorId: env.PR_AUTHOR_ID,
+      senderId: env.EVENT_SENDER_ID,
+      headRef: env.PR_HEAD_REF,
+      grokActorId: env.GROK_ACTOR_ID,
+      cursorActorId: env.CURSOR_ACTOR_ID,
+      headRepo: env.PR_HEAD_REPO,
+      baseRepo: env.PR_BASE_REPO,
+    });
+    if (series.applies) why = `in the series lane because ${series.reason}`;
+    else if (eic.applies) why = `in the desk editor App's pins lane because ${eic.reason}`;
     else if (quill.applies) why = `in the Quill App's content lane because ${quill.reason}`;
     else if (grok.applies) why = `in the Grok App's content lane because ${grok.reason}`;
     else if (lane.applies) why = `in the posts App's authors lane because ${lane.reason}`;
     else if (lane.postsApp) why = `held to the rule because ${reason}, and not in the authors lane because ${lane.reason}`;
+    else if (series.seriesApp) why = `held to the rule because ${reason}, and not in the series lane because ${series.reason}`;
     else if (grok.grokApp) why = `held to the rule because ${reason}, and not in the Grok lane because ${grok.reason}`;
     else if (quill.quillApp) why = `held to the rule because ${reason}, and not in the Quill lane because ${quill.reason}`;
     else if (eic.eicApp) why = `held to the rule because ${reason}, and not in the pins lane because ${eic.reason}`;
@@ -1090,9 +1184,10 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   let problems;
   try {
     collected = mode === 'pr'
-      ? collectPullRequest({ cwd, base: options.base, head: options.head, copies: lane.applies || grok.applies || quill.applies || eic.applies })
+      ? collectPullRequest({ cwd, base: options.base, head: options.head, copies: lane.applies || grok.applies || quill.applies || eic.applies || series.applies })
       : collectPush({ cwd, before: options.before, after: options.after });
-    problems = eic.applies ? pinsLaneProblems(collected)
+    problems = series.applies ? seriesLaneProblems(collected)
+      : eic.applies ? pinsLaneProblems(collected)
       : quill.applies ? quillLaneProblems({ cwd, collected, readPost: (await loadFrontmatterReaders()).site })
       : grok.applies ? grokLaneProblems({ cwd, collected }) : lane.applies
       ? authorsLaneProblems({ cwd, collected, headRef: env.PR_HEAD_REF, readers: await loadFrontmatterReaders() })
@@ -1104,11 +1199,11 @@ export async function main(argv, env = process.env, cwd = process.cwd()) {
   }
   const count = collected.changes.length;
   if (problems.length === 0) {
-    const what = eic.applies ? `${PINS_PATH}, a plain file added or modified` : quill.applies ? `all ${GROK_ALLOWED_TEXT}, written as ${QUILL_LANE_AUTHORS.join(' or ')}` : grok.applies ? `all ${GROK_ALLOWED_TEXT}` : lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `none allowed (${PUBLISHER_MAY_CHANGE})`;
+    const what = series.applies ? `${SERIES_PATH}, a plain file modified` : eic.applies ? `${PINS_PATH}, a plain file added or modified` : quill.applies ? `all ${GROK_ALLOWED_TEXT}, written as ${QUILL_LANE_AUTHORS.join(' or ')}` : grok.applies ? `all ${GROK_ALLOWED_TEXT}` : lane.applies ? `${AUTHORS_LANE}<id>.md, honest` : `none allowed (${PUBLISHER_MAY_CHANGE})`;
     console.log(`check:publisher: ${count} changed file${count === 1 ? '' : 's'} in this ${subject}, ${what} (${why}).`);
     return 0;
   }
-  const who = eic.applies ? 'the desk editor App' : quill.applies ? 'the Quill App' : grok.applies ? 'the Grok App' : lane.applies ? 'the posts App' : 'the publisher';
+  const who = series.applies ? `the ${series.app} App` : eic.applies ? 'the desk editor App' : quill.applies ? 'the Quill App' : grok.applies ? 'the Grok App' : lane.applies ? 'the posts App' : 'the publisher';
   console.error(`check:publisher: this ${subject} changes what ${who} may not (${why}):`);
   for (const problem of problems) console.error(`  ${problem}`);
   return 1;

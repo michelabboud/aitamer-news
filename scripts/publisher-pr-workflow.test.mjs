@@ -149,3 +149,19 @@ test('the pins lane: the check gets EIC_ACTOR_ID, nothing is installed for the d
   const checked = runCheck({ EIC_ACTOR_ID: '350852201' });
   assert.deepEqual(checked.calls, ['node scripts/check-publisher-paths.mjs pr --base base --head head']);
 });
+
+test('the series lane: the check gets CURSOR_ACTOR_ID, nothing is installed for it, and series/ and cursor/ are never observations', () => {
+  assert.equal(check.env.CURSOR_ACTOR_ID, '${{ vars.CURSOR_ACTOR_ID }}', 'unsetting this repository variable closes the series lane to Cursor');
+  assert.equal(check.env.GROK_ACTOR_ID, '${{ vars.GROK_ACTOR_ID }}');
+  const run = runInstall({ POSTS_ACTOR_ID: POSTS, PR_AUTHOR_ID: '206951365' });
+  assert.equal(run.status, 0, run.output);
+  assert.deepEqual(run.calls, []);
+  // An observation name skips this script's verdict, so series/ and cursor/ must keep the required
+  // name and the path guard (grok/ is observed, which is why Grok's series branch is series/).
+  const job = yaml.load(readFileSync(WORKFLOW, 'utf8')).jobs['publisher-paths'];
+  for (const text of [job.name, install.env.ADMISSION_OBSERVATION, check.env.ADMISSION_OBSERVATION]) {
+    assert.doesNotMatch(String(text), /'series|'cursor/);
+  }
+  const checked = runCheck({ CURSOR_ACTOR_ID: '206951365' });
+  assert.deepEqual(checked.calls, ['node scripts/check-publisher-paths.mjs pr --base base --head head']);
+});

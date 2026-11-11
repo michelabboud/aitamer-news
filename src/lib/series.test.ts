@@ -252,20 +252,26 @@ test('a series hero is omitted until it is an https URL, and a missing alt uses 
     heroImage: 'https://bots.aitamer.news/heroes/grok-bot-series.jpg',
   });
   assert.equal(untitled?.alt, 'Grok Bot tutorial');
-  for (const series of SERIES) {
-    assert.match(String(series.heroImage), /^https:\/\/bots\.aitamer\.news\/heroes\/series-[a-z0-9-]+-[0-9a-f]{8}\.jpg$/, series.slug);
+  // A hero is optional (a new series may ship before its picture is on the media host); one that
+  // is set is a hashed JPEG named for its own series, with its own alt text (series-catalog.ts).
+  for (const series of SERIES.filter((meta) => meta.heroImage !== undefined)) {
+    assert.match(String(series.heroImage), new RegExp(`^https://bots\\.aitamer\\.news/heroes/series-${series.slug}-[0-9a-f]{8}\\.jpg$`), series.slug);
     assert.ok(series.heroAlt && series.heroAlt.trim(), series.slug);
     assert.deepEqual(seriesHero(series), { src: series.heroImage, alt: series.heroAlt }, series.slug);
   }
 });
 
-test('each series has a monochrome inline icon and the badge hides it from the name', () => {
+test('each series has a monochrome inline icon, its own or the default, and the badge hides it from the name', () => {
   const dir = 'src/assets/series-icons';
   const files = new Set(readdirSync(dir));
-  for (const series of SERIES) {
-    const name = `${series.slug}.svg`;
-    assert.equal(files.has(name), true, name);
-    const svg = readFileSync(join(dir, name), 'utf8');
+  const component = readFileSync('src/components/SeriesIcon.astro', 'utf8');
+  // A series a bot added has no icon of its own until a person draws one; it shows the default.
+  assert.match(component, /import fallback from '\.\.\/assets\/series-icons\/default\.svg\?raw'/);
+  assert.match(component, /Object\.hasOwn\(ICONS, Astro\.props\.slug\) \? ICONS\[Astro\.props\.slug\] : fallback/);
+  for (const name of new Set([...SERIES.map((series) => `${series.slug}.svg`), 'default.svg'])) {
+    const own = files.has(name) ? name : 'default.svg';
+    if (own === name && name !== 'default.svg') assert.match(component, new RegExp(`series-icons/${name.replace('.', '\\.')}\\?raw`), `${name} is on disk but SeriesIcon.astro does not import it`);
+    const svg = readFileSync(join(dir, own), 'utf8');
     assert.match(svg, /viewBox="0 0 24 24"/);
     assert.match(svg, /currentColor/);
     assert.doesNotMatch(svg, /<script/i);

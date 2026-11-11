@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.141 · 2026-11-11
+
+- **The Grok and Cursor Apps can update the series catalog** (ADR 0054, Michel 2026-11-11). Series rows move from `src/data/series.ts` to `src/data/series.json`; `series.ts` stays as the code that reads it, so every import is unchanged and the built pages are the same. The JSON is read at build time only and never shipped (no `series.json` in `dist/`, no client script holds it). A strict reader, `src/lib/series-catalog.ts`, refuses unknown keys, duplicate or malformed slugs, over-long or non-plain-text titles, descriptions and alt text, and any hero that is not `https://bots.aitamer.news/heroes/series-<its slug>-<8 hex>.jpg`, failing the build with the row named. The `publisher-paths` check gains a series lane: the Grok App on `series/<suffix>`, or the Cursor App (new repository variable `CURSOR_ACTOR_ID`) on `series/<suffix>` or `cursor/series-<suffix>`, may modify exactly `src/data/series.json`, a plain file, and nothing else; the pins lane now shares the same single-file rule. Grok uses `series/`, not `grok/`, because `grok/` pull requests go to article admission and never reach this check. A series without its own icon shows a new neutral default icon, so a bot can add a series without code. Tests: the reader's acceptances and refusals, the lane's identities, branches, paths, statuses and modes, the workflow routing, and the default icon render.
+
 ## 0.2.140 · 2026-11-03
 
 - Series pages show each part's existing article hero as a compact, lazy-loaded 16:9 thumbnail, WebP first with JPEG fallback. Rows keep one title focus target, shrink images on phones and remain readable if an image is absent. Thumbnail metadata participates in series cache keys. Updated standalone preview remains separate from production; main merge is held.

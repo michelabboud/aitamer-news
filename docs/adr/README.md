@@ -66,3 +66,5 @@
 - [0052 · The Field log is the latest news](0052-the-field-log-is-the-latest-news.md) — accepted 2026-11-01: the homepage Field log is the eight newest posts after the lead, newest first, even where they repeat feed cards; it no longer starts after the last loadable batch.
 
 - [Pinned labels share the homepage card decision](0053-pinned-labels-share-the-homepage-card.md) — supplements 0051; membership and incremental-cache inputs are shared.
+
+- [0054 · The series catalog is data, with a series lane for the Grok and Cursor Apps](0054-series-catalog-is-data-with-a-grok-and-cursor-lane.md) — accepted 2026-11-11: series rows move to `src/data/series.json`, read by a strict build-time reader; the Grok App (`series/<suffix>`) and the Cursor App (`series/<suffix>` or `cursor/series-<suffix>`) may modify exactly that file through the `publisher-paths` check; series without their own icon show a default.
