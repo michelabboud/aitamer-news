@@ -209,6 +209,9 @@ const EXPECTED: Record<string, readonly string[]> = {
     'vectors-plainly-5-rag-and-graphrag',
     'vectors-plainly-6-production',
   ],
+  'k8s-from-zero': [
+    'k8s-from-zero-01-what-kubernetes-is',
+  ],
 };
 
 test('published posts use known series, unique orders, and the episode order the posts already name', () => {
@@ -216,8 +219,17 @@ test('published posts use known series, unique orders, and the episode order the
   assert.deepEqual(seriesProblems(posts, SERIES), []);
   const placements = seriesPlacements(posts, SERIES, now);
   const views = seriesViews(placements);
-  // A catalog row with no live part yet stays off the index. seriesViews already omits it.
-  assert.deepEqual(views.map((view) => view.slug), SERIES.map((meta) => meta.slug).filter((slug) => slug in EXPECTED));
+  // A registered series stays off the index until one of its episodes is live. Part 1 of
+  // k8s-from-zero is scheduled after this test's frozen clock, so it is registered below
+  // and checked for series_order without appearing in views.
+  const liveEpisode = (id: string) => {
+    const post = posts.find((item) => item.id === id);
+    return post !== undefined && !post.draft && !post.withdrawn && post.pubDate <= now;
+  };
+  assert.deepEqual(
+    views.map((view) => view.slug),
+    SERIES.map((meta) => meta.slug).filter((slug) => (EXPECTED[slug] ?? []).some(liveEpisode)),
+  );
   for (const view of views) {
     assert.deepEqual(view.parts.map((part) => part.id), EXPECTED[view.slug]);
     view.parts.forEach((part, i) => {
