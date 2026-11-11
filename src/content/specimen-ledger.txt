@@ -1432,3 +1432,10 @@
 1429 openai-businesses-in-chatgpt-business-hub-agents-beta
 1430 val-town-winding-down-read-only-december-10
 1431 xen-orchestra-auth-bypass-vsa-2026-062
+1432 gemini-decision-1-decisions-api-calibrated-probabilities
+1433 runway-praxis-1-open-weights-world-action-model-apache-2
+1434 jetbrains-air-in-ides-2026-3-release
+1435 anthropic-office-skills-office-party-tmp-shim-linux
+1436 neo4j-relate-embedded-graph-database-agents-rust
+1437 chatgpt-advanced-standard-voice-retire-december-11-gpt-live
+1438 kinetic-rust-gguf-engine-exact-speculative-decoding
