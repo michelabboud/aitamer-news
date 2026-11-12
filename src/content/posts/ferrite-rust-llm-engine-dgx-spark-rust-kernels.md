@@ -1,8 +1,9 @@
 ---
 title: "Ferrite is a Rust LLM engine for DGX Spark whose GPU kernels are Rust too"
-description: "Ferrite 0.1.0 compiles its kernels with rustc's NVPTX backend and serves one model, Qwen3.8-27B, on one or two Sparks. Experimental, Apache-2.0, a day old."
+description: "Ferrite is a Rust LLM engine for DGX Spark with Rust GPU kernels. Since 0.1.0 it added Intel Arc Pro B70 and 16 GB RTX targets. Experimental, Apache-2.0."
 pubDate: "2026-11-09T18:07:00Z"
 specimen: 1402
+updatedDate: "2026-11-12T07:18:00Z"
 section: rust
 subsection: inference
 tags:
@@ -19,7 +20,7 @@ wildness:
   rating: 3
   verified: "Ferrite README, v0.1.0 release (9 Nov 2026, 01:11 UTC) and GitHub repo metadata read 9 Nov."
   claimed: "Speed and cache figures are the project's own; brand-new repo with no outside reports yet."
-verdict: "A focused proof that Rust can go all the way down to the GPU kernel on a Spark. Fun to try if you own one; for a general server the author points you elsewhere."
+verdict: "Still a focused, experimental single-author engine, now on three kinds of hardware. The numbers are the project's own; the author still points general use to a broader engine."
 sources:
   - title: "BHCC2025/ferrite on GitHub"
     url: https://github.com/BHCC2025/ferrite
@@ -29,6 +30,14 @@ sources:
     url: https://bhcc2025.github.io/ferrite/
   - title: "AI Tamer: Vade is a Rust inference engine for DGX Spark"
     url: https://aitamer.news/posts/vade-rust-inference-engine-dgx-spark-exact-tokens/
+  - title: "Ferrite v0.2.0 release (10 November 2026)"
+    url: https://github.com/BHCC2025/ferrite/releases/tag/v0.2.0
+  - title: "Ferrite v0.3.0 release (11 November 2026)"
+    url: https://github.com/BHCC2025/ferrite/releases/tag/v0.3.0
+  - title: "Ferrite v0.4.0 release (11 November 2026)"
+    url: https://github.com/BHCC2025/ferrite/releases/tag/v0.4.0
+  - title: "Ferrite v0.4.3 release (12 November 2026)"
+    url: https://github.com/BHCC2025/ferrite/releases/tag/v0.4.3
 ---
 
 [Ferrite](https://github.com/BHCC2025/ferrite) is a new LLM inference engine for NVIDIA's DGX Spark (GB10) that is written in Rust from the HTTP server down to the GPU kernels. Version 0.1.0 was [released](https://github.com/BHCC2025/ferrite/releases/tag/v0.1.0) at 01:11 UTC on 9 November under Apache-2.0.
@@ -65,3 +74,14 @@ Setup needs a Spark with DGX OS, driver 580 or later, about 95 GB of free memory
 ## Why this matters
 
 Ferrite is a working data point that Rust can own the whole inference stack, kernels included, on current NVIDIA hardware, not only the server around the kernels. Its agent prompt cache is the part most builders can learn from: sharing a long system prompt across parallel agents is common, and the project shows how much prefill it saves. For production on a Spark, the author's own advice is to look at a broader engine.
+
+## Update, 12 November 2026: Ferrite now targets Intel Arc Pro B70 and 16 GB RTX cards
+
+Ferrite has shipped six more releases since 0.1.0, and it is no longer a DGX Spark-only engine. All numbers below are the project's own, from its release notes.
+
+- **0.2.0** (10 November) added an experimental second target: Qwen3.8-27B on one 32 GB Intel Arc Pro B70, with Rust kernels compiled to SPIR-V and loaded through Level Zero, 5.0 bpw weights and 128K context. It is built from source and served one request at a time. ([release](https://github.com/BHCC2025/ferrite/releases/tag/v0.2.0))
+- **0.3.0** (11 November) added a third experimental target, one 16 GB NVIDIA RTX 5080. It serves the same model with 128K context by using a 6-bit K/V cache and streaming prompt weights from pinned host memory, and runs up to four requests from one shared pool of context. Requests that arrive together with the same opening text now prefill it once. The README now says Ferrite runs on Linux only. ([release](https://github.com/BHCC2025/ferrite/releases/tag/v0.3.0))
+- **0.4.0** (11 November) lets the Arc Pro B70 serve up to four requests at once. The project reports four lanes together at about 1.4 times the speed of one request (126 versus 90 tokens per second with a 2K shared prefix, 85 versus 46 at 16K), and says each lane's output matches the same request sent alone. The default is still one request with 128K context. ([release](https://github.com/BHCC2025/ferrite/releases/tag/v0.4.0))
+- **0.4.1 to 0.4.3** (11 to 12 November) changed the default model id to `qwen3.8-27b` on every target (old clients keep working, and `FERRITE_MODEL_ID` can restore the old id), fixed the 16 GB preset when NVIDIA's prompt checkpoint is missing, and reported the RTX 5080 build running on an RTX 5060 Ti 16 GB, tuned in 0.4.3 to about 155 tokens per second on code at 2K context. ([0.4.3 release](https://github.com/BHCC2025/ferrite/releases/tag/v0.4.3))
+
+Prebuilt binaries are still for DGX Spark only; the B70 and RTX targets build from source. It remains a single-maintainer, experimental project with no outside benchmarks yet.
