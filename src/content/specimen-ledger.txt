@@ -1451,3 +1451,9 @@
 1448 anthropic-fellows-worse-together-multi-user-agents-mamubench
 1449 duckdb-ducks-in-a-column-columnar-sql-field-guide
 1450 nvidia-openshell-cncf-sandbox-cedar-policies
+1451 openai-api-india-regional-processing-gpt-6-luna-inference
+1452 darktrace-claude-memory-stores-covert-c2-stolen-api-keys
+1453 domyn-europa-1t-moe-jupiter-torchtitan-training-recipe
+1454 microsoft-mdash-59-linux-kernel-bugs-33-cves
+1455 coreweave-database-ga-managed-postgres-inside-cks-pgvector
+1456 weekly-builders-roundup-2026-11-12
