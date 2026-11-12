@@ -150,30 +150,30 @@ test('the pins lane: the check gets EIC_ACTOR_ID, nothing is installed for the d
   assert.deepEqual(checked.calls, ['node scripts/check-publisher-paths.mjs pr --base base --head head']);
 });
 
-test('the series lane: the check gets CURSOR_ACTOR_ID, nothing is installed for it, and series/ and cursor/ are never observations', () => {
-  assert.equal(check.env.CURSOR_ACTOR_ID, '${{ vars.CURSOR_ACTOR_ID }}', 'unsetting this repository variable closes the series lane to Cursor');
+test('the series and diagrams lanes: the check gets GROK_ACTOR_ID and no Cursor variable, nothing is installed, and series/, diagrams/ and cursor/ are never observations', () => {
   assert.equal(check.env.GROK_ACTOR_ID, '${{ vars.GROK_ACTOR_ID }}');
+  assert.equal(check.env.CURSOR_ACTOR_ID, undefined, 'Cursor has no lane (ADR 0054): the Grok App publishes');
   const run = runInstall({ POSTS_ACTOR_ID: POSTS, PR_AUTHOR_ID: '206951365' });
   assert.equal(run.status, 0, run.output);
   assert.deepEqual(run.calls, []);
-  // An observation name skips this script's verdict, so series/ and cursor/ must keep the required
-  // name and the path guard (grok/ is observed, which is why Grok's series branch is series/).
+  // An observation name skips this script's verdict, so these branches must keep the required
+  // name and the path guard (grok/ is observed, which is why Grok's lane branches are not grok/).
   const job = yaml.load(readFileSync(WORKFLOW, 'utf8')).jobs['publisher-paths'];
   for (const text of [job.name, install.env.ADMISSION_OBSERVATION, check.env.ADMISSION_OBSERVATION]) {
-    assert.doesNotMatch(String(text), /'series|'cursor/);
+    assert.doesNotMatch(String(text), /'series|'diagrams|'cursor/);
   }
-  const checked = runCheck({ CURSOR_ACTOR_ID: '206951365' });
+  const checked = runCheck({ GROK_ACTOR_ID: '337850229' });
   assert.deepEqual(checked.calls, ['node scripts/check-publisher-paths.mjs pr --base base --head head']);
 });
 
-test('series/ and cursor/ are not observation prefixes in any workflow that names required checks (ADR 0054)', () => {
+test('series/, diagrams/ and cursor/ are not observation prefixes in any workflow that names required checks (ADR 0054)', () => {
   // An observation name turns a required check into a non-blocking one. `check` is the only gate
   // that validates series.json, and `publisher-paths` the only gate on what a series PR changes.
   for (const file of ['check-publisher-pr.yml', 'check-posts.yml', 'check-specimen-pr.yml']) {
     const text = readFileSync(new URL(`../.github/workflows/${file}`, import.meta.url), 'utf8');
     assert.match(text, /'grok\//, `${file} still observes grok/ (the test reads the right file)`);
-    assert.doesNotMatch(text, /'series|'cursor/, file);
+    assert.doesNotMatch(text, /'series|'diagrams|'cursor/, file);
   }
   const approval = readFileSync(new URL('./image-approval.mjs', import.meta.url), 'utf8');
-  assert.doesNotMatch(approval, /'series|'cursor/);
+  assert.doesNotMatch(approval, /'series|'diagrams|'cursor/);
 });
