@@ -3,6 +3,7 @@ title: "Seedance 2.5 4K drafts shots at 480p and renders the keeper in 4K, but o
 description: "ByteDance's Seedance 2.5 4K adds 10-bit colour and a 480p Draft mode. Only selected enterprise customers can use it; no price or API date yet."
 pubDate: "2026-10-24T15:37:00Z"
 specimen: 1034
+updatedDate: "2026-11-12T11:12:00Z"
 section: models
 subsection: movie-gen
 tags:
@@ -33,6 +34,10 @@ sources:
     url: https://www.bjnews.com.cn/detail/1792642976129728.html
   - title: "Dreamina Seedance 2.5 on BytePlus (product page)"
     url: https://www.byteplus.com/en/product/Seedance
+  - title: "Volcano Engine docs: Seedance 2.5 (Chinese; flash notice, read 12 November 2026)"
+    url: https://docs.volcengine.com/docs/ark/seedance-2-5?lang=zh
+  - title: "Phoenix New Media: Volcano Engine releases Seedance 2.5 flash (12 November 2026, Chinese)"
+    url: https://original.ifeng.com/c/8xzaGjATIU1
 ---
 
 ByteDance has released a 4K version of its Seedance 2.5 video model. BytePlus, ByteDance's international cloud, [announced it on X](https://x.com/BytePlusGlobal/status/2113654442885292359) on 23 October, and Volcano Engine, its cloud in China, announced it the same day, as [IT Home](https://www.ithome.com/1/017/078.htm) and [Yicai](https://www.yicai.com/news/103406482.html) reported. BytePlus calls it "the most capable model in the Seedance 2.5 generation."
@@ -60,3 +65,11 @@ No sample clips beyond BytePlus's own film, no benchmark or arena score, no pric
 ## Practical takeaway
 
 If you make video on Seedance 2.5 today, nothing changes yet. Borrow the idea anyway: draft takes at the lowest resolution your tool offers and spend on the high-resolution render only once a shot is locked. When BytePlus publishes 4K pricing, compare the cost of a 4K render with an upscaled 720p render of the same take before you switch.
+
+## Update, 12 November 2026: A cheaper Seedance 2.5 flash tier opens on 15 November
+
+ByteDance's cloud arm Volcano Engine announced a cheaper tier, Seedance 2.5 flash, on 12 November. Its [Seedance 2.5 documentation](https://docs.volcengine.com/docs/ark/seedance-2-5?lang=zh) says online trials and API calls on Volcano Ark open on 15 November at 14:00 Beijing time (08:00 in Israel).
+
+According to Volcano Engine's announcement, as reported by [Phoenix New Media](https://original.ifeng.com/c/8xzaGjATIU1) and the Shanghai Securities News, flash generates about twice as fast as Seedance 2.5 and costs about 0.99 yuan per second for 720p text-to-video and image-to-video, roughly 34% less than Seedance 2.5. It makes clips of up to 30 seconds at 480p or 720p and takes up to 10 images, 5 videos and 5 audio clips per request. Volcano Engine calls it the closest model to Seedance 2.5 in quality. Those speed, price and quality figures are the company's own, and we have not tested it.
+
+Flash is not a route to 4K: it tops out at 720p, while the 4K version above is a separate release. The announcement covers Volcano Engine in China and does not say when or whether flash reaches BytePlus, ByteDance's international cloud.

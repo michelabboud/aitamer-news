@@ -1,8 +1,9 @@
 ---
 title: "Mittwald says its MCP server let an attacker into 56 hosting projects"
-description: "A flaw in German host Mittwald's MCP server leaked customer access tokens with full account rights. 56 projects were hit over eight days before detection."
+description: "Mittwald says attackers who used its MCP server to reach 56 projects are back. Its website was hit and it shut its customer panels and SSH on 12 Nov."
 pubDate: "2026-11-10T17:37:00Z"
 specimen: 1423
+updatedDate: "2026-11-12T11:12:00Z"
 section: devops
 subsection: security
 tags:
@@ -19,7 +20,7 @@ wildness:
   rating: 2
   verified: "Mittwald's incident post, notification template and status page, and The Record's report, 10 Nov 2026."
   claimed: "AI-assisted attack is Mittwald's inference from timing; the flaw itself is not yet described."
-verdict: "If your product offers an MCP server, the token it holds is the blast radius. Scope it down before attackers find it."
+verdict: "If you host with Mittwald, expect panel and SSH outages and watch the status page. If you ship an MCP server, scope its tokens before attackers find it."
 sources:
   - title: "Mittwald: Sicherheitsvorfall am MCP-Server (7 November 2026)"
     url: https://www.mittwald.de/blog/mittwald/sicherheitsvorfall-am-mcp-server
@@ -54,3 +55,11 @@ Meyer writes that the attacker moved through the system so fast, sometimes secon
 ## Why this matters
 
 An MCP server that holds a user's full-rights token turns one bug into access to everything that user can touch, which is what Mittwald describes. If you ship an MCP server for your platform, give it narrowly scoped, short-lived tokens bound to that server, as our explainer on [why a token for one MCP server belongs to that server](/posts/a-token-for-one-mcp-server-belongs-to-that-server/) lays out. As a customer, revoke tokens you issued to AI connectors you no longer use. For another recent server-side MCP bug, see [AWS's Serverless MCP Server path traversal](/posts/aws-serverless-mcp-server-cve-2026-116635-path-traversal/); our [MCP explainer](/posts/mcp-explained/) covers how these servers sit between agents and your systems.
+
+## Update, 12 November 2026: Attackers are back, and Mittwald has shut its panels and SSH
+
+Mittwald says the attackers are back. In an update on its [status page](https://www.mittwald-status.de/incidents/255116) on 12 November at 09:18 CET, the company wrote that after last week's incidents the attackers had resumed attacks on its infrastructure and had exploited a vulnerability to compromise Mittwald's company website, which it has taken offline. Mittwald says it has not so far found access to its internal systems.
+
+Because it believes it is facing professional attackers using automated AI systems, Mittwald has shut down its Kundencenter customer portal, mStudio and all SSH connections as a precaution. Earlier that morning it had already restricted SSH again and paused new mStudio sign-ups. Mittwald says websites it hosts are not affected by the shutdown and stay reachable. It is working with outside forensic specialists and gave no time estimate for bringing the services back.
+
+The "AI systems" description is Mittwald's own assessment. It has not published evidence for it, and it has still not described the original MCP flaw. Separately, because the website is offline, the Mittwald blog post and PDF in our sources may not load for now.
