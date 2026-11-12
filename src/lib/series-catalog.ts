@@ -11,10 +11,13 @@
  * file is read when the site is built and never shipped as a file: the build turns it into HTML.
  */
 import { SLUG_MAX_LENGTH } from '../../scripts/slug.mjs';
-import { SERIES_SLUG, type SeriesMeta } from './series.ts';
+import { SERIES_SLUG, type SeriesArc, type SeriesMeta } from './series.ts';
 
-/** The keys a row may carry, in the order the file writes them. Anything else is refused. */
-export const SERIES_KEYS = ['slug', 'title', 'description', 'heroImage', 'heroAlt'] as const;
+/** The keys a row may carry. Anything else is refused. `arcs` is optional and comes last when a series uses it. */
+export const SERIES_KEYS = ['slug', 'title', 'description', 'heroImage', 'heroAlt', 'arcs'] as const;
+
+/** The keys one arc may carry. `end` is omitted only on an open final arc. */
+const ARC_KEYS = ['name', 'start', 'end'] as const;
 
 /** The longest title, in characters. It sits in a badge on every part, so it stays short. */
 export const SERIES_TITLE_MAX_LENGTH = 80;
@@ -22,6 +25,8 @@ export const SERIES_TITLE_MAX_LENGTH = 80;
 export const SERIES_DESCRIPTION_MAX_LENGTH = 240;
 /** The longest hero alt text, in characters. */
 export const SERIES_HERO_ALT_MAX_LENGTH = 200;
+/** The longest arc display name, in characters. It sits in the same badge as the series title. */
+export const SERIES_ARC_NAME_MAX_LENGTH = 60;
 
 /**
  * A series hero: a hashed JPEG on the media host's heroes folder, named for its own series
@@ -43,6 +48,52 @@ export class SeriesCatalogError extends Error {
     super(`series.json: ${message}`);
     this.name = 'SeriesCatalogError';
   }
+}
+
+function positiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 1;
+}
+
+/**
+ * A fixed arc plan. Lessons start at 1 and run without gaps or overlaps. Only the last arc may
+ * omit `end`; that arc then covers every later lesson.
+ */
+function parseArcs(value: unknown, where: string): readonly SeriesArc[] {
+  if (!Array.isArray(value) || value.length === 0) throw new SeriesCatalogError(`${where}: arcs must be a non-empty array`);
+  const names = new Set<string>();
+  const arcs: SeriesArc[] = value.map((item, index) => {
+    const at = `${where}: arcs[${index + 1}]`;
+    if (item === null || typeof item !== 'object' || Array.isArray(item)) throw new SeriesCatalogError(`${at}: must be an object`);
+    const record = item as Record<string, unknown>;
+    const unknown = Object.keys(record).filter((key) => !(ARC_KEYS as readonly string[]).includes(key));
+    if (unknown.length) throw new SeriesCatalogError(`${at}: unknown key${unknown.length === 1 ? '' : 's'} ${unknown.map((key) => JSON.stringify(key)).join(', ')}`);
+    const name = plainText(record.name, at, 'name', SERIES_ARC_NAME_MAX_LENGTH);
+    if (names.has(name)) throw new SeriesCatalogError(`${at} ("${name}"): the name is already used`);
+    names.add(name);
+    if (!positiveInteger(record.start)) throw new SeriesCatalogError(`${at}: start must be a positive integer`);
+    const arc: SeriesArc = { name, start: record.start };
+    if ('end' in record) {
+      if (!positiveInteger(record.end) || record.end < record.start) {
+        throw new SeriesCatalogError(`${at}: end must be an integer from start onward`);
+      }
+      arc.end = record.end;
+    }
+    return arc;
+  });
+  if (arcs[0].start !== 1) throw new SeriesCatalogError(`${where}: arcs must start at lesson 1`);
+  for (let i = 0; i < arcs.length; i++) {
+    const arc = arcs[i];
+    const at = `${where}: arcs[${i + 1}] ("${arc.name}")`;
+    if (arc.end === undefined && i !== arcs.length - 1) {
+      throw new SeriesCatalogError(`${at}: an arc without an end has to be the last one`);
+    }
+    if (i === 0) continue;
+    const prev = arcs[i - 1];
+    if (prev.end === undefined) throw new SeriesCatalogError(`${where}: arcs[${i}] ("${prev.name}"): an arc without an end has to be the last one`);
+    if (arc.start <= prev.end) throw new SeriesCatalogError(`${at}: overlaps the previous arc, which ends at lesson ${prev.end}`);
+    if (arc.start > prev.end + 1) throw new SeriesCatalogError(`${at}: starts at ${arc.start}, leaving a gap after lesson ${prev.end}`);
+  }
+  return Object.freeze(arcs.map((arc) => Object.freeze(arc)));
 }
 
 function plainText(value: unknown, where: string, field: string, max: number): string {
@@ -93,6 +144,7 @@ export function parseSeriesCatalog(data: unknown): readonly SeriesMeta[] {
       meta.heroImage = image as string;
       meta.heroAlt = plainText(record.heroAlt, where, 'heroAlt', SERIES_HERO_ALT_MAX_LENGTH);
     }
+    if ('arcs' in record) meta.arcs = parseArcs(record.arcs, where);
     return Object.freeze(meta);
   });
   return Object.freeze(rows);

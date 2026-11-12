@@ -38,6 +38,7 @@ The repository enforces every rule below. A pull request that breaks one fails i
   - `title`: at most 80 characters. `description`: at most 240 characters.
   - Plain text only: no line breaks, no `<` or `>`, no invisible characters, no leading or trailing spaces.
   - Optional hero, both keys or neither: `"heroImage": "https://bots.aitamer.news/heroes/series-<slug>-<8 lowercase hex>.jpg"` and `"heroAlt"` (at most 200 characters). Upload the image and its WebP twin first.
+  - Optional `arcs`: a fixed lesson plan, `{ "name", "start", "end" }` objects, lesson 1 first, no gaps. Omit `end` only on the last arc. Kubernetes from Zero uses it, so its badge does not count live parts. Leave it out on every other series. Never delete `arcs` from a row that already has it.
   - No other keys.
 - **Merge:** the Grok App opens the pull request and merges it with a merge commit once all required checks are green.
 - **Never** delete or rename a row that posts still use. The build fails.

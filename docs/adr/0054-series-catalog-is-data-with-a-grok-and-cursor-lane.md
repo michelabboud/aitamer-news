@@ -15,7 +15,7 @@ Before this change:
 ## Decision
 1. **The rows move to `src/data/series.json`.** `src/data/series.ts` stays as the code that reads it and exports `SERIES` and `seriesMeta` unchanged, so every caller keeps its import. The file is imported at build time and rendered into HTML. It is never copied into `dist/`, and no client script contains it.
 2. **A strict reader, `src/lib/series-catalog.ts`.** The file is bot-writable, so `parseSeriesCatalog` trusts nothing in it:
-   - It must be an array of objects, with only the keys `slug`, `title`, `description`, `heroImage` and `heroAlt`.
+   - It must be an array of objects, with only the keys `slug`, `title`, `description`, `heroImage`, `heroAlt` and optional `arcs`. `arcs` is a fixed lesson plan (`name`, `start`, `end`; `end` only optional on the last arc). A series that omits it still labels parts from the live count. A lesson number outside the plan fails the build.
    - The slug is lowercase, at most the site's slug length, and used once.
    - Title (80), description (240) and alt (200) are trimmed plain text: no control characters, no invisible formatting characters (zero-width, direction marks and overrides), no `<` or `>`.
    - A hero is allowed only as `https://bots.aitamer.news/heroes/series-<its own slug>-<8 hex>.jpg`, and always with its alt.

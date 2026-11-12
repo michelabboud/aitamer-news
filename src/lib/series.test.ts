@@ -8,11 +8,14 @@ import { readFrontmatter } from '../../scripts/frontmatter.mjs';
 import {
   seriesHero,
   seriesLabel,
+  seriesPartKicker,
   seriesPlacements,
   seriesProblems,
   seriesSitemapDates,
   seriesViews,
   seriesViewCacheMark,
+  seriesCacheMark,
+  type SeriesArc,
   type SeriesPost,
 } from './series.ts';
 
@@ -117,6 +120,90 @@ test('live parts follow series_order, skip what is not live, and renumber the ba
   assert.equal(first.order, 1);
   assert.equal(third.order, 3);
   assert.deepEqual(seriesViews(placements).map((view) => view.slug), ['grok-bot']);
+});
+
+const K8S_ARCS: readonly SeriesArc[] = [
+  { name: 'Foundations', start: 1, end: 12 },
+  { name: 'Workloads & Troubleshooting', start: 13, end: 26 },
+  { name: 'Under the Hood', start: 27, end: 38 },
+  { name: 'AKS', start: 39, end: 44 },
+  { name: 'EKS', start: 45, end: 50 },
+  { name: 'GKE & Edge', start: 51, end: 54 },
+  { name: 'Helm', start: 55, end: 60 },
+  { name: 'Networking', start: 61, end: 68 },
+  { name: 'Security', start: 69, end: 76 },
+  { name: 'Ecosystem', start: 77, end: 86 },
+  { name: 'Production Ops', start: 87, end: 97 },
+  { name: 'AI & GPU', start: 98, end: 103 },
+  { name: 'Certification', start: 104 },
+];
+
+test('an arc plan labels the lesson and the place inside the arc, and an open arc has no total', () => {
+  const label = (lesson: number) => seriesLabel('Kubernetes from Zero', 1, 1, K8S_ARCS, lesson);
+  assert.equal(label(1), 'Kubernetes from Zero · Foundations 1 of 12 · Lesson 1');
+  assert.equal(label(12), 'Kubernetes from Zero · Foundations 12 of 12 · Lesson 12');
+  assert.equal(label(13), 'Kubernetes from Zero · Workloads & Troubleshooting 1 of 14 · Lesson 13');
+  assert.equal(label(46), 'Kubernetes from Zero · EKS 2 of 6 · Lesson 46');
+  assert.equal(label(104), 'Kubernetes from Zero · Certification · Lesson 104');
+  assert.equal(label(120), 'Kubernetes from Zero · Certification · Lesson 120');
+  assert.equal(seriesLabel('Grok Bot tutorial', 3, 7), 'Grok Bot tutorial · Part 3 of 7');
+});
+
+test('a series with arcs keeps the fixed label when later parts are not live', () => {
+  const catalog = [{ slug: 'k8s-from-zero', title: 'Kubernetes from Zero', description: 'A path.', arcs: K8S_ARCS }];
+  const only = seriesPlacements([post('eks', { series: 'k8s-from-zero', seriesOrder: 46, title: 'EKS networking' })], catalog, now);
+  const place = only.get('eks')!;
+  assert.equal(place.label, 'Kubernetes from Zero · EKS 2 of 6 · Lesson 46');
+  assert.equal(place.index, 1);
+  assert.equal(place.total, 1);
+  assert.equal(place.order, 46);
+  assert.equal(seriesPartKicker(place.view.title, place.index, place.order, place.view.arcs), place.label);
+  const withDraft = seriesPlacements([
+    post('one', { series: 'k8s-from-zero', seriesOrder: 1, title: 'What Kubernetes is' }),
+    post('two', { series: 'k8s-from-zero', seriesOrder: 2, draft: true, title: 'Architecture' }),
+    post('eks', { series: 'k8s-from-zero', seriesOrder: 46, title: 'EKS networking' }),
+  ], catalog, now);
+  assert.equal(withDraft.get('one')!.label, 'Kubernetes from Zero · Foundations 1 of 12 · Lesson 1');
+  assert.equal(withDraft.get('one')!.index, 1);
+  assert.equal(withDraft.get('one')!.total, 2);
+  assert.equal(withDraft.get('eks')!.label, 'Kubernetes from Zero · EKS 2 of 6 · Lesson 46');
+  assert.equal(seriesPartKicker('Grok Bot tutorial', 2, 4), 'Part 2');
+});
+
+test('a lesson outside a fixed arc plan is reported, and a series without arcs is not', () => {
+  const planned = { slug: 'planned', title: 'Planned', description: 'Closed.', arcs: [{ name: 'Foundations', start: 1, end: 2 }] };
+  const problems = seriesProblems([
+    post('inside', { series: 'planned', seriesOrder: 2 }),
+    post('beyond', { series: 'planned', seriesOrder: 3 }),
+    post('open', { series: 'grok-bot', seriesOrder: 99 }),
+  ], [planned, ...SERIES]);
+  assert.deepEqual(problems, ['beyond: series_order 3 is outside the arc plan for "planned"']);
+});
+
+test('the committed Kubernetes from Zero plan matches the arc map, and other series do not opt in', () => {
+  const k8s = SERIES.find((meta) => meta.slug === 'k8s-from-zero');
+  assert.ok(k8s);
+  assert.deepEqual(k8s?.arcs, K8S_ARCS);
+  for (const meta of SERIES) {
+    if (meta.slug !== 'k8s-from-zero') assert.equal(meta.arcs, undefined, meta.slug);
+  }
+  const label = (lesson: number) => seriesLabel(k8s!.title, 1, 1, k8s!.arcs, lesson);
+  assert.equal(label(1), 'Kubernetes from Zero · Foundations 1 of 12 · Lesson 1');
+  assert.equal(label(12), 'Kubernetes from Zero · Foundations 12 of 12 · Lesson 12');
+  assert.equal(label(13), 'Kubernetes from Zero · Workloads & Troubleshooting 1 of 14 · Lesson 13');
+  assert.equal(label(46), 'Kubernetes from Zero · EKS 2 of 6 · Lesson 46');
+  assert.equal(label(104), 'Kubernetes from Zero · Certification · Lesson 104');
+});
+
+test('arc edits change the series cache mark, and a series without arcs keeps the mark free of an arcs field', () => {
+  const plain = seriesPlacements([post('first', { series: 'grok-bot', seriesOrder: 1 })], SERIES, now).get('first')!;
+  assert.equal(Object.hasOwn(JSON.parse(seriesViewCacheMark(plain.view)), 'arcs'), false);
+  const catalog = [{ slug: 'planned', title: 'Kubernetes from Zero', description: 'A path.', arcs: [{ name: 'Foundations', start: 1, end: 12 }] }];
+  const before = seriesPlacements([post('one', { series: 'planned', seriesOrder: 1 })], catalog, now);
+  const mark = seriesCacheMark(['one'], before);
+  assert.match(mark, /Foundations/);
+  const renamed = seriesPlacements([post('one', { series: 'planned', seriesOrder: 1 })], [{ ...catalog[0], arcs: [{ name: 'Basics', start: 1, end: 12 }] }], now);
+  assert.notEqual(seriesCacheMark(['one'], renamed), mark);
 });
 
 test('a series with no live part is left off the index, and sitemap dates use listed parts only', () => {
@@ -229,7 +316,7 @@ test('published posts use known series, unique orders, and the episode order the
     view.parts.forEach((part, i) => {
       const place = placements.get(part.id)!;
       assert.equal(part.order, i + 1);
-      assert.equal(place.label, seriesLabel(view.title, i + 1, view.parts.length));
+      assert.equal(place.label, seriesLabel(view.title, i + 1, view.parts.length, view.arcs, part.order));
       assert.equal(place.prev?.id, view.parts[i - 1]?.id);
       assert.equal(place.next?.id, view.parts[i + 1]?.id);
     });
