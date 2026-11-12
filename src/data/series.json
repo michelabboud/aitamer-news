@@ -38,6 +38,8 @@
     "slug": "k8s-from-zero",
     "title": "Kubernetes from Zero",
     "description": "Kubernetes from the first container to a production cluster, one part a day.",
+    "heroImage": "https://bots.aitamer.news/heroes/series-k8s-from-zero-7c1abf30.jpg",
+    "heroAlt": "Paper-cut wooden-brown ship's helm behind a slate-blue control-plane tray with a cream manifest and four modules, worker nodes with cream and coral crates on a navy cluster map and a coral return loop",
     "arcs": [
       { "name": "Foundations", "start": 1, "end": 12 },
       { "name": "Workloads & Troubleshooting", "start": 13, "end": 26 },
