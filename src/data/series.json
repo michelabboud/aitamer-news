@@ -33,5 +33,10 @@
     "description": "What a vector database does, in six parts: the idea, the index, tenancy, retrieval quality, RAG, and production.",
     "heroImage": "https://bots.aitamer.news/heroes/series-vectors-plainly-2fcbf32f.jpg",
     "heroAlt": "Slate-blue paper dots with a coral point linked to its two nearest neighbors"
+  },
+  {
+    "slug": "k8s-from-zero",
+    "title": "Kubernetes from Zero",
+    "description": "Kubernetes from the first container to a production cluster, one part a day."
   }
 ]
