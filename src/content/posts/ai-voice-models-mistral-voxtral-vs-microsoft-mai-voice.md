@@ -27,7 +27,7 @@ sources:
   - title: "Hugging Face: mistralai/Voxtral-4B-TTS-2603"
     url: https://huggingface.co/mistralai/Voxtral-4B-TTS-2603
   - title: "Microsoft AI: MAI-Voice-2.1"
-    url: https://microsoft.ai/models/mai-voice-2-1/
+    url: https://microsoft.ai/models/mai-voice-2/
   - title: "Microsoft AI: Introducing MAI-Voice-2 (2 June 2026)"
     url: https://microsoft.ai/news/mai-voice-2/
   - title: "Microsoft AI: Introducing MAI-Image-2.5-Pro and MAI-Voice-2-Flash (23 July 2026)"
