@@ -216,9 +216,16 @@ test('published posts use known series, unique orders, and the episode order the
   assert.deepEqual(seriesProblems(posts, SERIES), []);
   const placements = seriesPlacements(posts, SERIES, now);
   const views = seriesViews(placements);
-  assert.deepEqual(views.map((view) => view.slug), SERIES.map((meta) => meta.slug));
+  // The index lists catalog series in catalog order. A series may be in the catalog before any
+  // part is live (the row lands first, ADR 0054), so the views are the catalog minus those.
+  const catalogOrder = SERIES.map((meta) => meta.slug);
+  const viewed = views.map((view) => view.slug);
+  assert.deepEqual(viewed, catalogOrder.filter((slug) => viewed.includes(slug)));
+  for (const slug of Object.keys(EXPECTED)) assert.ok(viewed.includes(slug), `${slug} still has its live parts`);
   for (const view of views) {
-    assert.deepEqual(view.parts.map((part) => part.id), EXPECTED[view.slug]);
+    // Episodes already published keep their numbers; new ones may follow them. A series this
+    // list does not name yet is held to the generic rules below.
+    if (EXPECTED[view.slug]) assert.deepEqual(view.parts.slice(0, EXPECTED[view.slug].length).map((part) => part.id), EXPECTED[view.slug]);
     view.parts.forEach((part, i) => {
       const place = placements.get(part.id)!;
       assert.equal(part.order, i + 1);
@@ -230,7 +237,9 @@ test('published posts use known series, unique orders, and the episode order the
   const member = new Set(Object.values(EXPECTED).flat());
   for (const post of posts) {
     if (member.has(post.id)) assert.equal(post.seriesOrder, EXPECTED[String(post.series)].indexOf(post.id) + 1, post.id);
-    else assert.equal(post.series, undefined, post.id);
+    else if (post.series !== undefined && EXPECTED[String(post.series)]) {
+      assert.ok(Number(post.seriesOrder) > EXPECTED[String(post.series)].length, `${post.id} takes a published episode's number`);
+    } else if (post.series !== undefined) assert.ok(catalogOrder.includes(String(post.series)), post.id);
   }
 });
 
@@ -252,20 +261,26 @@ test('a series hero is omitted until it is an https URL, and a missing alt uses 
     heroImage: 'https://bots.aitamer.news/heroes/grok-bot-series.jpg',
   });
   assert.equal(untitled?.alt, 'Grok Bot tutorial');
-  for (const series of SERIES) {
-    assert.match(String(series.heroImage), /^https:\/\/bots\.aitamer\.news\/heroes\/series-[a-z0-9-]+-[0-9a-f]{8}\.jpg$/, series.slug);
+  // A hero is optional (a new series may ship before its picture is on the media host); one that
+  // is set is a hashed JPEG named for its own series, with its own alt text (series-catalog.ts).
+  for (const series of SERIES.filter((meta) => meta.heroImage !== undefined)) {
+    assert.match(String(series.heroImage), new RegExp(`^https://bots\\.aitamer\\.news/heroes/series-${series.slug}-[0-9a-f]{8}\\.jpg$`), series.slug);
     assert.ok(series.heroAlt && series.heroAlt.trim(), series.slug);
     assert.deepEqual(seriesHero(series), { src: series.heroImage, alt: series.heroAlt }, series.slug);
   }
 });
 
-test('each series has a monochrome inline icon and the badge hides it from the name', () => {
+test('each series has a monochrome inline icon, its own or the default, and the badge hides it from the name', () => {
   const dir = 'src/assets/series-icons';
   const files = new Set(readdirSync(dir));
-  for (const series of SERIES) {
-    const name = `${series.slug}.svg`;
-    assert.equal(files.has(name), true, name);
-    const svg = readFileSync(join(dir, name), 'utf8');
+  const component = readFileSync('src/components/SeriesIcon.astro', 'utf8');
+  // A series a bot added has no icon of its own until a person draws one; it shows the default.
+  assert.match(component, /import fallback from '\.\.\/assets\/series-icons\/default\.svg\?raw'/);
+  assert.match(component, /Object\.hasOwn\(ICONS, Astro\.props\.slug\) \? ICONS\[Astro\.props\.slug\] : fallback/);
+  for (const name of new Set([...SERIES.map((series) => `${series.slug}.svg`), 'default.svg'])) {
+    const own = files.has(name) ? name : 'default.svg';
+    if (own === name && name !== 'default.svg') assert.match(component, new RegExp(`series-icons/${name.replace('.', '\\.')}\\?raw`), `${name} is on disk but SeriesIcon.astro does not import it`);
+    const svg = readFileSync(join(dir, own), 'utf8');
     assert.match(svg, /viewBox="0 0 24 24"/);
     assert.match(svg, /currentColor/);
     assert.doesNotMatch(svg, /<script/i);

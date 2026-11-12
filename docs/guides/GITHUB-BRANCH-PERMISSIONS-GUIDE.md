@@ -67,6 +67,8 @@ Rulesets 24029856 and 24520133 share the same exclude list:
 - `refs/heads/eic/*`
 - `refs/heads/admin/*`
 
+**Update 2026-11-12 (ADR 0054), read with the maintainer's token:** ruleset 27012455, "only Grok bots App and admins write series and diagrams branches", covers `refs/heads/series/*` and `refs/heads/diagrams/*` (creation, update, deletion), bypassed only by admins and the Grok bots App (5189850); the Cursor App is not on it. Both shared exclude lists above now also carry `refs/heads/series/*` and `refs/heads/diagrams/*`. How the bots use these branches: [Series and diagrams for the bots](series-and-diagrams-for-bots.md).
+
 What this means:
 
 - `grok/*` is already an allowed prefix. It is excluded from 24029856 and 24520133, and 24469063 lets the Grok Newsroom App (and admins) write it.

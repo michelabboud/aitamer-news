@@ -504,7 +504,9 @@ test('the judge takes the expected type', () => {
 
 test('the media CLI includes every configured series JPEG and WebP twin by default', async () => {
   const { postsDir } = fixture();
-  const seriesObjects = Object.fromEntries(SERIES.flatMap(({ heroImage }) => {
+  // A hero is optional (ADR 0054): only configured series heroes are checked.
+  const withHero = SERIES.filter(({ heroImage }) => heroImage !== undefined);
+  const seriesObjects = Object.fromEntries(withHero.flatMap(({ heroImage }) => {
     const key = heroImage.slice(BOTS.length + 1);
     return [[key, 'JPEG'], [key.replace(/\.jpg$/, '.webp'), 'WEBP']];
   }));
@@ -516,7 +518,7 @@ test('the media CLI includes every configured series JPEG and WebP twin by defau
       postsDir, origin: media.origin, botOrigin: bots.origin, attempts: 1, siteImages: [],
     }));
     assert.equal(result, 0, output);
-    assert.equal(bots.seen.length, SERIES.length * 2);
+    assert.equal(bots.seen.length, withHero.length * 2);
     for (const key of Object.keys(seriesObjects)) assert.ok(bots.seen.includes(`HEAD ${key}`), key);
   } finally {
     await media.close();

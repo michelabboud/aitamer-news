@@ -28,6 +28,13 @@ name: Publisher paths
 # It installs nothing and is deliberately not an observation prefix below: eic/ pull requests get
 # the required `publisher-paths` name and this script's verdict.
 #
+# The series and diagrams lanes (ADR 0054): author and sender both the Grok App (GROK_ACTOR_ID),
+# `opened` or `synchronize`, same repository. On series/<suffix>: exactly src/data/series.json,
+# modified, a plain file. On diagrams/<post-slug>: only public/diagrams/<that slug>/<name>.svg,
+# added or redrawn, plain files. Like eic/, neither prefix is an observation prefix below; they are
+# not grok/ because grok/ is always observed. Cursor has no lane, and a cursor/ pull request is never
+# the maintainer's even though Cursor opens it through the maintainer's login.
+#
 # pull_request_target: the workflow, and the script it runs, always come from main — never from
 # the pull request. Nothing from the pull request's head is checked out or executed. For every pull
 # request but the posts App's, no dependency is installed (the script needs only node's built-ins).

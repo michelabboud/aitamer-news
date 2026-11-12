@@ -61,10 +61,15 @@ test('the series badge shows the icon as decoration and keeps the series name in
   assert.doesNotMatch(html, /<script/i);
 });
 
-test('an unknown series slug renders the name without an icon', async () => {
-  const html = await container.renderToString(SeriesBadge, {
-    props: { href: '/series/missing/', label: 'Missing series · Part 1 of 1', slug: 'missing' },
-  });
-  assert.doesNotMatch(html, /<svg[\s>]/);
-  assert.match(html, /Missing series · Part 1 of 1/);
+test('a series without its own icon renders the name with the default icon, hidden from assistive tech (ADR 0054)', async () => {
+  const fallback = readFileSync('src/assets/series-icons/default.svg', 'utf8');
+  for (const slug of ['missing', 'constructor', '__proto__']) {
+    const html = await container.renderToString(SeriesBadge, {
+      props: { href: `/series/${slug}/`, label: 'Missing series · Part 1 of 1', slug },
+    });
+    assert.equal(html.match(/<svg[\s>]/g)?.length, 1, slug);
+    assert.match(html, /<span class="series-icon" aria-hidden="true"><svg/, slug);
+    assert.ok(html.includes(fallback.match(/<path d="([^"]+)"/)![1]), `${slug}: the default icon's own path`);
+    assert.match(html, /Missing series · Part 1 of 1/);
+  }
 });

@@ -8,11 +8,14 @@ import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { SERIES } from '../data/series.ts';
+
+// The first series that has a hero (a hero is optional, ADR 0054).
+const HERO_SERIES = SERIES.find((meta) => meta.heroImage !== undefined)!;
 import { PREPARED_HERO_POLICY_SHA256 } from './prepared-heroes.ts';
 
 const sourceRoot = process.env.SERIES_HERO_SOURCE_ROOT ?? process.cwd();
 const view = {
-  ...SERIES[0], href: `/series/${SERIES[0].slug}/`,
+  ...HERO_SERIES, href: `/series/${HERO_SERIES.slug}/`,
   parts: [{ id: 'fixture', title: 'Fixture part', description: 'A series part.', pubDate: new Date('2026-10-01T00:00:00Z'), order: 1, stamp: 'fixture@v1' }],
 };
 const requireAstro = createRequire(createRequire(import.meta.url).resolve('astro/package.json'));

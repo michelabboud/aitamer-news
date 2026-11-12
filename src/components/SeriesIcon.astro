@@ -1,13 +1,15 @@
 ---
 /**
  * The series mark, inlined so it inherits `currentColor`. Hidden from assistive tech:
- * the series name sits in the text beside it.
+ * the series name sits in the text beside it. A series without its own icon (one a bot added
+ * through the series lane, ADR 0054) shows the neutral default until a person draws one.
  */
 import grokBot from '../assets/series-icons/grok-bot.svg?raw';
 import imageModels from '../assets/series-icons/ai-image-models.svg?raw';
 import movieModels from '../assets/series-icons/ai-movie-models.svg?raw';
 import voiceModels from '../assets/series-icons/ai-voice-models.svg?raw';
 import vectors from '../assets/series-icons/vectors-plainly.svg?raw';
+import fallback from '../assets/series-icons/default.svg?raw';
 
 interface Props {
   slug: string;
@@ -21,6 +23,6 @@ const ICONS: Record<string, string> = {
   'vectors-plainly': vectors,
 };
 
-const svg = ICONS[Astro.props.slug];
+const svg = Object.hasOwn(ICONS, Astro.props.slug) ? ICONS[Astro.props.slug] : fallback;
 ---
 {svg && <span class="series-icon" aria-hidden="true" set:html={svg} />}

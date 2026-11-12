@@ -1,57 +1,21 @@
 /**
- * Series a post can join. The slug is what frontmatter `series` names; the title and description
- * are what `/series/` and the part badge show. Add a row here before a post uses the slug.
- * Ordering of this list is the order of the index.
+ * Series a post can join. The rows live in `series.json` beside this file (ADR 0054): the slug is
+ * what frontmatter `series` names; the title and description are what `/series/` and the part
+ * badge show. Add a row there before a post uses the slug. The order of the rows is the order of
+ * the index.
+ *
+ * The JSON is data the Grok and Cursor Apps may change through the series lane; this module is the
+ * code that reads it, and no App may change it. `parseSeriesCatalog` checks every row, so a broken
+ * or hostile file fails the build instead of reaching a page. The file is read when the site is
+ * built; it is never copied into the site.
  */
-export interface SeriesMeta {
-  slug: string;
-  title: string;
-  description: string;
-  /**
-   * Optional remote hero, `https://…`. Leave both unset until the file is on the media host.
-   * A missing or blank image is omitted; the page does not show a broken picture.
-   */
-  heroImage?: string;
-  heroAlt?: string;
-}
+import catalog from './series.json' with { type: 'json' };
+import { parseSeriesCatalog } from '../lib/series-catalog.ts';
+import type { SeriesMeta } from '../lib/series.ts';
 
-export const SERIES: readonly SeriesMeta[] = [
-  {
-    slug: 'grok-bot',
-    title: 'Grok Bot tutorial',
-    description: 'Numbered tutorials on Grok Bot, from the desktop app and the shared computer through the phone.',
-    heroImage: 'https://bots.aitamer.news/heroes/series-grok-bot-a478a6b9.jpg',
-    heroAlt: 'Paper-cut laptop linked by a coral cord to a slate-blue desktop monitor on cream paper',
-  },
-  {
-    slug: 'ai-image-models',
-    title: 'AI image models',
-    description: 'Image models, one or two per part, answered on the same questions from each vendor\'s own pages.',
-    heroImage: 'https://bots.aitamer.news/heroes/series-ai-image-models-926c11a2.jpg',
-    heroAlt: 'Torn-paper frame around layered slate mountains under a small coral sun',
-  },
-  {
-    slug: 'ai-movie-models',
-    title: 'AI movie models',
-    description: 'Video models, one or two per part, answered on the same questions from each vendor\'s own pages.',
-    heroImage: 'https://bots.aitamer.news/heroes/series-ai-movie-models-2c4a00b4.jpg',
-    heroAlt: 'Paper film strip of three frames with a coral middle frame above torn cream paper',
-  },
-  {
-    slug: 'ai-voice-models',
-    title: 'AI voice models',
-    description: 'Voice models, one or two per part, answered on the same questions from each vendor\'s own pages.',
-    heroImage: 'https://bots.aitamer.news/heroes/series-ai-voice-models-55ff602e.jpg',
-    heroAlt: 'Torn-paper sound waves fanning out from a cream circle, one coral and one slate-blue',
-  },
-  {
-    slug: 'vectors-plainly',
-    title: 'Vectors, Plainly',
-    description: 'What a vector database does, in six parts: the idea, the index, tenancy, retrieval quality, RAG, and production.',
-    heroImage: 'https://bots.aitamer.news/heroes/series-vectors-plainly-2fcbf32f.jpg',
-    heroAlt: 'Slate-blue paper dots with a coral point linked to its two nearest neighbors',
-  },
-];
+export type { SeriesMeta };
+
+export const SERIES: readonly SeriesMeta[] = parseSeriesCatalog(catalog);
 
 export function seriesMeta(slug: string): SeriesMeta | undefined {
   return SERIES.find((series) => series.slug === slug);
