@@ -1445,3 +1445,9 @@
 1442 mbzuai-pan-2-open-world-model-apache-2
 1443 google-antigravity-swarm-preview-gemini-4-carbon
 1444 ace-music-v1-artificial-analysis-vocal-leaderboard-suno-v6
+1445 wfx-github-actions-secret-stealer-hijacked-accounts
+1446 ai-movie-models-ltx-2-5-vs-vidu-q4
+1447 mongodb-cve-2026-118383-pre-auth-crash-replica-sets
+1448 anthropic-fellows-worse-together-multi-user-agents-mamubench
+1449 duckdb-ducks-in-a-column-columnar-sql-field-guide
+1450 nvidia-openshell-cncf-sandbox-cedar-policies
