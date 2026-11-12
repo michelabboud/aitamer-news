@@ -37,6 +37,21 @@
   {
     "slug": "k8s-from-zero",
     "title": "Kubernetes from Zero",
-    "description": "Kubernetes from the first container to a production cluster, one part a day."
+    "description": "Kubernetes from the first container to a production cluster, one part a day.",
+    "arcs": [
+      { "name": "Foundations", "start": 1, "end": 12 },
+      { "name": "Workloads & Troubleshooting", "start": 13, "end": 26 },
+      { "name": "Under the Hood", "start": 27, "end": 38 },
+      { "name": "AKS", "start": 39, "end": 44 },
+      { "name": "EKS", "start": 45, "end": 50 },
+      { "name": "GKE & Edge", "start": 51, "end": 54 },
+      { "name": "Helm", "start": 55, "end": 60 },
+      { "name": "Networking", "start": 61, "end": 68 },
+      { "name": "Security", "start": 69, "end": 76 },
+      { "name": "Ecosystem", "start": 77, "end": 86 },
+      { "name": "Production Ops", "start": 87, "end": 97 },
+      { "name": "AI & GPU", "start": 98, "end": 103 },
+      { "name": "Certification", "start": 104 }
+    ]
   }
 ]

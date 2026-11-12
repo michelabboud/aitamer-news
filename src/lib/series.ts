@@ -11,6 +11,15 @@ import { isLive } from './schedule.ts';
 /** Lowercase slug: `grok-bot`, not a title. */
 export const SERIES_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** One stretch of a series whose size is fixed in the catalog, not counted from live posts. */
+export interface SeriesArc {
+  name: string;
+  /** First lesson number in this arc, inclusive. */
+  start: number;
+  /** Last lesson number in this arc, inclusive. Absent means the arc has no fixed end. */
+  end?: number;
+}
+
 export interface SeriesMeta {
   slug: string;
   title: string;
@@ -18,6 +27,8 @@ export interface SeriesMeta {
   /** Optional `https://` hero. Absent, blank, or any other value is not shown. */
   heroImage?: string;
   heroAlt?: string;
+  /** Optional fixed arc plan. Absent means the badge still counts live parts. */
+  arcs?: readonly SeriesArc[];
 }
 
 /** The fields a series check needs. A content entry satisfies this. */
@@ -59,6 +70,8 @@ export interface SeriesView {
   parts: SeriesPart[];
   heroImage?: string;
   heroAlt?: string;
+  /** Fixed arc plan, when this series opted in. */
+  arcs?: readonly SeriesArc[];
 }
 
 export interface SeriesPlacement {
@@ -70,17 +83,46 @@ export interface SeriesPlacement {
   order: number;
   prev?: SeriesPart;
   next?: SeriesPart;
-  /** Reader label, e.g. `Grok Bot tutorial · Part 3 of 7`. */
+  /**
+   * Reader label. Without arcs: `Grok Bot tutorial · Part 3 of 7` (live place and live count).
+   * With arcs: `Kubernetes from Zero · Foundations 1 of 12 · Lesson 1`.
+   */
   label: string;
   href: string;
+}
+
+/** The one arc that contains this lesson, or none when the plan does not cover it exactly once. */
+export function seriesArcAt(arcs: readonly SeriesArc[], lesson: number): SeriesArc | undefined {
+  const matches = arcs.filter((arc) => lesson >= arc.start && (arc.end === undefined || lesson <= arc.end));
+  return matches.length === 1 ? matches[0] : undefined;
 }
 
 export function seriesHref(slug: string): string {
   return `/series/${slug}/`;
 }
 
-export function seriesLabel(title: string, index: number, total: number): string {
-  return `${title} · Part ${index} of ${total}`;
+/**
+ * Badge text. `index` and `total` are the place among live parts. A series with `arcs` uses the
+ * lesson number (`series_order`) and the fixed plan instead, so the words do not move when a
+ * later part goes live. An arc with no `end` is open: `Title · Certification · Lesson 104`.
+ */
+export function seriesLabel(title: string, index: number, total: number, arcs?: readonly SeriesArc[], lesson?: number): string {
+  const number = lesson ?? index;
+  const arc = arcs?.length ? seriesArcAt(arcs, number) : undefined;
+  if (!arc) return `${title} · Part ${index} of ${total}`;
+  if (arc.end === undefined) return `${title} · ${arc.name} · Lesson ${number}`;
+  const within = number - arc.start + 1;
+  const size = arc.end - arc.start + 1;
+  return `${title} · ${arc.name} ${within} of ${size} · Lesson ${number}`;
+}
+
+/**
+ * Position text on a series page, in front of the date. Series without arcs keep `Part N`
+ * (the live place). A series with arcs shows the same label as the badge.
+ */
+export function seriesPartKicker(title: string, liveIndex: number, order: number, arcs?: readonly SeriesArc[]): string {
+  if (!arcs?.length || !seriesArcAt(arcs, order)) return `Part ${liveIndex}`;
+  return seriesLabel(title, liveIndex, liveIndex, arcs, order);
 }
 
 export function seriesMark(placement: SeriesPlacement | undefined): { href: string; label: string; slug: string } | undefined {
@@ -120,6 +162,10 @@ export function seriesProblems(posts: readonly SeriesPost[], catalog: readonly S
     if (count > 1) problems.push(`series catalog: "${slug}" is listed ${count} times`);
   }
   const known = new Set(catalog.map((meta) => meta.slug));
+  const arcsBySlug = new Map<string, readonly SeriesArc[]>();
+  for (const meta of catalog) {
+    if (meta.arcs?.length && !arcsBySlug.has(meta.slug)) arcsBySlug.set(meta.slug, meta.arcs);
+  }
   const orders = new Map<string, string[]>();
 
   for (const post of posts) {
@@ -136,6 +182,12 @@ export function seriesProblems(posts: readonly SeriesPost[], catalog: readonly S
     if (seriesSet && !orderSet) problems.push(`${post.id}: series_order is required when series is set`);
     if (orderSet && !seriesSet) problems.push(`${post.id}: series is required when series_order is set`);
     if (orderSet && !validOrder(post.seriesOrder)) problems.push(`${post.id}: series_order must be a positive integer`);
+    if (hasSeries(post.series) && validOrder(post.seriesOrder)) {
+      const arcs = arcsBySlug.get(post.series);
+      if (arcs && !seriesArcAt(arcs, post.seriesOrder)) {
+        problems.push(`${post.id}: series_order ${post.seriesOrder} is outside the arc plan for "${post.series}"`);
+      }
+    }
     if (hasSeries(post.series) && SERIES_SLUG.test(post.series) && validOrder(post.seriesOrder)) {
       const key = `${post.series}\0${post.seriesOrder}`;
       const ids = orders.get(key) ?? [];
@@ -196,6 +248,7 @@ export function seriesPlacements(
       parts,
       heroImage: meta.heroImage,
       heroAlt: meta.heroAlt,
+      ...(meta.arcs?.length ? { arcs: meta.arcs } : {}),
     };
     parts.forEach((part, i) => {
       placements.set(part.id, {
@@ -205,7 +258,7 @@ export function seriesPlacements(
         order: part.order,
         prev: parts[i - 1],
         next: parts[i + 1],
-        label: seriesLabel(meta.title, i + 1, parts.length),
+        label: seriesLabel(meta.title, i + 1, parts.length, meta.arcs, part.order),
         href: view.href,
       });
     });
@@ -218,6 +271,9 @@ export function seriesViewCacheMark(view: SeriesView): string {
   return JSON.stringify({
     slug: view.slug, title: view.title, description: view.description, href: view.href,
     heroImage: view.heroImage ?? null, heroAlt: view.heroAlt ?? null,
+    ...(view.arcs?.length
+      ? { arcs: view.arcs.map((arc) => (arc.end === undefined ? { name: arc.name, start: arc.start } : { name: arc.name, start: arc.start, end: arc.end })) }
+      : {}),
     parts: view.parts.map((part) => [part.id, part.order, part.stamp, part.title, part.description, part.pubDate.toISOString(), part.heroImage ?? null, part.heroAlt ?? null]),
   });
 }

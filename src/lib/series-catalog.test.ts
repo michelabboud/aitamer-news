@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  parseSeriesCatalog, SeriesCatalogError, SERIES_DESCRIPTION_MAX_LENGTH, SERIES_HERO_ALT_MAX_LENGTH, SERIES_TITLE_MAX_LENGTH,
+  parseSeriesCatalog, SeriesCatalogError, SERIES_ARC_NAME_MAX_LENGTH, SERIES_DESCRIPTION_MAX_LENGTH, SERIES_HERO_ALT_MAX_LENGTH, SERIES_TITLE_MAX_LENGTH,
 } from './series-catalog.ts';
 import { SERIES } from '../data/series.ts';
 import { SLUG_MAX_LENGTH } from '../../scripts/slug.mjs';
@@ -74,6 +74,37 @@ test('title, description and hero alt are trimmed plain text within their length
   refuses([row({ description: 'd'.repeat(SERIES_DESCRIPTION_MAX_LENGTH + 1) })], /description is longer than 240 characters/);
   refuses([row({ ...hero, heroAlt: 'a'.repeat(SERIES_HERO_ALT_MAX_LENGTH + 1) })], /heroAlt is longer than 200 characters/);
   refuses([row({ ...hero, heroAlt: '' })], /heroAlt is empty/);
+});
+
+const foundations = { name: 'Foundations', start: 1, end: 12 };
+const certification = { name: 'Certification', start: 13 };
+
+test('arcs are optional, and a plan is frozen with an open final arc allowed', () => {
+  const rows = parseSeriesCatalog([row({ arcs: [foundations, certification] }), row({ slug: 'second', title: 'Second' })]);
+  assert.deepEqual(rows[0].arcs, [foundations, certification]);
+  assert.equal(rows[1].arcs, undefined);
+  assert.ok(Object.isFrozen(rows[0].arcs) && Object.isFrozen(rows[0].arcs![0]));
+  assert.equal(parseSeriesCatalog([row({ arcs: [{ name: 'A'.repeat(SERIES_ARC_NAME_MAX_LENGTH), start: 1 }] })]).length, 1);
+});
+
+test('an arc plan must be a contiguous list of plain-text arcs starting at lesson 1', () => {
+  refuses([row({ arcs: 'Foundations' })], /arcs must be a non-empty array/);
+  refuses([row({ arcs: [] })], /arcs must be a non-empty array/);
+  refuses([row({ arcs: [null] })], /arcs\[1\]: must be an object/);
+  refuses([row({ arcs: [{ ...foundations, size: 12 }] })], /arcs\[1\]: unknown key "size"/);
+  refuses([row({ arcs: [{ name: ' padded', start: 1, end: 1 }] })], /arcs\[1\]: name has leading or trailing spaces/);
+  refuses([row({ arcs: [{ name: 'two\nlines', start: 1 }] })], /arcs\[1\]: name must be plain text/);
+  refuses([row({ arcs: [{ name: 'A'.repeat(SERIES_ARC_NAME_MAX_LENGTH + 1), start: 1 }] })], new RegExp(`name is longer than ${SERIES_ARC_NAME_MAX_LENGTH} characters`));
+  for (const start of [0, -1, 1.5, '1', true]) {
+    refuses([row({ arcs: [{ name: 'Foundations', start }] })], /arcs\[1\]: start must be a positive integer/);
+  }
+  refuses([row({ arcs: [{ name: 'Foundations', start: 1, end: 0 }] })], /arcs\[1\]: end must be an integer from start onward/);
+  refuses([row({ arcs: [{ name: 'Foundations', start: 1, end: '12' }] })], /arcs\[1\]: end must be an integer from start onward/);
+  refuses([row({ arcs: [{ name: 'Foundations', start: 2, end: 4 }] })], /arcs must start at lesson 1/);
+  refuses([row({ arcs: [foundations, { name: 'Next', start: 14, end: 15 }] })], /arcs\[2\] \("Next"\): starts at 14, leaving a gap after lesson 12/);
+  refuses([row({ arcs: [foundations, { name: 'Next', start: 12, end: 15 }] })], /arcs\[2\] \("Next"\): overlaps the previous arc, which ends at lesson 12/);
+  refuses([row({ arcs: [{ name: 'Open', start: 1 }, foundations] })], /arcs\[1\] \("Open"\): an arc without an end has to be the last one/);
+  refuses([row({ arcs: [foundations, { name: 'Foundations', start: 13 }] })], /arcs\[2\] \("Foundations"\): the name is already used/);
 });
 
 test('a hero is both fields or neither, on the media host, named for its own series', () => {

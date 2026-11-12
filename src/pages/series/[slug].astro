@@ -4,7 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import HeroImage from '../../components/HeroImage.astro';
 import { toJsonLd } from '../../lib/json-ld';
 import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
-import { seriesHero, seriesViews, seriesViewCacheMark } from '../../lib/series.ts';
+import { seriesHero, seriesPartKicker, seriesViews, seriesViewCacheMark } from '../../lib/series.ts';
 import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
 import { SITE, canonicalUrlFor, formatDate, getPublishedPosts, withBase } from '../../lib/site';
 
@@ -65,7 +65,7 @@ const hero = seriesHero(view);
           )}
           <div class="series-part__body">
             <p class="series-part__kicker">
-              Part {i + 1} · <time datetime={part.pubDate.toISOString()}>{formatDate(part.pubDate)}</time>
+              {seriesPartKicker(view.title, i + 1, part.order, view.arcs)} · <time datetime={part.pubDate.toISOString()}>{formatDate(part.pubDate)}</time>
             </p>
             <h2 class="series-part__title"><a href={withBase(`/posts/${part.id}/`)}>{part.title}</a></h2>
             <p class="series-part__desc">{part.description}</p>
