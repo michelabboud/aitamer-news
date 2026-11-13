@@ -3,6 +3,7 @@ title: "LiteLLM swaps its 18,000-line Python router for a Rust core in a dev pre
 description: "LiteLLM merged a Rust router core, deleted the Python router and moved proxy Redis traffic to Rust. It ships in v1.110.0-dev.1, not a stable release yet."
 pubDate: "2026-11-07T22:07:00Z"
 specimen: 1381
+updatedDate: "2026-11-13T07:25:00Z"
 section: rust
 subsection: ai
 tags:
@@ -30,6 +31,14 @@ sources:
     url: https://github.com/BerriAI/litellm/pull/50170
   - title: "GitHub: LiteLLM v1.110.0-dev.1"
     url: https://github.com/BerriAI/litellm/releases/tag/v1.110.0-dev.1
+  - title: "GitHub: LiteLLM v1.111.0-dev.1 (pre-release, 13 November 2026)"
+    url: https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.1
+  - title: "GitHub: feat(messages): serve anthropic messages on rust only (#51119)"
+    url: https://github.com/BerriAI/litellm/pull/51119
+  - title: "GitHub: LiteLLM commit for #50870 (router session pins on native Redis store)"
+    url: https://github.com/BerriAI/litellm/commit/9a1acee4a765549702e7f816cfd6aafd027de43b
+  - title: "GitHub: LiteLLM commit for #51383 (delete Python RedisBatch)"
+    url: https://github.com/BerriAI/litellm/commit/2be96aed13a0281666814cec7e74913ea1265520
 ---
 
 LiteLLM, the open-source LLM gateway and SDK, has moved its router onto Rust. Three pull requests merged on 5 and 6 November add a Rust router core, delete the Python one and move the proxy's Redis traffic to native Rust stores. All three ship in the [v1.110.0-dev.1 pre-release](https://github.com/BerriAI/litellm/releases/tag/v1.110.0-dev.1) from 7 November. The latest stable release, v1.108.2, does not list them.
@@ -49,3 +58,7 @@ The PRs do not promise faster routing: loading 2,000 deployments took 1.7 s on t
 ## Why this matters
 
 This follows the same pattern as [Anthropic's Rust port of the Messages API](/posts/anthropic-claude-messages-api-rust-port-claude-wrote-shadow-traffic/): keep Python at the edges, move the hot, stateful core to Rust behind parity tests. If you run LiteLLM with custom routing code or tests that touch router internals, try v1.110.0-dev.1 in staging now, since the Python fallback is gone. For why the failover path matters as much as model choice, see [Routing is two systems](/posts/routing-is-two-systems/).
+
+## Update, 13 November 2026: Anthropic messages go Rust-only in a dev prerelease
+
+The Rust port has kept going. [PR #51119](https://github.com/BerriAI/litellm/pull/51119) makes Anthropic's `/v1/messages` endpoint Rust-only in LiteLLM, with no `LITELLM_RUST` opt-in and no Python fallback; a call that still needs Python raises an error, and other providers keep their Python path. It is in the [1.111.0 dev prerelease](https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.1) (PyPI `1.111.0.dev1`); the latest stable release on PyPI is still 1.109.1. Separately, two changes merged to main on 13 November but not in that prerelease move the router's session pins onto a native Redis store ([#50870](https://github.com/BerriAI/litellm/commit/9a1acee4a765549702e7f816cfd6aafd027de43b)) and delete the Python `RedisBatch`, so every per-request Redis operation now runs through the native store ([#51383](https://github.com/BerriAI/litellm/commit/2be96aed13a0281666814cec7e74913ea1265520)).
