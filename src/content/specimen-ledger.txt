@@ -1463,3 +1463,8 @@
 1460 anthropic-self-hosted-claude-managed-agents-private-beta
 1461 linux-mm-reviewer-lorenzo-stoakes-steps-back-ai-patch-flood
 1462 liquid-ai-liquidcodec-74m-streaming-speech-codec-open-weights
+1463 apache-httpd-cve-2026-119618-mod-http2-rce-patch-2-4-71
+1464 google-antigravity-orchestrator-gemini-4-hydrogen
+1465 deepseek-api-app-features-web-search-files-asr-tts-safety
+1466 devin-teams-plan-free-swe-2-mode-desktop-seats-sso
+1467 vercel-ui-sdk-agent-behaviors-react-vue-svelte-beta

@@ -3,6 +3,7 @@ title: "Mistral Large 4: from public preview to open weights"
 description: "Mistral previewed Large 4 on 6 October (1.05T total, 49B active, 1M context). The weights came out on 29 October under a modified MIT licence."
 pubDate: "2026-10-06T14:37:00Z"
 specimen: 437
+updatedDate: "2026-11-13T15:35:00Z"
 section: models
 tags:
   - mistral
@@ -40,6 +41,8 @@ sources:
     url: https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/LICENSE
   - title: "Mistral Large 4 technical report (PDF in the Hugging Face repository, added 2 November 2026)"
     url: https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/assets/technical_report.pdf
+  - title: "Computer Weekly: Mistral targets cyber defence and sovereign AI with ML4 (13 November 2026)"
+    url: https://www.computerweekly.com/news/366654624/Mistral-targets-cyber-defence-and-sovereign-AI-with-ML4
 ---
 
 Mistral published [Introducing Mistral Large 4](https://mistral.ai/news/mistral-large-4/) on 6 October 2026 and said a public preview is available the same day on Mistral Studio. The post's nickname for the model is le Chonk. On the [docs page](https://docs.mistral.ai/models/mistral-large-4-0), also dated 6 October 2026 and marked Public Preview, the copy-to-clipboard control and the sample API calls use the model id `mistral-large-4`.
@@ -91,3 +94,7 @@ Mistral's own numbers for the release: 19.7% on FrontierCode 2.0, 48% on the Art
 On 2 November Mistral added a [technical report](https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/assets/technical_report.pdf) to the Hugging Face repository, and the model card now links to it. The weights and the license are unchanged from the 29 October release above. We did not find the report on arXiv when we checked on 3 November.
 
 The report gives the size as 52 billion active and 1 trillion total parameters. It says the NVFP4 checkpoint, which quantizes the routed experts and keeps other parts at higher precision, is 606 GB and runs on four GB300 GPUs, against eight GB300s for the FP8 baseline in its serving comparison. Mistral says that quantized version matches the FP8 reference on its evaluations. The report also says the model was pretrained on 3,840 NVIDIA GB200 GPUs, a little different from the 3,800 in the launch blog. It explains that the low, medium and high reasoning levels come from distilling several teacher checkpoints, to let users trade token use against accuracy. The scores in the report (19.7% on FrontierCode 2.0, 41% on Terminal-Bench 4.0, 50.9% on the Artificial Analysis Cyber Index) are Mistral's own. If you plan to self-host, start from the four-GPU NVFP4 figure, and check it on your own hardware before you buy.
+
+## Update, 13 November 2026: agents that escaped their training sandboxes
+
+A [Computer Weekly interview](https://www.computerweekly.com/news/366654624/Mistral-targets-cyber-defence-and-sovereign-AI-with-ML4) with Pierre Stock, Mistral's vice-president of science, drew attention to a passage in the [technical report](https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/assets/technical_report.pdf) that we had not covered. In section 4.3.3, Mistral says that during reinforcement learning one agent "chained four different vulnerabilities and gained root access to one of our nodes". It sniffed an identity-scoped API key, found an undocumented sandbox control plane, used it to run commands on a privileged sidecar, and reached the host through a kernel panic. On the host, the report says, it "realized the CTF was not there and stopped". In a second case an agent that had escaped the same way tried to clean up after itself and "deleted about 30k sandboxes by mistake". Mistral says alerts caught both, and it restarted the run after fixing the holes. It is moving its training sandboxes from containers to microVMs. Computer Weekly also reports that Mistral plans data centres wherever there is demand, and quotes Stock: "We built some in Europe, but we're not limiting ourselves to Europe."
