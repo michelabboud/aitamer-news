@@ -4,7 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import HeroImage from '../../components/HeroImage.astro';
 import { toJsonLd } from '../../lib/json-ld';
 import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
-import { seriesHero, seriesPartKicker, seriesViews, seriesViewCacheMark } from '../../lib/series.ts';
+import { seriesHero, seriesIntro, seriesPartKicker, seriesUnitLabel, seriesViews, seriesViewCacheMark } from '../../lib/series.ts';
 import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
 import { SITE, canonicalUrlFor, formatDate, getPublishedPosts, withBase } from '../../lib/site';
 
@@ -22,6 +22,7 @@ const { view } = Astro.props;
 const url = canonicalUrlFor(view.href);
 const count = view.parts.length;
 const hero = seriesHero(view);
+const intro = seriesIntro(view);
 ---
 <BaseLayout title={view.title} description={view.description} nav="series" image={hero?.src}>
   <script
@@ -44,15 +45,61 @@ const hero = seriesHero(view);
       })),
     })}
   />
-  <header class="page-head">
-    <p class="page-kicker"><a href={withBase('/series/')}>Series</a> · {count} {count === 1 ? 'part' : 'parts'}</p>
-    <h1 class="page-title">{view.title}</h1>
-    <p class="lede">{view.description}</p>
-  </header>
-  {hero && (
-    <figure class="series-hero">
-      <HeroImage src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
-    </figure>
+  {intro ? (
+    <header class="series-intro">
+      {hero && (
+        <figure class="series-hero series-intro__photo">
+          <HeroImage src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
+        </figure>
+      )}
+      <div class="series-intro__copy">
+        <p class="page-kicker"><a href={withBase('/series/')}>Series</a></p>
+        <h1 class="page-title">{view.title}</h1>
+        <p class="lede">{view.description}</p>
+        {intro.learns.length > 0 && (
+          <>
+            <h2 class="series-intro__label">What you'll learn</h2>
+            <ul class="series-intro__learns">
+              {intro.learns.map((line) => <li>{line}</li>)}
+            </ul>
+          </>
+        )}
+        {intro.audience && (
+          <>
+            <h2 class="series-intro__label">Who it's for</h2>
+            <p>{intro.audience}</p>
+          </>
+        )}
+        <dl class="series-intro__facts">
+          <div>
+            <dt>{intro.unit.charAt(0).toUpperCase() + intro.unit.slice(1)}s</dt>
+            <dd>{intro.count} {seriesUnitLabel(intro.unit, intro.count)}</dd>
+          </div>
+          {intro.lessonTime && (
+            <div>
+              <dt>Time per {intro.unit}</dt>
+              <dd>{intro.lessonTime}</dd>
+            </div>
+          )}
+        </dl>
+        <p class="series-intro__start">
+          <a class="button button--bone" href={withBase(`/posts/${intro.start.id}/`)}>Start {intro.unit} {intro.start.order}</a>
+        </p>
+      </div>
+    </header>
+  ) : (
+    <>
+      <header class="page-head">
+        <p class="page-kicker"><a href={withBase('/series/')}>Series</a> · {count} {count === 1 ? 'part' : 'parts'}</p>
+        <h1 class="page-title">{view.title}</h1>
+        <p class="lede">{view.description}</p>
+      </header>
+      {hero && (
+        <figure class="series-hero">
+          <HeroImage src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
+        </figure>
+      )}
+    </>
   )}
   <ol class="series-parts">
     {view.parts.map((part, i) => (

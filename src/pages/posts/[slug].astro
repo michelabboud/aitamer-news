@@ -52,6 +52,10 @@ import PinBadge from '../../components/PinBadge.astro';
 import { pinCacheMark } from '../../lib/home-pins.ts';
 import { loadHomepagePins } from '../../lib/shown-pins.ts';
 import SeriesBadge from '../../components/SeriesBadge.astro';
+import LessonKit from '../../components/LessonKit.astro';
+import { decorateCodeBoxes } from '../../lib/code-box-html.ts';
+import { parseCodeRails, sourceHasCodeRail } from '../../lib/code-rail.ts';
+import { readFileSync } from 'node:fs';
 import { seriesCacheMark } from '../../lib/series.ts';
 import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
 
@@ -100,6 +104,17 @@ const author = await resolveAuthor(post);
 if (!author) throw new Error(`Missing author for post ${post.id}`);
 const { Content } = await render(post);
 const data = post.data;
+const renderedHtml = (post as { rendered?: { html?: string; metadata?: { imagePaths?: string[] } } }).rendered;
+const postSource = post.filePath ? readFileSync(post.filePath, 'utf8') : '';
+let codeBoxHtml: string | null = null;
+if (sourceHasCodeRail(postSource)) {
+  const parsed = parseCodeRails(postSource);
+  if (parsed.fences.some((fence) => fence.railId)) {
+    if (!renderedHtml?.html) throw new Error(`${post.id}: code rails need the rendered markdown HTML`);
+    if (renderedHtml.metadata?.imagePaths?.length) throw new Error(`${post.id}: code rails cannot share a body with an Astro image import`);
+    codeBoxHtml = decorateCodeBoxes(renderedHtml.html, parsed.fences, parsed.rails);
+  }
+}
 const section = data.section as Section;
 const habitat = habitatOfPost(post);
 const generated = usesGeneratedCover(post);
@@ -309,9 +324,19 @@ const breadcrumbs = {
 
         {data.selfHostedVideo && !withdrawn && <SelfHostedVideo video={data.selfHostedVideo} origin={postFilesOrigin(data.heroImage)} />}
 
-        <div class="article__body">
-          <Content />
-        </div>
+        {data.lessonKit && <LessonKit id={data.lessonKit.id} />}
+
+        {codeBoxHtml ? (
+          <div class="article__body" set:html={codeBoxHtml} />
+        ) : (
+          <div class="article__body">
+            <Content />
+          </div>
+        )}
+        {codeBoxHtml && <script is:inline slot="head">document.documentElement.classList.add("js")</script>}
+        {codeBoxHtml && <script>
+          import '../../scripts/code-box.ts';
+        </script>}
 
         {data.video && <VideoEmbed video={data.video} publishedAt={data.pubDate} />}
 

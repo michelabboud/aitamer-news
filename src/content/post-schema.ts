@@ -201,6 +201,17 @@ export const postSchema = z
     /** `{ closed: true }` closes the post's comment thread. Absent means open (unless withdrawn). */
     comments: comments.optional(),
     /**
+     * Downloads for a lesson: cheat sheet, homework and answer key PDFs in `public/lessonkits/`,
+     * built by `scripts/lessonkit/`. `id` is the file slug (`k8s-02` → `aitamer-k8s-02-cheatsheet.pdf`).
+     * A lab zip with the same prefix is listed only when the file exists.
+     */
+    lessonKit: z
+      .object({
+        id: z.string().max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'lessonKit.id must be a lowercase slug'),
+      })
+      .strict()
+      .optional(),
+    /**
      * The id of an entry under `src/content/authors/`, e.g. `desk-bot`. A plain string here:
      * `content.config.ts` replaces this field with `reference('authors')` before the schema
      * reaches `defineCollection`, so the build also checks the id actually exists.

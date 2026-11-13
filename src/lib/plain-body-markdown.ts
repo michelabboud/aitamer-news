@@ -1,4 +1,5 @@
 import { satteri } from '@astrojs/markdown-satteri';
+import { codeRailPlugin } from './code-rail-plugin.ts';
 
 type Processor = ReturnType<typeof satteri>;
 type SharedOptions = Parameters<Processor['createRenderer']>[0];
@@ -10,7 +11,10 @@ function bodyImageSettings(shared: SharedOptions): SharedOptions {
 
 /** Public processor adapter: keep genuine Sätteri rendering, plugins, features and local-image checks. */
 export function plainBodyMarkdown(options: Parameters<typeof satteri>[0] = {}): Processor {
-  const engine = satteri(options);
+  const engine = satteri({
+    ...options,
+    mdastPlugins: [...(options.mdastPlugins ?? []), codeRailPlugin],
+  });
   const createMdxRenderer = engine.createMdxRenderer;
   if (!createMdxRenderer) throw new Error('The installed Sätteri processor does not support MDX');
   // Astro serializes options into both content and incremental cache digests; function bodies vanish.

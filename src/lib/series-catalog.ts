@@ -13,8 +13,8 @@
 import { SLUG_MAX_LENGTH } from '../../scripts/slug.mjs';
 import { SERIES_SLUG, type SeriesArc, type SeriesMeta } from './series.ts';
 
-/** The keys a row may carry. Anything else is refused. `arcs` is optional and comes last when a series uses it. */
-export const SERIES_KEYS = ['slug', 'title', 'description', 'heroImage', 'heroAlt', 'arcs'] as const;
+/** The keys a row may carry. Anything else is refused. `arcs` stays last. The lesson-page fields are optional. */
+export const SERIES_KEYS = ['slug', 'title', 'description', 'heroImage', 'heroAlt', 'audience', 'learns', 'lessonTime', 'unit', 'arcs'] as const;
 
 /** The keys one arc may carry. `end` is omitted only on an open final arc. */
 const ARC_KEYS = ['name', 'start', 'end'] as const;
@@ -27,6 +27,14 @@ export const SERIES_DESCRIPTION_MAX_LENGTH = 240;
 export const SERIES_HERO_ALT_MAX_LENGTH = 200;
 /** The longest arc display name, in characters. It sits in the same badge as the series title. */
 export const SERIES_ARC_NAME_MAX_LENGTH = 60;
+/** Who the series is for, on the series page. */
+export const SERIES_AUDIENCE_MAX_LENGTH = 240;
+/** One thing a reader learns. */
+export const SERIES_LEARN_MAX_LENGTH = 160;
+/** How many learn lines a series page will list. */
+export const SERIES_LEARNS_MAX = 8;
+/** The stated time for a lesson, in the catalog's words. */
+export const SERIES_LESSON_TIME_MAX_LENGTH = 80;
 
 /**
  * A series hero: a hashed JPEG on the media host's heroes folder, named for its own series
@@ -96,6 +104,12 @@ function parseArcs(value: unknown, where: string): readonly SeriesArc[] {
   return Object.freeze(arcs.map((arc) => Object.freeze(arc)));
 }
 
+function parseLearns(value: unknown, where: string): readonly string[] {
+  if (!Array.isArray(value) || value.length === 0) throw new SeriesCatalogError(`${where}: learns must be a non-empty array`);
+  if (value.length > SERIES_LEARNS_MAX) throw new SeriesCatalogError(`${where}: learns lists more than ${SERIES_LEARNS_MAX} lines`);
+  return Object.freeze(value.map((item, index) => plainText(item, where, `learns[${index + 1}]`, SERIES_LEARN_MAX_LENGTH)));
+}
+
 function plainText(value: unknown, where: string, field: string, max: number): string {
   if (typeof value !== 'string') throw new SeriesCatalogError(`${where}: ${field} must be a string`);
   if (value.trim() === '') throw new SeriesCatalogError(`${where}: ${field} is empty`);
@@ -143,6 +157,14 @@ export function parseSeriesCatalog(data: unknown): readonly SeriesMeta[] {
       if (match[1] !== slug) throw new SeriesCatalogError(`${where}: heroImage is named for series "${match[1]}", not "${slug}"`);
       meta.heroImage = image as string;
       meta.heroAlt = plainText(record.heroAlt, where, 'heroAlt', SERIES_HERO_ALT_MAX_LENGTH);
+    }
+    if ('audience' in record) meta.audience = plainText(record.audience, where, 'audience', SERIES_AUDIENCE_MAX_LENGTH);
+    if ('learns' in record) meta.learns = parseLearns(record.learns, where);
+    if ('lessonTime' in record) meta.lessonTime = plainText(record.lessonTime, where, 'lessonTime', SERIES_LESSON_TIME_MAX_LENGTH);
+    if ('unit' in record) {
+      const unit = plainText(record.unit, where, 'unit', 20);
+      if (!/^[a-z]+$/.test(unit)) throw new SeriesCatalogError(`${where}: unit must be a singular lowercase word`);
+      meta.unit = unit;
     }
     if ('arcs' in record) meta.arcs = parseArcs(record.arcs, where);
     return Object.freeze(meta);

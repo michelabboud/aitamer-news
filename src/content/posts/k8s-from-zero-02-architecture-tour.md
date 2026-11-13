@@ -17,6 +17,8 @@ draft: false
 heroImage: https://bots.aitamer.news/heroes/k8s-from-zero-02-architecture-tour-5ddf44dd.jpg
 heroAlt: "A cut-paper cutaway of a dusty-blue ship shows three cargo decks of cream crates joined by sand-coloured tubes to one coral hub, with a slate-blue ship's wheel on the bridge above."
 author: desk-bot
+lessonKit:
+  id: k8s-02
 wildness:
   rating: 1
   verified: "Ran every command on kind v0.33.0, Kubernetes v1.37.0 node, kubectl v1.37.2, 10 Nov 2026"
@@ -104,7 +106,7 @@ All commands below ran on our kind cluster `k8s-from-zero`. Names with random su
 
 **1. Look at the node.**
 
-```bash
+```bash rail=get-nodes
 kubectl get nodes -o wide
 ```
 
@@ -117,7 +119,7 @@ k8s-from-zero-control-plane   Ready    control-plane   2m39s   v1.37.0   172.18.
 
 **2. Find the control plane.** The components run as Pods in the `kube-system` namespace (a namespace is a folder for objects; part 6 covers them):
 
-```bash
+```bash rail=get-pods-system
 kubectl get pods -n kube-system -o wide
 ```
 
@@ -173,7 +175,7 @@ Same components, seen from below: containers that containerd runs.
 
 **5. Ask the API server how it feels.** It has [health endpoints](https://kubernetes.io/docs/reference/using-api/health-checks/); `/readyz?verbose` lists every internal check:
 
-```bash
+```bash rail=readyz
 kubectl get --raw='/readyz?verbose' | tail -3
 ```
 
@@ -185,7 +187,7 @@ readyz check passed
 
 **6. See what the API offers.** Every kind of object is an API resource:
 
-```bash
+```bash rail=api-resources
 kubectl api-resources | head -6
 ```
 
@@ -202,7 +204,7 @@ Our cluster listed 71 resource types (`kubectl api-resources --no-headers | wc -
 
 **7. See who is in charge.** In a cluster with several control-plane machines, only one scheduler and one controller manager act at a time; they hold a **Lease** object to prove it ([leases](https://kubernetes.io/docs/concepts/architecture/leases/)):
 
-```bash
+```bash rail=get-leases
 kubectl get leases -n kube-system
 ```
 
@@ -241,13 +243,13 @@ spec:
 
 In a second terminal, start watching events before you apply, so you see them in the order they happen:
 
-```bash
+```bash rail=watch-events
 kubectl get events --watch-only -o custom-columns=FROM:.source.component,REASON:.reason,KIND:.involvedObject.kind,NAME:.involvedObject.name
 ```
 
 Then, in the first terminal, apply with `-v=6`, which makes kubectl log every API request it sends with its response code (we cut the log prefix from each line):
 
-```bash
+```bash rail=apply-verbose
 kubectl apply -f web.yaml -v=6 2>&1 | grep 'verb='
 ```
 
@@ -279,7 +281,7 @@ Read it top to bottom: the Deployment controller scaled up a ReplicaSet, the Rep
 
 **9. Check the ownership chain and the binding.** Use one of your Pod names:
 
-```bash
+```bash rail=ownership
 kubectl get pod web-69977c9c79-sv68d -o jsonpath='{.spec.nodeName}{"\n"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{"\n"}'
 kubectl get replicaset -l app.kubernetes.io/name=web -o jsonpath='{.items[0].metadata.ownerReferences[0].kind}/{.items[0].metadata.ownerReferences[0].name}{"\n"}'
 ```
@@ -294,7 +296,7 @@ Deployment/web
 
 **10. Peek into etcd.** This is for learning only; in real life you never touch etcd by hand. The etcd Pod includes `etcdctl`, and the certificate paths are kubeadm's defaults:
 
-```bash
+```bash rail=etcd-get
 kubectl -n kube-system exec etcd-k8s-from-zero-control-plane -- etcdctl \
   --endpoints=https://127.0.0.1:2379 \
   --cacert=/etc/kubernetes/pki/etcd/ca.crt \
@@ -311,7 +313,7 @@ Your Deployment is a key in etcd, written there by the API server.
 
 **11. Switch the scheduler off.** Because the scheduler is a static Pod, moving its file out of the manifests folder makes the kubelet stop it. Then ask for two more replicas:
 
-```bash
+```bash rail=scheduler-off
 docker exec k8s-from-zero-control-plane mv /etc/kubernetes/manifests/kube-scheduler.yaml /root/
 kubectl get pods -n kube-system -l component=kube-scheduler
 kubectl scale deployment web --replicas=4
@@ -330,7 +332,7 @@ web-69977c9c79-vfjt9   1/1     Running   0          50s
 
 The controllers still did their part: the two new Pods exist. Nobody gave them a node, so they wait in `Pending`, and the two old Pods keep serving. `kubectl describe` on a new Pod shows `Node: <none>` and no events at all. Put the file back and the scheduler catches up:
 
-```bash
+```bash rail=scheduler-on
 docker exec k8s-from-zero-control-plane mv /root/kube-scheduler.yaml /etc/kubernetes/manifests/
 kubectl get pods -l app.kubernetes.io/name=web
 ```
@@ -345,7 +347,7 @@ web-69977c9c79-vfjt9   1/1     Running   0          75s
 
 **12. Clean up.**
 
-```bash
+```bash rail=delete-web
 kubectl delete -f web.yaml
 ```
 
@@ -409,3 +411,319 @@ status:
 - When one component stops, only its job stops: no scheduler means new Pods wait, and running Pods keep running.
 
 Next: part 3, your local lab, where you install kubectl and kind properly, compare them with minikube, k3d and Docker Desktop, and learn how kubeconfig and contexts decide which cluster you are talking to. Coming tomorrow.
+
+```rail
+id: "get-nodes"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "nodes"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "wide"
+        text: "An output format. The get examples describe -o wide as a table with more information than the default. The pod example names the node name as one extra column."
+```
+
+```rail
+id: "get-pods-system"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pods"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-n"
+        text: "Short form of --namespace. When you set it, this request is limited to that namespace."
+      - token: "kube-system"
+        text: "The namespace name passed to --namespace."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "wide"
+        text: "An output format. The get examples describe -o wide as a table with more information than the default. The pod example names the node name as one extra column."
+```
+
+```rail
+id: "readyz"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "--raw"
+        text: "Requests a raw URI from the API server, using the transport from the kubeconfig file."
+      - token: "'/readyz?verbose'"
+        text: "The URI. The API health endpoints page says /readyz reports whether the API server is ready to accept traffic, and that the verbose parameter prints each check and its status for a human operator. That page shows this kubectl command."
+      - token: "|"
+        text: "Shell. Sends the previous command's standard output to the next command."
+      - token: "tail"
+        text: "Shell. Prints the end of its input."
+      - token: "-3"
+        text: "Shell. How many lines tail prints. Here, the last 3."
+```
+
+```rail
+id: "api-resources"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "api-resources"
+        text: "Print the supported API resources on the server."
+      - token: "|"
+        text: "Shell. Sends the previous command's standard output to the next command."
+      - token: "head"
+        text: "Shell. Prints the beginning of its input."
+      - token: "-6"
+        text: "Shell. How many lines head prints. Here, the first 6."
+```
+
+```rail
+id: "get-leases"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "leases"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-n"
+        text: "Short form of --namespace. When you set it, this request is limited to that namespace."
+      - token: "kube-system"
+        text: "The namespace name passed to --namespace."
+```
+
+```rail
+id: "watch-events"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "events"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "--watch-only"
+        text: "Watch for changes to the requested objects. The get docs say this flag skips the initial list."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "custom-columns=FROM:.source.component,REASON:.reason,KIND:.involvedObject.kind,NAME:.involvedObject.name"
+        text: "custom-columns is an output format. The get examples write each column as a heading, a colon, and a JSONPath. The headings here are FROM, REASON, KIND and NAME. The paths are .source.component, .reason, .involvedObject.kind and .involvedObject.name."
+```
+
+```rail
+id: "apply-verbose"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "apply"
+        text: "Apply a configuration to a resource by file name or stdin. JSON and YAML are accepted. The apply docs say the resource is created if it does not exist yet."
+      - token: "-f"
+        text: "Short form of --filename. For apply, the file, directory or URL that contains the configuration."
+      - token: "web.yaml"
+        text: "The file named by --filename."
+      - token: "-v=6"
+        text: "Sets kubectl's log level. The quick reference says level 6 displays requested resources. The same table says level 8 displays HTTP request contents."
+      - token: "2>&1"
+        text: "Shell. Sends standard error to the same place as standard output, so the next command can read kubectl's log lines."
+      - token: "|"
+        text: "Shell. Sends the previous command's standard output to the next command."
+      - token: "grep"
+        text: "Shell. Prints input lines that match a pattern."
+      - token: "'verb='"
+        text: "Shell. The pattern grep looks for."
+```
+
+```rail
+id: "ownership"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pod"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "web-69977c9c79-sv68d"
+        text: "The object name. kubectl get lists resources by type and name."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "jsonpath='{.spec.nodeName}{\"\\n\"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{\"\\n\"}'"
+        text: "jsonpath is an output format. A template is JSONPath expressions in curly braces. {.spec.nodeName} reads that field. The JSONPath page says a double-quoted string inserts text, and its example uses {\"\\n\"} for a newline. The slash between the owner-reference expressions is text outside the braces, which that page prints as plain text. [0] is the first item, the same subscript the page uses in {.users[0].name}. The two fields are the owner reference kind and name."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "replicaset"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-l"
+        text: "Short form of --selector. A label query. The get docs say it supports '=', '==', '!=', 'in' and 'notin', and that matching objects must satisfy every constraint."
+      - token: "app.kubernetes.io/name=web"
+        text: "The label query. It asks for objects whose app.kubernetes.io/name label equals web."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "jsonpath='{.items[0].metadata.ownerReferences[0].kind}/{.items[0].metadata.ownerReferences[0].name}{\"\\n\"}'"
+        text: "jsonpath output for the first list item. {.items[0]} is the subscript the JSONPath page shows. The template prints that item's first owner-reference kind, a slash, its name, and a newline from {\"\\n\"}."
+```
+
+```rail
+id: "etcd-get"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "-n"
+        text: "Short form of --namespace. When you set it, this request is limited to that namespace."
+      - token: "kube-system"
+        text: "The namespace name passed to --namespace."
+      - token: "exec"
+        text: "Execute a command in a container. The synopsis is kubectl exec (POD | TYPE/NAME) -- COMMAND."
+      - token: "etcd-k8s-from-zero-control-plane"
+        text: "The Pod name passed to exec."
+      - token: "--"
+        text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
+      - token: "etcdctl"
+        text: "The command run in the container. The etcdctl README calls it a command line client for etcd."
+      - token: "\\"
+        text: "Shell. Continues the command on the next line."
+      - token: "--endpoints=https://127.0.0.1:2379"
+        text: "etcdctl flag. The etcdctl README uses --endpoints to name the etcd members a command talks to. The address here is https://127.0.0.1:2379."
+      - token: "--cacert=/etc/kubernetes/pki/etcd/ca.crt"
+        text: "etcdctl global flag for the TLS certificate authority file. The README lists --cacert among global flags and shows ETCDCTL_CACERT pointing at a certificate file. The path is the one in this command."
+      - token: "--cert=/etc/kubernetes/pki/etcd/server.crt"
+        text: "etcdctl global flag for the client certificate. The README lists --cert and ETCDCTL_CERT."
+      - token: "--key=/etc/kubernetes/pki/etcd/server.key"
+        text: "etcdctl global flag for the client key. The README lists --key and ETCDCTL_KEY."
+      - token: "get"
+        text: "etcdctl GET gets the key, or a range of keys when a range end is given."
+      - token: "/registry/deployments/default/web"
+        text: "The key get reads."
+      - token: "--keys-only"
+        text: "etcdctl GET option. The README says it gets only the keys."
+```
+
+```rail
+id: "scheduler-off"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "docker"
+        text: "The docker client. The lesson uses it because a kind node is a Docker container."
+      - token: "exec"
+        text: "docker exec runs the rest of the line in the named container. This line has no docker flags."
+      - token: "k8s-from-zero-control-plane"
+        text: "The container name."
+      - token: "mv"
+        text: "The command inside the container. It moves the first path to the second."
+      - token: "/etc/kubernetes/manifests/kube-scheduler.yaml"
+        text: "The source path."
+      - token: "/root/"
+        text: "The destination path."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pods"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-n"
+        text: "Short form of --namespace. When you set it, this request is limited to that namespace."
+      - token: "kube-system"
+        text: "The namespace name passed to --namespace."
+      - token: "-l"
+        text: "Short form of --selector. A label query. The get docs say it supports '=', '==', '!=', 'in' and 'notin', and that matching objects must satisfy every constraint."
+      - token: "component=kube-scheduler"
+        text: "The label query. It asks for objects whose component label equals kube-scheduler."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "scale"
+        text: "Set a new size for a deployment, replica set, replication controller, or stateful set."
+      - token: "deployment"
+        text: "The resource type, the TYPE in the scale synopsis TYPE NAME."
+      - token: "web"
+        text: "The object name."
+      - token: "--replicas=4"
+        text: "The new desired number of replicas. The scale command says --replicas is required."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pods"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-l"
+        text: "Short form of --selector. A label query. The get docs say it supports '=', '==', '!=', 'in' and 'notin', and that matching objects must satisfy every constraint."
+      - token: "app.kubernetes.io/name=web"
+        text: "The label query. It asks for objects whose app.kubernetes.io/name label equals web."
+```
+
+```rail
+id: "scheduler-on"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "docker"
+        text: "The docker client. The lesson uses it because a kind node is a Docker container."
+      - token: "exec"
+        text: "docker exec runs the rest of the line in the named container. This line has no docker flags."
+      - token: "k8s-from-zero-control-plane"
+        text: "The container name."
+      - token: "mv"
+        text: "The command inside the container. It moves the first path to the second."
+      - token: "/root/kube-scheduler.yaml"
+        text: "The source path."
+      - token: "/etc/kubernetes/manifests/"
+        text: "The destination path."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pods"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-l"
+        text: "Short form of --selector. A label query. The get docs say it supports '=', '==', '!=', 'in' and 'notin', and that matching objects must satisfy every constraint."
+      - token: "app.kubernetes.io/name=web"
+        text: "The label query. It asks for objects whose app.kubernetes.io/name label equals web."
+```
+
+```rail
+id: "delete-web"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "delete"
+        text: "Delete resources by file names, stdin, resources and names, or by resources and label selector."
+      - token: "-f"
+        text: "Short form of --filename. For delete, the file that contains the resource to delete. The delete examples include kubectl delete -f ./pod.json."
+      - token: "web.yaml"
+        text: "The file named by --filename."
+```
