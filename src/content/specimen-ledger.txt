@@ -1457,3 +1457,4 @@
 1454 microsoft-mdash-59-linux-kernel-bugs-33-cves
 1455 coreweave-database-ga-managed-postgres-inside-cks-pgvector
 1456 weekly-builders-roundup-2026-11-12
+1457 k8s-from-zero-02-architecture-tour
