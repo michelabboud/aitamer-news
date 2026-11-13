@@ -1458,3 +1458,8 @@
 1455 coreweave-database-ga-managed-postgres-inside-cks-pgvector
 1456 weekly-builders-roundup-2026-11-12
 1457 k8s-from-zero-02-architecture-tour
+1458 openai-daybreak-red-team-defense-factory-early-access
+1459 vscode-1-146-agents-inbox-model-compare-local-harness-deprecated
+1460 anthropic-self-hosted-claude-managed-agents-private-beta
+1461 linux-mm-reviewer-lorenzo-stoakes-steps-back-ai-patch-flood
+1462 liquid-ai-liquidcodec-74m-streaming-speech-codec-open-weights
