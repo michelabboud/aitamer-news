@@ -427,7 +427,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "wide"
-        text: "An output format. The get examples describe -o wide as a table with more information than the default. The pod example names the node name as one extra column."
+        text: "An output format: the default table plus more columns. For nodes the lesson's output adds INTERNAL-IP, OS-IMAGE, KERNEL-VERSION and CONTAINER-RUNTIME, among others."
 ```
 
 ```rail
@@ -449,7 +449,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "wide"
-        text: "An output format. The get examples describe -o wide as a table with more information than the default. The pod example names the node name as one extra column."
+        text: "An output format: the default table plus more columns. The get examples say it adds more information, such as the node name; the lesson's output shows IP and NODE."
 ```
 
 ```rail
@@ -603,7 +603,7 @@ items:
       - token: "kube-system"
         text: "The namespace name passed to --namespace."
       - token: "exec"
-        text: "Execute a command in a container. The synopsis is kubectl exec (POD | TYPE/NAME) -- COMMAND."
+        text: "Execute a command in a container. The synopsis is kubectl exec (POD | TYPE/NAME) [-c CONTAINER] [flags] -- COMMAND [args...]."
       - token: "etcd-k8s-from-zero-control-plane"
         text: "The Pod name passed to exec."
       - token: "--"
