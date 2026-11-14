@@ -1470,3 +1470,8 @@
 1467 vercel-ui-sdk-agent-behaviors-react-vue-svelte-beta
 1468 microsoft-365-global-outage-exchange-online-copilot
 1469 k8s-from-zero-03-your-local-lab
+1470 postgresql-18-7-fixes-52-cves-postgres-14-end-of-life
+1471 llama-cpp-ggml-v1-0-0-semantic-versioning-stable-c-api
+1472 ai-image-models-microsoft-mai-image
+1473 cloudflare-kitesurf-open-source-apache-2-agent-browser-workers
+1474 github-copilot-deprecates-fable-5-haiku-4-5-gemini-4-argon-dec-14
