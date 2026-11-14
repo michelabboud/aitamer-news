@@ -1475,3 +1475,6 @@
 1472 ai-image-models-microsoft-mai-image
 1473 cloudflare-kitesurf-open-source-apache-2-agent-browser-workers
 1474 github-copilot-deprecates-fable-5-haiku-4-5-gemini-4-argon-dec-14
+1475 bitrise-sev-1-security-incident-rotate-secrets
+1476 gemini-app-google-wallet-personal-intelligence-plaid
+1477 google-project-zero-full-90-disclosure-policy-ai-exploits
