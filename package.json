@@ -37,7 +37,8 @@
     "pin": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/pins.mjs pin",
     "unpin": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/pins.mjs unpin",
     "approve-pin": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/pins.mjs approve",
-    "check:pins": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-pins.mjs"
+    "check:pins": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/check-pins.mjs",
+    "build:lesson-kits": "node scripts/lessonkit/build.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.2",
@@ -52,9 +53,11 @@
   "allowScripts": {
     "esbuild": true
   },
-  "description": "AI Tamer news site (aitamer.news) \u2014 static Astro on Cloudflare Pages",
+  "description": "AI Tamer news site (aitamer.news) — static Astro on Cloudflare Pages",
   "devDependencies": {
-    "pagefind": "1.5.2"
+    "pagefind": "1.5.2",
+    "puppeteer-core": "25.17.0",
+    "qrcode": "1.5.4"
   },
   "license": "Apache-2.0"
 }

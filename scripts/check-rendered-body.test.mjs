@@ -693,6 +693,7 @@ test('after the build: no data store is a finding, never a pass', async () => {
  */
 const DYNAMIC_IDS = {
   'post.id': null, // <CommentCount id={post.id}>: the post's slug, used in a link, never as an element id
+  'data.lessonKit.id': null, // <LessonKit id={data.lessonKit.id}>: the kit slug, not an element id
   panelId: 'reactions-panel-grok-4-7',
   'comment.anchor': 'c-01K63M4Q3ZJ8W3Y8N5V2R7T9AB',
   'comment.nameId': 'c-01K63M4Q3ZJ8W3Y8N5V2R7T9AB-name',
@@ -711,6 +712,8 @@ const REVIEWED_DYNAMIC_LOOKUPS = {
   // container and to `article`, and the `c-<ULID>` shape is what DYNAMIC_IDS['comment.anchor'] already
   // protects from a heading id.
   'src/components/CommentsLive.astro: querySelector(`article[id="c-${id}"]`)': 'validated ULID, scoped to the thread, shape protected as comment.anchor',
+  // The id is aria-controls on a code-box button this page wrote. Those ids match /^codebox-/.
+  'src/scripts/code-box.ts: getElementById(id)': 'codebox dialog id from aria-controls, shape protected as /^codebox-/',
 };
 
 const SOURCE_EXTENSIONS = ['', '.ts', '.js', '.mjs', '.astro', '/index.ts', '/index.js'];

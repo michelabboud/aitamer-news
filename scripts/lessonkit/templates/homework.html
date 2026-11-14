@@ -1,0 +1,13 @@
+<div class="blk note">{{md homework.intro}}</div>
+{{#each homework.sections}}
+<h2 class="sec keep-next">{{title}} <span class="sec__hint">{{hint}}</span></h2>
+{{#each exercises}}
+<div class="ex">
+  <span class="ex__n">{{n}}</span>
+  <div>
+    <div class="ex__q">{{md q}}</div>
+    <div class="ex__lines">{{#each lineList}}<div class="ex__line"></div>{{/each}}</div>
+  </div>
+</div>
+{{/each}}
+{{/each}}

@@ -75,6 +75,7 @@ export const PROTECTED_IDS = Object.freeze(
     'corrections-title',
     'sunset-title',
     'sources-title',
+    'lesson-kit-title',
     // src/components/PostNarration.astro
     'narration-label',
     // src/components/Comments.astro and CommentForm.astro (`COMMENT_HELD_ANCHOR` is `comment-held`)
@@ -131,6 +132,8 @@ export const PROTECTED_ID_PATTERNS = Object.freeze([
   /^c-[0-9a-z]{26}(?:-name)?$/i,
   /^reactions-panel-/,
   /^user-content-/,
+  // Code-box dialogs the story page writes around a highlighted block (`src/lib/code-box-html.ts`).
+  /^codebox-/,
 ]);
 
 /** Whether a heading id would collide with an id the page defines or looks up. */
