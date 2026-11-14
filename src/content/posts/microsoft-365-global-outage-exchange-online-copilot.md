@@ -1,8 +1,9 @@
 ---
-title: "Microsoft 365 outage passes 22 hours: Outlook mail, Copilot Chat and Exchange-linked Teams features hit"
+title: "Microsoft 365 outage: Outlook mail, Copilot Chat and Exchange-linked Teams features hit for over a day, now restored"
 description: "Microsoft says servers failing automated health checks cut Exchange Online access and broke Copilot. It found no sign of an attack and promises a report."
 pubDate: "2026-11-13T16:35:00Z"
 specimen: 1468
+updatedDate: "2026-11-14T07:40:00Z"
 section: devops
 subsection: infra
 tags:
@@ -38,6 +39,10 @@ sources:
     url: https://www.bbc.com/news/live/cq5y10ge3dp3t
   - title: "AP News live: Microsoft services global outage"
     url: https://apnews.com/live/microsoft-services-global-outage-news-updates-11-13-2026
+  - title: "Microsoft 365 Status on X: cause statement (13 November 2026, 18:05 UTC)"
+    url: https://x.com/MSFT365Status/status/2121303408313303423
+  - title: "Microsoft 365 Status on X: service restored (14 November 2026, 06:09 UTC)"
+    url: https://x.com/MSFT365Status/status/2121485746334777593
 ---
 
 Microsoft 365 has been degraded worldwide since Thursday. The [Microsoft 365 Status account](https://x.com/MSFT365Status/status/2120938282204688468) first reported problems reaching Exchange Online mailboxes in the Americas at 17:54 UTC on 12 November, and within 15 minutes said users in any region could be affected. More than 22 hours later, the [service health page](https://status.cloud.microsoft/) still listed the incident as "Service degradation" in its 16:07 UTC update on Friday, with recovery under way but not finished.
@@ -77,4 +82,10 @@ Some practical steps, none of which need a root cause:
 - **Watch for outage phishing.** Security expert Ken Munro told the BBC that fake support messages about the outage could be used to "extract passwords from people and install malware".
 - **Write down the fallback.** A short plan for who talks where when email and calendars are gone is worth more than any vendor uptime figure. Our guide to [running an incident](/posts/incident-command-scribe-communications/) covers the roles.
 
-Microsoft's next status update was due by 18:00 UTC on Friday. We will update this post when the Post-Incident Report is published.
+Microsoft says a full post-incident report will follow once its review is complete. We will update this post when it is published.
+
+## Update, 14 November 2026: service restored, cause narrowed to a network change
+
+At 18:05 UTC on Friday, [Microsoft 365 Status](https://x.com/MSFT365Status/status/2121303408313303423) said: "This was a technical issue not related to cyber or AI / agents. The incident was introduced by an issue during an earlier network capacity upgrade that surfaced following a recent network change." Microsoft apologised for the disruption and said it restored services gradually, "validating stability at each stage", which took longer. Through Friday evening it reported [draining queued mail and rebalancing traffic](https://x.com/MSFT365Status/status/2121333700591857878), warning that sign-in could recover before mail flow did, and then [monitoring for an extended period](https://x.com/MSFT365Status/status/2121361358004400637) while the email backlog processed.
+
+At 06:09 UTC on Saturday, Microsoft [said it had](https://x.com/MSFT365Status/status/2121485746334777593) "completed our efforts to address the underlying issue of the incident and restored service to the remaining impacted customers and regions." Further updates are under MO1550821 in the Microsoft 365 admin center. The full post-incident report, with the root cause, is still to come.
