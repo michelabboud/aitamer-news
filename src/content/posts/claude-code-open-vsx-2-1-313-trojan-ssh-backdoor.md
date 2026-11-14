@@ -2,6 +2,7 @@
 title: "A trojanized Claude Code 2.1.313 in Cursor's marketplace planted an SSH backdoor"
 description: "Cursor's extension marketplace served a malicious Claude Code 2.1.313 that added an attacker SSH key and reverse tunnel. What Cursor users should check."
 pubDate: "2026-10-30T08:37:00Z"
+updatedDate: "2026-11-14T07:40:00Z"
 specimen: 1139
 section: general
 subsection: security
@@ -39,6 +40,8 @@ sources:
     url: https://news.ycombinator.com/item?id=50304129
   - title: "Connor Jones, Anthropic: That Claude Code extension compromise... couldn't be us (The Register, 30 October 2026)"
     url: https://www.theregister.com/cyber-crime/2026/10/30/anthropic-that-claude-code-extension-compromise-couldnt-be-us/5306682
+  - title: "Cursor: An update on our recent security incident (13 November 2026)"
+    url: https://cursor.com/blog/security-incident-update
 ---
 
 A malicious build of the Claude Code extension, labeled `anthropic.claude-code` version 2.1.313, was served by Cursor's own VS Code extension marketplace on 29 October, according to [Cursor's security notice](https://cursor.com/blog/claude-code-extension-security-notice) and the corrected [OpenSourceMalware analysis](https://opensourcemalware.com/blog/trojanized-claude-code-extension-plants-persistent-ssh-backdoor). Cursor says the build was not developed by Anthropic and that at most 5,000 of its users were affected. OpenSourceMalware now says the Claude Code builds on Open VSX, npm and Microsoft's VS Code Marketplace are not malicious. Its analysis found a 66-line loader placed in front of the normal extension code. The rest of the package, including the bundled Claude Code binary, matched the official release.
@@ -99,3 +102,13 @@ Cursor's advice if you installed or updated to 2.1.313 from its marketplace in t
 Anthropic has responded to suggestions that the tampered build came from a breach on its side. Felix Rieseberg, a member of Anthropic's technical staff, [wrote](https://news.ycombinator.com/item?id=50304129) that "it wasn't a compromise of Anthropic's systems or employee laptops," that "a malicious actor used access to Cursor's marketplace to publish a tampered copy of the Claude Code extension, which we didn't build or publish," and that versions on Anthropic's official channels are not affected. In the same thread another Anthropic engineer said 2.1.313 was never published on Open VSX, the Microsoft VS Code Marketplace or any Anthropic host, and that Anthropic numbered its next real release 2.1.314 so the two could not be confused.
 
 As [The Register notes](https://www.theregister.com/cyber-crime/2026/10/30/anthropic-that-claude-code-extension-compromise-couldnt-be-us/5306682), neither company has said how the tampered build reached Cursor's marketplace. The checks above are unchanged: they apply to anyone who installed 2.1.313 from Cursor's marketplace in the 29 October window, and not to users of other editors.
+
+## Update, 14 November 2026: Cursor traces the attack to a vendor key
+
+*Disclosure: aitamer.news is produced with Grok Bot and Cursor.*
+
+Cursor has published a [fuller account of the incident](https://cursor.com/blog/security-incident-update). It says the attack started with an access key Cursor had issued to Fireworks, its third-party training and inference vendor. Cursor says the key "was exposed by Fireworks" and was used to copy a read-only storage bucket of coding agent traces, mostly from 2025 and only from sessions not in Privacy Mode. Some of those traces held credentials that had not been redacted; Cursor puts that at "less than 0.01% of customers". From there, it says, the attacker reached some of Cursor's SaaS tools, archived non-production source code repositories, limited support data and email, usage metrics and contact details, summaries of some agent conversations, and some credentials users had sent to support.
+
+Using a credential from that data, the attacker placed the tampered `Anthropic.claude-code` builds on the cache that serves Cursor's VS Code extension marketplace on 29 October. Cursor says Open VSX itself never had the malware, that "at most 5,000 users" who requested those cached versions may have received it, and that it was available for about 11 hours. It says the last attacker activity it saw was on 1 November, and it was blocked.
+
+Cursor says Privacy Mode prompts and code, current traffic, production infrastructure, the Cursor app and its updates, release signing keys, customer code repositories and every other marketplace extension were not affected. It has moved all inference off Fireworks, rotated every exposed credential and, as a precaution, all internal credentials, added secret scanning, rebuilt the extension marketplace and redeployed production. Cursor says it has contacted affected customers directly. If you installed 2.1.312 or 2.1.313 from Cursor's marketplace in the window, its earlier advice stands: follow the security notice, because uninstalling the extension alone may not be enough.

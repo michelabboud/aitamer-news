@@ -2,6 +2,7 @@
 title: "Microsoft: Storm-0940 used the ARTEX AI agent framework to turn the ConnectWise breach into a tenant sweep"
 description: "Microsoft says a China-aligned group used ARTEX agents after the ConnectWise Cloud Backup breach, trying 2,250+ Microsoft 365 tenants. What to check."
 pubDate: "2026-10-22T11:07:00Z"
+updatedDate: "2026-11-14T07:40:00Z"
 specimen: 979
 section: devops
 subsection: security
@@ -29,6 +30,10 @@ sources:
     url: https://www.connectwise.com/company/trust/advisories
   - title: "CrowdStrike: VAPOR PANDA Uses AI-Driven ARTEX to Scale a Global Espionage Campaign (29 October 2026)"
     url: https://www.crowdstrike.com/en-us/blog/vapor-panda-uses-artex-to-scale-global-campaign/
+  - title: "FBI FLASH-20261113-001: Threat overview of ARTEX autonomous penetration testing framework (13 November 2026)"
+    url: https://www.ic3.gov/CSA/2026/261113.pdf
+  - title: "AWS Security Blog: Amazon Threat Intelligence observes threat actors running cybercrime campaigns with ARTEX AI agents"
+    url: https://aws.amazon.com/blogs/security/amazon-threat-intelligence-observes-threat-actors-running-cybercrime-campaigns-with-artex-ai-agents/
 ---
 
 [Microsoft Threat Intelligence](https://www.microsoft.com/en-us/security/blog/2026/10/21/storm-0940-uses-artex-agentic-ai-connectwise-supply-chain-compromise/) says a group it tracks as Storm-0940, which it calls China-state aligned, has used ARTEX, an agentic AI penetration-testing framework, to automate attacks on hundreds of organizations since as early as September. Microsoft also assesses that Storm-0940 was behind the recent compromise of ConnectWise Cloud Backup, a multi-tenant app with access to customers' Microsoft 365 environments.
@@ -70,3 +75,9 @@ According to CrowdStrike:
 - The agents chained an unsigned SAML assertion with an XXE flaw to reach a cloud metadata service, and in another case reused authentication keys from a 2022 mail-server export that had likely never been rotated.
 
 CrowdStrike reads this as a sign that ARTEX is spreading among several China-nexus groups. It recommends that defenders rotate signing keys and service credentials after any suspected exposure, including keys in old backups and directory exports; enforce SAML signature validation and IMDSv2; keep cloud roles' command permissions narrow; and hunt for `artx` or `artex` command-line strings, `artx`-prefixed cloud roles and the `C:\ProgramData\artx5v\` directory. The full IOC list is in CrowdStrike's post.
+
+## Update, 14 November 2026: the FBI issues a FLASH on ARTEX, and Amazon sees credential-theft campaigns
+
+The FBI has published [FLASH-20261113-001](https://www.ic3.gov/CSA/2026/261113.pdf), a TLP:CLEAR alert on ARTEX. It describes ARTEX as an open-source, LLM-driven agent platform written in Go that has been used "since at least August 2026" against financial services, government, technology, defense, healthcare and other sectors, with "some intrusions progressing from initial targeting to privileged access in under three hours." The FBI says ARTEX ships no model of its own and calls external providers, naming Anthropic Claude, OpenAI GPT, DeepSeek, GLM, Grok and Kimi, and that DeepSeek Flash models dominate the attacker instances analysed. It notes the original developer took the GitHub repository down on 8 October, but forks, mirrors and a commercial "ARTEX PRO" keep it available, and that researchers counted more than 1,600 publicly exposed ARTEX consoles in early November. The alert lists the ConnectWise Cloud Backup compromise covered above among the notable campaigns.
+
+Separately, [Amazon Threat Intelligence](https://aws.amazon.com/blogs/security/amazon-threat-intelligence-observes-threat-actors-running-cybercrime-campaigns-with-artex-ai-agents/) says its MadPot decoys, set up to look like LLM inference APIs, received requests from ARTEX agents between 3 October and 5 November that carried the agents' own campaign records. The largest campaign stole AI model credentials and fed them back into the framework's model gateway to pay for more hunting. Targets included LLM gateways and app builders such as LiteLLM, One API, Dify, Langflow, Open WebUI and Ollama. Another campaign tried to beat crypto-exchange identity checks with real-time deepfakes; Amazon says the vendor's server-side check rejected every attempt the agents recorded. Amazon attributes the activity to Chinese-nexus groups with moderate confidence and says it cannot verify the outcomes the agents reported. If you run any of those gateways on the internet, check that the admin interface is not exposed and rotate the provider keys it holds.
