@@ -3,7 +3,7 @@ title: "LiteLLM swaps its 18,000-line Python router for a Rust core in a dev pre
 description: "LiteLLM merged a Rust router core, deleted the Python router and moved proxy Redis traffic to Rust. It ships in v1.110.0-dev.1, not a stable release yet."
 pubDate: "2026-11-07T22:07:00Z"
 specimen: 1381
-updatedDate: "2026-11-13T07:25:00Z"
+updatedDate: "2026-11-14T07:40:00Z"
 section: rust
 subsection: ai
 tags:
@@ -39,6 +39,8 @@ sources:
     url: https://github.com/BerriAI/litellm/commit/9a1acee4a765549702e7f816cfd6aafd027de43b
   - title: "GitHub: LiteLLM commit for #51383 (delete Python RedisBatch)"
     url: https://github.com/BerriAI/litellm/commit/2be96aed13a0281666814cec7e74913ea1265520
+  - title: "GitHub: LiteLLM v1.111.0-dev.2 prerelease (13 November 2026)"
+    url: https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.2
 ---
 
 LiteLLM, the open-source LLM gateway and SDK, has moved its router onto Rust. Three pull requests merged on 5 and 6 November add a Rust router core, delete the Python one and move the proxy's Redis traffic to native Rust stores. All three ship in the [v1.110.0-dev.1 pre-release](https://github.com/BerriAI/litellm/releases/tag/v1.110.0-dev.1) from 7 November. The latest stable release, v1.108.2, does not list them.
@@ -61,4 +63,4 @@ This follows the same pattern as [Anthropic's Rust port of the Messages API](/po
 
 ## Update, 13 November 2026: Anthropic messages go Rust-only in a dev prerelease
 
-The Rust port has kept going. [PR #51119](https://github.com/BerriAI/litellm/pull/51119) makes Anthropic's `/v1/messages` endpoint Rust-only in LiteLLM, with no `LITELLM_RUST` opt-in and no Python fallback; a call that still needs Python raises an error, and other providers keep their Python path. It is in the [1.111.0 dev prerelease](https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.1) (PyPI `1.111.0.dev1`); the latest stable release on PyPI is still 1.109.1. Separately, two changes merged to main on 13 November but not in that prerelease move the router's session pins onto a native Redis store ([#50870](https://github.com/BerriAI/litellm/commit/9a1acee4a765549702e7f816cfd6aafd027de43b)) and delete the Python `RedisBatch`, so every per-request Redis operation now runs through the native store ([#51383](https://github.com/BerriAI/litellm/commit/2be96aed13a0281666814cec7e74913ea1265520)).
+The Rust port has kept going. [PR #51119](https://github.com/BerriAI/litellm/pull/51119) makes Anthropic's `/v1/messages` endpoint Rust-only in LiteLLM, with no `LITELLM_RUST` opt-in and no Python fallback; a call that still needs Python raises an error, and other providers keep their Python path. It is in the [1.111.0 dev prerelease](https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.1) (PyPI `1.111.0.dev1`); the latest stable release on PyPI is still 1.109.1. Separately, two changes merged to main on 13 November, and now included in the [1.111.0 dev.2 prerelease](https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.2) (PyPI `1.111.0.dev2`, uploaded 13 November), move the router's session pins onto a native Redis store ([#50870](https://github.com/BerriAI/litellm/commit/9a1acee4a765549702e7f816cfd6aafd027de43b)) and delete the Python `RedisBatch`, so every per-request Redis operation now runs through the native store ([#51383](https://github.com/BerriAI/litellm/commit/2be96aed13a0281666814cec7e74913ea1265520)). The dev.2 notes also move the health checks' deployment states onto a native store ([#50357](https://github.com/BerriAI/litellm/pull/50357)) and move Redis key construction out of router-core into the stores ([#50356](https://github.com/BerriAI/litellm/pull/50356)). It is still a prerelease; the latest stable release on PyPI remains 1.109.1.
