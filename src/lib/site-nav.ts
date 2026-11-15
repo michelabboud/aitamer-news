@@ -16,9 +16,14 @@ export interface NavLink {
   label: string;
 }
 
-/** The sections, in reading order: News, the topic habitats that carry a nav cell, then Voices. */
+/**
+ * The sections, in reading order: News, Series (moved up from More at Michel's word, 2026-11-15, so
+ * the series get a tab of their own), the topic habitats that carry a nav cell, then Voices. Rust went
+ * to More the same day, at the same word, to make the room.
+ */
 export const SECTION_LINKS: readonly NavLink[] = [
   { key: 'news', href: '/news/', label: 'News' },
+  { key: 'series', href: '/series/', label: 'Series' },
   ...HABITAT_LIST.filter((h) => h.inNav).map((h) => ({ key: h.slug, href: `/section/${h.slug}/`, label: h.name })),
   { key: 'voices', href: '/section/voices/', label: 'Voices' },
 ];
@@ -27,8 +32,8 @@ export const SECTION_LINKS: readonly NavLink[] = [
 export const MORE_LINKS: readonly NavLink[] = [
   { key: 'columns', href: '/columns/', label: 'Columns' },
   { key: 'general', href: '/section/general/', label: 'General' },
+  { key: 'rust', href: '/section/rust/', label: 'Rust' },
   { key: 'extinction-watch', href: '/extinction-watch/', label: 'Extinction Watch' },
-  { key: 'series', href: '/series/', label: 'Series' },
   { key: 'archive', href: '/archive/', label: 'Archive' },
   { key: 'habitats', href: '/section/', label: 'All habitats' },
 ];
