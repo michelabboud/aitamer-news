@@ -26,7 +26,7 @@ lessonKit:
   id: k8s-02
 ```
 
-`id` matches the JSON file and the campaign. The story page lists a file only when it exists under `public/lessonkits/`. If none of the four possible files exist, the page shows no box and no download link.
+`id` matches the JSON file and the campaign. The story page lists a file only when it exists under `public/lessonkits/`. If none of the four possible files exist, the page shows no box and no download link. The list is decided in `getStaticPaths` and passed into the page. Its fingerprint is part of the post's incremental cache key, so adding or replacing a kit file rebuilds that lesson.
 
 ## Build
 

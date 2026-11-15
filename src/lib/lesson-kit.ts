@@ -3,7 +3,7 @@
  * (Art Desk's templates) and committed under `public/lessonkits/`. A lab zip is listed only
  * when that file is actually there. Links inside the PDFs are built by `scripts/lessonkit/utm.mjs`.
  */
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 export const LESSON_KIT_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -32,12 +32,36 @@ export function lessonKitFilename(id: string, key: string, ext: string): string 
  * are left out. An empty list means the story page draws no box, so a merge without the PDFs
  * has no broken download links.
  */
-export function lessonKitLinks(id: string, dir: string): LessonKitLink[] {
+/** `public/lessonkits`, or `LESSON_KIT_DIR` when a test points somewhere else. */
+export function lessonKitDirectory(): string {
+  return process.env.LESSON_KIT_DIR ?? join(process.cwd(), 'public/lessonkits');
+}
+
+export interface LessonKitInventory {
+  links: LessonKitLink[];
+  /** Changes when a kit file appears, disappears, or is replaced. */
+  mark: string;
+}
+
+/**
+ * Files that exist in `dir` (usually `public/lessonkits`). Missing PDFs and a missing lab zip
+ * are left out. An empty list means the story page draws no box, so a merge without the PDFs
+ * has no broken download links.
+ */
+export function lessonKitInventory(id: string, dir: string): LessonKitInventory {
   const links: LessonKitLink[] = [];
+  const marks: string[] = [];
   for (const part of LESSON_KIT_PARTS) {
     const filename = lessonKitFilename(id, part.key, part.ext);
-    if (!existsSync(join(dir, filename))) continue;
+    const file = join(dir, filename);
+    if (!existsSync(file)) continue;
+    const stat = statSync(file);
     links.push({ key: part.key, label: part.label, filename, href: `/lessonkits/${filename}` });
+    marks.push(`${filename}:${stat.size}:${stat.mtimeMs}`);
   }
-  return links;
+  return { links, mark: marks.join('|') };
+}
+
+export function lessonKitLinks(id: string, dir: string): LessonKitLink[] {
+  return lessonKitInventory(id, dir).links;
 }

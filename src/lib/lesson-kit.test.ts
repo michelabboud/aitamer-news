@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { lessonKitLinks } from './lesson-kit.ts';
+import { lessonKitInventory, lessonKitLinks } from './lesson-kit.ts';
 import { withUtm } from '../../scripts/lessonkit/utm.mjs';
 
 test('withUtm stamps source, medium, campaign and content', () => {
@@ -35,6 +35,9 @@ test('a lesson kit lists only the files that exist, and an empty directory lists
     ]);
     assert.equal(lessonKitLinks('k8s-02', dir)[0].href, '/lessonkits/aitamer-k8s-02-cheatsheet.pdf');
     assert.equal(lessonKitLinks('k8s-02', dir).some((file) => file.key === 'homework'), false);
+    const first = lessonKitInventory('k8s-02', dir).mark;
+    writeFileSync(join(dir, 'aitamer-k8s-02-cheatsheet.pdf'), 'preview replaced');
+    assert.notEqual(lessonKitInventory('k8s-02', dir).mark, first);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

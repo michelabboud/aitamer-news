@@ -5,7 +5,7 @@
  */
 import { parseFragment } from 'parse5';
 import type { DefaultTreeAdapterMap } from 'parse5';
-import type { CodeFence, CodeRail, RailItem } from './code-rail.ts';
+import type { CodeRailPlan, RailItem } from './code-rail.ts';
 
 type Element = DefaultTreeAdapterMap['element'];
 
@@ -87,32 +87,32 @@ function itemControl(item: RailItem, code: string, box: number, itemIndex: numbe
   };
 }
 
-function renderBox(pre: string, fence: CodeFence, rail: CodeRail, index: number): string {
-  const parts = rail.items.map((item, itemIndex) => itemControl(item, fence.code, index, itemIndex));
-  const lang = fence.lang ? `<span class="codebox__lang">${esc(fence.lang)}</span>` : '';
-  return `<figure class="codebox"><div class="codebox__rail" role="group" aria-label="Code tools">${parts.map((part) => part.rail).join('')}</div><div class="codebox__main"><div class="codebox__bar">${lang}<button type="button" class="codebox__copy" data-codebox-copy>Copy</button><span class="codebox__status" role="status"></span></div>${pre}</div>${parts.map((part) => part.extra).join('')}</figure>`;
+function renderBox(pre: string, lang: string, code: string, rail: CodeRailPlan['rails'][number], index: number): string {
+  const parts = rail.items.map((item, itemIndex) => itemControl(item, code, index, itemIndex));
+  const label = lang ? `<span class="codebox__lang">${esc(lang)}</span>` : '';
+  return `<figure class="codebox"><div class="codebox__rail" role="group" aria-label="Code tools">${parts.map((part) => part.rail).join('')}</div><div class="codebox__main"><div class="codebox__bar">${label}<button type="button" class="codebox__copy" data-codebox-copy>Copy</button><span class="codebox__status" role="status"></span></div>${pre}</div>${parts.map((part) => part.extra).join('')}</figure>`;
 }
 
 /**
- * Insert a code box around each fence that names a rail. `fences` is the display-fence list
- * from `parseCodeRails` (sidecar fences already removed), in the same order as the rendered
- * `<pre>` elements. Throws when the two lists disagree.
+ * Wrap the `<pre>` elements whose code nodes named a rail. `plan.blocks` is that post's code
+ * nodes in renderer visit order, including indented code and fences inside blockquotes, and
+ * excluding `rail` sidecars. One block lines up with one rendered `<pre>`.
  */
-export function decorateCodeBoxes(html: string, fences: readonly CodeFence[], rails: readonly CodeRail[]): string {
-  if (!fences.some((fence) => fence.railId)) return html;
-  const byId = new Map(rails.map((rail) => [rail.id, rail]));
+export function decorateCodeBoxes(html: string, plan: CodeRailPlan): string {
+  if (!plan.blocks.some((block) => block.railId)) return html;
+  const byId = new Map(plan.rails.map((rail) => [rail.id, rail]));
   const spans = preSpans(html);
-  if (spans.length !== fences.length) {
-    throw new CodeBoxError(`rendered <pre> count is ${spans.length} and code fence count is ${fences.length}`);
+  if (spans.length !== plan.blocks.length) {
+    throw new CodeBoxError(`rendered <pre> count is ${spans.length} and Markdown code-node count is ${plan.blocks.length}`);
   }
   let out = html;
   for (let i = spans.length - 1; i >= 0; i--) {
-    const fence = fences[i];
-    if (!fence.railId) continue;
-    const rail = byId.get(fence.railId);
-    if (!rail) throw new CodeBoxError(`code fence rail=${fence.railId} has no sidecar`);
+    const block = plan.blocks[i];
+    if (!block.railId) continue;
+    const rail = byId.get(block.railId);
+    if (!rail) throw new CodeBoxError(`code fence rail=${block.railId} has no sidecar`);
     const pre = out.slice(spans[i].start, spans[i].end);
-    out = out.slice(0, spans[i].start) + renderBox(pre, fence, rail, i) + out.slice(spans[i].end);
+    out = out.slice(0, spans[i].start) + renderBox(pre, block.lang, block.code, rail, i) + out.slice(spans[i].end);
   }
   return out;
 }

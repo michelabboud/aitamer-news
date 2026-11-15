@@ -25,7 +25,7 @@ items:
 ````
 
 - `rail=<id>` is one token in the fence info string. The id is a lowercase slug, unique in the post.
-- The `rail` fence is YAML. It is removed before the page is rendered, so readers never see it.
+- The `rail` fence is YAML. It is removed before the page is rendered, so readers never see it. The renderer reads the rail from the Markdown tree it is about to highlight, including a fence inside a blockquote. Indented code is a highlighted block too, and it stays in that same order, so it does not shift which block the rail wraps.
 - Every `rail=` id needs a sidecar, and every sidecar needs a fence. A mismatch fails the build.
 - Text is plain: no HTML, no line breaks inside a value. Quote values that contain `:` or `#`.
 

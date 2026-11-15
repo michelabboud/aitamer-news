@@ -111,8 +111,26 @@ export function stripRailMeta(meta: string): string {
   return meta.replace(/(?:^|\s)rail=[a-z0-9]+(?:-[a-z0-9]+)*(?=\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * A code node the renderer keeps, in the same order as the `<pre>` elements it emits.
+ * `railId` is set when the fence info string named a rail. Indented code and fences
+ * inside blockquotes are included, because the renderer turns those into `<pre>` too.
+ */
+export interface DisplayCodeBlock {
+  lang: string;
+  code: string;
+  railId?: string;
+}
+
+/** The rail plan collected from the Markdown AST while that post is rendered. */
+export interface CodeRailPlan {
+  blocks: DisplayCodeBlock[];
+  rails: CodeRail[];
+}
+
 export function sourceHasCodeRail(source: string): boolean {
-  return /(^|\n)[ ]{0,3}(?:`{3,}|~{3,})[^\n]*\brail=/.test(source) || /(^|\n)[ ]{0,3}(?:`{3,}|~{3,})rail\b/.test(source);
+  return /(?:^|\n)(?:>[ \t]*)*[ ]{0,3}(?:`{3,}|~{3,})[^\n]*\brail=/.test(source)
+    || /(?:^|\n)(?:>[ \t]*)*[ ]{0,3}(?:`{3,}|~{3,})rail\b/.test(source);
 }
 
 function plain(value: unknown, where: string, max: number, pattern = NOT_PLAIN): string {
@@ -162,7 +180,7 @@ function parseItem(value: unknown, where: string): RailItem {
   return { kind, label, calc };
 }
 
-function parseRailDocument(body: string, where: string): CodeRail {
+export function parseRailDocument(body: string, where: string): CodeRail {
   let data: unknown;
   try {
     data = load(body, { schema: JSON_SCHEMA });

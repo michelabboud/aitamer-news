@@ -1,10 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { satteri } from '@astrojs/markdown-satteri';
 import { decorateCodeBoxes } from './code-box-html.ts';
-import { codeRailPlugin } from './code-rail-plugin.ts';
-import { parseCodeRails, RAIL_REGISTRY } from './code-rail.ts';
+import { parseCodeRails, RAIL_REGISTRY, type CodeRailPlan } from './code-rail.ts';
+import { plainBodyMarkdown } from './plain-body-markdown.ts';
 
 const sample = `---
 title: x
@@ -55,14 +54,23 @@ test('a rail sidecar is parsed and a bad href is refused', () => {
   assert.throws(() => parseCodeRails(sample.replace('https://kubernetes.io', 'javascript:alert(1)')), /https URL or a site path/);
 });
 
+const highlight = { syntaxHighlight: 'shiki' as const, shikiConfig: { theme: 'github-dark' } };
+
+async function renderPlanned(markdown: string): Promise<{ code: string; plan: CodeRailPlan }> {
+  const renderer = await plainBodyMarkdown().createRenderer(highlight);
+  const rendered = await renderer.render(markdown);
+  const plan = (rendered.metadata as { codeRailPlan?: CodeRailPlan }).codeRailPlan;
+  assert.ok(plan, 'the renderer records a rail plan from the Markdown AST');
+  return { code: rendered.code, plan };
+}
+
 test('the markdown plugin drops the sidecar and the rail token, and the page wraps the block', async () => {
-  const engine = satteri({ mdastPlugins: [codeRailPlugin] });
-  const rendered = await engine.createRenderer({ syntaxHighlight: 'shiki', shikiConfig: { theme: 'github-dark' } }).then((renderer) => renderer.render(sample));
-  assert.doesNotMatch(rendered.code, /Explain this command|rail fence|replica-count/);
-  assert.match(rendered.code, /data-language="bash"/);
-  assert.match(rendered.code, /data-language="text"/);
-  const parsed = parseCodeRails(sample);
-  const html = decorateCodeBoxes(rendered.code, parsed.fences, parsed.rails);
+  const { code, plan } = await renderPlanned(sample);
+  assert.doesNotMatch(code, /Explain this command|replica-count/);
+  assert.match(code, /data-language="bash"/);
+  assert.match(code, /data-language="text"/);
+  assert.equal(plan.blocks.filter((block) => block.railId).length, 1);
+  const html = decorateCodeBoxes(code, plan);
   assert.match(html, /<button type="button" class="codebox__copy"/);
   assert.match(html, /aria-haspopup="dialog"/);
   assert.match(html, /aria-labelledby="codebox-0-title-0"/);
@@ -71,7 +79,45 @@ test('the markdown plugin drops the sidecar and the rail token, and the page wra
   assert.match(html, /href="https:\/\/kubernetes\.io\/docs\/reference\/kubectl\/generated\/kubectl_get\/"/);
   assert.match(html, /not available on this page yet/);
   assert.match(html, /2&gt;&amp;1/);
-  assert.ok(html.includes(rendered.code.match(/<pre[\s\S]*?<\/pre>/)[0]));
+  assert.ok(html.includes(code.match(/<pre[\s\S]*?<\/pre>/)![0]));
+});
+
+const sidecar = `\`\`\`rail
+id: demo
+items:
+  - kind: explain
+    label: Explain this command
+    lines:
+      - token: echo
+        text: Prints its arguments.
+\`\`\``;
+
+test('an indented code block before a rail fence does not shift the wrapped pre', async () => {
+  const markdown = `    echo earlier\n\n\`\`\`sh rail=demo\necho hi\n\`\`\`\n\n${sidecar}\n`;
+  const { code, plan } = await renderPlanned(markdown);
+  assert.equal(plan.blocks.length, 2);
+  assert.equal(plan.blocks[0].railId, undefined);
+  assert.equal(plan.blocks[1].railId, 'demo');
+  const html = decorateCodeBoxes(code, plan);
+  assert.equal(html.match(/class="codebox"/g)?.length, 1);
+  assert.match(html, /echo earlier/);
+  assert.ok(html.indexOf('echo earlier') < html.indexOf('class="codebox"'));
+  assert.match(html, /Prints its arguments/);
+});
+
+test('a rail fence inside a blockquote is read from the Markdown tree and wrapped', async () => {
+  const markdown = ['> ```sh rail=demo', '> echo hi', '> ```', '>', ...sidecar.split('\n').map((line) => `> ${line}`)].join('\n');
+  const { code, plan } = await renderPlanned(markdown);
+  assert.equal(plan.blocks.length, 1);
+  assert.equal(plan.blocks[0].railId, 'demo');
+  assert.doesNotMatch(code, /Prints its arguments/);
+  const html = decorateCodeBoxes(code, plan);
+  assert.match(html, /class="codebox"/);
+  assert.match(html, /Prints its arguments/);
+});
+
+test('a fence without its sidecar fails while the Markdown tree is read', async () => {
+  await assert.rejects(() => renderPlanned('```sh rail=demo\necho hi\n```\n'), /has no rail sidecar/);
 });
 
 test('lesson 2 gives every kubectl command fence a rail', () => {

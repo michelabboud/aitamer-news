@@ -2,7 +2,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -156,4 +157,30 @@ test('the real series route maps article hero metadata and invalidates thumbnail
   assert.notEqual(changed.cacheKey, before.cacheKey);
   Object.assign(current.posts[1].data, { heroAlt: 'Changed sibling cover' });
   assert.notEqual((await result()).cacheKey, changed.cacheKey);
+});
+
+test('post cache key changes when a lesson kit file appears, and the page receives that inventory', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lesson-kit-cache-'));
+  const previous = process.env.LESSON_KIT_DIR;
+  process.env.LESSON_KIT_DIR = dir;
+  try {
+    current = fixture();
+    current.posts[0].data.lessonKit = { id: 'demo' };
+    const buildPaths = await loadKeyBuilder('src/pages/posts/[slug].astro');
+    const row = async () => (await buildPaths()).find((item: { params: { slug: string } }) => item.params.slug === 'listed');
+    const before = await row();
+    assert.deepEqual(before.props.lessonKitLinks, []);
+    writeFileSync(join(dir, 'aitamer-demo-cheatsheet.pdf'), 'sheet');
+    const withSheet = await row();
+    assert.notEqual(withSheet.cacheKey, before.cacheKey);
+    assert.deepEqual(withSheet.props.lessonKitLinks.map((file: { key: string }) => file.key), ['cheatsheet']);
+    writeFileSync(join(dir, 'aitamer-demo-lab.zip'), 'zip');
+    const withZip = await row();
+    assert.notEqual(withZip.cacheKey, withSheet.cacheKey);
+    assert.deepEqual(withZip.props.lessonKitLinks.map((file: { key: string }) => file.key), ['cheatsheet', 'lab']);
+  } finally {
+    if (previous === undefined) delete process.env.LESSON_KIT_DIR;
+    else process.env.LESSON_KIT_DIR = previous;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
