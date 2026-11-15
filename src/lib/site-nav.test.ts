@@ -5,12 +5,12 @@ import { MORE_LINKS, PHONE_MENU_LINKS, SECTION_LINKS, UTILITY_LINKS, navCurrent 
 const labels = (links: readonly { label: string }[]) => links.map((l) => l.label);
 const byKey = (key: string) => [...SECTION_LINKS, ...MORE_LINKS, ...PHONE_MENU_LINKS].find((l) => l.key === key)!;
 
-test('the top bar sections are the plan’s seven, in order', () => {
-  assert.deepEqual(labels(SECTION_LINKS), ['News', 'Models', 'Dev', 'Tools', 'DevOps & IT', 'Rust', 'Voices']);
+test('the top bar sections are seven, with Series right after News and Rust moved to More', () => {
+  assert.deepEqual(labels(SECTION_LINKS), ['News', 'Series', 'Models', 'Dev', 'Tools', 'DevOps & IT', 'Voices']);
 });
 
-test('More holds Columns, General, Extinction Watch, Series, Archive and All habitats', () => {
-  assert.deepEqual(labels(MORE_LINKS), ['Columns', 'General', 'Extinction Watch', 'Series', 'Archive', 'All habitats']);
+test('More holds Columns, General, Rust, Extinction Watch, Archive and All habitats', () => {
+  assert.deepEqual(labels(MORE_LINKS), ['Columns', 'General', 'Rust', 'Extinction Watch', 'Archive', 'All habitats']);
 });
 
 test('no link appears twice across the sections, More and the utility links', () => {
@@ -51,10 +51,19 @@ test('pages in the More menu are marked inside it', () => {
   const more = (path: string, extra = {}) => MORE_LINKS.some((l) => navCurrent(l, { path, ...extra }) !== undefined);
   assert.equal(more('/columns/2/', { nav: 'columns' }), true);
   assert.equal(more('/posts/x/', { habitat: 'general' }), true);
+  assert.equal(more('/section/rust/'), true);
+  assert.equal(more('/posts/y/', { habitat: 'rust' }), true);
   assert.equal(more('/archive/'), true);
   assert.equal(more('/archive/2026/10/'), false);
-  assert.equal(more('/series/'), true);
-  assert.equal(more('/series/grok-bot/', { nav: 'series' }), true);
+  assert.equal(more('/series/'), false);
+  assert.equal(more('/series/grok-bot/', { nav: 'series' }), false);
   assert.equal(more('/section/dev/'), false);
   assert.equal(more('/'), false);
+});
+
+test('the Series tab is current on the index and inside a series', () => {
+  const series = SECTION_LINKS.find((l) => l.key === 'series')!;
+  assert.equal(navCurrent(series, { path: '/series/' }), 'page');
+  assert.equal(navCurrent(series, { path: '/series/grok-bot/', nav: 'series' }), 'true');
+  assert.equal(navCurrent(series, { path: '/news/' }), undefined);
 });
