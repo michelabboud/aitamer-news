@@ -94,8 +94,8 @@ function renderBox(pre: string, fence: CodeFence, rail: CodeRail, index: number)
 }
 
 /**
- * Insert a code box around each fence that names a rail. `fences` is the display-fence list
- * from `parseCodeRails` (sidecar fences already removed), in the same order as the rendered
+ * Insert a code box around each fence that names a rail. `fences` contains every displayed
+ * Markdown code block from `parseCodeRails`, including indented and nested code, in rendered
  * `<pre>` elements. Throws when the two lists disagree.
  */
 export function decorateCodeBoxes(html: string, fences: readonly CodeFence[], rails: readonly CodeRail[]): string {

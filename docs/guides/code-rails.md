@@ -28,6 +28,9 @@ items:
 - The `rail` fence is YAML. It is removed before the page is rendered, so readers never see it.
 - Every `rail=` id needs a sidecar, and every sidecar needs a fence. A mismatch fails the build.
 - Text is plain: no HTML, no line breaks inside a value. Quote values that contain `:` or `#`.
+- Rails and sidecars work inside blockquotes and lists. Ordinary nested and indented code remains in place.
+- Literal fence examples inside code and examples in frontmatter do not define rails.
+- Use Markdown code blocks in a post with rails. Raw HTML `<pre>` blocks cause a code-block count mismatch and fail the build, so a rail cannot attach to the wrong block.
 
 The copy button is on every rail block. It copies the highlighted code. With JavaScript off, the code is still there to select.
 

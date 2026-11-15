@@ -55,6 +55,7 @@
   },
   "description": "AI Tamer news site (aitamer.news) — static Astro on Cloudflare Pages",
   "devDependencies": {
+    "esbuild": "0.28.2",
     "pagefind": "1.5.2",
     "puppeteer-core": "25.17.0",
     "qrcode": "1.5.4"

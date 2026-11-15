@@ -9,6 +9,7 @@
  * dialog with a real calculator without a new authoring syntax.
  */
 import { JSON_SCHEMA, load } from 'js-yaml';
+import { markdownToMdast, type MdastNode } from 'satteri';
 
 export const RAIL_KINDS = ['explain', 'link', 'calc'] as const;
 export type RailKind = (typeof RAIL_KINDS)[number];
@@ -84,13 +85,13 @@ export interface CodeRail {
 export interface CodeFence {
   lang: string;
   meta: string;
-  /** Fence body, without a trailing newline. */
+  /** Code value from the Markdown parser, with container indentation removed. */
   code: string;
   railId?: string;
 }
 
 export interface ParsedCodeRails {
-  /** Display fences in source order. Sidecar `rail` fences are not included. */
+  /** All displayed Markdown code blocks in source order, including nested and indented code. */
   fences: CodeFence[];
   rails: CodeRail[];
 }
@@ -112,7 +113,18 @@ export function stripRailMeta(meta: string): string {
 }
 
 export function sourceHasCodeRail(source: string): boolean {
-  return /(^|\n)[ ]{0,3}(?:`{3,}|~{3,})[^\n]*\brail=/.test(source) || /(^|\n)[ ]{0,3}(?:`{3,}|~{3,})rail\b/.test(source);
+  return codeNodes(source).some((node) => node.lang === 'rail' || /(?:^|\s)rail=/.test(node.meta ?? ''));
+}
+
+/** Use the renderer's parser so containers, frontmatter and literal examples agree everywhere. */
+function codeNodes(source: string): Extract<MdastNode, { type: 'code' }>[] {
+  const nodes: Extract<MdastNode, { type: 'code' }>[] = [];
+  const visit = (node: MdastNode) => {
+    if (node.type === 'code') nodes.push(node);
+    if ('children' in node && node.children) node.children.forEach(visit);
+  };
+  visit(markdownToMdast(source));
+  return nodes;
 }
 
 function plain(value: unknown, where: string, max: number, pattern = NOT_PLAIN): string {
@@ -178,51 +190,25 @@ function parseRailDocument(body: string, where: string): CodeRail {
   return { id, items: record.items.map((item, index) => parseItem(item, `${where} items[${index + 1}]`)) };
 }
 
-function fenceMarker(line: string): { char: '`' | '~'; size: number; info: string } | null {
-  const match = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
-  if (!match) return null;
-  const marker = match[1];
-  return { char: marker[0] as '`' | '~', size: marker.length, info: match[2].trim() };
-}
-
-function splitInfo(info: string): { lang: string; meta: string } {
-  const trimmed = info.trim();
-  const space = trimmed.search(/\s/);
-  if (space === -1) return { lang: trimmed, meta: '' };
-  return { lang: trimmed.slice(0, space), meta: trimmed.slice(space + 1).trim() };
-}
-
 /**
- * Read rail sidecars and the display fences from one Markdown file (frontmatter included;
- * a fence in frontmatter is still a fence). Throws a `CodeRailError` naming the problem.
+ * Read rail sidecars and all displayed code blocks from one Markdown file. Frontmatter and
+ * literal fence examples are interpreted by Sätteri. Throws a `CodeRailError` for invalid rails.
  */
 export function parseCodeRails(markdown: string): ParsedCodeRails {
-  const lines = markdown.split(/\r?\n/);
   const fences: CodeFence[] = [];
   const rails: CodeRail[] = [];
-  for (let i = 0; i < lines.length; i++) {
-    const open = fenceMarker(lines[i]);
-    if (!open) continue;
-    const start = i;
-    let end = -1;
-    for (let j = i + 1; j < lines.length; j++) {
-      const close = fenceMarker(lines[j]);
-      if (close && close.char === open.char && close.size >= open.size && close.info === '') {
-        end = j;
-        break;
-      }
-    }
-    if (end < 0) throw new CodeRailError(`code fence opened on line ${start + 1} never closes`);
-    const { lang, meta } = splitInfo(open.info);
-    const code = lines.slice(start + 1, end).join('\n').replace(/\n$/, '');
+  for (const node of codeNodes(markdown)) {
+    const lang = node.lang ?? '';
+    const meta = node.meta ?? '';
+    const code = node.value;
+    const line = node.position?.start.line;
     if (lang === 'rail') {
-      rails.push(parseRailDocument(code, `rail fence on line ${start + 1}`));
+      rails.push(parseRailDocument(code, `rail fence on line ${line}`));
     } else {
       const railId = railIdFromMeta(meta);
-      if (/(?:^|\s)rail=/.test(meta) && !railId) throw new CodeRailError(`code fence on line ${start + 1} has a rail= token that is not a single lowercase id`);
+      if (/(?:^|\s)rail=/.test(meta) && !railId) throw new CodeRailError(`code fence on line ${line} has a rail= token that is not a single lowercase id`);
       fences.push({ lang, meta: stripRailMeta(meta), code, ...(railId ? { railId } : {}) });
     }
-    i = end;
   }
 
   const byId = new Map<string, CodeRail>();

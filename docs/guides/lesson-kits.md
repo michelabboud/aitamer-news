@@ -28,6 +28,8 @@ lessonKit:
 
 `id` matches the JSON file and the campaign. The story page lists a file only when it exists under `public/lessonkits/`. If none of the four possible files exist, the page shows no box and no download link.
 
+The post route resolves this inventory when it builds its static paths and includes the filenames in the page's incremental cache key. Adding or removing a PDF or the optional lab zip updates that lesson's download box even when the build restores its cache. The component renders the same resolved inventory.
+
 ## Build
 
 ```sh

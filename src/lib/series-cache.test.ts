@@ -72,6 +72,8 @@ async function loadKeyBuilder(path: string) {
       builder.onResolve({ filter: /shown-pins\.ts$/ }, () => ({ path: 'pins', namespace: 'series-fixture' }));
       builder.onResolve({ filter: /data\/series\.ts$/ }, () => ({ path: 'catalog', namespace: 'series-fixture' }));
       builder.onResolve({ filter: /structured-data\.ts$/ }, () => ({ path: 'render-only', namespace: 'series-fixture' }));
+      // Rail parsing runs after getStaticPaths; do not bundle its native renderer into a data URL.
+      builder.onResolve({ filter: /code-rail\.ts$/ }, () => ({ path: 'render-only', namespace: 'series-fixture' }));
       builder.onResolve({ filter: /topics-data\.ts$/ }, () => ({ path: 'topics', namespace: 'series-fixture' }));
       builder.onLoad({ filter: /.*/, namespace: 'series-fixture' }, ({ path }: { path: string }) => ({ contents: fixtureModules[path] ?? '', loader: 'js' }));
       builder.onLoad({ filter: /\.astro$/ }, ({ path: resolved }: { path: string }) => {

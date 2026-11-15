@@ -3,16 +3,14 @@
  * Downloads for one lesson. Each row is a file that exists in `public/lessonkits/`.
  * When none of them are there yet, the box is omitted, so the page has no broken links.
  */
-import { join } from 'node:path';
-import { lessonKitLinks } from '../lib/lesson-kit.ts';
+import type { LessonKitLink } from '../lib/lesson-kit.ts';
 import { withBase } from '../lib/site';
 
 interface Props {
-  id: string;
+  links: readonly LessonKitLink[];
 }
-const { id } = Astro.props;
-// Resolved from the project root. import.meta.url moves when Astro bundles this file.
-const links = lessonKitLinks(id, join(process.cwd(), 'public/lessonkits'));
+// The post route resolves these alongside its cache key, before cached HTML is restored.
+const { links } = Astro.props;
 ---
 {links.length > 0 && (
   <aside class="lesson-kit" aria-labelledby="lesson-kit-title">
