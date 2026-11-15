@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">A rolling update with replicas 3, maxSurge 1 and maxUnavailable 0</title>
+<desc id="d">Five rows show the rollout we ran from nginx 1.28 to nginx 1.29, as reported by the Deployment events. Before: three old Pods. Step 1: one new Pod is added, so four Pods exist for a moment; that extra Pod is the surge. Step 2 and 3: each time a new Pod is ready, one old Pod is removed and another new one is added. After: three new Pods and the old ReplicaSet at 0. The highlighted rule is that the number of available Pods never drops below 3, because maxUnavailable is 0.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Rolling update: replicas 3, maxSurge 1, maxUnavailable 0</text>
+<text class="t" x="24" y="86" text-anchor="start">before</text>
+<text class="ts" x="24" y="104" text-anchor="start">3 old</text>
+<rect class="box" x="190" y="64" width="56" height="40" rx="6"/>
+<text class="tm" x="200" y="89" text-anchor="start">1.28</text>
+<rect class="box" x="254" y="64" width="56" height="40" rx="6"/>
+<text class="tm" x="264" y="89" text-anchor="start">1.28</text>
+<rect class="box" x="318" y="64" width="56" height="40" rx="6"/>
+<text class="tm" x="328" y="89" text-anchor="start">1.28</text>
+<text class="ts" x="470" y="89" text-anchor="start">old ReplicaSet at 3</text>
+<text class="t" x="24" y="148" text-anchor="start">step 1</text>
+<text class="ts" x="24" y="166" text-anchor="start">scale new 0 to 1</text>
+<rect class="box" x="190" y="126" width="56" height="40" rx="6"/>
+<text class="tm" x="200" y="151" text-anchor="start">1.28</text>
+<rect class="box" x="254" y="126" width="56" height="40" rx="6"/>
+<text class="tm" x="264" y="151" text-anchor="start">1.28</text>
+<rect class="box" x="318" y="126" width="56" height="40" rx="6"/>
+<text class="tm" x="328" y="151" text-anchor="start">1.28</text>
+<rect class="boxs" x="382" y="126" width="56" height="40" rx="6"/>
+<text class="tm" x="392" y="151" text-anchor="start">1.29</text>
+<text class="ts" x="470" y="151" text-anchor="start">4 Pods: one surge Pod</text>
+<text class="t" x="24" y="210" text-anchor="start">step 2</text>
+<text class="ts" x="24" y="228" text-anchor="start">old 3 to 2, new 1 to 2</text>
+<rect class="box" x="190" y="188" width="56" height="40" rx="6"/>
+<text class="tm" x="200" y="213" text-anchor="start">1.28</text>
+<rect class="box" x="254" y="188" width="56" height="40" rx="6"/>
+<text class="tm" x="264" y="213" text-anchor="start">1.28</text>
+<rect class="boxs" x="318" y="188" width="56" height="40" rx="6"/>
+<text class="tm" x="328" y="213" text-anchor="start">1.29</text>
+<rect class="boxs" x="382" y="188" width="56" height="40" rx="6"/>
+<text class="tm" x="392" y="213" text-anchor="start">1.29</text>
+<text class="ts" x="470" y="213" text-anchor="start">new Pod ready, old one goes</text>
+<text class="t" x="24" y="272" text-anchor="start">step 3</text>
+<text class="ts" x="24" y="290" text-anchor="start">old 2 to 1, new 2 to 3</text>
+<rect class="box" x="190" y="250" width="56" height="40" rx="6"/>
+<text class="tm" x="200" y="275" text-anchor="start">1.28</text>
+<rect class="boxs" x="254" y="250" width="56" height="40" rx="6"/>
+<text class="tm" x="264" y="275" text-anchor="start">1.29</text>
+<rect class="boxs" x="318" y="250" width="56" height="40" rx="6"/>
+<text class="tm" x="328" y="275" text-anchor="start">1.29</text>
+<rect class="boxs" x="382" y="250" width="56" height="40" rx="6"/>
+<text class="tm" x="392" y="275" text-anchor="start">1.29</text>
+<text class="ts" x="470" y="275" text-anchor="start">same again</text>
+<text class="t" x="24" y="334" text-anchor="start">after</text>
+<text class="ts" x="24" y="352" text-anchor="start">old 1 to 0</text>
+<rect class="boxs" x="190" y="312" width="56" height="40" rx="6"/>
+<text class="tm" x="200" y="337" text-anchor="start">1.29</text>
+<rect class="boxs" x="254" y="312" width="56" height="40" rx="6"/>
+<text class="tm" x="264" y="337" text-anchor="start">1.29</text>
+<rect class="boxs" x="318" y="312" width="56" height="40" rx="6"/>
+<text class="tm" x="328" y="337" text-anchor="start">1.29</text>
+<text class="ts" x="470" y="337" text-anchor="start">old ReplicaSet kept at 0</text>
+<rect class="boxd" x="190" y="121" width="248" height="46" rx="8"/>
+<rect class="boxc" x="24" y="374" width="752" height="80" rx="10"/>
+<text class="tc" x="40" y="398" text-anchor="start">Available Pods never drop below 3</text>
+<text class="ts" x="40" y="420" text-anchor="start">maxUnavailable: 0 means no old Pod goes until a new one is ready.</text>
+<text class="ts" x="40" y="440" text-anchor="start">maxSurge: 1 allows one extra Pod above replicas during the update. Both default to 25%.</text>
+<text class="ts" x="470" y="56" text-anchor="start">white = nginx 1.28 (old), green = 1.29 (new)</text>
+</svg>
