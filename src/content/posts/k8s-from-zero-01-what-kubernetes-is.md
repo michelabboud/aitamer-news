@@ -440,7 +440,7 @@ items:
       - token: "create"
         text: "Create a resource from a file or from stdin. Here it takes the deployment subcommand."
       - token: "deployment"
-        text: "Create a deployment with the specified name. The synopsis is kubectl create deployment NAME --image=image."
+        text: "Create a deployment with the specified name. The synopsis is kubectl create deployment NAME --image=image -- [COMMAND] [args...]."
       - token: "hello"
         text: "The deployment name, the NAME in that synopsis."
       - token: "--image=nginx:1.29-alpine"
@@ -454,7 +454,7 @@ items:
       - token: "status"
         text: "Show the status of the rollout. By default it watches the latest rollout until it is done. You can pass --watch=false if you do not want to wait."
       - token: "deployment/hello"
-        text: "The resource, as TYPE/NAME. The status synopsis is kubectl rollout status (TYPE NAME | TYPE/NAME). The examples use deployment/nginx."
+        text: "The resource, as TYPE/NAME. The status synopsis is kubectl rollout status (TYPE NAME | TYPE/NAME) [flags]. The examples use deployment/nginx."
 ```
 
 ```rail
@@ -486,7 +486,7 @@ items:
       - token: "delete"
         text: "Delete resources by file names, stdin, resources and names, or by resources and label selector."
       - token: "pod"
-        text: "The resource type, the TYPE in the delete synopsis TYPE NAME."
+        text: "The resource type, the TYPE in the delete synopsis."
       - token: "hello-6bb4847c46-b8jpw"
         text: "The object name. The lesson says to use a name from your own list. This one is the name from the lesson's run."
       - token: "kubectl"
@@ -508,7 +508,7 @@ items:
       - token: "scale"
         text: "Set a new size for a deployment, replica set, replication controller, or stateful set."
       - token: "deployment"
-        text: "The resource type, the TYPE in the scale synopsis TYPE NAME."
+        text: "The resource type, the TYPE in the scale synopsis."
       - token: "hello"
         text: "The object name."
       - token: "--replicas=5"

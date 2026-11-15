@@ -555,7 +555,7 @@ items:
       - token: "create"
         text: "Create a resource from a file or from stdin. Here it takes the namespace subcommand."
       - token: "namespace"
-        text: "Create a namespace with the specified name. The synopsis is kubectl create namespace NAME."
+        text: "Create a namespace with the specified name. The synopsis is kubectl create namespace NAME [--dry-run=server|client|none]."
       - token: "k8s-from-zero"
         text: "The namespace name. The lesson says every object in this series goes into a namespace called k8s-from-zero."
 ```
@@ -621,7 +621,7 @@ items:
       - token: "pod"
         text: "The resource type. The describe synopsis is kubectl describe (-f FILENAME | TYPE [NAME_PREFIX | -l label] | TYPE/NAME)."
       - token: "hello"
-        text: "The object name. describe looks for an exact match on that name."
+        text: "The object name. describe first looks for an exact match on that name; if there is none, it describes every resource whose name starts with it."
       - token: "-n"
         text: "Short form of --namespace. If present, the namespace scope for this CLI request."
       - token: "k8s-from-zero"

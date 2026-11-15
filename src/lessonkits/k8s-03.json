@@ -45,7 +45,7 @@
           {"name": "kind", "role": "Each node is a container on Docker, Podman or nerdctl, bootstrapped with kubeadm. Several nodes come from a small config file. The version is the node image.", "where": "Every lab in this series."},
           {"name": "minikube", "role": "A cluster in a VM, a container, or on the host, depending on the driver. It asks for 2 CPUs, 2 GB of memory and 20 GB of disk, and it has an add-on catalogue.", "where": "A good fit for a VM lab or its add-ons."},
           {"name": "k3d", "role": "Runs k3s in Docker. k3s is a lightweight, fully compliant Kubernetes in a single binary under 100 MB. k3d is a community project, not an official Rancher product.", "where": "Part 53 covers k3s."},
-          {"name": "Docker Desktop", "role": "A built-in cluster: kubeadm (one node, version set by Docker Desktop) or kind (several nodes, version of your choice). Check the licence. Personal, education, non-commercial open source and small businesses are free.", "where": "Larger organizations and government entities need a paid subscription."}
+          {"name": "Docker Desktop", "role": "A built-in cluster: kubeadm (one node, version set by Docker Desktop) or kind (several nodes, version of your choice). Check the licence. Personal, education, non-commercial open source and small businesses are free.", "where": "Professional use in larger organizations, and government entities, need a paid subscription."}
         ]
       },
       {
@@ -107,7 +107,7 @@
           {"cmd": "kubectl config set-context --current --namespace=kube-system", "note": "applies to commands without `-n`"},
           {"cmd": "kubectl config view --minify", "note": "`--raw` would print the keys"},
           {"cmd": "kind get kubeconfig --name lab > lab.kubeconfig", "note": "then `chmod 600`"},
-          {"cmd": "KUBECONFIG=first.kubeconfig:lab.kubeconfig kubectl config view --flatten", "note": "first file wins on conflicts"}
+          {"cmd": "KUBECONFIG=a.kubeconfig:b.kubeconfig kubectl config view --flatten", "note": "first file wins on conflicts"}
         ]
       },
       {
@@ -152,7 +152,7 @@
         "exercises": [
           {"q": "You run `kubectl` against the saved `lab.kubeconfig` after `kind delete cluster --name lab`. The error names `127.0.0.1:46163`. What does the lesson say that means?", "a": "kubectl points at a cluster that is not running, usually a kubeconfig file or context that outlived its cluster. Check `kubectl config current-context`, then switch context or recreate the cluster.", "lines": 2},
           {"q": "After both clusters are deleted, kubectl says `The connection to the server localhost:8080 was refused`. Why port 8080?", "a": "kubectl found no current context at all, so it fell back to `localhost:8080`. `kubectl config current-context` says `error: current-context is not set`. Create a cluster, or run `kubectl config use-context <name>`.", "lines": 2},
-          {"q": "A three-node create stops at `Preparing nodes` and mentions `could not find a log line that matches \"Reached target .*Multi-User System.*\"`. What limit is too low, and which commands does the lesson show?", "a": "Linux limits on inotify instances and watches. On Ubuntu the defaults are 128 and 8192. The lesson raises them with `sudo sysctl fs.inotify.max_user_instances=512` and `sudo sysctl fs.inotify.max_user_watches=524288`, then you create the cluster again.", "lines": 3},
+          {"q": "A three-node create stops at `Preparing nodes` and mentions `could not find a log line that matches \"Reached target .*Multi-User System.*|detected cgroup v1\"`. What limit is too low, and which commands does the lesson show?", "a": "Linux limits on inotify instances and watches. On Ubuntu the defaults are 128 and 8192. The lesson raises them with `sudo sysctl fs.inotify.max_user_instances=512` and `sudo sysctl fs.inotify.max_user_watches=524288`, then you create the cluster again.", "lines": 3},
           {"q": "`kubectl version` shows a client more than one minor version away from the server. What does the lesson say to do?", "a": "Some commands may misbehave. Install a kubectl that matches, per the version skew policy.", "lines": 2}
         ]
       }
