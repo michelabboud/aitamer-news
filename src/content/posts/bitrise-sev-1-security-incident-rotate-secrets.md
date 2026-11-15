@@ -1,7 +1,8 @@
 ---
-title: "Bitrise SEV-1: sign-in may return soon, with no time yet for a full restore"
-description: "Bitrise says a SEV-1 incident has its services down for all users. Logins may return soon. Rotate every stored secret once you can sign in."
+title: "Bitrise SEV-1: sign in now in safety mode and rotate every secret"
+description: "Bitrise is back online in a limited safety mode after its SEV-1 incident. Sign in and rotate every stored secret, token and certificate."
 pubDate: "2026-11-14T15:37:00Z"
+updatedDate: "2026-11-15T07:30:00Z"
 specimen: 1475
 section: devops
 subsection: security
@@ -68,3 +69,9 @@ Rotate at the issuer, then update Bitrise.
 ## Why this matters
 
 Prepare the list before logins return, and start at Apple, Google, and Git, because a protected secret on Bitrise cannot be opened later to see what it was. [Northflank told customers to assume every environment variable was decrypted](/posts/northflank-security-incident-assume-env-vars-decrypted/), while Bitrise's last exposure sentence, at 02:29 UTC, said it had still found no evidence customer data, secrets, or source code were exposed, and newer updates do not repeat that sentence. [Trigger.dev said an attacker read environment variables for some organizations](/posts/trigger-dev-security-incident-environment-variables/) and emailed those owners, and [Railway told customers to roll every environment variable](/posts/railway-breach-environment-variables-ai-inference-keys/) after saying secrets may have been decrypted. Bitrise has asked every user for a precautionary rotation, has not said customer secrets were read, and the page is still moving, so refetch it before you treat any restore time as current.
+
+## Update, 15 November 2026: Bitrise is back in a limited safety mode, so you can sign in and rotate
+
+Since 20:35 UTC on 14 November, the [Bitrise status page](https://status.bitrise.io/) has said app.bitrise.io is back online "in a limited safety mode." Bitrise says most features are still unavailable, but you can sign in to review workspace settings, connected Git accounts, secrets, certificates and tokens, and "rotate or revoke anything connected to Bitrise as a precaution." It says the services it has brought back are secure, and that full functionality "is not expected to be restored before Nov 15th." An earlier note at 16:05 UTC announced the same mode, before a 19:31 UTC update went back to saying logins would return "soon," so the path back has not been smooth.
+
+Bitrise now recommends rotating "all secrets, access tokens, and certificates stored in Bitrise" once you can sign in. The incident is still marked SEV-1 for all users, and as of 07:32 UTC on 15 November the page still names no root cause and no attacker. If you prepared the list above, this is the window to work through it, starting with Apple, Google and Git credentials.

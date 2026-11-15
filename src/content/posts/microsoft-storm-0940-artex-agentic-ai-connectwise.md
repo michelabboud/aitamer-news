@@ -3,7 +3,7 @@ title: "Microsoft: Storm-0940 used the ARTEX AI agent framework to turn the Conn
 description: "Microsoft says a China-aligned group used ARTEX agents after the ConnectWise Cloud Backup breach, trying 2,250+ Microsoft 365 tenants. What to check."
 pubDate: "2026-10-22T11:07:00Z"
 specimen: 979
-updatedDate: "2026-11-14T07:40:00Z"
+updatedDate: "2026-11-15T07:30:00Z"
 section: devops
 subsection: security
 tags:
@@ -34,6 +34,10 @@ sources:
     url: https://www.ic3.gov/CSA/2026/261113.pdf
   - title: "AWS Security Blog: Amazon Threat Intelligence observes threat actors running cybercrime campaigns with ARTEX AI agents"
     url: https://aws.amazon.com/blogs/security/amazon-threat-intelligence-observes-threat-actors-running-cybercrime-campaigns-with-artex-ai-agents/
+  - title: "Cloudflare Blog: Adapting to AI penetration testing orchestrators: The Modern Security Model (13 November 2026)"
+    url: https://blog.cloudflare.com/adapting-to-ai-penetration-testing-orchestrators/
+  - title: "Kyodo News: Japan-led probe finds 1,000 servers likely used for AI-driven cyberattacks (15 November 2026)"
+    url: https://english.kyodonews.net/articles/-/91455
 ---
 
 [Microsoft Threat Intelligence](https://www.microsoft.com/en-us/security/blog/2026/10/21/storm-0940-uses-artex-agentic-ai-connectwise-supply-chain-compromise/) says a group it tracks as Storm-0940, which it calls China-state aligned, has used ARTEX, an agentic AI penetration-testing framework, to automate attacks on hundreds of organizations since as early as September. Microsoft also assesses that Storm-0940 was behind the recent compromise of ConnectWise Cloud Backup, a multi-tenant app with access to customers' Microsoft 365 environments.
@@ -81,3 +85,13 @@ CrowdStrike reads this as a sign that ARTEX is spreading among several China-nex
 The FBI has published [FLASH-20261113-001](https://www.ic3.gov/CSA/2026/261113.pdf), a TLP:CLEAR alert on ARTEX. It describes ARTEX as an open-source, LLM-driven agent platform written in Go that has been used "since at least August 2026" against financial services, government, technology, defense, healthcare and other sectors, with "some intrusions progressing from initial targeting to privileged access in under three hours." The FBI says ARTEX ships no model of its own and calls external providers, naming Anthropic Claude, OpenAI GPT, DeepSeek, GLM, Grok and Kimi, and that DeepSeek Flash models dominate the attacker instances analysed. It notes the original developer took the GitHub repository down on 8 October, but forks, mirrors and a commercial "ARTEX PRO" keep it available, and that researchers counted more than 1,600 publicly exposed ARTEX consoles in early November. The alert lists the ConnectWise Cloud Backup compromise covered above among the notable campaigns.
 
 Separately, [Amazon Threat Intelligence](https://aws.amazon.com/blogs/security/amazon-threat-intelligence-observes-threat-actors-running-cybercrime-campaigns-with-artex-ai-agents/) says its MadPot decoys, set up to look like LLM inference APIs, received requests from ARTEX agents between 3 October and 5 November that carried the agents' own campaign records. The largest campaign stole AI model credentials and fed them back into the framework's model gateway to pay for more hunting. Targets included LLM gateways and app builders such as LiteLLM, One API, Dify, Langflow, Open WebUI and Ollama. Another campaign tried to beat crypto-exchange identity checks with real-time deepfakes; Amazon says the vendor's server-side check rejected every attempt the agents recorded. Amazon attributes the activity to Chinese-nexus groups with moderate confidence and says it cannot verify the outcomes the agents reported. If you run any of those gateways on the internet, check that the admin interface is not exposed and rotate the provider keys it holds.
+
+## Update, 15 November 2026: Cloudflare counts 50+ AI pentest frameworks, and a JPCERT/CC probe finds about 1,000 servers
+
+Cloudflare's Cloudforce One team [wrote on 13 November](https://blog.cloudflare.com/adapting-to-ai-penetration-testing-orchestrators/) that a few weeks ago ARTEX was the only framework of its kind, but that in the previous three days it had seen "over 50 framework families attempt to scan Cloudflare customers globally," from IP addresses that now number in the thousands. As of 12 November, it says, ARTEX and its forks make up over 60% of known AI penetration testing orchestrators, and daily requests from these tools have grown more than 30 times since 1 October.
+
+Cloudflare also describes one incident response case. ARTEX got hold of a compromised account-level API token that had been used for CI/CD, with no IP restrictions or rate limiting, and created a large number of Worker scripts with names such as artex-pgrecon-* and artex-do-*. Cloudflare counted about 400 database dump requests in an hour and attempts at persistence. Its advice is a six-part list: WAF rules with rate limits, anomaly detection on web apps, bot defense, identity-gated access for high-risk apps, validated schemas, and threat intelligence.
+
+Separately, [Kyodo reported on 15 November](https://english.kyodonews.net/articles/-/91455) that an investigation led by JPCERT/CC with overseas security firms found around 1,000 servers, online since October, suspected of serving as bases for AI-driven attacks, and that JPCERT/CC is tracking 600 to 700 of them. According to the center, most hosted AI platforms such as ARTEX and appeared to be searching for vulnerabilities and trying to steal configuration files. Kyodo says one server held traces of "a programming support tool" made by Anthropic. We could not find a JPCERT/CC publication of these figures when we checked its English Security Alerts list on 15 November, so treat them as Kyodo's report of the probe for now.
+
+The practical check from Cloudflare's case: find any static, non-expiring cloud or Cloudflare API token living in a CI/CD pipeline, scope it down, add IP restrictions, rotate it, and look for Worker scripts or other resources you did not create.
