@@ -712,7 +712,7 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 .codebox__fallback { margin: 0; border-top: 1px solid var(--line); grid-column: 1 / -1; }
 .codebox__fallback summary { min-height: var(--tap-min); padding: 0.7rem 0.9rem; cursor: pointer; }
 .codebox__command, .codebox__fallback pre { margin: 0.75rem 0.9rem; }
-.codebox__lines { margin: 0 0.9rem 0.9rem; padding-left: 1.2rem; }
+.codebox__lines { margin: 0 0.9rem 0.9rem; padding-left: 1.2rem; overflow-wrap: anywhere; }
 .codebox__lines code { color: var(--ember-text); }
 .js .codebox__fallback { display: none; }
 .codebox__dialog {
