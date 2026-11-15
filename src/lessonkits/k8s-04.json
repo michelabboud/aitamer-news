@@ -1,0 +1,157 @@
+{
+  "$comment": "Lesson-kit content for Lesson 4. Every fact and command is copied from the lesson post.",
+  "slug": "k8s-04",
+  "campaign": "k8s-04",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 4,
+    "title": "Kubernetes from Zero, part 4: Your first Pod",
+    "shortTitle": "Your first Pod",
+    "description": "Write a Pod manifest, apply it to a kind cluster, then inspect it with get, describe, logs, exec and port-forward, read its phase and delete it.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-04-your-first-pod/",
+    "source": "src/content/posts/k8s-from-zero-04-your-first-pod.md",
+    "tested": "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "k8s-ep04",
+    "rule": "A Pod is the smallest thing Kubernetes runs: one IP around one or more containers. Learn get, describe, logs and exec on it, and treat it as disposable."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-04.jpg",
+    "alt": "A cut-paper pea pod lies open on torn sand-coloured paper, holding one slate-blue shipping container, with a coral ribbon tied around it and a slate-blue ship's wheel in the corner.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 5, kubectl essentials",
+    "summary": "Kubernetes from Zero, part 5, kubectl essentials.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "The Pod, its phase, and the commands from Lesson 4.",
+    "boards": [
+      {
+        "title": "The manifest",
+        "hint": "four fields you write, and one the cluster writes",
+        "headName": "Field",
+        "headRole": "What the lesson says",
+        "headWhere": "In pod.yaml",
+        "rows": [
+          {"name": "apiVersion", "role": "Which version of the Kubernetes API this object uses. Pods are in the core group, version `v1`.", "where": "`v1`"},
+          {"name": "kind", "role": "Which type of object.", "where": "`Pod`"},
+          {"name": "metadata", "role": "Who the object is. At least a `name`. The lesson also sets a namespace and a label.", "where": "`hello` in `k8s-from-zero`"},
+          {"name": "spec", "role": "The desired state. For a Pod, mainly the list of containers.", "where": "You write this."},
+          {"name": "status", "role": "What is true right now: the phase, the Pod IP, the conditions. You never put `status` in your file.", "where": "The cluster writes it."}
+        ],
+        "note": "One network identity: the IP belongs to the Pod, and containers in that Pod talk on `localhost`. One hostname: containers see the Pod name. One place: all containers of a Pod run on the same node. Pods are disposable. Kubernetes never moves a Pod. It replaces it with a new one that has a new UID."
+      },
+      {
+        "title": "Phase, container state, STATUS",
+        "hint": "three different stories, from the Pod lifecycle docs as the lesson states them",
+        "headName": "Word",
+        "headRole": "What it means",
+        "headWhere": "What the lab showed",
+        "rows": [
+          {"name": "Pending", "role": "Accepted, but at least one container is not running yet. Waiting for a node and pulling images both count.", "where": "`typo` stayed here."},
+          {"name": "Running", "role": "Bound to a node, all containers created, at least one running or restarting.", "where": "`hello`, and `crash` the whole time."},
+          {"name": "Succeeded", "role": "All containers exited with success and will not restart.", "where": "`once`. STATUS column: `Completed`."},
+          {"name": "Failed", "role": "All containers have terminated and at least one failed.", "where": "A phase, not the STATUS word `Error`."},
+          {"name": "Unknown", "role": "The control plane cannot get the state, usually because the node is unreachable.", "where": "The fifth phase."},
+          {"name": "Container state", "role": "`Waiting`, `Running` or `Terminated`. A waiting container has a reason, such as `ContainerCreating` or `ImagePullBackOff`. A terminated one has an exit code.", "where": "`describe` shows State and Last State."},
+          {"name": "restartPolicy", "role": "`Always` (the default), `OnFailure`, or `Never`. The kubelet waits 10 seconds, then 20, then 40, doubling up to 5 minutes, and resets that timer after 10 minutes without trouble.", "where": "`once` sets `Never`. `crash` keeps the default."}
+        ]
+      }
+    ],
+    "steps": {
+      "title": "Life of Pod hello",
+      "hint": "the events on the lesson's describe, top to bottom",
+      "items": [
+        {"who": "scheduler", "what": "`Scheduled`. Successfully assigned `k8s-from-zero/hello` to the node. The lesson's node is `k8s-ep04-control-plane`."},
+        {"who": "kubelet", "what": "`Pulled`. On the lab the image was already present. On your machine you see `Pulling`, then `Successfully pulled image`."},
+        {"who": "kubelet", "what": "`Created`, then `Started`. `READY 1/1` means one of one containers is ready. `kubectl get` without `-n` looks in `default` and finds nothing."},
+        {"who": "you", "what": "`logs`, `exec` and `port-forward` all go through the API server. An edit inside the container is gone after you delete the Pod and apply the file again."}
+      ],
+      "note": "`containerPort` is documentation. It does not open or block anything by itself. With a tag other than `latest`, the default pull policy is `IfNotPresent`: the node pulls the image once and reuses it. Deleting a Pod waits up to the default grace period, which the lesson says is 30 seconds."
+    },
+    "commandGroups": [
+      {
+        "title": "Run the Pod",
+        "commands": [
+          {"cmd": "kubectl create namespace k8s-from-zero", "note": "once per cluster"},
+          {"cmd": "kubectl apply -f pod.yaml", "note": "prints `created`, `configured` or `unchanged`"},
+          {"cmd": "kubectl get pods -n k8s-from-zero", "note": "add `-o wide` for IP and node"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -w", "note": "Ctrl+C to stop"},
+          {"cmd": "kubectl describe pod hello -n k8s-from-zero", "note": "read Events first"},
+          {"cmd": "kubectl explain pod.spec.restartPolicy", "note": "works offline from the API schema"}
+        ]
+      },
+      {
+        "title": "Look inside",
+        "commands": [
+          {"cmd": "kubectl logs hello -n k8s-from-zero", "note": "`-f` follows, `--previous` reads the last crashed run"},
+          {"cmd": "kubectl exec hello -n k8s-from-zero -- nginx -v", "note": "`-it ... -- sh` for a shell"},
+          {"cmd": "kubectl port-forward pod/hello 8080:80 -n k8s-from-zero", "note": "debugging only"},
+          {"cmd": "curl -s http://localhost:8080 | grep title", "note": "the lesson prints the nginx title"},
+          {"cmd": "kubectl get pod hello -n k8s-from-zero -o jsonpath=\"{.status.phase}{\\\"\\n\\\"}\"", "note": "part 5 covers JSONPath"},
+          {"cmd": "kubectl get pod hello -n k8s-from-zero -o yaml", "note": "includes `status`"}
+        ]
+      },
+      {
+        "title": "Three small Pods",
+        "commands": [
+          {"cmd": "kubectl apply -f once.yaml -f crash.yaml -f typo.yaml", "note": "`once` finishes, `crash` restarts, `typo` cannot pull"},
+          {"cmd": "kubectl logs once -n k8s-from-zero", "note": "counting, then 1 2 3"},
+          {"cmd": "kubectl logs crash -n k8s-from-zero --previous", "note": "the run that crashed"},
+          {"cmd": "kubectl get pods crash typo -n k8s-from-zero -o custom-columns='NAME:.metadata.name,PHASE:.status.phase,WAITING-REASON:.status.containerStatuses[0].state.waiting.reason'", "note": "phase stays `Running` while STATUS says `Error`"},
+          {"cmd": "kubectl delete -f once.yaml -f crash.yaml -f typo.yaml", "note": "waits up to the 30 s grace period"},
+          {"cmd": "kubectl delete -f pod.yaml", "note": "keep the namespace"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 3 and the namespace `k8s-from-zero`. The lesson's cluster is named `k8s-ep04`, so node names on yours will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "What is a Pod, in the docs' words as the lesson quotes them?", "a": "A group of one or more containers with shared storage and network resources, and a specification for how to run the containers. You never ask Kubernetes to run a bare container.", "lines": 2},
+          {"q": "Name the three properties the lesson says follow from that, and say where the IP lives.", "a": "One network identity: the IP belongs to the Pod, and containers in the same Pod talk on `localhost`. One hostname: containers see the Pod name. One place: all of the Pod's containers run on the same node.", "lines": 3},
+          {"q": "Name the four required top-level fields, and the fifth field you see when you read an object back. Who writes the fifth?", "a": "`apiVersion`, `kind`, `metadata` and `spec`. The fifth is `status`, and the cluster writes it. You never put `status` in your file.", "lines": 2},
+          {"q": "What does `containerPort` do, and what is the default pull policy for a tag other than `latest`?", "a": "`containerPort` is documentation. It tells readers and tools which port the process listens on. It does not open or block anything by itself. With a tag other than `latest`, the default pull policy is `IfNotPresent`: the node pulls the image once and reuses it.", "lines": 3},
+          {"q": "Name the five Pod phases, and the three container states.", "a": "Phases: `Pending`, `Running`, `Succeeded`, `Failed`, `Unknown`. Container states: `Waiting`, `Running`, `Terminated`. The STATUS column is a friendly mix of both, and the lifecycle docs warn you not to confuse it with the phase.", "lines": 3},
+          {"q": "What are the three `restartPolicy` values, and how does the restart wait grow?", "a": "`Always` (the default), `OnFailure`, or `Never`. The kubelet waits 10 seconds, then 20, then 40, doubling up to a cap of 5 minutes, and resets the timer once a container has run for 10 minutes without trouble.", "lines": 3}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Apply `pod.yaml` and run `kubectl get pods -n k8s-from-zero` at once, then again a few seconds later. What STATUS values does the lesson show, and what does `READY 1/1` mean?", "a": "First `ContainerCreating` with `READY 0/1`, then `Running` with `READY 1/1`. `1/1` means one of one containers is ready. Without `-n`, kubectl looks in `default` and finds nothing.", "lines": 2},
+          {"q": "Read `kubectl describe pod hello -n k8s-from-zero` from the events upward. Which four reasons does the lesson list, in order?", "a": "`Scheduled` (the scheduler picked a node), then `Pulled`, `Created` and `Started` from the kubelet. On the lab the pull event says the image was already present. On your machine you see `Pulling` and then `Successfully pulled image`.", "lines": 3},
+          {"q": "Run the three `kubectl exec` commands from step 6. What three facts do they confirm?", "a": "`nginx -v` prints the nginx version (the lesson shows nginx/1.29.8). `cat /etc/hostname` prints `hello`, the Pod name. `wget` of `http://localhost:80` returns the nginx welcome page. This image is Alpine-based, so it has `sh` and no `bash`.", "lines": 3},
+          {"q": "Forward `8080:80` and curl the local port. What does the first terminal print when the curl arrives, and how do you stop the tunnel?", "a": "The first terminal prints `Handling connection for 8080`. The curl output includes `<title>Welcome to nginx!</title>`. Press Ctrl+C in the first terminal. Port-forward is a debugging tool for you alone.", "lines": 2},
+          {"q": "Run the `grep -E` command from step 8, and the jsonpath that prints `.status.phase`. What five keys come back, and what is the phase?", "a": "The keys are `apiVersion`, `kind`, `metadata`, `spec` and `status`. The phase is `Running`.", "lines": 2},
+          {"q": "Apply `once.yaml`, `crash.yaml` and `typo.yaml`. After about a minute, what STATUS does each show in the lesson, and what phase is underneath `once`, `crash` and `typo`?", "a": "`once` is `Completed` and its phase is `Succeeded`. `crash` is `Error` (or `CrashLoopBackOff` while the kubelet waits) and its phase stays `Running`. `typo` is `ImagePullBackOff` and its phase is `Pending`, waiting reason `ImagePullBackOff`.", "lines": 3},
+          {"q": "Run `kubectl logs crash -n k8s-from-zero --previous`. What two lines does the lesson show?", "a": "`starting` and `cannot find config`. `--previous` reads the log of the run that crashed, once the container has been restarted.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You write a heading into the container's `index.html`, delete the Pod, and apply `pod.yaml` again. What does a fetch of the page show, and why?", "a": "The original nginx title. The new Pod has the same name and a fresh container from the image, so the edit is gone. Anything you want to keep belongs in the image, in configuration, or on a volume.", "lines": 2},
+          {"q": "Apply a Pod whose namespace is spelled `k8s-form-zero`. What error does the lesson quote?", "a": "`Error from server (NotFound): error when creating \"pod.yaml\": namespaces \"k8s-form-zero\" not found`. The cluster will not create a namespace for you. Fix the spelling, or create it with `kubectl create namespace`.", "lines": 2},
+          {"q": "The manifest says `spec.contianers`. What does kubectl do, and which command looks up the real field name?", "a": "It rejects the file: `strict decoding error: unknown field \"spec.contianers\"`. kubectl validates strictly by default. Check spelling with `kubectl explain pod.spec.containers`.", "lines": 2},
+          {"q": "`kubectl exec` of `bash` prints `exec: \"bash\": executable file not found in $PATH`. What does the lesson tell you to try?", "a": "Small images ship `sh` or nothing. Try `sh`. For an interactive shell the lesson uses `kubectl exec -it hello -n k8s-from-zero -- sh`.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}

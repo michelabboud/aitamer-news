@@ -165,6 +165,11 @@ async function main() {
         const page = await browser.newPage();
         await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'load' });
         await page.evaluate(async () => {
+          // The page shell lives in a <template> until pagination, so nothing has used
+          // these faces yet. Current headless Chrome will not fetch an unused face.
+          await Promise.all(
+            ['Gloock', 'Newsreader', 'Hanken Grotesk', 'IBM Plex Mono'].map((family) => document.fonts.load(`16px "${family}"`)),
+          );
           await document.fonts.ready;
           await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
         });

@@ -1,0 +1,161 @@
+{
+  "$comment": "Lesson-kit content for Lesson 3. Every fact and command is copied from the lesson post.",
+  "slug": "k8s-03",
+  "campaign": "k8s-03",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 3,
+    "title": "Kubernetes from Zero, part 3: your local lab with kind, kubectl and kubeconfig",
+    "shortTitle": "Your local lab with kind, kubectl and kubeconfig",
+    "description": "Install kubectl and kind, compare minikube, k3d and Docker Desktop, run a three-node cluster, and learn how kubeconfig contexts pick a cluster.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-03-your-local-lab/",
+    "source": "src/content/posts/k8s-from-zero-03-your-local-lab.md",
+    "tested": "Installed and checksummed kubectl v1.37.2 and kind v0.33.0; ran 1- and 3-node clusters, 10 Nov 2026",
+    "cluster": "first and lab",
+    "rule": "Use kind for a disposable, multi-node lab, and always know your current context before you type a command."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-03.jpg",
+    "alt": "A cut-paper ship in a bottle lies on a tan paper workbench, a small blue ship carrying two cream crates inside, beside a coral toolbox holding a wrench and screwdriver and a slate-blue ship's wheel.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 4, your first Pod",
+    "summary": "Write a Pod manifest by hand and inspect it with get, describe, logs, exec and port-forward.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-04-your-first-pod/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "The four lab tools, how kubeconfig picks a cluster, and the commands from Lesson 3.",
+    "boards": [
+      {
+        "title": "Four ways to run a learning cluster",
+        "hint": "every one of them gives you a real API server",
+        "headName": "Tool",
+        "headRole": "How the lesson describes it",
+        "headWhere": "This series",
+        "rows": [
+          {"name": "kind", "role": "Each node is a container on Docker, Podman or nerdctl, bootstrapped with kubeadm. Several nodes come from a small config file. The version is the node image.", "where": "Every lab in this series."},
+          {"name": "minikube", "role": "A cluster in a VM, a container, or on the host, depending on the driver. It asks for 2 CPUs, 2 GB of memory and 20 GB of disk, and it has an add-on catalogue.", "where": "A good fit for a VM lab or its add-ons."},
+          {"name": "k3d", "role": "Runs k3s in Docker. k3s is a lightweight, fully compliant Kubernetes in a single binary under 100 MB. k3d is a community project, not an official Rancher product.", "where": "Part 53 covers k3s."},
+          {"name": "Docker Desktop", "role": "A built-in cluster: kubeadm (one node, version set by Docker Desktop) or kind (several nodes, version of your choice). Check the licence. Personal, education, non-commercial open source and small businesses are free.", "where": "Professional use in larger organizations, and government entities, need a paid subscription."}
+        ]
+      },
+      {
+        "title": "kubeconfig",
+        "hint": "clusters, users, contexts, and one pointer",
+        "headName": "Field",
+        "headRole": "What it holds",
+        "headWhere": "How kubectl uses it",
+        "rows": [
+          {"name": "clusters", "role": "A name, the API server address (`server`), and the certificate authority used to trust it.", "where": "kind fills this in for you."},
+          {"name": "users", "role": "A name and the credentials. For kind, a client certificate and key.", "where": "In clouds this is usually a token plugin."},
+          {"name": "contexts", "role": "A name that joins one cluster, one user, and an optional default namespace.", "where": "`kubectl config get-contexts`"},
+          {"name": "current-context", "role": "The context kubectl uses when you do not pass `--context`.", "where": "The star in `get-contexts`."}
+        ],
+        "note": "Lookup order: the `--kubeconfig` flag if you pass one, otherwise the files in `KUBECONFIG` (colon-separated on Linux and macOS, semicolon on Windows), otherwise `$HOME/.kube/config`. When files are merged, the first file to set a value wins. A kubeconfig is a credential: `chmod 600`, and read an unknown file the way you would read a shell script."
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "ports, IDs and timings differ on your machine",
+      "items": [
+        {"who": "Checksums", "what": "`kubectl: OK` and `kind: OK` mean the binary matches the published checksum. The lesson's client is kubectl v1.37.2 and kind v0.33.0. If you see `FAILED`, download both files again."},
+        {"who": "kind-first", "what": "`kind create cluster --name first` sets the context to `kind-first`. `NotReady` right after creation is normal. A few seconds later the node is `Ready`. kind prefixes the cluster name with `kind-`."},
+        {"who": "kind-lab", "what": "`kind-lab.yaml` asks for one control-plane and two workers. The lesson's nodes are `lab-control-plane`, `lab-worker` and `lab-worker2`, Kubernetes v1.37.0. Only the control-plane containers publish port 6443."},
+        {"who": "Contexts", "what": "`use-context` changes the kubeconfig. `--context` targets one command. `--minify` shows only the current context and hides certificate data unless you add `--raw`. `set-context --current --namespace` sets the default namespace for commands that omit `-n`."}
+      ],
+      "note": "With `KUBECONFIG` listing several files, the first file's `current-context` wins. `kind delete cluster` also removes that cluster's context. Deleting a cluster that does not exist is not an error. For the rest of the series, keep `kind create cluster --name k8s-from-zero`."
+    },
+    "commandGroups": [
+      {
+        "title": "Check and install",
+        "commands": [
+          {"cmd": "curl -L -s https://dl.k8s.io/release/stable.txt", "note": "v1.37.2 on 10 Nov 2026"},
+          {"cmd": "echo \"$(cat kubectl.sha256)  kubectl\" | sha256sum --check", "note": "must print `OK`"},
+          {"cmd": "kubectl version --client", "note": "client only. `kubectl version` also asks the server"},
+          {"cmd": "kind version", "note": "the lesson prints kind v0.33.0"}
+        ]
+      },
+      {
+        "title": "Clusters",
+        "commands": [
+          {"cmd": "kind create cluster --name first", "note": "context is `kind-first`"},
+          {"cmd": "kind create cluster --config kind-lab.yaml", "note": "roles: control-plane, worker"},
+          {"cmd": "kind create cluster --name pinned --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5", "note": "digests are in the kind release notes"},
+          {"cmd": "kind get clusters", "note": "names of your clusters"},
+          {"cmd": "kind get nodes --name lab", "note": "nodes are Docker containers"},
+          {"cmd": "kind delete cluster --name lab", "note": "also removes its context"},
+          {"cmd": "docker ps --format 'table {{.Names}}\\t{{.Image}}\\t{{.Ports}}'", "note": "only control planes publish 6443"},
+          {"cmd": "docker exec lab-worker crictl ps", "note": "containers as the runtime sees them"}
+        ]
+      },
+      {
+        "title": "Contexts",
+        "commands": [
+          {"cmd": "kubectl config get-contexts", "note": "`*` marks the current one"},
+          {"cmd": "kubectl config current-context", "note": "run it before every change"},
+          {"cmd": "kubectl config use-context kind-lab", "note": "changes the kubeconfig file"},
+          {"cmd": "kubectl get nodes --context kind-lab", "note": "one command, other cluster"},
+          {"cmd": "kubectl config set-context --current --namespace=kube-system", "note": "applies to commands without `-n`"},
+          {"cmd": "kubectl config view --minify", "note": "`--raw` would print the keys"},
+          {"cmd": "kind get kubeconfig --name lab > lab.kubeconfig", "note": "then `chmod 600`"},
+          {"cmd": "KUBECONFIG=a.kubeconfig:b.kubeconfig kubectl config view --flatten", "note": "first file wins on conflicts"}
+        ]
+      },
+      {
+        "title": "When a multi-node create fails",
+        "commands": [
+          {"cmd": "sudo sysctl fs.inotify.max_user_instances=512", "note": "Ubuntu's default is 128"},
+          {"cmd": "sudo sysctl fs.inotify.max_user_watches=524288", "note": "Ubuntu's default is 8192"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use Docker (or Podman) and the install steps from the lesson. Cluster names, ports and timings will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "In one sentence each, how do kind, minikube, k3d and Docker Desktop run a learning cluster?", "a": "kind runs each node as a container and bootstraps it with kubeadm. minikube runs a cluster in a VM, a container, or on the host, depending on the driver. k3d runs k3s in Docker. Docker Desktop has a kubeadm mode (one node) and a kind mode (several nodes).", "lines": 4},
+          {"q": "What does the version skew policy say about kubectl and the API server? Which servers does kubectl 1.37 work with?", "a": "kubectl is supported within one minor version, older or newer, of the API server. kubectl 1.37 works with API servers 1.36, 1.37 and 1.38.", "lines": 2},
+          {"q": "Name the three lists and the one pointer in a kubeconfig file.", "a": "`clusters` (name, server, certificate authority), `users` (name and credentials), `contexts` (one cluster, one user, optional namespace), and `current-context`.", "lines": 3},
+          {"q": "In what order does kubectl pick its configuration file?", "a": "The `--kubeconfig` flag if you pass one, otherwise the files listed in `KUBECONFIG`, otherwise `$HOME/.kube/config`. When files are merged, the first file to set a value wins.", "lines": 2},
+          {"q": "Give the two safety notes the lesson gives for a kubeconfig file.", "a": "A kubeconfig is a credential: anyone with your kind file is admin on that cluster, so keep it private (`chmod 600`). Use kubeconfig files only from trusted sources, because a crafted file can run code on your machine.", "lines": 3}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "After the checksum commands, what does `kubectl: OK` mean, and what should you do if you see `FAILED`?", "a": "`OK` means the binary matches the published checksum. If you see `FAILED`, download both files again.", "lines": 2},
+          {"q": "Create `first` and run `kubectl get nodes` at once. Why might STATUS be `NotReady`, and what is the context name?", "a": "`NotReady` right after creation is normal: the network plugin is still starting. A few seconds later the node is `Ready`. The context is `kind-first`, because kind prefixes the cluster name with `kind-`.", "lines": 2},
+          {"q": "Create `lab` from `kind-lab.yaml` and run `docker ps`. Which containers publish a port, and which port is it?", "a": "Only the control-plane containers publish a port: the API server's 6443, mapped to a random port on `127.0.0.1`. The lesson's output shows that for `lab-control-plane` and `first-control-plane`.", "lines": 2},
+          {"q": "Run `kubectl config get-contexts`, then `kubectl config use-context kind-first`, then `kubectl get nodes --context kind-lab`. What does the star mean, and which command changes the file?", "a": "The star marks the current context. `use-context` changes the kubeconfig file. `--context` targets one command and leaves `current-context` as it was.", "lines": 2},
+          {"q": "Run `kubectl config view --minify`. What does `--minify` leave out, and what would `--raw` add?", "a": "`--minify` shows only what the current context uses. Certificate data is `DATA+OMITTED`. `--raw` would print the keys, so the lesson says the command without `--raw` is safe to paste into a ticket.", "lines": 2},
+          {"q": "Point the current context at `kube-system`, list Pods, then set the namespace back to `default`. What changes?", "a": "Commands without `-n` go to the context's namespace. With `kube-system`, `kubectl get pods` lists that namespace (CoreDNS, the scheduler, and the rest). Set back to `default`, the lesson prints `No resources found in default namespace`.", "lines": 3},
+          {"q": "Write each cluster's kubeconfig to its own file and run `KUBECONFIG=first.kubeconfig:lab.kubeconfig kubectl config get-contexts`. Which context is current, and why?", "a": "The first file set `current-context`, so it wins. In the lesson that is `kind-first`.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You run `kubectl` against the saved `lab.kubeconfig` after `kind delete cluster --name lab`. The error names `127.0.0.1:46163`. What does the lesson say that means?", "a": "kubectl points at a cluster that is not running, usually a kubeconfig file or context that outlived its cluster. Check `kubectl config current-context`, then switch context or recreate the cluster.", "lines": 2},
+          {"q": "After both clusters are deleted, kubectl says `The connection to the server localhost:8080 was refused`. Why port 8080?", "a": "kubectl found no current context at all, so it fell back to `localhost:8080`. `kubectl config current-context` says `error: current-context is not set`. Create a cluster, or run `kubectl config use-context <name>`.", "lines": 2},
+          {"q": "A three-node create stops at `Preparing nodes` and mentions `could not find a log line that matches \"Reached target .*Multi-User System.*|detected cgroup v1\"`. What limit is too low, and which commands does the lesson show?", "a": "Linux limits on inotify instances and watches. On Ubuntu the defaults are 128 and 8192. The lesson raises them with `sudo sysctl fs.inotify.max_user_instances=512` and `sudo sysctl fs.inotify.max_user_watches=524288`, then you create the cluster again.", "lines": 3},
+          {"q": "`kubectl version` shows a client more than one minor version away from the server. What does the lesson say to do?", "a": "Some commands may misbehave. Install a kubectl that matches, per the version skew policy.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}

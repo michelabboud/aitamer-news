@@ -27,6 +27,8 @@ Output, per lesson `<slug>`:
 
 1. Copy `src/lessonkits/k8s-02.json` to `src/lessonkits/<slug>.json` and rewrite it from the lesson post.
    Copy facts and commands from the post verbatim. If an answer needs something the post does not say, drop the exercise.
+   The cheat sheet's control-plane, node and apply sections render only when `cheatsheet.controlPlane` is set (Lesson 2).
+   Other lessons use `cheatsheet.boards` (same three-column rows) and `cheatsheet.steps` (same numbered steps). Key commands are shared.
 2. Put the lesson art (1600x900 JPEG, clean, no text) in `src/lessonkits/art/` and point `art.file` at it.
    The build stamps `art.credit` (`© https://aitamer.news`) on the art; do not bake it into the image.
 3. Set `lesson.seriesSlug` and `lesson.number` to the post's `series` and `series_order`. The build looks the
