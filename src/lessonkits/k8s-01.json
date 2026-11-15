@@ -1,0 +1,165 @@
+{
+  "$comment": "Lesson-kit content for Lesson 1. Every fact and command is copied from the lesson post.",
+  "slug": "k8s-01",
+  "campaign": "k8s-01",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 1,
+    "title": "Kubernetes from Zero, part 1: what Kubernetes is and why it exists",
+    "shortTitle": "What Kubernetes is and why it exists",
+    "description": "Why containers led to Kubernetes, what desired state means, and your first cluster answering on your laptop with kind.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/",
+    "source": "src/content/posts/k8s-from-zero-01-what-kubernetes-is.md",
+    "tested": "Ran every command on kind v0.33.0, Kubernetes v1.37.0 node, kubectl v1.37.2, 10 Nov 2026",
+    "cluster": "k8s-from-zero",
+    "rule": "Kubernetes keeps a running system matching the state you declare. You describe what you want; its controllers keep closing the gap."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-01.jpg",
+    "alt": "A dusty-blue cut-paper cargo ship stacked with cream crates sails on torn-paper waves while a grey dock crane lowers one coral crate toward it, with a small slate-blue ship's wheel in the upper left.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 2, a tour of the control plane and the nodes",
+    "summary": "A guided tour of the control plane and the nodes, following one kubectl apply until a container runs.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-02-architecture-tour/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "Words, the desired-state loop, and the commands from Lesson 1.",
+    "boards": [
+      {
+        "title": "Words from the lesson",
+        "hint": "defined once here, and properly in later parts",
+        "headName": "Word",
+        "headRole": "What the lesson says",
+        "headWhere": "Where you meet it",
+        "rows": [
+          {"name": "Container", "role": "A process with its own filesystem, its own share of CPU and memory, and its own view of the system, while sharing the host's kernel.", "where": "The packaging step, before the cluster."},
+          {"name": "Image", "role": "The packaged filesystem a container starts from.", "where": "The `image` on a container."},
+          {"name": "Cluster", "role": "A group of machines. The control plane stores what you asked for and decides. The worker nodes run your containers.", "where": "kind runs one node as a Docker container."},
+          {"name": "Desired state", "role": "You say what you want, such as three copies of a web server. Kubernetes makes that true and keeps it true.", "where": "An object's `spec`."},
+          {"name": "spec and status", "role": "An object is a record of intent. You write `spec`. Kubernetes writes `status`, what is true right now.", "where": "`kubectl get deployment hello -o yaml`"},
+          {"name": "Controller", "role": "A loop that watches one kind of object and keeps nudging the real world toward its spec. The lesson compares it to a thermostat.", "where": "The ReplicaSet controller in the lab."},
+          {"name": "Pod", "role": "The smallest thing Kubernetes runs: one or more containers that share a network address.", "where": "Part 4."},
+          {"name": "Deployment", "role": "Keep N identical Pods of this template running, and update them gradually.", "where": "Part 7. The lab creates `hello`."},
+          {"name": "ReplicaSet", "role": "The helper a Deployment creates to hold the exact Pod count. You rarely touch it directly.", "where": "The events in step 6."},
+          {"name": "kubectl", "role": "The command-line tool you use to talk to a cluster.", "where": "Every lab command after kind."}
+        ]
+      },
+      {
+        "title": "What you still bring",
+        "hint": "the overview's own list, as the lesson states it",
+        "headName": "You still bring",
+        "headRole": "What the lesson says Kubernetes does not do",
+        "headWhere": "Where the series picks it up",
+        "rows": [
+          {"name": "Build and CI/CD", "role": "It does not build your code or deploy source code. You still need a pipeline that produces an image.", "where": "A later arc covers CI/CD."},
+          {"name": "Data services", "role": "It does not ship databases, caches or message queues as built-in services. You can run them as applications.", "where": "They are applications like any other."},
+          {"name": "Signals", "role": "It does not dictate logging, monitoring or alerting. It gives you hooks. You pick the tools.", "where": "Your own choice of tools."},
+          {"name": "The machines", "role": "It does not configure, patch or repair the machines themselves.", "where": "Outside the cluster."}
+        ],
+        "note": "What it does, in the overview's own list: service discovery and load balancing, storage orchestration, automated rollouts and rollbacks, automatic bin packing, self-healing, secret and configuration management, batch execution, horizontal scaling, and IPv4/IPv6 dual-stack."
+      }
+    ],
+    "steps": {
+      "title": "The loop you ran",
+      "hint": "three copies, delete one, ask for five",
+      "items": [
+        {"who": "kind", "what": "`kind create cluster --name k8s-from-zero` starts the cluster. The lesson's node is `k8s-from-zero-control-plane`, `Ready`, Kubernetes v1.37.0. Your port number will differ."},
+        {"who": "kubectl create", "what": "Deployment `hello`, image `nginx:1.29-alpine`, 3 replicas. `kubectl rollout status deployment/hello` returns when it has successfully rolled out."},
+        {"who": "ReplicaSet", "what": "You delete one Pod. Still three. The lesson says the ReplicaSet controller saw want 3, have 2, and created one. Nobody ran a restart command."},
+        {"who": "kubectl scale", "what": "`--replicas=5`. In the lesson, `spec.replicas` is 5 and `status.readyReplicas` is 5. When they match, the loop is at rest."}
+      ],
+      "note": "The events list six `SuccessfulCreate` lines: the first three Pods, the replacement, and the two extra for scaling to five. On the lab machine the image was preloaded with `kind load docker-image`. On a normal laptop it pulls by itself."
+    },
+    "commandGroups": [
+      {
+        "title": "Install",
+        "commands": [
+          {"cmd": "curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\"", "note": "Linux x86-64, from the kubectl install page"},
+          {"cmd": "curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.33.0/kind-linux-amd64", "note": "kind v0.33.0, from the quick start"},
+          {"cmd": "chmod +x kubectl kind", "note": "mark both binaries executable"},
+          {"cmd": "sudo mv kubectl kind /usr/local/bin/", "note": "the lesson's install line"}
+        ]
+      },
+      {
+        "title": "Cluster",
+        "commands": [
+          {"cmd": "kind create cluster --name k8s-from-zero", "note": "needs Docker running"},
+          {"cmd": "kind delete cluster --name k8s-from-zero", "note": "removes the node containers"},
+          {"cmd": "kubectl cluster-info", "note": "prints the API server address"},
+          {"cmd": "kubectl get nodes", "note": "`STATUS` should be `Ready`"}
+        ]
+      },
+      {
+        "title": "Desired state",
+        "commands": [
+          {"cmd": "kubectl create deployment hello --image=nginx:1.29-alpine --replicas=3", "note": "pin a tag, never `latest`"},
+          {"cmd": "kubectl rollout status deployment/hello", "note": "returns when all copies are available"},
+          {"cmd": "kubectl get pods -o wide", "note": "add `-A` for all namespaces"},
+          {"cmd": "kubectl scale deployment hello --replicas=5", "note": "the controller adds or removes Pods"},
+          {"cmd": "kubectl get deployment hello -o yaml", "note": "compare `spec` with `status`"},
+          {"cmd": "kubectl get events --sort-by=.lastTimestamp", "note": "events expire after a while"},
+          {"cmd": "kubectl describe pod <name>", "note": "read the Events section at the bottom"},
+          {"cmd": "kubectl delete deployment hello", "note": "its Pods go with it"}
+        ]
+      },
+      {
+        "title": "The lab's extra commands",
+        "commands": [
+          {"cmd": "kubectl delete pod hello-6bb4847c46-b8jpw", "note": "use a name from your own list"},
+          {"cmd": "kubectl get events --field-selector involvedObject.kind=ReplicaSet --sort-by=.lastTimestamp", "note": "the ReplicaSet controller's diary"},
+          {"cmd": "kubectl port-forward deployment/hello 8080:80", "note": "then curl from a second terminal"},
+          {"cmd": "curl -s localhost:8080 | grep -i title", "note": "the lesson prints the nginx title"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from the lesson, or create it again with `kind create cluster --name k8s-from-zero`. Pod name suffixes and the API port will differ on yours. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "What is a container, and what is an image?", "a": "A container is a process that runs with its own filesystem, its own share of CPU and memory and its own view of the system, while sharing the host's kernel. An image is the packaged filesystem a container starts from.", "lines": 3},
+          {"q": "Name the operational questions the lesson says containers left open.", "a": "Where each container runs. Who restarts it when it crashes. How other services find it. How you ship version 2 without downtime, and go back to version 1 if it breaks. How you run ten copies instead of two when traffic grows.", "lines": 3},
+          {"q": "What is desired state? What do `spec` and `status` hold, and who writes each?", "a": "You tell Kubernetes what you want, such as three copies of a web server, and it keeps that true. `spec` is what you want, and you write it. `status` is what is true right now, and Kubernetes writes it. An object is a record of intent.", "lines": 3},
+          {"q": "What is a controller? What everyday thing does the lesson compare it to?", "a": "A loop that watches objects of one kind and keeps nudging the real world toward their spec. The controllers page compares it to a thermostat: you set a temperature, and it keeps checking until the room matches.", "lines": 2},
+          {"q": "In one line each, what is a Pod, a Deployment, a ReplicaSet, and kubectl?", "a": "A Pod is the smallest thing Kubernetes runs, one or more containers that share a network address. A Deployment says keep N identical Pods of this template running, and update them gradually. A ReplicaSet is the helper a Deployment creates to hold the exact Pod count. kubectl is the command-line tool you use to talk to a cluster.", "lines": 4},
+          {"q": "Name four things the lesson says Kubernetes does not do.", "a": "It does not build your code or deploy source code. It does not ship databases, caches or message queues as built-in services. It does not dictate logging, monitoring or alerting. It does not configure, patch or repair the machines themselves.", "lines": 3}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command on your cluster, then answer.",
+        "exercises": [
+          {"q": "Run `kind create cluster --name k8s-from-zero`, then `kubectl cluster-info` and `kubectl get nodes`. What context does kind set, and what STATUS and VERSION does the lesson show?", "a": "The lesson's output says `Set kubectl context to \"kind-k8s-from-zero\"`. The node `k8s-from-zero-control-plane` is `Ready`, version v1.37.0. Your port number will differ.", "lines": 2},
+          {"q": "Run `kubectl create deployment hello --image=nginx:1.29-alpine --replicas=3` and `kubectl rollout status deployment/hello`. What did you declare, and when does rollout status return?", "a": "Three copies of `nginx:1.29-alpine`. It returns when the deployment has successfully rolled out. The lesson's last line is `deployment \"hello\" successfully rolled out`.", "lines": 2},
+          {"q": "Delete one `hello` Pod, using a name from your own `kubectl get pods`, then list the Pods again. How many are there, and why?", "a": "Still three. The deleted Pod is gone and a new one takes its place. The ReplicaSet controller saw want 3, have 2, and created one. Nobody ran a restart command.", "lines": 3},
+          {"q": "Run `kubectl scale deployment hello --replicas=5` and `kubectl get deployment hello -o yaml`. What do `spec.replicas` and `status.readyReplicas` say in the lesson?", "a": "Both are 5. You wrote `spec.replicas` through `kubectl scale`. Kubernetes reports `status.readyReplicas`. When they match, the loop is at rest.", "lines": 2},
+          {"q": "Run `kubectl get events --field-selector involvedObject.kind=ReplicaSet --sort-by=.lastTimestamp`. How many `SuccessfulCreate` events does the lesson show, and what are they?", "a": "Six. The first three Pods, the replacement for the one you deleted, and the two extra for scaling to five.", "lines": 2},
+          {"q": "Run `kubectl port-forward deployment/hello 8080:80` and, in a second terminal, `curl -s localhost:8080 | grep -i title`. What does the lesson print?", "a": "`<title>Welcome to nginx!</title>`. Press Ctrl+C in the first terminal to stop the forward.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then run it, or check the answer key.",
+        "exercises": [
+          {"q": "You delete a Pod that a Deployment owns, and a new Pod appears. Is that a bug, and how do you remove the Pods for good?", "a": "It is the Deployment doing its job. To remove Pods for good, delete or scale down the Deployment that owns them.", "lines": 2},
+          {"q": "A Pod stays in `ErrImagePull` or `ImagePullBackOff`. What does the lesson tell you to read, and what did the misspelt tag `nginx:1.29-alpinee` do?", "a": "`kubectl describe pod <name>` shows the reason in Events. The misspelt tag stayed in `ErrImagePull`. On a machine with internet the message says the image or tag was not found. The lab said `i/o timeout` because the cluster had no internet route. Fix the tag with `kubectl set image`, or delete the Deployment.", "lines": 3},
+          {"q": "The shell says `kind: command not found`. What does the lesson tell you to check?", "a": "The binary is not in your PATH. Check with `ls -l /usr/local/bin/kind /usr/local/bin/kubectl`, and run the `sudo mv` line again.", "lines": 2},
+          {"q": "kind says `Cannot connect to the Docker daemon`. What has to be true before `kind create cluster`?", "a": "kind needs a running Docker (or Podman). Start Docker Desktop or the Docker service, then run `docker ps` to confirm.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 <div class="blk rule-box"><span class="mono">THE ONE RULE</span>{{lesson.rule}}</div>
 
+{{#if cheatsheet.controlPlane}}
 <h2 class="sec keep-next">Control plane <span class="sec__hint">the cluster's brain: global decisions, reacting to events</span></h2>
 <div class="comp comp--head keep-next"><span>Component</span><span>Role</span><span>Where it runs</span></div>
 {{#each cheatsheet.controlPlane}}
@@ -18,6 +19,24 @@
 <div class="step"><span class="step__n">{{@number}}</span><span class="step__who">{{who}}</span><span>{{md what}}</span></div>
 {{/each}}
 <div class="blk note owners"><strong>Ownership.</strong> {{md cheatsheet.ownership}}</div>
+{{/if}}
+
+{{#each cheatsheet.boards}}
+<h2 class="sec keep-next">{{title}} <span class="sec__hint">{{hint}}</span></h2>
+<div class="comp comp--head keep-next"><span>{{headName}}</span><span>{{headRole}}</span><span>{{headWhere}}</span></div>
+{{#each rows}}
+<div class="comp"><span class="comp__name">{{name}}</span><span>{{md role}}</span><span class="comp__where">{{md where}}</span></div>
+{{/each}}
+{{#if note}}<div class="blk note">{{md note}}</div>{{/if}}
+{{/each}}
+
+{{#if cheatsheet.steps}}
+<h2 class="sec keep-next">{{cheatsheet.steps.title}} <span class="sec__hint">{{cheatsheet.steps.hint}}</span></h2>
+{{#each cheatsheet.steps.items}}
+<div class="step"><span class="step__n">{{@number}}</span><span class="step__who">{{who}}</span><span>{{md what}}</span></div>
+{{/each}}
+{{#if cheatsheet.steps.note}}<div class="blk note owners">{{md cheatsheet.steps.note}}</div>{{/if}}
+{{/if}}
 
 <h2 class="sec keep-next">Key commands <span class="sec__hint">commands verbatim from the lesson</span></h2>
 <div class="blk cmd-cols">

@@ -17,6 +17,8 @@ draft: false
 heroImage: https://bots.aitamer.news/heroes/k8s-from-zero-04-your-first-pod-19cb0344.jpg
 heroAlt: "A cut-paper pea pod lies open on torn sand-coloured paper, holding one slate-blue shipping container, with a coral ribbon tied around it and a slate-blue ship's wheel in the corner."
 author: desk-bot
+lessonKit:
+  id: k8s-04
 wildness:
   rating: 1
   verified: "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026"
@@ -107,7 +109,7 @@ A few details a beginner trips over:
 
 1. Create the namespace the series uses. You only do this once.
 
-```bash
+```bash rail=create-namespace
 kubectl create namespace k8s-from-zero
 ```
 
@@ -117,7 +119,7 @@ namespace/k8s-from-zero created
 
 2. Apply the manifest, then list Pods in that namespace straight away.
 
-```bash
+```bash rail=apply-pod
 kubectl apply -f pod.yaml
 kubectl get pods -n k8s-from-zero
 ```
@@ -139,7 +141,7 @@ hello   1/1     Running   0          6s
 
 3. Ask for the wide view to see the Pod IP and the node.
 
-```bash
+```bash rail=get-pods-wide
 kubectl get pods -n k8s-from-zero -o wide
 ```
 
@@ -150,7 +152,7 @@ hello   1/1     Running   0          6s    10.244.0.5   k8s-ep04-control-plane  
 
 4. Describe the Pod. This is the command you will run most when something looks wrong, because it shows container state and the **events** (a log of what the cluster did to this object) at the bottom.
 
-```bash
+```bash rail=describe-hello
 kubectl describe pod hello -n k8s-from-zero
 ```
 
@@ -192,7 +194,7 @@ Read the events top to bottom and you see the life of an apply from part 2: the 
 
 5. Read the container's log. Kubernetes keeps whatever the main process writes to stdout and stderr.
 
-```bash
+```bash rail=logs-hello
 kubectl logs hello -n k8s-from-zero
 ```
 
@@ -209,7 +211,7 @@ Add `-f` to follow the log live, like `tail -f`.
 
 6. Run commands inside the container with `exec`. Everything after `--` runs in the container.
 
-```bash
+```bash rail=exec-hello
 kubectl exec hello -n k8s-from-zero -- nginx -v
 kubectl exec hello -n k8s-from-zero -- cat /etc/hostname
 kubectl exec hello -n k8s-from-zero -- wget -qO- http://localhost:80
@@ -229,7 +231,7 @@ The hostname is the Pod name, as promised. For an interactive shell, add `-it` a
 
 7. Reach the web server from your laptop with `port-forward`. It tunnels a local port to a port on the Pod through the API server. Run it in one terminal:
 
-```bash
+```bash rail=port-forward
 kubectl port-forward pod/hello 8080:80 -n k8s-from-zero
 ```
 
@@ -240,7 +242,7 @@ Forwarding from [::1]:8080 -> 80
 
 and in a second terminal:
 
-```bash
+```bash rail=curl-title
 curl -s http://localhost:8080 | grep title
 ```
 
@@ -252,7 +254,7 @@ The first terminal prints `Handling connection for 8080`. Press Ctrl+C there to 
 
 8. Look at the object the way the cluster stores it. Filter the YAML down to its top-level keys:
 
-```bash
+```bash rail=get-yaml-keys
 kubectl get pod hello -n k8s-from-zero -o yaml | grep -E "^[a-zA-Z]+:"
 ```
 
@@ -266,7 +268,7 @@ status:
 
 Your four fields came back, plus the `status` the cluster wrote. To pull out a single field, use JSONPath (part 5 covers it in depth):
 
-```bash
+```bash rail=phase-jsonpath
 kubectl get pod hello -n k8s-from-zero -o jsonpath="{.status.phase}{\"\n\"}"
 ```
 
@@ -276,7 +278,7 @@ Running
 
 9. Prove that a Pod is disposable. Change the web page inside the container, delete the Pod, apply the same file again, and look:
 
-```bash
+```bash rail=prove-disposable
 echo "<h1>hello from a pod</h1>" | kubectl exec -i hello -n k8s-from-zero -- sh -c "cat > /usr/share/nginx/html/index.html"
 kubectl exec hello -n k8s-from-zero -- wget -qO- http://localhost
 kubectl delete pod hello -n k8s-from-zero
@@ -366,7 +368,7 @@ spec:
 
 Apply all three at once and watch:
 
-```bash
+```bash rail=apply-three
 kubectl apply -f once.yaml -f crash.yaml -f typo.yaml
 kubectl get pods -n k8s-from-zero
 ```
@@ -395,7 +397,7 @@ Now read each one.
 
 **`once` finished.** `Completed` in the STATUS column; the phase underneath is `Succeeded`:
 
-```bash
+```bash rail=logs-once
 kubectl logs once -n k8s-from-zero
 kubectl get pod once -n k8s-from-zero -o jsonpath="{.status.phase}{\"\n\"}"
 ```
@@ -410,7 +412,7 @@ Succeeded
 
 **`crash` keeps restarting.** The RESTARTS count climbs and the gaps between restarts grow. While the kubelet waits between attempts, the STATUS column shows `CrashLoopBackOff`; right after a crash it shows `Error`. We saw both. The phase stays `Running` the whole time, because the Pod is still trying:
 
-```bash
+```bash rail=phase-columns
 kubectl get pods crash typo -n k8s-from-zero -o custom-columns='NAME:.metadata.name,PHASE:.status.phase,WAITING-REASON:.status.containerStatuses[0].state.waiting.reason'
 ```
 
@@ -422,7 +424,7 @@ typo    Pending   ImagePullBackOff
 
 `describe` shows the exit code of the current and the previous run:
 
-```bash
+```bash rail=describe-crash
 kubectl describe pod crash -n k8s-from-zero
 ```
 
@@ -443,7 +445,7 @@ kubectl describe pod crash -n k8s-from-zero
 
 To read the log of the run that crashed, use `--previous` once the container has been restarted:
 
-```bash
+```bash rail=logs-previous
 kubectl logs crash -n k8s-from-zero --previous
 ```
 
@@ -454,7 +456,7 @@ cannot find config
 
 **`typo` never started.** Phase `Pending`, container `Waiting` with reason `ImagePullBackOff`. The events say why:
 
-```bash
+```bash rail=describe-typo
 kubectl describe pod typo -n k8s-from-zero
 ```
 
@@ -474,7 +476,7 @@ On our offline box the message ends in a DNS lookup failure; on a machine with i
 
 Clean up. Deleting takes up to 30 seconds per Pod, because Kubernetes first sends the process a polite stop signal and waits for its default grace period before forcing it.
 
-```bash
+```bash rail=delete-pods
 kubectl delete -f once.yaml -f crash.yaml -f typo.yaml
 kubectl delete -f pod.yaml
 ```
@@ -541,3 +543,531 @@ spec:
 - Pods are disposable: delete one and its changes are gone.
 
 Next: Kubernetes from Zero, part 5, kubectl essentials, coming tomorrow.
+
+```rail
+id: "create-namespace"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "create"
+        text: "Create a resource from a file or from stdin. Here it takes the namespace subcommand."
+      - token: "namespace"
+        text: "Create a namespace with the specified name. The synopsis is kubectl create namespace NAME."
+      - token: "k8s-from-zero"
+        text: "The namespace name. The lesson says every object in this series goes into a namespace called k8s-from-zero."
+```
+
+```rail
+id: "apply-pod"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "apply"
+        text: "Apply a configuration to a resource by file name or stdin. The apply docs say the resource is created if it does not exist yet. JSON and YAML are accepted."
+      - token: "-f"
+        text: "Short form of --filename. The files, directories or URLs that contain the configurations to apply."
+      - token: "pod.yaml"
+        text: "The file named by --filename. The lesson saves the Pod manifest under this name."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pods"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+```
+
+```rail
+id: "get-pods-wide"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pods"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "wide"
+        text: "An output format: the default table plus more columns. The get examples say it adds more information, such as the node name. The lesson's output adds IP, NODE, NOMINATED NODE and READINESS GATES."
+```
+
+```rail
+id: "describe-hello"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "describe"
+        text: "Show details of a specific resource or group of resources. The describe docs say this includes related resources such as events or controllers."
+      - token: "pod"
+        text: "The resource type. The describe synopsis is kubectl describe (-f FILENAME | TYPE [NAME_PREFIX | -l label] | TYPE/NAME)."
+      - token: "hello"
+        text: "The object name. describe looks for an exact match on that name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+```
+
+```rail
+id: "logs-hello"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "logs"
+        text: "Print the logs for a container in a pod or specified resource. If the pod has only one container, the container name is optional."
+      - token: "hello"
+        text: "The Pod name. The logs synopsis is kubectl logs [-f] [-p] (POD | TYPE/NAME) [-c CONTAINER]."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+```
+
+```rail
+id: "exec-hello"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "exec"
+        text: "Execute a command in a container. The synopsis is kubectl exec (POD | TYPE/NAME) [-c CONTAINER] [flags] -- COMMAND [args...]."
+      - token: "hello"
+        text: "The Pod name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "--"
+        text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
+      - token: "nginx"
+        text: "The command run in the container."
+      - token: "-v"
+        text: "An argument of that nginx command. The lesson's output is the nginx version line."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "exec"
+        text: "Execute a command in a container. The synopsis is kubectl exec (POD | TYPE/NAME) [-c CONTAINER] [flags] -- COMMAND [args...]."
+      - token: "hello"
+        text: "The Pod name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "--"
+        text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
+      - token: "cat"
+        text: "The command run in the container. It prints the file that follows."
+      - token: "/etc/hostname"
+        text: "The file cat prints. The lesson uses it to show that the hostname is the Pod name."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "exec"
+        text: "Execute a command in a container. The synopsis is kubectl exec (POD | TYPE/NAME) [-c CONTAINER] [flags] -- COMMAND [args...]."
+      - token: "hello"
+        text: "The Pod name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "--"
+        text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
+      - token: "wget"
+        text: "The command run in the container. The lesson uses it to fetch the page from inside the Pod."
+      - token: "-qO-"
+        text: "wget flags written together. -q asks for quiet output. -O- writes the response to standard output, which is why the lesson prints the page body."
+      - token: "http://localhost:80"
+        text: "The URL wget fetches. The lesson says containers in the same Pod share the Pod IP, so the web server answers on localhost."
+```
+
+```rail
+id: "port-forward"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "port-forward"
+        text: "Forward one or more local ports to a pod. The docs say the type defaults to pod if you omit it, and that the session ends when the selected pod terminates."
+      - token: "pod/hello"
+        text: "The resource, as TYPE/NAME."
+      - token: "8080:80"
+        text: "LOCAL_PORT:REMOTE_PORT. Listen on 8080 on your machine and forward to port 80 in the pod. The port-forward examples use this same form, such as 8888:5000."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+```
+
+```rail
+id: "curl-title"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "curl"
+        text: "The curl client."
+      - token: "-s"
+        text: "Short form of --silent. Do not show the progress meter or error messages. curl still writes the data you asked for."
+      - token: "http://localhost:8080"
+        text: "The address curl fetches. It is the local port from the port-forward command."
+      - token: "|"
+        text: "Shell. Sends the previous command's standard output to the next command."
+      - token: "grep"
+        text: "Shell. Prints input lines that match a pattern."
+      - token: "title"
+        text: "The pattern grep looks for."
+```
+
+```rail
+id: "get-yaml-keys"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pod"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "hello"
+        text: "The object name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "yaml"
+        text: "An output format. It prints the object as YAML."
+      - token: "|"
+        text: "Shell. Sends the previous command's standard output to the next command."
+      - token: "grep"
+        text: "Shell. Prints input lines that match a pattern."
+      - token: "-E"
+        text: "Short form of --extended-regexp. grep treats the pattern as an extended regular expression."
+      - token: "\"^[a-zA-Z]+:\""
+        text: "The pattern, in quotes. ^ is the start of a line, [a-zA-Z]+ is one or more letters, and the colon follows. The lesson uses it to keep the top-level YAML keys."
+```
+
+```rail
+id: "phase-jsonpath"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pod"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "hello"
+        text: "The object name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "jsonpath=\"{.status.phase}{\\\"\\n\\\"}\""
+        text: "jsonpath is an output format. A template is JSONPath expressions in curly braces. {.status.phase} reads that field. The JSONPath page says a double-quoted string inserts text, and its example uses {\"\\n\"} for a newline."
+```
+
+```rail
+id: "prove-disposable"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "echo"
+        text: "Shell. Writes its arguments to standard output, which the pipe then reads."
+      - token: "\"<h1>hello from a pod</h1>\""
+        text: "The text echo writes, in quotes. The lesson uses it as the new contents of the container's web page."
+      - token: "|"
+        text: "Shell. Sends the previous command's standard output to the next command."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "exec"
+        text: "Execute a command in a container. The synopsis is kubectl exec (POD | TYPE/NAME) [-c CONTAINER] [flags] -- COMMAND [args...]."
+      - token: "-i"
+        text: "Short form of --stdin. Pass stdin to the container, so the piped text reaches the command inside."
+      - token: "hello"
+        text: "The Pod name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "--"
+        text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
+      - token: "sh"
+        text: "The command run in the container. The lesson says this Alpine image has sh."
+      - token: "-c"
+        text: "An argument of sh. It tells sh to run the command string that follows."
+      - token: "\"cat > /usr/share/nginx/html/index.html\""
+        text: "The command string, in quotes. cat reads the piped text and the shell redirection writes it to that file inside the container."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "exec"
+        text: "Execute a command in a container. The synopsis is kubectl exec (POD | TYPE/NAME) [-c CONTAINER] [flags] -- COMMAND [args...]."
+      - token: "hello"
+        text: "The Pod name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "--"
+        text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
+      - token: "wget"
+        text: "The command run in the container."
+      - token: "-qO-"
+        text: "wget flags written together. -q asks for quiet output. -O- writes the response to standard output."
+      - token: "http://localhost"
+        text: "The URL wget fetches inside the Pod."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "delete"
+        text: "Delete resources by file names, stdin, resources and names, or by resources and label selector."
+      - token: "pod"
+        text: "The resource type, the TYPE in the delete synopsis."
+      - token: "hello"
+        text: "The object name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "apply"
+        text: "Apply a configuration to a resource by file name or stdin. The apply docs say the resource is created if it does not exist yet. JSON and YAML are accepted."
+      - token: "-f"
+        text: "Short form of --filename. The files, directories or URLs that contain the configurations to apply."
+      - token: "pod.yaml"
+        text: "The file named by --filename. Applying it creates the Pod again from the manifest."
+      - token: "kubectl exec hello -n k8s-from-zero --"
+        text: "The same exec form as the lines above: exec runs a command in the Pod hello, -n limits this request to the k8s-from-zero namespace, and -- ends kubectl's flags."
+      - token: "wget"
+        text: "The command run in the container."
+      - token: "-qO-"
+        text: "Quiet wget, with the response written to standard output."
+      - token: "http://localhost"
+        text: "The URL wget fetches inside the new Pod."
+      - token: "|"
+        text: "Shell. Sends the previous command's standard output to the next command."
+      - token: "grep"
+        text: "Shell. Prints input lines that match a pattern."
+      - token: "title"
+        text: "The pattern grep looks for. The lesson's output is the original nginx title, so the edit did not survive the new Pod."
+```
+
+```rail
+id: "apply-three"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "apply"
+        text: "Apply a configuration to a resource by file name or stdin. The apply docs say the resource is created if it does not exist yet. JSON and YAML are accepted."
+      - token: "-f"
+        text: "Short form of --filename. The files, directories or URLs that contain the configurations to apply. This command passes the flag three times, once per file. The apply examples also show -f with a file."
+      - token: "once.yaml"
+        text: "The first file. The lesson's once Pod runs a short script and sets restartPolicy to Never."
+      - token: "-f"
+        text: "Short form of --filename. The files, directories or URLs that contain the configurations to apply."
+      - token: "crash.yaml"
+        text: "The second file. The lesson's crash Pod exits with status 1."
+      - token: "-f"
+        text: "Short form of --filename. The files, directories or URLs that contain the configurations to apply."
+      - token: "typo.yaml"
+        text: "The third file. The lesson's typo Pod names the image nginx:1.29-alpnie."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pods"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+```
+
+```rail
+id: "logs-once"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "logs"
+        text: "Print the logs for a container in a pod or specified resource. If the pod has only one container, the container name is optional."
+      - token: "once"
+        text: "The Pod name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pod"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "once"
+        text: "The object name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "jsonpath=\"{.status.phase}{\\\"\\n\\\"}\""
+        text: "jsonpath output. {.status.phase} reads the Pod phase. {\"\\n\"} is the newline the JSONPath page shows inside a double-quoted string."
+```
+
+```rail
+id: "phase-columns"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "pods"
+        text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
+      - token: "crash"
+        text: "An object name. The get examples include listing one or more resources by type and name."
+      - token: "typo"
+        text: "A second object name of the same type."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "custom-columns='NAME:.metadata.name,PHASE:.status.phase,WAITING-REASON:.status.containerStatuses[0].state.waiting.reason'"
+        text: "custom-columns is an output format. The get examples write each column as a heading, a colon, and a JSONPath. The headings here are NAME, PHASE and WAITING-REASON. The paths are .metadata.name, .status.phase and .status.containerStatuses[0].state.waiting.reason. [0] is the first container status."
+```
+
+```rail
+id: "describe-crash"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "describe"
+        text: "Show details of a specific resource or group of resources. The describe docs say this includes related resources such as events or controllers."
+      - token: "pod"
+        text: "The resource type."
+      - token: "crash"
+        text: "The object name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+```
+
+```rail
+id: "logs-previous"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "logs"
+        text: "Print the logs for a container in a pod or specified resource. If the pod has only one container, the container name is optional."
+      - token: "crash"
+        text: "The Pod name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+      - token: "--previous"
+        text: "If true, print the logs for the previous instance of the container in a pod if it exists. The logs examples show -p for the previous terminated container."
+```
+
+```rail
+id: "describe-typo"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "describe"
+        text: "Show details of a specific resource or group of resources. The describe docs say this includes related resources such as events or controllers."
+      - token: "pod"
+        text: "The resource type."
+      - token: "typo"
+        text: "The object name."
+      - token: "-n"
+        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+      - token: "k8s-from-zero"
+        text: "The namespace name passed to --namespace."
+```
+
+```rail
+id: "delete-pods"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "delete"
+        text: "Delete resources by file names, stdin, resources and names, or by resources and label selector."
+      - token: "-f"
+        text: "Short form of --filename. For delete, the file that contains the resource to delete. The delete examples include kubectl delete -f ./pod.json. This command passes the flag three times, once per file."
+      - token: "once.yaml"
+        text: "The first file. delete removes the resources that file describes."
+      - token: "-f"
+        text: "Short form of --filename. For delete, the file that contains the resource to delete. The delete examples include kubectl delete -f ./pod.json."
+      - token: "crash.yaml"
+        text: "The second file."
+      - token: "-f"
+        text: "Short form of --filename. For delete, the file that contains the resource to delete. The delete examples include kubectl delete -f ./pod.json."
+      - token: "typo.yaml"
+        text: "The third file."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "delete"
+        text: "Delete resources by file names, stdin, resources and names, or by resources and label selector."
+      - token: "-f"
+        text: "Short form of --filename. For delete, the file that contains the resource to delete. The delete examples include kubectl delete -f ./pod.json."
+      - token: "pod.yaml"
+        text: "The file that describes the hello Pod."
+```
