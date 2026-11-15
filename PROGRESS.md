@@ -2,6 +2,8 @@
 
 2026-11-15 — PR469 successor: rail parser and lesson-download cache repairs implemented; focused regressions demonstrate the original failures and fixes. Full validation, independent review, required-check merge and production verification are tracked in [the delivery plan](docs/plans/2026-11-15-lesson-series-repair.md). Original Cursor commits and cleared PDFs are preserved.
 
+2026-11-15 — 0.2.142: Series is a top-bar tab right after News, Rust moved into More (Michel's word). 1708/1708 tests, build passes, top bar checked at 721px: one line, no overflow.
+
 2026-11-12 — 0.2.141: series catalog moved to build-time JSON with a strict reader; the Grok App publishes series rows (`series/`) and diagrams (`diagrams/<post-slug>`) through two lanes in the publisher path guard, Cursor works for it with no lane, and bot branches are never treated as the maintainer's (ADR 0054). Instructions for the bots: `docs/guides/series-and-diagrams-for-bots.md`.
 
 2026-11-03 — Michel requested small thumbnails beside series parts after reviewing the offline artifact. Candidate0.2.140 adds the existing post imagery to those rows and refreshes the same self-contained preview. 1668/1668 tests, build1650, content/CSP/link/diagram guards and both source reviews pass. The updated offline preview verifies all39 thumbnails and phone widths320/390 without overflow. No merge or upload.

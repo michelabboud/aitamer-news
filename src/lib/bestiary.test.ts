@@ -12,8 +12,8 @@ test('every habitat has one display entry, in code order', () => {
 });
 
 test('every habitat but General and Voices has a cell in the topic row (Voices sits with the reading views)', () => {
-  assert.deepEqual(HABITAT_LIST.filter((h) => h.inNav).map((h) => h.name), ['Models', 'Dev', 'Tools', 'DevOps & IT', 'Rust']);
-  assert.deepEqual(HABITAT_LIST.filter((h) => !h.inNav).map((h) => h.slug), ['general', 'voices']);
+  assert.deepEqual(HABITAT_LIST.filter((h) => h.inNav).map((h) => h.name), ['Models', 'Dev', 'Tools', 'DevOps & IT']);
+  assert.deepEqual(HABITAT_LIST.filter((h) => !h.inNav).map((h) => h.slug), ['rust', 'general', 'voices']);
 });
 
 test('a wildness meter fills as many segments as the level, in the level colour', () => {

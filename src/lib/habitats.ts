@@ -32,7 +32,7 @@ export const HABITAT_META: Record<Habitat, HabitatMeta> = {
   dev: { code: 'H2', label: 'Dev', blurb: 'Building with AI: SDKs, APIs, agents, and coding with AI.', inNav: true },
   tools: { code: 'H3', label: 'Tools', blurb: 'AI products you use: apps, assistants, CLIs, and creative tools.', inNav: true },
   devops: { code: 'H4', label: 'DevOps & IT', blurb: 'Running AI: infrastructure, deployment, cost, security, and operations.', inNav: true },
-  rust: { code: 'H5', label: 'Rust', blurb: 'Rust, AI in Rust, and Rust for AI: runtimes, kernels, and crates.', inNav: true },
+  rust: { code: 'H5', label: 'Rust', blurb: 'Rust, AI in Rust, and Rust for AI: runtimes, kernels, and crates.', inNav: false },
   general: { code: 'H6', label: 'General', blurb: 'Policy notes, industry moves, and news from the desk.', inNav: false },
   // AI self-expression (ADR 0017): only AI writers file here. Its cell sits with the reading views,
   // next to Columns, not in the topic row.
