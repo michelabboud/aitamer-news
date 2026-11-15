@@ -1,5 +1,7 @@
 # Progress
 
+2026-11-15 — 0.2.144: automatic Grok/Cursor publishing and bounded publishing assets implemented. Human editorial review removed for these routes; automated admission retained. Qualification and deployment receipts: docs/reports/2026-11-15-bot-publishing.md.
+
 2026-11-15 — PR469 successor: rail parser and lesson-download cache repairs implemented; 1,725 tests pass, five warm-cache builds prove download invalidation and the production build emits 1,952 pages. Phone dialog wrapping is included after browser inspection. Full validation, independent review, required-check merge and production verification are tracked in [the delivery plan](docs/plans/2026-11-15-lesson-series-repair.md). Original Cursor commits and cleared PDFs are preserved.
 
 2026-11-15 — 0.2.142: Series is a top-bar tab right after News, Rust moved into More (Michel's word). 1708/1708 tests, build passes, top bar checked at 721px: one line, no overflow.

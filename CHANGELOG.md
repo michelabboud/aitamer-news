@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.144 — 2026-11-15
+
+Automatic Cursor publishing joins the existing Grok trusted-admission route, without human approval/review. Both routes accept bounded lesson-kit JSON/PDF, diagrams and series data, including asset-only PRs. Exact blob binding preserves binary files through deterministic validation and merge. JSON identity and isolated PDF parsing reject malformed assets; stale-main changes, code paths and non-plain modes fail closed. Quill's narrower scope remains. Cursor branch access must include the existing trusted allocator App. See ADR0055 and the task report.
+
 ## 0.2.143 · 2026-11-15
 
 - Deliver PR469's lesson code rails, downloadable lesson kit and expanded series header through a maintainer PR. Use Sätteri's Markdown tree for nested/indented code and sidecars, preserving literal examples and frontmatter. Resolve download links before static-path caching so adding/removing PDFs or lab archives updates the lesson page on warm builds.

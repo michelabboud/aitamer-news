@@ -1,7 +1,8 @@
 /** Trusted-main admission orchestration. Never executes code from a submitted tree. */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CandidateAdmissionError, editorialDigest, planAdmission } from './specimen-admission-data.mjs';
 import { inspectSpecimenChanges, verifyAdmissionProof, SPECIMEN_LEDGER } from './specimen-integrity.mjs';
@@ -24,6 +25,9 @@ const GROK_ACTOR = 337850229;
 const QUILL_ACTOR = null;
 /** The pinned independent-lane identities. A plain object so a test can set one; production code never writes it. */
 export const laneActors = { grok: GROK_ACTOR, quill: QUILL_ACTOR };
+const CURSOR_OWNER = 29182417;
+const CURSOR_BRANCH = /^cursor\/[a-zA-Z0-9][a-zA-Z0-9_./-]*$/;
+function cursorBranch(ref) { return typeof ref==='string' && CURSOR_BRANCH.test(ref) && !ref.includes('..') && !ref.includes('//') && !ref.endsWith('/') && !ref.endsWith('.lock'); }
 const LANE_BRANCH = { grok: isGrokBranch, quill: isQuillBranch };
 const STATE_BRANCH = 'specimens/state';
 const STATE_PATH = 'specimen-state.json';
@@ -62,6 +66,8 @@ function trustedRun(run, repo, owner) {
 }
 /** Which independent content lane (if any) a pull request belongs to: a pinned App identity, a bot, not a draft, a lane branch in this repository, into main. */
 export function independentLane(pr,repo,actors=laneActors) {
+  // Cursor submits through the owner's account. A same-repository branch requires write access; a prefix on a fork grants nothing.
+  if (pr?.user?.id===CURSOR_OWNER && pr.user.type==='User' && !pr.draft && cursorBranch(pr.head?.ref) && pr.head?.repo?.full_name===repo && pr.base?.ref==='main' && pr.base?.repo?.full_name===repo) return 'cursor';
   for (const [lane,id] of Object.entries(actors)) {
     if (!Number.isSafeInteger(id) || id<1) continue;
     if (pr?.user?.id===id && pr.user.type==='Bot' && !pr.draft && LANE_BRANCH[lane](pr.head?.ref) && pr.head?.repo?.full_name===repo && pr.base?.ref==='main' && pr.base?.repo?.full_name===repo) return lane;
@@ -75,6 +81,7 @@ const independentLanePR=(pr,repo)=>independentLane(pr,repo)!==null;
  * `collectAdmission` returned; the same wording as the publisher guard's lane (`quillPostProblems`).
  */
 export function quillAdmissionProblems(plan,readPost=readFrontmatter) {
+  if (plan.assets?.size) return ['Quill publishes articles only, not publishing assets'];
   return quillPostProblems({candidatePosts:plan.candidatePosts,existingPosts:plan.existingPosts,readPost});
 }
 export function requestOf(run) {
@@ -428,9 +435,34 @@ function blob(commit, path, {candidate=false}={}) {
   if (!raw.equals(Buffer.from(text))) throw (candidate ? new CandidateAdmissionError('invalid UTF-8 blob') : new Error('invalid UTF-8 blob'));
   return text;
 }
+// Publishing assets are data only. Code, workflows, author identities and deletes remain outside admission.
+const PUBLISHING_ASSET = /^(?:src\/lessonkits\/[a-z0-9]+(?:-[a-z0-9]+)*\.json|public\/lessonkits\/[a-z0-9]+(?:-[a-z0-9]+)*-(?:answer-key|cheatsheet|homework)\.pdf|public\/diagrams\/[a-z0-9]+(?:-[a-z0-9]+)*\/[a-zA-Z0-9][a-zA-Z0-9_-]*\.svg|src\/data\/series\.json)$/;
+const MAX_PUBLISHING_ASSET_BYTES = 20 * 1024 * 1024;
+const MAX_PUBLISHING_ASSETS = 200;
+function assetDigest(posts, assets) {
+  // Preserve existing article-only receipts during rollout.
+  const digest=editorialDigest(posts);
+  return assets.size ? createHash('sha256').update(JSON.stringify([digest,[...assets].sort(([a],[b])=>a.localeCompare(b))])).digest('hex') : digest;
+}
+function assetAt(commit,path) {
+  const size=Number(git('cat-file','-s',`${sha(commit)}:${path}`).trim());
+  if (!Number.isSafeInteger(size) || size>MAX_PUBLISHING_ASSET_BYTES) throw new CandidateAdmissionError(`publishing asset exceeds bound: ${path}`);
+  const oid=sha(git('rev-parse',`${commit}:${path}`).trim());
+  if (path.endsWith('.pdf') || path.endsWith('.json')) {
+    const bytes=execFileSync('git',['cat-file','blob',oid],{maxBuffer:MAX_PUBLISHING_ASSET_BYTES,stdio:['ignore','pipe','pipe']});
+    if (path.endsWith('.pdf') && (!bytes.subarray(0,8).toString('ascii').match(/^%PDF-[12]\.[0-9]/) || !/%%EOF\s*$/.test(bytes.subarray(-1024).toString('latin1')))) throw new CandidateAdmissionError(`invalid PDF publishing asset: ${path}`);
+    if (path.endsWith('.json')) {
+      let value;
+      try { const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);value=JSON.parse(text); }
+      catch { throw new CandidateAdmissionError(`invalid JSON publishing asset: ${path}`); }
+      if (!value || typeof value!=='object' || (path.startsWith('src/lessonkits/') && (Array.isArray(value) || value.slug!==path.slice('src/lessonkits/'.length,-5)))) throw new CandidateAdmissionError(`invalid JSON publishing asset identity: ${path}`);
+    }
+  }
+  return oid;
+}
 export function collectAdmission(base, source, {allowEmpty=false}={}) {
   sha(base); sha(source);
-  const ancestor = git('merge-base', base, source).trim(); sha(ancestor);
+  const ancestor = git('merge-base', '--all', base, source).trim(); sha(ancestor);
   const modes = parseHeadModes(git('ls-tree', '-r', '-z', source));
   const ancestorModes = ancestor===base ? null : parseHeadModes(git('ls-tree', '-r', '-z', ancestor));
   const changes = parseNameStatus(git('diff', '--name-status', '--no-renames', '-z', ancestor, source));
@@ -441,8 +473,17 @@ export function collectAdmission(base, source, {allowEmpty=false}={}) {
   }
   const candidatePosts = new Map();
   const existingPosts = new Map();
+  const assets = new Map();
   for (const change of changes) {
     if (change.path === SPECIMEN_LEDGER) continue; // Never read an untrusted ledger.
+    if (PUBLISHING_ASSET.test(change.path) && ['A','M'].includes(change.status) && modes.get(change.path)==='100644') {
+      if (assets.size>=MAX_PUBLISHING_ASSETS) throw new CandidateAdmissionError('too many publishing assets');
+      if (ancestor!==base) {
+        const old=git('ls-tree',ancestor,'--',change.path),current=git('ls-tree',base,'--',change.path);
+        if (old!==current) throw new CandidateAdmissionError('publishing asset changed on main; refresh source before admission');
+      }
+      assets.set(change.path,assetAt(source,change.path));continue;
+    }
     const match = POST.exec(change.path);
     if (!match || !['A', 'M'].includes(change.status) || modes.get(change.path) !== '100644') throw new CandidateAdmissionError(`outside admission lane: ${change.path}`);
     const current = basePosts.get(match[1]);
@@ -455,9 +496,9 @@ export function collectAdmission(base, source, {allowEmpty=false}={}) {
     if (change.status === 'M') existingPosts.set(match[1], { ancestor: blob(ancestor, change.path), main: basePosts.get(match[1]) ?? null });
     candidatePosts.set(match[1], blob(source, change.path,{candidate:true}));
   }
-  if (!candidatePosts.size && !allowEmpty) throw new CandidateAdmissionError('admission needs an article');
+  if (!candidatePosts.size && !assets.size && !allowEmpty) throw new CandidateAdmissionError('admission needs an article or publishing asset');
   const plan = planAdmission({ basePosts, candidatePosts, ledgerText: blob(base, SPECIMEN_LEDGER) });
-  return { ...plan, candidatePosts, existingPosts, changes };
+  return { ...plan, editorialDigest:assetDigest(candidatePosts,assets), assets, candidatePosts, existingPosts, changes };
 }
 function approvedHeadDigest(base,head,source,collect=collectAdmission) {
   const approved=collect(base,source), observed=collect(base,head,{allowEmpty:true});
@@ -467,7 +508,13 @@ function approvedHeadDigest(base,head,source,collect=collectAdmission) {
   if ([...observed.candidatePosts.keys()].some(slug=>!approved.candidatePosts.has(slug))) throw new Error('source editorial content changed after approval');
   const modes=parseHeadModes(git('ls-tree','-r','-z',head));
   if ([...approved.candidatePosts.keys()].some(slug=>modes.get(`src/content/posts/${slug}.md`)!=='100644')) throw new Error('source editorial content changed after approval');
-  return editorialDigest(new Map([...approved.candidatePosts.keys()].map(slug=>[slug,blob(head,`src/content/posts/${slug}.md`)])));
+  const assets=new Map();
+  if ([...(observed.assets ?? new Map()).keys()].some(path=>!approved.assets?.has(path))) throw new Error('source publishing assets changed after approval');
+  for (const [path,oid] of approved.assets ?? []) {
+    if (modes.get(path)!=='100644' || assetAt(head,path)!==oid) throw new Error('source publishing assets changed after approval');
+    assets.set(path,oid);
+  }
+  return assetDigest(new Map([...approved.candidatePosts.keys()].map(slug=>[slug,blob(head,`src/content/posts/${slug}.md`)])),assets);
 }
 function fetchObjects(...commits) { for (const commit of commits) git('fetch', '--no-tags', 'origin', sha(commit)); }
 function output(name, value) { if (!/^[a-z_]+$/.test(name) || /[\r\n]/.test(String(value))) throw new Error('unsafe output'); if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`); }
@@ -524,7 +571,7 @@ export async function prepare(api, env, {collect=collectAdmission,fetchCommits=f
   fetchCommits(observedHead);
   if (activeRequest.samePR && approvedHeadDigest(base,observedHead,source,collect)!==digest) throw new Error('source editorial content changed after approval');
   const baseCommit = await api.request(`/git/commits/${base}`);
-  const tree = await api.request('/git/trees', 'POST', { base_tree: baseCommit.tree.sha, tree: [...plan.posts].map(([slug, content]) => ({ path: `src/content/posts/${slug}.md`, mode: '100644', type: 'blob', content })).concat([{ path: SPECIMEN_LEDGER, mode: '100644', type: 'blob', content: plan.ledgerText }]) });
+  const tree = await api.request('/git/trees', 'POST', { base_tree: baseCommit.tree.sha, tree: [...plan.posts].map(([slug, content]) => ({ path: `src/content/posts/${slug}.md`, mode: '100644', type: 'blob', content })).concat([...plan.assets ?? []].map(([path,oid])=>({path,mode:'100644',type:'blob',sha:oid})),[{ path: SPECIMEN_LEDGER, mode: '100644', type: 'blob', content: plan.ledgerText }]) });
   if (activeRequest.samePR) {
     // Messages locate repeated work; matching deterministic tree and ancestry,
     // isolated validation and independent Actions proof supply its authority.
@@ -564,13 +611,14 @@ export async function prepare(api, env, {collect=collectAdmission,fetchCommits=f
   output('head', generatedHead); output('base', base); output('pr', created.number); output('source_pr', number); output('source_sha', source); output('editorial_digest', plan.editorialDigest);
   console.log(`Admission prepared: source #${number}, generated #${created.number}; ${plan.repairs.length} numbering corrections recorded.`);
 }
-export function materialize(env,{fetchCommits=fetchObjects,collect=collectAdmission,write=writeFileSync}={}) {
+export function materialize(env,{fetchCommits=fetchObjects,collect=collectAdmission,validatePDFs=false,write=(path,bytes)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);}}={}) {
   if (env.GITHUB_ACTIONS !== 'true' || env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || env.GITHUB_REF !== 'refs/heads/main') throw new Error('materialization is allocation-workflow only');
   const base = sha(env.BASE_SHA), head = sha(env.HEAD_SHA), source = sha(env.SOURCE_SHA);
   const observed=env.SAME_PR==='true' ? sha(env.OBSERVED_HEAD) : source;
   fetchCommits(base, head, source, observed); const plan = collect(base, source);
   if (!DIGEST.test(env.EDITORIAL_DIGEST ?? '') || plan.editorialDigest !== env.EDITORIAL_DIGEST) throw new Error('editorial binding mismatch');
   const expected = new Map([...plan.posts].map(([slug, text]) => [`src/content/posts/${slug}.md`, text])); expected.set(SPECIMEN_LEDGER, plan.ledgerText);
+  for (const [path,oid] of plan.assets ?? []) expected.set(path,execFileSync('git',['cat-file','blob',oid],{maxBuffer:MAX_PUBLISHING_ASSET_BYTES,stdio:['ignore','pipe','pipe']}));
   const parents = git('show', '-s', '--format=%P', head).trim().split(' ');
   if (parents.length !== 2 || parents[0] !== base || parents[1] !== observed) throw new Error('generated commit ancestry mismatch');
   if (env.SAME_PR==='true' && approvedHeadDigest(base,observed,source,collect)!==plan.editorialDigest) throw new Error('observed source editorial binding mismatch');
@@ -580,7 +628,12 @@ export function materialize(env,{fetchCommits=fetchObjects,collect=collectAdmiss
     if (!expected.has(change.path) || !['A', 'M'].includes(change.status) || modes.get(change.path) !== '100644') throw new Error('generated tree contains unexpected changes');
   }
   for (const [path, text] of expected) {
-    if (blob(head, path) !== text) throw new Error('generated tree differs from deterministic allocator');
+    const actual=Buffer.isBuffer(text) ? execFileSync('git',['cat-file','blob',`${head}:${path}`],{maxBuffer:MAX_PUBLISHING_ASSET_BYTES,stdio:['ignore','pipe','pipe']}) : blob(head,path);
+    if (Buffer.isBuffer(text) ? !actual.equals(text) : actual!==text) throw new Error('generated tree differs from deterministic allocator');
+    if (validatePDFs && path.endsWith('.pdf')) {
+      try { execFileSync('pdfinfo',['-'],{input:text,timeout:10000,maxBuffer:1024*1024,stdio:['pipe','pipe','pipe']}); }
+      catch(error) { throw new Error(`publishing PDF validation failed: ${path} (pdfinfo must be installed)`,{cause:error}); }
+    }
     write(path, text); // This mode is invoked only by the allocation workflow.
   }
   console.log(`Deterministic workflow tree verified and materialized: ${head}`);
@@ -710,7 +763,7 @@ export async function gate(api, env, { fetchCommits = fetchObjects, readGit = gi
     try { await admissionProof(api,base,head,integer(env.MAINTAINER_ID)); }
     catch(error) {
       if (error.message!=='no successful trusted-main allocation proof for this exact base/head') throw error;
-      const summary='Waiting for workflow-owned numbering validation. Authorized Grok and Quill PRs are admitted automatically; other producers retain their owner review. This observation grants no required check or merge permission.';
+      const summary='Waiting for workflow-owned numbering validation. Authorized Grok, Cursor and Quill PRs are admitted automatically; other producers retain their owner review. This observation grants no required check or merge permission.';
       console.log(`::notice::${summary}`);
       if(process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
       return;
@@ -891,7 +944,7 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
       try { sourcePlan=collect(base,source); }
       catch(error) {
         if(!(error instanceof CandidateAdmissionError)) throw error;
-        console.log(`${independentLane(pr,api.repo)==='quill' ? 'Quill' : 'Grok'} PR #${pr.number} refused: ${error.message}`);
+        console.log(`${independentLane(pr,api.repo)==='cursor' ? 'Cursor' : independentLane(pr,api.repo)==='quill' ? 'Quill' : 'Grok'} PR #${pr.number} refused: ${error.message}`);
         continue;
       }
       if (independentLane(pr,api.repo)==='quill') {
@@ -915,7 +968,7 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
       const currentPR=await api.request(`/pulls/${pr.number}`);assertSourceApproval(currentPR,api.repo);
       if (!independentLanePR(currentPR,api.repo) || currentPR.head.sha!==source) throw new Error('independent source identity or editorial head changed before automatic admission');
       await api.request('/actions/workflows/specimen-admission.yml/dispatches','POST',{ref:'main',inputs:{pr_number:String(pr.number),head_sha:source,review_id:'0',same_pr:'true',recovery_run:'0'}});
-      console.log(`Authorized ${independentLane(currentPR,api.repo)==='quill' ? 'Quill' : 'Grok'} PR #${pr.number} dispatched automatically for numbering.`);
+      console.log(`Authorized ${independentLane(currentPR,api.repo)==='cursor' ? 'Cursor' : independentLane(currentPR,api.repo)==='quill' ? 'Quill' : 'Grok'} PR #${pr.number} dispatched automatically for numbering.`);
       return 'dispatched';
     }
     if ([...runs.values()].some(run=>{
@@ -1053,7 +1106,7 @@ export async function main(args, env = process.env) {
   const api = new GitHub(env.GITHUB_REPOSITORY, env.GH_TOKEN, fetch, env.SPECIMEN_WRITE_TOKEN);
   switch (args[0]) {
     case 'prepare': return prepare(api, env);
-    case 'materialize': return materialize(env);
+    case 'materialize': return materialize(env,{validatePDFs:true});
     case 'certify': return certify(api, env);
     case 'wake-finalizer': return wakeFinalizer(api, env);
     case 'await-completion': return awaitAdmissionCompletion(api, env);
