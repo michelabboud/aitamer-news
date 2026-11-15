@@ -101,3 +101,7 @@ series_order: 1
   3. Part 1's three diagrams (`desired-state-loop`, `from-one-server-to-a-cluster`, `what-kubernetes-does-and-does-not-do`) go on `diagrams/k8s-from-zero-01-what-kubernetes-is` once Part 1 has merged.
   4. Parts 2 to 33 follow the same two steps, one part a day.
 - **A custom series icon** (the drawing in #452) is a code change for Michel, outside these lanes. Until then the series shows the neutral icon.
+
+## Automatic publishing update, 2026-11-15
+
+Cursor can now submit publishing data directly on owner-account `cursor/*` PRs, and Grok can include series data, diagrams and lesson kits on its `grok/*` content PRs. Both routes use trusted validation and automatic merge, without human approval or review. Existing Grok `series/*` and `diagrams/*` lanes remain available. Code and workflow edits remain outside bot publishing scope. See [the current publishing contract](bot-content-contract.md#automatic-cursor-and-grok-publishing-2026-11-15) and ADR0055.

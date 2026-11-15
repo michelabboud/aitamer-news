@@ -77,3 +77,9 @@ Optional series fields, both or neither: `series` (a lowercase slug from `src/da
 ## 7. After the posts MCP is live
 
 Once the MCP publishing integration is live, bots hand drafts to it rather than submitting directly. The MCP must follow the same workflow-only identity contract: it submits article data, never writes the permanent ledger or allocates specimens itself. Integration activation is separate evidence; these instructions do not claim it is live.
+
+## Automatic Cursor and Grok publishing (2026-11-15)
+
+Grok App PRs on `grok/*` and owner-account Cursor PRs on `cursor/*`, in this repository into `main`, enter trusted automatic admission without human approval or review. Do not allocate specimen numbers or merge unnumbered article heads. The workflow generates any required numbering, validates the exact content tree and automatically merges after the required automated checks pass.
+
+Besides Markdown articles, these submissions may add or modify plain `src/lessonkits/<slug>.json`, `public/lessonkits/<slug>-{answer-key,cheatsheet,homework}.pdf`, `public/diagrams/<post-slug>/<name>.svg`, and `src/data/series.json`. Asset-only submissions use the same validation and merge path but need no new specimen. Maximum200assets,20MiB per asset. No deletes, symlinks, executable modes, scripts, workflow or other site-code edits. Keep image proposals on their existing separate route. Refresh your branch if main changes a file you are updating; do not bypass a failing automated check. See ADR0055.

@@ -95,6 +95,10 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install PDF validator from Ubuntu security repositories
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y poppler-utils
       - name: Verify deterministic allocation and copy only content data
         run: node scripts/specimen-admission.mjs materialize
         env:
@@ -105,6 +109,8 @@ jobs:
           SAME_PR: ${{ inputs.same_pr }}
           OBSERVED_HEAD: ${{ needs.prepare.outputs.observed_head }}
       - run: npm run test:site
+        env:
+          PUBLISHING_PDF_INTEGRATION: '1'
       - run: npm run check:posts
       - run: npm run check:media
       - run: npm run build

@@ -74,3 +74,10 @@ Michel requested finishing his profile and optimizing the reported first-load We
 ## CSP enforcement · running 2026-10-26
 
 Michel authorized [enforcement through apps SSH staging](docs/plans/2026-10-26-csp-enforcement.md), without a custom staging domain. Template enforcement is under security review. Public integration, deployment guard, full artifact/browser qualification, protected merge and actual live acceptance are pending. No provider/cache changes.
+
+## Automatic Grok and Cursor publishing (2026-11-15)
+
+Dev mode: production (existing public site).
+Threat sketch: publishing inputs are untrusted data; trusted main owns code, credentials, numbering and certification. Only pinned producer identities on same-repository publishing branches qualify. Never execute submitted source with privileged credentials. Bind binary assets to exact blob identities, preserve existing content and refuse deletions/stale overwrites. Required automated checks and current-base merge proofs stay enabled. Human editorial approvals/reviews are removed from these routes by the owner's explicit instruction.
+
+Implement Cursor automatic admission, admit bounded publishing assets, verify identity/binary/tamper/refusal cases, land normal source PR, then exercise PR483 through the automatic finalizer. Article-only receipts remain compatible. See ADR0055. Source and hosted acceptance results are recorded in the task report.
