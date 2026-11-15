@@ -1478,3 +1478,4 @@
 1475 bitrise-sev-1-security-incident-rotate-secrets
 1476 gemini-app-google-wallet-personal-intelligence-plaid
 1477 google-project-zero-full-90-disclosure-policy-ai-exploits
+1478 k8s-from-zero-04-your-first-pod
