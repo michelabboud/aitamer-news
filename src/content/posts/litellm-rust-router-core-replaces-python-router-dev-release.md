@@ -3,7 +3,7 @@ title: "LiteLLM swaps its 18,000-line Python router for a Rust core in a dev pre
 description: "LiteLLM merged a Rust router core, deleted the Python router and moved proxy Redis traffic to Rust. It ships in v1.110.0-dev.1, not a stable release yet."
 pubDate: "2026-11-07T22:07:00Z"
 specimen: 1381
-updatedDate: "2026-11-14T07:40:00Z"
+updatedDate: "2026-11-15T07:30:00Z"
 section: rust
 subsection: ai
 tags:
@@ -41,6 +41,10 @@ sources:
     url: https://github.com/BerriAI/litellm/commit/2be96aed13a0281666814cec7e74913ea1265520
   - title: "GitHub: LiteLLM v1.111.0-dev.2 prerelease (13 November 2026)"
     url: https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.2
+  - title: "LiteLLM PR #49798: add the SQLx pool foundation with the writer pool"
+    url: https://github.com/BerriAI/litellm/pull/49798
+  - title: "LiteLLM PR #51539: replace the python s3_v2 logger with a rust callback"
+    url: https://github.com/BerriAI/litellm/pull/51539
 ---
 
 LiteLLM, the open-source LLM gateway and SDK, has moved its router onto Rust. Three pull requests merged on 5 and 6 November add a Rust router core, delete the Python one and move the proxy's Redis traffic to native Rust stores. All three ship in the [v1.110.0-dev.1 pre-release](https://github.com/BerriAI/litellm/releases/tag/v1.110.0-dev.1) from 7 November. The latest stable release, v1.108.2, does not list them.
@@ -64,3 +68,9 @@ This follows the same pattern as [Anthropic's Rust port of the Messages API](/po
 ## Update, 13 November 2026: Anthropic messages go Rust-only in a dev prerelease
 
 The Rust port has kept going. [PR #51119](https://github.com/BerriAI/litellm/pull/51119) makes Anthropic's `/v1/messages` endpoint Rust-only in LiteLLM, with no `LITELLM_RUST` opt-in and no Python fallback; a call that still needs Python raises an error, and other providers keep their Python path. It is in the [1.111.0 dev prerelease](https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.1) (PyPI `1.111.0.dev1`); the latest stable release on PyPI is still 1.109.1. Separately, two changes merged to main on 13 November, and now included in the [1.111.0 dev.2 prerelease](https://github.com/BerriAI/litellm/releases/tag/v1.111.0-dev.2) (PyPI `1.111.0.dev2`, uploaded 13 November), move the router's session pins onto a native Redis store ([#50870](https://github.com/BerriAI/litellm/commit/9a1acee4a765549702e7f816cfd6aafd027de43b)) and delete the Python `RedisBatch`, so every per-request Redis operation now runs through the native store ([#51383](https://github.com/BerriAI/litellm/commit/2be96aed13a0281666814cec7e74913ea1265520)). The dev.2 notes also move the health checks' deployment states onto a native store ([#50357](https://github.com/BerriAI/litellm/pull/50357)) and move Redis key construction out of router-core into the stores ([#50356](https://github.com/BerriAI/litellm/pull/50356)). It is still a prerelease; the latest stable release on PyPI remains 1.109.1.
+
+## Update, 15 November 2026: the Rust work reaches the database layer and the S3 logger
+
+Two more pieces merged to main late on 14 November (UTC), and the Rust AI Desk matched both commits to the v1.111.0-dev.4 prerelease published hours later. [PR #49798](https://github.com/BerriAI/litellm/pull/49798) adds a Rust Postgres pool built on SQLx, next to Prisma and built from the same DATABASE_URL settings. The PR says nothing queries through it yet: its share of the connection budget is 0, no pool opens, and Prisma behaves exactly as before. It is scaffolding for the first ported query, not a database switch.
+
+[PR #51539](https://github.com/BerriAI/litellm/pull/51539) goes further for one feature. It replaces the Python s3_v2 logger with a Rust callback, deletes the Python version and removes the LITELLM_NATIVE_S3_V2 flag. The callback keeps its name, position and settings, so no config change is needed, but the PR description says it had not been run in a live proxy when it was written. If you log to S3 and track dev builds, test that path before moving up, because there is no longer a flag to fall back to the Python logger.

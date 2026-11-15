@@ -3,7 +3,7 @@ title: "Ferrite is a Rust LLM engine for DGX Spark whose GPU kernels are Rust to
 description: "Ferrite is a Rust LLM engine for DGX Spark with Rust GPU kernels. Since 0.1.0 it added Intel Arc Pro B70 and 16 GB RTX targets. Experimental, Apache-2.0."
 pubDate: "2026-11-09T18:07:00Z"
 specimen: 1402
-updatedDate: "2026-11-12T07:18:00Z"
+updatedDate: "2026-11-15T07:30:00Z"
 section: rust
 subsection: inference
 tags:
@@ -38,6 +38,8 @@ sources:
     url: https://github.com/BHCC2025/ferrite/releases/tag/v0.4.0
   - title: "Ferrite v0.4.3 release (12 November 2026)"
     url: https://github.com/BHCC2025/ferrite/releases/tag/v0.4.3
+  - title: "Ferrite 0.6.0 release notes"
+    url: https://github.com/BHCC2025/ferrite/releases/tag/v0.6.0
 ---
 
 [Ferrite](https://github.com/BHCC2025/ferrite) is a new LLM inference engine for NVIDIA's DGX Spark (GB10) that is written in Rust from the HTTP server down to the GPU kernels. Version 0.1.0 was [released](https://github.com/BHCC2025/ferrite/releases/tag/v0.1.0) at 01:11 UTC on 9 November under Apache-2.0.
@@ -85,3 +87,7 @@ Ferrite has shipped six more releases since 0.1.0, and it is no longer a DGX Spa
 - **0.4.1 to 0.4.3** (11 to 12 November) changed the default model id to `qwen3.8-27b` on every target (old clients keep working, and `FERRITE_MODEL_ID` can restore the old id), fixed the 16 GB preset when NVIDIA's prompt checkpoint is missing, and reported the RTX 5080 build running on an RTX 5060 Ti 16 GB, tuned in 0.4.3 to about 155 tokens per second on code at 2K context. ([0.4.3 release](https://github.com/BHCC2025/ferrite/releases/tag/v0.4.3))
 
 Prebuilt binaries are still for DGX Spark only; the B70 and RTX targets build from source. It remains a single-maintainer, experimental project with no outside benchmarks yet.
+
+## Update, 15 November 2026: Ferrite 0.6.0 adds a 16 GB RTX 5060 Ti path for Qwen3.8-Flash-Next
+
+[Ferrite 0.6.0](https://github.com/BHCC2025/ferrite/releases/tag/v0.6.0), published 14 November (UTC), adds an experimental second engine, `fe-server --engine fnext`, for Qwen3.8-Flash-Next in the ISTA-DASLab IQ1_M GGUF (58.4 GB). The always-used weights and the K/V cache sit on the card, while the routed experts stay in the memory-mapped GGUF, fill LRU slots on the card and run on the CPU when they miss. Two cards run in tensor parallel. The release notes report 135 tokens per second on code with MTP drafting across two cards on the author's EPYC 7313 host, and 84 to 85 on one card inside a 28 GiB memory limit. Those are the project's own numbers on its own setup; we have not run them, and IQ1_M is a very low-bit quant, so check output quality on your own tasks.
