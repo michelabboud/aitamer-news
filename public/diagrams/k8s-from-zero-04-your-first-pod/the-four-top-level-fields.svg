@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="t d">
+<title id="t">The four top-level fields of a manifest, and status</title>
+<desc id="d">A Pod manifest has four top-level fields you write: apiVersion says which API version to use, kind says which type of object, metadata says who the object is with its name, namespace and labels, and spec says the desired state, such as the containers to run. A fifth field, status, is highlighted: the cluster writes it with the observed state, such as the phase and the Pod IP, and you never write it.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+
+<rect class="bg" x="0" y="0" width="800" height="420" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Four fields you write, one the cluster writes</text>
+<rect class="boxb" x="24" y="56" width="250" height="48" rx="8"/>
+<text class="tm" x="40" y="86" text-anchor="start">apiVersion: v1</text>
+<line class="ln" x1="274" y1="80" x2="318" y2="80" marker-end="url(#ah)"/>
+<text class="t" x="326" y="85" text-anchor="start">which version of the API the object uses</text>
+<rect class="boxb" x="24" y="120" width="250" height="48" rx="8"/>
+<text class="tm" x="40" y="150" text-anchor="start">kind: Pod</text>
+<line class="ln" x1="274" y1="144" x2="318" y2="144" marker-end="url(#ah)"/>
+<text class="t" x="326" y="149" text-anchor="start">which type of object this is</text>
+<rect class="boxb" x="24" y="184" width="250" height="48" rx="8"/>
+<text class="tm" x="40" y="214" text-anchor="start">metadata:</text>
+<line class="ln" x1="274" y1="208" x2="318" y2="208" marker-end="url(#ah)"/>
+<text class="t" x="326" y="213" text-anchor="start">who it is: name, namespace, labels</text>
+<rect class="boxb" x="24" y="248" width="250" height="48" rx="8"/>
+<text class="tm" x="40" y="278" text-anchor="start">spec:</text>
+<line class="ln" x1="274" y1="272" x2="318" y2="272" marker-end="url(#ah)"/>
+<text class="t" x="326" y="277" text-anchor="start">what you want: containers, image, ports</text>
+<rect class="boxc" x="24" y="328" width="250" height="48" rx="8"/>
+<text class="tm" x="40" y="358" text-anchor="start">status:</text>
+<line class="lnc" x1="274" y1="352" x2="318" y2="352" marker-end="url(#ahc)"/>
+<text class="tc" x="326" y="357" text-anchor="start">what is true now: phase, podIP, conditions</text>
+<rect class="boxd" x="630" y="52" width="146" height="252" rx="10"/>
+<text class="ts" x="703" y="170" text-anchor="middle">you write these</text>
+<text class="ts" x="703" y="188" text-anchor="middle">in pod.yaml</text>
+<rect class="boxc" x="630" y="356" width="146" height="48" rx="10"/>
+<text class="tc" x="703" y="385" text-anchor="middle">the cluster writes</text>
+<text class="ts" x="24" y="410" text-anchor="start">kubectl get pod hello -o yaml shows all five. Only the first four belong in your file.</text>
+</svg>
