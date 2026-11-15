@@ -1480,3 +1480,4 @@
 1477 google-project-zero-full-90-disclosure-policy-ai-exploits
 1478 k8s-from-zero-04-your-first-pod
 1479 ai-voice-models-wrap-up-comparison
+1480 claude-code-code-mode-experimental-javascript-tool-calls
