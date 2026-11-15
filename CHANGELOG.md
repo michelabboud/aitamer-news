@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.143 · 2026-11-15
+
+- Deliver PR469's lesson code rails, downloadable lesson kit and expanded series header through a maintainer PR. Use Sätteri's Markdown tree for nested/indented code and sidecars, preserving literal examples and frontmatter. Resolve download links before static-path caching so adding/removing PDFs or lab archives updates the lesson page on warm builds.
+- Refresh compatible Astro/XML parser lock resolutions to remove audited advisories; explicitly pin the existing test harness's esbuild dependency. Preserve the fact-cleared PDFs and trusted publishing rules.
+
 ## 0.2.142 · 2026-11-15
 
 - **Series gets its own tab, right after News; Rust moves into More** (Michel, 2026-11-15). The top bar now reads News · Series · Models · Dev · Tools · DevOps & IT · Voices · More, and More holds Columns, General, Rust, Extinction Watch, Archive and All habitats. Series is current on `/series/` and on every series page; a Rust page or story marks More as current. Phones get Series in the sideways section row and Rust in the menu, through the same lists. Tab labels no longer wrap: with eight tabs "DevOps & IT" broke onto two lines at 721px, so the tabs are `white-space: nowrap` (checked at 721px, the narrowest top-bar width: one line, no overflow). Tests: the section and More order, Series and Rust current states, and the habitats that carry a nav cell.

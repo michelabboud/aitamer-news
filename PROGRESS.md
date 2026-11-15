@@ -1,5 +1,7 @@
 # Progress
 
+2026-11-15 — PR469 successor: rail parser and lesson-download cache repairs implemented; 1,725 tests pass, five warm-cache builds prove download invalidation and the production build emits 1,952 pages. Phone dialog wrapping is included after browser inspection. Full validation, independent review, required-check merge and production verification are tracked in [the delivery plan](docs/plans/2026-11-15-lesson-series-repair.md). Original Cursor commits and cleared PDFs are preserved.
+
 2026-11-15 — 0.2.142: Series is a top-bar tab right after News, Rust moved into More (Michel's word). 1708/1708 tests, build passes, top bar checked at 721px: one line, no overflow.
 
 2026-11-12 — 0.2.141: series catalog moved to build-time JSON with a strict reader; the Grok App publishes series rows (`series/`) and diagrams (`diagrams/<post-slug>`) through two lanes in the publisher path guard, Cursor works for it with no lane, and bot branches are never treated as the maintainer's (ADR 0054). Instructions for the bots: `docs/guides/series-and-diagrams-for-bots.md`.

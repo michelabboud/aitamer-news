@@ -264,6 +264,17 @@ test('the 2026-09-28 sections: new names parse as themselves, the old ones parse
   assert.equal(postSchema.safeParse({ ...validPost, section: 'top' }).success, false);
 });
 
+test('lessonKit is an optional strict id', () => {
+  assert.equal(postSchema.safeParse(validPost).success, true);
+  const ok = postSchema.safeParse({ ...validPost, lessonKit: { id: 'k8s-02' } });
+  assert.equal(ok.success, true);
+  assert.equal(postSchema.safeParse({ ...validPost, lessonKit: { id: 'K8s' } }).success, false);
+  assert.equal(postSchema.safeParse({ ...validPost, lessonKit: { id: 'k8s-02', file: 'x' } }).success, false);
+  const schema = postFrontmatterJsonSchema() as { properties: { lessonKit: { additionalProperties: boolean } }; required: string[] };
+  assert.equal(schema.required.includes('lessonKit'), false);
+  assert.equal(schema.properties.lessonKit.additionalProperties, false);
+});
+
 test('the published contract still accepts every value it accepted before, and names the new ones', () => {
   const schema = postFrontmatterJsonSchema() as { 'x-contract-version': number; properties: { section: { enum: string[] } } };
   const accepted = schema.properties.section.enum;

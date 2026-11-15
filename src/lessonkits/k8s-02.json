@@ -1,0 +1,380 @@
+{
+  "$comment": "Lesson-kit content for one lesson. Every fact and command here is copied from the lesson post; add nothing the post does not say.",
+  "slug": "k8s-02",
+  "campaign": "k8s-02",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 2,
+    "$seriesComment": "seriesSlug and number match the post's `series` and `series_order` front matter. The arc name, place in the arc and arc size come from src/data/series.json at build time; do not write them here.",
+    "title": "Kubernetes from Zero, part 2: a tour of the control plane and the nodes",
+    "shortTitle": "A tour of the control plane and the nodes",
+    "description": "Name every control-plane and node component, then follow one kubectl apply step by step until a container runs.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-02-architecture-tour/",
+    "source": "src/content/posts/k8s-from-zero-02-architecture-tour.md",
+    "tested": "Ran every command on kind v0.33.0, Kubernetes v1.37.0 node, kubectl v1.37.2, 10 Nov 2026",
+    "cluster": "k8s-from-zero",
+    "rule": "Every Kubernetes component talks to the API server and nothing else. Only the API server reads and writes etcd.",
+    "$titleNote": "title is the post's published title and still says 'part 2'; it is quoted as published. Every label the kit writes says Lesson."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-02.jpg",
+    "alt": "Cut-paper art: a sea-green control tower with a coral beacon, joined by sand-coloured tubes to four slate-blue dock cranes on a quay.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 4%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "$comment": "Per-lesson setting. Lesson 3 is not published yet, so this links to the series page. Once it is live, set title to its real title and url to its post URL. Keep the wording timeless: no 'tomorrow', 'soon' or dates. Links always go through withUtm().",
+    "label": "Next in the series",
+    "title": "Next: Lesson 3, your local lab",
+    "summary": "Install kubectl and kind properly, compare them with minikube, k3d and Docker Desktop, and learn how kubeconfig and contexts decide which cluster you are talking to.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page",
+    "$source": "summary is the lesson's closing 'Next: part 3 ...' line with the date words removed."
+  },
+  "cheatsheet": {
+    "intro": "Everything from Lesson 2 on two pages: what each component does, where it runs, the path of one `kubectl apply`, and the commands from the lab.",
+    "controlPlane": [
+      {
+        "name": "kube-apiserver",
+        "role": "The front door. Exposes the Kubernetes HTTP API, checks who you are and whether you are allowed, validates what you send and saves it. Scales horizontally: you can run several copies behind a load balancer.",
+        "where": "Control plane. In kind: static Pod `kube-apiserver-k8s-from-zero-control-plane` in `kube-system`."
+      },
+      {
+        "name": "etcd",
+        "role": "A consistent, highly available key-value store and the backing store for all cluster data. If etcd is lost without a backup, the cluster forgets everything it was told.",
+        "where": "Control plane. In kind: static Pod `etcd-k8s-from-zero-control-plane`. Only the API server talks to it."
+      },
+      {
+        "name": "kube-scheduler",
+        "role": "Watches for Pods that have no node yet and picks one for each, then writes `spec.nodeName`. It only decides; it does not start anything.",
+        "where": "Control plane. In kind: static Pod `kube-scheduler-k8s-from-zero-control-plane`."
+      },
+      {
+        "name": "kube-controller-manager",
+        "role": "Runs the built-in controllers (Node, Job, EndpointSlice, ServiceAccount, Deployment, ReplicaSet and more), compiled into one binary and run as one process.",
+        "where": "Control plane. In kind: static Pod `kube-controller-manager-k8s-from-zero-control-plane`."
+      },
+      {
+        "name": "cloud-controller-manager (optional)",
+        "role": "Links the cluster to a cloud provider's API, for example to create a cloud load balancer.",
+        "where": "Control plane, in clouds only. A cluster on your laptop does not have one."
+      }
+    ],
+    "node": [
+      {
+        "name": "kubelet",
+        "role": "The node agent. Receives the Pods assigned to its node and makes sure their containers are running and healthy. Does not manage containers that Kubernetes did not create.",
+        "where": "Every node, as a system service. It also runs the static Pod files in `/etc/kubernetes/manifests/`."
+      },
+      {
+        "name": "Container runtime (containerd)",
+        "role": "Actually runs containers. The kubelet talks to it through the Container Runtime Interface (CRI), a gRPC API, so the runtime is swappable.",
+        "where": "Every node, as a system service. kind nodes use containerd."
+      },
+      {
+        "name": "kube-proxy (optional)",
+        "role": "Maintains network rules on the node so that Services work. Some network plugins replace it.",
+        "where": "Usually every node. In kind: a Pod in `kube-system`."
+      },
+      {
+        "name": "Add-ons",
+        "role": "Cluster DNS (CoreDNS), the network plugin that gives every Pod an IP (kindnet in kind), and in kind a small storage provisioner.",
+        "where": "Ordinary Pods. In kind, CoreDNS and kindnet are in `kube-system`."
+      }
+    ],
+    "kindNote": "In kind, one node (`k8s-from-zero-control-plane`) is the control plane and also runs your workloads. A kind node is a Docker container, so `docker exec k8s-from-zero-control-plane ...` gets you inside it. kubeadm runs the four control-plane parts as static Pods: Pod files the kubelet reads straight from a folder on the node, without asking the API server.",
+    "applySteps": [
+      {
+        "who": "kubectl",
+        "what": "Reads `web.yaml`, asks the API server whether Deployment `web` exists (`404 Not Found`), then sends a `POST` (`201 Created`). The API server authenticates you, validates the object and stores it in etcd."
+      },
+      {
+        "who": "Deployment controller",
+        "what": "Inside kube-controller-manager. Sees the new Deployment and creates a ReplicaSet. Event: `deployment-controller ScalingReplicaSet`."
+      },
+      {
+        "who": "ReplicaSet controller",
+        "what": "Sees a ReplicaSet that wants 2 Pods and has 0, so creates two Pod objects: records only, no node, no container. Event: `replicaset-controller SuccessfulCreate`."
+      },
+      {
+        "who": "kube-scheduler",
+        "what": "Sees Pods with an empty `spec.nodeName`, scores the nodes and binds each Pod by writing a node name into it. Event: `default-scheduler Scheduled`."
+      },
+      {
+        "who": "kubelet",
+        "what": "Sees Pods assigned to its node and asks containerd to pull the image (or finds it cached), create the container and start it. Events: `kubelet Pulled`, `Created`, `Started`."
+      },
+      {
+        "who": "kubelet",
+        "what": "Reports the Pod's status, `Running`, back to the API server. `kubectl get pods` now shows it."
+      }
+    ],
+    "ownership": "Each Pod carries an `ownerReference` to its ReplicaSet, and the ReplicaSet one to its Deployment. That chain is how deleting a Deployment cleans up everything below it.",
+    "commandGroups": [
+      {
+        "title": "Cluster",
+        "commands": [
+          {
+            "cmd": "kind create cluster --name k8s-from-zero",
+            "note": "the cluster from Lesson 1"
+          },
+          {
+            "cmd": "kind delete cluster --name k8s-from-zero",
+            "note": "remove it when you are done"
+          }
+        ]
+      },
+      {
+        "title": "Tour the cluster",
+        "commands": [
+          {
+            "cmd": "kubectl get nodes -o wide",
+            "note": "`CONTAINER-RUNTIME` column"
+          },
+          {
+            "cmd": "kubectl get pods -n kube-system -o wide",
+            "note": "static Pod names end in the node name"
+          },
+          {
+            "cmd": "docker exec k8s-from-zero-control-plane ls /etc/kubernetes/manifests",
+            "note": "the static Pod files"
+          },
+          {
+            "cmd": "docker exec k8s-from-zero-control-plane systemctl is-active kubelet containerd",
+            "note": "system services on the node"
+          },
+          {
+            "cmd": "docker exec k8s-from-zero-control-plane crictl ps",
+            "note": "containers as the runtime sees them"
+          },
+          {
+            "cmd": "kubectl get --raw='/readyz?verbose' | tail -3",
+            "note": "API server health; also `/livez`"
+          },
+          {
+            "cmd": "kubectl api-resources",
+            "note": "All resource types; shows short names and API groups"
+          },
+          {
+            "cmd": "kubectl get leases -n kube-system",
+            "note": "who leads the scheduler and controllers"
+          }
+        ]
+      },
+      {
+        "title": "Follow one apply",
+        "commands": [
+          {
+            "cmd": "kubectl get events --watch-only -o custom-columns=FROM:.source.component,REASON:.reason,KIND:.involvedObject.kind,NAME:.involvedObject.name",
+            "note": "second terminal, start it first"
+          },
+          {
+            "cmd": "kubectl apply -f web.yaml -v=6 2>&1 | grep 'verb='",
+            "note": "each API request and its response code"
+          },
+          {
+            "cmd": "kubectl get pod web-69977c9c79-sv68d -o jsonpath='{.spec.nodeName}{\"\\n\"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{\"\\n\"}'",
+            "note": "use one of your Pod names"
+          },
+          {
+            "cmd": "kubectl get replicaset -l app.kubernetes.io/name=web -o jsonpath='{.items[0].metadata.ownerReferences[0].kind}/{.items[0].metadata.ownerReferences[0].name}{\"\\n\"}'",
+            "note": "the ReplicaSet's owner"
+          }
+        ]
+      },
+      {
+        "title": "Peek into etcd (learning only)",
+        "commands": [
+          {
+            "cmd": "kubectl -n kube-system exec etcd-k8s-from-zero-control-plane -- etcdctl \\\n  --endpoints=https://127.0.0.1:2379 \\\n  --cacert=/etc/kubernetes/pki/etcd/ca.crt \\\n  --cert=/etc/kubernetes/pki/etcd/server.crt \\\n  --key=/etc/kubernetes/pki/etcd/server.key \\\n  get /registry/deployments/default/web --keys-only",
+            "note": "kubeadm's default certificate paths"
+          }
+        ]
+      },
+      {
+        "title": "Switch the scheduler off, then on",
+        "commands": [
+          {
+            "cmd": "docker exec k8s-from-zero-control-plane mv /etc/kubernetes/manifests/kube-scheduler.yaml /root/",
+            "note": "the kubelet stops it"
+          },
+          {
+            "cmd": "kubectl get pods -n kube-system -l component=kube-scheduler",
+            "note": "is the scheduler running?"
+          },
+          {
+            "cmd": "kubectl scale deployment web --replicas=4",
+            "note": "new Pods stay `Pending`"
+          },
+          {
+            "cmd": "kubectl get pods -l app.kubernetes.io/name=web",
+            "note": "the `web` Pods and their `STATUS`"
+          },
+          {
+            "cmd": "docker exec k8s-from-zero-control-plane mv /root/kube-scheduler.yaml /etc/kubernetes/manifests/",
+            "note": "the scheduler catches up"
+          },
+          {
+            "cmd": "kubectl delete -f web.yaml",
+            "note": "clean up"
+          }
+        ]
+      },
+      {
+        "title": "When it goes wrong",
+        "commands": [
+          {
+            "cmd": "kubectl describe node <name>",
+            "note": "read `Conditions`"
+          },
+          {
+            "cmd": "kubectl <command> -v=6",
+            "note": "see kubectl's HTTP calls; `-v=8` adds request contents"
+          },
+          {
+            "cmd": "journalctl -u kubelet",
+            "note": "on a real node, when it turns `NotReady`"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster `k8s-from-zero` from the lesson. Names with random suffixes and port numbers will differ on yours. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "Name the four core control-plane components, and the one optional one.",
+            "a": "kube-apiserver, etcd, kube-scheduler and kube-controller-manager. The optional one is cloud-controller-manager, which links the cluster to a cloud provider's API.",
+            "lines": 2
+          },
+          {
+            "q": "Which component is the only one that reads and writes etcd? How do the other components learn about changes?",
+            "a": "kube-apiserver. The other components never call each other: each talks only to the API server, mostly by watching it for changes and then writing back what it did.",
+            "lines": 2
+          },
+          {
+            "q": "What does every node run? Which node component is optional?",
+            "a": "A kubelet and a container runtime (containerd in kind), and usually kube-proxy. kube-proxy is the optional one; some network plugins replace it.",
+            "lines": 2
+          },
+          {
+            "q": "The kubelet talks to the container runtime through an interface. What is it called, what kind of API is it, and why does it matter?",
+            "a": "The Container Runtime Interface (CRI), a gRPC API. Because the kubelet only speaks CRI, the runtime is swappable.",
+            "lines": 2
+          },
+          {
+            "q": "What is a static Pod? Which folder holds the static Pod files on a kubeadm node?",
+            "a": "A Pod file that the kubelet reads straight from a folder on the node, without asking the API server. The folder is `/etc/kubernetes/manifests/`.",
+            "lines": 2
+          },
+          {
+            "q": "Which field does kube-scheduler write into a Pod? Does the scheduler start the container?",
+            "a": "`spec.nodeName`. No: the scheduler only decides. The kubelet on that node starts the container.",
+            "lines": 2
+          },
+          {
+            "q": "Name the add-ons in a kind cluster. How do they run?",
+            "a": "CoreDNS (cluster DNS), kindnet (the network plugin that gives every Pod an IP) and a small storage provisioner. They run as ordinary Pods.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command on your cluster, then answer.",
+        "exercises": [
+          {
+            "q": "Run `kubectl get nodes -o wide`. Which column names the container runtime, and what does it say?",
+            "a": "`CONTAINER-RUNTIME`. It shows containerd; the lesson's run showed `containerd://2.3.4`. The single node `k8s-from-zero-control-plane` is the control plane and also runs your workloads.",
+            "lines": 2
+          },
+          {
+            "q": "Run `kubectl get pods -n kube-system -o wide`. Which Pod names end in the node name, and why?",
+            "a": "`etcd-`, `kube-apiserver-`, `kube-controller-manager-` and `kube-scheduler-k8s-from-zero-control-plane`. They are static Pods, and static Pod names end in the node name. The others (coredns, kindnet, kube-proxy) have random suffixes.",
+            "lines": 3
+          },
+          {
+            "q": "Run `docker exec k8s-from-zero-control-plane ls /etc/kubernetes/manifests` and `docker exec k8s-from-zero-control-plane systemctl is-active kubelet containerd`. What do you see, and what does it tell you about how the node is built?",
+            "a": "Four files: `etcd.yaml`, `kube-apiserver.yaml`, `kube-controller-manager.yaml`, `kube-scheduler.yaml`, then `active` twice. The kubelet and containerd are ordinary system services on the node. The four control-plane parts are files in a folder that the kubelet runs as static Pods.",
+            "lines": 3
+          },
+          {
+            "q": "Run `docker exec k8s-from-zero-control-plane crictl ps`. What is `crictl`, and what do the rows show?",
+            "a": "A debugging client for any CRI runtime. The rows are the same components (etcd, kube-apiserver, kube-controller-manager, kube-scheduler, coredns and more), seen from below: containers that containerd runs.",
+            "lines": 2
+          },
+          {
+            "q": "Run `kubectl get leases -n kube-system`. Which two components hold a Lease, and why do they need one?",
+            "a": "kube-controller-manager and kube-scheduler (you also see an `apiserver-...` lease). In a cluster with several control-plane machines, only one scheduler and one controller manager act at a time; the Lease proves which one is in charge.",
+            "lines": 3
+          },
+          {
+            "q": "Start the event watch in a second terminal, then run `kubectl apply -f web.yaml -v=6 2>&1 | grep 'verb='`. In the kubectl output, why is there a `404 Not Found` before the `201 Created`?",
+            "a": "kubectl first asked whether a Deployment called `web` exists. It did not (404), so kubectl sent a `POST` that created it (`201 Created`). Before that, the two `GET .../openapi/v3...` calls fetched the API schema.",
+            "lines": 2
+          },
+          {
+            "q": "From the same run, list the event sources (`FROM` column) in the order they appear, and say what each one did.",
+            "a": "`deployment-controller`: ScalingReplicaSet (scaled up a ReplicaSet). `replicaset-controller`: SuccessfulCreate, twice (created two Pods). `default-scheduler`: Scheduled, twice (placed each Pod). `kubelet`: Pulled, Created, Started for each Pod (pulled the image, created and started the container).",
+            "lines": 4
+          },
+          {
+            "q": "Run the two `jsonpath` commands from step 9 of the lesson with one of your Pod names. What three lines come back, and which component wrote the first one?",
+            "a": "The node name `k8s-from-zero-control-plane`, then `ReplicaSet/web-<hash>`, then `Deployment/web`. The scheduler wrote `spec.nodeName`. The Pod is owned by the ReplicaSet, which is owned by the Deployment.",
+            "lines": 3
+          },
+          {
+            "q": "Run the `etcdctl ... get /registry/deployments/default/web --keys-only` command from step 10. What comes back, and which component wrote it?",
+            "a": "The key `/registry/deployments/default/web`. Your Deployment is a key in etcd, written there by the API server. (For learning only: in real life you never touch etcd by hand.)",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then run it, or check the answer key.",
+        "exercises": [
+          {
+            "q": "You move `kube-scheduler.yaml` out of `/etc/kubernetes/manifests` and run `kubectl scale deployment web --replicas=4`. Predict the `STATUS` of all four `web` Pods, and what `kubectl describe` shows on a new one.",
+            "a": "Two old Pods stay `Running`. Two new Pods exist (the controllers still did their part) but stay `Pending`, because nobody gave them a node. `kubectl describe` shows `Node: <none>` and no events at all.",
+            "lines": 3
+          },
+          {
+            "q": "You then move `kube-scheduler.yaml` back into `/etc/kubernetes/manifests`. What happens to the two `Pending` Pods?",
+            "a": "The kubelet starts the scheduler again, the scheduler catches up and binds them, and all four Pods become `Running`.",
+            "lines": 2
+          },
+          {
+            "q": "You stop the kubelet with `docker exec k8s-from-zero-control-plane systemctl stop kubelet`. Predict the node's `STATUS` after a short wait, what its conditions say, and whether running containers stop.",
+            "a": "The node turns `NotReady` (47 seconds later in the lesson). `kubectl describe node` shows every condition as `Unknown` with `Kubelet stopped posting node status.` Running containers keep running, which is why kubectl still works. `systemctl start kubelet` brings it back to `Ready`.",
+            "lines": 3
+          },
+          {
+            "q": "You run `kubectl delete -f web.yaml`. What happens to the ReplicaSet and the Pods, and what makes that happen?",
+            "a": "They are removed too. Each Pod has an `ownerReference` to its ReplicaSet and the ReplicaSet one to its Deployment; that ownership chain is how deleting a Deployment cleans up everything below it.",
+            "lines": 2
+          },
+          {
+            "q": "New Pods stay `Pending` and show no events. Which component do you suspect, and which command checks it?",
+            "a": "The scheduler: nothing scheduled the Pods. Check it with `kubectl get pods -n kube-system -l component=kube-scheduler`. If it runs, `kubectl describe pod` usually shows a `FailedScheduling` event with the reason.",
+            "lines": 2
+          },
+          {
+            "q": "kubectl prints `The connection to the server ... was refused`. Give the two likely causes from the lesson.",
+            "a": "kubectl cannot reach the API server: the cluster is stopped, or kubectl points at the wrong cluster.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}

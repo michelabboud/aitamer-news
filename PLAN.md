@@ -1,5 +1,7 @@
 # Plans
 
+- 2026-11-15: [Repair and deploy PR469's lesson series upgrade](docs/plans/2026-11-15-lesson-series-repair.md), authorized and running. Parser and cache repairs, independent review, required-check merge, production verification.
+
 Three plans are running. Their documents live in the private operations repository; this file keeps the record of the plan gate.
 
 | Plan | Description | Status | Written | Approved | Updated |

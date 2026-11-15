@@ -1,0 +1,36 @@
+<div class="blk rule-box"><span class="mono">THE ONE RULE</span>{{lesson.rule}}</div>
+
+<h2 class="sec keep-next">Control plane <span class="sec__hint">the cluster's brain: global decisions, reacting to events</span></h2>
+<div class="comp comp--head keep-next"><span>Component</span><span>Role</span><span>Where it runs</span></div>
+{{#each cheatsheet.controlPlane}}
+<div class="comp"><span class="comp__name">{{name}}</span><span>{{md role}}</span><span class="comp__where">{{md where}}</span></div>
+{{/each}}
+
+<h2 class="sec keep-next">Nodes <span class="sec__hint">where your containers run</span></h2>
+<div class="comp comp--head keep-next"><span>Component</span><span>Role</span><span>Where it runs</span></div>
+{{#each cheatsheet.node}}
+<div class="comp"><span class="comp__name">{{name}}</span><span>{{md role}}</span><span class="comp__where">{{md where}}</span></div>
+{{/each}}
+<div class="blk note kind-note">{{md cheatsheet.kindNote}}</div>
+
+<h2 class="sec keep-next break-before">Life of one <code>kubectl apply</code> <span class="sec__hint">Deployment <code>web</code>, 2 replicas. Every arrow goes through the API server.</span></h2>
+{{#each cheatsheet.applySteps}}
+<div class="step"><span class="step__n">{{@number}}</span><span class="step__who">{{who}}</span><span>{{md what}}</span></div>
+{{/each}}
+<div class="blk note owners"><strong>Ownership.</strong> {{md cheatsheet.ownership}}</div>
+
+<h2 class="sec keep-next">Key commands <span class="sec__hint">commands verbatim from the lesson</span></h2>
+<div class="blk cmd-cols">
+{{#each cheatsheet.columnGroups}}
+<div class="cmd-group">
+  <div class="cmd-group__title">{{title}}</div>
+  {{#each commands}}<div class="cmd"><pre class="cmd__code" style="{{style}}">{{text}}</pre>{{#if note}}<div class="cmd__note">{{md note}}</div>{{/if}}</div>{{/each}}
+</div>
+{{/each}}
+</div>
+{{#each cheatsheet.wideGroups}}
+<div class="blk cmd-group cmd-group--wide">
+  <div class="cmd-group__title">{{title}}</div>
+  {{#each commands}}<div class="cmd"><pre class="cmd__code" style="{{style}}">{{text}}</pre>{{#if note}}<div class="cmd__note">{{md note}}</div>{{/if}}</div>{{/each}}
+</div>
+{{/each}}

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{docTitle}}</title>
+<meta name="author" content="aitamer.news">
+<meta name="description" content="{{lesson.description}}">
+<style>{{{fontFaces}}}</style>
+<style>{{{css}}}</style>
+</head>
+<body class="doc-{{docKey}}">
+<!-- One page shell. The paginator clones it for every page and pours #flow into .page__body. -->
+<template id="page-shell">
+  <section class="page">
+    <header class="kit-header">
+      <a class="brand" href="{{links.home}}">
+        {{{mascotSvg}}}
+        <span class="brand__text">
+          <span class="brand__kicker">A FIELD GUIDE TO THE MACHINES</span>
+          <span class="brand__name">AI Tamer</span>
+        </span>
+      </a>
+      <div class="kit-header__doc">
+        <div class="kit-header__series">{{seriesLine}}</div>
+        <div class="kit-header__label">Lesson kit: {{docLabel}}{{#if preview}} <span class="preview-tag">PREVIEW</span>{{/if}}</div>
+      </div>
+    </header>
+    <main class="page__body"></main>
+    <footer class="kit-footer">
+      <div class="kit-footer__qr">
+        <a href="{{links.lesson}}" aria-label="Open the lesson">{{{qrSvg}}}</a>
+        <div class="kit-footer__qr-cap">SCAN FOR THE LESSON</div>
+      </div>
+      <div class="kit-footer__main">
+        <div class="kit-footer__lesson">Lesson: <a href="{{links.lesson}}"><strong>{{lesson.title}}</strong></a></div>
+        <a class="kit-footer__url" href="{{links.lesson}}">{{links.lesson}}</a>
+        <div class="kit-footer__next"><span class="kit-footer__next-label">{{next.label}}</span><a href="{{links.next}}"><strong>{{next.title}}</strong></a>. {{next.summary}} <a href="{{links.next}}">{{next.urlLabel}}</a></div>
+        <div class="kit-footer__row">
+          <span class="kit-footer__share">{{share}}</span>
+          <span class="kit-footer__page"><span class="nb">{{seriesLine}}</span> · <span class="nb">{{docLabel}}{{#if preview}} · PREVIEW{{/if}} · page <span data-page-n></span> of <span data-page-total></span></span></span>
+        </div>
+      </div>
+    </footer>
+  </section>
+</template>
+
+<!-- Shown at the top of page 1 only -->
+<template id="cover">
+  <div class="cover">
+    <div class="cover__art">
+      <img src="{{artUrl}}" alt="{{art.alt}}" style="object-position: {{art.focus}}">
+      <span class="cover__credit">{{art.credit}}</span>
+    </div>
+    <div class="cover__kicker"><b>{{seriesLine}}</b> · Lesson kit · {{docLabel}}{{#if preview}} · <span class="preview-tag">PREVIEW, NOT FINAL</span>{{/if}}</div>
+    <h1 class="cover__title">{{lesson.title}}</h1>
+    {{#if docIntro}}<p class="cover__intro">{{md docIntro}}</p>{{/if}}
+    <div class="cover__tested">{{lesson.tested}}. Cluster: {{lesson.cluster}}.</div>
+  </div>
+</template>
+
+<div id="flow">
+{{> doc}}
+</div>
+
+<div id="pages"></div>
+<script>{{{paginateJs}}}</script>
+</body>
+</html>

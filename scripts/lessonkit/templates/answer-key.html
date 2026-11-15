@@ -1,0 +1,12 @@
+{{#each homework.sections}}
+<h2 class="sec keep-next">{{title}}</h2>
+{{#each exercises}}
+<div class="ex ex--key">
+  <span class="ex__n">{{n}}</span>
+  <div>
+    <div class="ex__q">{{md q}}</div>
+    <div class="ex__answer">{{md a}}</div>
+  </div>
+</div>
+{{/each}}
+{{/each}}

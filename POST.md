@@ -39,6 +39,7 @@ The schema in `src/content.config.ts` checks field types and the required fields
 | `corrections` | no | Dated corrections shown on the post: a list of `{ date, text }`. Add a new entry; never edit or delete an old one. |
 | `withdrawn` | no | `{ date, reason }` takes a post down without breaking links: the page stays at its URL with the notice, and the post leaves every list, feed, sitemap and search result. Its specimen number is retired with it. |
 | `comments` | no | `{ closed: true }` closes the post's comment thread: the page shows "comments are closed" instead of the form, and `/comments/threads.json` tells the desk's Worker to refuse new comments for the slug. Comments already published stay. Absent means open; a withdrawn post is closed regardless. An object, so a reason or a closing date can be added later without renaming anything (section 8). |
+| `lessonKit` | no | `{ id: k8s-02 }` lists the lesson's downloadable files. `id` is a lowercase slug. The page links to `public/lessonkits/aitamer-<id>-cheatsheet.pdf`, `aitamer-<id>-homework.pdf` and `aitamer-<id>-answer-key.pdf`, and to `aitamer-<id>-lab.zip` when that zip exists. A file that is not there is left off the list, and the whole box is omitted when none of them exist. Build the PDFs locally with `npm run build:lesson-kits` (needs `CHROME_PATH`). See [Lesson kits](docs/guides/lesson-kits.md). |
 
 **The contract is strict.** An unknown field, at any level, fails the build naming the file, so a typo is never silently dropped. Dates in `sunset`, `corrections` and `withdrawn` must be a YAML date, a plain `YYYY-MM-DD`, or a full UTC timestamp ending in `Z`, never a bare number or `true`/`false`. `heroImage` must be an `https://` URL with no spaces or quotes, and `check:posts` accepts only the post's own allowed media URL; new heroes use the hashed JPEG address and must have the same-name WebP (§3). Why: `docs/adr/0004-post-contract-is-strict.md`.
 
@@ -258,3 +259,27 @@ The format, v1:
 - No other key, at any level, and no timestamp: the same totals always produce the same bytes, so a publish that changes no count changes no file and opens no pull request.
 
 Enforcement is the comments' own: `npm run check:posts` (`scripts/check-reactions.mjs`) fails a file whose post does not exist, whose `slug` is not its file name, or that is larger than 8 KiB (far above the largest valid file), and any entry in `src/content/reactions/` that is not `README.md` or a regular `<slug>.json` file; `npm run build` fails a file that breaks the format (`src/content/reaction-schema.ts`, strict at every level), naming it. The same schema is published as JSON Schema at `/contract/reactions.schema.json` (newest) and `/contract/v1/reactions.schema.json` (v1, frozen) for the desk to validate against before it commits. On the page (once live): a React button under the article and, beside it, the top three reactions and the total; a story whose comments are closed (`comments: { closed: true }`) keeps its totals but takes no new reaction. Detail: `src/content/reactions/README.md`. The publisher used to land these files the way it landed comment files (ADR 0008); `publisher-paths` now refuses it any path (section 8, "The old publisher, retired").
+
+## 10. Code rails
+
+A fenced block can carry a left-hand rail of buttons. Put the id in the fence info string, and describe the buttons in a `rail` sidecar fence anywhere in the same file. The sidecar is not shown to readers. The rendered code block stays an ordinary highlighted block, and the page draws the copy button and the rail around it. Full syntax, the `explain`, `link` and `calc` kinds, and the accessibility rules: [Code rails](docs/guides/code-rails.md).
+
+~~~~markdown
+```bash rail=get-nodes
+kubectl get nodes -o wide
+```
+
+```rail
+id: get-nodes
+items:
+  - kind: explain
+    label: Explain this command
+    lines:
+      - token: kubectl
+        text: The Kubernetes command-line client.
+```
+~~~~
+
+## 11. Lesson kits
+
+`lessonKit.id` on a lesson points at files under `public/lessonkits/`. The page lists only the files that exist, and it omits the box when none do. How to add a lesson and how to build the PDFs: [Lesson kits](docs/guides/lesson-kits.md) and `scripts/lessonkit/README.md`.

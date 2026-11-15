@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -38,6 +39,8 @@ import {
 } from './check-rendered-body.mjs';
 import { tempDir } from './test-support.mjs';
 
+// Resolve Astro's public dependency export, independent of its package layout.
+const requireAstro = createRequire(createRequire(import.meta.url).resolve('astro/package.json'));
 const post = (body, author = 'desk-bot') => `---\ntitle: "A test"\nauthor: ${author}\n---\n\n${body}\n`;
 const problems = (findings) => findings.map((f) => `${f.path}${f.attribute ? `@${f.attribute}` : ''}: ${f.problem}`);
 
@@ -378,7 +381,7 @@ test('G3: with no machine author the gate fails instead of checking nothing', as
   // The post-build check refuses the same way, before looking at any post.
   mkdirSync(join(root, 'node_modules/.astro'), { recursive: true });
   for (const dep of ['astro', 'devalue']) symlinkSync(join(SITE_ROOT, 'node_modules', dep), join(root, 'node_modules', dep), 'dir');
-  const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+  const devalue = await import(pathToFileURL(requireAstro.resolve('devalue')).href);
   writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map()]])));
   assert.match(problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(), /no machine author/);
 });
@@ -546,7 +549,7 @@ test('should-fix 1a: --against-build fails on a doctored built page, and on a bu
   for (const dep of ['astro', 'devalue']) symlinkSync(join(SITE_ROOT, 'node_modules', dep), join(root, 'node_modules', dep), 'dir');
   writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: bot\nbio: b\n---\n');
   writeFileSync(join(root, 'src/content/posts/a.md'), post('Hello *there*.'));
-  const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+  const devalue = await import(pathToFileURL(requireAstro.resolve('devalue')).href);
   const entry = { id: 'a', data: { author: { collection: 'authors', id: 'desk-bot' } }, filePath: 'src/content/posts/a.md', digest: '0', rendered: { html, metadata: {} } };
   writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map([['a', entry]])]])));
   const findings = async () => problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(' | ');
@@ -575,7 +578,7 @@ async function buildFixture(entries, { pages = [], generatedAt, withdrawnNoBody 
     writeFileSync(join(root, `src/content/posts/${id}.md`), contents);
     store.set(id, { id, data: { author: { collection: 'authors', id: 'desk-bot' }, ...data }, filePath: `src/content/posts/${id}.md`, digest: '0', rendered: { html, metadata: {} } });
   }
-  const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+  const devalue = await import(pathToFileURL(requireAstro.resolve('devalue')).href);
   writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', store]])));
   for (const id of pages) writeBuiltPage(root, id, builtPage(html));
   for (const id of withdrawnNoBody) {
@@ -646,7 +649,7 @@ test('after the build: a store that matches the checker passes; a different rend
     }
     writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: bot\nbio: b\n---\n');
     writeFileSync(join(root, 'src/content/posts/a.md'), post('Hello *there*.'));
-    const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+    const devalue = await import(pathToFileURL(requireAstro.resolve('devalue')).href);
     const entry = { id: 'a', data: {}, filePath: 'src/content/posts/a.md', digest: '0', rendered: { html: storedHtml, metadata: {} } };
     writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map([['a', entry]])]])));
     writeBuiltPage(root, 'a', builtPage(storedHtml));
@@ -671,7 +674,7 @@ test('G3b: after the build, a post is gated when either our front-matter reading
   for (const dep of ['astro', 'devalue']) symlinkSync(join(SITE_ROOT, 'node_modules', dep), join(root, 'node_modules', dep), 'dir');
   writeFileSync(join(root, 'src/content/authors/desk-bot.md'), '---\nname: Desk Bot\nkind: bot\nbio: b\n---\n');
   writeFileSync(join(root, 'src/content/posts/a.md'), post('Hello.', 'wiz-cat'));
-  const devalue = await import(pathToFileURL(join(SITE_ROOT, 'node_modules/devalue/index.js')).href);
+  const devalue = await import(pathToFileURL(requireAstro.resolve('devalue')).href);
   const entry = { id: 'a', data: { author: { collection: 'authors', id: 'desk-bot' } }, filePath: 'src/content/posts/a.md', digest: '0', rendered: { html: '<script>x</script>', metadata: {} } };
   writeFileSync(join(root, 'node_modules/.astro/data-store.json'), devalue.stringify(new Map([['posts', new Map([['a', entry]])]])));
   assert.match(problems((await checkAgainstBuild({ root })).flatMap((r) => r.findings)).join(), /element <script> is not allowed/);
@@ -711,6 +714,8 @@ const REVIEWED_DYNAMIC_LOOKUPS = {
   // container and to `article`, and the `c-<ULID>` shape is what DYNAMIC_IDS['comment.anchor'] already
   // protects from a heading id.
   'src/components/CommentsLive.astro: querySelector(`article[id="c-${id}"]`)': 'validated ULID, scoped to the thread, shape protected as comment.anchor',
+  // The id is aria-controls on a code-box button this page wrote. Those ids match /^codebox-/.
+  'src/scripts/code-box.ts: getElementById(id)': 'codebox dialog id from aria-controls, shape protected as /^codebox-/',
 };
 
 const SOURCE_EXTENSIONS = ['', '.ts', '.js', '.mjs', '.astro', '/index.ts', '/index.js'];

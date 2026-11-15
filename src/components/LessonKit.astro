@@ -1,0 +1,30 @@
+---
+/**
+ * Downloads for one lesson. Each row is a file that exists in `public/lessonkits/`.
+ * When none of them are there yet, the box is omitted, so the page has no broken links.
+ */
+import type { LessonKitLink } from '../lib/lesson-kit.ts';
+import { withBase } from '../lib/site';
+
+interface Props {
+  links: readonly LessonKitLink[];
+}
+// The post route resolves these alongside its cache key, before cached HTML is restored.
+const { links } = Astro.props;
+---
+{links.length > 0 && (
+  <aside class="lesson-kit" aria-labelledby="lesson-kit-title">
+    <h2 id="lesson-kit-title">Lesson kit</h2>
+    <p>Files for this lesson.</p>
+    <ul class="lesson-kit__list">
+      {links.map((file) => (
+        <li>
+          <a href={withBase(file.href)} download={file.filename}>
+            <span>{file.label}</span>
+            <span class="lesson-kit__file">{file.filename}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}

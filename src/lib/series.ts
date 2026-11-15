@@ -29,6 +29,14 @@ export interface SeriesMeta {
   heroAlt?: string;
   /** Optional fixed arc plan. Absent means the badge still counts live parts. */
   arcs?: readonly SeriesArc[];
+  /** Who the series is for, shown on the series page. */
+  audience?: string;
+  /** What a reader comes away able to do. */
+  learns?: readonly string[];
+  /** Stated time for a lesson, in the catalog's own words. */
+  lessonTime?: string;
+  /** Singular noun for a part on the series page, such as `lesson`. Absent means `part`. */
+  unit?: string;
 }
 
 /** The fields a series check needs. A content entry satisfies this. */
@@ -72,6 +80,20 @@ export interface SeriesView {
   heroAlt?: string;
   /** Fixed arc plan, when this series opted in. */
   arcs?: readonly SeriesArc[];
+  audience?: string;
+  learns?: readonly string[];
+  lessonTime?: string;
+  unit?: string;
+}
+
+/** The series-page explainer, filled only from catalog fields and the live parts. */
+export interface SeriesIntro {
+  audience?: string;
+  learns: readonly string[];
+  lessonTime?: string;
+  unit: string;
+  count: number;
+  start: SeriesPart;
 }
 
 export interface SeriesPlacement {
@@ -99,6 +121,30 @@ export function seriesArcAt(arcs: readonly SeriesArc[], lesson: number): SeriesA
 
 export function seriesHref(slug: string): string {
   return `/series/${slug}/`;
+}
+
+/** `lesson` and 1 is `lesson`; `lesson` and 2 is `lessons`. The catalog stores the singular. */
+export function seriesUnitLabel(unit: string, count: number): string {
+  return count === 1 ? unit : `${unit}s`;
+}
+
+/**
+ * The split hero layout, when the catalog gave this series an audience, a learn list, a lesson
+ * time or a unit. The lesson count is the number of live parts. The start link is the first of
+ * those parts. Absent catalog fields leave the older series page in place.
+ */
+export function seriesIntro(view: SeriesView): SeriesIntro | null {
+  if (!view.audience && !view.learns?.length && !view.lessonTime && !view.unit) return null;
+  const start = view.parts[0];
+  if (!start) return null;
+  return {
+    ...(view.audience ? { audience: view.audience } : {}),
+    learns: view.learns ?? [],
+    ...(view.lessonTime ? { lessonTime: view.lessonTime } : {}),
+    unit: view.unit ?? 'part',
+    count: view.parts.length,
+    start,
+  };
 }
 
 /**
@@ -249,6 +295,10 @@ export function seriesPlacements(
       heroImage: meta.heroImage,
       heroAlt: meta.heroAlt,
       ...(meta.arcs?.length ? { arcs: meta.arcs } : {}),
+      ...(meta.audience ? { audience: meta.audience } : {}),
+      ...(meta.learns?.length ? { learns: meta.learns } : {}),
+      ...(meta.lessonTime ? { lessonTime: meta.lessonTime } : {}),
+      ...(meta.unit ? { unit: meta.unit } : {}),
     };
     parts.forEach((part, i) => {
       placements.set(part.id, {
@@ -274,6 +324,10 @@ export function seriesViewCacheMark(view: SeriesView): string {
     ...(view.arcs?.length
       ? { arcs: view.arcs.map((arc) => (arc.end === undefined ? { name: arc.name, start: arc.start } : { name: arc.name, start: arc.start, end: arc.end })) }
       : {}),
+    ...(view.audience ? { audience: view.audience } : {}),
+    ...(view.learns?.length ? { learns: view.learns } : {}),
+    ...(view.lessonTime ? { lessonTime: view.lessonTime } : {}),
+    ...(view.unit ? { unit: view.unit } : {}),
     parts: view.parts.map((part) => [part.id, part.order, part.stamp, part.title, part.description, part.pubDate.toISOString(), part.heroImage ?? null, part.heroAlt ?? null]),
   });
 }
