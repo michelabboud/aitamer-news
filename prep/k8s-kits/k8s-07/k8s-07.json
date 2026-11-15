@@ -1,0 +1,241 @@
+{
+  "$comment": "Lesson-kit content for Lesson 7. Every fact and command is copied from the lesson draft.",
+  "slug": "k8s-07",
+  "campaign": "k8s-07",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 7,
+    "title": "Kubernetes from Zero, part 7: Deployments and ReplicaSets",
+    "shortTitle": "Deployments and ReplicaSets",
+    "description": "Run Pods through a Deployment: self-healing, scaling, a rolling update with maxSurge and maxUnavailable, a stuck rollout and a rollback, all tested on kind.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-07-deployments-and-replicasets/",
+    "source": "prep/k8s-kits/k8s-07/draft.md",
+    "tested": "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "kind, from part 3",
+    "rule": "Run Pods through a Deployment. Change the Pod template to roll out, watch rollout status, and fix a bad release by applying the last good file."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-07.jpg",
+    "alt": "Five cut-paper sailboats ride layered blue paper waves; the one on the left has a coral sail and the other four cream sails, with a slate-blue ship's wheel above them.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 8, Services",
+    "summary": "Kubernetes from Zero, part 8, Services.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "How a Deployment rolls, and the commands from Lesson 7.",
+    "boards": [
+      {
+        "title": "What a Deployment owns",
+        "hint": "one ReplicaSet per Pod template",
+        "headName": "Piece",
+        "headRole": "What the lesson says",
+        "headWhere": "How you see it",
+        "rows": [
+          {
+            "name": "Deployment",
+            "role": "Keeps the replicas you asked for and rolls them when the Pod template changes.",
+            "where": "`kubectl get deploy`"
+          },
+          {
+            "name": "ReplicaSet",
+            "role": "One per Pod template version. It keeps its own Pods at the count the Deployment gives it.",
+            "where": "names share the template hash"
+          },
+          {
+            "name": "Pod template",
+            "role": "Only a change here starts a rollout. Changing `replicas` scales, and starts no rollout.",
+            "where": "`spec.template`"
+          },
+          {
+            "name": "selector",
+            "role": "Must match the template labels. It is immutable after creation.",
+            "where": "`spec.selector.matchLabels`"
+          },
+          {
+            "name": "maxSurge / maxUnavailable",
+            "role": "Both default to 25%. The cheat sheet says not both 0.",
+            "where": "`strategy.rollingUpdate`"
+          },
+          {
+            "name": "Recreate",
+            "role": "Stops the old Pods before starting new ones. Expect a gap in service.",
+            "where": "`strategy.type: Recreate`"
+          },
+          {
+            "name": "progress deadline",
+            "role": "How long a rollout may stall. The default is 600 seconds.",
+            "where": "`spec.progressDeadlineSeconds`"
+          },
+          {
+            "name": "revision history",
+            "role": "How many old ReplicaSets to keep. The default is 10.",
+            "where": "`spec.revisionHistoryLimit`"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "A rollout and a rollback",
+      "hint": "from the lesson's recap",
+      "items": [
+        {
+          "who": "apply",
+          "what": "A Deployment owns one ReplicaSet per Pod template version, and each ReplicaSet keeps its Pods at the requested count."
+        },
+        {
+          "who": "template",
+          "what": "Only changes to the Pod template start a rollout. `maxSurge` and `maxUnavailable` set its pace."
+        },
+        {
+          "who": "status",
+          "what": "`kubectl rollout status` tells you when a rollout is done or stuck. A stuck rollout leaves the old Pods serving."
+        },
+        {
+          "who": "undo",
+          "what": "`rollout undo` brings back an old template as a new revision. Then fix the file so `apply` and the cluster agree."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Run and watch",
+        "commands": [
+          {
+            "cmd": "kubectl create deployment web --image=nginx:1.29-alpine --dry-run=client -o yaml",
+            "note": "then edit and save"
+          },
+          {
+            "cmd": "kubectl rollout status deployment/web --timeout=90s",
+            "note": "exit 0 when complete"
+          },
+          {
+            "cmd": "kubectl get deploy,rs,pods",
+            "note": "names share the template hash"
+          },
+          {
+            "cmd": "kubectl scale deployment web --replicas=5",
+            "note": "the next apply of the file wins"
+          },
+          {
+            "cmd": "kubectl get rs --watch",
+            "note": "new up, old down"
+          }
+        ]
+      },
+      {
+        "title": "History and rollback",
+        "commands": [
+          {
+            "cmd": "kubectl rollout history deployment/web",
+            "note": "`--revision=N` for details"
+          },
+          {
+            "cmd": "kubectl rollout undo deployment/web",
+            "note": "creates a new revision"
+          },
+          {
+            "cmd": "kubectl rollout undo deployment/web --to-revision=1",
+            "note": "check it first"
+          },
+          {
+            "cmd": "kubectl rollout restart deployment/web",
+            "note": "rolling, not all at once"
+          },
+          {
+            "cmd": "kubectl delete deployment web",
+            "note": "ReplicaSets and Pods go too"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 3 and the namespace `k8s-from-zero`, with the context namespace set as in part 6. The lesson does not print a cluster name. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What does a Deployment own, and what does each of those keep?",
+            "a": "A Deployment owns one ReplicaSet per Pod template version, and each ReplicaSet keeps its Pods at the requested count.",
+            "lines": 2
+          },
+          {
+            "q": "Which change starts a rollout, and which change does not?",
+            "a": "Only a change to the Pod template starts a rollout. Changing `replicas` scales and starts none.",
+            "lines": 2
+          },
+          {
+            "q": "What do `maxSurge` and `maxUnavailable` default to, and what does `strategy.type: Recreate` do?",
+            "a": "Both default to 25%. The cheat sheet says not both 0. `Recreate` stops the old Pods before starting new ones, so expect a gap in service.",
+            "lines": 2
+          },
+          {
+            "q": "What do `progressDeadlineSeconds` and `revisionHistoryLimit` default to?",
+            "a": "600 seconds, and 10 old ReplicaSets.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Draft a Deployment with the dry-run command in the cheat sheet, apply it, and run `kubectl rollout status deployment/web --timeout=90s`. What exit code means the rollout finished?",
+            "a": "Exit 0. The cheat sheet says the command returns when the rollout is complete.",
+            "lines": 2
+          },
+          {
+            "q": "Run `kubectl get deploy,rs,pods`. What do the names share?",
+            "a": "The template hash. The cheat sheet says the names share it.",
+            "lines": 2
+          },
+          {
+            "q": "Run `kubectl rollout undo deployment/web`. What does the lesson say this creates?",
+            "a": "A new revision. It brings back an old template as that new revision. Then fix the file so apply and the cluster agree.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "Apply fails with `selector` does not match template `labels`. What must be true of the labels?",
+            "a": "The labels under `spec.template.metadata.labels` must include everything in `spec.selector.matchLabels`.",
+            "lines": 2
+          },
+          {
+            "q": "Apply fails with `spec.selector: Invalid value: ... field is immutable`. What are the two ways out in the lesson?",
+            "a": "Delete and recreate the Deployment, or create a new one under a new name and move traffic. The selector cannot change after creation.",
+            "lines": 2
+          },
+          {
+            "q": "You `kubectl scale`, then the next deploy puts the old count back. Why?",
+            "a": "The file still says the old number. Change `replicas` in the file. The next apply of the file wins.",
+            "lines": 2
+          },
+          {
+            "q": "`rollout status` waits forever or reports `exceeded its progress deadline`. What does the lesson tell you to read, and what keeps serving?",
+            "a": "Run `kubectl get pods` and `kubectl describe pod` on the newest Pod. A stuck rollout leaves the old Pods serving. Fix the file and apply, or `rollout undo`.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}
