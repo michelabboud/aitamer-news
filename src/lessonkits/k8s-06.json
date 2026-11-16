@@ -83,32 +83,32 @@
         "headWhere": "Example",
         "rows": [
           {
-            "name": "app.kubernetes.io/name",
+            "name": "app.kubernetes.io/\u200bname",
             "role": "Which application this is.",
             "where": "`nginx`"
           },
           {
-            "name": "app.kubernetes.io/instance",
+            "name": "app.kubernetes.io/\u200binstance",
             "role": "Which installation, unique per install.",
             "where": "`shop-web`"
           },
           {
-            "name": "app.kubernetes.io/version",
+            "name": "app.kubernetes.io/\u200bversion",
             "role": "Which version. Quote values that look like numbers, because label values must be strings.",
             "where": "`\"1.29\"`"
           },
           {
-            "name": "app.kubernetes.io/component",
+            "name": "app.kubernetes.io/\u200bcomponent",
             "role": "Which part of the architecture.",
             "where": "`frontend`"
           },
           {
-            "name": "app.kubernetes.io/part-of",
+            "name": "app.kubernetes.io/\u200bpart-of",
             "role": "Which larger application it belongs to. One selector can find every piece.",
             "where": "`shop`"
           },
           {
-            "name": "app.kubernetes.io/managed-by",
+            "name": "app.kubernetes.io/\u200bmanaged-by",
             "role": "Which tool manages it.",
             "where": "`kubectl`"
           }
