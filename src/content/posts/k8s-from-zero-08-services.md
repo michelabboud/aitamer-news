@@ -475,7 +475,7 @@ kubectl delete -f docs-external.yaml -f web-headless.yaml -f web-lb.yaml -f web-
 |---|---|---|
 | Expose a Deployment quickly | `kubectl expose deployment web --port=80 --target-port=8080` | writes a ClusterIP Service |
 | List Services | `kubectl get svc -o wide` | `-o wide` adds SELECTOR |
-| See backends | `kubectl get endpointslices -l kubernetes.io/service-name=web` | ready Pods only |
+| See backends | `kubectl get endpointslices -l kubernetes.io/service-name=web` | backend Pod IPs; each has a ready condition |
 | Explain a Service | `kubectl describe service web` | Selector, TargetPort, Endpoints |
 | Default type | `type: ClusterIP` | inside the cluster only |
 | Open on every node | `type: NodePort`, `nodePort: 30080` | range 30000-32767 |
@@ -506,7 +506,7 @@ spec:
 ## Recap and what is next
 
 - A Service gives a changing set of Pods one stable virtual IP and DNS name; its label selector picks the Pods.
-- EndpointSlices hold the current ready Pod IPs, and kube-proxy sends each connection to one of them.
+- EndpointSlices hold the backend Pod IPs with a ready condition on each, and kube-proxy sends each connection to a ready one.
 - ClusterIP is for inside traffic; NodePort and LoadBalancer add ways in from outside; ExternalName and headless Services change what DNS returns.
 - Use `<service>.<namespace>` across namespaces, and check endpoints first when a Service does not answer.
 
@@ -549,7 +549,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "wide"
-        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP and NODE."
+        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP, NODE, NOMINATED NODE and READINESS GATES."
 ```
 
 ```rail
@@ -773,7 +773,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "wide"
-        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP and NODE."
+        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP, NODE, NOMINATED NODE and READINESS GATES."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "get"
@@ -895,7 +895,7 @@ items:
       - token: "web-nodeport"
         text: "The object name."
       - token: "NODE_IP=$(kubectl get node k8s-ep07-control-plane -o jsonpath=\"{.status.addresses[0].address}\")"
-        text: "A shell assignment for this command only. It sets a variable, then the rest of the line runs."
+        text: "A shell variable assignment on its own line. It stores the node's first address, read by the jsonpath, and the next lines use it as $NODE_IP."
       - token: "echo"
         text: "Shell. Writes its arguments to standard output, then a newline."
       - token: "$NODE_IP"

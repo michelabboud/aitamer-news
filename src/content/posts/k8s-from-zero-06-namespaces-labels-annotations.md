@@ -707,7 +707,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "name"
-        text: "An output format. The get synopsis includes name, which prints each object as type/name."
+        text: "An output format. With api-resources, -o name prints only the resource names, one per line. The lesson's output starts bindings, configmaps, endpoints."
       - token: "|"
         text: "Shell. Sends the previous command's standard output to the next command."
       - token: "head"
@@ -755,7 +755,7 @@ items:
       - token: "get"
         text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
       - token: "all"
-        text: "A kubectl shortcut. get all lists the common resources in the namespace. The lesson uses it before deleting a namespace."
+        text: "A resource category. The CustomResourceDefinition docs say kubectl get category-name lists the resources that belong to that category, and all is one such category, not every resource type. The lesson uses it to look inside team-b before deleting it."
       - token: "-n"
         text: "Short form of --namespace. If present, the namespace scope for this CLI request."
       - token: "team-b"
@@ -883,7 +883,7 @@ items:
       - token: "shop-web"
         text: "The object name."
       - token: "example.com/last-reviewed=\"2026-11-11\""
-        text: "A annotation assignment. This command sets example.com/last-reviewed to \"2026-11-11\"."
+        text: "An annotation assignment that fails here. The key already has a value and --overwrite is not given, so the lesson prints error: --overwrite is false but found the following declared annotation(s): 'example.com/last-reviewed' already has a value (2026-11-10)."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "annotate"
@@ -895,7 +895,7 @@ items:
       - token: "example.com/last-reviewed=\"2026-11-11\""
         text: "A annotation assignment. This command sets example.com/last-reviewed to \"2026-11-11\"."
       - token: "--overwrite"
-        text: "If true, allow labels to be overwritten. The label docs say that otherwise an update which overwrites an existing label is rejected."
+        text: "If true, allow annotations to be overwritten, otherwise reject annotation updates that overwrite existing annotations."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "annotate"
@@ -905,7 +905,7 @@ items:
       - token: "shop-web"
         text: "The object name."
       - token: "example.com/last-reviewed-"
-        text: "The annotation key example.com/last-reviewed with a trailing hyphen. The lesson says this removes that key, and the label docs say removal does not require --overwrite."
+        text: "The annotation key example.com/last-reviewed with a trailing hyphen. The lesson says this removes that key, and the annotate docs' example says removing an annotation does not require the --overwrite flag."
 ```
 
 ```rail
@@ -923,7 +923,7 @@ items:
       - token: "shop-cache"
         text: "The object name."
       - token: "note=\"talk to payments\""
-        text: "A label assignment. This command sets note to \"talk to payments\"."
+        text: "A label assignment the API rejects. Label values allow no spaces, so the lesson prints error: invalid label value. The lesson moves this text into an annotation."
 ```
 
 ```rail

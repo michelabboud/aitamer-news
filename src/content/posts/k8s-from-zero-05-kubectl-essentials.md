@@ -640,7 +640,7 @@ items:
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "run"
-        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image."
+        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image [--env=\"key=value\"] [--port=port] [--dry-run=server|client] [--overrides=inline-json] [--command] -- [COMMAND] [args...]."
       - token: "quick"
         text: "The Pod name. The lesson creates it with kubectl run and later deletes it."
       - token: "--image=nginx:1.29-alpine"
@@ -660,7 +660,7 @@ items:
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "run"
-        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image."
+        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image [--env=\"key=value\"] [--port=port] [--dry-run=server|client] [--overrides=inline-json] [--command] -- [COMMAND] [args...]."
       - token: "web"
         text: "The NAME in kubectl run NAME. This command names the Pod web."
       - token: "--image=nginx:1.29-alpine"
@@ -802,7 +802,7 @@ items:
       - token: "k8s-from-zero"
         text: "The namespace name passed to --namespace."
       - token: "--dry-run=client"
-        text: "A dry run. The run docs say --dry-run must be none, server, or client. Client only prints the object that would be sent, without sending it. The lesson uses client dry-run to write YAML."
+        text: "A dry run. The delete docs say --dry-run must be none, server, or client. Client only prints the object that would be sent, without sending it. Here the lesson prints pod \"quick\" deleted from k8s-from-zero namespace (dry run), and quick keeps running."
 ```
 
 ```rail
@@ -830,7 +830,7 @@ items:
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "edit"
-        text: "Edit a resource on the server. The edit docs say it opens the editor named by KUBE_EDITOR, or EDITOR, and saves the object back when you close the file."
+        text: "Edit a resource on the server. The edit docs say it opens the editor defined by KUBE_EDITOR or EDITOR, or falls back to vi on Linux. The lesson sets KUBE_EDITOR to a sed command, so the change happens without an interactive editor."
       - token: "pod"
         text: "The resource type."
       - token: "web"
@@ -998,7 +998,7 @@ items:
       - token: "-p"
         text: "Short form of --patch. The patch to be applied to the resource JSON file. The patch examples pass it as JSON."
       - token: "'{\"spec\":{\"containers\":[{\"name\":\"web\",\"ports\":[{\"containerPort\":8080}]}]}}'"
-        text: "The JSON patch, in single quotes. It tries to change the web container port to 8080. The lesson shows the API refusing it, because most of a running Pod spec is fixed."
+        text: "The patch, in single quotes. No --type is given, so kubectl uses the default strategic merge patch. It tries to change the web container port to 8080. The lesson shows the API refusing it, because most of a running Pod spec is fixed."
 ```
 
 ```rail
@@ -1020,7 +1020,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "wide"
-        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP and NODE."
+        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP, NODE, NOMINATED NODE and READINESS GATES."
 ```
 
 ```rail
@@ -1100,7 +1100,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "custom-columns=NAME:.metadata.name,IMAGE:.spec.containers[0].image,NODE:.spec.nodeName,PHASE:.status.phase"
-        text: "custom-columns is an output format. The get examples write each column as a heading, a colon, and a JSONPath. The headings here are IMAGE, NODE, PHASE."
+        text: "custom-columns is an output format. The get examples write each column as a heading, a colon, and a JSONPath. The headings here are NAME, IMAGE, NODE, PHASE."
 ```
 
 ```rail
@@ -1152,7 +1152,7 @@ items:
       - token: "-L"
         text: "Short form of --label-columns. The get docs say it accepts a comma-separated list of labels to present as columns, and that names are case-sensitive."
       - token: "tier,environment"
-        text: "A label key for --label-columns. The get docs present it as a column."
+        text: "Two label keys for --label-columns, comma separated. The get docs say each label is presented as a column, so the lesson's table gains TIER and ENVIRONMENT."
 ```
 
 ```rail
@@ -1274,7 +1274,7 @@ items:
       - token: "k8s-from-zero"
         text: "The namespace name passed to --namespace."
       - token: "environment=test"
-        text: "A label assignment. The label command sets environment to test."
+        text: "A label assignment that fails here. environment already has the value dev and --overwrite is not given, so the lesson prints error: 'environment' already has a value (dev), and --overwrite is false."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "label"

@@ -769,9 +769,9 @@ items:
       - token: "diff"
         text: "Compares inputs line by line."
       - token: "web.yaml"
-        text: "Compares inputs line by line."
+        text: "The first file diff compares (from-file): the nginx 1.28 manifest."
       - token: "web-v2.yaml"
-        text: "Compares inputs line by line."
+        text: "The second file diff compares (to-file): the nginx 1.29 manifest."
 ```
 
 ```rail
@@ -817,11 +817,11 @@ items:
       - token: "|"
         text: "Shell. Sends the previous command's standard output to the next command."
       - token: "sed"
-        text: "The stream editor. The lesson uses it as KUBE_EDITOR to change one label."
+        text: "The stream editor. Here it filters the describe output down to the Events section."
       - token: "-n"
-        text: "Short form of --namespace. If present, the namespace scope for this CLI request."
+        text: "sed's -n: it turns off sed's automatic printing, so sed prints only the lines the script tells it to print with p."
       - token: "'/^Events:/,$p'"
-        text: "A quoted argument in this command."
+        text: "The sed script, in single quotes. The range runs from the line that starts with Events: to the last line ($), and p prints it."
 ```
 
 ```rail
@@ -855,9 +855,9 @@ items:
       - token: "diff"
         text: "Compares inputs line by line."
       - token: "web-v2.yaml"
-        text: "Compares inputs line by line."
+        text: "The first file diff compares (from-file): the last good manifest."
       - token: "web-v3.yaml"
-        text: "Compares inputs line by line."
+        text: "The second file diff compares (to-file): the manifest with the misspelled tag."
 ```
 
 ```rail
