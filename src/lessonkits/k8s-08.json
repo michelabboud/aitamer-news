@@ -80,7 +80,7 @@
         },
         {
           "who": "EndpointSlice",
-          "what": "EndpointSlices hold the current ready Pod IPs, and kube-proxy sends each connection to one of them."
+          "what": "EndpointSlices hold the backend Pod IPs with a ready condition on each, and kube-proxy sends each connection to a ready one."
         },
         {
           "who": "DNS",
@@ -106,7 +106,7 @@
           },
           {
             "cmd": "kubectl get endpointslices -l kubernetes.io/service-name=web",
-            "note": "ready Pods only"
+            "note": "backend Pod IPs; each has a ready condition"
           },
           {
             "cmd": "kubectl describe service web",
@@ -138,7 +138,7 @@
           },
           {
             "q": "What do EndpointSlices hold, and who sends each connection?",
-            "a": "The current ready Pod IPs. kube-proxy sends each connection to one of them. Only ready Pods are used.",
+            "a": "The backend Pod IPs, each with a ready condition. kube-proxy sends each connection to one of the ready ones. Pods that are not ready get no traffic.",
             "lines": 2
           },
           {
@@ -159,7 +159,7 @@
           },
           {
             "q": "Run `kubectl get endpointslices -l kubernetes.io/service-name=web`. Which Pods are listed?",
-            "a": "Ready Pods only. Pods that are not ready get no traffic.",
+            "a": "The Pods matching the Service's selector, with their IPs; in the lab all three web Pods, all ready=true. A Pod that is not ready is still listed, but gets no traffic.",
             "lines": 2
           },
           {
