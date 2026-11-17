@@ -1,6 +1,7 @@
 ---
 /**
- * The series mark, inlined so it inherits `currentColor`. Hidden from assistive tech:
+ * The series mark inherits `currentColor` through inline SVG or a CSS mask for
+ * inert homepage batches, whose protocol admits HTML elements only. Hidden from assistive tech:
  * the series name sits in the text beside it. A series without its own icon (one a bot added
  * through the series lane, ADR 0054) shows the neutral default until a person draws one.
  */
@@ -13,6 +14,7 @@ import fallback from '../assets/series-icons/default.svg?raw';
 
 interface Props {
   slug: string;
+  rendering?: 'inline' | 'mask';
 }
 
 const ICONS: Record<string, string> = {
@@ -24,5 +26,10 @@ const ICONS: Record<string, string> = {
 };
 
 const svg = Object.hasOwn(ICONS, Astro.props.slug) ? ICONS[Astro.props.slug] : fallback;
+const iconSlug = Object.hasOwn(ICONS, Astro.props.slug) ? Astro.props.slug : 'default';
 ---
-{svg && <span class="series-icon" aria-hidden="true" set:html={svg} />}
+{Astro.props.rendering === 'mask' ? (
+  <span class:list={['series-icon', 'series-icon--mask', `series-icon--${iconSlug}`]} aria-hidden="true" />
+) : (
+  svg && <span class="series-icon" aria-hidden="true" set:html={svg} />
+)}

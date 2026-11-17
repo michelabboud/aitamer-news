@@ -63,7 +63,7 @@ const kind = author.data.kind;
     )}
     <span class:list={['card__by', `by--${kind}`]}>{kindLabel(kind).toUpperCase()} · {author.data.name.toUpperCase()}</span>
   </div>
-  {series && <SeriesBadge href={withBase(series.href)} label={series.label} slug={series.slug} variant="card" />}
+  {series && <SeriesBadge href={withBase(series.href)} label={series.label} slug={series.slug} variant="card" iconRendering={context === 'home-card' ? 'mask' : 'inline'} />}
   <Heading class="card__title"><a href={href}>{post.data.title}</a></Heading>
   {showDesc && <p class="card__desc">{post.data.description}</p>}
   {level && (

@@ -81,6 +81,31 @@ test('the real partial is inert and validates all meter levels, responsive home 
   assert.match(html, /data-pagefind-ignore/);
 });
 
+test('the real partial validates a complete batch containing custom and fallback series icons', async () => {
+  const items = ['grok-bot', 'k8s-from-zero', undefined].map((slug, index) => ({
+    post: { id: `fixture-${index + 1}`, body: '', data: {
+      title: `Series sighting ${index + 1}`, description: 'Series render fixture.', section: 'devops',
+      pubDate: new Date('2026-10-01T00:00:00Z'), author: { id: 'desk-bot' },
+      heroImage: `https://media.aitamer.news/heroes/fixture-${index + 1}.jpg`, specimen: index + 1,
+    } },
+    author: { id: 'desk-bot', data: { name: 'Desk Bot', kind: 'bot' } },
+    series: slug ? { href: `/series/${slug}/`, label: `${slug} · Part 3 of 8`, slug } : undefined,
+  }));
+  const snapshot = 'a'.repeat(64);
+  const html = await container.renderToString(BatchPage, { props: { snapshot, index: 1, offset: 12, items }, partial: true });
+  function tree(node: any): FeedTree {
+    return { tag: node.tagName ?? '', namespace: node.namespaceURI, text: node.nodeName === '#text' ? node.value : '', attrs: node.attrs ?? [], children: (node.content?.childNodes ?? node.childNodes ?? []).map(tree) };
+  }
+  assert.deepEqual(validateBatchTree(tree(parse(html)), {
+    snapshot, index: 1, offset: 12, count: 3, seenIds: new Set(), pageUrl: 'https://example.com/preview/',
+  }), ['fixture-1', 'fixture-2', 'fixture-3']);
+  assert.match(html, /href="\/preview\/series\/grok-bot\/"/);
+  assert.match(html, /href="\/preview\/series\/k8s-from-zero\/"/);
+  assert.match(html, /grok-bot · Part 3 of 8/);
+  assert.match(html, /k8s-from-zero · Part 3 of 8/);
+  assert.equal((html.match(/class="series-icon /g) ?? []).length, 2);
+});
+
 
 test('the real listing card renders pin and series badges together, while home cards omit the pin badge', async () => {
   const props = {

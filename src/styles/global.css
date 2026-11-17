@@ -530,6 +530,16 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 }
 .series-icon { display: inline-flex; width: 20px; height: 20px; flex: none; }
 .series-icon svg { width: 20px; height: 20px; display: block; }
+/* Homepage partials stay HTML-only; masks preserve the same inherited and hover colors. */
+.series-icon--mask {
+  background-color: currentColor;
+  mask: url('../assets/series-icons/default.svg') center / contain no-repeat;
+}
+.series-icon--mask.series-icon--grok-bot { mask-image: url('../assets/series-icons/grok-bot.svg'); }
+.series-icon--mask.series-icon--ai-image-models { mask-image: url('../assets/series-icons/ai-image-models.svg'); }
+.series-icon--mask.series-icon--ai-movie-models { mask-image: url('../assets/series-icons/ai-movie-models.svg'); }
+.series-icon--mask.series-icon--ai-voice-models { mask-image: url('../assets/series-icons/ai-voice-models.svg'); }
+.series-icon--mask.series-icon--vectors-plainly { mask-image: url('../assets/series-icons/vectors-plainly.svg'); }
 .series-badge a { font-size: 0.75rem; }
 .series-badge a:hover, .series-badge a:focus-visible,
 .card__series a:hover, .card__series a:focus-visible { color: var(--bone); text-decoration: underline; }

@@ -1,5 +1,7 @@
 # Plans
 
+- 2026-11-17: [Homepage series-card repair](docs/plans/2026-11-17-home-feed-series-icons.md), authorized and running. Fix real series-card batch rejection and independently resolve the edge CSP injection error; checked delivery and live verification required.
+
 - 2026-11-15: [Repair and deploy PR469's lesson series upgrade](docs/plans/2026-11-15-lesson-series-repair.md), authorized and running. Parser and cache repairs, independent review, required-check merge, production verification.
 
 Three plans are running. Their documents live in the private operations repository; this file keeps the record of the plan gate.
