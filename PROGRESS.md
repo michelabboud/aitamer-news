@@ -1,3 +1,5 @@
+2026-11-17 — Homepage series-card repair: actual batch regression reproduced and focused26/26checks pass. Routine1705passed/0failed/1opt-in-skip; build1968pages and desktop/phone12→72browser checks pass. Review/deployment pending. [Report](docs/reports/2026-11-17-home-feed-series-icons.md).
+
 # Progress
 
 2026-11-15 — 0.2.144: automatic Grok/Cursor publishing and bounded publishing assets implemented. Human editorial review removed for these routes; automated admission retained. Qualification and deployment receipts: docs/reports/2026-11-15-bot-publishing.md.

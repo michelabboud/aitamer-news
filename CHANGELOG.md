@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.145 · 2026-11-17
+
+Repair homepage lazy loading when a fetched batch contains a series badge. Homepage series icons use the same trusted assets as CSS masks, preserving color and hover behavior while keeping fetched cards HTML-only. Add a real route/render regression for custom and fallback series icons; retain strict SVG rejection.
+
 ## 0.2.144 — 2026-11-15
 
 Automatic Cursor publishing joins the existing Grok trusted-admission route, without human approval/review. Both routes accept bounded lesson-kit JSON/PDF, diagrams and series data, including asset-only PRs. Exact blob binding preserves binary files through deterministic validation and merge. JSON identity and isolated PDF parsing reject malformed assets; stale-main changes, code paths and non-plain modes fail closed. Quill's narrower scope remains. Cursor branch access must include the existing trusted allocator App. See ADR0055 and the task report.

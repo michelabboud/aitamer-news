@@ -7,13 +7,14 @@ interface Props {
   slug: string;
   /** `badge` on a post, `card` on a listing card. */
   variant?: 'badge' | 'card';
+  iconRendering?: 'inline' | 'mask';
 }
 
-const { href, label, slug, variant = 'badge' } = Astro.props;
+const { href, label, slug, variant = 'badge', iconRendering = 'inline' } = Astro.props;
 ---
 <p class={variant === 'card' ? 'card__series' : 'series-badge'}>
   <a href={href}>
-    <SeriesIcon slug={slug} />
+    <SeriesIcon slug={slug} rendering={iconRendering} />
     <span>{label}</span>
   </a>
 </p>
