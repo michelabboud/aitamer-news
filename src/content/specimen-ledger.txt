@@ -1481,3 +1481,7 @@
 1478 k8s-from-zero-04-your-first-pod
 1479 ai-voice-models-wrap-up-comparison
 1480 claude-code-code-mode-experimental-javascript-tool-calls
+1481 k8s-from-zero-05-kubectl-essentials
+1482 k8s-from-zero-06-namespaces-labels-annotations
+1483 k8s-from-zero-07-deployments-and-replicasets
+1484 k8s-from-zero-08-services
