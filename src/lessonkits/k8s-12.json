@@ -28,7 +28,7 @@
   "next": {
     "label": "Next in the series",
     "title": "Next: Lesson 13, volumes, PersistentVolumes and StorageClasses",
-    "summary": "Volumes, PersistentVolumes and StorageClasses, the start of arc 2, where Redis gets storage that outlives its Pod.",
+    "summary": "Volumes, PersistentVolumes and StorageClasses, the start of arc 2, where your Pods get storage that outlives them.",
     "url": "https://aitamer.news/posts/k8s-from-zero-13-volumes-pv-pvc-storageclass/",
     "urlLabel": "Lesson page"
   },
@@ -102,11 +102,11 @@
         "title": "Build and grade",
         "commands": [
           {
-            "cmd": "kubectl create secret generic redis-auth --from-literal=password=change-me-123",
+            "cmd": "kubectl create secret generic redis-auth -n k8s-from-zero --from-literal=password=change-me-123",
             "note": "key password"
           },
           {
-            "cmd": "kubectl run client --image=busybox:1.37 --restart=Never -- sleep 3600",
+            "cmd": "kubectl run client --image=busybox:1.37 -- sleep 3600",
             "note": "then kubectl exec client -- wget"
           },
           {
@@ -140,7 +140,7 @@
           },
           {
             "q": "Why did the counter vanish when Redis restarted?",
-            "a": "Nothing in arc 1 keeps data outside a container. Part 13 gives Redis storage that outlives its Pod.",
+            "a": "Nothing in arc 1 keeps data outside a container. Part 13 gives your Pods storage that outlives them.",
             "lines": 2
           }
         ]
