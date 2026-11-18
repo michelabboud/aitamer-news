@@ -84,7 +84,7 @@
       {
         "title": "Install",
         "commands": [
-          {"cmd": "curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\"", "note": "Linux x86-64, from the kubectl install page"},
+          {"cmd": "curl -LO \"https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl\"", "note": "pins kubectl v1.37.2. `curl -L -s https://dl.k8s.io/release/stable.txt` prints the latest"},
           {"cmd": "curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.33.0/kind-linux-amd64", "note": "kind v0.33.0, from the quick start"},
           {"cmd": "chmod +x kubectl kind", "note": "mark both binaries executable"},
           {"cmd": "sudo mv kubectl kind /usr/local/bin/", "note": "the lesson's install line"}

@@ -24,6 +24,9 @@ wildness:
   verified: "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026"
   claimed: "Restart back-off timings and phase definitions come from the Kubernetes Pod lifecycle docs"
 verdict: "A Pod is the smallest thing Kubernetes runs: one IP around one or more containers. Learn get, describe, logs and exec on it, and treat it as disposable."
+corrections:
+  - date: "2026-11-18T20:53:00Z"
+    text: "We said part 5 was coming tomorrow. Part 5, kubectl essentials, was published the same day, and the end of this lesson now links it."
 sources:
   - title: "Pods (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/workloads/pods/
@@ -37,6 +40,12 @@ sources:
     url: https://kubernetes.io/docs/reference/kubectl/
   - title: "Kubernetes from Zero, part 3: Your local lab"
     url: https://aitamer.news/posts/k8s-from-zero-03-your-local-lab/
+  - title: "Kubernetes from Zero, part 5: kubectl essentials"
+    url: https://aitamer.news/posts/k8s-from-zero-05-kubectl-essentials/
+  - title: "Creative Commons Attribution 4.0 International"
+    url: https://creativecommons.org/licenses/by/4.0/
+  - title: "Kubernetes documentation"
+    url: https://kubernetes.io/docs/
 ---
 
 In [part 3](https://aitamer.news/posts/k8s-from-zero-03-your-local-lab/) you built a local cluster with kind and pointed kubectl at it. Now you put something on it. By the end of this episode you will write a Pod manifest by hand, apply it, look inside it five different ways, watch three small Pods succeed, crash and fail to pull, and delete all of it. You need the kind cluster from part 3 and kubectl. We tested everything on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2. Our lab cluster is called `k8s-ep04`, so node names below say `k8s-ep04-control-plane`; yours will carry the name you chose.
@@ -542,7 +551,9 @@ spec:
 - The phase (`Pending`, `Running`, `Succeeded`, `Failed`, `Unknown`) differs from the STATUS column and from each container's state.
 - Pods are disposable: delete one and its changes are gone.
 
-Next: Kubernetes from Zero, part 5, kubectl essentials, coming tomorrow.
+Next: [Kubernetes from Zero, part 5: kubectl essentials](https://aitamer.news/posts/k8s-from-zero-05-kubectl-essentials/).
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "create-namespace"

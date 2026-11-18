@@ -24,6 +24,11 @@ wildness:
   verified: "Ran every command on kind v0.33.0, Kubernetes v1.37.0 node, kubectl v1.37.2, 10 Nov 2026"
   claimed: "History and the does-and-does-not lists come from kubernetes.io docs and blog posts"
 verdict: "Kubernetes keeps a running system matching the state you declare. You describe what you want; its controllers keep closing the gap."
+corrections:
+  - date: "2026-11-18T20:53:00Z"
+    text: "We said you would watch the cluster replace a container you killed. The lab runs kubectl delete pod, so what you remove is a Pod. The short install followed stable.txt. It now downloads kubectl v1.37.2, the client this lab used, and names the command that prints the latest stable version."
+  - date: "2026-11-18T21:26:00Z"
+    text: "We said part 2 was coming tomorrow. Part 2, a tour of the control plane and the nodes, is published, and the end of this lesson now links it."
 sources:
   - title: "Overview (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/overview/
@@ -45,9 +50,17 @@ sources:
     url: https://kubernetes.io/releases/
   - title: "Kubernetes v1.37.2 release (GitHub)"
     url: https://github.com/kubernetes/kubernetes/releases/tag/v1.37.2
+  - title: "Command line tool (kubectl) (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
+  - title: "Creative Commons Attribution 4.0 International"
+    url: https://creativecommons.org/licenses/by/4.0/
+  - title: "Kubernetes documentation"
+    url: https://kubernetes.io/docs/
+  - title: "Kubernetes from Zero, part 2: a tour of the control plane and the nodes"
+    url: https://aitamer.news/posts/k8s-from-zero-02-architecture-tour/
 ---
 
-This is part 1 of **Kubernetes from Zero**, a long, numbered series for anyone starting with Kubernetes: a junior DevOps engineer, a developer who has to deploy their own service, or anyone who has run `docker run` and wonders what comes next. Each part handles one or two subjects, with diagrams, commands we ran ourselves, and a cheat sheet at the end. By the end of this part you will know what problem Kubernetes solves, what "desired state" means, and you will have watched a real cluster replace a container you killed. You need a Linux shell and a little Docker; nothing else is assumed.
+This is part 1 of **Kubernetes from Zero**, a long, numbered series for anyone starting with Kubernetes: a junior DevOps engineer, a developer who has to deploy their own service, or anyone who has run `docker run` and wonders what comes next. Each part handles one or two subjects, with diagrams, commands we ran ourselves, and a cheat sheet at the end. By the end of this part you will know what problem Kubernetes solves, what "desired state" means, and you will have watched a real cluster replace a Pod you deleted. You need a Linux shell and a little Docker; nothing else is assumed.
 
 ## What you will build
 
@@ -118,10 +131,10 @@ The overview calls Kubernetes the building blocks for developer platforms. That 
 
 This lab uses kind, which runs each Kubernetes node as a Docker container. Part 3 compares kind with minikube, k3d and Docker Desktop and explains every install step and the config file kubectl uses. Here is the short version for Linux on x86-64; on a Mac, `brew install kind kubectl` gives you both.
 
-You need Docker running. Then install `kubectl` and `kind` (both commands come from the [kubectl install page](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) and the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/)):
+You need Docker running. Then install `kubectl` and `kind` (both commands come from the [kubectl install page](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) and the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/)). The kubectl download is pinned to v1.37.2, the client this lab used. To print the latest stable version, run `curl -L -s https://dl.k8s.io/release/stable.txt`.
 
 ```bash rail=install-tools
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+curl -LO "https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl"
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.33.0/kind-linux-amd64
 chmod +x kubectl kind
 sudo mv kubectl kind /usr/local/bin/
@@ -351,7 +364,9 @@ spec:
 - Controllers are endless loops that close the gap between the two, which is why a deleted Pod comes back.
 - Kubernetes does not build your code, ship your database or pick your monitoring: you bring those.
 
-Next: part 2, a guided tour of the control plane and the nodes, following one `kubectl apply` until a container runs. Coming tomorrow.
+Next: [Kubernetes from Zero, part 2: a tour of the control plane and the nodes](https://aitamer.news/posts/k8s-from-zero-02-architecture-tour/).
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "install-tools"
@@ -363,8 +378,8 @@ items:
         text: "The curl client. These install lines follow the kubectl install page and the kind quick start."
       - token: "-LO"
         text: "Two curl options written together. -L, --location, follows a redirect when the server sends a Location header and a 3XX status. -O, --remote-name, writes the body to a local file named like the remote file."
-      - token: "\"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\""
-        text: "The download URL, in quotes. $(...) is shell command substitution: the shell runs the inner curl and pastes the version it prints into the path. That inner curl uses -L to follow redirects and -s, --silent, to hide the progress meter. stable.txt is the file the kubectl install page uses for the latest stable release."
+      - token: "\"https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl\""
+        text: "The download URL, in quotes. It pins kubectl v1.37.2, the Linux amd64 binary from the install page. stable.txt on that page prints the latest stable release."
       - token: "curl"
         text: "The curl client. These install lines follow the kubectl install page and the kind quick start."
       - token: "-Lo"

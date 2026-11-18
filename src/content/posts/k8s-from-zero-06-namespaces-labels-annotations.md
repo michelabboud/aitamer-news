@@ -39,6 +39,10 @@ sources:
     url: https://kubernetes.io/docs/reference/kubectl/
   - title: "Kubernetes from Zero, part 5: kubectl essentials"
     url: https://aitamer.news/posts/k8s-from-zero-05-kubectl-essentials/
+  - title: "Creative Commons Attribution 4.0 International"
+    url: https://creativecommons.org/licenses/by/4.0/
+  - title: "Kubernetes documentation"
+    url: https://kubernetes.io/docs/
 ---
 
 In [part 5](https://aitamer.news/posts/k8s-from-zero-05-kubectl-essentials/) you learned to select objects by label. This episode is about organising a cluster so that those selections stay meaningful when there are hundreds of objects and several teams. You will use namespaces to give each team its own space for names, set a default namespace so you stop typing `-n`, label objects with the convention the whole ecosystem understands, and attach notes with annotations. You need the kind cluster and the `k8s-from-zero` namespace from part 4. We tested on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2; our cluster and context are named after the lab, `k8s-ep04` and `kind-k8s-ep04`, so yours will show your own names.
@@ -494,6 +498,8 @@ metadata:
 - Put non-identifying information in annotations, under your own prefix.
 
 Next: Kubernetes from Zero, part 7, Deployments and ReplicaSets, coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "get-namespaces"

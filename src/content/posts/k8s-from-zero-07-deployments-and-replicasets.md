@@ -36,6 +36,10 @@ sources:
     url: https://kubernetes.io/docs/reference/kubectl/
   - title: "Kubernetes from Zero, part 6: Namespaces, labels and annotations"
     url: https://aitamer.news/posts/k8s-from-zero-06-namespaces-labels-annotations/
+  - title: "Creative Commons Attribution 4.0 International"
+    url: https://creativecommons.org/licenses/by/4.0/
+  - title: "Kubernetes documentation"
+    url: https://kubernetes.io/docs/
 ---
 
 In [part 6](https://aitamer.news/posts/k8s-from-zero-06-namespaces-labels-annotations/) you organised a cluster with namespaces and labels. The Pods you have made so far were single, hand-made objects: delete one and it stays gone. This episode hands Pods to a controller. By the end you will run three copies of a web server through a Deployment, watch Kubernetes replace a Pod you delete, scale up and down, roll out a new image without downtime, break a release on purpose and roll it back. You need the kind cluster from part 3 and the `k8s-from-zero` namespace from part 4, with your context namespace set to it as in part 6. We tested on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2.
@@ -548,6 +552,8 @@ spec:
 - `rollout undo` brings back an old template as a new revision; then fix the file so `apply` and the cluster agree.
 
 Next: Kubernetes from Zero, part 8, Services, coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "create-deployment-demo"

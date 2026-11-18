@@ -1,10 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
-<title id="t">Everyone talks to the API server</title>
-<desc id="d">A hub-and-spoke picture. kube-apiserver sits in the middle and is highlighted. Around it are kubectl, kube-scheduler, kube-controller-manager, the optional cloud-controller-manager, the kubelet on each node, kube-proxy, and CoreDNS. Each of them talks only to the API server, mostly by watching for changes. etcd sits below the API server and is the only spoke that no other component touches: only the API server reads and writes it.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" role="img" aria-labelledby="t d">
+<title id="t">Components coordinate through the API server</title>
+<desc id="d">A hub-and-spoke picture. kube-apiserver sits in the middle and is highlighted. Around it, kubectl, kube-scheduler, kube-controller-manager, kube-proxy and CoreDNS point at the API server. Control-plane components and the kubelets on each node coordinate through the API server: they watch and update objects there and do not call one another directly. etcd sits below the API server; only the API server reads and writes it. Each kubelet also talks to containerd over CRI, a local node-side link. The API server connects to each kubelet for logs, exec and attach, and port-forward.</desc>
 <style>
 .bg { fill: #f7f3ea; }
 .t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
 .ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.tsc { font-family: system-ui, sans-serif; font-size: 12px; fill: #d9674f; }
 .th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
 .tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
 .tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
@@ -31,6 +32,7 @@
   .bg { fill: #1c2230; }
   .t { fill: #e8eaf0; }
   .ts { fill: #b3bacb; }
+  .tsc { fill: #e8806b; }
   .th { fill: #f1f2f6; }
   .tm { fill: #e8eaf0; }
   .tc { fill: #f09a86; }
@@ -59,35 +61,57 @@
 <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
 <marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
 </defs>
-<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
-<text class="th" x="24" y="32" text-anchor="start">Everyone talks to the API server, nobody talks to etcd directly</text>
-<rect class="boxc" x="305" y="208" width="190" height="64" rx="10"/>
-<text class="tb" x="400.0" y="245.0" text-anchor="middle">kube-apiserver</text>
-<rect class="box" x="65.0" y="90" width="130" height="40" rx="10"/>
-<text class="tm" x="130.0" y="115.0" text-anchor="middle">kubectl</text>
-<line class="ln" x1="180" y1="134" x2="325" y2="204" marker-end="url(#ah)"/>
-<rect class="boxb" x="332.0" y="70" width="136" height="40" rx="10"/>
-<text class="tm" x="400.0" y="95.0" text-anchor="middle">kube-scheduler</text>
-<line class="ln" x1="400" y1="114" x2="400" y2="204" marker-end="url(#ah)"/>
-<rect class="boxb" x="566.0" y="90" width="208" height="40" rx="10"/>
-<text class="tm" x="670.0" y="115.0" text-anchor="middle">kube-controller-manager</text>
-<line class="ln" x1="620" y1="134" x2="475" y2="204" marker-end="url(#ah)"/>
-<rect class="boxs" x="34.0" y="230" width="152" height="40" rx="10"/>
-<text class="tm" x="110.0" y="255.0" text-anchor="middle">kubelet (node 1)</text>
-<line class="ln" x1="190" y1="247" x2="301" y2="243" marker-end="url(#ah)"/>
-<rect class="boxs" x="625.0" y="230" width="130" height="40" rx="10"/>
-<text class="tm" x="690.0" y="255.0" text-anchor="middle">kube-proxy</text>
-<line class="ln" x1="621" y1="248" x2="499" y2="243" marker-end="url(#ah)"/>
-<rect class="boxs" x="74.0" y="360" width="152" height="40" rx="10"/>
-<text class="tm" x="150.0" y="385.0" text-anchor="middle">kubelet (node 2)</text>
-<line class="ln" x1="193" y1="356" x2="336" y2="276" marker-end="url(#ah)"/>
-<rect class="boxs" x="585.0" y="360" width="130" height="40" rx="10"/>
-<text class="tm" x="650.0" y="385.0" text-anchor="middle">CoreDNS</text>
-<line class="ln" x1="607" y1="356" x2="464" y2="276" marker-end="url(#ah)"/>
-<rect class="boxn" x="340" y="390" width="120" height="44" rx="10"/>
-<text class="tm" x="400.0" y="417.0" text-anchor="middle">etcd</text>
-<line class="ln" x1="400" y1="272" x2="400" y2="386" marker-end="url(#ah)"/>
-<text class="ts" x="408" y="340" text-anchor="start">only the API server</text>
-<text class="ts" x="408" y="356" text-anchor="start">reads and writes etcd</text>
-<text class="ts" x="24" y="454" text-anchor="start">Components watch the API server for changes and write back what they did; they never call each other.</text>
+<rect class="bg" x="0" y="0" width="800" height="560" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Components coordinate through the API server</text>
+<rect class="box" x="48" y="66" width="130" height="40" rx="10"/>
+<text class="tm" x="113" y="91" text-anchor="middle">kubectl</text>
+<line class="ln" x1="145" y1="106" x2="350" y2="176" marker-end="url(#ah)"/>
+<rect class="boxb" x="332" y="54" width="136" height="40" rx="10"/>
+<text class="tm" x="400" y="79" text-anchor="middle">kube-scheduler</text>
+<line class="ln" x1="400" y1="94" x2="400" y2="176" marker-end="url(#ah)"/>
+<text class="ts" x="410" y="142" text-anchor="start">watch / update</text>
+<rect class="boxb" x="552" y="66" width="216" height="40" rx="10"/>
+<text class="tm" x="660" y="91" text-anchor="middle">kube-controller-manager</text>
+<line class="ln" x1="620" y1="106" x2="450" y2="176" marker-end="url(#ah)"/>
+<rect class="boxc" x="305" y="176" width="190" height="64" rx="10"/>
+<text class="tb" x="400" y="214" text-anchor="middle">kube-apiserver</text>
+<rect class="boxs" x="32" y="192" width="140" height="40" rx="10"/>
+<text class="tm" x="102" y="217" text-anchor="middle">kube-proxy</text>
+<line class="ln" x1="172" y1="212" x2="301" y2="212" marker-end="url(#ah)"/>
+<rect class="boxs" x="628" y="192" width="140" height="40" rx="10"/>
+<text class="tm" x="698" y="217" text-anchor="middle">CoreDNS</text>
+<line class="ln" x1="628" y1="212" x2="499" y2="212" marker-end="url(#ah)"/>
+<rect class="boxn" x="350" y="286" width="100" height="40" rx="10"/>
+<text class="tm" x="400" y="311" text-anchor="middle">etcd</text>
+<line class="ln" x1="400" y1="240" x2="400" y2="282" marker-end="url(#ah)"/>
+<text class="ts" x="400" y="342" text-anchor="middle">only the API server</text>
+<text class="ts" x="400" y="358" text-anchor="middle">reads and writes etcd</text>
+<rect class="panel" x="24" y="378" width="304" height="130" rx="10"/>
+<text class="th" x="40" y="400" text-anchor="start">Node 1</text>
+<rect class="boxs" x="40" y="412" width="272" height="38" rx="10"/>
+<text class="tm" x="176" y="436" text-anchor="middle">kubelet</text>
+<line class="ln" x1="280" y1="412" x2="304" y2="244" marker-end="url(#ah)"/>
+<line class="lnc" x1="340" y1="240" x2="312" y2="412" marker-end="url(#ahc)"/>
+<text class="ts" x="272" y="400" text-anchor="end">watch / update</text>
+<text class="tsc" x="322" y="390" text-anchor="start">logs / exec /</text>
+<text class="tsc" x="322" y="404" text-anchor="start">port-forward</text>
+<rect class="box" x="40" y="470" width="272" height="34" rx="10"/>
+<text class="tm" x="176" y="492" text-anchor="middle">containerd</text>
+<line class="ln" x1="176" y1="450" x2="176" y2="466" marker-end="url(#ah)"/>
+<text class="ts" x="188" y="462" text-anchor="start">CRI</text>
+<rect class="panel" x="472" y="378" width="304" height="130" rx="10"/>
+<text class="th" x="760" y="400" text-anchor="end">Node 2</text>
+<rect class="boxs" x="488" y="412" width="272" height="38" rx="10"/>
+<text class="tm" x="624" y="436" text-anchor="middle">kubelet</text>
+<line class="ln" x1="520" y1="412" x2="496" y2="244" marker-end="url(#ah)"/>
+<line class="lnc" x1="460" y1="240" x2="488" y2="412" marker-end="url(#ahc)"/>
+<text class="ts" x="528" y="400" text-anchor="start">watch / update</text>
+<text class="tsc" x="478" y="390" text-anchor="end">logs / exec /</text>
+<text class="tsc" x="478" y="404" text-anchor="end">port-forward</text>
+<rect class="box" x="488" y="470" width="272" height="34" rx="10"/>
+<text class="tm" x="624" y="492" text-anchor="middle">containerd</text>
+<line class="ln" x1="624" y1="450" x2="624" y2="466" marker-end="url(#ah)"/>
+<text class="ts" x="636" y="462" text-anchor="start">CRI</text>
+<text class="ts" x="24" y="534" text-anchor="start">Control-plane components and kubelets coordinate through the API server; they do not call one another directly.</text>
+<text class="ts" x="24" y="550" text-anchor="start">The kubelet talks to containerd over CRI. The API server connects to kubelets for logs, exec and port-forward.</text>
 </svg>
