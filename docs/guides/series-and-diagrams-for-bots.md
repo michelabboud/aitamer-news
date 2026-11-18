@@ -25,7 +25,7 @@ The repository enforces every rule below. A pull request that breaks one fails i
 ### Step 1: the series row
 
 - **Branch:** `series/<name>`, for example `series/k8s-from-zero`. Lowercase letters, digits and single hyphens, at most 64 characters. Never `grok/`.
-- **Change exactly one file:** `src/data/series.json`. Append the new row at the end (row order is the order on `/series/`), or edit an existing row. Never add, delete, rename or copy the file. Never touch `src/data/series.ts`, the icons, components or tests. A new series gets a neutral icon automatically.
+- **Change exactly one file:** `src/data/series.json`. Append the new row at the end, or edit an existing row. `/series/` lists series by the newest live lesson or update, and row order breaks a tie. Never add, delete, rename or copy the file. Never touch `src/data/series.ts`, the icons, components or tests. A new series gets a neutral icon automatically.
 - **The row:**
 
   ```json
@@ -39,8 +39,8 @@ The repository enforces every rule below. A pull request that breaks one fails i
   - `slug`: lowercase words joined by single hyphens, unique in the file. Posts name it.
   - `title`: at most 80 characters. `description`: at most 240 characters.
   - Plain text only: no line breaks, no `<` or `>`, no invisible characters, no leading or trailing spaces.
-  - Optional hero, both keys or neither: `"heroImage": "https://bots.aitamer.news/heroes/series-<slug>-<8 lowercase hex>.jpg"` and `"heroAlt"` (at most 200 characters). Upload the image and its WebP twin first.
-  - Optional `arcs`: a fixed lesson plan, `{ "name", "start", "end" }` objects, lesson 1 first, no gaps. Omit `end` only on the last arc. Kubernetes from Zero uses it, so its badge does not count live parts. Its last arc, Certification, starts at lesson 104 and has no `end` (`src/data/series.json`). Leave `arcs` out on every other series. Never delete `arcs` from a row that already has it.
+  - Optional hero, both keys or neither: `"heroImage": "https://bots.aitamer.news/heroes/series-<slug>-<8 lowercase hex>.jpg"` and `"heroAlt"` (at most 240 characters). Upload the image and its WebP twin first.
+  - Optional `arcs`: a fixed lesson plan, `{ "name", "start", "end" }` objects, lesson 1 first, no gaps. Omit `end` only on the last arc. Kubernetes from Zero uses it, so its badge does not count live parts. Its last arc, Certification, starts at lesson 104 and has no `end` (`src/data/series.json`). Leave it out on every other series. Never delete `arcs` from a row that already has it.
   - No other keys.
 - **Merge:** the Grok App opens the pull request and merges it with a merge commit once all required checks are green.
 - **Never** delete or rename a row that posts still use. The build fails.

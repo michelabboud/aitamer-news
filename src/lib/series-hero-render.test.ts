@@ -16,7 +16,7 @@ import { PREPARED_HERO_POLICY_SHA256 } from './prepared-heroes.ts';
 const sourceRoot = process.env.SERIES_HERO_SOURCE_ROOT ?? process.cwd();
 const view = {
   ...HERO_SERIES, href: `/series/${HERO_SERIES.slug}/`,
-  parts: [{ id: 'fixture', title: 'Fixture part', description: 'A series part.', pubDate: new Date('2026-10-01T00:00:00Z'), order: 1, stamp: 'fixture@v1' }],
+  parts: [{ id: 'fixture', title: 'Fixture part', description: 'A series part.', pubDate: new Date('2026-10-01T00:00:00Z'), activity: new Date('2026-10-01T00:00:00Z'), order: 1, stamp: 'fixture@v1' }],
 };
 const requireAstro = createRequire(createRequire(import.meta.url).resolve('astro/package.json'));
 const { transform } = await import(pathToFileURL(requireAstro.resolve('@astrojs/compiler-rs')).href);
@@ -73,7 +73,10 @@ for (const [name, Page] of [['index', Index], ['detail', Detail]] as const) {
       assert.match(html, /class="series-index__photo"/);
     } else {
       assert.ok(html.includes(`alt="${view.heroAlt}"`));
-      assert.match(html, /class="series-hero"/);
+      assert.match(html, /class="series-hero series-intro__photo"/);
+      assert.match(html, /class="series-intro"/);
+      assert.match(html, /Start part 1/);
+      assert.doesNotMatch(html, /Latest part/);
     }
   });
   test(`the series ${name} keeps an absent hero out of the page`, async () => {
@@ -88,11 +91,14 @@ for (const [name, Page] of [['index', Index], ['detail', Detail]] as const) {
 
 test('series part thumbnails use the matching article, WebP and lazy JPEG, with one accessible title link', async () => {
   const withThumbnails = { ...view, parts: [
-    { ...view.parts[0], id: 'first', title: 'First article', heroImage: 'https://media.aitamer.news/heroes/first.jpg', heroAlt: 'First cover' },
-    { ...view.parts[0], id: 'second', title: 'Second article', order: 2, heroImage: 'https://bots.aitamer.news/heroes/second-0123abcd.jpg', heroAlt: 'Second cover' },
-    { ...view.parts[0], id: 'no-cover', title: 'Article without a cover', order: 3, heroImage: undefined },
+    { ...view.parts[0], id: 'first', title: 'First article', order: 1, pubDate: new Date('2026-10-01T00:00:00Z'), activity: new Date('2026-10-01T00:00:00Z'), heroImage: 'https://media.aitamer.news/heroes/first.jpg', heroAlt: 'First cover' },
+    { ...view.parts[0], id: 'second', title: 'Second article', order: 2, pubDate: new Date('2026-10-03T00:00:00Z'), activity: new Date('2026-10-03T00:00:00Z'), heroImage: 'https://bots.aitamer.news/heroes/second-0123abcd.jpg', heroAlt: 'Second cover' },
+    { ...view.parts[0], id: 'no-cover', title: 'Article without a cover', order: 3, pubDate: new Date('2026-10-02T00:00:00Z'), activity: new Date('2026-10-02T00:00:00Z'), heroImage: undefined },
   ] };
+  const listed = [withThumbnails.parts[1], withThumbnails.parts[2], withThumbnails.parts[0]];
   const html = await container.renderToString(Detail, { props: { view: withThumbnails } });
+  assert.match(html, /href="\/preview\/posts\/first\/"[^>]*>Start part 1/);
+  assert.match(html, /href="\/preview\/posts\/second\/"[^>]*>Latest part/);
   const nodes: any[] = [];
   function visit(node: any) { nodes.push(node); for (const child of node.childNodes ?? []) visit(child); }
   visit(parse(html));
@@ -103,7 +109,7 @@ test('series part thumbnails use the matching article, WebP and lazy JPEG, with 
     const descendants: any[] = [];
     function collect(node: any) { descendants.push(node); for (const child of node.childNodes ?? []) collect(child); }
     collect(article);
-    const part = withThumbnails.parts[index];
+    const part = listed[index];
     const anchors = descendants.filter((node) => node.tagName === 'a');
     const thumb = anchors.find((node) => attribute(node, 'class') === 'series-part__photo');
     const titleLink = anchors.find((node) => node !== thumb);
@@ -131,4 +137,29 @@ test('series part thumbnails use the matching article, WebP and lazy JPEG, with 
     assert.equal(attribute(source, 'type'), 'image/webp');
     assert.equal(attribute(source, 'srcset'), part.heroImage.replace(/\.jpg$/, '.webp'));
   }
+});
+
+test('a course keeps numbered lessons and puts the newest lesson in a card', async () => {
+  const course = {
+    ...view,
+    slug: 'k8s-from-zero',
+    title: 'Kubernetes from Zero',
+    unit: 'lesson',
+    arcs: [{ name: 'Foundations', start: 1, end: 12 }],
+    parts: [
+      { id: 'one', title: 'First lesson', description: 'The opening lesson.', pubDate: new Date('2026-11-12T00:00:00Z'), activity: new Date('2026-11-12T00:00:00Z'), order: 1, stamp: 'one' },
+      { id: 'two', title: 'Second lesson', description: 'The newer lesson.', pubDate: new Date('2026-11-17T00:00:00Z'), activity: new Date('2026-11-18T00:00:00Z'), order: 2, stamp: 'two', heroImage: 'https://bots.aitamer.news/heroes/second-0123abcd.jpg', heroAlt: 'Second cover' },
+    ],
+  };
+  const html = await container.renderToString(Detail, { props: { view: course } });
+  const listAt = html.indexOf('series-parts');
+  assert.match(html, /id="series-latest-label"[^>]*>Latest lesson/);
+  assert.ok(html.indexOf('Second lesson') !== -1 && html.indexOf('Second lesson') < listAt);
+  assert.match(html, /updated/);
+  assert.ok(listAt !== -1);
+  assert.ok(html.indexOf('First lesson', listAt) < html.indexOf('Second lesson', listAt));
+  assert.match(html, /href="\/preview\/posts\/one\/"[^>]*>Start lesson 1/);
+  assert.match(html, /href="\/preview\/posts\/two\/"[^>]*>Latest lesson/);
+  assert.match(html, /class="series-hero series-intro__photo"/);
+  assert.ok(html.includes(`alt="${view.heroAlt}"`));
 });

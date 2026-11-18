@@ -6,6 +6,7 @@
  * `pubDate` has passed `now`. Withdrawn posts keep their order so the number is not reused, and
  * they leave the public lists.
  */
+import { effectiveModified } from './article-dates.ts';
 import { isLive } from './schedule.ts';
 
 /** Lowercase slug: `grok-bot`, not a title. */
@@ -55,6 +56,9 @@ export interface SeriesPost {
   /** This article's existing hero, used as a decorative part thumbnail. */
   heroImage?: string;
   heroAlt?: string;
+  /** A later edit. Dates before `pubDate` are ignored, as on the article page. */
+  updatedDate?: Date;
+  corrections?: readonly { date: Date }[];
 }
 
 export interface SeriesPart {
@@ -66,6 +70,11 @@ export interface SeriesPart {
   stamp: string;
   heroImage?: string;
   heroAlt?: string;
+  /**
+   * Newest of publication and any later update or correction. The series index and the
+   * newest-first part list sort on this. There is no separate series creation date.
+   */
+  activity: Date;
 }
 
 export interface SeriesView {
@@ -145,6 +154,52 @@ export function seriesIntro(view: SeriesView): SeriesIntro | null {
     count: view.parts.length,
     start,
   };
+}
+
+/**
+ * A structured course keeps numbered lessons. The catalog says so with `arcs`
+ * (Kubernetes from Zero is the one that does). Other series list newest first.
+ */
+export function seriesIsCourse(view: { arcs?: readonly SeriesArc[] }): boolean {
+  return Boolean(view.arcs?.length);
+}
+
+/** Newest of publication and a later update or correction. A date before publication does not count. */
+export function seriesPartActivity(post: Pick<SeriesPost, 'pubDate' | 'updatedDate' | 'corrections'>): Date {
+  return effectiveModified(post);
+}
+
+/** The newest live part's activity. Series rows have no creation date of their own. */
+export function seriesActivity(view: SeriesView): Date {
+  const first = view.parts[0];
+  if (!first) throw new Error(`series ${view.slug} has no live part`);
+  return view.parts.reduce((latest, part) => (part.activity > latest ? part.activity : latest), first.activity);
+}
+
+function byNewestActivity(parts: readonly SeriesPart[]): SeriesPart[] {
+  return [...parts].sort((a, b) => b.activity.valueOf() - a.activity.valueOf() || b.order - a.order);
+}
+
+/** First live part in reading order (`series_order` ascending). */
+export function seriesStartPart(view: SeriesView): SeriesPart {
+  const start = view.parts[0];
+  if (!start) throw new Error(`series ${view.slug} has no live part`);
+  return start;
+}
+
+/** Live part with the newest activity. A tie keeps the higher `series_order`. */
+export function seriesLatestPart(view: SeriesView): SeriesPart {
+  const latest = byNewestActivity(view.parts)[0];
+  if (!latest) throw new Error(`series ${view.slug} has no live part`);
+  return latest;
+}
+
+/**
+ * Parts as the series page lists them. A course stays in `series_order`. Any other series
+ * lists the newest activity first, with the higher `series_order` breaking a tie.
+ */
+export function seriesListedParts(view: SeriesView): SeriesPart[] {
+  return seriesIsCourse(view) ? view.parts : byNewestActivity(view.parts);
 }
 
 /**
@@ -285,6 +340,7 @@ export function seriesPlacements(
         stamp: post.stamp ?? post.id,
         heroImage: post.heroImage,
         heroAlt: post.heroAlt,
+        activity: seriesPartActivity(post),
       }));
     const view: SeriesView = {
       slug: meta.slug,
@@ -328,7 +384,7 @@ export function seriesViewCacheMark(view: SeriesView): string {
     ...(view.learns?.length ? { learns: view.learns } : {}),
     ...(view.lessonTime ? { lessonTime: view.lessonTime } : {}),
     ...(view.unit ? { unit: view.unit } : {}),
-    parts: view.parts.map((part) => [part.id, part.order, part.stamp, part.title, part.description, part.pubDate.toISOString(), part.heroImage ?? null, part.heroAlt ?? null]),
+    parts: view.parts.map((part) => [part.id, part.order, part.stamp, part.title, part.description, part.pubDate.toISOString(), part.activity.toISOString(), part.heroImage ?? null, part.heroAlt ?? null]),
   });
 }
 
@@ -360,6 +416,17 @@ export function seriesViews(placements: ReadonlyMap<string, SeriesPlacement>): S
     views.push(placement.view);
   }
   return views;
+}
+
+/**
+ * `/series/` order: newest live lesson or update first. A tie keeps catalog order.
+ * The catalog has no creation date, so this uses {@link seriesActivity}.
+ */
+export function seriesIndexViews(placements: ReadonlyMap<string, SeriesPlacement>): SeriesView[] {
+  return seriesViews(placements)
+    .map((view, index) => ({ view, index, activity: seriesActivity(view).valueOf() }))
+    .sort((a, b) => b.activity - a.activity || a.index - b.index)
+    .map((item) => item.view);
 }
 
 /** Newest lastmod among listed parts, for the sitemap. */

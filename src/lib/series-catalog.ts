@@ -24,7 +24,7 @@ export const SERIES_TITLE_MAX_LENGTH = 80;
 /** The longest description, in characters: one or two sentences on `/series/`. */
 export const SERIES_DESCRIPTION_MAX_LENGTH = 240;
 /** The longest hero alt text, in characters. */
-export const SERIES_HERO_ALT_MAX_LENGTH = 200;
+export const SERIES_HERO_ALT_MAX_LENGTH = 240;
 /** The longest arc display name, in characters. It sits in the same badge as the series title. */
 export const SERIES_ARC_NAME_MAX_LENGTH = 60;
 /** Who the series is for, on the series page. */
