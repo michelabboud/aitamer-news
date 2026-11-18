@@ -94,9 +94,7 @@ On top of these sit **add-ons**, which run as ordinary Pods: cluster DNS (**Core
 
 The rule that ties the control plane together: control-plane components and kubelets coordinate through the API server, mostly by **watching** it for changes and then writing back what they did ([node communication](https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/)). The kubelet also talks to the container runtime over the Container Runtime Interface, a gRPC API. On this cluster that runtime is containerd ([CRI page](https://kubernetes.io/docs/concepts/containers/cri/)). The API server connects to each kubelet for Pod logs, for exec and attach, and for port-forward. Only the API server reads and writes etcd.
 
-![kube-apiserver sits in the middle, with kubectl, kube-scheduler, kube-controller-manager, the kubelets, kube-proxy and CoreDNS all pointing at it; etcd sits below it and only the API server talks to etcd.](/diagrams/k8s-from-zero-02-architecture-tour/everyone-talks-to-the-api-server.svg)
-
-The drawing shows that hub: each listed component points at the API server, and only the API server touches etcd. Its caption stops there. The kubelet still talks to containerd over CRI, and the API server still connects to kubelets for logs, exec and port-forward.
+![kube-apiserver sits in the middle; kubectl, kube-scheduler, kube-controller-manager, kube-proxy, CoreDNS and the kubelets watch and update it, and do not call one another directly; etcd sits below it and only the API server talks to etcd; each kubelet talks to containerd over CRI, and the API server connects to each kubelet for logs, exec and port-forward.](/diagrams/k8s-from-zero-02-architecture-tour/everyone-talks-to-the-api-server.svg)
 
 That hub is why Kubernetes survives partial failures well. If the scheduler is down, nothing new gets a node, but everything already running keeps running. You will test exactly that.
 
