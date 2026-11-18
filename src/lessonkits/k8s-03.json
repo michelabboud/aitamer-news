@@ -72,13 +72,20 @@
         {"who": "kind-lab", "what": "`kind-lab.yaml` asks for one control-plane and two workers. The lesson's nodes are `lab-control-plane`, `lab-worker` and `lab-worker2`, Kubernetes v1.37.0. Only the control-plane containers publish port 6443."},
         {"who": "Contexts", "what": "`use-context` changes the kubeconfig. `--context` targets one command. `--minify` shows only the current context and hides certificate data unless you add `--raw`. `set-context --current --namespace` sets the default namespace for commands that omit `-n`."}
       ],
-      "note": "With `KUBECONFIG` listing several files, the first file's `current-context` wins. `kind delete cluster` also removes that cluster's context. Deleting a cluster that does not exist is not an error. For the rest of the series, keep `kind create cluster --name k8s-from-zero`."
+      "note": "With `KUBECONFIG` listing several files, the first file's `current-context` wins. `kind delete cluster` also removes that cluster's context. Deleting a cluster that does not exist is not an error. After that cleanup, step 10 creates `k8s-from-zero` for part 4."
     },
     "commandGroups": [
       {
         "title": "Check and install",
         "commands": [
-          {"cmd": "curl -L -s https://dl.k8s.io/release/stable.txt", "note": "v1.37.2 on 10 Nov 2026"},
+          {"cmd": "curl -LO \"https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl\"", "note": "pins kubectl v1.37.2, the client the lab printed"},
+          {"cmd": "curl -LO \"https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl.sha256\"", "note": "the checksum file for that binary"},
+          {"cmd": "curl -L -s https://dl.k8s.io/release/stable.txt", "note": "prints the latest stable version. On 10 Nov 2026 it printed v1.37.2"},
+          {"cmd": "[ \"$(uname -s)-$(uname -m)\" = Linux-x86_64 ] && KIND_FILE=kind-linux-amd64", "note": "Linux x86-64"},
+          {"cmd": "[ \"$(uname -s)-$(uname -m)\" = Linux-aarch64 ] && KIND_FILE=kind-linux-arm64", "note": "Linux arm64"},
+          {"cmd": "[ \"$(uname -s)-$(uname -m)\" = Darwin-arm64 ] && KIND_FILE=kind-darwin-arm64", "note": "Apple silicon"},
+          {"cmd": "curl -Lo ./kind \"https://kind.sigs.k8s.io/dl/v0.33.0/${KIND_FILE}\"", "note": "the binary named above"},
+          {"cmd": "curl -Lo kind.sha256sum \"https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/${KIND_FILE}.sha256sum\"", "note": "the checksum file that matches that binary"},
           {"cmd": "echo \"$(cat kubectl.sha256)  kubectl\" | sha256sum --check", "note": "must print `OK`"},
           {"cmd": "kubectl version --client", "note": "client only. `kubectl version` also asks the server"},
           {"cmd": "kind version", "note": "the lesson prints kind v0.33.0"}
@@ -93,6 +100,7 @@
           {"cmd": "kind get clusters", "note": "names of your clusters"},
           {"cmd": "kind get nodes --name lab", "note": "nodes are Docker containers"},
           {"cmd": "kind delete cluster --name lab", "note": "also removes its context"},
+          {"cmd": "kind create cluster --name k8s-from-zero", "note": "after the cleanup. Part 4 needs this cluster"},
           {"cmd": "docker ps --format 'table {{.Names}}\\t{{.Image}}\\t{{.Ports}}'", "note": "only control planes publish 6443"},
           {"cmd": "docker exec lab-worker crictl ps", "note": "containers as the runtime sees them"}
         ]

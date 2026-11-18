@@ -23,7 +23,10 @@ wildness:
   rating: 1
   verified: "Ran every command on kind v0.33.0, Kubernetes v1.37.0 node, kubectl v1.37.2, 10 Nov 2026"
   claimed: "Component roles and the request path come from kubernetes.io architecture docs"
-verdict: "Every Kubernetes component talks to the API server and nothing else. Learn that one rule and the whole architecture makes sense."
+verdict: "Control-plane components and kubelets coordinate through the API server. The kubelet also talks to containerd over CRI, and the API server connects to kubelets for logs, exec and port-forward."
+corrections:
+  - date: "2026-11-18T20:53:00Z"
+    text: "We said every component talks only to the API server. Control-plane components and kubelets coordinate through it. The kubelet also talks to the container runtime over CRI, and the API server connects to kubelets for logs, exec and port-forward. The ownership example used a Pod name that is absent from the sample event log. A Pod that never gets a node can show no events. Read etcd and stop the scheduler only on a local kind cluster, and move the scheduler file back to restore it."
 sources:
   - title: "Cluster Architecture (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/architecture/
@@ -49,9 +52,19 @@ sources:
     url: https://kind.sigs.k8s.io/
   - title: "Nodes (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/architecture/nodes/
+  - title: "Communication between Nodes and the Control Plane (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/
+  - title: "Container Runtime Interface (CRI), containers page (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/concepts/containers/cri/
+  - title: "Creative Commons Attribution 4.0 International"
+    url: https://creativecommons.org/licenses/by/4.0/
+  - title: "Kubernetes documentation"
+    url: https://kubernetes.io/docs/
+  - title: "Command line tool (kubectl) (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
 ---
 
-In [part 1](https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/) you started a kind cluster, declared "three copies of nginx" and watched Kubernetes replace a Pod you deleted. This part opens the box. By the end you will be able to name every component of a cluster, say what each one does and where it runs, and follow a single `kubectl apply` from your terminal to a running container, using events and verbose logs as evidence. You need the kind cluster from part 1 (`kind create cluster --name k8s-from-zero`), kubectl v1.37 and about 30 minutes.
+In [part 1](https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/) you started a kind cluster, declared "three copies of nginx" and watched Kubernetes replace a Pod you deleted. This part opens the box. By the end you will be able to name every component of a cluster, say what each one does and where it runs, and follow a single `kubectl apply` from your terminal to a running container, using events and verbose logs as evidence. You need the kind cluster from part 1 (`kind create cluster --name k8s-from-zero`), kubectl v1.37 and about 30 minutes. Part 3 is the install lesson, with checksums and the other ways to get a local cluster. The short setup in part 1 is enough to follow this tour.
 
 ## What you will build
 
@@ -79,11 +92,13 @@ Every worker node runs a small set of components ([components page](https://kube
 
 On top of these sit **add-ons**, which run as ordinary Pods: cluster DNS (**CoreDNS**), the network plugin that gives every Pod an IP (**kindnet** in kind; part 61 explains network plugins), and in kind a small storage provisioner.
 
-The one rule that ties all of this together: components never call each other. Each one talks only to the API server, mostly by **watching** it for changes and then writing back what it did. Only the API server reads and writes etcd.
+The rule that ties the control plane together: control-plane components and kubelets coordinate through the API server, mostly by **watching** it for changes and then writing back what they did ([node communication](https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/)). The kubelet also talks to the container runtime over the Container Runtime Interface, a gRPC API. On this cluster that runtime is containerd ([CRI page](https://kubernetes.io/docs/concepts/containers/cri/)). The API server connects to each kubelet for Pod logs, for exec and attach, and for port-forward. Only the API server reads and writes etcd.
 
 ![kube-apiserver sits in the middle, with kubectl, kube-scheduler, kube-controller-manager, the kubelets, kube-proxy and CoreDNS all pointing at it; etcd sits below it and only the API server talks to etcd.](/diagrams/k8s-from-zero-02-architecture-tour/everyone-talks-to-the-api-server.svg)
 
-That design is why Kubernetes survives partial failures well. If the scheduler is down, nothing new gets a node, but everything already running keeps running. You will test exactly that.
+The drawing shows that hub: each listed component points at the API server, and only the API server touches etcd. Its caption stops there. The kubelet still talks to containerd over CRI, and the API server still connects to kubelets for logs, exec and port-forward.
+
+That hub is why Kubernetes survives partial failures well. If the scheduler is down, nothing new gets a node, but everything already running keeps running. You will test exactly that.
 
 ## Life of a kubectl apply
 
@@ -98,7 +113,7 @@ Here is what happens, in order, when you run `kubectl apply -f web.yaml` for a D
 5. The **kubelet** on that node sees Pods assigned to it, asks containerd to pull the image (or finds it cached), create the container and start it.
 6. The kubelet reports the Pod's status, `Running`, back to the API server. `kubectl get pods` now shows it.
 
-Every arrow goes through the API server, and every step leaves an **event** you can read. Ownership is recorded too: each Pod carries an `ownerReference` to its ReplicaSet, and the ReplicaSet one to its Deployment ([owners and dependents](https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/)). That chain is how deleting a Deployment cleans up everything below it.
+Every arrow in this apply goes through the API server, and each of those steps leaves an **event** you can read. A Pod that never receives a node, as in the scheduler lab below, can sit in Pending with no events. Ownership is recorded too: each Pod carries an `ownerReference` to its ReplicaSet, and the ReplicaSet one to its Deployment ([owners and dependents](https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/)). That chain is how deleting a Deployment cleans up everything below it.
 
 ## Try it: tour your own cluster
 
@@ -279,10 +294,11 @@ kubelet                 Started             Pod          web-69977c9c79-pwjwm
 
 Read it top to bottom: the Deployment controller scaled up a ReplicaSet, the ReplicaSet controller created two Pods, the scheduler placed them, and the kubelet pulled, created and started each container. Press Ctrl+C to stop the watch.
 
-**9. Check the ownership chain and the binding.** Use one of your Pod names:
+**9. Check the ownership chain and the binding.** The first line looks up one Pod from this Deployment. The sample event log shows `web-69977c9c79-pwjwm` and `web-69977c9c79-vfjt9`. Your suffixes will differ.
 
 ```bash rail=ownership
-kubectl get pod web-69977c9c79-sv68d -o jsonpath='{.spec.nodeName}{"\n"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{"\n"}'
+POD=$(kubectl get pods -l app.kubernetes.io/name=web -o name | head -1)
+kubectl get "$POD" -o jsonpath='{.spec.nodeName}{"\n"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{"\n"}'
 kubectl get replicaset -l app.kubernetes.io/name=web -o jsonpath='{.items[0].metadata.ownerReferences[0].kind}/{.items[0].metadata.ownerReferences[0].name}{"\n"}'
 ```
 
@@ -293,6 +309,8 @@ Deployment/web
 ```
 
 `spec.nodeName` is the field the scheduler wrote. The Pod is owned by the ReplicaSet, which is owned by the Deployment.
+
+**Safety for steps 10 and 11.** Run these two steps only on the local kind cluster from this lesson, on your own machine. Leave a shared cluster and a production cluster alone. The etcd command only reads one key. To restore the scheduler, move `kube-scheduler.yaml` back into `/etc/kubernetes/manifests/`. Step 11 ends with that move. If you stop midway, run that move before you close the terminal.
 
 **10. Peek into etcd.** This is for learning only; in real life you never touch etcd by hand. The etcd Pod includes `etcdctl`, and the certificate paths are kubeadm's defaults:
 
@@ -392,7 +410,7 @@ k8s-from-zero-control-plane   NotReady   control-plane   28m   v1.37.0
 apiVersion: v1
 kind: Pod
 metadata:
-  name: web-69977c9c79-sv68d
+  name: web-69977c9c79-pwjwm   # one name from the sample event log; yours will differ
   ownerReferences:                 # set by the replicaset controller
     - kind: ReplicaSet
       name: web-69977c9c79
@@ -406,11 +424,13 @@ status:
 
 - The control plane is kube-apiserver, etcd, kube-scheduler, kube-controller-manager and, in clouds, cloud-controller-manager.
 - Every node runs a kubelet and a container runtime (containerd here), and usually kube-proxy; DNS and networking come as add-ons.
-- Every component talks only to the API server, and only the API server talks to etcd.
+- Control-plane components and kubelets coordinate through the API server. The kubelet also talks to the container runtime over CRI, and the API server connects to kubelets for logs, exec and port-forward. Only the API server talks to etcd.
 - One `kubectl apply` becomes a chain: Deployment, ReplicaSet, Pods, a scheduler binding, a kubelet start. Events and `-v=6` let you watch it.
 - When one component stops, only its job stops: no scheduler means new Pods wait, and running Pods keep running.
 
 Next: part 3, your local lab, where you install kubectl and kind properly, compare them with minikube, k3d and Docker Desktop, and learn how kubeconfig and contexts decide which cluster you are talking to. Coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "get-nodes"
@@ -562,14 +582,36 @@ items:
   - kind: "explain"
     label: "Explain this command"
     lines:
+      - token: "POD="
+        text: "Shell. The name before the equals sign is a variable. The shell stores the next command's output in POD."
+      - token: "$("
+        text: "Shell command substitution. The shell runs the command inside $(...) and pastes its output into the line."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "get"
         text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
-      - token: "pod"
+      - token: "pods"
         text: "The resource type to display. kubectl get points you to kubectl api-resources for the full list of types the server supports."
-      - token: "web-69977c9c79-sv68d"
-        text: "The object name. kubectl get lists resources by type and name."
+      - token: "-l"
+        text: "Short form of --selector. A label query. The get docs say it supports '=', '==', '!=', 'in' and 'notin', and that matching objects must satisfy every constraint."
+      - token: "app.kubernetes.io/name=web"
+        text: "The label query. It asks for objects whose app.kubernetes.io/name label equals web, the label this lesson's Deployment sets."
+      - token: "-o"
+        text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
+      - token: "name"
+        text: "An output format. kubectl get -o name prints each object as type/name, one per line, such as pod/web-69977c9c79-pwjwm."
+      - token: "|"
+        text: "Shell. Sends the previous command's standard output to the next command."
+      - token: "head"
+        text: "Shell. Prints the first lines of its input."
+      - token: "-1"
+        text: "Shell. Tells head to print one line, so POD holds a single Pod name."
+      - token: "kubectl"
+        text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
+      - token: "get"
+        text: "Display one or many resources. kubectl get prints a table of the most important information about the resources you name."
+      - token: "\"$POD\""
+        text: "The shell variable from the previous line, in quotes. It holds one Pod from this Deployment, printed as type/name. The sample event log shows web-69977c9c79-pwjwm and web-69977c9c79-vfjt9. Your suffix will differ."
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "jsonpath='{.spec.nodeName}{\"\\n\"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{\"\\n\"}'"

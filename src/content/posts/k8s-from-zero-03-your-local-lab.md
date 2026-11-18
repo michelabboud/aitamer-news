@@ -25,6 +25,9 @@ wildness:
   verified: "Installed and checksummed kubectl v1.37.2 and kind v0.33.0; ran 1- and 3-node clusters, 10 Nov 2026"
   claimed: "minikube, k3d and Docker Desktop details come from their docs; we did not run them"
 verdict: "Use kind for a disposable, multi-node lab, and always know your current context before you type a command."
+corrections:
+  - date: "2026-11-18T20:53:00Z"
+    text: "The kubectl install followed stable.txt while the printed client was v1.37.2. The commands now download v1.37.2, and the lesson shows how to print the latest stable version. The kind install fetched only the amd64 binary. It now also fetches the Linux arm64 and Apple silicon binaries, each with its matching checksum file. After the lab deletes both clusters, creating k8s-from-zero for part 4 is its own step."
 sources:
   - title: "Install and Set Up kubectl on Linux (Kubernetes documentation)"
     url: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
@@ -50,6 +53,12 @@ sources:
     url: https://docs.docker.com/desktop/features/kubernetes/
   - title: "Docker Desktop license agreement (Docker documentation)"
     url: https://docs.docker.com/subscription/desktop-license/
+  - title: "Command line tool (kubectl) (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
+  - title: "Creative Commons Attribution 4.0 International"
+    url: https://creativecommons.org/licenses/by/4.0/
+  - title: "Kubernetes documentation"
+    url: https://kubernetes.io/docs/
 ---
 
 In [part 2](https://aitamer.news/posts/k8s-from-zero-02-architecture-tour/) you toured the control plane and the nodes and followed one `kubectl apply` until a container ran. So far we have used a cluster without asking how it got there. This part builds your permanent lab. By the end you will have kubectl and kind installed and checksum-verified, you will know when minikube, k3d or Docker Desktop is the better fit, you will run a three-node cluster from a config file, and you will understand **kubeconfig** and **contexts**, the files and names that decide which cluster each command hits. You need a Linux, macOS or Windows machine with Docker (or Podman) and a few GB of free memory.
@@ -96,19 +105,17 @@ Two safety notes. A kubeconfig is a credential: anyone with your kind file is ad
 
 Every command ran on our box on 10 November 2026. Ports, IDs and timings will differ on yours.
 
-**1. Install kubectl and check its checksum.** These are the [official Linux steps](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) for x86-64 (use `arm64` in the URLs on ARM; on a Mac, `brew install kubectl` works):
+**1. Install kubectl and check its checksum.** These lines pin kubectl v1.37.2, the client this lab printed. To see the latest stable release, run `curl -L -s https://dl.k8s.io/release/stable.txt`. On 10 November 2026 that file printed v1.37.2. These are the [official Linux steps](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) for x86-64 (use `arm64` in the URLs on ARM; on a Mac, `brew install kubectl` works):
 
 ```bash rail=install-kubectl
-curl -L -s https://dl.k8s.io/release/stable.txt; echo
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+curl -LO "https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl"
+curl -LO "https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl.sha256"
 echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
 chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 kubectl version --client
 ```
 
 ```text
-v1.37.2
 kubectl: OK
 Client Version: v1.37.2
 Kustomize Version: v5.8.1
@@ -116,11 +123,14 @@ Kustomize Version: v5.8.1
 
 `kubectl: OK` means the binary matches the published checksum. If you see `FAILED`, download both files again.
 
-**2. Install kind and check its checksum.** From the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/), plus the checksum file from the [v0.33.0 release](https://github.com/kubernetes-sigs/kind/releases/tag/v0.33.0) (on a Mac, `brew install kind`):
+**2. Install kind and check its checksum.** From the [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/), plus the checksum file from the [v0.33.0 release](https://github.com/kubernetes-sigs/kind/releases/tag/v0.33.0). Linux x86-64 uses `kind-linux-amd64`, Linux arm64 uses `kind-linux-arm64`, and Apple silicon uses `kind-darwin-arm64`. The checksum file matches that binary. On a Mac, `brew install kind` also works:
 
 ```bash rail=install-kind
-[ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.33.0/kind-linux-amd64
-curl -Lo kind.sha256sum https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64.sha256sum
+[ "$(uname -s)-$(uname -m)" = Linux-x86_64 ] && KIND_FILE=kind-linux-amd64
+[ "$(uname -s)-$(uname -m)" = Linux-aarch64 ] && KIND_FILE=kind-linux-arm64
+[ "$(uname -s)-$(uname -m)" = Darwin-arm64 ] && KIND_FILE=kind-darwin-arm64
+curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.33.0/${KIND_FILE}"
+curl -Lo kind.sha256sum "https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/${KIND_FILE}.sha256sum"
 echo "$(cut -d' ' -f1 kind.sha256sum)  kind" | sha256sum --check
 chmod +x kind && sudo mv kind /usr/local/bin/
 kind version
@@ -130,6 +140,8 @@ kind version
 kind: OK
 kind v0.33.0 go1.26.7 linux/amd64
 ```
+
+Our machine was x86-64, so the version line says `linux/amd64`. Linux arm64 says `linux/arm64`, and Apple silicon says `darwin/arm64`.
 
 **3. Create your first cluster.**
 
@@ -335,7 +347,13 @@ CURRENT   NAME   CLUSTER   AUTHINFO   NAMESPACE
 
 kind removed both contexts from your kubeconfig. Deleting a cluster that does not exist is not an error, so cleanup scripts can run it safely.
 
-For the rest of the series, keep one cluster around: `kind create cluster --name k8s-from-zero` (or the three-node config, if your machine has the memory).
+**10. Create the cluster part 4 uses.** Step 9 removed both clusters. The rest of the series, including part 4, needs one named `k8s-from-zero`:
+
+```bash rail=recreate-series
+kind create cluster --name k8s-from-zero
+```
+
+Use the three-node config instead if your machine has the memory.
 
 On our box we ran everything with a separate `KUBECONFIG` file, because other clusters share that machine. Docker there runs without iptables, so we also added the control-plane name to the workers' `/etc/hosts` and allowed bridge traffic between node containers before the three-node cluster could join. A normal Docker or Podman install needs none of this.
 
@@ -406,6 +424,8 @@ nodes:
 
 Next: part 4, your first Pod, where you write a Pod manifest by hand and inspect it with get, describe, logs, exec and port-forward. Coming tomorrow.
 
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
+
 ```rail
 id: "install-kubectl"
 items:
@@ -413,29 +433,17 @@ items:
     label: "Explain this command"
     lines:
       - token: "curl"
-        text: "The curl client. These install lines follow the kubectl install page and the kind quick start."
-      - token: "-L"
-        text: "Short form of --location. If the server answers with a Location header and a 3XX status, curl requests the new place."
-      - token: "-s"
-        text: "Short form of --silent. Do not show the progress meter or error messages. curl still writes the data you asked for."
-      - token: "https://dl.k8s.io/release/stable.txt"
-        text: "The URL the kubectl install page uses to print the latest stable release."
-      - token: ";"
-        text: "Shell. Runs the next command after this one finishes, whatever its exit status."
-      - token: "echo"
-        text: "Shell. Writes a newline after the version curl printed."
-      - token: "curl"
-        text: "The curl client. These install lines follow the kubectl install page and the kind quick start."
+        text: "The curl client. These install lines follow the kubectl install page."
       - token: "-LO"
         text: "Two curl options written together. -L follows redirects. -O, --remote-name, writes the body to a local file named like the remote file."
-      - token: "\"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\""
-        text: "The kubectl URL, in quotes. $(...) is shell command substitution: the shell runs the inner curl and pastes the version into the path. The inner curl uses -L and -s. The path is the Linux amd64 binary from the install page."
+      - token: "\"https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl\""
+        text: "The kubectl URL, in quotes. It pins kubectl v1.37.2, the Linux amd64 binary. The install page uses stable.txt when you want the latest stable release instead."
       - token: "curl"
-        text: "The curl client. These install lines follow the kubectl install page and the kind quick start."
+        text: "The curl client. These install lines follow the kubectl install page."
       - token: "-LO"
         text: "Follow redirects and save the file under its remote name. This download is the checksum file, kubectl.sha256."
-      - token: "\"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256\""
-        text: "The checksum URL for that same kubectl binary. The install page checks the binary against this file."
+      - token: "\"https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl.sha256\""
+        text: "The checksum URL for that same kubectl v1.37.2 binary. The install page checks the binary against this file."
       - token: "echo"
         text: "Shell. Writes its arguments to standard output. Here the pipe sends that line to sha256sum."
       - token: "\"$(cat kubectl.sha256)  kubectl\""
@@ -476,34 +484,28 @@ items:
   - kind: "explain"
     label: "Explain this command"
     lines:
-      - token: "["
-        text: "Shell test command. It checks the comparison that follows and returns success or failure."
-      - token: "$(uname -m)"
-        text: "Shell command substitution. uname -m prints the machine hardware name, and the shell pastes that text here."
-      - token: "="
-        text: "The test's string comparison."
-      - token: "x86_64"
-        text: "The hardware name this line looks for. The kind quick start uses this test to pick the amd64 binary."
-      - token: "]"
-        text: "Closes the test command."
-      - token: "&&"
-        text: "Shell. Runs the next command only if the previous command succeeded. On any other machine this curl does not run."
+      - token: "[ \"$(uname -s)-$(uname -m)\" = Linux-x86_64 ] && KIND_FILE=kind-linux-amd64"
+        text: "Shell. uname -s prints the operating system and uname -m prints the hardware name. On Linux x86-64 this sets KIND_FILE to kind-linux-amd64, the v0.33.0 release asset."
+      - token: "[ \"$(uname -s)-$(uname -m)\" = Linux-aarch64 ] && KIND_FILE=kind-linux-arm64"
+        text: "The same test for Linux arm64. It sets KIND_FILE to kind-linux-arm64. The v0.33.0 release publishes that asset."
+      - token: "[ \"$(uname -s)-$(uname -m)\" = Darwin-arm64 ] && KIND_FILE=kind-darwin-arm64"
+        text: "The same test for Apple silicon. Darwin is the macOS kernel name, and arm64 is the hardware name. It sets KIND_FILE to kind-darwin-arm64."
       - token: "curl"
-        text: "The curl client. These install lines follow the kubectl install page and the kind quick start."
+        text: "The curl client. These install lines follow the kind quick start and the v0.33.0 release."
       - token: "-Lo"
         text: "Follow redirects, and write the body to the file named by -o."
       - token: "./kind"
         text: "The file named by -o."
-      - token: "https://kind.sigs.k8s.io/dl/v0.33.0/kind-linux-amd64"
-        text: "The kind v0.33.0 binary for Linux on x86-64, from the kind quick start."
+      - token: "\"https://kind.sigs.k8s.io/dl/v0.33.0/${KIND_FILE}\""
+        text: "The kind v0.33.0 binary named by KIND_FILE. The quick start publishes one URL per architecture."
       - token: "curl"
-        text: "The curl client. These install lines follow the kubectl install page and the kind quick start."
+        text: "The curl client."
       - token: "-Lo"
         text: "Follow redirects and write the body to the named file."
       - token: "kind.sha256sum"
-        text: "The file named by -o. It is the checksum file from the v0.33.0 release."
-      - token: "https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64.sha256sum"
-        text: "The checksum file for that kind binary. The lesson takes it from the v0.33.0 release."
+        text: "The file named by -o. It is the checksum file for the binary just chosen."
+      - token: "\"https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/${KIND_FILE}.sha256sum\""
+        text: "The checksum file that matches KIND_FILE. The v0.33.0 release publishes kind-linux-amd64.sha256sum, kind-linux-arm64.sha256sum and kind-darwin-arm64.sha256sum."
       - token: "echo"
         text: "Writes a checksum line to the pipe."
       - token: "\"$(cut -d' ' -f1 kind.sha256sum)  kind\""
@@ -836,6 +838,24 @@ items:
         text: "The command group for kubeconfig entries."
       - token: "get-contexts"
         text: "Display one or many contexts from the kubeconfig file. The lesson's output is empty after both deletes."
+```
+
+```rail
+id: "recreate-series"
+items:
+  - kind: "explain"
+    label: "Explain this command"
+    lines:
+      - token: "kind"
+        text: "The kind client."
+      - token: "create"
+        text: "The kind command group for creating things."
+      - token: "cluster"
+        text: "Creates a local Kubernetes cluster. kind's own description says it uses container nodes."
+      - token: "--name"
+        text: "Sets the cluster name. kind says this overrides KIND_CLUSTER_NAME and the config, and that the default name is kind."
+      - token: "k8s-from-zero"
+        text: "The cluster name. Part 4 and the rest of the series use this cluster. kind prefixes the kubectl context with kind-."
 ```
 
 ```rail

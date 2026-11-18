@@ -29,8 +29,8 @@
     "label": "Next in the series",
     "title": "Next: Lesson 5, kubectl essentials",
     "summary": "Kubernetes from Zero, part 5, kubectl essentials.",
-    "url": "https://aitamer.news/series/k8s-from-zero/",
-    "urlLabel": "Series page"
+    "url": "https://aitamer.news/posts/k8s-from-zero-05-kubectl-essentials/",
+    "urlLabel": "Lesson page"
   },
   "cheatsheet": {
     "intro": "The Pod, its phase, and the commands from Lesson 4.",
