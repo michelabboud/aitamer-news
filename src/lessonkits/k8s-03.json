@@ -80,13 +80,14 @@
         "commands": [
           {"cmd": "curl -LO \"https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl\"", "note": "pins kubectl v1.37.2, the client the lab printed"},
           {"cmd": "curl -LO \"https://dl.k8s.io/release/v1.37.2/bin/linux/amd64/kubectl.sha256\"", "note": "the checksum file for that binary"},
+          {"cmd": "echo \"$(cat kubectl.sha256)  kubectl\" | sha256sum --check", "note": "must print `OK`"},
           {"cmd": "curl -L -s https://dl.k8s.io/release/stable.txt", "note": "prints the latest stable version. On 10 Nov 2026 it printed v1.37.2"},
           {"cmd": "[ \"$(uname -s)-$(uname -m)\" = Linux-x86_64 ] && KIND_FILE=kind-linux-amd64", "note": "Linux x86-64"},
           {"cmd": "[ \"$(uname -s)-$(uname -m)\" = Linux-aarch64 ] && KIND_FILE=kind-linux-arm64", "note": "Linux arm64"},
           {"cmd": "[ \"$(uname -s)-$(uname -m)\" = Darwin-arm64 ] && KIND_FILE=kind-darwin-arm64", "note": "Apple silicon"},
           {"cmd": "curl -Lo ./kind \"https://kind.sigs.k8s.io/dl/v0.33.0/${KIND_FILE}\"", "note": "the binary named above"},
           {"cmd": "curl -Lo kind.sha256sum \"https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/${KIND_FILE}.sha256sum\"", "note": "the checksum file that matches that binary"},
-          {"cmd": "echo \"$(cat kubectl.sha256)  kubectl\" | sha256sum --check", "note": "must print `OK`"},
+          {"cmd": "echo \"$(cut -d' ' -f1 kind.sha256sum)  kind\" | sha256sum --check", "note": "must print `kind: OK` (Linux; on a Mac see the lesson)"},
           {"cmd": "kubectl version --client", "note": "client only. `kubectl version` also asks the server"},
           {"cmd": "kind version", "note": "the lesson prints kind v0.33.0"}
         ]

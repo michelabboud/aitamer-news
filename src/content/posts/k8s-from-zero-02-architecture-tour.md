@@ -27,6 +27,8 @@ verdict: "Control-plane components and kubelets coordinate through the API serve
 corrections:
   - date: "2026-11-18T20:53:00Z"
     text: "We said every component talks only to the API server. Control-plane components and kubelets coordinate through it. The kubelet also talks to the container runtime over CRI, and the API server connects to kubelets for logs, exec and port-forward. The ownership example used a Pod name that is absent from the sample event log. A Pod that never gets a node can show no events. Read etcd and stop the scheduler only on a local kind cluster, and move the scheduler file back to restore it."
+  - date: "2026-11-18T21:26:00Z"
+    text: "We said part 3 was coming tomorrow. Part 3, your local lab with kind, kubectl and kubeconfig, is published, and the end of this lesson now links it."
 sources:
   - title: "Cluster Architecture (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/architecture/
@@ -62,6 +64,8 @@ sources:
     url: https://kubernetes.io/docs/
   - title: "Command line tool (kubectl) (Kubernetes documentation)"
     url: https://kubernetes.io/docs/reference/kubectl/
+  - title: "Kubernetes from Zero, part 3: your local lab with kind, kubectl and kubeconfig"
+    url: https://aitamer.news/posts/k8s-from-zero-03-your-local-lab/
 ---
 
 In [part 1](https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/) you started a kind cluster, declared "three copies of nginx" and watched Kubernetes replace a Pod you deleted. This part opens the box. By the end you will be able to name every component of a cluster, say what each one does and where it runs, and follow a single `kubectl apply` from your terminal to a running container, using events and verbose logs as evidence. You need the kind cluster from part 1 (`kind create cluster --name k8s-from-zero`), kubectl v1.37 and about 30 minutes. Part 3 is the install lesson, with checksums and the other ways to get a local cluster. The short setup in part 1 is enough to follow this tour.
@@ -94,7 +98,7 @@ On top of these sit **add-ons**, which run as ordinary Pods: cluster DNS (**Core
 
 The rule that ties the control plane together: control-plane components and kubelets coordinate through the API server, mostly by **watching** it for changes and then writing back what they did ([node communication](https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/)). The kubelet also talks to the container runtime over the Container Runtime Interface, a gRPC API. On this cluster that runtime is containerd ([CRI page](https://kubernetes.io/docs/concepts/containers/cri/)). The API server connects to each kubelet for Pod logs, for exec and attach, and for port-forward. Only the API server reads and writes etcd.
 
-![kube-apiserver sits in the middle; kubectl, kube-scheduler, kube-controller-manager, kube-proxy, CoreDNS and the kubelets watch and update it, and do not call one another directly; etcd sits below it and only the API server talks to etcd; each kubelet talks to containerd over CRI, and the API server connects to each kubelet for logs, exec and port-forward.](/diagrams/k8s-from-zero-02-architecture-tour/everyone-talks-to-the-api-server.svg)
+![kube-apiserver sits in the middle; kubectl, kube-scheduler, kube-controller-manager, kube-proxy, CoreDNS and the kubelets all point at it; the control-plane components and kubelets watch and update objects there and do not call one another directly; etcd sits below it and only the API server talks to etcd; each kubelet talks to containerd over CRI, and the API server connects to each kubelet for logs, exec and port-forward.](/diagrams/k8s-from-zero-02-architecture-tour/everyone-talks-to-the-api-server.svg)
 
 That hub is why Kubernetes survives partial failures well. If the scheduler is down, nothing new gets a node, but everything already running keeps running. You will test exactly that.
 
@@ -426,7 +430,7 @@ status:
 - One `kubectl apply` becomes a chain: Deployment, ReplicaSet, Pods, a scheduler binding, a kubelet start. Events and `-v=6` let you watch it.
 - When one component stops, only its job stops: no scheduler means new Pods wait, and running Pods keep running.
 
-Next: part 3, your local lab, where you install kubectl and kind properly, compare them with minikube, k3d and Docker Desktop, and learn how kubeconfig and contexts decide which cluster you are talking to. Coming tomorrow.
+Next: [Kubernetes from Zero, part 3: your local lab with kind, kubectl and kubeconfig](https://aitamer.news/posts/k8s-from-zero-03-your-local-lab/).
 
 *Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
@@ -601,9 +605,9 @@ items:
       - token: "|"
         text: "Shell. Sends the previous command's standard output to the next command."
       - token: "head"
-        text: "Shell. Prints the first lines of its input."
+        text: "head, a standard utility. It prints the first lines of its input (10 by default)."
       - token: "-1"
-        text: "Shell. Tells head to print one line, so POD holds a single Pod name."
+        text: "head's option: print only the first line (the older form of -n 1), so POD holds a single Pod name."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "get"

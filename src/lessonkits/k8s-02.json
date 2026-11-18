@@ -28,25 +28,24 @@
   },
   "share": "Free to share with credit: © aitamer.news",
   "next": {
-    "$comment": "Per-lesson setting. Lesson 3 is not published yet, so this links to the series page. Once it is live, set title to its real title and url to its post URL. Keep the wording timeless: no 'tomorrow', 'soon' or dates. Links always go through withUtm().",
     "label": "Next in the series",
     "title": "Next: Lesson 3, your local lab",
     "summary": "Install kubectl and kind properly, compare them with minikube, k3d and Docker Desktop, and learn how kubeconfig and contexts decide which cluster you are talking to.",
-    "url": "https://aitamer.news/series/k8s-from-zero/",
-    "urlLabel": "Series page",
+    "url": "https://aitamer.news/posts/k8s-from-zero-03-your-local-lab/",
+    "urlLabel": "Lesson page",
     "$source": "summary is the lesson's closing 'Next: part 3 ...' line with the date words removed."
   },
   "cheatsheet": {
-    "intro": "Everything from Lesson 2 on two pages: what each component does, where it runs, the path of one `kubectl apply`, and the commands from the lab.",
+    "intro": "Everything from Lesson 2 on three pages: what each component does, where it runs, the path of one `kubectl apply`, and the commands from the lab.",
     "controlPlane": [
       {
         "name": "kube-apiserver",
-        "role": "The front door. Exposes the Kubernetes HTTP API, checks who you are and whether you are allowed, validates what you send and saves it. Scales horizontally: you can run several copies behind a load balancer.",
+        "role": "The front door. Exposes the HTTP API, checks who you are and whether you are allowed, validates what you send and saves it. You can run several copies behind a load balancer.",
         "where": "Control plane. In kind: static Pod `kube-apiserver-k8s-from-zero-control-plane` in `kube-system`."
       },
       {
         "name": "etcd",
-        "role": "A consistent, highly available key-value store and the backing store for all cluster data. If etcd is lost without a backup, the cluster forgets everything it was told.",
+        "role": "The consistent key-value store for all cluster data. If etcd is lost without a backup, the cluster forgets everything it was told.",
         "where": "Control plane. In kind: static Pod `etcd-k8s-from-zero-control-plane`. Only the API server talks to it."
       },
       {
@@ -68,7 +67,7 @@
     "node": [
       {
         "name": "kubelet",
-        "role": "The node agent. Receives the Pods assigned to its node and makes sure their containers are running and healthy. Does not manage containers that Kubernetes did not create.",
+        "role": "The node agent. It makes sure the containers in Pods assigned to its node are running and healthy.",
         "where": "Every node, as a system service. It also runs the static Pod files in `/etc/kubernetes/manifests/`."
       },
       {
@@ -178,8 +177,12 @@
             "note": "each API request and its response code"
           },
           {
-            "cmd": "POD=$(kubectl get pods -l app.kubernetes.io/name=web -o name | head -1)\nkubectl get \"$POD\" -o jsonpath='{.spec.nodeName}{\"\\n\"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{\"\\n\"}'",
+            "cmd": "POD=$(kubectl get pods -l app.kubernetes.io/name=web -o name | head -1)",
             "note": "looks up one Pod from this Deployment. The sample log shows pwjwm and vfjt9. Your suffix will differ."
+          },
+          {
+            "cmd": "kubectl get \"$POD\" -o jsonpath='{.spec.nodeName}{\"\\n\"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{\"\\n\"}'",
+            "note": "the node and the owner; your suffix will differ"
           },
           {
             "cmd": "kubectl get replicaset -l app.kubernetes.io/name=web -o jsonpath='{.items[0].metadata.ownerReferences[0].kind}/{.items[0].metadata.ownerReferences[0].name}{\"\\n\"}'",

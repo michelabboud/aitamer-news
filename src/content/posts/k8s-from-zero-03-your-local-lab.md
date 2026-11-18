@@ -28,6 +28,8 @@ verdict: "Use kind for a disposable, multi-node lab, and always know your curren
 corrections:
   - date: "2026-11-18T20:53:00Z"
     text: "The kubectl install followed stable.txt while the printed client was v1.37.2. The commands now download v1.37.2, and the lesson shows how to print the latest stable version. The kind install fetched only the amd64 binary. It now also fetches the Linux arm64 and Apple silicon binaries, each with its matching checksum file. After the lab deletes both clusters, creating k8s-from-zero for part 4 is its own step."
+  - date: "2026-11-18T21:26:00Z"
+    text: "We said part 4 was coming tomorrow. Part 4, Your first Pod, is published, and the end of this lesson now links it."
 sources:
   - title: "Install and Set Up kubectl on Linux (Kubernetes documentation)"
     url: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
@@ -59,6 +61,8 @@ sources:
     url: https://creativecommons.org/licenses/by/4.0/
   - title: "Kubernetes documentation"
     url: https://kubernetes.io/docs/
+  - title: "Kubernetes from Zero, part 4: Your first Pod"
+    url: https://aitamer.news/posts/k8s-from-zero-04-your-first-pod/
 ---
 
 In [part 2](https://aitamer.news/posts/k8s-from-zero-02-architecture-tour/) you toured the control plane and the nodes and followed one `kubectl apply` until a container ran. So far we have used a cluster without asking how it got there. This part builds your permanent lab. By the end you will have kubectl and kind installed and checksum-verified, you will know when minikube, k3d or Docker Desktop is the better fit, you will run a three-node cluster from a config file, and you will understand **kubeconfig** and **contexts**, the files and names that decide which cluster each command hits. You need a Linux, macOS or Windows machine with Docker (or Podman) and a few GB of free memory.
@@ -136,12 +140,16 @@ chmod +x kind && sudo mv kind /usr/local/bin/
 kind version
 ```
 
+If `KIND_FILE` is empty, these binaries do not cover your operating system and hardware.
+
 ```text
 kind: OK
 kind v0.33.0 go1.26.7 linux/amd64
 ```
 
 Our machine was x86-64, so the version line says `linux/amd64`. Linux arm64 says `linux/arm64`, and Apple silicon says `darwin/arm64`.
+
+We ran these lines on Linux x86-64. On a Mac, check the file with `echo "$(cut -d' ' -f1 kind.sha256sum)  kind" | shasum -a 256 --check`, or use `brew install kind`.
 
 **3. Create your first cluster.**
 
@@ -422,7 +430,7 @@ nodes:
 - `KUBECONFIG` can list several files, which kubectl merges; separate files per cluster limit mistakes.
 - Errors like `connection refused` usually mean a stale context, not a broken cluster.
 
-Next: part 4, your first Pod, where you write a Pod manifest by hand and inspect it with get, describe, logs, exec and port-forward. Coming tomorrow.
+Next: [Kubernetes from Zero, part 4: Your first Pod](https://aitamer.news/posts/k8s-from-zero-04-your-first-pod/).
 
 *Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
@@ -485,7 +493,7 @@ items:
     label: "Explain this command"
     lines:
       - token: "[ \"$(uname -s)-$(uname -m)\" = Linux-x86_64 ] && KIND_FILE=kind-linux-amd64"
-        text: "Shell. uname -s prints the operating system and uname -m prints the hardware name. On Linux x86-64 this sets KIND_FILE to kind-linux-amd64, the v0.33.0 release asset."
+        text: "test, written [ … ], compares two strings: uname -s prints the operating system and uname -m the hardware name. && runs the assignment only if the test passes. On Linux x86-64 this sets KIND_FILE to kind-linux-amd64, the v0.33.0 release asset."
       - token: "[ \"$(uname -s)-$(uname -m)\" = Linux-aarch64 ] && KIND_FILE=kind-linux-arm64"
         text: "The same test for Linux arm64. It sets KIND_FILE to kind-linux-arm64. The v0.33.0 release publishes that asset."
       - token: "[ \"$(uname -s)-$(uname -m)\" = Darwin-arm64 ] && KIND_FILE=kind-darwin-arm64"

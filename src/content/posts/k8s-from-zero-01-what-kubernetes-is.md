@@ -27,6 +27,8 @@ verdict: "Kubernetes keeps a running system matching the state you declare. You 
 corrections:
   - date: "2026-11-18T20:53:00Z"
     text: "We said you would watch the cluster replace a container you killed. The lab runs kubectl delete pod, so what you remove is a Pod. The short install followed stable.txt. It now downloads kubectl v1.37.2, the client this lab used, and names the command that prints the latest stable version."
+  - date: "2026-11-18T21:26:00Z"
+    text: "We said part 2 was coming tomorrow. Part 2, a tour of the control plane and the nodes, is published, and the end of this lesson now links it."
 sources:
   - title: "Overview (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/overview/
@@ -54,6 +56,8 @@ sources:
     url: https://creativecommons.org/licenses/by/4.0/
   - title: "Kubernetes documentation"
     url: https://kubernetes.io/docs/
+  - title: "Kubernetes from Zero, part 2: a tour of the control plane and the nodes"
+    url: https://aitamer.news/posts/k8s-from-zero-02-architecture-tour/
 ---
 
 This is part 1 of **Kubernetes from Zero**, a long, numbered series for anyone starting with Kubernetes: a junior DevOps engineer, a developer who has to deploy their own service, or anyone who has run `docker run` and wonders what comes next. Each part handles one or two subjects, with diagrams, commands we ran ourselves, and a cheat sheet at the end. By the end of this part you will know what problem Kubernetes solves, what "desired state" means, and you will have watched a real cluster replace a Pod you deleted. You need a Linux shell and a little Docker; nothing else is assumed.
@@ -360,7 +364,7 @@ spec:
 - Controllers are endless loops that close the gap between the two, which is why a deleted Pod comes back.
 - Kubernetes does not build your code, ship your database or pick your monitoring: you bring those.
 
-Next: part 2, a guided tour of the control plane and the nodes, following one `kubectl apply` until a container runs. Coming tomorrow.
+Next: [Kubernetes from Zero, part 2: a tour of the control plane and the nodes](https://aitamer.news/posts/k8s-from-zero-02-architecture-tour/).
 
 *Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
