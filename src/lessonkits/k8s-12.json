@@ -1,0 +1,171 @@
+{
+  "$comment": "Lesson-kit content for Lesson 12. Every fact and command is copied from the lesson draft.",
+  "slug": "k8s-12",
+  "campaign": "k8s-12",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 12,
+    "title": "Kubernetes from Zero, part 12: checkpoint lab 1, a two-tier app on kind",
+    "shortTitle": "Checkpoint lab 1",
+    "description": "A timed, CKAD-style lab: build a web and Redis app with a Secret, ConfigMaps, probes, resources and Services, then grade it with a script. Full solutions.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-12-checkpoint-lab-1/",
+    "source": "src/content/posts/k8s-from-zero-12-checkpoint-lab-1.md",
+    "tested": "Built, broke and graded the full solution on kind v0.33.0, node v1.37.0, kubectl v1.37.2, 10 Nov 2026",
+    "cluster": "kind, from part 3",
+    "rule": "If you can build this app from an empty namespace in 45 minutes and every check passes, you have the foundations; if a check fails, the table tells you which part to reread."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-12.jpg",
+    "alt": "A slate-blue cut-paper tugboat tows a small sand-coloured barge carrying one coral crate across layered paper waves toward a cream lighthouse on a rocky headland, with a slate-blue ship's wheel in the upper left.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 13, volumes, PersistentVolumes and StorageClasses",
+    "summary": "Volumes, PersistentVolumes and StorageClasses, the start of arc 2, where Redis gets storage that outlives its Pod.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-13-volumes-pv-pvc-storageclass/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "The checkpoint lab's objects, and the commands from Lesson 12.",
+    "boards": [
+      {
+        "title": "What the lab builds",
+        "hint": "from the recap and the cheat sheet",
+        "headName": "Piece",
+        "headRole": "What the lesson says",
+        "headWhere": "The check that cares",
+        "rows": [
+          {
+            "name": "Secret redis-auth",
+            "role": "Created from a literal. The key is `password`.",
+            "where": "create it before the redis Pod"
+          },
+          {
+            "name": "Deployment redis",
+            "role": "One ready replica, image `redis:8.10-alpine`, a readiness probe, Guaranteed QoS.",
+            "where": "`./check.sh`"
+          },
+          {
+            "name": "ConfigMap web-files",
+            "role": "`index.html` and the CGI script `hits`, mounted so `hits` is mode 0755.",
+            "where": "without the mode, httpd will not run the script"
+          },
+          {
+            "name": "Deployment web",
+            "role": "2 replicas of `busybox:1.37`, readiness on `/index.html`, a TCP liveness probe, preStop of 5 seconds, Burstable.",
+            "where": "restart is one at a time"
+          },
+          {
+            "name": "Service web",
+            "role": "Port 80 targets 8080. The short name `http://web` works in the same namespace.",
+            "where": "ready endpoints only"
+          },
+          {
+            "name": "client",
+            "role": "`kubectl run client --image=busybox:1.37 -- sleep 3600`, then wget from it.",
+            "where": "same namespace as the Service"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "Failures the lesson hit on purpose",
+      "hint": "each one names the fix",
+      "items": [
+        {
+          "who": "Secret missing",
+          "what": "Applying `redis.yaml` before the Secret leaves the Pod in `CreateContainerConfigError`: `secret \"redis-auth\" not found`. Create the Secret. The kubelet retries, and the Pod was Running about 20 seconds later."
+        },
+        {
+          "who": "CGI mode",
+          "what": "Leaving out `mode: 0755` mounts the script as `-rw-r--r--`. busybox httpd will not run it, so `/cgi-bin/hits` returns 404 while `index.html` works. The Pods stay ready, because the readiness probe only checks `index.html`."
+        },
+        {
+          "who": "timeout",
+          "what": "`nc` without `-w 2` hung for minutes while Redis was replaced. With `-w 2` the same situation returns within seconds."
+        },
+        {
+          "who": "restart",
+          "what": "Readiness and graceful shutdown together gave zero failed requests during a full rolling restart in the lab. The counter vanished when Redis restarted, because nothing in arc 1 keeps data outside a container."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Build and grade",
+        "commands": [
+          {
+            "cmd": "kubectl create secret generic redis-auth --from-literal=password=change-me-123",
+            "note": "key password"
+          },
+          {
+            "cmd": "kubectl run client --image=busybox:1.37 --restart=Never -- sleep 3600",
+            "note": "then kubectl exec client -- wget"
+          },
+          {
+            "cmd": "kubectl rollout restart deployment/web",
+            "note": "one at a time, per the rollout strategy"
+          },
+          {
+            "cmd": "./check.sh",
+            "note": "NS=other ./check.sh for another namespace"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "The lab is 45 minutes, from an empty namespace, on the kind cluster from part 3. Task 1 creates `k8s-from-zero`. Try the tasks before you read the solutions. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What did the lab build, in the recap's list?",
+            "a": "A two-tier app from an empty namespace: Deployments, Services, a Secret, two ConfigMaps, probes, a preStop hook and sized resources.",
+            "lines": 2
+          },
+          {
+            "q": "How do you make the redis Pod Guaranteed, and how do you check?",
+            "a": "Requests equal limits for cpu and memory. Check `.status.qosClass`.",
+            "lines": 2
+          },
+          {
+            "q": "Why did the counter vanish when Redis restarted?",
+            "a": "Nothing in arc 1 keeps data outside a container. Part 13 gives Redis storage that outlives its Pod.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "These are the failures recorded in the lesson.",
+        "exercises": [
+          {
+            "q": "You apply `redis.yaml` before the Secret. What status and error does the lesson show, and what fixes it?",
+            "a": "`CreateContainerConfigError`, and describe shows `Error: secret \"redis-auth\" not found`. Create the Secret. The kubelet retries.",
+            "lines": 2
+          },
+          {
+            "q": "`/cgi-bin/hits` returns 404 and `index.html` works. What was missing, and why is the Pod still ready?",
+            "a": "`mode: 0755`. The script was mounted as `-rw-r--r--` and busybox httpd would not run it. The readiness probe only checks `index.html`.",
+            "lines": 2
+          },
+          {
+            "q": "A client wget prints `bad address 'web'`. What three things does the lesson tell you to check?",
+            "a": "The client is in the same namespace, the Service exists, and the CoreDNS Pods are running in `kube-system`.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}

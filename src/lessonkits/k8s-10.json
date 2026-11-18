@@ -1,0 +1,186 @@
+{
+  "$comment": "Lesson-kit content for Lesson 10. Every fact and command is copied from the lesson draft.",
+  "slug": "k8s-10",
+  "campaign": "k8s-10",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 10,
+    "title": "Kubernetes from Zero, part 10: probes and graceful shutdown",
+    "shortTitle": "Probes and graceful shutdown",
+    "description": "Add liveness, readiness and startup probes, watch each one fail on purpose, and shut Pods down cleanly with preStop hooks and SIGTERM.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-10-probes-and-graceful-shutdown/",
+    "source": "src/content/posts/k8s-from-zero-10-probes-and-graceful-shutdown.md",
+    "tested": "Ran every probe and shutdown example on kind v0.33.0, node v1.37.0, kubectl v1.37.2, 10 Nov 2026",
+    "cluster": "k8s-ep10",
+    "rule": "Readiness decides who gets traffic, liveness decides who gets restarted, and every container must exit cleanly on SIGTERM inside its grace period."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-10.jpg",
+    "alt": "A dusty-blue cut-paper boat carrying three cream crates floats on torn-paper waves while a large slate-blue paper stethoscope rests its coral chest piece against the hull, with a slate-blue ship's wheel in the upper left.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 11, requests, limits and QoS",
+    "summary": "Requests, limits and QoS, where you give each container a CPU and memory budget and watch what happens when it goes over.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-11-requests-limits-and-qos/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "The three probes, shutdown, and the commands from Lesson 10.",
+    "boards": [
+      {
+        "title": "Three probes",
+        "hint": "what each one is allowed to do",
+        "headName": "Probe",
+        "headRole": "What the lesson says",
+        "headWhere": "When it fails",
+        "rows": [
+          {
+            "name": "startupProbe",
+            "role": "Covers start time. Allows `failureThreshold` times `periodSeconds` to start.",
+            "where": "keeps liveness from killing a slow start"
+          },
+          {
+            "name": "livenessProbe",
+            "role": "Restarts a stuck container after `failureThreshold` failures in a row.",
+            "where": "keep it about the process itself"
+          },
+          {
+            "name": "readinessProbe",
+            "role": "Decides whether the Pod gets Service traffic. No restart.",
+            "where": "endpoint `ready` becomes false"
+          },
+          {
+            "name": "httpGet",
+            "role": "200 to 399 passes.",
+            "where": "`path` and `port`"
+          },
+          {
+            "name": "tcpSocket",
+            "role": "Passes if the port accepts a connection.",
+            "where": "`port`"
+          },
+          {
+            "name": "exec",
+            "role": "Exit 0 passes.",
+            "where": "`command`"
+          },
+          {
+            "name": "timing",
+            "role": "`periodSeconds`, `timeoutSeconds`, `failureThreshold`.",
+            "where": "defaults 10, 1 and 3"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "How a Pod is stopped",
+      "hint": "the clock starts before the hook",
+      "items": [
+        {
+          "who": "preStop",
+          "what": "`lifecycle.preStop` can be `sleep`, `exec` or `httpGet`. It runs before SIGTERM."
+        },
+        {
+          "who": "SIGTERM",
+          "what": "Then the kubelet sends SIGTERM. A process that ignores it waits out the grace period."
+        },
+        {
+          "who": "SIGKILL",
+          "what": "When `terminationGracePeriodSeconds` ends, the container is killed. The default is 30 seconds and covers the hook plus the app's own shutdown."
+        },
+        {
+          "who": "exit 137",
+          "what": "`lastState` exit 137 means SIGKILL. The hook and the shutdown share one budget."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "See what the probes did",
+        "commands": [
+          {
+            "cmd": "kubectl describe pod <name>",
+            "note": "look for Unhealthy and Killing"
+          },
+          {
+            "cmd": "kubectl get pod <name> -o jsonpath='{.status.containerStatuses[0].lastState}'",
+            "note": "exit 137 means SIGKILL"
+          },
+          {
+            "cmd": "kubectl explain pod.spec.containers.livenessProbe",
+            "note": "defaults straight from the API"
+          },
+          {
+            "cmd": "kubectl delete pod <name> --grace-period=0 --force",
+            "note": "skips the wait; use with care"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster and the namespace `k8s-from-zero` from part 4. The lesson's cluster is `k8s-ep10`. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What does each of the three probes decide?",
+            "a": "Startup covers start time. Liveness restarts a stuck container. Readiness decides whether a Pod gets Service traffic.",
+            "lines": 2
+          },
+          {
+            "q": "Does a failing readiness probe restart the Pod?",
+            "a": "No. It sets the endpoint's `ready` condition to false. The Pod keeps running.",
+            "lines": 2
+          },
+          {
+            "q": "In what order does a delete run, and when does the clock start?",
+            "a": "The preStop hook, then SIGTERM, then SIGKILL when the grace period ends. The clock starts before the hook. The default grace period is 30 seconds.",
+            "lines": 2
+          },
+          {
+            "q": "What are the default `periodSeconds`, `timeoutSeconds` and `failureThreshold`?",
+            "a": "10, 1 and 3.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "These are the failures the lesson caused.",
+        "exercises": [
+          {
+            "q": "A readiness probe points at port 8080, where nginx does not listen. What does rollout status print, and which Pods keep serving?",
+            "a": "`error: timed out waiting for the condition`. The new Pod sits at `0/1` with `Readiness probe failed` and connection refused. The old Pods keep serving. Fix the manifest and apply it, or `kubectl rollout undo`.",
+            "lines": 2
+          },
+          {
+            "q": "RESTARTS climbs and events say `failed liveness probe, will be restarted`. What two causes does the lesson name, and where do dependency checks belong?",
+            "a": "The probe may be too strict, such as a 1-second `timeoutSeconds` on a slow endpoint, or the app may need longer to start. Use a startup probe for start time. Keep liveness about the process itself. Put dependency checks in readiness, if anywhere.",
+            "lines": 3
+          },
+          {
+            "q": "Every delete takes 30 seconds. What is the process doing, and what does the lesson say about wrapper scripts?",
+            "a": "The process ignores SIGTERM. Common causes: a shell script as process 1 without `trap`, or a shell wrapper that starts the real app as a child so the signal never reaches it. Use `exec` in wrapper scripts, or handle the signal.",
+            "lines": 2
+          },
+          {
+            "q": "A preStop hook needs 55 seconds and the app needs 10, with a 60-second grace period. What happens?",
+            "a": "The hook and the shutdown share one budget. A 60-second grace period kills the app mid-shutdown. Raise `terminationGracePeriodSeconds` to cover both.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}

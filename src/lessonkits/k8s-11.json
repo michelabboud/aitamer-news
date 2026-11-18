@@ -1,0 +1,177 @@
+{
+  "$comment": "Lesson-kit content for Lesson 11. Every fact and command is copied from the lesson draft.",
+  "slug": "k8s-11",
+  "campaign": "k8s-11",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 11,
+    "title": "Kubernetes from Zero, part 11: requests, limits and QoS classes",
+    "shortTitle": "Requests, limits and QoS",
+    "description": "Give containers CPU and memory requests and limits, watch CPU throttling and an OOMKill on kind, read QoS classes, and meet LimitRange and ResourceQuota.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-11-requests-limits-and-qos/",
+    "source": "src/content/posts/k8s-from-zero-11-requests-limits-and-qos.md",
+    "tested": "Ran every example on kind v0.33.0, node v1.37.0, kubectl v1.37.2, cgroup v2 node, 10 Nov 2026",
+    "cluster": "k8s-ep10",
+    "rule": "Set requests so the scheduler can place you, set a memory limit you can live with, and remember that CPU over the limit slows down while memory over the limit gets killed."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-11.jpg",
+    "alt": "A dusty-blue cut-paper cargo ship stacked with plain cream crates rides low on torn-paper waves with a coral load-line stripe along its hull, while one extra crate waits on a sand-coloured dock and a slate-blue ship's wheel sits in the upper left.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 12, the first checkpoint lab",
+    "summary": "The first checkpoint lab, where you build a two-tier app with everything from parts 1 to 11 and grade it with a script.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-12-checkpoint-lab-1/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "Requests, limits, the three QoS classes, and the commands from Lesson 11.",
+    "boards": [
+      {
+        "title": "What the numbers mean",
+        "hint": "the scheduler counts requests; the kernel enforces limits",
+        "headName": "Word",
+        "headRole": "What the lesson says",
+        "headWhere": "Where you read it",
+        "rows": [
+          {
+            "name": "requests",
+            "role": "What the scheduler reserves. Usage graphs will not explain a Pending Pod, because the scheduler counts requests.",
+            "where": "`resources.requests`"
+          },
+          {
+            "name": "limits",
+            "role": "What the kernel enforces through cgroups.",
+            "where": "`resources.limits`"
+          },
+          {
+            "name": "cpu: 500m",
+            "role": "Half a core. `1` is one core or vCPU.",
+            "where": "a CPU quantity"
+          },
+          {
+            "name": "memory: 64Mi",
+            "role": "64 mebibytes. `64m` would be millibytes.",
+            "where": "a memory quantity"
+          },
+          {
+            "name": "CPU at the limit",
+            "role": "The container is throttled and keeps running. Read `nr_throttled` and `throttled_usec`.",
+            "where": "`/sys/fs/cgroup/cpu.stat`"
+          },
+          {
+            "name": "Memory at the limit",
+            "role": "The container is OOM-killed. Exit code 137.",
+            "where": "`Reason: OOMKilled`"
+          },
+          {
+            "name": "Guaranteed",
+            "role": "Requests equal limits for cpu and memory, every container. Limits alone are copied to requests.",
+            "where": "evicted last"
+          },
+          {
+            "name": "BestEffort",
+            "role": "No requests and no limits.",
+            "where": "evicted first"
+          },
+          {
+            "name": "Burstable",
+            "role": "Anything in between.",
+            "where": "between the other two"
+          }
+        ]
+      }
+    ],
+    "commandGroups": [
+      {
+        "title": "Look",
+        "commands": [
+          {
+            "cmd": "kubectl describe node k8s-ep10-control-plane",
+            "note": "Allocatable and Allocated resources. The lesson's node has 8 CPUs and about 16 GiB."
+          },
+          {
+            "cmd": "kubectl get pod <name> -o jsonpath='{.status.qosClass}'",
+            "note": "Guaranteed, Burstable or BestEffort"
+          },
+          {
+            "cmd": "kubectl exec <pod> -- cat /sys/fs/cgroup/cpu.stat",
+            "note": "nr_throttled and throttled_usec"
+          },
+          {
+            "cmd": "kubectl describe pod <name>",
+            "note": "OOMKilled and exit 137, or FailedScheduling"
+          },
+          {
+            "cmd": "kubectl describe resourcequota",
+            "note": "the namespace budget"
+          },
+          {
+            "cmd": "kubectl describe replicaset -l app=<name>",
+            "note": "quota errors show up here, not on the Deployment"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster and the namespace `k8s-from-zero` from part 4. The lesson's node is `k8s-ep10-control-plane`, with 8 CPUs and about 16 GiB, and it is a cgroup v2 node. `kubectl top` is not available: kind does not install a metrics add-on. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What does the scheduler count, and what does the kernel enforce?",
+            "a": "Requests are what the scheduler reserves. Limits are what the kernel enforces through cgroups.",
+            "lines": 2
+          },
+          {
+            "q": "At the limit, what happens to CPU, and what happens to memory?",
+            "a": "CPU is throttled and the container keeps running. Memory gets the container OOM-killed with exit code 137.",
+            "lines": 2
+          },
+          {
+            "q": "Name the three QoS classes and the eviction order.",
+            "a": "BestEffort, Burstable and Guaranteed. BestEffort goes first, Guaranteed last. The class comes from requests and limits and also sets OOM scores.",
+            "lines": 2
+          },
+          {
+            "q": "Where do you see a quota error on a Deployment?",
+            "a": "On its ReplicaSet, not on the Deployment. Look for `exceeded quota`, or for an error about missing requests or limits if no LimitRange fills in defaults.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "A Pod stays Pending with `Insufficient cpu` or `Insufficient memory`. What does the lesson tell you to read, and why will a usage graph not explain it?",
+            "a": "`Allocated resources` in `kubectl describe node`. The scheduler counts requests, not live usage. Lower the requests, free capacity, or add nodes.",
+            "lines": 2
+          },
+          {
+            "q": "RESTARTS climbs and lastState says OOMKilled with exit 137. What are the two responses in the lesson?",
+            "a": "Raise the limit, and probably the request, or fix the leak. The app needed more memory than its limit, or it leaks.",
+            "lines": 2
+          },
+          {
+            "q": "`kubectl top` prints `error: Metrics API not available`. What does the lesson say to read instead?",
+            "a": "The cgroup files, such as `/sys/fs/cgroup/cpu.stat`. `top` needs a metrics add-on that kind does not install. Part 25 installs metrics-server.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}
