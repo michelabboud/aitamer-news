@@ -38,6 +38,8 @@ sources:
     url: https://hub.docker.com/_/postgres
   - title: "Kubernetes from Zero, part 13: Volumes, PersistentVolumes, claims and StorageClasses"
     url: https://aitamer.news/posts/k8s-from-zero-13-volumes-pv-pvc-storageclass/
+  - title: "kubectl reference (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
 ---
 
 In [part 13](https://aitamer.news/posts/k8s-from-zero-13-volumes-pv-pvc-storageclass/) you gave one Pod a disk that outlived it. A real database needs more: each replica wants its own disk, a name that stays the same after a restart, and an address other replicas can find. A Deployment cannot give you that; its Pods are interchangeable, with random names. This episode introduces the **StatefulSet**, the workload built for exactly this. By the end you can run a StatefulSet behind a headless Service, reach each Pod by a stable DNS name, watch the ordered start and stop, keep data across restarts and scale-downs, and run a small Postgres for learning. You need the three-node kind cluster from part 3 and the `k8s-from-zero` namespace. We tested on kind v0.33.0 (node image v1.37.0), kubectl v1.37.2 and `postgres:18-alpine`; our cluster is called `k8s-ep13`.
@@ -591,6 +593,8 @@ spec:
 - Running a database this way works for learning. Production needs replication, backups and tested restores, which later episodes cover.
 
 Next: Kubernetes from Zero, part 15, DaemonSets, Jobs and CronJobs, coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "get-pods"

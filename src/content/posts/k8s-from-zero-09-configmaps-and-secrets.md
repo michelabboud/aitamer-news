@@ -34,6 +34,8 @@ sources:
     url: https://kubernetes.io/docs/concepts/security/secrets-good-practices/
   - title: "Encrypting Confidential Data at Rest (Kubernetes documentation)"
     url: https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/
+  - title: "kubectl reference (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
   - title: "Kubernetes from Zero, part 8: Services"
     url: https://aitamer.news/posts/k8s-from-zero-08-services/
 ---
@@ -48,7 +50,7 @@ You will write a ConfigMap with two simple keys and one small properties file, a
 
 ## A ConfigMap holds settings outside the image
 
-A ConfigMap is a namespaced object (part 6) with a `data` map of string keys and string values. The [ConfigMaps page](https://kubernetes.io/docs/concepts/configuration/configmap/) calls it a way to decouple environment-specific configuration from container images. The same image can run in dev and prod with different ConfigMaps. A value can be a single word or a whole file, and the total size is capped at 1 MiB; larger data belongs in a volume (part 13) or a database.
+A ConfigMap is a namespaced object (part 6) with a `data` map of string keys and string values. The [ConfigMaps page](https://kubernetes.io/docs/concepts/configuration/configmap/) calls it a way to "decouple environment-specific configuration from your container images." The same image can run in dev and prod with different ConfigMaps. A value can be a single word or a whole file, and the total size is capped at 1 MiB; larger data belongs in a volume (part 13) or a database.
 
 A container reads a ConfigMap in one of three ways:
 
@@ -60,7 +62,7 @@ The ConfigMap must exist in the same namespace as the Pod. If it does not, the c
 
 ## Variables are read once, files can change
 
-Environment variables are set when a container starts and never again. The docs say so directly: ConfigMaps consumed as environment variables are not updated automatically and require a Pod restart.
+Environment variables are set when a container starts and never again. The [ConfigMaps page](https://kubernetes.io/docs/concepts/configuration/configmap/) says so directly: "ConfigMaps consumed as environment variables are not updated automatically and require a pod restart."
 
 Mounted files behave differently. The kubelet (part 2) refreshes ConfigMap volumes on its periodic sync, so a changed value shows up in the file after a delay. The docs put that delay at up to the kubelet sync period plus the cache propagation delay; in our lab it was about a minute. Two exceptions: a file mounted with `subPath` never receives updates, and your app only sees a new file if it reads the file again.
 
@@ -553,6 +555,8 @@ data:
 - `immutable: true` turns every change into a new, named version you can roll out and roll back.
 
 Next: Kubernetes from Zero, part 10, Probes and graceful shutdown, coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "create-configmap-demo"

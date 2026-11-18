@@ -40,6 +40,8 @@ sources:
     url: https://man7.org/linux/man-pages/man7/pid_namespaces.7.html
   - title: "Controlling nginx (nginx documentation)"
     url: https://nginx.org/en/docs/control.html
+  - title: "kubectl reference (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
 ---
 
 In [part 9](https://aitamer.news/posts/k8s-from-zero-09-configmaps-and-secrets/) you fed configuration into Pods with ConfigMaps and Secrets. Your app now starts with the right settings, but Kubernetes still knows almost nothing about whether it is healthy. So far "Running" has only meant "the main process has not exited". In this part you teach the cluster three questions to ask your containers: have you started, are you still alive, and are you ready for traffic. Then you look at the other end of a container's life: how Kubernetes stops it, and how your app can finish its work before it goes. You need the kind cluster and the `k8s-from-zero` namespace from part 4. We tested everything on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2; our cluster is called `k8s-ep10`, so node names below carry that name.
@@ -520,6 +522,8 @@ spec:
 - Keep liveness checks about the process itself, and give slow starters a startup probe.
 
 Next: part 11, requests, limits and QoS, where you give each container a CPU and memory budget and watch what happens when it goes over. Coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "explain"

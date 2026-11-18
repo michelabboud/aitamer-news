@@ -36,6 +36,8 @@ sources:
     url: https://kubernetes.io/docs/tasks/job/pod-failure-policy/
   - title: "Kubernetes from Zero, part 14: StatefulSets, stable names and a disk per Pod"
     url: https://aitamer.news/posts/k8s-from-zero-14-statefulsets/
+  - title: "kubectl reference (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
 ---
 
 [Part 14](https://aitamer.news/posts/k8s-from-zero-14-statefulsets/) gave each replica a name and a disk. Deployments and StatefulSets both run Pods that are meant to keep running. Two common needs do not fit that shape: something that must run on **every node**, such as a log shipper or a node monitor, and work that must **finish**, such as a database migration, a nightly report or a batch of files to process. This episode covers the three controllers built for those jobs. By the end you can run a DaemonSet and decide which nodes it covers, run a Job with retries and parallel Pods, and schedule Jobs with a CronJob. You need the three-node kind cluster from part 3 (one control plane, two workers) and the `k8s-from-zero` namespace. We tested on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2; our cluster is called `k8s-ep13`.
@@ -590,6 +592,8 @@ spec:
 - A CronJob creates a Job per schedule tick; set `timeZone`, pick a `concurrencyPolicy`, and test with `--from=cronjob/`.
 
 Next: Kubernetes from Zero, part 16, init and sidecar containers, coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "get-nodes-daemonsets"

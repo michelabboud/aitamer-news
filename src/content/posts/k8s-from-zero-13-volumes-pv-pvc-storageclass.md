@@ -38,6 +38,8 @@ sources:
     url: https://github.com/rancher/local-path-provisioner
   - title: "Kubernetes from Zero, part 12: checkpoint lab 1"
     url: https://aitamer.news/posts/k8s-from-zero-12-checkpoint-lab-1/
+  - title: "kubectl reference (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
 ---
 
 [Part 12](https://aitamer.news/posts/k8s-from-zero-12-checkpoint-lab-1/) closed the first arc with a two-tier app. Every Pod you have run so far had one weakness: delete it and anything it wrote is gone. This episode opens the second arc with storage. By the end you can give a Pod scratch space that lives as long as the Pod, ask the cluster for a disk that outlives any Pod, read the chain from Pod to claim to volume to real storage, and choose what happens to the data when you are done. You need the three-node kind cluster from part 3 and the `k8s-from-zero` namespace from part 4. We tested on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2; our cluster is called `k8s-ep13`, so your node names will differ.
@@ -539,6 +541,8 @@ spec:
 - Reclaim policy decides the data's fate: `Delete` by default, `Retain` when a person must decide.
 
 Next: Kubernetes from Zero, part 14, StatefulSets, coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "get-storageclass"

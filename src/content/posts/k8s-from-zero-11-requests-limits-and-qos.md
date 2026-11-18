@@ -40,6 +40,8 @@ sources:
     url: https://kubernetes.io/docs/concepts/policy/resource-quotas/
   - title: "Pod Lifecycle (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
+  - title: "kubectl reference (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
 ---
 
 In [part 10](https://aitamer.news/posts/k8s-from-zero-10-probes-and-graceful-shutdown/) you taught Kubernetes to check whether your containers are healthy and to stop them cleanly. Every container you have run so far could still use as much CPU and memory as the node would give it, and the scheduler placed Pods knowing nothing about their size. This part fixes that. You will give containers **requests** (what they need) and **limits** (the most they may use), watch the Linux kernel throttle a CPU hog and kill a memory hog, learn the three **QoS classes** that decide who goes first when a node runs short, and set namespace-wide defaults and budgets with LimitRange and ResourceQuota. You need the kind cluster and the `k8s-from-zero` namespace from part 4. We tested on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2; our node is `k8s-ep10-control-plane`, with 8 CPUs and about 16 GiB of memory.
@@ -561,6 +563,8 @@ spec:
 - Quota errors on a Deployment show up on its ReplicaSet, not on the Deployment.
 
 Next: part 12, the first checkpoint lab, where you build a two-tier app with everything from parts 1 to 11 and grade it with a script. Coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "describe-node-k8s-ep10-control-plane"

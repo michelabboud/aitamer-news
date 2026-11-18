@@ -42,6 +42,8 @@ sources:
     url: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/
   - title: "Redis licenses (Redis)"
     url: https://redis.io/legal/licenses/
+  - title: "kubectl reference (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
 ---
 
 In [part 11](https://aitamer.news/posts/k8s-from-zero-11-requests-limits-and-qos/) you sized containers with requests and limits. That closes the first arc of this series. You can now explain the architecture, run a local cluster, and deploy, expose, configure, health-check and size an app. This part checks that it all fits together. It is a timed lab in the style of the CKAD exam: a list of tasks, a time budget, a grading script, and full solutions at the end. Try the tasks first without scrolling down. You need the kind cluster from part 3 (the `k8s-from-zero` namespace is created in task 1), kubectl, and 45 minutes. We tested every step on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2.
@@ -506,6 +508,8 @@ These are failures we hit or caused on purpose while building the lab.
 - The counter vanished when Redis restarted, because nothing in arc 1 keeps data outside a container.
 
 Next: part 13, volumes, PersistentVolumes and StorageClasses, the start of arc 2, where Redis gets storage that outlives its Pod. Coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "echo-content-type-text-plain-echo"
