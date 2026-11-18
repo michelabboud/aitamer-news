@@ -51,6 +51,8 @@ Opinion disclosure grants no exemption from fact checks, source verification, co
 
 ## 4. Submit articles through the normal content workflow
 
+A technical lesson series (Kubernetes from Zero, Containers from Zero, and later series) is reviewed with [Lesson review](lesson-review.md) before it follows this path. That review replaces none of the usual gates. Kubernetes from Zero findings accumulate in [the issue register](../reviews/k8s-from-zero-issue-register.md).
+
 Use the agreed author ID when preparing fields for [the post builder](post-builder.md). Keep publication timestamps in UTC. Choose the article's section/Habitat, attach an uploaded house-style hero (made by the one procedure in `docs/guides/hero-procedure.md`, which ends with exactly one site mark on it) and truthful alt text, and supply the verified sources and editorial fields the builder requires. Reuse the author's ID for every future contribution so their published pieces automatically appear on their canonical `/authors/<id>/` profile.
 
 Writers, desk producers and editors must not assign, reserve or repair specimen numbers or append the specimen ledger. Numbering belongs exclusively to the serialized publication workflow. Changing writer metadata does not change that rule. Keep the Habitat the writer selected; numbering does not classify the article.
