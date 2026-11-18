@@ -1,0 +1,201 @@
+{
+  "$comment": "Lesson-kit content for Lesson 9. Every fact and command is copied from the lesson draft.",
+  "slug": "k8s-09",
+  "campaign": "k8s-09",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 9,
+    "title": "Kubernetes from Zero, part 9: ConfigMaps and Secrets",
+    "shortTitle": "ConfigMaps and Secrets",
+    "description": "Inject settings into Pods as variables and files, see which ones update live, learn why a Secret is only base64-encoded, and lock a ConfigMap as immutable.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-09-configmaps-and-secrets/",
+    "source": "src/content/posts/k8s-from-zero-09-configmaps-and-secrets.md",
+    "tested": "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "kind, from part 3",
+    "rule": "Keep settings out of images. Variables are read once at start; mounted files update. A Secret is base64, so guard who can read it."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-09.jpg",
+    "alt": "An open cut-paper sea chest holds rolled blue and cream paper charts, with a cream envelope closed by a coral wax seal resting on top and a slate-blue ship's wheel to the left.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 10, probes and graceful shutdown",
+    "summary": "Kubernetes from Zero, part 10, Probes and graceful shutdown.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-10-probes-and-graceful-shutdown/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "How settings reach a container, and the commands from Lesson 9.",
+    "boards": [
+      {
+        "title": "How a container receives a setting",
+        "hint": "what updates, and what does not",
+        "headName": "Path",
+        "headRole": "What the lesson says",
+        "headWhere": "After you edit the object",
+        "rows": [
+          {
+            "name": "One key as a variable",
+            "role": "`env[].valueFrom.configMapKeyRef`. You name the variable.",
+            "where": "fixed at container start"
+          },
+          {
+            "name": "All keys as variables",
+            "role": "`envFrom[].configMapRef`, with an optional `prefix`. Imports file keys too.",
+            "where": "fixed at container start"
+          },
+          {
+            "name": "Keys as files",
+            "role": "`volumes[].configMap` plus `volumeMounts`.",
+            "where": "updates after about a minute"
+          },
+          {
+            "name": "subPath",
+            "role": "Mounts a single file.",
+            "where": "never updated in a running Pod"
+          },
+          {
+            "name": "Secret files",
+            "role": "`volumes[].secret.secretName`, often `defaultMode: 0400`.",
+            "where": "tmpfs on the node"
+          },
+          {
+            "name": "stringData",
+            "role": "Plain text in the manifest. Stored base64 in `data`.",
+            "where": "you do not encode it"
+          },
+          {
+            "name": "immutable: true",
+            "role": "Every change becomes a new named object.",
+            "where": "delete and recreate to change"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "The four rules in the recap",
+      "hint": "settings, updates, Secrets, immutability",
+      "items": [
+        {
+          "who": "out of the image",
+          "what": "ConfigMaps and Secrets keep settings out of images. Containers read them as variables or files."
+        },
+        {
+          "who": "updates",
+          "what": "Variables are fixed when the container starts. Volume files update after a delay. `subPath` files never do."
+        },
+        {
+          "who": "Secret",
+          "what": "A Secret is base64-encoded and, by default, unencrypted in etcd. Limit who can read Secrets and who can create Pods."
+        },
+        {
+          "who": "immutable",
+          "what": "`immutable: true` turns every change into a new, named version you can roll out and roll back."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Create and read",
+        "commands": [
+          {
+            "cmd": "kubectl create configmap app --from-literal=K=V",
+            "note": "add `--dry-run=client -o yaml` to see the object"
+          },
+          {
+            "cmd": "kubectl create configmap app --from-file=app.properties",
+            "note": "the key is the file name"
+          },
+          {
+            "cmd": "kubectl create secret generic db --from-literal=password=change-me",
+            "note": "no annotation with the value"
+          },
+          {
+            "cmd": "kubectl get secret db -o jsonpath='{.data.password}' | base64 -d",
+            "note": "base64 is not encryption"
+          },
+          {
+            "cmd": "kubectl rollout restart deployment/app",
+            "note": "new Pods read new variable values"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 3 and the namespace `k8s-from-zero` as your context namespace. The lesson does not print a cluster name. A Pod and its ConfigMap or Secret must be in the same namespace. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "Which ways of injecting a setting update a running container, and which stay fixed?",
+            "a": "Variables are fixed when the container starts. Volume files update after about a minute. A `subPath` mount never updates in a running Pod.",
+            "lines": 2
+          },
+          {
+            "q": "What is a Secret on the API, and what is it not?",
+            "a": "It is base64-encoded. By default it is unencrypted in etcd. base64 is not encryption. Limit who can read Secrets and who can create Pods.",
+            "lines": 2
+          },
+          {
+            "q": "What does `immutable: true` force you to do when a value must change?",
+            "a": "Create a new object under a new name and point the workload at it. The symptom of editing an immutable object is `field is immutable when immutable is set`.",
+            "lines": 2
+          },
+          {
+            "q": "What is the size limit, and what happens if the Pod and the ConfigMap are in different namespaces?",
+            "a": "1 MiB per ConfigMap or Secret. Use volumes for more. A reference in another namespace gives `CreateContainerConfigError`.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Create a Secret with `--from-literal` and read `.data.password` through jsonpath and `base64 -d`. What do you get back?",
+            "a": "The original literal. Kubernetes encoded it. The cheat sheet says to let Kubernetes encode it, using `stringData` or `--from-literal`.",
+            "lines": 2
+          },
+          {
+            "q": "Change a ConfigMap that a Deployment reads as an environment variable. The app still shows the old value. What command does the lesson give?",
+            "a": "`kubectl rollout restart deployment/app`. New Pods read the new values. The running container already took its variables at start.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "A Pod stays in `CreateContainerConfigError` and describe ends with `configmap \"app-confg\" not found`. What caused it in the lesson, and what retries?",
+            "a": "A typo in `configMapKeyRef.name`. Fix the name, or create the object. The kubelet retries on its own. Mark a reference `optional: true` only when the app can run without it.",
+            "lines": 2
+          },
+          {
+            "q": "Logins fail with a password that looks right. How did the lesson say the newline got into `data`?",
+            "a": "The value was encoded with `echo` instead of `echo -n`, so `data` holds `password` plus a newline. Use `stringData` or `kubectl create secret --from-literal`.",
+            "lines": 2
+          },
+          {
+            "q": "A Secret value is in Git or in `last-applied-configuration`. What do you do first?",
+            "a": "Rotate the credential first, then clean up. Removing the file does not remove it from history.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}
