@@ -37,6 +37,12 @@ sources:
     url: https://kind.sigs.k8s.io/docs/user/loadbalancer/
   - title: "Kubernetes from Zero, part 7: Deployments and ReplicaSets"
     url: https://aitamer.news/posts/k8s-from-zero-07-deployments-and-replicasets/
+  - title: "Creative Commons Attribution 4.0 International"
+    url: https://creativecommons.org/licenses/by/4.0/
+  - title: "Kubernetes documentation"
+    url: https://kubernetes.io/docs/
+  - title: "Command line tool (kubectl) (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/kubectl/
 ---
 
 In [part 7](https://aitamer.news/posts/k8s-from-zero-07-deployments-and-replicasets/) a Deployment kept three Pods running and replaced them during rollouts. Every replacement Pod got a new IP address, so nothing can rely on a Pod's IP. This episode adds the object that fixes that: a **Service**, one stable name and virtual IP in front of a changing set of Pods. By the end you will call three Pods through one name, see how the Service finds them, reach them from outside the cluster, and know which of the five Service flavours to pick. You need the kind cluster from part 3 and the `k8s-from-zero` namespace, set as your context namespace (part 6). We tested on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2, with kube-proxy in nftables mode for a reason explained under When it goes wrong.
@@ -512,6 +518,8 @@ spec:
 - Use `<service>.<namespace>` across namespaces, and check endpoints first when a Service does not answer.
 
 Next: Kubernetes from Zero, part 9, ConfigMaps and Secrets, coming tomorrow.
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "apply-web-yaml-client-yaml"

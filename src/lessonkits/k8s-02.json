@@ -13,7 +13,7 @@
     "source": "src/content/posts/k8s-from-zero-02-architecture-tour.md",
     "tested": "Ran every command on kind v0.33.0, Kubernetes v1.37.0 node, kubectl v1.37.2, 10 Nov 2026",
     "cluster": "k8s-from-zero",
-    "rule": "Every Kubernetes component talks to the API server and nothing else. Only the API server reads and writes etcd.",
+    "rule": "Control-plane components and kubelets coordinate through the API server. The kubelet also talks to containerd over CRI, and the API server connects to kubelets for logs, exec and port-forward. Only the API server reads and writes etcd.",
     "$titleNote": "title is the post's published title and still says 'part 2'; it is quoted as published. Every label the kit writes says Lesson."
   },
   "series": {
@@ -28,25 +28,24 @@
   },
   "share": "Free to share with credit: © aitamer.news",
   "next": {
-    "$comment": "Per-lesson setting. Lesson 3 is not published yet, so this links to the series page. Once it is live, set title to its real title and url to its post URL. Keep the wording timeless: no 'tomorrow', 'soon' or dates. Links always go through withUtm().",
     "label": "Next in the series",
     "title": "Next: Lesson 3, your local lab",
     "summary": "Install kubectl and kind properly, compare them with minikube, k3d and Docker Desktop, and learn how kubeconfig and contexts decide which cluster you are talking to.",
-    "url": "https://aitamer.news/series/k8s-from-zero/",
-    "urlLabel": "Series page",
+    "url": "https://aitamer.news/posts/k8s-from-zero-03-your-local-lab/",
+    "urlLabel": "Lesson page",
     "$source": "summary is the lesson's closing 'Next: part 3 ...' line with the date words removed."
   },
   "cheatsheet": {
-    "intro": "Everything from Lesson 2 on two pages: what each component does, where it runs, the path of one `kubectl apply`, and the commands from the lab.",
+    "intro": "Everything from Lesson 2 on three pages: what each component does, where it runs, the path of one `kubectl apply`, and the commands from the lab.",
     "controlPlane": [
       {
         "name": "kube-apiserver",
-        "role": "The front door. Exposes the Kubernetes HTTP API, checks who you are and whether you are allowed, validates what you send and saves it. Scales horizontally: you can run several copies behind a load balancer.",
+        "role": "The front door. Exposes the HTTP API, checks who you are and whether you are allowed, validates what you send and saves it. You can run several copies behind a load balancer.",
         "where": "Control plane. In kind: static Pod `kube-apiserver-k8s-from-zero-control-plane` in `kube-system`."
       },
       {
         "name": "etcd",
-        "role": "A consistent, highly available key-value store and the backing store for all cluster data. If etcd is lost without a backup, the cluster forgets everything it was told.",
+        "role": "The consistent key-value store for all cluster data. If etcd is lost without a backup, the cluster forgets everything it was told.",
         "where": "Control plane. In kind: static Pod `etcd-k8s-from-zero-control-plane`. Only the API server talks to it."
       },
       {
@@ -68,7 +67,7 @@
     "node": [
       {
         "name": "kubelet",
-        "role": "The node agent. Receives the Pods assigned to its node and makes sure their containers are running and healthy. Does not manage containers that Kubernetes did not create.",
+        "role": "The node agent. It makes sure the containers in Pods assigned to its node are running and healthy.",
         "where": "Every node, as a system service. It also runs the static Pod files in `/etc/kubernetes/manifests/`."
       },
       {
@@ -178,8 +177,12 @@
             "note": "each API request and its response code"
           },
           {
-            "cmd": "kubectl get pod web-69977c9c79-sv68d -o jsonpath='{.spec.nodeName}{\"\\n\"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{\"\\n\"}'",
-            "note": "use one of your Pod names"
+            "cmd": "POD=$(kubectl get pods -l app.kubernetes.io/name=web -o name | head -1)",
+            "note": "looks up one Pod from this Deployment. The sample log shows pwjwm and vfjt9. Your suffix will differ."
+          },
+          {
+            "cmd": "kubectl get \"$POD\" -o jsonpath='{.spec.nodeName}{\"\\n\"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{\"\\n\"}'",
+            "note": "the node and the owner; your suffix will differ"
           },
           {
             "cmd": "kubectl get replicaset -l app.kubernetes.io/name=web -o jsonpath='{.items[0].metadata.ownerReferences[0].kind}/{.items[0].metadata.ownerReferences[0].name}{\"\\n\"}'",
@@ -192,7 +195,7 @@
         "commands": [
           {
             "cmd": "kubectl -n kube-system exec etcd-k8s-from-zero-control-plane -- etcdctl \\\n  --endpoints=https://127.0.0.1:2379 \\\n  --cacert=/etc/kubernetes/pki/etcd/ca.crt \\\n  --cert=/etc/kubernetes/pki/etcd/server.crt \\\n  --key=/etc/kubernetes/pki/etcd/server.key \\\n  get /registry/deployments/default/web --keys-only",
-            "note": "kubeadm's default certificate paths"
+            "note": "Local kind cluster only, on your own machine. This command only reads one key. kubeadm's default certificate paths."
           }
         ]
       },
@@ -201,7 +204,7 @@
         "commands": [
           {
             "cmd": "docker exec k8s-from-zero-control-plane mv /etc/kubernetes/manifests/kube-scheduler.yaml /root/",
-            "note": "the kubelet stops it"
+            "note": "Local kind cluster only. The kubelet stops the scheduler. Move the file back into /etc/kubernetes/manifests/ to restore it."
           },
           {
             "cmd": "kubectl get pods -n kube-system -l component=kube-scheduler",
@@ -258,7 +261,7 @@
           },
           {
             "q": "Which component is the only one that reads and writes etcd? How do the other components learn about changes?",
-            "a": "kube-apiserver. The other components never call each other: each talks only to the API server, mostly by watching it for changes and then writing back what it did.",
+            "a": "kube-apiserver. Control-plane components and kubelets watch the API server for changes and write back what they did. The kubelet also talks to the container runtime over CRI, and the API server connects to kubelets for logs, exec and port-forward.",
             "lines": 2
           },
           {
@@ -328,13 +331,13 @@
             "lines": 4
           },
           {
-            "q": "Run the two `jsonpath` commands from step 9 of the lesson with one of your Pod names. What three lines come back, and which component wrote the first one?",
+            "q": "Run the commands from step 9 of the lesson. What three lines come back from the two jsonpath commands, and which component wrote the first one?",
             "a": "The node name `k8s-from-zero-control-plane`, then `ReplicaSet/web-<hash>`, then `Deployment/web`. The scheduler wrote `spec.nodeName`. The Pod is owned by the ReplicaSet, which is owned by the Deployment.",
             "lines": 3
           },
           {
             "q": "Run the `etcdctl ... get /registry/deployments/default/web --keys-only` command from step 10. What comes back, and which component wrote it?",
-            "a": "The key `/registry/deployments/default/web`. Your Deployment is a key in etcd, written there by the API server. (For learning only: in real life you never touch etcd by hand.)",
+            "a": "The key `/registry/deployments/default/web`. Your Deployment is a key in etcd, written there by the API server. Run this only on the local kind cluster from the lesson. The command only reads one key. In real life you never touch etcd by hand.",
             "lines": 2
           }
         ]

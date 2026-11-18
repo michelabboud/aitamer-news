@@ -24,6 +24,9 @@ wildness:
   verified: "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026"
   claimed: "Management technique trade-offs and selector semantics are from the Kubernetes docs"
 verdict: "Keep manifests in files and use diff then apply. Use dry-run to write YAML, explain to read fields, -o to shape output, and labels with -l to pick objects."
+corrections:
+  - date: "2026-11-18T20:53:00Z"
+    text: "We said part 6 was coming tomorrow. Part 6, namespaces, labels and annotations, is published, and the end of this lesson links it. The sample log printed a lab path under /workspace. It now shows a home kubeconfig path."
 sources:
   - title: "Kubernetes Object Management (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/overview/working-with-objects/object-management/
@@ -39,6 +42,12 @@ sources:
     url: https://kubernetes.io/docs/concepts/overview/working-with-objects/
   - title: "Kubernetes from Zero, part 4: Your first Pod"
     url: https://aitamer.news/posts/k8s-from-zero-04-your-first-pod/
+  - title: "Kubernetes from Zero, part 6: Namespaces, labels and annotations"
+    url: https://aitamer.news/posts/k8s-from-zero-06-namespaces-labels-annotations/
+  - title: "Creative Commons Attribution 4.0 International"
+    url: https://creativecommons.org/licenses/by/4.0/
+  - title: "Kubernetes documentation"
+    url: https://kubernetes.io/docs/
 ---
 
 In [part 4](https://aitamer.news/posts/k8s-from-zero-04-your-first-pod/) you wrote a Pod by hand and looked inside it. This episode is about the tool you used to do it. kubectl has dozens of commands, and a handful of habits carry most of the daily work: knowing when to type a command and when to keep a file, generating YAML instead of writing it from memory, previewing a change before you make it, shaping output so you see only what you need, and picking objects by label. You need the kind cluster and the `k8s-from-zero` namespace from part 4. We tested on kind v0.33.0 (node image v1.37.0) with kubectl v1.37.2.
@@ -74,7 +83,7 @@ kubectl get pods -n k8s-from-zero -v=6 2>&1 | grep -E "Config loaded|https://"
 ```
 
 ```text
-I1110 22:10:09.886728 2132505 loader.go:408] Config loaded from file:  /workspace/k8s-series/ep-logs-0406/kubeconfig
+I1110 22:10:09.886728 2132505 loader.go:408] Config loaded from file:  /home/you/.kube/config
 I1110 22:10:09.895705 2132505 round_trippers.go:632] "Response" verb="GET" url="https://127.0.0.1:35185/api/v1/namespaces/k8s-from-zero/pods?limit=500" status="200 OK" milliseconds=5
 ```
 
@@ -552,7 +561,9 @@ Run `kubectl get pods -l ...` before any `delete -l ...` with the same selector.
 - `-o wide`, `name`, `yaml`, `json`, `jsonpath` and `custom-columns` shape output for people and scripts.
 - Labels describe objects and selectors pick them; a comma is AND, and `!=` also matches missing keys.
 
-Next: Kubernetes from Zero, part 6, namespaces, labels and annotations, coming tomorrow.
+Next: [Kubernetes from Zero, part 6: Namespaces, labels and annotations](https://aitamer.news/posts/k8s-from-zero-06-namespaces-labels-annotations/).
+
+*Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
 ```rail
 id: "api-verbose"
