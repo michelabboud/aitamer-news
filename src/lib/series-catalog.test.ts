@@ -72,7 +72,7 @@ test('title, description and hero alt are trimmed plain text within their length
   }
   refuses([row({ title: 't'.repeat(SERIES_TITLE_MAX_LENGTH + 1) })], /title is longer than 80 characters/);
   refuses([row({ description: 'd'.repeat(SERIES_DESCRIPTION_MAX_LENGTH + 1) })], /description is longer than 240 characters/);
-  refuses([row({ ...hero, heroAlt: 'a'.repeat(SERIES_HERO_ALT_MAX_LENGTH + 1) })], /heroAlt is longer than 200 characters/);
+  refuses([row({ ...hero, heroAlt: 'a'.repeat(SERIES_HERO_ALT_MAX_LENGTH + 1) })], new RegExp(`heroAlt is longer than ${SERIES_HERO_ALT_MAX_LENGTH} characters`));
   refuses([row({ ...hero, heroAlt: '' })], /heroAlt is empty/);
 });
 

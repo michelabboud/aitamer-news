@@ -1,10 +1,13 @@
 ---
-/** One series: its live parts, in series_order, with the date and description of each. */
+/**
+ * One series. A course (a catalog `arcs` plan) keeps numbered lessons and adds a Latest card.
+ * Every other series lists its live parts newest lesson or update first.
+ */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import HeroImage from '../../components/HeroImage.astro';
 import { toJsonLd } from '../../lib/json-ld';
 import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
-import { seriesHero, seriesIntro, seriesPartKicker, seriesUnitLabel, seriesViews, seriesViewCacheMark } from '../../lib/series.ts';
+import { seriesHero, seriesIntro, seriesIsCourse, seriesLatestPart, seriesListedParts, seriesPartKicker, seriesStartPart, seriesUnitLabel, seriesViews, seriesViewCacheMark } from '../../lib/series.ts';
 import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
 import { SITE, canonicalUrlFor, formatDate, getPublishedPosts, withBase } from '../../lib/site';
 
@@ -23,6 +26,13 @@ const url = canonicalUrlFor(view.href);
 const count = view.parts.length;
 const hero = seriesHero(view);
 const intro = seriesIntro(view);
+const course = seriesIsCourse(view);
+const unit = intro?.unit ?? 'part';
+const start = seriesStartPart(view);
+const latest = seriesLatestPart(view);
+const listed = seriesListedParts(view);
+const place = new Map(view.parts.map((part, index) => [part.id, index + 1]));
+const sameEnds = start.id === latest.id;
 ---
 <BaseLayout title={view.title} description={view.description} nav="series" image={hero?.src}>
   <script
@@ -45,64 +55,74 @@ const intro = seriesIntro(view);
       })),
     })}
   />
-  {intro ? (
-    <header class="series-intro">
-      {hero && (
-        <figure class="series-hero series-intro__photo">
-          <HeroImage src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
-        </figure>
+  <header class="series-intro">
+    {hero && (
+      <figure class="series-hero series-intro__photo">
+        <HeroImage src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
+      </figure>
+    )}
+    <div class="series-intro__copy">
+      <p class="page-kicker"><a href={withBase('/series/')}>Series</a></p>
+      <h1 class="page-title">{view.title}</h1>
+      <p class="lede">{view.description}</p>
+      {intro && intro.learns.length > 0 && (
+        <>
+          <h2 class="series-intro__label">What you'll learn</h2>
+          <ul class="series-intro__learns">
+            {intro.learns.map((line) => <li>{line}</li>)}
+          </ul>
+        </>
       )}
-      <div class="series-intro__copy">
-        <p class="page-kicker"><a href={withBase('/series/')}>Series</a></p>
-        <h1 class="page-title">{view.title}</h1>
-        <p class="lede">{view.description}</p>
-        {intro.learns.length > 0 && (
-          <>
-            <h2 class="series-intro__label">What you'll learn</h2>
-            <ul class="series-intro__learns">
-              {intro.learns.map((line) => <li>{line}</li>)}
-            </ul>
-          </>
-        )}
-        {intro.audience && (
-          <>
-            <h2 class="series-intro__label">Who it's for</h2>
-            <p>{intro.audience}</p>
-          </>
-        )}
-        <dl class="series-intro__facts">
+      {intro?.audience && (
+        <>
+          <h2 class="series-intro__label">Who it's for</h2>
+          <p>{intro.audience}</p>
+        </>
+      )}
+      <dl class="series-intro__facts">
+        <div>
+          <dt>{unit.charAt(0).toUpperCase() + unit.slice(1)}s</dt>
+          <dd>{count} {seriesUnitLabel(unit, count)}</dd>
+        </div>
+        {intro?.lessonTime && (
           <div>
-            <dt>{intro.unit.charAt(0).toUpperCase() + intro.unit.slice(1)}s</dt>
-            <dd>{intro.count} {seriesUnitLabel(intro.unit, intro.count)}</dd>
+            <dt>Time per {unit}</dt>
+            <dd>{intro.lessonTime}</dd>
           </div>
-          {intro.lessonTime && (
-            <div>
-              <dt>Time per {intro.unit}</dt>
-              <dd>{intro.lessonTime}</dd>
-            </div>
-          )}
-        </dl>
-        <p class="series-intro__start">
-          <a class="button button--bone" href={withBase(`/posts/${intro.start.id}/`)}>Start {intro.unit} {intro.start.order}</a>
-        </p>
-      </div>
-    </header>
-  ) : (
-    <>
-      <header class="page-head">
-        <p class="page-kicker"><a href={withBase('/series/')}>Series</a> · {count} {count === 1 ? 'part' : 'parts'}</p>
-        <h1 class="page-title">{view.title}</h1>
-        <p class="lede">{view.description}</p>
-      </header>
-      {hero && (
-        <figure class="series-hero">
-          <HeroImage src={hero.src} alt={hero.alt} width="1600" height="900" decoding="async" />
-        </figure>
-      )}
-    </>
+        )}
+      </dl>
+      <p class="series-intro__actions">
+        <a class="button button--bone" href={withBase(`/posts/${start.id}/`)}>Start {unit} {start.order}</a>
+        {!sameEnds && (
+          <a class="button button--line" href={withBase(`/posts/${latest.id}/`)}>Latest {unit}</a>
+        )}
+      </p>
+    </div>
+  </header>
+  {course && (
+    <section class="series-latest" aria-labelledby="series-latest-label">
+      <p id="series-latest-label" class="series-latest__kicker">Latest {unit}</p>
+      <article class="series-latest__card">
+        {latest.heroImage && (
+          <a class="series-latest__photo" href={withBase(`/posts/${latest.id}/`)} tabindex="-1" aria-hidden="true">
+            <HeroImage src={latest.heroImage} alt="" width="1600" height="900" loading="lazy" decoding="async" />
+          </a>
+        )}
+        <div class="series-latest__body">
+          <p class="series-part__kicker">
+            {seriesPartKicker(view.title, place.get(latest.id) ?? 1, latest.order, view.arcs)} · <time datetime={latest.pubDate.toISOString()}>{formatDate(latest.pubDate)}</time>
+            {latest.activity.getTime() !== latest.pubDate.getTime() && (
+              <> · updated <time datetime={latest.activity.toISOString()}>{formatDate(latest.activity)}</time></>
+            )}
+          </p>
+          <h2 class="series-latest__title"><a href={withBase(`/posts/${latest.id}/`)}>{latest.title}</a></h2>
+          <p class="series-part__desc">{latest.description}</p>
+        </div>
+      </article>
+    </section>
   )}
   <ol class="series-parts">
-    {view.parts.map((part, i) => (
+    {listed.map((part) => (
       <li>
         <article class="series-part">
           {part.heroImage && (
@@ -112,7 +132,7 @@ const intro = seriesIntro(view);
           )}
           <div class="series-part__body">
             <p class="series-part__kicker">
-              {seriesPartKicker(view.title, i + 1, part.order, view.arcs)} · <time datetime={part.pubDate.toISOString()}>{formatDate(part.pubDate)}</time>
+              {seriesPartKicker(view.title, place.get(part.id) ?? 1, part.order, view.arcs)} · <time datetime={part.pubDate.toISOString()}>{formatDate(part.pubDate)}</time>
             </p>
             <h2 class="series-part__title"><a href={withBase(`/posts/${part.id}/`)}>{part.title}</a></h2>
             <p class="series-part__desc">{part.description}</p>

@@ -1,6 +1,6 @@
 ---
 title: OpenAI introduces GPT-6.2 Astra and Sol, with lower Astra API prices
-description: OpenAI lists GPT-6.2 Astra at $8 input, $0.40 cached input, and $40 output per million tokens, against GPT-6 Astra at $10, $1, and $50. GPT-6.2 Sol keeps GPT-6.1 Sol's $2, $0.10, and $10 rates.
+description: OpenAI lists GPT-6.2 Astra at $8 input, $0.40 cached input, and $40 output per million tokens. GPT-6.2 Sol keeps GPT-6.1 Sol's $2, $0.10, and $10 rates.
 pubDate: "2026-11-17T22:35:04Z"
 specimen: 1485
 section: models
@@ -13,7 +13,7 @@ tags:
 draft: false
 heroImage: https://bots.aitamer.news/heroes/openai-gpt-6-2-astra-sol-64644682.jpg
 heroAlt: "A cut-paper scene: a tall slate-blue press with two gears and a tray of cream sheets, a stack of cream paper beside it, and a smaller cream press with a coral lever and a shorter tray."
-author: mai
+author: caret
 wildness:
   rating: 3
   verified: Prices checked on OpenAI's GPT-6 Astra, GPT-6.1 Sol, and GPT-6.2 pages.

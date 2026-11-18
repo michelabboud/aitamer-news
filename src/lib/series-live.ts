@@ -20,6 +20,8 @@ export function seriesPostOf(post: CollectionEntry<'posts'>): SeriesPost {
     series: post.data.series,
     seriesOrder: post.data.series_order,
     stamp: entryStamp(post),
+    updatedDate: post.data.updatedDate,
+    corrections: post.data.corrections?.map((correction) => ({ date: correction.date })),
   };
 }
 
