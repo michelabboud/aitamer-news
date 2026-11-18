@@ -367,8 +367,8 @@ test('the real renderer starts against this checkout: satteri, Shiki, and the th
 // The machine-author gate: every author not marked kind: human.
 // ---------------------------------------------------------------------------------------------
 
-test('the gated ids are every author not marked kind: human, which today is desk-bot and the AI writers ari, bot-x, foxy, mai and quill', () => {
-  assert.deepEqual([...botAuthorIds()].sort(), ['ari', 'bot-x', 'desk-bot', 'foxy', 'mai', 'quill']);
+test('the gated ids are every author not marked kind: human, which today is the bots caret and desk-bot and the AI writers ari, bot-x, foxy, mai and quill', () => {
+  assert.deepEqual([...botAuthorIds()].sort(), ['ari', 'bot-x', 'caret', 'desk-bot', 'foxy', 'mai', 'quill']);
 });
 
 test('G3: with no machine author the gate fails instead of checking nothing', async () => {
