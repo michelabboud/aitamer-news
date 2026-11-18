@@ -161,7 +161,7 @@
             "note": "the Job adds the job-name label"
           },
           {
-            "cmd": "kubectl get job batch -o jsonpath='{.status.completedIndexes}'",
+            "cmd": "kubectl get job batch -o jsonpath='{.status.completedIndexes} {.status.succeeded}{\"\\n\"}'",
             "note": "Indexed mode records the indexes"
           }
         ]
@@ -220,7 +220,7 @@
           },
           {
             "q": "Wait for job/batch with --for=condition=complete. What did the lesson record for completions, duration and indexes?",
-            "a": "Complete, 6/6, 18 seconds. completedIndexes was 0-5 and succeeded was 6. The logs were item 0 through item 5, each on a Pod named batch-N.",
+            "a": "Complete, 6/6, 18 seconds. completedIndexes was 0-5 and succeeded was 6. The logs were item 0 through item 5, each printed by the Pod whose hostname is batch-N.",
             "lines": 2
           },
           {
