@@ -146,7 +146,7 @@ spec:
             storage: 1Gi
 ```
 
-The claim is mounted over nginx's web root, so each Pod starts with an empty site. The readiness probe only checks that port 80 accepts connections; step 9 explains why.
+The claim is mounted over nginx's web root, so each Pod starts with an empty site. The readiness probe only checks that port 80 accepts connections; the first item under "When it goes wrong" explains why.
 
 2. **Apply it and watch the order.** In a second terminal, start a watch first. The custom columns make the order easy to read:
 
@@ -665,7 +665,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "wide"
-        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP and NODE."
+        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP, NODE, NOMINATED NODE and READINESS GATES."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "get"
@@ -747,7 +747,7 @@ items:
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "run"
-        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image."
+        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image [--env=\"key=value\"] [--port=port] [--dry-run=server|client] [--overrides=inline-json] [--command] -- [COMMAND] [args...]."
       - token: "dns-test"
         text: "The NAME in kubectl run NAME. This command names the Pod dns-test."
       - token: "--image=busybox:1.37"
@@ -767,7 +767,7 @@ items:
       - token: "-c"
         text: "An argument of sh. It tells sh to run the command string that follows."
       - token: "\"nslookup web-0.web; nslookup web; wget -qO- http://web-1.web\""
-        text: "The URL requested inside the container: \"nslookup web-0.web; nslookup web; wget -qO- http://web-1.web\"."
+        text: "The command string sh runs: two nslookup lookups, then wget fetches web-1's page."
 ```
 
 ```rail
@@ -779,7 +779,7 @@ items:
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "run"
-        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image."
+        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image [--env=\"key=value\"] [--port=port] [--dry-run=server|client] [--overrides=inline-json] [--command] -- [COMMAND] [args...]."
       - token: "dns-test"
         text: "The NAME in kubectl run NAME. This command names the Pod dns-test."
       - token: "--image=busybox:1.37"
@@ -799,7 +799,7 @@ items:
       - token: "-c"
         text: "An argument of sh. It tells sh to run the command string that follows."
       - token: "\"nslookup web-0.web.k8s-from-zero.svc.cluster.local; for i in 0 1 2; do wget -qO- http://web-\\$i.web; done\""
-        text: "The URL requested inside the container: \"nslookup web-0.web.k8s-from-zero.svc.cluster.local; for i in 0 1 2; do wget -qO- http://web-\\$i.web; done\"."
+        text: "The command string sh runs: a full-name nslookup, then wget fetches each Pod's page."
 ```
 
 ```rail
@@ -829,7 +829,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "wide"
-        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP and NODE."
+        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP, NODE, NOMINATED NODE and READINESS GATES."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "exec"
@@ -839,7 +839,7 @@ items:
       - token: "--"
         text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
       - token: "cat"
-        text: "Shell. Writes the named files to standard output."
+        text: "cat, run inside the container. It writes the named files to standard output."
       - token: "/usr/share/nginx/html/index.html"
         text: "A path inside the container: /usr/share/nginx/html/index.html."
 ```
@@ -923,7 +923,7 @@ items:
       - token: "--"
         text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
       - token: "cat"
-        text: "Shell. Writes the named files to standard output."
+        text: "cat, run inside the container. It writes the named files to standard output."
       - token: "/usr/share/nginx/html/index.html"
         text: "A path inside the container: /usr/share/nginx/html/index.html."
 ```
@@ -1031,11 +1031,11 @@ items:
       - token: "postgres"
         text: "An argument of the command inside the container: postgres."
       - token: "-c"
-        text: "A flag of the command inside the container: -c. In this command it belongs to psql, which runs one SQL statement."
+        text: "psql's -c (--command) option: run the given command string, then exit. psql accepts several -c options and runs them in order; here each string holds one SQL statement."
       - token: "\"CREATE TABLE notes (id serial PRIMARY KEY, body text);\""
         text: "An argument of the command inside the container: \"CREATE TABLE notes (id serial PRIMARY KEY, body text);\"."
       - token: "-c"
-        text: "A flag of the command inside the container: -c. In this command it belongs to psql, which runs one SQL statement."
+        text: "psql's -c (--command) option: run the given command string, then exit. psql accepts several -c options and runs them in order; here each string holds one SQL statement."
       - token: "\"INSERT INTO notes (body) VALUES ('survives a restart');\""
         text: "An argument of the command inside the container: \"INSERT INTO notes (body) VALUES ('survives a restart');\"."
       - token: "kubectl"
@@ -1071,7 +1071,7 @@ items:
       - token: "postgres"
         text: "An argument of the command inside the container: postgres."
       - token: "-c"
-        text: "A flag of the command inside the container: -c. In this command it belongs to psql, which runs one SQL statement."
+        text: "psql's -c (--command) option: run the given command string, then exit. psql accepts several -c options and runs them in order; here each string holds one SQL statement."
       - token: "\"SELECT * FROM notes;\""
         text: "An argument of the command inside the container: \"SELECT * FROM notes;\"."
 ```
@@ -1085,7 +1085,7 @@ items:
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "run"
-        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image."
+        text: "Create and run a particular image in a pod. The run synopsis is kubectl run NAME --image=image [--env=\"key=value\"] [--port=port] [--dry-run=server|client] [--overrides=inline-json] [--command] -- [COMMAND] [args...]."
       - token: "psql"
         text: "The NAME in kubectl run NAME. This command names the Pod psql."
       - token: "--image=postgres:18-alpine"
@@ -1113,7 +1113,7 @@ items:
       - token: "postgres"
         text: "An argument of the command inside the container: postgres."
       - token: "-c"
-        text: "A flag of the command inside the container: -c."
+        text: "psql's -c (--command): run this command string, then exit."
       - token: "\"SELECT now(), body FROM notes;\""
         text: "An argument of the command inside the container: \"SELECT now(), body FROM notes;\"."
 ```

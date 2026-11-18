@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
 <title id="t">Access modes and reclaim policies at a glance</title>
-<desc id="d">A table of the four access modes. ReadWriteOnce, RWO, read-write from a single node, and several Pods on that node can share it. ReadOnlyMany, ROX, read-only from many nodes. ReadWriteMany, RWX, read-write from many nodes, offered by file storage such as NFS or CephFS. ReadWriteOncePod, RWOP, read-write from a single Pod in the whole cluster, CSI volumes only. The kind local-path provisioner offers only RWO and RWOP, highlighted, and our RWX claim failed. A second panel lists reclaim policies: Delete removes the volume when the claim is deleted, Retain keeps it as Released for manual cleanup, Recycle is deprecated.</desc>
+<desc id="d">A table of the four access modes. ReadWriteOnce, RWO, read-write from a single node, and several Pods on that node can share it. ReadOnlyMany, ROX, read-only from many nodes. ReadWriteMany, RWX, read-write from many nodes, offered by file storage such as NFS or CephFS. ReadWriteOncePod, RWOP, read-write from a single Pod in the whole cluster, CSI volumes only. kind local-path refused RWX; its error says: only RWO and RWOP, highlighted, and our RWX claim failed. A second panel lists reclaim policies: Delete removes the volume when the claim is deleted, Retain keeps it as Released for manual cleanup, Recycle is deprecated.</desc>
 <style>
 .bg { fill: #f7f3ea; }
 .t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
@@ -72,7 +72,7 @@
 <rect class="box" x="24" y="132" width="752" height="34" rx="6"/>
 <text class="tm" x="40" y="154" text-anchor="start">ReadOnlyMany</text>
 <text class="tm" x="190" y="154" text-anchor="start">ROX</text>
-<text class="ts" x="256" y="154" text-anchor="start">nobody; read-only on many nodes</text>
+<text class="ts" x="256" y="154" text-anchor="start">many nodes, read-only</text>
 <text class="ts" x="560" y="154" text-anchor="start">shared reference data</text>
 <rect class="box" x="24" y="172" width="752" height="34" rx="6"/>
 <text class="tm" x="40" y="194" text-anchor="start">ReadWriteMany</text>
@@ -85,7 +85,7 @@
 <text class="ts" x="256" y="234" text-anchor="start">exactly one Pod in the cluster</text>
 <text class="ts" x="560" y="234" text-anchor="start">CSI volumes only; GA v1.29</text>
 <rect class="boxc" x="24" y="262" width="752" height="50" rx="8"/>
-<text class="tc" x="40" y="284" text-anchor="start">kind local-path: only RWO and RWOP</text>
+<text class="tc" x="40" y="284" text-anchor="start">kind local-path refused RWX; its error says: only RWO and RWOP</text>
 <text class="tm" x="40" y="302" text-anchor="start">"NodePath only supports ReadWriteOnce and ReadWriteOncePod (1.22+) access modes"</text>
 <rect class="boxn" x="24" y="330" width="752" height="124" rx="10"/>
 <text class="t" x="40" y="354" text-anchor="start">Reclaim policy (on the PV, copied from the StorageClass)</text>

@@ -98,7 +98,7 @@ The **reclaim policy** decides what happens to a PV after its claim is deleted:
 - `Retain`: the PV stays, in phase `Released`, with the data. It is not handed to a new claim automatically; an administrator inspects it, saves what matters and deletes it by hand.
 - `Recycle`: deprecated. The docs recommend dynamic provisioning instead.
 
-![A table of the four access modes and who can mount each read-write, a highlighted note that the kind local-path provisioner supports only RWO and RWOP, and a panel explaining the Delete, Retain and deprecated Recycle reclaim policies.](/diagrams/k8s-from-zero-13-volumes-pv-pvc-storageclass/access-modes-matrix.svg)
+![A table of the four access modes and who can mount each read-write, a highlighted note quoting the local-path provisioner's error, which says it supports only RWO and RWOP, and a panel explaining the Delete, Retain and deprecated Recycle reclaim policies.](/diagrams/k8s-from-zero-13-volumes-pv-pvc-storageclass/access-modes-matrix.svg)
 
 One more safety net: a claim that a Pod is using carries the finalizer `kubernetes.io/pvc-protection`. If you delete it, it waits in `Terminating` until no Pod uses it. You will see that in the lab.
 
@@ -182,7 +182,7 @@ started
 pod "scratch" deleted from k8s-from-zero namespace
 ```
 
-`note.txt` is gone. Only `started`, written again by the new Pod's startup command, is there. The delete takes about 30 seconds because `sleep` ignores the stop signal; part 10 explained the grace period.
+`note.txt` is gone. Only `started`, written again by the new Pod's startup command, is there. The delete takes about 30 seconds because neither container's process 1 handles SIGTERM, so the kubelet waits out the 30-second grace period; part 10 explained why.
 
 3. **Claim some storage.** Save as `data-pvc.yaml`:
 
@@ -771,7 +771,7 @@ items:
       - token: "-o"
         text: "Short form of --output. It selects the output format. For get, the formats include json, yaml, name, jsonpath, custom-columns and wide."
       - token: "wide"
-        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP and NODE."
+        text: "An output format. The get examples say wide adds more information, such as the node name. For Pods the lesson's table adds IP, NODE, NOMINATED NODE and READINESS GATES."
 ```
 
 ```rail
@@ -811,7 +811,7 @@ items:
       - token: "--"
         text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
       - token: "cat"
-        text: "Shell. Writes the named files to standard output."
+        text: "cat, run inside the container. It writes the named files to standard output."
       - token: "/data/notes.txt"
         text: "A path inside the container: /data/notes.txt."
       - token: "kubectl"
@@ -849,7 +849,7 @@ items:
       - token: "--"
         text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
       - token: "cat"
-        text: "Shell. Writes the named files to standard output."
+        text: "cat, run inside the container. It writes the named files to standard output."
       - token: "/data/notes.txt"
         text: "A path inside the container: /data/notes.txt."
 ```
@@ -999,13 +999,13 @@ items:
     label: "Explain this command"
     lines:
       - token: "docker"
-        text: "An argument of this command: docker."
+        text: "The Docker CLI. kind nodes are Docker containers (part 3)."
       - token: "exec"
-        text: "An argument of this command: exec."
+        text: "docker exec: run a command in a running container."
       - token: "k8s-ep13-worker"
-        text: "An argument of this command: k8s-ep13-worker."
+        text: "The node container to run in."
       - token: "cat"
-        text: "Shell. Writes the named files to standard output."
+        text: "cat, run inside the container. It writes the named files to standard output."
       - token: "/var/local-path-provisioner/pvc-c57f4df6-f5d7-478f-af6e-e91cb3b65c45_k8s-from-zero_keep-me/keep.txt"
         text: "A path in this command: /var/local-path-provisioner/pvc-c57f4df6-f5d7-478f-af6e-e91cb3b65c45_k8s-from-zero_keep-me/keep.txt."
 ```

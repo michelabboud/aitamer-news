@@ -591,7 +591,7 @@ spec:
 - `ttlSecondsAfterFinished` and history limits keep finished work from piling up.
 - A CronJob creates a Job per schedule tick; set `timeZone`, pick a `concurrencyPolicy`, and test with `--from=cronjob/`.
 
-Next: Kubernetes from Zero, part 16, init and sidecar containers, coming tomorrow.
+Next: Kubernetes from Zero, part 16, init containers, sidecars and debugging a Pod with no shell, coming tomorrow.
 
 *Command explanations and quoted passages in this lesson come from or adapt the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/) and the [Kubernetes documentation](https://kubernetes.io/docs/), © The Kubernetes Authors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). We shortened and edited some passages. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by The Linux Foundation or the CNCF.*
 
@@ -884,7 +884,7 @@ items:
       - token: "job-name=batch"
         text: "The label query passed to --selector: job-name=batch."
       - token: "--tail=1"
-        text: "How many recent log lines to print. This command passes 1, one heartbeat per Pod."
+        text: "How many recent log lines to print. This command passes 1: each Job Pod's item line."
       - token: "|"
         text: "Shell. Sends the previous command's standard output to the next command."
       - token: "sort"
@@ -920,7 +920,7 @@ items:
       - token: "--type=merge"
         text: "Use a JSON merge patch. The lesson uses it to set ttlSecondsAfterFinished on the finished Job."
       - token: "-p"
-        text: "Short form of a patch flag. The next argument is the JSON patch."
+        text: "Short form of --patch. The patch to apply, written here as JSON."
       - token: "'{\"spec\":{\"ttlSecondsAfterFinished\":5}}'"
         text: "The patch document. The lesson passes a JSON object that changes one field."
       - token: "sleep"
@@ -1100,7 +1100,7 @@ items:
       - token: "wait"
         text: "Wait for a condition on one or more resources."
       - token: "--for=condition=complete"
-        text: "The condition to wait for. The lesson waits for complete on the batch Job and failed on the flaky Job."
+        text: "The condition to wait for. Here kubectl waits until the Job report-now is complete."
       - token: "job/report-now"
         text: "The resource written as type/name: job/report-now."
       - token: "--timeout=60s"
@@ -1120,7 +1120,7 @@ items:
       - token: "report"
         text: "The object name."
       - token: "-p"
-        text: "Short form of a patch flag. The next argument is the JSON patch."
+        text: "Short form of --patch. The patch to apply, written here as JSON."
       - token: "'{\"spec\":{\"suspend\":true}}'"
         text: "The patch document. The lesson passes a JSON object that changes one field."
       - token: "kubectl"
