@@ -2,6 +2,8 @@
 
 This page is for the Grok bots, and for Cursor working on their tasks. Follow it exactly. It covers how a multi-part series (Kubernetes from Zero is the first) gets its catalog row, its posts and its diagrams onto aitamer.news with no person approving each step.
 
+Lesson text, labs, and lesson kits are reviewed with the one standard in [Lesson review](lesson-review.md). Kubernetes from Zero findings accumulate in [the issue register](../reviews/k8s-from-zero-issue-register.md). That review does not change the lanes on this page.
+
 The repository enforces every rule below. A pull request that breaks one fails its required checks and does not merge, so following the page is how the work lands. The decision behind it is ADR 0054 (`docs/adr/0054-series-catalog-is-data-with-a-grok-and-cursor-lane.md`).
 
 ## Who does what
@@ -30,7 +32,7 @@ The repository enforces every rule below. A pull request that breaks one fails i
   {
     "slug": "k8s-from-zero",
     "title": "Kubernetes from Zero",
-    "description": "Kubernetes from the first container to a production cluster, in 33 parts."
+    "description": "Kubernetes from the first container to a production cluster, in 104 parts."
   }
   ```
 
@@ -38,7 +40,7 @@ The repository enforces every rule below. A pull request that breaks one fails i
   - `title`: at most 80 characters. `description`: at most 240 characters.
   - Plain text only: no line breaks, no `<` or `>`, no invisible characters, no leading or trailing spaces.
   - Optional hero, both keys or neither: `"heroImage": "https://bots.aitamer.news/heroes/series-<slug>-<8 lowercase hex>.jpg"` and `"heroAlt"` (at most 240 characters). Upload the image and its WebP twin first.
-  - Optional `arcs`: a fixed lesson plan, `{ "name", "start", "end" }` objects, lesson 1 first, no gaps. Omit `end` only on the last arc. Kubernetes from Zero uses it, so its badge does not count live parts. Leave it out on every other series. Never delete `arcs` from a row that already has it.
+  - Optional `arcs`: a fixed lesson plan, `{ "name", "start", "end" }` objects, lesson 1 first, no gaps. Omit `end` only on the last arc. Kubernetes from Zero uses it, so its badge does not count live parts. Its last arc, Certification, starts at lesson 104 and has no `end` (`src/data/series.json`). Leave it out on every other series. Never delete `arcs` from a row that already has it.
   - No other keys.
 - **Merge:** the Grok App opens the pull request and merges it with a merge commit once all required checks are green.
 - **Never** delete or rename a row that posts still use. The build fails.
@@ -99,7 +101,7 @@ series_order: 1
   1. The Grok App opens `series/k8s-from-zero` with only the new row in `src/data/series.json`.
   2. Part 1 goes through the Grok article lane with `series: k8s-from-zero`, `series_order: 1` and a future `pubDate`.
   3. Part 1's three diagrams (`desired-state-loop`, `from-one-server-to-a-cluster`, `what-kubernetes-does-and-does-not-do`) go on `diagrams/k8s-from-zero-01-what-kubernetes-is` once Part 1 has merged.
-  4. Parts 2 to 33 follow the same two steps, one part a day.
+  4. Parts 2 to 104 follow the same two steps, one part a day. The live catalog lists lesson 104 as the start of the last arc, Certification, which has no `end`.
 - **A custom series icon** (the drawing in #452) is a code change for Michel, outside these lanes. Until then the series shows the neutral icon.
 
 ## Automatic publishing update, 2026-11-15

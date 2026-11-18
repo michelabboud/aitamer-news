@@ -2,6 +2,8 @@
 
 A lesson can offer a cheat sheet, homework, an answer key, and a zip of lab files. The PDFs are built from HTML templates with headless Chrome and are not part of `npm run build`.
 
+A lesson review checks that those PDFs match the lesson text and that each QR code decodes. The standard is [Lesson review](lesson-review.md). Kubernetes from Zero findings accumulate in [the issue register](../reviews/k8s-from-zero-issue-register.md).
+
 Art Desk owns the templates and the sample for Kubernetes from Zero, lesson 2. The builder and the template notes are in [`scripts/lessonkit/README.md`](../../scripts/lessonkit/README.md).
 
 ## Layout
