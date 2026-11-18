@@ -1,0 +1,256 @@
+{
+  "$comment": "Lesson-kit content for Lesson 15. Every fact and command is copied from the lesson draft. The post is prepared on a separate branch.",
+  "slug": "k8s-15",
+  "campaign": "k8s-15",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 15,
+    "title": "Kubernetes from Zero, part 15: DaemonSets, Jobs and CronJobs",
+    "shortTitle": "DaemonSets, Jobs and CronJobs",
+    "description": "Run one Pod per node with a DaemonSet, run work to completion with Jobs, retries and parallelism, and schedule it with CronJobs, all tested on kind.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-15-daemonsets-jobs-cronjobs/",
+    "source": "src/content/posts/k8s-from-zero-15-daemonsets-jobs-cronjobs.md",
+    "tested": "Every command ran on a three-node kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "k8s-ep13",
+    "rule": "A DaemonSet keeps one Pod on each matching node. A Job runs Pods until enough succeed or retries run out. A CronJob creates Jobs on a schedule."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-15.jpg",
+    "alt": "Three slate-blue paper lighthouses stand on three cream paper islands under a blank clock face with one coral hand, while a rowboat carries a crate and a ship's wheel lies on the nearest shore.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next lesson",
+    "summary": "The next lesson in Kubernetes from Zero.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "One Pod per node, work that finishes, and the commands from Lesson 15.",
+    "boards": [
+      {
+        "title": "Three controllers",
+        "hint": "from the recap",
+        "headName": "Controller",
+        "headRole": "What the lesson says",
+        "headWhere": "The field to remember",
+        "rows": [
+          {
+            "name": "DaemonSet",
+            "role": "One Pod on every qualifying node. There is no replicas field. DESIRED is that node count.",
+            "where": "taints and a node selector"
+          },
+          {
+            "name": "Job",
+            "role": "Runs Pods until enough succeed, or retries run out. Failed Pods stay when restartPolicy is Never.",
+            "where": "completions and parallelism"
+          },
+          {
+            "name": "Indexed Job",
+            "role": "Each Pod gets an index from 0. The hostname is the Job name plus the index.",
+            "where": "JOB_COMPLETION_INDEX"
+          },
+          {
+            "name": "CronJob",
+            "role": "Creates a Job on a five-field schedule. Set timeZone or the controller manager's zone is used.",
+            "where": "concurrencyPolicy"
+          }
+        ]
+      },
+      {
+        "title": "Defaults the lab used",
+        "hint": "as the lesson states them",
+        "headName": "Field",
+        "headRole": "What the lesson says",
+        "headWhere": "Default",
+        "rows": [
+          {
+            "name": "completions",
+            "role": "How many Pods must succeed. The batch Job set this to 6.",
+            "where": "1"
+          },
+          {
+            "name": "parallelism",
+            "role": "How many Pods may run at once. The batch Job set this to 2.",
+            "where": "1"
+          },
+          {
+            "name": "backoffLimit",
+            "role": "Retries before the Job is Failed. Delay starts at 10s and doubles, capped at ten minutes.",
+            "where": "6"
+          },
+          {
+            "name": "restartPolicy",
+            "role": "Never or OnFailure. Never keeps each failed Pod so you can read its logs.",
+            "where": "Never while debugging"
+          },
+          {
+            "name": "TTL",
+            "role": "ttlSecondsAfterFinished deletes the finished Job and its Pods. Stable since v1.23.",
+            "where": "unset means they stay"
+          },
+          {
+            "name": "History",
+            "role": "The report CronJob kept 2 successful Jobs and 1 failed Job.",
+            "where": "successfulJobsHistoryLimit"
+          },
+          {
+            "name": "Overlap",
+            "role": "Forbid skips a tick while a Job is still running. Replace stops the old one. Allow overlaps.",
+            "where": "Allow"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "on the three-node kind cluster k8s-ep13",
+      "items": [
+        {
+          "who": "DaemonSet",
+          "what": "node-agent was DESIRED 2 until a toleration for node-role.kubernetes.io/control-plane:NoSchedule was added. DESIRED then became 3."
+        },
+        {
+          "who": "Indexed Job",
+          "what": "batch finished 6/6 in 18 seconds, two Pods at a time. completedIndexes was 0-5."
+        },
+        {
+          "who": "Retries",
+          "what": "flaky used backoffLimit 2, failed three times, and ended Failed with reason BackoffLimitExceeded."
+        },
+        {
+          "who": "CronJob",
+          "what": "report ran every minute in Etc/UTC. kubectl create job --from=cronjob/report runs the template now. suspend: true pauses new Jobs."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "DaemonSets",
+        "commands": [
+          {
+            "cmd": "kubectl get daemonsets -A",
+            "note": "DESIRED is the number of qualifying nodes"
+          },
+          {
+            "cmd": "kubectl describe node k8s-ep13-control-plane | grep Taints",
+            "note": "control-plane:NoSchedule on kind"
+          },
+          {
+            "cmd": "kubectl rollout status daemonset/node-agent",
+            "note": "rolls one node at a time"
+          }
+        ]
+      },
+      {
+        "title": "Jobs",
+        "commands": [
+          {
+            "cmd": "kubectl wait --for=condition=complete job/batch --timeout=120s",
+            "note": "or condition=failed"
+          },
+          {
+            "cmd": "kubectl logs -l job-name=batch",
+            "note": "the Job adds the job-name label"
+          },
+          {
+            "cmd": "kubectl get job batch -o jsonpath='{.status.completedIndexes}'",
+            "note": "Indexed mode records the indexes"
+          }
+        ]
+      },
+      {
+        "title": "CronJobs",
+        "commands": [
+          {
+            "cmd": "kubectl create job report-now --from=cronjob/report",
+            "note": "runs the template without waiting"
+          },
+          {
+            "cmd": "kubectl patch cronjob report -p '{\"spec\":{\"suspend\":true}}'",
+            "note": "running Jobs continue"
+          },
+          {
+            "cmd": "kubectl get events --field-selector involvedObject.kind=CronJob",
+            "note": "history limits show up as deletes"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the three-node kind cluster from part 3 and the namespace k8s-from-zero. The lesson's cluster is k8s-ep13, with one control plane and two workers. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What sets the number of Pods in a DaemonSet, and why was DESIRED 2 on the three-node cluster?",
+            "a": "There is no replicas field. DESIRED is the number of nodes that qualify. The control plane is tainted node-role.kubernetes.io/control-plane:NoSchedule, so the agent stayed off it until the template tolerated that taint.",
+            "lines": 3
+          },
+          {
+            "q": "What do completions, parallelism and Indexed mode each do?",
+            "a": "completions is how many Pods must succeed (default 1). parallelism is how many may run at once (default 1). Indexed mode gives each Pod an index from 0 in JOB_COMPLETION_INDEX, and the hostname is the Job name plus that index.",
+            "lines": 3
+          },
+          {
+            "q": "What does timeZone change, and what does concurrencyPolicy Forbid do?",
+            "a": "timeZone is an IANA name such as Etc/UTC. Without it, the schedule follows the kube-controller-manager's zone. Forbid does not start a new Job while one from this CronJob is still running. The default policy is Allow.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Apply the node-agent DaemonSet and run kubectl get daemonset node-agent. What does DESIRED mean here?",
+            "a": "In the lab it was 2: the two workers. The control plane did not qualify until the toleration was patched in, and DESIRED then became 3.",
+            "lines": 2
+          },
+          {
+            "q": "Wait for job/batch with --for=condition=complete. What did the lesson record for completions, duration and indexes?",
+            "a": "Complete, 6/6, 18 seconds. completedIndexes was 0-5 and succeeded was 6. The logs were item 0 through item 5, each on a Pod named batch-N.",
+            "lines": 2
+          },
+          {
+            "q": "Run kubectl create job report-now --from=cronjob/report. What is that command for?",
+            "a": "It creates a Job from the CronJob template immediately, so you can test the template without waiting for the schedule.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "A DaemonSet shows fewer Pods than you have nodes. What does the lesson tell you to check?",
+            "a": "Look at DESIRED and at the missing node's taints with kubectl describe node. Add a toleration only for nodes the agent should run on, or fix the node selector.",
+            "lines": 2
+          },
+          {
+            "q": "A Job is Failed with reason BackoffLimitExceeded, and restartPolicy is Never. Can you still read the logs, and will this Job try again?",
+            "a": "The failed Pods stay, so kubectl logs on each one still works. The retries are spent. Fix the command and create the Job again. A failed Job does not restart.",
+            "lines": 3
+          },
+          {
+            "q": "A CronJob fires at the wrong hour, or stops creating Jobs after the controller was down. What does the lesson name?",
+            "a": "A missing timeZone follows the controller manager's zone. More than 100 missed schedules makes the controller give up with too many missed start times. Set startingDeadlineSeconds. Overlapping runs are the default Allow; use Forbid or Replace when runs must not overlap.",
+            "lines": 3
+          }
+        ]
+      }
+    ]
+  }
+}
