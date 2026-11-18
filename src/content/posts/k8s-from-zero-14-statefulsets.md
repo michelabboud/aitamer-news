@@ -64,7 +64,7 @@ Use a StatefulSet for databases, queues and clustered systems where members know
 
 ## One claim per Pod, kept on purpose
 
-In part 13 you wrote the claim yourself. Here you write a template and the controller makes the claims. The important rule, in the docs' words: deleting or scaling down a StatefulSet will not delete the volumes associated with it. Data is treated as more valuable than tidiness.
+In part 13 you wrote the claim yourself. Here you write a template and the controller makes the claims. The important rule, in the docs' words: "Deleting and/or scaling a StatefulSet down will not delete the volumes associated with the StatefulSet." Data is treated as more valuable than tidiness.
 
 ![One volumeClaimTemplate named www makes the claims www-web-0, www-web-1 and www-web-2, each bound to its own volume. After scaling to one replica, only web-0 runs, yet all three claims are still Bound, highlighted. A panel explains persistentVolumeClaimRetentionPolicy with Retain as the default.](/diagrams/k8s-from-zero-14-statefulsets/volumeclaimtemplate-per-pod.svg)
 

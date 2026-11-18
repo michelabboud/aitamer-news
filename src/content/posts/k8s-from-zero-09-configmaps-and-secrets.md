@@ -66,7 +66,7 @@ Environment variables are set when a container starts and never again. The [Conf
 
 Mounted files behave differently. The kubelet (part 2) refreshes ConfigMap volumes on its periodic sync, so a changed value shows up in the file after a delay. The docs put that delay at up to the kubelet sync period plus the cache propagation delay; in our lab it was about a minute. Two exceptions: a file mounted with `subPath` never receives updates, and your app only sees a new file if it reads the file again.
 
-![A timeline of our lab after applying a new ConfigMap. The volume file changed after about 58 seconds. The environment variable, highlighted, stayed blue until a rollout restart. A subPath file kept its old content until the Pod was recreated.](/diagrams/k8s-from-zero-09-configmaps-and-secrets/volume-update-vs-env-restart.svg)
+![A timeline of our lab after applying a new ConfigMap. The volume file changed after about 58 seconds. The environment variable, highlighted, stayed blue until a rollout restart. A subPath file still had its old content 75 seconds after the ConfigMap was set back; only a recreated Pod reads the change.](/diagrams/k8s-from-zero-09-configmaps-and-secrets/volume-update-vs-env-restart.svg)
 
 If your app reads its settings only at start, plan on a `kubectl rollout restart` after each ConfigMap change, or give each version its own ConfigMap name and change the reference in the Deployment, which triggers a normal rollout (part 7).
 
@@ -74,7 +74,7 @@ If your app reads its settings only at start, plan on a `kubectl rollout restart
 
 A Secret looks almost the same: a namespaced object with a `data` map, also limited to 1 MiB. The differences are in handling. Values in `data` are base64-encoded. For convenience you can write plain text under `stringData` and the API server encodes it for you. Secrets have a `type`: `Opaque` for your own keys, and built-in types such as `kubernetes.io/dockerconfigjson` for registry logins or `kubernetes.io/tls` for certificates.
 
-**base64 is not encryption.** It is a reversible encoding with no key. The [Secrets page](https://kubernetes.io/docs/concepts/configuration/secret/) carries a caution that Secrets are, by default, stored unencrypted in etcd, that anyone with API access can read or change them, and that anyone allowed to create a Pod in a namespace can read every Secret in that namespace by mounting it.
+**base64 is not encryption.** It is a reversible encoding with no key. The [Secrets page](https://kubernetes.io/docs/concepts/configuration/secret/) carries a caution that Secrets are, by default, stored unencrypted in etcd, that anyone with API access can read or change them, and that anyone allowed to create a Pod in a namespace can read any Secret in that namespace, including indirectly, for example by creating a Deployment.
 
 ![The password s3cr3t-Pa55 encodes to czNjcjN0LVBhNTU= and decodes straight back with base64 -d, with a highlighted note that no key is involved. Panels list who can read a Secret on a default cluster and the protections later episodes add: RBAC, encryption at rest and external secret stores.](/diagrams/k8s-from-zero-09-configmaps-and-secrets/secret-is-only-encoded.svg)
 
@@ -524,7 +524,7 @@ kubectl delete -f subpath.yaml -f db-client.yaml -f app.yaml -f secret.yaml -f f
 | ConfigMap from a file | `kubectl create configmap app --from-file=app.properties` | key = file name |
 | One key as a variable | `env[].valueFrom.configMapKeyRef` | name the variable yourself |
 | All keys as variables | `envFrom[].configMapRef`, `prefix` | imports file keys too |
-| Keys as files | `volumes[].configMap` + `volumeMounts` | updates after about a minute |
+| Keys as files | `volumes[].configMap` + `volumeMounts` | updates after a delay (about a minute in our lab) |
 | Single file mount | `subPath:` | never updated in a running Pod |
 | Pick up variable changes | `kubectl rollout restart deployment/app` | new Pods read new values |
 | Secret from literals | `kubectl create secret generic db --from-literal=password=...` | no annotation with the value |
@@ -533,7 +533,7 @@ kubectl delete -f subpath.yaml -f db-client.yaml -f app.yaml -f secret.yaml -f f
 | Secret as files | `volumes[].secret.secretName`, `defaultMode: 0400` | tmpfs on the node |
 | Lock it | `immutable: true` | delete and recreate to change |
 | Size limit | 1 MiB per ConfigMap or Secret | use volumes for more |
-| Same namespace only | Pod and ConfigMap or Secret | otherwise `CreateContainerConfigError` |
+| Same namespace only | Pod and ConfigMap or Secret | otherwise the container does not start (`CreateContainerConfigError` for an env reference) |
 
 ```yaml
 apiVersion: v1
@@ -707,9 +707,9 @@ items:
       - token: "diff"
         text: "Compares inputs line by line."
       - token: "app-config.yaml"
-        text: "Compares inputs line by line."
+        text: "The first file diff compares (from-file): the original ConfigMap manifest."
       - token: "app-config-v2.yaml"
-        text: "Compares inputs line by line."
+        text: "The second file diff compares (to-file): the copy with APP_COLOR green and greeting=hi."
 ```
 
 ```rail
@@ -771,11 +771,11 @@ items:
       - token: "--"
         text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
       - token: "sh"
-        text: "An argument of the command inside the container: sh."
+        text: "The program kubectl exec runs inside the container: sh, the shell in busybox:1.37."
       - token: "-c"
         text: "A flag of the command inside the container: -c. sh -c runs the next argument as a shell command."
       - token: "'echo $APP_COLOR'"
-        text: "An argument of the command inside the container: 'echo $APP_COLOR'."
+        text: "The command string sh -c reads. The single quotes stop your own shell from expanding $APP_COLOR, so the shell in the container expands it and prints the value the container started with."
 ```
 
 ```rail
@@ -811,11 +811,11 @@ items:
       - token: "--"
         text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
       - token: "sh"
-        text: "An argument of the command inside the container: sh."
+        text: "The program kubectl exec runs inside the container: sh, the shell in busybox:1.37."
       - token: "-c"
         text: "A flag of the command inside the container: -c. sh -c runs the next argument as a shell command."
       - token: "'echo $APP_COLOR'"
-        text: "An argument of the command inside the container: 'echo $APP_COLOR'."
+        text: "The command string sh -c reads. The single quotes stop your own shell from expanding $APP_COLOR, so the shell in the container expands it and prints the value the container started with."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "logs"
@@ -1017,7 +1017,7 @@ items:
       - token: "echo"
         text: "Shell. Writes its arguments to standard output, then a newline."
       - token: "\"(no annotations)\""
-        text: "A quoted argument in this command."
+        text: "The text echo prints right after the jsonpath result. echo prints it every time; the point is that nothing comes before it, because the Secret has no annotations."
 ```
 
 ```rail
@@ -1043,11 +1043,11 @@ items:
       - token: "--"
         text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
       - token: "sh"
-        text: "An argument of the command inside the container: sh."
+        text: "The program kubectl exec runs inside the container: sh, the shell in busybox:1.37."
       - token: "-c"
         text: "A flag of the command inside the container: -c. sh -c runs the next argument as a shell command."
       - token: "'echo user=$DB_USER; ls -lL /etc/db; cat /etc/db/password; echo'"
-        text: "An argument of the command inside the container: 'echo user=$DB_USER; ls -lL /etc/db; cat /etc/db/password; echo'."
+        text: "The command string sh -c reads. Inside the container it prints DB_USER, lists /etc/db with ls -lL (long format, showing the files the key symlinks point to), prints the password file, then a newline. The single quotes keep $DB_USER for the container's shell."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "exec"
@@ -1057,11 +1057,11 @@ items:
       - token: "--"
         text: "Ends kubectl's flags. The exec examples say to use two dashes so the command's own flags are read as that command's flags."
       - token: "sh"
-        text: "An argument of the command inside the container: sh."
+        text: "The program kubectl exec runs inside the container: sh, the shell in busybox:1.37."
       - token: "-c"
         text: "A flag of the command inside the container: -c. sh -c runs the next argument as a shell command."
       - token: "'mount | grep /etc/db'"
-        text: "An argument of the command inside the container: 'mount | grep /etc/db'."
+        text: "The command string sh -c reads. Inside the container it lists the mounts and keeps the line for /etc/db, which shows a tmpfs."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "describe"
@@ -1075,7 +1075,7 @@ items:
       - token: "grep"
         text: "Shell. Prints input lines that match a pattern."
       - token: "-A3"
-        text: "An argument of this command: -A3."
+        text: "grep's -A NUM: print NUM lines of trailing context after each matching line, here the 3 lines after Environment:."
       - token: "\"Environment:\""
         text: "The pattern grep looks for."
 ```
@@ -1105,7 +1105,7 @@ items:
       - token: "-p"
         text: "Short form of --patch. The patch to be applied to the resource JSON file. The patch examples pass it as JSON."
       - token: "'{\"data\":{\"NEW_CHECKOUT\":\"on\"}}'"
-        text: "A quoted argument in this command."
+        text: "The patch, in single quotes. No --type is given, so kubectl uses the default strategic merge patch. It tries to set NEW_CHECKOUT to on, and the API refuses because the ConfigMap is immutable."
       - token: "kubectl"
         text: "The Kubernetes command-line client. Subcommands and flags are documented under kubernetes.io/docs/reference/kubectl/."
       - token: "patch"
@@ -1117,7 +1117,7 @@ items:
       - token: "-p"
         text: "Short form of --patch. The patch to be applied to the resource JSON file. The patch examples pass it as JSON."
       - token: "'{\"immutable\":false}'"
-        text: "A quoted argument in this command."
+        text: "The patch, in single quotes, with the default strategic merge type. It tries to turn immutable off, and the API refuses: the docs say marking a ConfigMap immutable cannot be reverted."
 ```
 
 ```rail

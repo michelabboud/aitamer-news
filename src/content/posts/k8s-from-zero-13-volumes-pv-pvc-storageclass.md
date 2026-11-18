@@ -26,6 +26,8 @@ verdict: "A Pod asks for storage with a PersistentVolumeClaim; a StorageClass ma
 sources:
   - title: "Volumes (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/storage/volumes/
+  - title: "Volume types (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/reference/storage/volume-types/
   - title: "Persistent Volumes (Kubernetes documentation)"
     url: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
   - title: "Storage Classes (Kubernetes documentation)"
@@ -70,7 +72,7 @@ A control loop matches each new claim to a volume and **binds** them. The bindin
 
 Someone has to make the PVs. An administrator can create them ahead of time (**static** provisioning), or the cluster can create one on demand for each claim (**dynamic** provisioning). Dynamic provisioning is driven by a **StorageClass**, a cluster-scoped object that names a **provisioner** (the program that creates real storage) and a few policies. The [storage classes page](https://kubernetes.io/docs/concepts/storage/storage-classes/) describes the fields you will see in the lab:
 
-- `provisioner`: who creates the volume. On cloud clusters this is a **CSI** driver. CSI, the Container Storage Interface, is the standard plug-in API that lets storage vendors ship drivers outside the Kubernetes code. The volumes page notes that in Kubernetes 1.37, operations for several older built-in volume types, such as `gcePersistentDisk` and Portworx, are redirected to their CSI drivers.
+- `provisioner`: who creates the volume. On cloud clusters this is a **CSI** driver. CSI, the Container Storage Interface, is the standard plug-in API that lets storage vendors ship drivers outside the Kubernetes code. The [volume types reference](https://kubernetes.io/docs/reference/storage/volume-types/) notes that Kubernetes 1.37 no longer includes the in-tree drivers for several older volume types, and that it redirects some of them, such as `gcePersistentDisk` and Portworx, to their CSI drivers.
 - `reclaimPolicy`: `Delete` or `Retain`, copied onto each volume it creates. If unset, it defaults to `Delete`.
 - `volumeBindingMode`: `Immediate` (the default) creates and binds the volume as soon as the claim exists. `WaitForFirstConsumer` waits until a Pod uses the claim, so the volume is created where the Pod is scheduled. The docs explain why: storage that is not reachable from every node can otherwise end up on the wrong node and leave the Pod unschedulable.
 - `allowVolumeExpansion`: whether a claim may grow later.

@@ -86,7 +86,7 @@ A **CronJob** creates a Job at each tick of a schedule, like a line in a Unix cr
 - `jobTemplate`: a full Job spec, nested.
 - `concurrencyPolicy`: what to do when a run is due and the last one is still going. `Allow` (the default) lets them overlap, `Forbid` skips the new run, and `Replace` stops the running Job and starts the new one.
 - `successfulJobsHistoryLimit` and `failedJobsHistoryLimit`: how many finished Jobs to keep. Defaults 3 and 1.
-- `startingDeadlineSeconds`: how late a missed run may still start. The docs warn that if the controller finds more than 100 missed schedules, it stops starting Jobs and logs an error, so set this on CronJobs that might be suspended or down for a while.
+- `startingDeadlineSeconds`: how late a missed run may still start. The docs say that if the controller counts more than 100 missed schedules, it records a `TooManyMissedTimes` warning event, starts one Job for the most recent missed schedule, and never starts the earlier ones. Set this on CronJobs that might be suspended or down for a while.
 - `suspend: true` pauses future runs without touching a run in progress.
 
 The CronJob's own name is limited to 52 characters because the controller appends 11 characters to name each Job.
@@ -536,7 +536,7 @@ Deleting the CronJob also removed its Jobs, including `report-now`, which `--fro
 - **A Job keeps failing and you cannot see why.** With `restartPolicy: Never` the failed Pods stay: `kubectl logs <pod>` on each. When the Job shows `BackoffLimitExceeded`, the retries are spent; fix the command and create the Job again, because a failed Job does not restart.
 - **Finished Jobs pile up.** Finished Jobs and their Pods stay in the API until something deletes them; the cleanup page says that is on purpose, so you can see whether they succeeded. Set `ttlSecondsAfterFinished` on Jobs you create by hand and keep CronJob history limits small.
 - **A CronJob fires at the wrong hour.** Without `timeZone`, the schedule follows the controller manager's zone. Set `timeZone` explicitly.
-- **A CronJob stops starting Jobs after an outage.** More than 100 missed schedules makes the controller give up with "too many missed start times". Set `startingDeadlineSeconds`.
+- **A CronJob skips runs after an outage.** Missed runs are not replayed one by one. With more than 100 missed schedules the controller records a `TooManyMissedTimes` warning ("too many missed start times") and starts only the most recent missed run. Set `startingDeadlineSeconds`.
 - **Runs overlap and fight over the same data.** The default `Allow` lets a slow run and the next run overlap. Use `Forbid` or `Replace`.
 
 ## Cheat sheet
