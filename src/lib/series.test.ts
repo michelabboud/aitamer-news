@@ -6,12 +6,19 @@ import { SERIES } from '../data/series.ts';
 import { postFrontmatterJsonSchema, postSchema } from '../content/post-schema.ts';
 import { readFrontmatter } from '../../scripts/frontmatter.mjs';
 import {
+  seriesActivity,
   seriesHero,
+  seriesIndexViews,
+  seriesIsCourse,
   seriesLabel,
+  seriesLatestPart,
+  seriesListedParts,
+  seriesPartActivity,
   seriesPartKicker,
   seriesPlacements,
   seriesProblems,
   seriesSitemapDates,
+  seriesStartPart,
   seriesViews,
   seriesViewCacheMark,
   seriesCacheMark,
@@ -233,6 +240,14 @@ function loadPosts(): SeriesPost[] {
     if (fm === null) throw new Error(`${name} has no frontmatter`);
     const data = fm.data as Record<string, unknown>;
     const pubDate = data.pubDate instanceof Date ? data.pubDate : new Date(String(data.pubDate));
+    const updated = data.updatedDate instanceof Date ? data.updatedDate : data.updatedDate ? new Date(String(data.updatedDate)) : undefined;
+    const corrections = Array.isArray(data.corrections)
+      ? data.corrections.flatMap((item) => {
+          if (!item || typeof item !== 'object' || !('date' in item)) return [];
+          const date = item.date instanceof Date ? item.date : new Date(String(item.date));
+          return Number.isNaN(date.valueOf()) ? [] : [{ date }];
+        })
+      : undefined;
     return [{
       id: name.replace(/\.mdx?$/, ''),
       title: String(data.title ?? ''),
@@ -242,6 +257,8 @@ function loadPosts(): SeriesPost[] {
       withdrawn: Boolean(data.withdrawn),
       series: data.series,
       seriesOrder: data.series_order,
+      ...(updated ? { updatedDate: updated } : {}),
+      ...(corrections?.length ? { corrections } : {}),
     }];
   });
 }
@@ -303,11 +320,14 @@ test('published posts use known series, unique orders, and the episode order the
   assert.deepEqual(seriesProblems(posts, SERIES), []);
   const placements = seriesPlacements(posts, SERIES, now);
   const views = seriesViews(placements);
-  // The index lists catalog series in catalog order. A series may be in the catalog before any
-  // part is live (the row lands first, ADR 0054), so the views are the catalog minus those.
+  // Membership stays in catalog order. A series may be in the catalog before any part is live
+  // (the row lands first, ADR 0054), so the views are the catalog minus those.
   const catalogOrder = SERIES.map((meta) => meta.slug);
   const viewed = views.map((view) => view.slug);
   assert.deepEqual(viewed, catalogOrder.filter((slug) => viewed.includes(slug)));
+  const indexed = seriesIndexViews(placements).map((view) => view.slug);
+  const byLatest = [...views].sort((a, b) => seriesActivity(b).valueOf() - seriesActivity(a).valueOf() || viewed.indexOf(a.slug) - viewed.indexOf(b.slug));
+  assert.deepEqual(indexed, byLatest.map((view) => view.slug));
   for (const slug of Object.keys(EXPECTED)) assert.ok(viewed.includes(slug), `${slug} still has its live parts`);
   for (const view of views) {
     // Episodes already published keep their numbers; new ones may follow them. A series this
@@ -328,6 +348,71 @@ test('published posts use known series, unique orders, and the episode order the
       assert.ok(Number(post.seriesOrder) > EXPECTED[String(post.series)].length, `${post.id} takes a published episode's number`);
     } else if (post.series !== undefined) assert.ok(catalogOrder.includes(String(post.series)), post.id);
   }
+});
+
+test('the index leads with the newest lesson or update, and a tie keeps catalog order', () => {
+  const catalog = [
+    { slug: 'older', title: 'Older', description: 'First row.' },
+    { slug: 'newer', title: 'Newer', description: 'Second row.' },
+    { slug: 'tied', title: 'Tied', description: 'Third row.' },
+  ];
+  const posts = [
+    post('old-part', { series: 'older', seriesOrder: 1, pubDate: new Date('2026-10-02T00:00:00Z') }),
+    post('old-updated', {
+      series: 'older',
+      seriesOrder: 2,
+      pubDate: new Date('2026-09-01T00:00:00Z'),
+      updatedDate: new Date('2026-10-20T00:00:00Z'),
+    }),
+    post('new-part', { series: 'newer', seriesOrder: 1, pubDate: new Date('2026-11-01T00:00:00Z') }),
+    post('tied-a', { series: 'tied', seriesOrder: 1, pubDate: new Date('2026-10-20T00:00:00Z') }),
+    post('early-note', {
+      series: 'tied',
+      seriesOrder: 2,
+      pubDate: new Date('2026-10-20T00:00:00Z'),
+      updatedDate: new Date('2026-10-01T00:00:00Z'),
+      corrections: [{ date: new Date('2026-09-01T00:00:00Z') }],
+    }),
+  ];
+  const placements = seriesPlacements(posts, catalog, now);
+  assert.deepEqual(seriesViews(placements).map((view) => view.slug), ['older', 'newer', 'tied']);
+  assert.deepEqual(seriesIndexViews(placements).map((view) => view.slug), ['newer', 'older', 'tied']);
+  assert.equal(seriesPartActivity(posts[1]).toISOString(), '2026-10-20T00:00:00.000Z');
+  assert.equal(seriesActivity(placements.get('old-part')!.view).toISOString(), '2026-10-20T00:00:00.000Z');
+  assert.equal(seriesPartActivity(posts[4]).toISOString(), '2026-10-20T00:00:00.000Z');
+  const older = placements.get('old-part')!.view;
+  assert.equal(seriesIsCourse(older), false);
+  assert.deepEqual(seriesListedParts(older).map((part) => part.id), ['old-updated', 'old-part']);
+  assert.equal(seriesStartPart(older).id, 'old-part');
+  assert.equal(seriesLatestPart(older).id, 'old-updated');
+  const mark = seriesViewCacheMark(older);
+  older.parts.find((part) => part.id === 'old-updated').activity = new Date('2026-12-01T00:00:00Z');
+  assert.notEqual(seriesViewCacheMark(older), mark);
+});
+
+test('a course keeps numbered lessons and names the newest live lesson', () => {
+  const catalog = [{ slug: 'k8s-from-zero', title: 'Kubernetes from Zero', description: 'A path.', unit: 'lesson', arcs: K8S_ARCS }];
+  const posts = [
+    post('one', { series: 'k8s-from-zero', seriesOrder: 1, pubDate: new Date('2026-11-12T00:00:00Z'), title: 'Lesson 1' }),
+    post('six', { series: 'k8s-from-zero', seriesOrder: 6, pubDate: new Date('2026-11-17T00:00:00Z'), title: 'Lesson 6' }),
+    post('revised', {
+      series: 'k8s-from-zero',
+      seriesOrder: 3,
+      pubDate: new Date('2026-11-14T00:00:00Z'),
+      updatedDate: new Date('2026-11-18T00:00:00Z'),
+      title: 'Lesson 3',
+    }),
+  ];
+  const view = seriesPlacements(posts, catalog, new Date('2026-11-18T12:00:00Z')).get('one')!.view;
+  assert.equal(seriesIsCourse(view), true);
+  assert.deepEqual(seriesListedParts(view).map((part) => part.order), [1, 3, 6]);
+  assert.equal(seriesLatestPart(view).id, 'revised');
+  assert.equal(seriesStartPart(view).id, 'one');
+  const tied = seriesPlacements([
+    post('low', { series: 'k8s-from-zero', seriesOrder: 1, pubDate: new Date('2026-11-12T00:00:00Z') }),
+    post('high', { series: 'k8s-from-zero', seriesOrder: 2, pubDate: new Date('2026-11-12T00:00:00Z') }),
+  ], catalog, new Date('2026-11-18T12:00:00Z')).get('low')!.view;
+  assert.equal(seriesLatestPart(tied).id, 'high');
 });
 
 test('a series hero is omitted until it is an https URL, and a missing alt uses the title', () => {

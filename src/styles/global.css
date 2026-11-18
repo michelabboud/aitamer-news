@@ -568,7 +568,7 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 .series-index > li { display: grid; gap: 0.35rem 1.5rem; align-items: center; }
 .series-index > li:has(.series-index__photo) { grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); }
 .series-index__photo { display: block; }
-.series-index__photo img, .series-hero img, .series-part__photo img {
+.series-index__photo img, .series-hero img, .series-part__photo img, .series-latest__photo img {
   width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); background: var(--night-raised);
 }
 .series-hero { margin: 0 0 2.25rem; }
@@ -596,8 +596,9 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   gap: 1.5rem 2rem;
   align-items: start;
-  margin: 0 0 2.5rem;
+  margin: 0 0 2rem;
 }
+.series-intro:not(:has(.series-intro__photo)) { grid-template-columns: minmax(0, 1fr); }
 .series-intro__photo { margin: 0; }
 .series-intro__copy { min-width: 0; }
 .series-intro__label {
@@ -626,7 +627,30 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
   margin: 0 0 0.2rem;
 }
 .series-intro__facts dd { margin: 0; color: var(--bone); }
-.series-intro__start { margin: 1.25rem 0 0; }
+.series-intro__actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin: 1.1rem 0 0; }
+
+/* Course pages keep numbered lessons. This card points at the newest one. */
+.series-latest {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.15rem;
+  background: var(--night-raised);
+  border-left: 3px solid var(--ember);
+}
+.series-latest__kicker {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-machine);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ember-text);
+}
+.series-latest__card { display: grid; gap: 1rem; align-items: start; }
+.series-latest__card:has(.series-latest__photo) { grid-template-columns: 11rem minmax(0, 1fr); }
+.series-latest__photo, .series-latest__photo picture { display: block; }
+.series-latest__body { min-width: 0; }
+.series-latest__title { margin: 0; font-size: 1.65rem; line-height: 1.2; overflow-wrap: anywhere; }
+.series-latest__title a { color: var(--bone); text-decoration: none; }
+.series-latest__title a:hover, .series-latest__title a:focus-visible { color: var(--ember-text); }
 
 .lesson-kit {
   border: 1px solid var(--line);
@@ -788,6 +812,8 @@ p.writer-card__latest { font-weight: 400; color: var(--ink-soft); }
 .button--outline:hover { background: rgba(17, 21, 19, 0.1); color: var(--night); }
 .button--bone { background: var(--bone); color: var(--night); font-weight: 700; font-size: 0.9375rem; padding: 0 22px; border: 0; }
 .button--bone:hover { background: #fff; color: var(--night); }
+.button--line { background: transparent; color: var(--bone); border-color: var(--line-strong); }
+.button--line:hover { border-color: var(--bone); color: var(--bone); }
 
 /* ---------- Footer ---------- */
 
@@ -1161,6 +1187,7 @@ a.archive-month__name:hover { color: var(--ember-text); }
 
 @media (max-width: 720px) {
   .series-intro { grid-template-columns: 1fr; }
+  .series-latest__card:has(.series-latest__photo) { grid-template-columns: 5.5rem minmax(0, 1fr); }
   .series-part:has(.series-part__photo) { grid-template-columns: 5.5rem minmax(0, 1fr); }
   .series-nav { grid-template-columns: 1fr; }
   .series-nav a[rel="next"] { text-align: left; align-items: flex-start; }

@@ -1,8 +1,8 @@
 /**
  * Series a post can join. The rows live in `series.json` beside this file (ADR 0054): the slug is
  * what frontmatter `series` names; the title and description are what `/series/` and the part
- * badge show. Add a row there before a post uses the slug. The order of the rows is the order of
- * the index.
+ * badge show. Add a row there before a post uses the slug. Row order is the tie-break on
+ * `/series/` when two series share a latest lesson or update date.
  *
  * The JSON is data the Grok and Cursor Apps may change through the series lane; this module is the
  * code that reads it, and no App may change it. `parseSeriesCatalog` checks every row, so a broken

@@ -23,7 +23,7 @@ The repository enforces every rule below. A pull request that breaks one fails i
 ### Step 1: the series row
 
 - **Branch:** `series/<name>`, for example `series/k8s-from-zero`. Lowercase letters, digits and single hyphens, at most 64 characters. Never `grok/`.
-- **Change exactly one file:** `src/data/series.json`. Append the new row at the end (row order is the order on `/series/`), or edit an existing row. Never add, delete, rename or copy the file. Never touch `src/data/series.ts`, the icons, components or tests. A new series gets a neutral icon automatically.
+- **Change exactly one file:** `src/data/series.json`. Append the new row at the end, or edit an existing row. `/series/` lists series by the newest live lesson or update, and row order breaks a tie. Never add, delete, rename or copy the file. Never touch `src/data/series.ts`, the icons, components or tests. A new series gets a neutral icon automatically.
 - **The row:**
 
   ```json
