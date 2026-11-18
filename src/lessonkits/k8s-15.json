@@ -245,8 +245,8 @@
             "lines": 3
           },
           {
-            "q": "A CronJob fires at the wrong hour, or stops creating Jobs after the controller was down. What does the lesson name?",
-            "a": "A missing timeZone follows the controller manager's zone. More than 100 missed schedules makes the controller give up with too many missed start times. Set startingDeadlineSeconds. Overlapping runs are the default Allow; use Forbid or Replace when runs must not overlap.",
+            "q": "A CronJob fires at the wrong hour, or skips runs after the controller was down. What does the lesson name?",
+            "a": "A missing timeZone follows the controller manager's zone. After more than 100 missed schedules the controller records a TooManyMissedTimes warning and starts only the most recent missed run. Set startingDeadlineSeconds. Overlapping runs are the default Allow; use Forbid or Replace when runs must not overlap.",
             "lines": 3
           }
         ]

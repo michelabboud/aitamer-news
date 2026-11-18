@@ -11,7 +11,7 @@
     "url": "https://aitamer.news/posts/k8s-from-zero-09-configmaps-and-secrets/",
     "source": "src/content/posts/k8s-from-zero-09-configmaps-and-secrets.md",
     "tested": "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
-    "cluster": "kind, from part 3",
+    "cluster": "k8s-ep07",
     "rule": "Keep settings out of images. Variables are read once at start; mounted files update. A Secret is base64, so guard who can read it."
   },
   "series": {
@@ -55,7 +55,7 @@
           {
             "name": "Keys as files",
             "role": "`volumes[].configMap` plus `volumeMounts`.",
-            "where": "updates after about a minute"
+            "where": "updates after a delay (about a minute in the lab)"
           },
           {
             "name": "subPath",
@@ -115,8 +115,8 @@
             "note": "the key is the file name"
           },
           {
-            "cmd": "kubectl create secret generic db --from-literal=password=change-me",
-            "note": "no annotation with the value"
+            "cmd": "kubectl create secret generic db --from-literal=password=...",
+            "note": "put your value after password=; no annotation with the value"
           },
           {
             "cmd": "kubectl get secret db -o jsonpath='{.data.password}' | base64 -d",
@@ -139,7 +139,7 @@
         "exercises": [
           {
             "q": "Which ways of injecting a setting update a running container, and which stay fixed?",
-            "a": "Variables are fixed when the container starts. Volume files update after about a minute. A `subPath` mount never updates in a running Pod.",
+            "a": "Variables are fixed when the container starts. Volume files update after a delay (the kubelet sync period plus cache delay; about a minute in the lab). A `subPath` mount never updates in a running Pod.",
             "lines": 2
           },
           {
@@ -154,7 +154,7 @@
           },
           {
             "q": "What is the size limit, and what happens if the Pod and the ConfigMap are in different namespaces?",
-            "a": "1 MiB per ConfigMap or Secret. Use volumes for more. A reference in another namespace gives `CreateContainerConfigError`.",
+            "a": "1 MiB per ConfigMap or Secret. Use volumes for more. A Pod can only use objects in its own namespace; one that exists only elsewhere counts as missing, so the container does not start (`CreateContainerConfigError` for an env reference, as in the lesson).",
             "lines": 2
           }
         ]
@@ -165,7 +165,7 @@
         "exercises": [
           {
             "q": "Create a Secret with `--from-literal` and read `.data.password` through jsonpath and `base64 -d`. What do you get back?",
-            "a": "The original literal. Kubernetes encoded it. The cheat sheet says to let Kubernetes encode it, using `stringData` or `--from-literal`.",
+            "a": "The original literal. Kubernetes encoded it. The lesson's troubleshooting list says to let Kubernetes encode it, using `stringData` or `--from-literal`.",
             "lines": 2
           },
           {
