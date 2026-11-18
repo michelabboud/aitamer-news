@@ -1,16 +1,16 @@
 ---
-/** Every series that has at least one live part, in catalog order. */
+/** Every series that has at least one live part, newest lesson or update first. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import HeroImage from '../../components/HeroImage.astro';
 import SeriesIcon from '../../components/SeriesIcon.astro';
 import { toJsonLd } from '../../lib/json-ld';
 import { SITE_LANGUAGE } from '../../lib/structured-data.ts';
-import { seriesHero, seriesViews } from '../../lib/series.ts';
+import { seriesActivity, seriesHero, seriesIndexViews } from '../../lib/series.ts';
 import { assertSeriesCollection, placementsFor } from '../../lib/series-live.ts';
-import { SITE, canonicalUrlFor, getPublishedPosts, withBase } from '../../lib/site';
+import { SITE, canonicalUrlFor, formatDate, getPublishedPosts, withBase } from '../../lib/site';
 
 await assertSeriesCollection();
-const series = seriesViews(placementsFor(await getPublishedPosts()));
+const series = seriesIndexViews(placementsFor(await getPublishedPosts()));
 const url = canonicalUrlFor('/series/');
 ---
 <BaseLayout
@@ -39,7 +39,7 @@ const url = canonicalUrlFor('/series/');
   <header class="page-head">
     <p class="page-kicker">Series · {series.length}</p>
     <h1 class="page-title">Read it in order</h1>
-    <p class="lede">A series is a set of posts written to be read from the first part to the last. Each page lists the parts that are up.</p>
+    <p class="lede">A series is a set of posts written to be read from the first part to the last. This list leads with the series that has the newest lesson or update.</p>
   </header>
   {series.length === 0 ? (
     <p class="empty">No series is up yet.</p>
@@ -47,6 +47,7 @@ const url = canonicalUrlFor('/series/');
     <ul class="series-index">
       {series.map((item) => {
         const hero = seriesHero(item);
+        const latest = seriesActivity(item);
         return (
           <li>
             {hero && (
@@ -56,7 +57,7 @@ const url = canonicalUrlFor('/series/');
             )}
             <div class="series-index__body">
               <h2 class="series-index__title"><a href={withBase(item.href)}><SeriesIcon slug={item.slug} />{item.title}</a></h2>
-              <p class="series-index__meta">{item.parts.length} {item.parts.length === 1 ? 'part' : 'parts'}</p>
+              <p class="series-index__meta">{item.parts.length} {item.parts.length === 1 ? 'part' : 'parts'} · latest <time datetime={latest.toISOString()}>{formatDate(latest)}</time></p>
               <p class="series-index__desc">{item.description}</p>
             </div>
           </li>
