@@ -2,6 +2,7 @@
 title: "Prime Intellect's Model Factory puts RL, fine-tuning and inference on one platform"
 description: "Prime Intellect's Model Factory beta runs RL, SFT, pre-training and one-click endpoints for open-weight models, per GPU-hour or on dedicated clusters."
 pubDate: "2026-11-19T09:07:00Z"
+specimen: 1489
 section: models
 subsection: training
 tags:
