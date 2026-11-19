@@ -99,6 +99,15 @@ const finalDependencies = (overrides = {}) => ({ ...dependencies,
   }, ...overrides });
 const deployRun = (id = 200, overrides = {}) => ({ id, created_at:new Date(NOW+1000).toISOString(), head_sha:MERGE, head_branch:'main', path:'.github/workflows/deploy-pages.yml', event:'workflow_dispatch', repository:{full_name:REPO}, head_repository:{full_name:REPO}, status:'completed', conclusion:'success', ...overrides });
 
+test('baseline numbering title is a trusted main repair and not a producer request', () => {
+  const source='a'.repeat(40);
+  const parsed=requestOf({display_title:`Specimen baseline head=${source} recovery=0`});
+  assert.equal(parsed.baseline,true);
+  assert.equal(parsed.source,source);
+  assert.equal(parsed.recovery,0);
+  assert.equal(parsed.samePR,false);
+  assert.throws(()=>requestOf({display_title:'Specimen baseline head=short recovery=0'}));
+});
 test('durable run titles retain PR/source without API inputs and reject unsafe identifiers', () => {
   assert.deepEqual(requestOf(run()), {pr:7,source:SOURCE,recovery:0});
   for (const display_title of ['Specimen admission',`Specimen request pr=0 head=${SOURCE} recovery=0`,`Specimen request pr=7 head=${SOURCE} recovery=99999999999999999999`,`Specimen request pr=7 head=${SOURCE} recovery=0\nforged`]) assert.throws(()=>requestOf(run(10,{display_title})));

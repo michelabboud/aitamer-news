@@ -1,10 +1,10 @@
 /** Trusted-main admission orchestration. Never executes code from a submitted tree. */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { appendFileSync, writeFileSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CandidateAdmissionError, editorialDigest, planAdmission } from './specimen-admission-data.mjs';
+import { CandidateAdmissionError, editorialDigest, planAdmission, planBaselineNumbering } from './specimen-admission-data.mjs';
 import { inspectSpecimenChanges, verifyAdmissionProof, SPECIMEN_LEDGER } from './specimen-integrity.mjs';
 import { parseNameStatus, parseHeadModes, isGrokBranch, isQuillBranch, quillPostProblems } from './check-publisher-paths.mjs';
 import { readFrontmatter } from './frontmatter.mjs';
@@ -51,6 +51,7 @@ const MAX_NUMBERING_DESCENDANTS = 32;
 const RETRY_COOLDOWN_MS = 5 * 60 * 1000;
 const REQUEST_NAME = /^Specimen request pr=(\d+) head=([a-f0-9]{40}) recovery=(\d+)$/;
 const SINGLE_REQUEST_NAME = /^Specimen same-pr pr=(\d+) head=([a-f0-9]{40}) review=(\d+) recovery=(\d+)(?: wake=(\d+))?$/;
+const BASELINE_REQUEST_NAME = /^Specimen baseline head=([a-f0-9]{40}) recovery=(\d+)$/;
 const REVIEW_PATH = '.github/workflows/specimen-editorial-review.yml';
 const REVIEW_RECEIPT = /^Specimen review pr=(\d+) review=(\d+) action=(submitted|edited|dismissed) state=(approved|commented|changes_requested|dismissed) source=([a-f0-9]{40})$/i;
 const RETRY_MARKER = 'specimen-reconciliation:';
@@ -85,6 +86,12 @@ export function quillAdmissionProblems(plan,readPost=readFrontmatter) {
   return quillPostProblems({candidatePosts:plan.candidatePosts,existingPosts:plan.existingPosts,readPost});
 }
 export function requestOf(run) {
+  const baseline = BASELINE_REQUEST_NAME.exec(run.display_title ?? '');
+  if (baseline) {
+    const recovery = Number(baseline[2]);
+    if (!Number.isSafeInteger(recovery) || recovery < 0) throw new Error('invalid recovery run ID');
+    return { baseline: true, source: sha(baseline[1]), recovery, pr: null, review: 0, samePR: false };
+  }
   const single = SINGLE_REQUEST_NAME.exec(run.display_title ?? '');
   const match = single ?? REQUEST_NAME.exec(run.display_title ?? '');
   if (!match) throw new Error('run lacks durable admission request');
@@ -143,6 +150,10 @@ export async function approvedRequest(api, run, owner) {
   integer(owner);
   const seen = new Set();
   const latest = requestOf(run);
+  if (latest.baseline) {
+    if (latest.recovery !== 0) throw new Error('baseline numbering cannot recover');
+    return { ...latest, rootRun: run.id, approvedBase: sha(run.head_sha), bases: [sha(run.head_sha)] };
+  }
   const independent=latest.samePR && independentLanePR(await api.request(`/pulls/${latest.pr}`),api.repo);
   const bases = [];
   while (true) {
@@ -553,7 +564,49 @@ async function confirmNumberedHead(api, number, branch, previous, expected, paus
   }
   throw new Error('numbered source head not visible after bounded readback');
 }
+function readWorktreePosts(root = process.cwd()) {
+  const posts = new Map();
+  for (const name of readdirSync(join(root, 'src/content/posts'))) {
+    if (!name.endsWith('.md')) continue;
+    posts.set(name.slice(0, -3), readFileSync(join(root, 'src/content/posts', name), 'utf8'));
+  }
+  return { posts, ledgerText: readFileSync(join(root, SPECIMEN_LEDGER), 'utf8') };
+}
+export async function prepareBaseline(api, env) {
+  const base = sha(env.GITHUB_SHA);
+  if (env.GITHUB_REF !== 'refs/heads/main' || env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || ![integer(env.MAINTAINER_ID), ACTIONS_ACTOR].includes(integer(env.GITHUB_ACTOR_ID))) throw new Error('baseline numbering is trusted dispatch on main only');
+  if ((await api.request('/git/ref/heads/main')).object.sha !== base) throw new Error('main advanced; redispatch against current main');
+  const runId = integer(env.GITHUB_RUN_ID);
+  const activeRun = await api.request(`/actions/runs/${runId}`);
+  if (!trustedRun(activeRun, api.repo, integer(env.MAINTAINER_ID)) || activeRun.id !== runId || activeRun.head_sha !== base || activeRun.actor.id !== integer(env.GITHUB_ACTOR_ID)) throw new Error('baseline run identity mismatch');
+  const request = requestOf(activeRun);
+  if (!request.baseline || request.source !== base || request.recovery !== 0) throw new Error('baseline request does not match main');
+  const plan = planBaselineNumbering(readWorktreePosts());
+  if (!plan.repairs.length) throw new Error('baseline numbering found nothing to number');
+  const baseCommit = await api.request(`/git/commits/${base}`);
+  const tree = await api.request('/git/trees', 'POST', { base_tree: baseCommit.tree.sha, tree: [...plan.posts].map(([slug, content]) => ({ path: `src/content/posts/${slug}.md`, mode: '100644', type: 'blob', content })).concat([{ path: SPECIMEN_LEDGER, mode: '100644', type: 'blob', content: plan.ledgerText }]) });
+  const message = `Workflow baseline numbering of ${base} run ${runId}`;
+  const commit = await api.request('/git/commits', 'POST', { message, tree: sha(tree.sha), parents: [base] });
+  const branch = `specimens/baseline-${runId}`;
+  let generatedHead = sha(commit.sha);
+  try { await api.request('/git/refs', 'POST', { ref: `refs/heads/${branch}`, sha: generatedHead }); }
+  catch (error) {
+    if (error.status !== 422) throw error;
+    const existing = await api.request(`/git/ref/heads/${encodeURIComponent(branch)}`);
+    const old = await api.request(`/git/commits/${existing.object.sha}`);
+    if (old.tree.sha !== tree.sha || old.parents?.length !== 1 || old.parents[0].sha !== base || old.message !== message) throw new Error('baseline branch already has a different numbering');
+    generatedHead = sha(existing.object.sha);
+  }
+  const headRef = `${api.repo.split('/')[0]}:${branch}`;
+  const previous = await api.list(`/pulls?state=all&head=${encodeURIComponent(headRef)}`);
+  if (previous.length > 1) throw new Error('ambiguous baseline PR');
+  const created = previous[0] ?? await api.request('/pulls', 'POST', { title: 'Number posts that reached main without admission', head: branch, base: 'main', body: `Trusted baseline numbering of ${base}.\n\n${plan.repairs.map(repair => `${repair.to} ${repair.slug}`).join('\n')}` });
+  if (created.user?.id !== ALLOCATOR_ACTOR || created.head?.ref !== branch) throw new Error('baseline PR identity mismatch');
+  output('head', generatedHead); output('base', base); output('pr', created.number); output('source_pr', created.number); output('source_sha', base); output('observed_head', base); output('editorial_digest', plan.editorialDigest);
+  console.log(`Baseline numbering prepared on #${created.number} for ${plan.repairs.map(repair => repair.slug).join(', ')}.`);
+}
 export async function prepare(api, env, {collect=collectAdmission,fetchCommits=fetchObjects,verifyBase=mainHistory,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}) {
+  if (env.BASELINE === 'true') return prepareBaseline(api, env);
   const number = integer(env.PR_NUMBER); const source = sha(env.SOURCE_SHA); const base = sha(env.GITHUB_SHA);
   if (env.GITHUB_REF !== 'refs/heads/main' || env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || ![integer(env.MAINTAINER_ID), ACTIONS_ACTOR].includes(integer(env.GITHUB_ACTOR_ID))) throw new Error('admission is trusted dispatch on main only');
   if ((await api.request('/git/ref/heads/main')).object.sha !== base) throw new Error('main advanced; redispatch against current main');
@@ -611,8 +664,9 @@ export async function prepare(api, env, {collect=collectAdmission,fetchCommits=f
   output('head', generatedHead); output('base', base); output('pr', created.number); output('source_pr', number); output('source_sha', source); output('editorial_digest', plan.editorialDigest);
   console.log(`Admission prepared: source #${number}, generated #${created.number}; ${plan.repairs.length} numbering corrections recorded.`);
 }
-export function materialize(env,{fetchCommits=fetchObjects,collect=collectAdmission,validatePDFs=false,write=(path,bytes)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);}}={}) {
+export function materialize(env,{fetchCommits=fetchObjects,collect=collectAdmission,validatePDFs=false,readPosts=readWorktreePosts,write=(path,bytes)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);}}={}) {
   if (env.GITHUB_ACTIONS !== 'true' || env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || env.GITHUB_REF !== 'refs/heads/main') throw new Error('materialization is allocation-workflow only');
+  if (env.BASELINE === 'true') return materializeBaseline(env, {fetchCommits, validatePDFs, readPosts, write});
   const base = sha(env.BASE_SHA), head = sha(env.HEAD_SHA), source = sha(env.SOURCE_SHA);
   const observed=env.SAME_PR==='true' ? sha(env.OBSERVED_HEAD) : source;
   fetchCommits(base, head, source, observed); const plan = collect(base, source);
@@ -645,6 +699,29 @@ export async function certify(api, env) {
   for (const name of ['publisher-paths', 'check', 'specimen-integrity']) await api.request('/check-runs', 'POST', { name, head_sha: head, status: 'completed', conclusion: 'success', completed_at: new Date().toISOString(), details_url: detail, external_id: `${api.repo}:${base}:${head}:${env.EDITORIAL_DIGEST}:${runId}`, output: { title: 'Trusted workflow admission verified', summary: 'Exact deterministic allocator tree, full tests, post/media checks, build, rendered-body/CSP/link/diagram gates passed in the credential-free validation job.' } });
   console.log(`Admission checks certified for ${head}; merge awaits successful completion of this workflow.`);
 }
+function materializeBaseline(env, {fetchCommits, validatePDFs, readPosts, write}) {
+  const base = sha(env.BASE_SHA), head = sha(env.HEAD_SHA);
+  if (!DIGEST.test(env.EDITORIAL_DIGEST ?? '')) throw new Error('editorial binding mismatch');
+  fetchCommits(base, head);
+  const parents = git('show', '-s', '--format=%P', head).trim().split(' ');
+  if (parents.length !== 1 || parents[0] !== base) throw new Error('baseline numbering parent is not the admitted main');
+  if (git('show', '-s', '--format=%B', head).trim() !== `Workflow baseline numbering of ${base} run ${integer(env.GITHUB_RUN_ID)}`) throw new Error('baseline numbering commit message mismatch');
+  const plan = planBaselineNumbering(readPosts());
+  if (plan.editorialDigest !== env.EDITORIAL_DIGEST) throw new Error('editorial binding mismatch');
+  const expected = new Map([...plan.posts].map(([slug, text]) => [`src/content/posts/${slug}.md`, text]));
+  expected.set(SPECIMEN_LEDGER, plan.ledgerText);
+  const changes = parseNameStatus(git('diff', '--name-status', '--no-renames', '-z', base, head));
+  const modes = parseHeadModes(git('ls-tree', '-r', '-z', head));
+  for (const change of changes) {
+    if (!expected.has(change.path) || !['A', 'M'].includes(change.status) || modes.get(change.path) !== '100644') throw new Error('generated tree contains unexpected changes');
+  }
+  for (const [path, text] of expected) {
+    if (blob(head, path) !== text) throw new Error('generated tree differs from deterministic allocator');
+    if (validatePDFs && path.endsWith('.pdf')) throw new Error(`publishing PDF validation failed: ${path}`);
+    write(path, text);
+  }
+  console.log(`Deterministic baseline numbering verified and materialized: ${head}`);
+}
 function assertMainDispatch(env) {
   if (env.GITHUB_REF!=='refs/heads/main' || env.GITHUB_EVENT_NAME!=='workflow_dispatch' || ![integer(env.MAINTAINER_ID),ACTIONS_ACTOR].includes(integer(env.GITHUB_ACTOR_ID))) throw new Error('completion wake is trusted dispatch on main only');
 }
@@ -675,6 +752,8 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   const runId = integer(env.ADMISSION_RUN_ID), owner = integer(env.MAINTAINER_ID);
   const run = await api.request(`/actions/runs/${runId}`);
   if (run.id !== runId || !trustedRun(run, api.repo, owner) || run.status !== 'completed' || run.conclusion !== 'success') throw new Error('untrusted or failed admission run');
+  const parsed = requestOf(run);
+  if (parsed.baseline) return finalizeBaseline(api, env, run, { proofFor, readGit, deploy });
   const request = await approvedRequest(api, run, owner);
   let number=request.pr;
   if (!request.samePR) {
@@ -740,6 +819,41 @@ export async function finalize(api, env, { collect = collectAdmission, fetchComm
   if (!merged.merged) throw new Error('server refused admission merge');
   const deployment = await deploy(api, { ...pr, merged:true, merge_commit_sha:merged.sha }, { completion:{admissionRun:runId,base,head,rootRun:request.rootRun,source:request.source,digest} });
   console.log(`Merged workflow admission #${pr.number} at ${merged.sha}; deployment ${deployment}.`);
+  return deployment;
+}
+async function finalizeBaseline(api, env, run, { proofFor, readGit, deploy }) {
+  const runId = run.id, owner = integer(env.MAINTAINER_ID), base = sha(run.head_sha);
+  const branch = `specimens/baseline-${runId}`;
+  const prs = await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+':'+branch)}`);
+  if (prs.length !== 1) throw new Error('expected exactly one baseline numbering PR');
+  const pr = prs[0];
+  if (pr.user?.id !== ALLOCATOR_ACTOR || pr.head?.ref !== branch || pr.head?.repo?.full_name !== api.repo || pr.base?.ref !== 'main') throw new Error('baseline PR identity mismatch');
+  const head = sha(pr.head.sha);
+  const proof = await proofFor(api, base, head, owner, runId);
+  const parents = readGit('show', '-s', '--format=%P', head).trim().split(' ');
+  if (parents.length !== 1 || parents[0] !== base) throw new Error('baseline numbering parent is not the admitted main');
+  if (readGit('show', '-s', '--format=%B', head).trim() !== `Workflow baseline numbering of ${base} run ${runId}`) throw new Error('baseline numbering commit message mismatch');
+  const plan = planBaselineNumbering(readWorktreePosts());
+  if (plan.editorialDigest !== proof.editorialDigest) throw new Error('approved baseline content changed');
+  const current = sha((await api.request('/git/ref/heads/main')).object.sha);
+  if (pr.merged) {
+    const merge = sha(pr.merge_commit_sha);
+    const mergeParents = readGit('show', '-s', '--format=%P', merge).trim().split(' ');
+    if (mergeParents.length !== 2 || mergeParents[1] !== head || readGit('show', '-s', '--format=%T', merge) !== readGit('show', '-s', '--format=%T', head)) throw new Error('merge does not contain the verified baseline numbering');
+    const deployment = await deploy(api, pr, { completion: { admissionRun: runId, base, head, rootRun: runId, source: base, digest: proof.editorialDigest } });
+    console.log(`Baseline numbering #${pr.number} already merged; deployment ${deployment}.`);
+    return deployment;
+  }
+  if (pr.state !== 'open') throw new Error('baseline numbering is closed without merge');
+  if (current !== base) throw new Error('main moved during baseline numbering');
+  const rules = await api.request('/rules/branches/main');
+  if (!rules.some(rule => rule.type === 'required_status_checks' && rule.parameters?.strict_required_status_checks_policy === true)) throw new Error('server-enforced current-base checks are required');
+  const required = rules.filter(rule => rule.type === 'required_status_checks').flatMap(rule => rule.parameters?.required_status_checks ?? []);
+  if (!['publisher-paths', 'check', 'specimen-integrity'].every(name => required.some(check => check.context === name && check.integration_id === 15368))) throw new Error('required admission checks are not enforced');
+  const merged = await api.request(`/pulls/${pr.number}/merge`, 'PUT', { merge_method: 'merge', sha: head });
+  if (!merged.merged) throw new Error('server refused admission merge');
+  const deployment = await deploy(api, { ...pr, merged: true, merge_commit_sha: merged.sha }, { completion: { admissionRun: runId, base, head, rootRun: runId, source: base, digest: proof.editorialDigest } });
+  console.log(`Merged baseline numbering #${pr.number} at ${merged.sha}; deployment ${deployment}.`);
   return deployment;
 }
 const IMAGE_OBSERVATION = 'Image-only proposal shape verified. Explicit owner approval is available through Actions → Approve image PR using this PR number and exact SHA. This observation grants no required check or merge permission.';
@@ -1033,10 +1147,28 @@ export async function discoverApprovedRequests(api,env,{knownRuns=[],pending=[],
   }
   return 'idle';
 }
+async function baselineRepairInFlight(api) {
+  for await (const run of stream(api,'/actions/workflows/specimen-admission.yml/runs','workflow_runs')) {
+    if (!String(run.display_title ?? '').startsWith('Specimen baseline ')) continue;
+    if (run.status !== 'completed') return true;
+    if (run.conclusion !== 'success') return false;
+    const prs=await api.list(`/pulls?state=open&head=${encodeURIComponent(`${api.repo.split('/')[0]}:specimens/baseline-${run.id}`)}`);
+    return prs.length > 0;
+  }
+  return false;
+}
 export async function sweep(api, env, { finalizeRun=finalize, recover=recoverRequest, completed=terminalCompletion, load=loadState, save=saveState,discover=discoverApprovedRequests }={}) {
   if (env.GITHUB_REF!=='refs/heads/main') throw new Error('sweep runs on main only');
   const owner=integer(env.MAINTAINER_ID);
   let observed=await load(api,env);
+  if (env.GITHUB_ACTIONS==='true' && currentRunMayRecertify(env, owner)) {
+    const plan=planBaselineNumbering(readWorktreePosts());
+    if (plan.repairs.length && !await baselineRepairInFlight(api)) {
+      await api.request('/actions/workflows/specimen-admission.yml/dispatches','POST',{ref:'main',inputs:{pr_number:'1',head_sha:sha(env.GITHUB_SHA),recovery_run:'0',same_pr:'false',review_id:'0',wake_run:'',baseline:'true'}});
+      console.log(`Baseline numbering dispatched for ${plan.repairs.map(repair=>`${repair.to} ${repair.slug}`).join(', ')}.`);
+      return;
+    }
+  }
   const state=structuredClone(observed.state);
   const pending=new Map(state.pending.map(entry=>[entry.id,entry]));
   const knownRuns=new Map();

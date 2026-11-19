@@ -130,3 +130,38 @@ export function planAdmission({ basePosts, candidatePosts, ledgerText }) {
   if (editorialDigest(posts) !== editorialDigest(candidatePosts)) throw new Error('editorial content changed');
   return { posts, ledgerText: nextLedger, repairs, editorialDigest: editorialDigest(candidatePosts) };
 }
+/**
+ * Numbers for published posts that are already on trusted main and were never issued one.
+ * Producer candidates stay out of this plan. Any other baseline defect stays fatal.
+ */
+export function planBaselineNumbering({ basePosts, ledgerText }) {
+  checkedMap(basePosts, MAX_POSTS, 'basePosts');
+  if (typeof ledgerText !== 'string' || Buffer.byteLength(ledgerText) > MAX_LEDGER_BYTES) throw new Error('ledger exceeds input limit');
+  const ledger = parseLedger(ledgerText);
+  if (ledger.errors.length) throw new Error(ledger.errors.join('; '));
+  if (ledger.entries.some(({ n }) => !Number.isSafeInteger(n) || n < 1)) throw new Error('unsafe ledger number');
+  const state = ledgerState(ledger.entries);
+  if (state.problems.length) throw new Error(state.problems.join('; '));
+  const baseline = [...basePosts].map(([slug, text]) => readPost(slug, text));
+  const problems = findProblems(baseline, ledger.entries).filter((p) => !p.includes('published with no sources') && !p.includes('files under `voices`'));
+  if (baseline.some((p) => p.specimen !== null && !Number.isSafeInteger(p.specimen))) problems.push('unsafe baseline number');
+  const other = problems.filter((p) => !p.includes('published but has no specimen number'));
+  if (other.length) throw new Error(`invalid trusted baseline: ${other.join('; ')}`);
+  const allocations = assignNumbers(baseline, ledger.entries);
+  const posts = new Map();
+  const repairs = [];
+  let nextLedger = ledgerText;
+  if (allocations.length) {
+    if (nextLedger && !nextLedger.endsWith('\n')) nextLedger += '\n';
+    nextLedger += allocations.map(ledgerLine).join('\n') + '\n';
+  }
+  const bound = new Map();
+  for (const { slug, n } of allocations) {
+    const text = basePosts.get(slug);
+    posts.set(slug, withSpecimen(text, n));
+    bound.set(slug, text);
+    repairs.push({ slug, kind: 'allocate', from: null, to: n });
+  }
+  if (!nextLedger.startsWith(ledgerText)) throw new Error('ledger prefix changed');
+  return { posts, ledgerText: nextLedger, repairs, editorialDigest: editorialDigest(bound) };
+}
