@@ -627,6 +627,35 @@ test('trusted sweep reads published unnumbered posts through the real worktree r
   assert.equal(dispatch.body.inputs.head_sha, BASE);
   assert.equal(dispatch.body.inputs.recovery_run, '0');
 });
+test('a merged baseline numbering finalizes on its own branch without requesting a producer pull request', async () => {
+  const api = new API();
+  const numbered = `---\ntitle: A useful story\npubDate: "2026-10-05T12:00:00Z"\nspecimen: 7\nsection: models\ndraft: false\nsources:\n  - https://example.com/primary\n---\n\n## Evidence\nBody bytes stay editorial.\n`;
+  api.runs = [run(20, { display_title: `Specimen baseline head=${BASE} recovery=0`, head_sha: BASE, actor: { id: ACTIONS } })];
+  api.prs = [{ number: 100, state: 'closed', merged: true, merged_at: new Date(NOW).toISOString(), merge_commit_sha: MERGE, created_at: new Date(NOW).toISOString(), user: { id: BOT }, head: { sha: HEAD, ref: 'specimens/baseline-20', repo: { full_name: REPO } }, base: { ref: 'main', repo: { full_name: REPO } } }];
+  const index = memoryIndex(stateOf({ cursor: 0, pending: [] }));
+  const env = { ...TRUSTED_SCHEDULE, GITHUB_ACTIONS: 'true' };
+  await indexedSweep(api, env, {
+    ...index,
+    readPosts: () => ({ basePosts: new Map([['numbered', numbered]]), ledgerText: '0007 numbered\n' }),
+    recover: async () => assert.fail('baseline numbering must not recover through a producer pull request'),
+    finalizeRun: (client, runEnv) => finalize(client, runEnv, {
+      proofFor: async () => ({ editorialDigest: DIGEST }),
+      deploy: async () => 'deployed',
+      readGit: (...args) => {
+        const format = args.find(arg => String(arg).startsWith('--format='));
+        const commit = args.at(-1);
+        if (format === '--format=%P' && commit === HEAD) return `${BASE}\n`;
+        if (format === '--format=%B' && commit === HEAD) return `Workflow baseline numbering of ${BASE} run 20\n`;
+        if (format === '--format=%P' && commit === MERGE) return `${BASE} ${HEAD}\n`;
+        if (format === '--format=%T') return 'same-tree\n';
+        throw new Error(`Unexpected Git fixture ${args.join(' ')}`);
+      },
+    }),
+  });
+  assert.equal(api.calls.some(call => String(call.path).includes('/pulls/null')), false);
+  assert.ok(api.calls.some(call => call.method === 'LIST' && decodeURIComponent(call.path).includes('specimens/baseline-20')));
+  assert.equal(index.get().state.pending.some(entry => entry.id === 20), false);
+});
 test('cursor enrollment is durable before dispatch and retains queued runs until completion', async () => {
   const api=new API();api.prs=[];api.runs=[run(12,{status:'queued',conclusion:null}),run(11,{conclusion:'failure'}),run(10)];
   const index=memoryIndex(stateOf());

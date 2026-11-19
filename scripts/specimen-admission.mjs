@@ -833,8 +833,6 @@ async function finalizeBaseline(api, env, run, { proofFor, readGit, deploy }) {
   const parents = readGit('show', '-s', '--format=%P', head).trim().split(' ');
   if (parents.length !== 1 || parents[0] !== base) throw new Error('baseline numbering parent is not the admitted main');
   if (readGit('show', '-s', '--format=%B', head).trim() !== `Workflow baseline numbering of ${base} run ${runId}`) throw new Error('baseline numbering commit message mismatch');
-  const plan = planBaselineNumbering(readWorktreePosts());
-  if (plan.editorialDigest !== proof.editorialDigest) throw new Error('approved baseline content changed');
   const current = sha((await api.request('/git/ref/heads/main')).object.sha);
   if (pr.merged) {
     const merge = sha(pr.merge_commit_sha);
@@ -844,6 +842,8 @@ async function finalizeBaseline(api, env, run, { proofFor, readGit, deploy }) {
     console.log(`Baseline numbering #${pr.number} already merged; deployment ${deployment}.`);
     return deployment;
   }
+  const plan = planBaselineNumbering(readWorktreePosts());
+  if (plan.editorialDigest !== proof.editorialDigest) throw new Error('approved baseline content changed');
   if (pr.state !== 'open') throw new Error('baseline numbering is closed without merge');
   if (current !== base) throw new Error('main moved during baseline numbering');
   const rules = await api.request('/rules/branches/main');
@@ -1216,7 +1216,8 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
       if (run.id!==entry.id || !trustedRun(run,api.repo,owner)) throw new Error('pending run identity changed');
       if (run.status!=='completed') continue;
       const request=await approvedRequest(api,run,owner);
-      const prs=request.samePR ? [await api.request(`/pulls/${request.pr}`)] : await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+`:specimens/run-${run.id}`)}`);
+      const branch=request.baseline ? `specimens/baseline-${run.id}` : `specimens/run-${run.id}`;
+      const prs=request.samePR ? [await api.request(`/pulls/${request.pr}`)] : await api.list(`/pulls?state=all&head=${encodeURIComponent(`${api.repo.split('/')[0]}:${branch}`)}`);
       if (prs.length>1) throw new Error('ambiguous generated admission PRs');
       const pr=prs[0];
       const key=request.samePR && request.review ? `${request.pr}:review:${request.review}` : `${request.pr}:${request.source}:${request.review ?? 'legacy'}`;
@@ -1242,7 +1243,8 @@ export async function sweep(api, env, { finalizeRun=finalize, recover=recoverReq
       let outcome;
       if (run.conclusion==='success' && pr && (pr.state==='open' || pr.merged_at || pr.merged)) {
         outcome=await completed(api,pr,run,request,owner) ? 'deployed' : await finalizeRun(api,{...env,ADMISSION_RUN_ID:String(run.id)});
-      } else if (!pr || pr.state==='open') outcome=await recover(api,run,env);
+      } else if (request.baseline) throw new Error('baseline numbering PR is missing');
+      else if (!pr || pr.state==='open') outcome=await recover(api,run,env);
       else throw new Error('generated admission was withdrawn; owner intervention required');
       if (outcome==='deployed') {
         const ids=new Set(candidates.map(c=>c.entry.id));
