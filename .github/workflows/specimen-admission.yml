@@ -1,5 +1,5 @@
 name: Specimen admission
-run-name: "${{ inputs.same_pr == 'true' && format('Specimen same-pr pr={0} head={1} review={2} recovery={3}{4}', inputs.pr_number, inputs.head_sha, inputs.review_id, inputs.recovery_run || '0', inputs.wake_run != '' && format(' wake={0}', inputs.wake_run) || '') || format('Specimen request pr={0} head={1} recovery={2}', inputs.pr_number, inputs.head_sha, inputs.recovery_run || '0') }}"
+run-name: "${{ inputs.baseline == 'true' && format('Specimen baseline head={0} recovery=0', inputs.head_sha) || inputs.same_pr == 'true' && format('Specimen same-pr pr={0} head={1} review={2} recovery={3}{4}', inputs.pr_number, inputs.head_sha, inputs.review_id, inputs.recovery_run || '0', inputs.wake_run != '' && format(' wake={0}', inputs.wake_run) || '') || format('Specimen request pr={0} head={1} recovery={2}', inputs.pr_number, inputs.head_sha, inputs.recovery_run || '0') }}"
 on:
   workflow_dispatch:
     inputs:
@@ -30,6 +30,11 @@ on:
         description: Immutable submitted owner approval receipt; empty retains legacy recovery format
         required: false
         default: ''
+        type: string
+      baseline:
+        description: Number published posts already on main; grants no producer approval
+        required: false
+        default: 'false'
         type: string
 permissions: {}
 concurrency:
@@ -76,6 +81,7 @@ jobs:
           SAME_PR: ${{ inputs.same_pr }}
           REVIEW_ID: ${{ inputs.review_id }}
           REVIEW_WAKE_RUN: ${{ inputs.wake_run }}
+          BASELINE: ${{ inputs.baseline }}
           MAINTAINER_ID: ${{ vars.MAINTAINER_ID }}
       - name: Revoke run-local publishing token
         if: always()
@@ -107,6 +113,7 @@ jobs:
           SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
           EDITORIAL_DIGEST: ${{ needs.prepare.outputs.editorial_digest }}
           SAME_PR: ${{ inputs.same_pr }}
+          BASELINE: ${{ inputs.baseline }}
           OBSERVED_HEAD: ${{ needs.prepare.outputs.observed_head }}
       - run: npm run test:site
         env:

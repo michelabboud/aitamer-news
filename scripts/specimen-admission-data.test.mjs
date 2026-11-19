@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { editorialDigest, planAdmission, stripSpecimen } from './specimen-admission-data.mjs';
+import { editorialDigest, planAdmission, planBaselineNumbering, stripSpecimen } from './specimen-admission-data.mjs';
 import { readFrontmatter } from './frontmatter.mjs';
 const article = ({ number = '', date = '2026-10-05T12:00:00Z', draft = false } = {}) => `---\ntitle: A useful story\npubDate: "${date}"\n${number}section: models\ndraft: ${draft}\nsources:\n  - https://example.com/primary\n---\n\n## Evidence\nBody bytes, specimen: 999 stays here.\n`;
 const baseline = () => ({ basePosts: new Map([['old', article({ number: 'specimen: 7\n' })]]), ledgerText: '# Historical ledger\n0007 old\n0009 gone\n0009 gone void: withdrawn\n' });
@@ -88,6 +88,19 @@ for (const ledgerText of ['bogus\n', '0007 old\n0007 other\n', '0000 zero\n', '9
 
 test('rejects historical slug reuse even after the old issuance was voided', () => assert.throws(() => run([['gone', article()]]), /historical slug/));
 test('rejects unnumbered published trusted baseline', () => assert.throws(() => run([], { ...baseline(), basePosts: new Map([['old', article()]]) }), /trusted baseline/));
+test('baseline numbering assigns the next numbers without changing editorial bytes or a producer plan', () => {
+  const bare = article();
+  const later = article({ date: '2026-11-19T09:07:00Z' });
+  const trusted = { basePosts: new Map([['later', later], ['old', article({ number: 'specimen: 7\n' })], ['early', bare]]), ledgerText: baseline().ledgerText };
+  const plan = planBaselineNumbering(trusted);
+  assert.equal(plan.ledgerText.slice(trusted.ledgerText.length), '0010 early\n0011 later\n');
+  assert.equal(readFrontmatter(plan.posts.get('early')).data.specimen, 10);
+  assert.equal(stripSpecimen(plan.posts.get('early')).text, stripSpecimen(bare).text);
+  assert.equal(plan.posts.has('old'), false);
+  assert.equal(plan.editorialDigest, editorialDigest(new Map([['early', bare], ['later', later]])));
+  assert.throws(() => run([], trusted), /trusted baseline/);
+  assert.deepEqual(planBaselineNumbering(baseline()).repairs, []);
+});
 test('rejects exhausted safe-integer allocation range', () => assert.throws(() => run([['new', article()]], { basePosts: new Map(), ledgerText: `${Number.MAX_SAFE_INTEGER} past\n` }), /range exhausted/));
 test('bounds untrusted bytes, batch size and paths', () => {
   assert.throws(() => run([['new', 'x'.repeat(1024 * 1024 + 1)]]), /input limit/);
