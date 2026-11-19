@@ -2,6 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { isDeepStrictEqual } from 'node:util';
 import { SLUG, SLUG_MAX_LENGTH } from './slug.mjs';
+import { ledgerState, parseLedger } from './stamp-specimens.mjs';
 
 export const SPECIMEN_LEDGER = 'src/content/specimen-ledger.txt';
 export const ADMISSION_WORKFLOW = '.github/workflows/specimen-admission.yml';
@@ -18,6 +19,22 @@ function object(cwd, sha, path) {
   const match = /^(\d+) (\w+) ([a-f0-9]{40})\t/.exec(line);
   if (!match) throw new Error(`invalid Git tree entry for ${path}`);
   return { mode: match[1], type: match[2], oid: match[3] };
+}
+
+/** True unless the deleted post had neither a specimen field nor a live ledger issuance. */
+function deletionKeepsAnIdentity(cwd, base, before, slug, readFrontmatter) {
+  try {
+    if (!before) return true;
+    const parsed = readFrontmatter(git(cwd, 'cat-file', 'blob', before.oid));
+    if (!parsed || Object.hasOwn(parsed.data, 'specimen')) return true;
+    const ledger = object(cwd, base, SPECIMEN_LEDGER);
+    if (!ledger) return false;
+    const parsedLedger = parseLedger(git(cwd, 'cat-file', 'blob', ledger.oid));
+    if (parsedLedger.errors.length) return true;
+    return ledgerState(parsedLedger.entries).numbersOf.has(slug);
+  } catch {
+    return true;
+  }
 }
 
 /** Unsafe or ambiguous input is reported as blocking, never silently admitted. */
@@ -45,8 +62,12 @@ export async function inspectSpecimenChanges({ cwd, base, head }) {
     }
     result.changedPosts.push(path);
     if (!after) {
-      result.problems.push(`${path}: article deletion requires operator review`);
-      result.requiresAdmission = true;
+      // A post that was never numbered has no public identity. Removing it restores
+      // the baseline. A ledger issuance or a specimen field still needs operator review.
+      if (deletionKeepsAnIdentity(cwd, base, before, slug, readFrontmatter)) {
+        result.problems.push(`${path}: article deletion requires operator review`);
+        result.requiresAdmission = true;
+      }
       continue;
     }
     try {

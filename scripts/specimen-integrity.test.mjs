@@ -49,6 +49,27 @@ test('duplicate YAML, executable files and renamed articles cannot quietly pass'
   const renamed = fixture(); renamed.git('mv', 'src/content/posts/old.md', 'src/content/posts/renamed.md');
   assert.match((await inspectSpecimenChanges({ ...renamed, head: renamed.commit() })).problems.join(), /deletion/);
 });
+test('deleting a post that was never numbered does not block deployment', async () => {
+  const f = fixture();
+  f.write('src/content/posts/bare.md', '---\ndraft: false\n---\nNews\n');
+  f.commit();
+  f.git('rm', '-q', 'src/content/posts/bare.md');
+  const result = await inspectSpecimenChanges({ ...f, head: f.commit() });
+  assert.deepEqual(result.problems, []);
+  assert.equal(result.requiresAdmission, false);
+});
+test('deleting a numbered post still requires operator review', async () => {
+  const f = fixture();
+  f.git('rm', '-q', 'src/content/posts/old.md');
+  assert.match((await inspectSpecimenChanges({ ...f, head: f.commit() })).problems.join(), /deletion/);
+});
+test('deleting an unnumbered file still requires review when the ledger issued that slug', async () => {
+  const f = fixture();
+  f.write('src/content/posts/old.md', '---\ndraft: false\n---\nBody\n');
+  f.commit();
+  f.git('rm', '-q', 'src/content/posts/old.md');
+  assert.match((await inspectSpecimenChanges({ ...f, head: f.commit() })).problems.join(), /deletion/);
+});
 function receipt() {
   return {
     expectedHead: B, expectedBase: A, repository: 'owner/repo', allocatorActorId: 42,
