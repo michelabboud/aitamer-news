@@ -564,13 +564,13 @@ async function confirmNumberedHead(api, number, branch, previous, expected, paus
   }
   throw new Error('numbered source head not visible after bounded readback');
 }
-function readWorktreePosts(root = process.cwd()) {
-  const posts = new Map();
+export function readWorktreePosts(root = process.cwd()) {
+  const basePosts = new Map();
   for (const name of readdirSync(join(root, 'src/content/posts'))) {
     if (!name.endsWith('.md')) continue;
-    posts.set(name.slice(0, -3), readFileSync(join(root, 'src/content/posts', name), 'utf8'));
+    basePosts.set(name.slice(0, -3), readFileSync(join(root, 'src/content/posts', name), 'utf8'));
   }
-  return { posts, ledgerText: readFileSync(join(root, SPECIMEN_LEDGER), 'utf8') };
+  return { basePosts, ledgerText: readFileSync(join(root, SPECIMEN_LEDGER), 'utf8') };
 }
 export async function prepareBaseline(api, env) {
   const base = sha(env.GITHUB_SHA);
@@ -1157,12 +1157,12 @@ async function baselineRepairInFlight(api) {
   }
   return false;
 }
-export async function sweep(api, env, { finalizeRun=finalize, recover=recoverRequest, completed=terminalCompletion, load=loadState, save=saveState,discover=discoverApprovedRequests }={}) {
+export async function sweep(api, env, { finalizeRun=finalize, recover=recoverRequest, completed=terminalCompletion, load=loadState, save=saveState,discover=discoverApprovedRequests, readPosts=readWorktreePosts }={}) {
   if (env.GITHUB_REF!=='refs/heads/main') throw new Error('sweep runs on main only');
   const owner=integer(env.MAINTAINER_ID);
   let observed=await load(api,env);
   if (env.GITHUB_ACTIONS==='true' && currentRunMayRecertify(env, owner)) {
-    const plan=planBaselineNumbering(readWorktreePosts());
+    const plan=planBaselineNumbering(readPosts());
     if (plan.repairs.length && !await baselineRepairInFlight(api)) {
       await api.request('/actions/workflows/specimen-admission.yml/dispatches','POST',{ref:'main',inputs:{pr_number:'1',head_sha:sha(env.GITHUB_SHA),recovery_run:'0',same_pr:'false',review_id:'0',wake_run:'',baseline:'true'}});
       console.log(`Baseline numbering dispatched for ${plan.repairs.map(repair=>`${repair.to} ${repair.slug}`).join(', ')}.`);
