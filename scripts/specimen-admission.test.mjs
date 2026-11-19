@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { admissionProof, approvedRequest, collectAdmission, GitHub, finalize, prepare, recoverRequest, reconcileDeployment, requestOf, sweepHistory as sweep, sweep as indexedSweep, loadState, saveState, validateState, verifyStateProtection, terminalCompletion } from './specimen-admission.mjs';
+import { admissionProof, approvedRequest, collectAdmission, GitHub, finalize, prepare, recoverRequest, reconcileDeployment, requestOf, readWorktreePosts, sweepHistory as sweep, sweep as indexedSweep, loadState, saveState, validateState, verifyStateProtection, terminalCompletion } from './specimen-admission.mjs';
 
 const REPO = 'owner/site';
 const OWNER = 42;
@@ -611,6 +611,22 @@ test('a trusted schedule or maintainer dispatch replaces an untrusted checkpoint
   assert.equal(api.certificates[0].external_id.split(':').at(-1),'500');
 });
 
+test('trusted sweep reads published unnumbered posts through the real worktree reader and dispatches baseline numbering', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'baseline-sweep-'));
+  mkdirSync(join(root, 'src/content/posts'), { recursive: true });
+  const published = `---\ntitle: A useful story\npubDate: "2026-11-19T07:40:00Z"\nsection: models\ndraft: false\nsources:\n  - https://example.com/primary\n---\n\n## Evidence\nBody bytes stay editorial.\n`;
+  writeFileSync(join(root, 'src/content/posts/numbered.md'), published.replace('pubDate: "2026-11-19T07:40:00Z"\n', 'pubDate: "2026-10-05T12:00:00Z"\nspecimen: 7\n'));
+  writeFileSync(join(root, 'src/content/posts/gemini-4-neon.md'), published);
+  writeFileSync(join(root, 'src/content/specimen-ledger.txt'), '0007 numbered\n');
+  const api = new API();
+  const env = { ...TRUSTED_SCHEDULE, GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_ACTOR_ID: String(OWNER) };
+  await indexedSweep(api, env, { ...memoryIndex(stateOf({ cursor: 0 })), readPosts: () => readWorktreePosts(root) });
+  const dispatch = api.calls.find(call => call.method === 'POST' && call.path === '/actions/workflows/specimen-admission.yml/dispatches');
+  assert.equal(dispatch.body.ref, 'main');
+  assert.equal(dispatch.body.inputs.baseline, 'true');
+  assert.equal(dispatch.body.inputs.head_sha, BASE);
+  assert.equal(dispatch.body.inputs.recovery_run, '0');
+});
 test('cursor enrollment is durable before dispatch and retains queued runs until completion', async () => {
   const api=new API();api.prs=[];api.runs=[run(12,{status:'queued',conclusion:null}),run(11,{conclusion:'failure'}),run(10)];
   const index=memoryIndex(stateOf());
