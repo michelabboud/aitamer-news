@@ -2,6 +2,7 @@
 title: "Hugging Face now routes its LLM inference through OpenRouter, and your own provider keys stop working"
 description: "Hugging Face Inference Providers now send LLM calls via OpenRouter, with retries and :fastest or :cheapest routing. Your own provider keys no longer work."
 pubDate: "2026-11-19T08:37:00Z"
+specimen: 1488
 section: tools
 tags:
   - hugging-face

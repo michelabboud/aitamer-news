@@ -2,6 +2,7 @@
 title: "Gemini 4 Neon is Google's new middle model: $3/$15, 1M context, in Copilot too"
 description: "Google's Gemini 4 Neon sits between Hydrogen and Carbon at $3/$15 per million tokens, with a 1M window. Live in the API, Antigravity and GitHub Copilot."
 pubDate: "2026-11-19T07:40:00Z"
+specimen: 1486
 section: models
 tags:
   - gemini

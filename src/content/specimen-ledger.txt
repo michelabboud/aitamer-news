@@ -1486,3 +1486,7 @@
 1483 k8s-from-zero-07-deployments-and-replicasets
 1484 k8s-from-zero-08-services
 1485 openai-gpt-6-2-astra-sol
+1486 gemini-4-neon
+1487 nginx-http2-rce-cve-2026-123007-123633
+1488 hugging-face-inference-providers-openrouter-routing
+1489 prime-intellect-model-factory-rl-sft-inference
