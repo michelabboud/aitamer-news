@@ -16,7 +16,7 @@ heroAlt: "A coral origami bird inside a layered oval track, with an anvil and ha
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Prime Intellect's 18 November launch post and Model Factory docs, and Palo Alto Networks' 18 November press release, read 19 November."
+  verified: "Prime Intellect's launch post and docs, and Palo Alto Networks' press release, all read 19 November."
   claimed: "The 48% MFU figure and the case for owning your weights are Prime Intellect's. We have not run a job."
 verdict: "Worth a look if you already post-train open models and are tired of stitching trainer, sandboxes and serving together. It is beta, and the rates live in the CLI, not the launch post."
 sources:

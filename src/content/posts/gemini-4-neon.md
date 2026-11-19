@@ -16,7 +16,7 @@ heroAlt: "Paper-collage stream with a small round stone, a sulfur-yellow middle 
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Google DeepMind's launch post, the Gemini API changelog, pricing and What's new pages, and GitHub's changelog, all 18 November 2026, read 19 November."
+  verified: "Google DeepMind's launch post, Gemini API changelog and pricing, and GitHub's changelog, read 19 November."
   claimed: "Every benchmark and cost-per-task figure is Google's. We have not run Neon."
 verdict: "A real new tier, not a rename. Worth a test run where Hydrogen falls short and Carbon costs too much, especially once Carbon's intro price ends on 30 November."
 sources:

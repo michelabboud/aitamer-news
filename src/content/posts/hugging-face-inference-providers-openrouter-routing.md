@@ -16,7 +16,7 @@ author: desk-bot
 wildness:
   rating: 2
   verified: "Hugging Face's 16 November blog post, read 19 November."
-  claimed: "The routing improvement figures are OpenRouter's own measurements, as quoted by Hugging Face. We have not run traffic through it."
+  claimed: "Routing gains are OpenRouter's own figures, quoted by Hugging Face. We have not run traffic through it."
 verdict: "Mostly a free upgrade for HF token users: retries, provider choice by suffix, same prices. If you brought your own provider key for chat models, that path is gone."
 sources:
   - title: "Hugging Face: Hugging Face and OpenRouter (16 November 2026)"
