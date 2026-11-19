@@ -569,15 +569,37 @@ test('state initialization requires actual protected namespace before any write'
   assert.deepEqual(api.mutations(),[]);
 });
 
+const TRUSTED_SCHEDULE={...STATE_ENV,GITHUB_EVENT_NAME:'schedule',GITHUB_ACTOR_ID:String(ACTIONS)};
 test('state certifies exact blob before non-force CAS and rejects stale concurrent writers', async () => {
   const api=new StateAPI();const loaded=await loadState(api,STATE_ENV);
   const next=stateOf({cursor:11,pending:[{id:11,status:'pending',reason:''}]});
-  const saved=await saveState(api,loaded,next,STATE_ENV);assert.equal(saved.head,api.stateCommit);
+  const saved=await saveState(api,loaded,next,TRUSTED_SCHEDULE);assert.equal(saved.head,api.stateCommit);
   assert.deepEqual(api.savedCommit.parents,[HEAD]);
   const mut=api.mutations();assert.equal(mut.at(-2).path,'/check-runs');assert.equal(mut.at(-1).body.force,false);
   const certificate=api.certificates[0];const content=api.savedTree.tree[0].content;
   assert.equal(certificate.external_id,`${REPO}:${api.stateCommit}:${createHash('sha256').update(content).digest('hex')}:500`);
-  await assert.rejects(saveState(api,loaded,next,STATE_ENV),/non-fast-forward/);
+  await assert.rejects(saveState(api,loaded,next,TRUSTED_SCHEDULE),/non-fast-forward/);
+});
+
+test('a trusted schedule or maintainer dispatch replaces an untrusted checkpoint and that actor cannot write one',async()=>{
+  const untrusted={...STATE_ENV,GITHUB_EVENT_NAME:'workflow_run',GITHUB_ACTOR_ID:'206951365'};
+  const api=new StateAPI();api.finalizer.event='workflow_run';api.finalizer.actor={id:206951365};
+  await assert.rejects(loadState(api,untrusted),/Actions certificate/);
+  await assert.rejects(loadState(api,STATE_ENV),/Actions certificate/);
+  const loaded=await loadState(api,TRUSTED_SCHEDULE);
+  assert.equal(loaded.head,HEAD);
+  const dispatched=await loadState(api,{...STATE_ENV,GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_ACTOR_ID:String(OWNER)});
+  assert.equal(dispatched.head,HEAD);
+  api.certificates=[];
+  await assert.rejects(saveState(api,loaded,stateOf({cursor:12}),untrusted),/untrusted actor cannot certify/);
+  assert.equal(api.certificates.length,0);
+  assert.equal(api.calls.some(call=>call.method==='POST'),false);
+  const forged=new StateAPI();forged.finalizer.event='workflow_run';forged.finalizer.actor={id:206951365};forged.certificate.external_id=`${REPO}:${HEAD}:${'0'.repeat(64)}:500`;
+  await assert.rejects(loadState(forged,TRUSTED_SCHEDULE),/Actions certificate/);
+  const saved=await saveState(api,loaded,stateOf({cursor:12}),TRUSTED_SCHEDULE);
+  assert.equal(saved.head,api.stateCommit);
+  assert.equal(api.certificates.length,1);
+  assert.equal(api.certificates[0].external_id.split(':').at(-1),'500');
 });
 
 test('cursor enrollment is durable before dispatch and retains queued runs until completion', async () => {

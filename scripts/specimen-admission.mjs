@@ -861,9 +861,34 @@ export async function verifyStateProtection(api, env) {
   }
   for (const type of ['creation','update','deletion','non_fast_forward']) if (!Array.isArray(effective) || !effective.some(rule=>rule.type===type && rule.ruleset_id===rulesetID)) throw new Error(`protected state branch lacks ${type} restriction`);
 }
-async function verifyStateCertificate(api, head, content, state, owner) {
+function laneActorIds() {
+  return [ALLOCATOR_ACTOR,...Object.values(laneActors)].filter(id=>Number.isSafeInteger(id) && id>0);
+}
+function finalizerRunBound(run, api, state, runID) {
+  return run?.id===runID && workflowPath(run,FINALIZER_PATH) && run.head_branch==='main' && run.head_sha===state.policySHA && ['schedule','workflow_dispatch','workflow_run'].includes(run.event) && run.repository?.full_name===api.repo && (!run.head_repository || run.head_repository.full_name===api.repo);
+}
+function trustedFinalizerActor(run, owner) {
+  return [owner,ACTIONS_ACTOR].includes(run.actor?.id) || (run.event==='workflow_run' && laneActorIds().includes(run.actor?.id));
+}
+function currentActor(env) {
+  try { return integer(env.GITHUB_ACTOR_ID); } catch { return null; }
+}
+/** Schedule and maintainer dispatch may replace one checkpoint. They cannot mint trust for a forged receipt. */
+function currentRunMayRecertify(env, owner) {
+  const actor=currentActor(env);
+  return env.GITHUB_REF==='refs/heads/main' && ['schedule','workflow_dispatch'].includes(env.GITHUB_EVENT_NAME) && [owner,ACTIONS_ACTOR].includes(actor);
+}
+/** Who may post a new state certificate. A completion wake from any other actor never writes one. */
+function currentRunMayCertify(env, owner) {
+  const actor=currentActor(env);
+  if (env.GITHUB_REF!=='refs/heads/main' || actor===null) return false;
+  if (['schedule','workflow_dispatch'].includes(env.GITHUB_EVENT_NAME) && [owner,ACTIONS_ACTOR].includes(actor)) return true;
+  return env.GITHUB_EVENT_NAME==='workflow_run' && (actor===owner || actor===ACTIONS_ACTOR || laneActorIds().includes(actor));
+}
+async function verifyStateCertificate(api, head, content, state, owner, env) {
   const digest=createHash('sha256').update(content).digest('hex');
   const checks=await api.list(`/commits/${head}/check-runs`,'check_runs');
+  let replaceable=false;
   for (const check of checks) {
     if (check.name!==STATE_CHECK || check.app?.id!==15368 || check.head_sha!==head || check.status!=='completed' || check.conclusion!=='success') continue;
     const parts=String(check.external_id ?? '').split(':');
@@ -875,9 +900,14 @@ async function verifyStateCertificate(api, head, content, state, owner) {
     // unrelated failure in the same reconciler run does not undo that transition.
     // Completion wakes inherit the upstream publishing App actor even though the
     // checkpoint is certified by Actions executing this trusted-main finalizer.
-    const trustedActor=[owner,ACTIONS_ACTOR].includes(run.actor?.id) || (run.event==='workflow_run' && [ALLOCATOR_ACTOR,...Object.values(laneActors).filter(id=>Number.isSafeInteger(id) && id>0)].includes(run.actor?.id));
-    if (run.id===runID && workflowPath(run,FINALIZER_PATH) && run.head_branch==='main' && run.head_sha===state.policySHA && ['schedule','workflow_dispatch','workflow_run'].includes(run.event) && run.repository?.full_name===api.repo && (!run.head_repository || run.head_repository.full_name===api.repo) && trustedActor) return;
+    if (!finalizerRunBound(run,api,state,runID)) continue;
+    if (trustedFinalizerActor(run,owner)) return;
+    replaceable=true;
   }
+  // The receipt is real and bound to this blob, but an untrusted actor produced it.
+  // Only a scheduled or maintainer-dispatched finalizer may read it, so that run can
+  // write the next checkpoint. Any other caller still stops here.
+  if (replaceable && currentRunMayRecertify(env,owner)) return;
   throw new Error('protected state lacks independent trusted-main Actions certificate');
 }
 export async function loadState(api, env) {
@@ -895,12 +925,13 @@ export async function loadState(api, env) {
   const bytes=Buffer.from(blob.content,'base64'), text=bytes.toString('utf8');
   if (bytes.length!==blob.size || !bytes.equals(Buffer.from(text))) throw new Error('invalid state encoding');
   const state=validateState(JSON.parse(text),api.repo);
-  await verifyStateCertificate(api,head,bytes,state,integer(env.MAINTAINER_ID));
+  await verifyStateCertificate(api,head,bytes,state,integer(env.MAINTAINER_ID),env);
   const current=sha((await api.request('/git/ref/heads/main')).object.sha);
   if (!await containsMerge(api,state.policySHA,current)) throw new Error('state policy is outside trusted main history');
   return {head,state};
 }
 export async function saveState(api, observed, state, env) {
+  if (!currentRunMayCertify(env, integer(env.MAINTAINER_ID))) throw new Error('untrusted actor cannot certify reconciliation state');
   state={...state,policySHA:sha(env.GITHUB_SHA)};
   validateState(state,api.repo);
   const content=JSON.stringify(state)+'\n';
