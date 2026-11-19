@@ -826,7 +826,7 @@ async function finalizeBaseline(api, env, run, { proofFor, readGit, deploy }) {
   const branch = `specimens/baseline-${runId}`;
   const prs = await api.list(`/pulls?state=all&head=${encodeURIComponent(api.repo.split('/')[0]+':'+branch)}`);
   if (prs.length !== 1) throw new Error('expected exactly one baseline numbering PR');
-  const pr = prs[0];
+  const pr = await api.request(`/pulls/${integer(prs[0].number)}`);
   if (pr.user?.id !== ALLOCATOR_ACTOR || pr.head?.ref !== branch || pr.head?.repo?.full_name !== api.repo || pr.base?.ref !== 'main') throw new Error('baseline PR identity mismatch');
   const head = sha(pr.head.sha);
   const proof = await proofFor(api, base, head, owner, runId);
