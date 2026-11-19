@@ -2,6 +2,7 @@
 title: "Outlets put Anthropic's third-quarter revenue at $16.8 billion"
 description: "BBC, CNBC, a Reuters copy and a Bloomberg copy say Anthropic put third-quarter revenue at $16.8 billion. The figure is not an SEC filing."
 pubDate: "2026-10-15T11:52:00Z"
+updatedDate: "2026-11-19T07:40:00Z"
 specimen: 799
 section: general
 subsection: ai-business
@@ -33,6 +34,10 @@ sources:
     url: https://aitamer.news/posts/moonshot-ai-50b-pre-ipo/
   - title: "Anthropic logged net loss of over $80 billion in first half of 2026 (Channel NewsAsia, carrying Reuters, 20 October 2026, updated 21 October)"
     url: https://www.channelnewsasia.com/business/anthropic-logged-net-loss-over-80-billion-in-first-half-2026-wsj-reports-6476676
+  - title: "Anthropic: Anthropic prices initial public offering (18 November 2026)"
+    url: https://www.anthropic.com/news/anthropic-prices-initial-public-offering
+  - title: "NPR: Anthropic IPO raises record $81.3 billion (18 November 2026)"
+    url: https://www.npr.org/2026/11/18/nx-s1-6046212/anthropic-record-ipo-price
 ---
 
 Newsrooms are reporting that Anthropic told prospective investors its third-quarter 2026 revenue was 16.8 billion dollars. The figure is not in an SEC filing, and it is not presented by these outlets as audited GAAP. [Anthropic's news index](https://www.anthropic.com/news), opened 15 October 2026, did not list a quarterly revenue announcement among the items on that page.
@@ -67,3 +72,9 @@ The Wall Street Journal reported on 20 October on a new draft of Anthropic's IPO
 Reuters says Anthropic did not respond to a request for comment, and that the IPO is expected in November, with some investors weighing a valuation of around 1.5 trillion dollars after recent disclosures. This is a confidential draft, not a public SEC filing, and its figures can change before any public version.
 
 Other reports give larger totals for compute commitments, counting deals still being negotiated. We did not read the Journal's paywalled text, so we use only the figure in the Reuters story. The 16.8 billion dollar third-quarter revenue figure above still comes from investor briefings, not from this draft.
+
+## Update, 19 November 2026: Anthropic priced its IPO at $83 a share
+
+Anthropic [said on 18 November](https://www.anthropic.com/news/anthropic-prices-initial-public-offering) that it priced its initial public offering at $83.00 per Class A share. The offering is 980 million shares: about 956.4 million sold by Anthropic and about 23.6 million by existing stockholders, whose proceeds go to them, not to the company. Shares are expected to start trading on the Nasdaq Global Select Market on 19 November under the ticker **ANT**, and the offering is expected to close on 20 November. Underwriters have 30 days to buy up to 147 million more shares.
+
+At the offer price, 980 million shares come to about $81.3 billion, by our arithmetic, before fees. [NPR reports](https://www.npr.org/2026/11/18/nx-s1-6046212/anthropic-record-ipo-price) that the prospectus had targeted 825 million shares at $70 to $78, and calls the raise a record.

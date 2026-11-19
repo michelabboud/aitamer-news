@@ -2,6 +2,7 @@
 title: "DeepSeek opens its chat app's features to the API: web search, file input, URL reading, speech and a safety check"
 description: "DeepSeek's 13 November API release adds server-run web search, file parsing, URL reading, TTS, ASR and a safety check to deepseek-flash, with per-use prices."
 pubDate: "2026-11-13T16:37:00Z"
+updatedDate: "2026-11-19T07:40:00Z"
 specimen: 1465
 section: dev
 subsection: api
@@ -76,3 +77,7 @@ DeepSeek also published an [open-source demo chat client](https://github.com/dee
 ## Why this matters
 
 Server-side search, file parsing and speech are the parts that take the longest when you build a chatbot on a raw model API. DeepSeek now sells them as switches on a low-cost model, with per-use prices you can budget. The safety parameter is a starting point, and the compliance duties DeepSeek lists still sit with whoever runs the service.
+
+## Update, 19 November 2026: model-triggered web search and fetch are now free
+
+DeepSeek's [pricing page](https://api-docs.deepseek.com/quick_start/pricing/) now says that from 12:00 Beijing time on 18 November, search and web fetch that the model triggers on the server are no longer billed; you pay only for tokens. That covers DeepSeek's own [web tools](https://api-docs.deepseek.com/guides/web_tools/) and the `web_search` tool when you call DeepSeek through its Anthropic-compatible or Responses APIs. The $0.75 per 1,000 searches and fetches quoted above now applies only when you call the standalone Search and Fetch APIs directly.
