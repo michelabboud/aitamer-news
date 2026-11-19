@@ -1490,3 +1490,6 @@
 1487 nginx-http2-rce-cve-2026-123007-123633
 1488 hugging-face-inference-providers-openrouter-routing
 1489 prime-intellect-model-factory-rl-sft-inference
+1490 java4shell-openjdk-base64-rce-cve-2026-114938
+1491 ai-movie-models-pixverse-v6-vs-heygen-video
+1492 microsoft-agent-framework-pypi-hijack-credential-stealer
