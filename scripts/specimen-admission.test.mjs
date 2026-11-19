@@ -78,7 +78,7 @@ class API {
     if (path==='/pulls?state=open&sort=created&direction=asc') return [];
     if (path.startsWith('/pulls?state=all&head=')) {
       const ref = decodeURIComponent(path.split('head=')[1]).split(':')[1];
-      return this.prs.filter(p=>p.head.ref===ref);
+      return this.prs.filter(p=>p.head.ref===ref).map(({merged,...listed})=>({...listed,merged_at:listed.merged_at ?? (merged ? new Date(NOW).toISOString() : null)}));
     }
     if (path==='/pulls/7/reviews') return this.reviews;
     if (path===`/commits/${HEAD}/check-runs`) return this.checks;
@@ -654,6 +654,7 @@ test('a merged baseline numbering finalizes on its own branch without requesting
   });
   assert.equal(api.calls.some(call => String(call.path).includes('/pulls/null')), false);
   assert.ok(api.calls.some(call => call.method === 'LIST' && decodeURIComponent(call.path).includes('specimens/baseline-20')));
+  assert.ok(api.calls.some(call => call.method === 'GET' && call.path === '/pulls/100'));
   assert.equal(index.get().state.pending.some(entry => entry.id === 20), false);
 });
 test('cursor enrollment is durable before dispatch and retains queued runs until completion', async () => {
