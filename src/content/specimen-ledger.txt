@@ -1503,3 +1503,5 @@
 1500 k8s-from-zero-13-volumes-pv-pvc-storageclass
 1501 k8s-from-zero-14-statefulsets
 1502 k8s-from-zero-15-daemonsets-jobs-cronjobs
+1503 ai-image-models-open-weights-h3-image-vs-hidream-o1
+1504 cisco-expressway-cve-2026-76466-exploited-after-poc
