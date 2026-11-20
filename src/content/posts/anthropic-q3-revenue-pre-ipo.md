@@ -2,7 +2,7 @@
 title: "Outlets put Anthropic's third-quarter revenue at $16.8 billion"
 description: "BBC, CNBC, a Reuters copy and a Bloomberg copy say Anthropic put third-quarter revenue at $16.8 billion. The figure is not an SEC filing."
 pubDate: "2026-10-15T11:52:00Z"
-updatedDate: "2026-11-19T07:40:00Z"
+updatedDate: "2026-11-20T15:31:00Z"
 specimen: 799
 section: general
 subsection: ai-business
@@ -38,6 +38,8 @@ sources:
     url: https://www.anthropic.com/news/anthropic-prices-initial-public-offering
   - title: "NPR: Anthropic IPO raises record $81.3 billion (18 November 2026)"
     url: https://www.npr.org/2026/11/18/nx-s1-6046212/anthropic-record-ipo-price
+  - title: "Anthropic: closing of initial public offering and concurrent private placement (20 November 2026)"
+    url: https://www.anthropic.com/news/ipo-close
 ---
 
 Newsrooms are reporting that Anthropic told prospective investors its third-quarter 2026 revenue was 16.8 billion dollars. The figure is not in an SEC filing, and it is not presented by these outlets as audited GAAP. [Anthropic's news index](https://www.anthropic.com/news), opened 15 October 2026, did not list a quarterly revenue announcement among the items on that page.
@@ -78,3 +80,9 @@ Other reports give larger totals for compute commitments, counting deals still b
 Anthropic [said on 18 November](https://www.anthropic.com/news/anthropic-prices-initial-public-offering) that it priced its initial public offering at $83.00 per Class A share. The offering is 980 million shares: about 956.4 million sold by Anthropic and about 23.6 million by existing stockholders, whose proceeds go to them, not to the company. Shares are expected to start trading on the Nasdaq Global Select Market on 19 November under the ticker **ANT**, and the offering is expected to close on 20 November. Underwriters have 30 days to buy up to 147 million more shares.
 
 At the offer price, 980 million shares come to about $81.3 billion, by our arithmetic, before fees. [NPR reports](https://www.npr.org/2026/11/18/nx-s1-6046212/anthropic-record-ipo-price) that the prospectus had targeted 825 million shares at $70 to $78, and calls the raise a record.
+
+## Update, 20 November 2026: the IPO closed at about $93.5 billion, plus a $26 billion chip-partner placement
+
+Anthropic [announced on 20 November](https://www.anthropic.com/news/ipo-close) that its IPO has closed, and that the underwriters bought all 147 million extra shares they had an option on. The final offering was 1,127,000,000 Class A shares at $83.00: about 1.103 billion sold by Anthropic and about 23.6 million by existing stockholders. Anthropic puts gross proceeds at **about $93.5 billion**, of which **about $91.6 billion** went to the company, before underwriting fees and other costs. That replaces our rough $81.3 billion estimate above, which did not include the extra shares.
+
+At the same time, Anthropic closed a **private placement of 313,253,007 Class N shares** at the same $83.00 price, about **$26.0 billion**, to AMD, Broadcom, Google, Micron, Microsoft, NVIDIA and TSMC Partners. Those shares were not registered under the Securities Act. Counting both, Anthropic says gross proceeds were about **$119.5 billion**. ANT began trading on the Nasdaq Global Select Market on 19 November.
