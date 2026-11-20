@@ -1493,3 +1493,6 @@
 1490 java4shell-openjdk-base64-rce-cve-2026-114938
 1491 ai-movie-models-pixverse-v6-vs-heygen-video
 1492 microsoft-agent-framework-pypi-hijack-credential-stealer
+1493 vmware-vcenter-zero-day-cve-2026-123890-armory-castle
+1494 mai-code-2-and-flash-github-copilot
+1495 gemini-api-tool-retrieval-defer-loading

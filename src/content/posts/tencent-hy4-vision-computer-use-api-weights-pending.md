@@ -1,8 +1,9 @@
 ---
-title: "Tencent launches Hy4 with vision and computer use; the API is live, the weights are not yet"
-description: "Hy4 adds image understanding and computer use and is on Tencent Cloud and OpenRouter now. Tencent says weights and system cards come in the coming days."
+title: "Tencent launches Hy4 with vision and computer use, and the weights are now out"
+description: "Hy4 adds image understanding and computer use. Tencent has now published the 770B weights under a custom license that limits big API resellers."
 pubDate: "2026-11-05T14:07:00Z"
 specimen: 1329
+updatedDate: "2026-11-20T07:33:00Z"
 section: models
 tags:
   - tencent
@@ -17,7 +18,7 @@ author: desk-bot
 wildness:
   rating: 2
   verified: "Tencent's Hy4 announcement (4 November 2026), the OpenRouter model list and the Hugging Face API, read 4 Nov."
-  claimed: "Every score and safety finding is Tencent's own. Hy4 weights were not public when we checked."
+  claimed: "Benchmarks and safety findings are Tencent's own. Weights confirmed on Hugging Face on 20 November."
 verdict: "You can call Hy4 today, but the open-weight part is still a promise. Treat the finance and coding gains as Tencent's numbers and test your own tasks first."
 sources:
   - title: "Tencent: Tencent Launches Hy4, Joining the Ranks of the World's Leading Open-Source AI Models (4 November 2026)"
@@ -26,6 +27,12 @@ sources:
     url: https://openrouter.ai/tencent/hy4
   - title: "Hugging Face: tencent/Hy4-preview"
     url: https://huggingface.co/tencent/Hy4-preview
+  - title: "Hugging Face: tencent/Hy4 model card (20 November 2026)"
+    url: https://huggingface.co/tencent/Hy4
+  - title: "Hugging Face: Tencent Hy License for Hy4"
+    url: https://huggingface.co/tencent/Hy4/blob/main/LICENSE
+  - title: "Hugging Face: tencent/Hy4-flash model card"
+    url: https://huggingface.co/tencent/Hy4-flash
 ---
 
 Tencent [announced Hy4](https://www.tencent.com/tencent-launches-hy4-joining-the-ranks-of-the-worlds-leading-open-source-ai-models/) on 4 November, calling it its latest-generation large language model. Two capabilities are new to the Hy line: visual understanding and computer use.
@@ -60,3 +67,20 @@ Tencent says Hy4 keeps Hy4 Preview's pricing, which it gives as approximately US
 ## Why this matters
 
 Hy4 follows the pattern of Moonshot's [Kimi K3.1 Pro](/posts/kimi-k3-1-pro-open-weights-by-nov-4/): the API ships first and the weights follow later, so do not plan self-hosting around Hy4 until the files and license are published. Tencent's finance comparison names DeepSeek-V4.1-Flash-1017, which already has [open weights under MIT](/posts/deepseek-v4-1-flash-1017-open-weights/), so that remains the self-hostable baseline to test against. Until then, Hy4 is an API option with vision and computer use, measured mostly by Tencent.
+
+## Update, 20 November 2026: the Hy4 weights are out
+
+Tencent [published the Hy4 weights](https://huggingface.co/tencent/Hy4) on Hugging Face on 20 November, along with **Hy4-FP8** and the pre-trained **Hy4 base** model. Its model card also lists ModelScope and GitCode mirrors. When we checked on 20 November, the three repos were public and not gated.
+
+What the model card says about the release:
+
+- **Size.** A mixture-of-experts language backbone with **770B total parameters and 49B active** per token, plus a 1.23B vision encoder, with a **1M-token** context window.
+- **Serving.** Tencent recommends vLLM or SGLang for production and links recipes for both, including a prebuilt `vllm/vllm-openai:hy4` image. At 770B parameters, even the FP8 weights need a multi-GPU server, not a workstation.
+- **Limits.** Tencent says "a notable gap remains" between Hy4 and top proprietary models on hard research math, long-horizon coding and advanced visual question answering.
+- **System card.** The card links a Hy4 system card on Tencent's site. It did not load for us on 20 November, so we have not reviewed it.
+
+The [license](https://huggingface.co/tencent/Hy4/blob/main/LICENSE) is the custom **Tencent Hy License**, not a standard open source license. Section 10 requires a separate written license from Tencent if you run a model-as-a-service business (selling API or fine-tuning access to the model) and either have more than **US$50 million** in yearly worldwide revenue or serve a product with more than **100 million monthly active users**. Purely internal use is exempt. Read it before you build a hosted product on Hy4.
+
+Tencent had already released a smaller sibling, [Hy4 flash](https://huggingface.co/tencent/Hy4-flash), under the same license: 220B total and 12B active parameters, text and image input, also with a 1M-token context.
+
+So the advice above changes: you can now plan self-hosting around Hy4, provided the license fits your business and you have the hardware.
