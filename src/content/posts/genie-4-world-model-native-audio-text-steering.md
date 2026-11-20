@@ -1,9 +1,9 @@
 ---
 title: "Google DeepMind's Genie 4 world model adds sound, dialogue and live text steering, starting with trusted testers"
-description: "Genie 4 generates interactive worlds with native audio and characters that talk back, steered by text mid-session. Ultra and API access is coming soon."
+description: "Genie 4 generates interactive worlds with native audio and characters that talk back, steered by text. It is now on AI Ultra and GA in the Gemini API."
 pubDate: "2026-10-28T08:07:00Z"
-updatedDate: "2026-11-19T07:40:00Z"
 specimen: 1100
+updatedDate: "2026-11-20T07:33:00Z"
 section: models
 subsection: movie-gen
 tags:
@@ -29,6 +29,8 @@ sources:
     url: https://blog.google/innovation-and-ai/models-and-research/google-deepmind/introducing-genie-4/
   - title: "Google: Genie 4 is now available (18 November 2026)"
     url: https://deepmind.google/blog/genie-4-is-now-available/
+  - title: "Google: Gemini API release notes, Genie 4 generally available (19 November 2026)"
+    url: https://ai.google.dev/gemini-api/docs/changelog
 ---
 
 Google DeepMind has announced **Genie 4**, the next version of its world model, which generates an explorable world in real time as you move through it. The [DeepMind post](https://deepmind.google/blog/genie-4-a-new-generation-of-world-simulation/) and [Google's announcement](https://blog.google/innovation-and-ai/models-and-research/google-deepmind/introducing-genie-4/) focus on two new abilities: sound, and steering with words.
@@ -61,3 +63,15 @@ What Ultra subscribers get:
 - **A community gallery** where worlds can be published and remixed.
 
 SynthID watermarks still apply to all video and audio. Google again lists camera latency, physical interactions, audio precision and long-term scene permanence as open problems.
+
+## Update, 20 November 2026: Genie 4 is generally available in the Gemini API
+
+The Gemini API [release notes](https://ai.google.dev/gemini-api/docs/changelog) list **Genie 4** (`models/genie-4`) as generally available on 19 November, in the Interactions API (`v1beta`). That answers the open question from yesterday's update: developers can now build on it directly.
+
+Per the release notes:
+
+- **Output.** Real-time, steerable 24 fps 16:9 video with synchronized 48 kHz stereo audio, streamed over WebRTC or WebSockets.
+- **Input.** Seed a world from text, a 16:9 reference image, or both, then steer it with WASD or arrow keys and text events during the session.
+- **Price.** Paid tier only: $1.50 per million input tokens, $9.00 per million text output tokens and **$17.50 per million video output tokens**, which Google puts at about $0.10 per second of video, audio included.
+
+At roughly $0.10 a second, an hour of live world streaming costs about $360 in video output alone, so budget for session length before you put Genie 4 in front of users.
