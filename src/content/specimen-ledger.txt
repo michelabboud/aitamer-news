@@ -1496,3 +1496,10 @@
 1493 vmware-vcenter-zero-day-cve-2026-123890-armory-castle
 1494 mai-code-2-and-flash-github-copilot
 1495 gemini-api-tool-retrieval-defer-loading
+1496 k8s-from-zero-09-configmaps-and-secrets
+1497 k8s-from-zero-10-probes-and-graceful-shutdown
+1498 k8s-from-zero-11-requests-limits-and-qos
+1499 k8s-from-zero-12-checkpoint-lab-1
+1500 k8s-from-zero-13-volumes-pv-pvc-storageclass
+1501 k8s-from-zero-14-statefulsets
+1502 k8s-from-zero-15-daemonsets-jobs-cronjobs
