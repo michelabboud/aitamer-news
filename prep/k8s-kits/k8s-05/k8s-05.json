@@ -1,0 +1,177 @@
+{
+  "$comment": "Lesson-kit content for Lesson 5. Every fact and command is copied from the lesson draft. The post is not on main yet.",
+  "slug": "k8s-05",
+  "campaign": "k8s-05",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 5,
+    "title": "Kubernetes from Zero, part 5: kubectl essentials",
+    "shortTitle": "kubectl essentials",
+    "description": "Imperative vs declarative kubectl, YAML from dry-run, apply, diff, explain, edit and patch, every -o output format, and label selectors, all tested on kind.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-05-kubectl-essentials/",
+    "source": "prep/k8s-kits/k8s-05/draft.md",
+    "tested": "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "k8s-ep04",
+    "rule": "Keep manifests in files and use diff then apply. Use dry-run to write YAML, explain to read fields, -o to shape output, and labels with -l to pick objects."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-05.jpg",
+    "alt": "A cut-paper dusty-blue speaking tube curves toward a row of five cream crates, four with coral tags, while a slate-blue magnifying glass hovers over them and a ship's wheel sits above.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "$comment": "Lesson 6 is not published yet, so this links to the series page. Summary is the lesson's closing Next line with the date words removed.",
+    "label": "Next in the series",
+    "title": "Next: Lesson 6, namespaces, labels and annotations",
+    "summary": "Kubernetes from Zero, part 6, namespaces, labels and annotations.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "The three ways to manage objects, the lab commands, and the selector forms from Lesson 5.",
+    "boards": [
+      {
+        "title": "Three ways to manage an object",
+        "hint": "the object management page, as the lesson states it",
+        "headName": "Technique",
+        "headRole": "What the lesson says",
+        "headWhere": "The commands",
+        "rows": [
+          {"name": "Imperative commands", "role": "Act on live objects with flags. Fast, and good for learning and one-off tasks. They leave no file, so there is nothing to review, nothing in Git, and no record except the cluster itself.", "where": "`kubectl run`, `kubectl create deployment`, `kubectl label`"},
+          {"name": "Imperative object configuration", "role": "A file, and a verb you choose. You can review the file, and you must pick the right verb. `create` fails if the object exists. `replace` overwrites the whole object with your file, dropping anything that was set elsewhere.", "where": "`kubectl create -f`, `replace -f`, `delete -f`"},
+          {"name": "Declarative object configuration", "role": "You describe what you want and kubectl works out whether to create or patch each object. Pair it with `kubectl diff` to see the change first. This is how the rest of the series works.", "where": "`kubectl apply -f` on files or directories"}
+        ],
+        "note": "Manage each object with only one technique. Mixing them on the same object gives results the docs call undefined. The lab shows a mild version: an edit made outside the file lasts only until the next apply."
+      },
+      {
+        "title": "Selectors",
+        "hint": "equality-based and set-based, from the labels page as the lesson states it",
+        "headName": "Form",
+        "headRole": "What the lesson says",
+        "headWhere": "What the lab matched",
+        "rows": [
+          {"name": "Equality", "role": "`=`, `==` or `!=`. A comma between requirements means AND. There is no OR operator.", "where": "`-l tier=frontend` matched shop-web-dev and shop-web-prod"},
+          {"name": "AND", "role": "Both requirements must match.", "where": "`-l tier=frontend,environment=prod` matched only shop-web-prod"},
+          {"name": "Inequality", "role": "The docs spell this out: inequality matches objects without the key too.", "where": "`-l tier!=frontend` also matched scratch"},
+          {"name": "Set-based", "role": "`in`, `notin`, and plain existence (`key` or `!key`). `in (a,b)` is how you match either value. Use single quotes so the shell leaves the parentheses and `!` alone.", "where": "`environment in (dev,prod)` matched the three shop Pods. `!environment` matched scratch"}
+        ]
+      }
+    ],
+    "steps": {
+      "title": "Life of Pod web",
+      "hint": "generate, diff, apply, then watch a live edit lose",
+      "items": [
+        {"who": "kubectl run", "what": "`--dry-run=client -o yaml` builds the object locally and sends nothing. The lesson's YAML has labels `app.kubernetes.io/name: web` and `tier: frontend`, image `nginx:1.29-alpine`, and `containerPort: 80`. Redirect it with `> web.yaml`. You can delete `resources: {}` and `status: {}`."},
+        {"who": "kubectl apply", "what": "The first run prints `pod/web created`. The second prints `pod/web unchanged`. apply is idempotent."},
+        {"who": "kubectl diff", "what": "After you add `environment: dev` under labels, the diff shows that added line. Exit code `0` means no differences, `1` means differences, and more than `1` means an error. The lesson checked `0` before the edit and `1` after it. apply then prints `pod/web configured`."},
+        {"who": "kubectl edit", "what": "Opens the live object in `KUBE_EDITOR` or `EDITOR`. The lesson changed `environment` from `dev` to `test`. The next `kubectl apply -f web.yaml` put `dev` back, because that field belongs to the file."},
+        {"who": "kubectl label", "what": "`owner=me` is a label the file never mentions. The next apply prints `pod/web unchanged` and `--show-labels` still lists `owner=me`."}
+      ],
+      "note": "apply remembers the last applied object in the annotation `kubectl.kubernetes.io/last-applied-configuration`. A JSON merge patch can change one label. Patching the container port is refused: most of a running Pod's spec is fixed. The Pods page lists the fields a Pod update may change."
+    },
+    "commandGroups": [
+      {
+        "title": "See the request",
+        "commands": [
+          {"cmd": "kubectl get pods -n k8s-from-zero -v=6 2>&1 | grep -E \"Config loaded|https://\"", "note": "each API request; your kubeconfig path will differ"},
+          {"cmd": "kubectl get --raw /api/v1/namespaces/k8s-from-zero | head -c 160; echo", "note": "core objects live under `/api/v1`"},
+          {"cmd": "kubectl api-resources | grep -E \"^NAME|^pods |^namespaces |^deployments \"", "note": "short names and API versions"}
+        ]
+      },
+      {
+        "title": "Generate and apply",
+        "commands": [
+          {"cmd": "kubectl run quick --image=nginx:1.29-alpine -n k8s-from-zero", "note": "imperative, no file"},
+          {"cmd": "kubectl run web --image=nginx:1.29-alpine --port=80 --labels=app.kubernetes.io/name=web,tier=frontend -n k8s-from-zero --dry-run=client -o yaml", "note": "redirect with `> web.yaml`"},
+          {"cmd": "kubectl apply -f web.yaml", "note": "`created`, then `unchanged`, then `configured`"},
+          {"cmd": "kubectl diff -f web.yaml", "note": "exit 0 none, 1 changes, above 1 error"},
+          {"cmd": "kubectl apply -f web.yaml --dry-run=server", "note": "admission checks, stores nothing"},
+          {"cmd": "kubectl explain pod.spec.containers.imagePullPolicy", "note": "field docs from the API schema"}
+        ]
+      },
+      {
+        "title": "Change a live object",
+        "commands": [
+          {"cmd": "KUBE_EDITOR=\"sed -i s/environment:\\ dev/environment:\\ test/\" kubectl edit pod web -n k8s-from-zero", "note": "the lab's editor; a person uses a normal editor"},
+          {"cmd": "kubectl get pod web -n k8s-from-zero -L environment", "note": "one column per label key"},
+          {"cmd": "kubectl label pod web -n k8s-from-zero owner=me", "note": "a key the file never mentions"},
+          {"cmd": "kubectl get pod web -n k8s-from-zero --show-labels", "note": "all labels in the last column"},
+          {"cmd": "kubectl patch pod web -n k8s-from-zero --type=merge -p '{\"metadata\":{\"labels\":{\"environment\":\"test\"}}}'", "note": "a JSON merge patch"},
+          {"cmd": "kubectl get pod web -n k8s-from-zero -o jsonpath=\"{.metadata.annotations}\" | head -c 120; echo", "note": "`last-applied-configuration`"}
+        ]
+      },
+      {
+        "title": "Shape the output",
+        "commands": [
+          {"cmd": "kubectl get pods -n k8s-from-zero -o wide", "note": "IP and node"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -o name", "note": "`pod/quick`, `pod/web`"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -o jsonpath='{.items[*].metadata.name}{\"\\n\"}'", "note": "one field"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -o jsonpath='{range .items[*]}{.metadata.name}{\"\\t\"}{.status.podIP}{\"\\n\"}{end}'", "note": "`range ... end` loops"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -o custom-columns=NAME:.metadata.name,IMAGE:.spec.containers[0].image,NODE:.spec.nodeName,PHASE:.status.phase", "note": "your own table"},
+          {"cmd": "kubectl delete pod quick web -n k8s-from-zero", "note": "before the selector section"}
+        ]
+      },
+      {
+        "title": "Select by label",
+        "commands": [
+          {"cmd": "kubectl apply -f shop.yaml", "note": "four Pods; `---` separates objects"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -L tier,environment", "note": "two extra columns"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -l tier=frontend,environment=prod", "note": "comma means AND"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -l 'environment in (dev,prod)'", "note": "set-based; quote it"},
+          {"cmd": "kubectl get pods -n k8s-from-zero -l '!environment'", "note": "objects without the key"},
+          {"cmd": "kubectl label pod scratch -n k8s-from-zero environment=test --overwrite", "note": "required when the key already has a value"},
+          {"cmd": "kubectl label pod scratch -n k8s-from-zero environment-", "note": "a trailing `-` removes the key"},
+          {"cmd": "kubectl label pods -n k8s-from-zero -l app.kubernetes.io/name=shop team=payments", "note": "label every match"},
+          {"cmd": "kubectl delete pods -n k8s-from-zero -l environment=dev", "note": "run the same `-l` with get first"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster and the namespace `k8s-from-zero` from part 4. The lesson's node is `k8s-ep04-control-plane`, so node names and Pod UIDs on yours will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "Name the three object-management techniques, and say which one the rest of the series uses.", "a": "Imperative commands (flags on live objects), imperative object configuration (a file plus a verb you choose: `create -f`, `replace -f`, `delete -f`), and declarative object configuration (`kubectl apply -f` on files or directories). The series uses declarative configuration, paired with `kubectl diff`.", "lines": 3},
+          {"q": "What rule does the object management page add about mixing techniques?", "a": "Manage each object with only one technique. Mixing them on the same object gives results the docs call undefined.", "lines": 2},
+          {"q": "What does kubectl itself store, and what does `-v=6` add?", "a": "kubectl stores nothing. Every command becomes one or more HTTPS requests to the kube-apiserver. `-v=6` raises the log level enough to print each request. The lesson's line shows verb GET, the URL under `/api/v1/namespaces/k8s-from-zero/pods`, and status `200 OK`.", "lines": 3},
+          {"q": "What do `--dry-run=client` and `--dry-run=server` each do?", "a": "`--dry-run=client` builds the object locally and sends nothing. `--dry-run=server` sends the request through the API server's full validation and admission checks but stores nothing.", "lines": 2},
+          {"q": "What three exit codes does `kubectl diff` use?", "a": "`0` means no differences, `1` means differences, and more than `1` means an error. The lesson checked `0` before the edit and `1` after it.", "lines": 2},
+          {"q": "In a label selector, what does a comma mean, and which objects does `!=` match besides the ones with a different value?", "a": "A comma means AND, and there is no OR operator. Inequality also matches objects that do not have the key. In the lab, `tier!=frontend` matched scratch, which has no `tier` label.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command on your cluster, then answer.",
+        "exercises": [
+          {"q": "Run `kubectl run quick --image=nginx:1.29-alpine -n k8s-from-zero`. What does the lesson print, and which technique is this?", "a": "`pod/quick created`. It is an imperative command: one line, no file left behind.", "lines": 2},
+          {"q": "Run the `kubectl run web ... --dry-run=client -o yaml` command from step 2. Which labels does the lesson's YAML contain, and which two fields does the lesson say you can delete?", "a": "`app.kubernetes.io/name: web` and `tier: frontend`. You can delete `resources: {}` and `status: {}`. The image is `nginx:1.29-alpine` and `containerPort` is 80.", "lines": 2},
+          {"q": "Apply `web.yaml` twice. What does each run print?", "a": "`pod/web created`, then `pod/web unchanged`. apply is idempotent.", "lines": 2},
+          {"q": "Add `environment: dev` under `labels` and run `kubectl diff -f web.yaml`. What line does the lesson's diff add, and what is the exit code?", "a": "The added line is `environment: dev`. The exit code is `1`, which means differences. apply then prints `pod/web configured`.", "lines": 2},
+          {"q": "Run `kubectl explain pod.spec.containers.imagePullPolicy`. Which three values does the lesson list, and when is the default `Always`?", "a": "`Always`, `IfNotPresent` and `Never`. The description in the lesson says the default is Always if the `:latest` tag is specified, or IfNotPresent otherwise. The field cannot be updated.", "lines": 2},
+          {"q": "Apply `shop.yaml` and run the three equality selectors from the lesson (`tier=frontend`, `tier=frontend,environment=prod`, `tier!=frontend`). Which Pod names come back for each?", "a": "`tier=frontend` returns shop-web-dev and shop-web-prod. Adding `environment=prod` returns only shop-web-prod. `tier!=frontend` returns scratch and shop-api-prod.", "lines": 3},
+          {"q": "Run `kubectl label pod scratch -n k8s-from-zero environment=dev`, then the same command with `environment=test` and no `--overwrite`. What error does the lesson print?", "a": "The first command prints `pod/scratch labeled`. The second prints `error: 'environment' already has a value (dev), and --overwrite is false`.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You run `kubectl create -f web.yaml` for a Pod named `web` that already exists. What error does the lesson quote?", "a": "`Error from server (AlreadyExists): error when creating \"web.yaml\": pods \"web\" already exists`. `create` only creates. Use `apply` for files you keep changing.", "lines": 2},
+          {"q": "You `kubectl edit` Pod web so `environment` is `test`, then `kubectl apply -f web.yaml` while the file still says `dev`. What does ENVIRONMENT show afterwards, and what happens to a label `owner=me` that the file never mentions?", "a": "apply prints `pod/web configured` and ENVIRONMENT is `dev` again, because the file owns that field. `owner=me` stays. The lesson's `--show-labels` line lists `app.kubernetes.io/name=web,environment=dev,owner=me,tier=frontend`.", "lines": 3},
+          {"q": "You JSON-patch Pod web so container `web` has `containerPort` 8080. What does the API do?", "a": "It refuses the update. The lesson quotes: `The Pod \"web\" is invalid: spec: Forbidden: pod updates may not change fields other than` the image fields, `spec.activeDeadlineSeconds`, additions to `spec.tolerations`, and `spec.terminationGracePeriodSeconds` in the case the lesson names. For anything else you replace the Pod.", "lines": 3},
+          {"q": "You run `kubectl get pods -n k8s-from-zero -l tier=Frontend`. What does the lesson say comes back, and why?", "a": "Nothing. Values are case-sensitive, and the lesson says `-l tier=Frontend` found nothing. Check with `--show-labels` or `-L tier` first.", "lines": 2},
+          {"q": "You are about to run `kubectl delete pods -n k8s-from-zero -l environment=dev`. What does the lesson tell you to run first, and which Pod did that selector delete in the lab?", "a": "Run `kubectl get pods -l ...` with the same selector first. In the lab the delete removed `shop-web-dev`. A later `kubectl delete -f shop.yaml` reports `NotFound` for that Pod and removes the rest.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}

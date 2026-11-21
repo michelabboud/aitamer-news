@@ -1,0 +1,190 @@
+{
+  "$comment": "Lesson-kit content for Lesson 14. Every fact and command is copied from the lesson draft.",
+  "slug": "k8s-14",
+  "campaign": "k8s-14",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 14,
+    "title": "Kubernetes from Zero, part 14: StatefulSets, stable names and a disk per Pod",
+    "shortTitle": "StatefulSets",
+    "description": "Run stateful apps with StatefulSets: stable Pod names and DNS, a headless Service, one claim per Pod, ordered rollout and a learning Postgres on kind.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-14-statefulsets/",
+    "source": "prep/k8s-kits/k8s-14/draft.md",
+    "tested": "Every command ran on three-node kind v0.33.0 (node v1.37.0, kubectl v1.37.2), postgres:18-alpine, 10 Nov 2026",
+    "cluster": "k8s-ep13",
+    "rule": "Use a StatefulSet when each replica needs its own name and its own disk. Create the headless Service, keep claims on scale down, and back up the data."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-14.jpg",
+    "alt": "Three slate-blue paper boats sit side by side on a wooden pier, each beside its own stack of sand-colored crates; the left boat carries a coral life ring and a ship's wheel stands on a post at the right.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 15, DaemonSets, Jobs and CronJobs",
+    "summary": "Kubernetes from Zero, part 15, DaemonSets, Jobs and CronJobs.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "Stable names, one claim per Pod, and the commands from Lesson 14.",
+    "boards": [
+      {
+        "title": "What a StatefulSet keeps stable",
+        "hint": "from the recap and the cheat sheet",
+        "headName": "Piece",
+        "headRole": "What the lesson says",
+        "headWhere": "The field or the name",
+        "rows": [
+          {
+            "name": "Headless Service",
+            "role": "You create it. `clusterIP: None`.",
+            "where": "`spec.serviceName` must match its name"
+          },
+          {
+            "name": "Pod names",
+            "role": "`web-0`, `web-1`, and so on. The set name plus the ordinal.",
+            "where": "stable across restarts"
+          },
+          {
+            "name": "Pod DNS",
+            "role": "`web-0.web.k8s-from-zero.svc.cluster.local`. Short name `web-0.web` in the namespace.",
+            "where": "needs the headless Service"
+          },
+          {
+            "name": "volumeClaimTemplates",
+            "role": "One claim per Pod. Claims are named `www-web-0` and so on.",
+            "where": "the template is immutable"
+          },
+          {
+            "name": "OrderedReady",
+            "role": "Pods start in ordinal order and stop in reverse. One unready Pod blocks every higher ordinal.",
+            "where": "default management"
+          },
+          {
+            "name": "Parallel",
+            "role": "Starts them together and keeps the identities.",
+            "where": "`podManagementPolicy`"
+          },
+          {
+            "name": "partition",
+            "role": "Only ordinals at or above this number update.",
+            "where": "`rollingUpdate.partition`"
+          },
+          {
+            "name": "Claim retention",
+            "role": "Claims survive scale-down and deletion by default. Both policies default to Retain.",
+            "where": "`persistentVolumeClaimRetentionPolicy`"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "The learning Postgres",
+      "hint": "what the lesson says this is, and is not",
+      "items": [
+        {
+          "who": "image",
+          "what": "The lesson tested `postgres:18-alpine`. Postgres 18 mounts at `/var/lib/postgresql`. Versions 17 and older use `/var/lib/postgresql/data`."
+        },
+        {
+          "who": "order",
+          "what": "With OrderedReady, `web-0` becomes Ready before `web-1` is created. A 403 from a readiness probe left `web-0` unready for three minutes and `web-1` was never created."
+        },
+        {
+          "who": "claims",
+          "what": "Scale-down stops the highest ordinal first and, by default, leaves its claim. List PVCs before you reuse a StatefulSet name."
+        },
+        {
+          "who": "production",
+          "what": "Running a database this way works for learning. The lesson says production needs replication, backups and tested restores, which later episodes cover."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Watch and scale",
+        "commands": [
+          {
+            "cmd": "kubectl get pods -l app.kubernetes.io/name=web -w",
+            "note": "each Pod waits for Ready"
+          },
+          {
+            "cmd": "kubectl rollout status statefulset/web",
+            "note": "works like Deployments"
+          },
+          {
+            "cmd": "kubectl scale statefulset web --replicas=1",
+            "note": "highest ordinal stops first"
+          },
+          {
+            "cmd": "kubectl get pods -L apps.kubernetes.io/pod-index",
+            "note": "the ordinal, stable since v1.32"
+          },
+          {
+            "cmd": "kubectl delete pvc -l app.kubernetes.io/name=web",
+            "note": "check the list first"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the three-node kind cluster from part 3 and the namespace `k8s-from-zero`. The lesson's cluster is `k8s-ep13`. The database in the lab is for learning. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What three things does a StatefulSet give each Pod?",
+            "a": "A stable name, a DNS record through a headless Service, and its own claim.",
+            "lines": 2
+          },
+          {
+            "q": "In what order do Pods start and stop under the default policy?",
+            "a": "They start in ordinal order and stop in reverse. A Pod that is never Ready stops the line, unless you set `podManagementPolicy: Parallel`.",
+            "lines": 2
+          },
+          {
+            "q": "What happens to claims on scale-down and on delete, by default?",
+            "a": "They survive. Both `whenDeleted` and `whenScaled` default to Retain. Set them to Delete when you want the claims removed.",
+            "lines": 2
+          },
+          {
+            "q": "Why can Pods fail to find each other by name even when they are Running?",
+            "a": "The headless Service is missing, its name differs from `serviceName`, or its selector does not match. Check `kubectl get svc` for `CLUSTER-IP None` and compare names.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "The first version of `web-sts.yaml` probed `/` with httpGet, and the empty claim hid nginx's default page. What status code came back, and which Pods were created?",
+            "a": "403. `web-0` sat at `0/1` for three minutes. `web-1` was never created, because OrderedReady blocks every higher ordinal.",
+            "lines": 2
+          },
+          {
+            "q": "You change the claim template from 1Gi to 2Gi and apply again. What does the API say?",
+            "a": "`spec.volumeClaimTemplates: ... field is immutable`. Grow existing claims directly if the class allows expansion, or create a new StatefulSet.",
+            "lines": 2
+          },
+          {
+            "q": "You revert a bad template and the rollout stays stuck. What does the lesson say to delete?",
+            "a": "The Pod that was running the bad version, so the controller can recreate it. The docs call this a known issue with OrderedReady.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}
