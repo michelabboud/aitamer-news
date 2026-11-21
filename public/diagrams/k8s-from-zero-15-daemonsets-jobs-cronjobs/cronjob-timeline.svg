@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" role="img" aria-labelledby="t d">
+<title id="t">A CronJob makes one Job per schedule tick and keeps a short history</title>
+<desc id="d">A timeline of the CronJob report with schedule every minute in time zone Etc/UTC. Each minute the controller created a Job named report plus a number, such as report-29905753, and each Job ran one Pod that printed a line and completed. With successfulJobsHistoryLimit 2 the controller deleted the oldest finished Jobs. A Job created by hand with kubectl create job --from=cronjob/report ran at once. A panel compares the three concurrency policies: Allow, the default, lets runs overlap; Forbid, highlighted, skips a new run while the last one is still running; Replace stops the running Job and starts the new one.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="440" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">schedule */1 * * * *: one Job per minute, two kept</text>
+<rect class="boxb" x="24" y="52" width="752" height="50" rx="10"/>
+<text class="tm" x="40" y="82" text-anchor="start">CronJob report</text>
+<text class="ts" x="220" y="82" text-anchor="start">timeZone Etc/UTC, concurrencyPolicy Forbid, successfulJobsHistoryLimit 2</text>
+<line class="ln" x1="40" y1="150" x2="760" y2="150"/>
+<circle class="db" cx="48" cy="150" r="6"/>
+<text class="ts" x="40" y="136" text-anchor="start">21:12 UTC</text>
+<rect class="boxd" x="40" y="166" width="166" height="52" rx="8"/>
+<text class="tm" x="50" y="188" text-anchor="start">report-29905752</text>
+<text class="ts" x="50" y="208" text-anchor="start">deleted by history</text>
+<circle class="db" cx="228" cy="150" r="6"/>
+<text class="ts" x="220" y="136" text-anchor="start">21:13 UTC</text>
+<rect class="boxd" x="220" y="166" width="166" height="52" rx="8"/>
+<text class="tm" x="230" y="188" text-anchor="start">report-29905753</text>
+<text class="ts" x="230" y="208" text-anchor="start">deleted by history</text>
+<circle class="db" cx="408" cy="150" r="6"/>
+<text class="ts" x="400" y="136" text-anchor="start">21:14 UTC</text>
+<rect class="boxs" x="400" y="166" width="166" height="52" rx="8"/>
+<text class="tm" x="410" y="188" text-anchor="start">report-29905754</text>
+<text class="ts" x="410" y="208" text-anchor="start">Complete 1/1</text>
+<circle class="db" cx="588" cy="150" r="6"/>
+<text class="ts" x="580" y="136" text-anchor="start">21:15 UTC</text>
+<rect class="boxs" x="580" y="166" width="166" height="52" rx="8"/>
+<text class="tm" x="590" y="188" text-anchor="start">report-29905755</text>
+<text class="ts" x="590" y="208" text-anchor="start">Complete 1/1</text>
+<rect class="box" x="40" y="232" width="300" height="40" rx="8"/>
+<text class="ts" x="52" y="257" text-anchor="start">report-now (by hand, --from=cronjob)</text>
+<rect class="panel" x="24" y="292" width="752" height="132" rx="10"/>
+<text class="t" x="40" y="316" text-anchor="start">concurrencyPolicy: what if the last run is still going</text>
+<rect class="box" x="40" y="330" width="720" height="26" rx="6"/>
+<text class="tm" x="52" y="348" text-anchor="start">Allow</text>
+<text class="ts" x="150" y="348" text-anchor="start">default: start the new run anyway, runs overlap</text>
+<rect class="boxc" x="40" y="360" width="720" height="26" rx="6"/>
+<text class="tm" x="52" y="378" text-anchor="start">Forbid</text>
+<text class="ts" x="150" y="378" text-anchor="start">skip this run; the running Job keeps going</text>
+<rect class="box" x="40" y="390" width="720" height="26" rx="6"/>
+<text class="tm" x="52" y="408" text-anchor="start">Replace</text>
+<text class="ts" x="150" y="408" text-anchor="start">stop the running Job, start the new one</text>
+</svg>
