@@ -1505,3 +1505,5 @@
 1502 k8s-from-zero-15-daemonsets-jobs-cronjobs
 1503 ai-image-models-open-weights-h3-image-vs-hidream-o1
 1504 cisco-expressway-cve-2026-76466-exploited-after-poc
+1505 cairn-ai-agents-monai-label-zero-day
+1506 thinking-machines-inkling-2-mini-looped-local-model
