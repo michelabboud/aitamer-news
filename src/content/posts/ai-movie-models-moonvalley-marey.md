@@ -18,7 +18,7 @@ heroAlt: "Cut-paper film camera on a tripod facing a blank slate on a small stag
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Moonvalley, fal.ai, Sand AI, Hugging Face, Alibaba Cloud pages and Artificial Analysis boards, read 21 Nov 2026."
+  verified: "Moonvalley, fal.ai, Sand AI, Hugging Face, Alibaba Cloud and Artificial Analysis pages, read 21 Nov 2026."
   claimed: "Quality and licensing-safety lines are vendor claims. We generated no clips."
 verdict: "Pick Marey when the training-data story matters more than price or sound. MAGI-2 Preview is a research release to study, and HappyHorse 1.1 is the cheaper all-rounder with audio."
 sources:

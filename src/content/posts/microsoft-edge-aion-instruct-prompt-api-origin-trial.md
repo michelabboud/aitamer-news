@@ -15,7 +15,7 @@ heroAlt: "Blank cut-paper browser frame with a sprout growing from a seed pod in
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Microsoft Edge blog (19 November 2026), Edge Prompt API docs, the origin trial page and the Hugging Face model API, read 21 November."
+  verified: "Edge blog (19 Nov 2026), Prompt API docs, origin trial page and Hugging Face model API, read 21 Nov."
   claimed: "Quality parity with Phi-4-mini is Microsoft's claim. We have not run the model."
 verdict: "If you want free on-device text features for Edge users, register for the origin trial now and keep a cloud fallback: the model only downloads on capable, unmetered devices."
 sources:
