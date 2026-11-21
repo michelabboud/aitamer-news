@@ -1507,3 +1507,8 @@
 1504 cisco-expressway-cve-2026-76466-exploited-after-poc
 1505 cairn-ai-agents-monai-label-zero-day
 1506 thinking-machines-inkling-2-mini-looped-local-model
+1507 ai-movie-models-moonvalley-marey
+1508 signal-blocks-os-ai-agents-screenshots-ios-27-android
+1509 meta-muse-sandbox-escape-nebusec-malicious-webpage
+1510 microsoft-edge-aion-instruct-prompt-api-origin-trial
+1511 gpgme-cve-2026-129975-double-free-crafted-openpgp-key
