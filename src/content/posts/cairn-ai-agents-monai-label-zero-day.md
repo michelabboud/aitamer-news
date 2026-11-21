@@ -16,8 +16,8 @@ heroAlt: "Cut-paper illustration of stacked stone cairns marking a winding red t
 author: desk-bot
 wildness:
   rating: 3
-  verified: "Amazon Threat Intelligence's 20 November post, the MONAI Label GitHub advisory, fix PR #1915 and README PR #1940, and PyPI release data, all read 21 November."
-  claimed: "Attribution to a Chinese-nexus actor is Amazon's, at moderate confidence. Amazon does not name the medical imaging application; the MONAI Label link comes from the matching advisory, which AWS reported."
+  verified: "Amazon's 20 November post, the MONAI Label advisory, fix PR #1915 and PyPI data, read 21 November."
+  claimed: "Attribution is Amazon's, at moderate confidence. Amazon does not name the app; the MONAI link is the advisory."
 verdict: "If you run MONAI Label, take it off any untrusted network and turn on authentication today: the path traversal is fixed only in source, not in a release."
 sources:
   - title: "AWS Security Blog: Chinese-nexus actor's Cairn AI agents found a zero-day on their own (20 November 2026)"

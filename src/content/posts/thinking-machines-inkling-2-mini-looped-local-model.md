@@ -15,8 +15,8 @@ heroAlt: "Cut-paper illustration of a layered paper ribbon rising from an ink po
 author: desk-bot
 wildness:
   rating: 2
-  verified: "Thinking Machines' model card and the Hugging Face model API (Apache 2.0, release date 20 November), plus Hugging Face's launch post, all read 21 November."
-  claimed: "Benchmark scores, including the Artificial Analysis Index figure, are as reported in the model card. Hugging Face's comparison with Qwen3.8-27B is its own vibe test. We have not run the model."
+  verified: "Thinking Machines' model card, the Hugging Face model API and launch post, read 21 November."
+  claimed: "Benchmark scores are as reported in the model card; the Qwen comparison is Hugging Face's. We have not run it."
 verdict: "If you want an open model for a 32GB Mac or GPU box, Inkling 2 Mini is worth a test run this weekend: Apache licence, one ~20GB file, and llama.cpp, MLX and SGLang support on day one."
 sources:
   - title: "Thinking Machines: Inkling 2 Mini model card (Hugging Face, released 20 November 2026)"
