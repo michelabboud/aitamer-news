@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 430" role="img" aria-labelledby="t d">
+<title id="t">A failing readiness probe removes a Pod from the Service</title>
+<desc id="d">The Service web selects two Pods of the web Deployment. Its EndpointSlice lists both Pod IPs with a ready condition. The Pod web-b44cbc97c-dtv9n at 10.244.0.5 passes its readiness probe, is ready=true and receives traffic. The Pod web-b44cbc97c-8ptgj at 10.244.0.6 fails its readiness probe with HTTP 404, so the EndpointSlice marks it ready=false and Service traffic stops going to it; it is highlighted. The Pod keeps running and is not restarted. When the probe passes again, it gets traffic again.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="430" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Readiness decides who gets traffic, not who keeps running</text>
+<rect class="box" x="24" y="170" width="150" height="60" rx="10"/>
+<text class="t" x="99.0" y="205.0" text-anchor="middle">client Pods</text>
+<rect class="boxb" x="214" y="160" width="170" height="80" rx="10"/>
+<text class="tm" x="299.0" y="196.5" text-anchor="middle">Service web</text>
+<text class="tm" x="299.0" y="213.5" text-anchor="middle">port 80</text>
+<line class="ln" x1="174" y1="200" x2="212" y2="200" marker-end="url(#ah)"/>
+<rect class="boxb" x="424" y="80" width="200" height="100" rx="10"/>
+<text class="tb" x="436" y="108" text-anchor="start">EndpointSlice</text>
+<text class="tm" x="436" y="130" text-anchor="start">10.244.0.5 ready=true</text>
+<text class="tm" x="436" y="152" text-anchor="start">10.244.0.6 ready=false</text>
+<line class="lnb" x1="384" y1="190" x2="422" y2="150"/>
+<rect class="boxs" x="560" y="236" width="216" height="70" rx="10"/>
+<text class="tm" x="668.0" y="258.0" text-anchor="middle">web-b44cbc97c-dtv9n</text>
+<text class="tm" x="668.0" y="276.0" text-anchor="middle">10.244.0.5  READY 1/1</text>
+<text class="tm" x="668.0" y="294.0" text-anchor="middle">probe: 200 OK</text>
+<rect class="boxc" x="560" y="330" width="216" height="70" rx="10"/>
+<text class="tm" x="668.0" y="352.0" text-anchor="middle">web-b44cbc97c-8ptgj</text>
+<text class="tm" x="668.0" y="370.0" text-anchor="middle">10.244.0.6  READY 0/1</text>
+<text class="tm" x="668.0" y="388.0" text-anchor="middle">probe: 404, still Running</text>
+<line class="ln" x1="384" y1="215" x2="556" y2="265" marker-end="url(#ah)"/>
+<path class="ln" d="M384,228 C470,300 480,350 556,362"/>
+<text class="tc" x="452" y="320" text-anchor="middle">no traffic</text>
+<text class="ts" x="24" y="280" text-anchor="start">kube-proxy sends Service traffic</text>
+<text class="ts" x="24" y="296" text-anchor="start">only to endpoints with ready=true.</text>
+<text class="ts" x="24" y="330" text-anchor="start">The failing Pod is not restarted;</text>
+<text class="ts" x="24" y="346" text-anchor="start">liveness, not readiness, restarts.</text>
+</svg>
