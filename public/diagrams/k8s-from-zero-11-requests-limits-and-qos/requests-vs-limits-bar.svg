@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 430" role="img" aria-labelledby="t d">
+<title id="t">Requests versus limits</title>
+<desc id="d">Two horizontal bars, one for CPU and one for memory, for a container with a CPU request of 100m and limit of 200m, and a memory request of 32Mi and limit of 64Mi. On each bar, the part from zero to the request is what the scheduler reserves on a node; the scheduler only places the Pod where the sum of requests fits. The part from the request to the limit is extra the container may use when the node has spare capacity. The limit, highlighted, is the ceiling the Linux kernel enforces through cgroups: CPU above it is throttled, memory above it gets the container OOM-killed.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="430" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Requests reserve, limits cap</text>
+<text class="th" x="24" y="104" text-anchor="start">CPU</text>
+<rect class="boxb" x="150.0" y="80" width="140.0" height="40" rx="4"/>
+<rect class="boxs" x="290.0" y="80" width="140.0" height="40" rx="4"/>
+<rect class="boxd" x="430.0" y="80" width="280.0" height="40" rx="4"/>
+<text class="tm" x="220.0" y="105" text-anchor="middle">request 100m</text>
+<text class="ts" x="360.0" y="105" text-anchor="middle">burst if spare</text>
+<text class="ts" x="570.0" y="105" text-anchor="middle">throttled</text>
+<line class="lnc" x1="430.0" y1="66" x2="430.0" y2="134"/>
+<text class="tc" x="430.0" y="60" text-anchor="middle">limit 200m</text>
+<text class="ts" x="150.0" y="150" text-anchor="middle">0</text>
+<text class="th" x="24" y="234" text-anchor="start">memory</text>
+<rect class="boxb" x="150.0" y="210" width="140.0" height="40" rx="4"/>
+<rect class="boxs" x="290.0" y="210" width="140.0" height="40" rx="4"/>
+<rect class="boxd" x="430.0" y="210" width="280.0" height="40" rx="4"/>
+<text class="tm" x="220.0" y="235" text-anchor="middle">request 32Mi</text>
+<text class="ts" x="360.0" y="235" text-anchor="middle">burst if spare</text>
+<text class="ts" x="570.0" y="235" text-anchor="middle">OOM-killed</text>
+<line class="lnc" x1="430.0" y1="196" x2="430.0" y2="264"/>
+<text class="tc" x="430.0" y="190" text-anchor="middle">limit 64Mi</text>
+<text class="ts" x="150.0" y="280" text-anchor="middle">0</text>
+<rect class="boxb" x="150" y="330" width="14" height="14" rx="3"/>
+<text class="ts" x="172" y="342" text-anchor="start">scheduler reserves this on a node (sum of requests must fit allocatable)</text>
+<rect class="boxs" x="150" y="354" width="14" height="14" rx="3"/>
+<text class="ts" x="172" y="366" text-anchor="start">may use it when the node has spare capacity, not guaranteed</text>
+<line class="lnc" x1="150" y1="386" x2="164" y2="386"/>
+<text class="ts" x="172" y="390" text-anchor="start">the kernel enforces the limit with cgroups</text>
+<text class="ts" x="24" y="416" text-anchor="start">A limit with no request copies the limit into the request. No request and no limit: no reservation, no cap.</text>
+</svg>
