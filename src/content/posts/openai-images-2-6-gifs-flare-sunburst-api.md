@@ -3,6 +3,7 @@ title: "OpenAI's Images 2.6 adds GIFs, SVG export and a complexity setting, with
 description: "Images 2.6 is in ChatGPT, Codex and the API as GPT Image 2.6 Flare and Sunburst. Token prices match GPT Image 2.5; the speed claims are OpenAI's."
 pubDate: "2026-11-05T08:37:00Z"
 specimen: 1319
+updatedDate: "2026-11-22T15:40:00Z"
 section: tools
 tags:
   - openai
@@ -29,6 +30,10 @@ sources:
     url: https://platform.openai.com/docs/models/gpt-image-2.6-sunburst
   - title: "OpenAI API: Pricing"
     url: https://platform.openai.com/docs/pricing
+  - title: "OpenAI API pricing (read 22 November 2026)"
+    url: https://developers.openai.com/api/docs/pricing
+  - title: "OpenAI API deprecations (read 22 November 2026)"
+    url: https://developers.openai.com/api/docs/deprecations
 ---
 
 OpenAI [released Images 2.6 on 4 November](https://openai.com/index/introducing-images-2-6/) in ChatGPT, Codex and the API. The headline addition is animated GIF output, and the API gets two new models, markup-guided edits, SVG export and a new complexity setting. OpenAI says it is "available globally today in ChatGPT and Codex across all subscription tiers on desktop, mobile, and web."
@@ -59,3 +64,7 @@ On the [API pricing page](https://platform.openai.com/docs/pricing), Flare and S
 ## Why this matters
 
 If you call GPT Image 2.5 today, moving to 2.6 is a speed and quality test, not a budget decision, because the token prices are identical. Bulk work is the exception: Batch still halves GPT Image 2.5's price and does not list 2.6, so keep batch jobs on 2.5 for now. Our [Nano Banana vs GPT Image comparison](/posts/ai-image-models-nano-banana-vs-gpt-image/) found GPT Image 2.5 costly at its top setting, and [Microsoft's MAI Image 2.7](/posts/microsoft-mai-image-2-7-editing-model-preview/) launched claiming an edit-leaderboard spot above GPT Image 2.5 Flare, so rerun your own edit prompts at low complexity before you switch.
+
+## Update, 22 November 2026: Batch now lists GPT Image 2.6
+
+OpenAI's [pricing page](https://developers.openai.com/api/docs/pricing) now lists GPT Image 2.6 Flare and Sunburst in the Batch table at $4 per million image input tokens and $15 per million image output tokens, half the standard rate and the same as GPT Image 2.5 in Batch. The advice above to keep batch jobs on 2.5 no longer applies: test 2.6 in Batch too. OpenAI's [deprecations page](https://developers.openai.com/api/docs/deprecations) also names the 2.6 models as replacements for `gpt-image-1-mini`, `gpt-image-1.5` and `chatgpt-image-latest`, which shut on 1 December 2026, and for `gpt-image-2`, which shuts on 10 February 2027.
