@@ -1512,3 +1512,7 @@
 1509 meta-muse-sandbox-escape-nebusec-malicious-webpage
 1510 microsoft-edge-aion-instruct-prompt-api-origin-trial
 1511 gpgme-cve-2026-129975-double-free-crafted-openpgp-key
+1512 levent-alpoge-claude-riemann-hypothesis-lean-proof
+1513 dragos-canary-prompts-inference-providers-breached-openrouter
+1514 house-releases-bis-h200-mi325x-china-license-approvals
+1515 ghostscript-upload2shell-cve-2026-125396-file-upload-rce
