@@ -1516,3 +1516,6 @@
 1513 dragos-canary-prompts-inference-providers-breached-openrouter
 1514 house-releases-bis-h200-mi325x-china-license-approvals
 1515 ghostscript-upload2shell-cve-2026-125396-file-upload-rce
+1516 ai-image-models-wrap-up-comparison
+1517 apache-roller-cve-2026-129448-xml-rpc-deserialization-exploited
+1518 muru-rust-python-wsgi-asgi-server-mod-wsgi-creator
