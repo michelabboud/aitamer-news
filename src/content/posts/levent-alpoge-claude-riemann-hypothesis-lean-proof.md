@@ -3,6 +3,7 @@ title: "Anthropic's Levent Alpöge says he and Claude proved the Riemann Hypothe
 description: "Alpöge released a 17-million-line Lean proof of RH, plus GRH for Dirichlet L-functions, found with Claude. Lean and Mathlib say it checks; no peer review yet."
 pubDate: "2026-11-22T07:40:00Z"
 specimen: 1512
+updatedDate: "2026-11-23T07:30:00Z"
 section: models
 tags:
   - math
@@ -64,3 +65,9 @@ It follows other AI-assisted Lean results we have covered, such as [Axiom's clas
 ## Why this matters
 
 The checking method is the part to take away. A separate statement file that imports only trusted definitions, a statement comparison, and several independent proof checkers let a community certify a 17-million-line proof in about a day, before anyone understands it. If you ship model-written code or proofs, the same pattern works for you: pin down the spec yourself and let independent checkers judge the output.
+
+## Update, 23 November 2026: more checks pass, and a test that skips the zeta function
+
+Andrew Sutherland's [MIT verification page](https://math.mit.edu/~drew/grh/), last updated at 16:20 UTC on 22 November, reports more of the checks finished. Lean's `leanchecker` replayed all 175,187 compiled modules through the kernel with zero rejections, and `lean4lean` accepts every compiled module. The independent kernels nanoda and con-leche accept the full exported proof. Two long single-threaded runs were still going at that update: the `lake comparator` end-to-end run and a Lean-kernel replay of the export.
+
+The page also adds a check that does not rely on Mathlib's definition of the zeta function. Sutherland combined the proof with an independent Lean formalisation of Robin's and Lagarias's criteria (kimihiro64/Robin1984) and derived two plain statements about divisor sums: Robin's inequality for every n above 5040, and Lagarias's inequality for every n above 0. Both compile using only the three standard axioms, con-leche and con-ron accept them against a challenge file that imports only Mathlib, and nanoda accepts the 62 GB combined export. A `lake comparator` run on that export was still in progress. These statements still depend on Mathlib's definitions of the divisor sum, exp and log, and on the Robin1984 proof, which was put through the same checks.

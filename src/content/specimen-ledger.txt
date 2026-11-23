@@ -1519,3 +1519,8 @@
 1516 ai-image-models-wrap-up-comparison
 1517 apache-roller-cve-2026-129448-xml-rpc-deserialization-exploited
 1518 muru-rust-python-wsgi-asgi-server-mod-wsgi-creator
+1519 glinet-goodcloud-cloud-flaw-malware-routers-kvm
+1520 openai-pachocki-perplexity-shared-metric-pretraining-limits
+1521 sarvam-105b-1711-open-weights-flash-lite
+1522 cleverbridge-breach-payment-cards-cvv-stolen
+1523 masullo-grh-manuscript-vakil-conrad-problems-reported
