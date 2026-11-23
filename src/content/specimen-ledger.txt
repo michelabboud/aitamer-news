@@ -1524,3 +1524,6 @@
 1521 sarvam-105b-1711-open-weights-flash-lite
 1522 cleverbridge-breach-payment-cards-cvv-stolen
 1523 masullo-grh-manuscript-vakil-conrad-problems-reported
+1524 zai-glm-5-4-loop-transformer-generalized-coding
+1525 ai-movie-models-wrap-up-comparison
+1526 n-able-mail-assure-breach-ssrf-cve-2026-134624
