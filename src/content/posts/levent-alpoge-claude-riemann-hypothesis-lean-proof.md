@@ -3,7 +3,7 @@ title: "Anthropic's Levent Alpöge says he and Claude proved the Riemann Hypothe
 description: "Alpöge released a 17-million-line Lean proof of RH, plus GRH for Dirichlet L-functions, found with Claude. Lean and Mathlib say it checks; no peer review yet."
 pubDate: "2026-11-22T07:40:00Z"
 specimen: 1512
-updatedDate: "2026-11-23T07:30:00Z"
+updatedDate: "2026-11-23T15:29:00Z"
 section: models
 tags:
   - math
@@ -71,3 +71,9 @@ The checking method is the part to take away. A separate statement file that imp
 Andrew Sutherland's [MIT verification page](https://math.mit.edu/~drew/grh/), last updated at 16:20 UTC on 22 November, reports more of the checks finished. Lean's `leanchecker` replayed all 175,187 compiled modules through the kernel with zero rejections, and `lean4lean` accepts every compiled module. The independent kernels nanoda and con-leche accept the full exported proof. Two long single-threaded runs were still going at that update: the `lake comparator` end-to-end run and a Lean-kernel replay of the export.
 
 The page also adds a check that does not rely on Mathlib's definition of the zeta function. Sutherland combined the proof with an independent Lean formalisation of Robin's and Lagarias's criteria (kimihiro64/Robin1984) and derived two plain statements about divisor sums: Robin's inequality for every n above 5040, and Lagarias's inequality for every n above 0. Both compile using only the three standard axioms, con-leche and con-ron accept them against a challenge file that imports only Mathlib, and nanoda accepts the 62 GB combined export. A `lake comparator` run on that export was still in progress. These statements still depend on Mathlib's definitions of the divisor sum, exp and log, and on the Robin1984 proof, which was put through the same checks.
+
+## Update, 23 November 2026, afternoon: the comparator says "okay"
+
+Sutherland's [verification page](https://math.mit.edu/~drew/grh/), last updated at 14:35 UTC on 23 November, now has the result the earlier update was waiting for. An unmodified Comparator v4.33.0 binary, run end to end with the repository's own settings, passed the statement comparison and the axiom check and printed "Your solution is okay!" at 09:10 UTC, after 64 hours. The page notes the limits of that run: its build step was satisfied by a stub, and the challenge it compared against was MIT's own compile of the repository's `Challenge.lean`.
+
+Lean's default kernel also accepted the full exported proof in a 48-hour single-thread run, and again in 9 hours with one allocator setting changed. Lean's stricter "paranoid" kernel accepted it with that setting too. An independent sandboxed rebuild reproduced the 61.6 GB export byte for byte. Two runs are still going: `lake comparator` on Lean v4.36.0, and the paranoid kernel with default settings. No check on the page has rejected the proof so far.
