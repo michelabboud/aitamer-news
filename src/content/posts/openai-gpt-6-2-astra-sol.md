@@ -2,6 +2,7 @@
 title: OpenAI introduces GPT-6.2 Astra and Sol, with lower Astra API prices
 description: OpenAI lists GPT-6.2 Astra at $8 input, $0.40 cached input, and $40 output per million tokens. GPT-6.2 Sol keeps GPT-6.1 Sol's $2, $0.10, and $10 rates.
 pubDate: "2026-11-17T22:35:04Z"
+updatedDate: "2026-11-24T15:30:00Z"
 specimen: 1485
 section: models
 tags:
@@ -26,6 +27,10 @@ sources:
     url: https://openai.com/index/gpt-6-astra/
   - title: Introducing GPT-6.1 Sol (OpenAI)
     url: https://openai.com/index/introducing-gpt-6-1-sol/
+  - title: "OpenAI: ChatGPT release notes (23 November 2026, GPT-6.2 in the Chat tab)"
+    url: https://help.openai.com/en/articles/6825453-chatgpt-release-notes
+  - title: "ChatGPT on X: GPT-5.6 deprecation on 23 December 2026"
+    url: https://x.com/ChatGPT/status/2124981905380569283
 ---
 
 ## What OpenAI released
@@ -64,3 +69,9 @@ On Cognition's FrontierCode 2.0, OpenAI says GPT-6.2 Sol comes within 0.5 points
 ## Safeguards
 
 OpenAI says both GPT-6.2 models meet the Critical cybersecurity threshold under its Preparedness Framework, the same threshold it assigns to GPT-6 Astra, and the High threshold for biological and chemical capabilities. It describes GPT-6.2 Astra as the first externally released model to meet the High threshold for AI self-improvement. OpenAI is shipping both with tighter limits on higher-risk cybersecurity help, and says those limits also block some legitimate vulnerability research. GPT-6.2 is absent from Daybreak at launch. Defenders can currently use GPT-6 Sol with reduced cyber refusals on Daybreak Blue, an alpha of GPT-6 Astra, and GPT-6 Cyber on Daybreak Red.
+
+## Update, 24 November 2026: GPT-6.2 reaches the Chat tab, and GPT-5.6 retires on 23 December
+
+OpenAI's [ChatGPT release notes](https://help.openai.com/en/articles/6825453-chatgpt-release-notes) for 23 November say a version of GPT-6.2 optimized for the Chat tab is rolling out to Plus, Pro, Business and Enterprise. In OpenAI's own Chat-tab tests it scored 71.7% on image understanding, up from 47.4% for GPT-6, and followed instructions on especially challenging prompts 78.1% of the time, up from 62.5%.
+
+A few hours later the ChatGPT account [announced](https://x.com/ChatGPT/status/2124981905380569283) that on 23 December OpenAI is deprecating GPT-5.6 Sol in Chat, and GPT-5.6 Sol and Terra in Work and Codex. If you have Codex or Work flows pinned to a 5.6 model, rerun them on GPT-6.2 Sol before then. The announcement does not mention the API.
