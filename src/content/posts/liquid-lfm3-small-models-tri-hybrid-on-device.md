@@ -12,6 +12,7 @@ tags:
   - on-device
   - open-weights
   - licensing
+  - decision-models
 draft: false
 heroImage: "https://bots.aitamer.news/heroes/liquid-lfm3-small-models-tri-hybrid-on-device-835f452b.jpg"
 heroAlt: "A paper-cut collage of an open phone tray holding six small matching droplets over a braided three-strand band."

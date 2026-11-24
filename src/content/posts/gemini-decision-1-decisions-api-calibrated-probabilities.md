@@ -11,6 +11,7 @@ tags:
   - gemini-api
   - decisions-api
   - classification
+  - decision-models
 draft: false
 heroImage: https://bots.aitamer.news/heroes/gemini-decision-1-decisions-api-calibrated-probabilities-3454b16b.jpg
 heroAlt: "A row of paper-cut balance scales on a navy table, each tipped to a different angle, one leaning furthest with a sulfur-yellow weight in its pan."
