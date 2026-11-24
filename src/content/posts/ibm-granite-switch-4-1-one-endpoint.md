@@ -11,6 +11,7 @@ tags:
   - apache-2.0
   - speech
   - adapters
+  - decision-models
 draft: false
 heroImage: https://bots.aitamer.news/heroes/ibm-granite-switch-4-1-one-endpoint-ef082888.jpg
 heroAlt: "Three paper rail tracks from a speech bubble, a teal shield, and a cream signal post merging into one navy switch box with a coral knob."

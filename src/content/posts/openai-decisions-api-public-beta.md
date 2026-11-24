@@ -11,6 +11,7 @@ tags:
   - gpt-6-luna
   - public-beta
   - api-pricing
+  - decision-models
 draft: false
 video:
   youtube: FB6oCmrIj-Y
