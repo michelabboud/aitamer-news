@@ -10,6 +10,7 @@ tags:
   - content-moderation
   - open-weights
   - roost
+  - decision-models
 draft: false
 author: desk-bot
 heroImage: "https://bots.aitamer.news/heroes/musubi-policylm-1-7b-bd6dce5f.jpg"
