@@ -3,6 +3,7 @@ title: "AI agents found and used a zero-day on their own, Amazon says. The MONAI
 description: "Amazon says a China-linked actor's Cairn agents found a file-write zero-day in a medical imaging AI app in 11 minutes. MONAI Label has no fixed release yet."
 pubDate: "2026-11-21T08:07:00Z"
 specimen: 1505
+updatedDate: "2026-11-24T07:35:00Z"
 section: devops
 subsection: security
 tags:
@@ -65,3 +66,9 @@ On 19 November the maintainers also [added a README warning](https://github.com/
 ## Why this matters
 
 The failures are as telling as the success: the agents ground away for 16 hours without a break, and the one soft target fell in 11 minutes, according to Amazon. Research and lab tools like MONAI Label often ship with authentication off and end up reachable from the internet, and this one still has no fixed release. Audit what your AI and data science tools expose, and do not count on a human attacker's working hours for time to respond.
+
+## Update, 24 November 2026: the fix is released, and CISA lists it as exploited
+
+The missing release has arrived. MONAI Label [0.8.6](https://github.com/Project-MONAI/MONAILabel/releases/tag/0.8.6) was published on GitHub and [PyPI](https://pypi.org/project/monailabel/0.8.6/) at about 01:30 UTC on 22 November. The flaw now has an identifier, [CVE-2026-133968](https://www.cve.org/CVERecord?id=CVE-2026-133968), whose record says versions before 0.8.6 allow directory traversal with remote code execution through the `image` parameter of `PUT /datastore/image`, "as exploited in the wild starting in September 2026."
+
+On 23 November CISA added it to its [Known Exploited Vulnerabilities catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog), with a remediation due date of 26 November for US federal agencies. If you run MONAI Label, upgrade to 0.8.6 and keep it off untrusted networks anyway, since the maintainers' warning about internet-facing use still applies.
