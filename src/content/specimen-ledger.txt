@@ -1534,3 +1534,7 @@
 1531 greynoise-gt13-check-point-management-servers-campaign
 1532 tidal-bans-wholly-ai-generated-music-december-9
 1533 typesafe-jev-decision-model-explained
+1534 google-cogentic-gemini-4-six-math-papers-factoring
+1535 hex-pm-cve-2026-129514-rce-servers-rotate-credentials
+1536 anthropic-claude-ship-pr-steward-claude-approvals-beta
+1537 sand-ai-magi-2-480b-video-model-higgsfield
