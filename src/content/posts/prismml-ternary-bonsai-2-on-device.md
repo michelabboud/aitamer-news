@@ -3,6 +3,7 @@ title: "PrismML adds Ternary Bonsai 2 at 2B, 4B, and 9B"
 description: "PrismML's 15 October post adds Ternary Bonsai 2 at 2B, 4B, and 9B. The cards say Apache 2.0 and weights in {-1, 0, +1}."
 pubDate: "2026-10-16T20:22:00Z"
 specimen: 864
+updatedDate: "2026-11-25T07:27:00Z"
 section: models
 tags:
   - prismml
@@ -40,6 +41,8 @@ sources:
     url: https://huggingface.co/prism-ml/Ternary-Bonsai-2-9B-gguf/raw/main/NOTICE.txt
   - title: "AI Tamer: Liquid AI releases LFM2.5-24B-A2B for on-device agents"
     url: https://aitamer.news/posts/liquid-lfm2-5-24b-a2b-on-device-moe/
+  - title: "PrismML: Introducing Ternary Bonsai 2.5 27B (24 November 2026)"
+    url: https://prismml.com/news/bonsai-2-5-27b
 ---
 
 On 15 October 2026, PrismML published [Introducing Ternary Bonsai 2 2B, 4B, and 9B](https://prismml.com/news/bonsai-2-family). The same day, the [PrismML account on X](https://x.com/PrismML/status/2110823964650164348) posted at 20:03 UTC that the three sizes were releasing under Apache 2.0. The [news index](https://prismml.com/news) dates a separate 27B launch to 17 September, and this post says the new sizes join that model. The family it describes now runs from 2B to 27B.
@@ -69,3 +72,7 @@ The news post's benchmark table is PrismML's. It was not rerun here. The post su
 On speed, PrismML says the models deliver up to 5 times the throughput and 3 times the energy efficiency of the full-precision counterparts on hardware such as an RTX 4090 and an M5 Pro. The post then writes "M5 Max Pro" for a further line: Bonsai 2 9B up to 179 tokens per second, and Bonsai 2 2B up to 310. On an iPhone 18 Pro Max, it says, the 9B reaches up to 34 tokens per second and the 2B up to 120. Those rates are PrismML's.
 
 [Liquid's LFM2.5-24B-A2B](/posts/liquid-lfm2-5-24b-a2b-on-device-moe/), from 13 October, is a different on-device release, under a license with a commercial-use limit. The Bonsai 2 cards read here grant Apache 2.0.
+
+## Update, 25 November 2026: Ternary Bonsai 2.5 27B targets agent work
+
+On 24 November PrismML [introduced Ternary Bonsai 2.5 27B](https://prismml.com/news/bonsai-2-5-27b), an upgrade to its Ternary Bonsai 2 27B. It is based on Qwen3.8 27B and, PrismML says, keeps a 5.9 GB footprint while improving multi-turn tool use, agentic coding and multi-step tasks, with fewer turns and fewer tokens than Bonsai 2. PrismML's own table puts SWE-bench Verified at 75.6, against 60.8 for Bonsai 2 27B and 80.6 for the full-precision Qwen3.8 27B, and AppWorld at 90.5 against 51.2 and 93.2. It quotes 291 tokens per second on one H100 and 204 on an RTX 4090, both with multi-token prediction. The post says the weights are available under Apache 2.0. All figures are PrismML's; we have not run the model.
