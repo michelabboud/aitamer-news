@@ -90,7 +90,7 @@ Docker's guide on [layers and the build cache](https://docs.docker.com/learn/con
 
 `FROM` does not copy Python into your image either. Your image starts on top of the base image's own layers, and every image built from the same base shares those layers on disk, because each layer is stored by a digest of its contents.
 
-![On the left, the six Dockerfile lines. On the right, the image as docker history lists it, newest first: CMD, EXPOSE and ENV at 0B as metadata; COPY app.py at 12.3kB, highlighted as the layer with your code; WORKDIR /app at 8.19kB; then the python:3.14-slim base with Python 3.14.10 at 42.1MB, apt packages at 4.93MB and 16.4kB, and a Debian trixie base of 87.7MB.](/diagrams/containers-from-zero-02-images-and-a-dockerfile/dockerfile-to-image.svg)
+![On the left, the six Dockerfile lines. On the right, the image as docker history lists it, newest first: CMD, EXPOSE and ENV at 0B as metadata; COPY app.py at 12.3kB, highlighted as the layer with your code; WORKDIR /app at 8.19kB; then the python:3.14-slim base with Python 3.14.10 at 42.1MB, apt packages at 4.93MB, symbolic links at 16.4kB, and a Debian trixie base of 87.7MB.](/diagrams/containers-from-zero-02-images-and-a-dockerfile/dockerfile-to-image.svg)
 
 ## The build cache
 
@@ -110,7 +110,7 @@ An image reference has the form `[HOST[:PORT]/]NAMESPACE/REPOSITORY[:TAG]` ([doc
 
 ## Optional lab: write and build hello-app
 
-This lab is optional. It creates a project folder and two images, and deletes nothing. Every command ran on 25 November 2026 with Docker Engine 29.10.1; IDs, digests and timings will differ on your machine.
+This lab is optional. It creates a project folder and two images, and deletes nothing. Part 3's lab starts from the image `hello-app:1.1` built here; if you skip this lab now, come back to steps 1 to 7 before part 3's lab. Every command ran on 25 November 2026 with Docker Engine 29.10.1; IDs, digests and timings will differ on your machine.
 
 **1. Create the project folder and the app.** The app uses only Python's standard library ([http.server](https://docs.python.org/3/library/http.server.html)), so the image needs no extra packages. Create a folder and save this as `app.py` inside it:
 
@@ -249,6 +249,8 @@ Hello from 598a55597090
 try
 ```
 
+If `docker logs try` prints nothing, the app had not printed its first line yet; run it again a second later.
+
 The hostname in the answer is the container ID, as in part 1.
 
 **7. Change one line and rebuild as 1.1.** Edit `app.py` so the body says `from container`. Line 13 becomes:
@@ -316,7 +318,7 @@ hello-app:1.1      045cf843b4fd        178MB         43.6MB
 hello-app:latest   045cf843b4fd        178MB         43.6MB
 ```
 
-`latest` and `1.1` have the same ID: one image, two names. `latest` is only a default name, not "the newest build"; it moves only when you tag again. That is why this series runs explicit tags like `hello-app:1.1`.
+`latest` and `1.1` have the same ID: one image, two names. `latest` is only a default name. It moves only when you tag again, so it can point at an older build. That is why this series runs explicit tags like `hello-app:1.1`.
 
 **10. See the writable layer.** Write a file inside a container, list the container's changes, then start a fresh container from the same image:
 

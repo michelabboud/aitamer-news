@@ -139,7 +139,7 @@
         "hint": "Write your prediction first. Then check the answer key.",
         "exercises": [
           {"q": "You run `docker build -t hello-app:1.2 .` from your home folder instead of `hello`. What error do you expect?", "a": "If there is no Dockerfile there: `failed to read dockerfile: open Dockerfile: no such file or directory`. If a Dockerfile is found but no `app.py`: `failed to compute cache key ... \"/app.py\": not found`. Build from the folder that holds both.", "lines": 3},
-          {"q": "You tag an image `Hello-App:1.0`. What happens?", "a": "The build fails with `invalid tag \"Hello-App:1.0\": repository name must be lowercase`. Use `hello-app:1.0`.", "lines": 2},
+          {"q": "You run `docker build -t Hello-App:1.0 .`. What happens?", "a": "The build fails with `invalid tag \"Hello-App:1.0\": repository name must be lowercase`. Use `hello-app:1.0`.", "lines": 2},
           {"q": "You rebuild without changing any file. Which steps run?", "a": "None of the file steps run again: `WORKDIR` and `COPY` are both `CACHED`, and the build finishes almost at once.", "lines": 2},
           {"q": "You edit `app.py`, rebuild as 1.1, but `docker run hello-app:1.0` still shows the old greeting. Why?", "a": "You ran the old tag. The change is only in the image tagged 1.1. Run `hello-app:1.1`.", "lines": 2}
         ]
