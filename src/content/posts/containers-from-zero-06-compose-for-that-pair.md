@@ -54,7 +54,7 @@ sources:
     url: https://docs.docker.com/
 ---
 
-[Part 5](https://aitamer.news/posts/containers-from-zero-05-two-containers-one-network/) took five commands and a careful order to run two containers: create a network, create a volume, start `web`, then start `proxy` with a port, a bind mount and the right image. Getting any of it wrong, or starting things in the wrong order, broke the pair. This part writes the same setup down once, in a file named `compose.yaml`, and hands it to **Docker Compose**. One command starts everything, one shows its state, and one takes it all down again.
+[Part 5](https://aitamer.news/posts/containers-from-zero-05-two-containers-one-network/) took three commands and a careful order to run two containers: create a network, start `web` with its volume, then start `proxy` with a port, a bind mount and the right image. Getting any of it wrong, or starting things in the wrong order, broke the pair. This part writes the same setup down once, in a file named `compose.yaml`, and hands it to **Docker Compose**. One command starts everything, one shows its state, and one takes it all down again.
 
 ## Time and setup
 
@@ -87,7 +87,7 @@ Each part of a `docker run` command has a key in `compose.yaml`. The [services r
 
 The network has no line at all. The [Compose networking page](https://docs.docker.com/compose/how-tos/networking/) explains: "When you run docker compose up, Compose creates a network named <project-name>_default and attaches all services to it. Each service registers its name with an internal DNS server, so containers can reach each other using the service name directly." That is the user-defined network from part 5, made for you, and it is why `proxy_pass http://web:8000` still works.
 
-![Left, the commands from part 5; right, the matching lines in compose.yaml. docker network create hello-net becomes nothing, because Compose creates hello_default. docker volume create hello-data becomes the top-level volumes key. docker run --name web with the network, the volume mount and hello-app:1.2 becomes the service web with build: . and its volume (highlighted). docker run --name proxy with -p 127.0.0.1:8080:80 and the proxy.conf mount becomes the service proxy with image nginx:1.30-alpine, ports, volumes and depends_on: web.](/diagrams/containers-from-zero-06-compose-for-that-pair/run-commands-to-compose.svg)
+![Left, the commands from part 5; right, the matching lines in compose.yaml. docker network create hello-net becomes nothing, because Compose creates hello_default. the volume that web's --mount created on first use becomes the top-level volumes key. docker run --name web with the network, the volume mount and hello-app:1.2 becomes the service web with build: . and its volume (highlighted). docker run --name proxy with -p 127.0.0.1:8080:80 and the proxy.conf mount becomes the service proxy with image nginx:1.30-alpine, ports, volumes and depends_on: web.](/diagrams/containers-from-zero-06-compose-for-that-pair/run-commands-to-compose.svg)
 
 ## Names Compose gives things
 
@@ -111,7 +111,7 @@ The project name comes from the folder name unless the file sets `name:`. This f
 
 This lab is optional. Every command ran on 25 November 2026 with Docker Engine 29.10.1 and Compose v5.8.0 in `/home/ubuntu/hello`; your IDs, addresses and times will differ.
 
-> **Safety: this lab publishes port 8080 on 127.0.0.1 and its last step deletes data.** It creates a Compose project named `hello`: the network `hello_default`, the volume `hello_hello-data`, the image `hello-web`, and the containers `hello-web-1` and `hello-proxy-1`. The cleanup step, `docker compose down -v`, deletes the volume and the visit count in it. If you already run another Compose project named `hello`, change `name: hello` in the file first, or the two will share containers and data. If port 8080 is busy, the proxy fails to start and nothing else is affected; stop the part 5 containers if they are still running. Other containers, networks and volumes keep running and stay untouched. To undo everything, run `docker compose down -v` in the `hello` folder.
+> **Safety: this lab publishes port 8080 on 127.0.0.1 and its last step deletes data.** It creates a Compose project named `hello`: the network `hello_default`, the volume `hello_hello-data`, the image `hello-web`, and the containers `hello-web-1` and `hello-proxy-1`. The cleanup step, `docker compose down -v`, deletes the volume and the visit count in it. If you already run another Compose project named `hello`, change `name: hello` in the file first, or the two will share containers and data. If port 8080 is busy, the proxy fails to start and nothing else is affected; stop the part 5 containers if they are still running. Other containers, networks and volumes keep running and stay untouched. To undo everything, run `docker compose down -v --rmi local` in the `hello` folder; `--rmi local` also removes the `hello-web` image that Compose built.
 
 **1. Write the two files.** In the `hello` folder, save `proxy.conf` again if you removed it in part 5:
 
@@ -255,7 +255,7 @@ web-1  | 172.18.0.3 "GET / HTTP/1.1" 200 -
 web-1  | 172.18.0.3 "GET / HTTP/1.1" 200 -
 ```
 
-`docker compose ps` lists only this project's containers, with their service names. `docker compose logs` takes service names, and prefixes each line with the container it came from; leave the name off to see every service, and add `-f` to follow.
+`docker compose ps` lists only this project's containers, with their service names. `docker compose logs` takes service names, and prefixes each line with the service and its number, such as `web-1`; leave the name off to see every service, and add `-f` to follow.
 
 **5. Take it down and bring it back.**
 
@@ -358,6 +358,7 @@ docker volume ls --filter name=hello
  Network hello_default Removing
  Volume hello_hello-data Removed
  Network hello_default Removed
+DRIVER    VOLUME NAME
 ```
 
 The volume list is empty. Keep `compose.yaml` and `proxy.conf` if you want to try the advanced step; `docker compose up -d` brings everything back with a fresh count.
@@ -404,7 +405,7 @@ Hello from container baa441d304fc, visit 2
 ...
 ```
 
-`web` came back at `172.18.0.4`, but nginx still sent the request to `172.18.0.2`, where `squatter` refused it: the log line names the old `upstream`. Restarting the proxy made nginx look the name up again. The [nginx proxy module documentation](https://nginx.org/en/docs/http/ngx_http_proxy_module.html) describes the `resolver` directive for configurations that need to look names up while running; for this series, restarting the proxy after recreating `web` is enough.
+`web` came back at `172.18.0.4`, but nginx still sent the request to `172.18.0.2`, where `squatter` refused it: the log line names the old `upstream`. Restarting the proxy made nginx look the name up again. nginx can look names up while it runs, but that takes two changes: the [proxy module documentation](https://nginx.org/en/docs/http/ngx_http_proxy_module.html) says a `proxy_pass` value containing variables is resolved with a `resolver`, and the [core module documentation](https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver) describes `resolver` as the directive that "configures name servers used to resolve names of upstream servers into addresses". For this series, restarting the proxy after recreating `web` is enough.
 
 ## When it goes wrong
 
@@ -482,7 +483,7 @@ items:
       - token: "docker compose ps"
         text: "List the containers of this project, with service names, status and ports."
       - token: "docker compose logs web"
-        text: "Show the logs of the web service. Each line starts with the container name."
+        text: "Show the logs of the web service. Each line starts with the service and its number, web-1."
 ```
 
 ```rail
