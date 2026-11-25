@@ -1,0 +1,146 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 5. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-05",
+  "campaign": "containers-05",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 5,
+    "title": "Containers from Zero, part 5: two containers, one network",
+    "shortTitle": "Two containers, one network",
+    "description": "Put hello-app and an nginx proxy on a network you create, so one container reaches the other by name. See why the default network cannot do that, what happens when the app stops, and how networks keep containers apart.",
+    "url": "https://aitamer.news/posts/containers-from-zero-05-two-containers-one-network/",
+    "source": "src/content/posts/containers-from-zero-05-two-containers-one-network.md",
+    "tested": "Reached hello-app by name through an nginx proxy on a user-defined network, Engine 29.10.1, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "Create a network for containers that talk to each other, call them by name, and publish only the one port people need."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-05.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 6, Compose for that pair",
+    "summary": "One file replaces the network, the volume and both docker run commands.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "The default bridge, user-defined networks, Docker's DNS, and a proxy in front of an app, from Lesson 5.",
+    "boards": [
+      {
+        "title": "Default bridge or your own network",
+        "hint": "docker network create hello-net",
+        "headName": "Question",
+        "headRole": "Default bridge",
+        "headWhere": "User-defined network",
+        "rows": [
+          {"name": "Who is on it", "role": "Every container started without `--network`.", "where": "Only containers you attach."},
+          {"name": "Reach by name", "role": "No: `wget: bad address 'web:8000'`. Addresses only.", "where": "Yes, through Docker's DNS server at `127.0.0.11`."},
+          {"name": "Ports between containers", "role": "By address.", "where": "All ports, no `-p` needed."},
+          {"name": "From another network", "role": "Only through published ports.", "where": "Only through published ports: `wget: download timed out`."},
+          {"name": "Attach later", "role": "The connected client stayed on `bridge` as well.", "where": "`docker network connect hello-net client`, no restart."}
+        ],
+        "note": "`docker network ls` always shows `bridge`, `host` and `none`. Publish with `-p` only what people outside the network need."
+      },
+      {
+        "title": "The proxy and its errors",
+        "hint": "proxy_pass http://web:8000;",
+        "headName": "What you see",
+        "headRole": "Meaning",
+        "headWhere": "Fix",
+        "rows": [
+          {"name": "visit 2, visit 3", "role": "`proxy` published `127.0.0.1:8080`, passed the request to `web`; `web` logs requests from the proxy's address.", "where": "working"},
+          {"name": "504 Gateway Time-out", "role": "`web` was stopped; nginx waited its `proxy_connect_timeout`, 60 s by default.", "where": "`docker start web`"},
+          {"name": "502 Bad Gateway", "role": "Same cause, answered at once in an earlier run.", "where": "check `docker ps -a`, `docker logs web`"},
+          {"name": "host not found in upstream \"web\"", "role": "nginx looks up `web` when it starts; no such container on the network. `proxy` exits.", "where": "start `web` first"},
+          {"name": "has active endpoints", "role": "`docker network rm` refuses while a container is attached.", "where": "remove the container"}
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs and addresses differ on your machine",
+      "items": [
+        {"who": "Default", "what": "`wget http://web:8000/` failed with `bad address`; the address `172.17.0.2` answered visit 1."},
+        {"who": "hello-net", "what": "`wget http://web:8000/` answered; `/etc/resolv.conf` said `nameserver 127.0.0.11`; `nslookup web` gave `172.18.0.2`."},
+        {"who": "Proxy", "what": "`curl http://127.0.0.1:8080/` gave visit 2 and 3. `docker ps`: `proxy 127.0.0.1:8080->80/tcp`, `web 8000/tcp`."},
+        {"who": "Inspect", "what": "`web 172.18.0.2/16` and `proxy 172.18.0.3/16` on `hello-net`."},
+        {"who": "Isolation", "what": "From the default network, `172.18.0.2` timed out. After `docker network connect`, the client got visit 5."}
+      ],
+      "note": "Safety: the lab publishes 127.0.0.1:8080 and deletes the containers `web`, `proxy`, `client`, the network `hello-net`, the volume `hello-data` and `proxy.conf`. Undo with `docker rm -f web proxy client`, `docker network rm hello-net`, `docker volume rm hello-data`, `rm proxy.conf`."
+    },
+    "commandGroups": [
+      {
+        "title": "Networks",
+        "commands": [
+          {"cmd": "docker network create hello-net", "note": "user-defined bridge"},
+          {"cmd": "docker network ls", "note": "bridge, host, none, yours"},
+          {"cmd": "docker network inspect --format '{{range .Containers}}{{.Name}} {{.IPv4Address}}{{\"\\n\"}}{{end}}' hello-net", "note": "who is on it"},
+          {"cmd": "docker network connect hello-net client", "note": "attach a running container"},
+          {"cmd": "docker network rm hello-net", "note": "no containers attached"}
+        ]
+      },
+      {
+        "title": "The pair",
+        "commands": [
+          {"cmd": "docker run -d --name web --network hello-net --mount type=volume,src=hello-data,dst=/data hello-app:1.2", "note": "no published port"},
+          {"cmd": "docker run -d --name proxy --network hello-net -p 127.0.0.1:8080:80 --mount type=bind,src=\"$PWD\"/proxy.conf,dst=/etc/nginx/conf.d/default.conf,readonly nginx:1.30-alpine", "note": "the only published port"},
+          {"cmd": "curl http://127.0.0.1:8080/", "note": "through the proxy"}
+        ]
+      },
+      {
+        "title": "Look from inside",
+        "commands": [
+          {"cmd": "docker run --rm --network hello-net alpine:3.24 wget -qO- http://web:8000/", "note": "by name"},
+          {"cmd": "docker run --rm --network hello-net alpine:3.24 nslookup web", "note": "ask 127.0.0.11"},
+          {"cmd": "docker logs proxy 2>&1 | tail -2", "note": "nginx errors too"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use hello-app:1.2 from Lesson 4, alpine:3.24 and nginx:1.30-alpine. IDs and addresses will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "Which network does a container join if you do not pass `--network`, and how can containers on it reach each other?", "a": "The default bridge network, named `bridge`. Containers on it reach each other only by IP address, unless you use the legacy `--link` option.", "lines": 2},
+          {"q": "What does a user-defined bridge network add that the default one lacks?", "a": "Automatic DNS resolution between containers, so names work, and a scope: only containers you attach are on it.", "lines": 2},
+          {"q": "At which address does Docker's embedded DNS server answer, and what does it do with names it does not know?", "a": "`127.0.0.11`. It forwards external lookups to the DNS servers configured on the host.", "lines": 2},
+          {"q": "Why does `web` need no `-p` for the proxy to reach it?", "a": "Containers on the same user-defined bridge network expose all ports to each other. `-p` is only for traffic from outside, such as the host.", "lines": 2},
+          {"q": "What does `proxy_pass http://web:8000;` tell nginx?", "a": "The protocol and address of the server to pass requests to: HTTP, the host `web` resolved by Docker's DNS, port 8000.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Start `web` without `--network` and run `docker run --rm alpine:3.24 wget -qO- http://web:8000/`. What happens?", "a": "`wget: bad address 'web:8000'`. On the default bridge the name cannot be resolved. The address from `docker inspect` works.", "lines": 2},
+          {"q": "On `hello-net`, run `cat /etc/resolv.conf` and `nslookup web` in an alpine container. What do they show?", "a": "`nameserver 127.0.0.11`, Docker's embedded DNS server, and `web` resolving to its address on the network, `172.18.0.2` in the lesson.", "lines": 2},
+          {"q": "With both containers running, compare their `PORTS` in `docker ps`. What is different, and what does it mean?", "a": "`proxy` shows `127.0.0.1:8080->80/tcp`, a published port. `web` shows `8000/tcp` with no host address, so only containers on `hello-net` can reach it.", "lines": 3},
+          {"q": "Stop `web` and `curl` the proxy. What can you get, and what does it tell you?", "a": "`504 Gateway Time-out` after about a minute, or `502 Bad Gateway` at once. The proxy runs; the server behind it does not answer.", "lines": 2},
+          {"q": "From a container on the default network, request `web`'s address with `wget -T 3`. Then connect that container to `hello-net` and use the name. What changes?", "a": "First `wget: download timed out`: Docker keeps the bridge networks apart. After `docker network connect`, the container is on both networks and the name answers.", "lines": 3}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You remove both containers and start only `proxy`. What does `docker ps -a` show, and what is in its logs?", "a": "`proxy Exited (1)`. The log says `host not found in upstream \"web\"`: nginx looks up `web` when it starts.", "lines": 2},
+          {"q": "You recreate `web` and it gets a new address. Does `proxy_pass http://web:8000` still work for a newly started proxy?", "a": "Yes. The proxy uses the name, and Docker's DNS answers with the current address. That is the point of names.", "lines": 2},
+          {"q": "You run `docker network rm hello-net` while `web` is still attached. What happens?", "a": "Docker refuses: `network hello-net has active endpoints`, naming the container. Remove or disconnect it first.", "lines": 2},
+          {"q": "You start `web` on `hello-net` and `curl http://127.0.0.1:8000/` from your machine. What happens, and why?", "a": "`curl` cannot connect. `web` publishes no port; only containers on `hello-net` can reach it. Ask the proxy on 8080.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}
