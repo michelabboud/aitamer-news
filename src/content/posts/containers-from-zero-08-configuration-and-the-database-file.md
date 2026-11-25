@@ -167,6 +167,7 @@ POSTGRES_PASSWORD=local-dev-only-7c2f
     environment:
       APP_TITLE: Kitchen notes
       DATABASE_URL: postgresql://notes:local-dev-only-7c2f@db:5432/notes
+    networks:
 ```
 
 `config --environment` lists every variable Compose could use, including your shell's, so the `grep` keeps the two that matter. `config` prints the filled-in file, password included: the exposure the secrets guide warns about.
@@ -200,7 +201,7 @@ curl -s http://127.0.0.1:8080/ | grep -o '<h1>[^<]*</h1>'
 <h1>Kitchen notes</h1>
 ```
 
-`Volume notes_db-data Created` is new. The `sleep` gives PostgreSQL time to set up the empty volume; part 9 replaces it with a proper wait. The image `notes-web` from part 7 is reused, because `app.py` did not change.
+`Volume notes_db-data Created` is new. The `sleep` gives PostgreSQL time to set up the empty volume; part 9 replaces it with a proper wait. The image `notes-web` from part 7 is reused: `up` builds only when the image is missing or you pass `--build`.
 
 **3. Change a setting without a build.** Edit `.env` so the title reads `Shared notes`, then apply it:
 
@@ -376,17 +377,19 @@ The variable set in front of the command applied to that one run and won over `.
 
 ## When it goes wrong
 
-**`required variable POSTGRES_PASSWORD is missing a value: set it in .env`.** Compose did not find `.env`. It must sit next to `compose.yaml`, be named exactly `.env`, and you must run `docker compose` from that folder (or name the project folder with `--project-directory`).
+**`required variable POSTGRES_PASSWORD is missing a value: set it in .env`.** Compose did not find `.env`. Compose reads it from the project directory, which is the folder that holds `compose.yaml` unless you set `--project-directory`, and the file must be named exactly `.env`.
 
 **`password authentication failed for user "notes"` after changing `POSTGRES_PASSWORD`.** The `db` log shows why: `PostgreSQL Database directory appears to contain a database; Skipping initialization`. The volume keeps the password the database was created with, while `web` now sends the new one. Either put the old value back in `.env`, or change it inside the database to match, then run `docker compose up -d`:
 
 ```bash rail=alter-password
-docker compose exec db psql -U notes -d notes -c "ALTER USER notes PASSWORD 'new-password';"
+docker compose exec db psql -U notes -d notes -c '\password notes'
 ```
 
-In this lab's run, that command answered `ALTER ROLE` and `web` connected again. [`ALTER USER`](https://www.postgresql.org/docs/18/sql-alterrole.html) is another name for `ALTER ROLE`. Deleting the volume with `down -v` also "fixes" it, by deleting every note.
+psql asks twice, `Enter new password for user "notes":`; type the value from your `.env`. Typing the password into an `ALTER ROLE` command would also work, but the [ALTER ROLE documentation](https://www.postgresql.org/docs/18/sql-alterrole.html) warns that the password "might also be logged in the client's command history or the server log" and points to psql's `\password` instead. In this lab's run, `web` connected again after the change. Deleting the volume with `down -v` also "fixes" it, by deleting every note.
 
-**The notes are gone after `down` and `up`.** Check `docker volume ls` for `notes_db-data` and that `db` mounts it at `/var/lib/postgresql`. A path such as `/var/lib/postgresql/data` on PostgreSQL 18 leaves the real data folder in an anonymous volume, as in part 7.
+**The notes are gone after `down` and `up`.** Check `docker volume ls` for `notes_db-data` and that `db` mounts it at `/var/lib/postgresql`. A mount at `/var/lib/postgresql/data` belongs to PostgreSQL 17 and older; see the next entry.
+
+**`Error: in 18+, these Docker images are configured to store database data in a format which is compatible with "pg_ctlcluster"`.** `db` exits with code 1 and lists `/var/lib/postgresql/data (unused mount/volume)`. The volume is mounted at the path PostgreSQL 17 and older used. We reproduced it with `postgres:18-alpine`; the message suggests "a single mount at /var/lib/postgresql". Mount the volume there, as this lesson's `compose.yaml` does.
 
 **The restore prints `ERROR:  relation "notes" already exists`.** You restored into a database that was not empty, for example after `down` without `-v`. In this lab's run the following lines included `duplicate key value violates unique constraint "notes_pkey"`, and the list still showed the two notes once: nothing was restored. Restore into a fresh volume, as in step 6.
 
@@ -552,6 +555,6 @@ items:
     lines:
       - token: "docker compose exec db psql -U notes -d notes"
         text: "Open psql inside db, where no password is needed."
-      - token: "-c \"ALTER USER notes PASSWORD 'new-password';\""
-        text: "Set the user's password inside the database. Use the value in your .env."
+      - token: "-c '\\password notes'"
+        text: "Set the user's password inside the database; psql asks for it twice, so it stays out of your shell history. Use the value in your .env."
 ```

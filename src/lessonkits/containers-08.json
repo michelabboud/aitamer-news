@@ -59,7 +59,7 @@
           {"name": "PGDATA", "role": "`/var/lib/postgresql/18/docker` on PostgreSQL 18; 17 and older use `/var/lib/postgresql/data`.", "where": "inside the volume"},
           {"name": "backup.sql", "role": "`pg_dump` output, written by your shell to the notes folder.", "where": "your machine, outside the volume"}
         ],
-        "note": "`POSTGRES_*` variables only set up an empty volume. Changing the password later needs `ALTER USER` inside the database."
+        "note": "`POSTGRES_*` variables only set up an empty volume. Changing the password later needs `\\password notes` in psql inside the database."
       }
     ],
     "steps": {
@@ -131,9 +131,9 @@
         "title": "Predict the outcome",
         "hint": "Write your prediction first. Then check the answer key.",
         "exercises": [
-          {"q": "You change `POSTGRES_PASSWORD` in `.env` after the volume has a database, then run `up -d`. What happens?", "a": "`web` gets `password authentication failed`; `db` logs `Skipping initialization`. Put the old value back or use `ALTER USER`.", "lines": 3},
+          {"q": "You change `POSTGRES_PASSWORD` in `.env` after the volume has a database, then run `up -d`. What happens?", "a": "`web` gets `password authentication failed`; `db` logs `Skipping initialization`. Put the old value back or change it with psql `\\password notes`.", "lines": 3},
           {"q": "You restore `backup.sql` into the running database that still has the notes. What do you see?", "a": "`ERROR:  relation \"notes\" already exists` and a duplicate key error; nothing is restored. Use an empty volume.", "lines": 2},
-          {"q": "You mount the volume at `/var/lib/postgresql/data` on PostgreSQL 18. Do notes survive `down` and `up`?", "a": "No. The data folder is `/var/lib/postgresql/18/docker`, which ends up in an anonymous volume again.", "lines": 2},
+          {"q": "You mount the volume at `/var/lib/postgresql/data` on PostgreSQL 18. Do notes survive `down` and `up`?", "a": "No notes at all: `db` exits with code 1 and an `Error: in 18+` message naming `/var/lib/postgresql/data (unused mount/volume)`. Mount at `/var/lib/postgresql`.", "lines": 2},
           {"q": "You run `docker compose down -v` before making a backup. Can you get the notes back?", "a": "No. `down -v` deletes `notes_db-data` and the notes with it.", "lines": 2}
         ]
       }
