@@ -1530,3 +1530,7 @@
 1527 anthropic-claude-vp-vnp-every-field-lean-proof
 1528 openai-cisco-shirudo-ebpf-shields-open-source
 1529 azure-api-management-classic-flaw-secrets-norway-energy
+1530 openai-math-matrix-multiplication-exponent-nine-fourths
+1531 greynoise-gt13-check-point-management-servers-campaign
+1532 tidal-bans-wholly-ai-generated-music-december-9
+1533 typesafe-jev-decision-model-explained
