@@ -47,6 +47,8 @@ sources:
     url: https://docs.docker.com/engine/swarm/
   - title: "Containers from Zero, part 9: when something fails"
     url: https://aitamer.news/posts/containers-from-zero-09-when-something-fails/
+  - title: "Overview (Kubernetes documentation)"
+    url: https://kubernetes.io/docs/concepts/overview/
   - title: "Kubernetes from Zero, part 1: what Kubernetes is and why it exists"
     url: https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/
   - title: "Containers from Zero (series page)"
@@ -78,17 +80,17 @@ Other commands work on the whole machine. Each `prune` command removes everythin
 - [`docker system prune`](https://docs.docker.com/reference/cli/docker/system/prune/) removes stopped containers, unused networks, dangling images and unused build cache. `--volumes` adds unused anonymous volumes; `-a` removes unused images, not only dangling ones.
 - [`docker volume prune`](https://docs.docker.com/reference/cli/docker/volume/prune/) "By default, it only removes anonymous volumes." `-a` removes "all unused volumes, not just anonymous ones".
 - [`docker image prune`](https://docs.docker.com/reference/cli/docker/image/prune/) removes dangling images, images with no name left; `-a` removes "all unused images, not just dangling ones".
-- [`docker builder prune`](https://docs.docker.com/reference/cli/docker/builder/prune/) removes build cache.
+- [`docker builder prune`](https://docs.docker.com/reference/cli/docker/builder/prune/) removes dangling build cache by default; `-a` removes "all unused build cache, not just dangling ones".
 
-A stopped container you meant to start again, or a named volume another project keeps its data in, counts as unused. So this lab removes the series' objects by project and by name, and uses only `builder prune`, which deletes cache that a later build can recreate.
+A stopped container you meant to start again counts as unused, and so, for `docker volume prune -a`, does a named volume another project keeps its data in while that project is down. So this lab removes the series' objects by project and by name, and uses only `builder prune`, which deletes dangling cache that a later build can recreate.
 
-![A table. Rows are commands, columns are what they remove and the scope. docker compose down: the project's containers and networks; scope this project. down -v: also the project's named volumes and anonymous volumes attached to its containers. down -v --rmi local: also images the project built that have no custom tag, such as notes-web. docker image rm NAME: the named images, refused while a container uses them. docker builder prune: build cache; scope the whole machine. docker system prune: all stopped containers, unused networks, dangling images and unused build cache on the whole machine, highlighted; --volumes adds unused anonymous volumes. docker volume prune: unused anonymous volumes on the whole machine; -a also unused named volumes.](/diagrams/containers-from-zero-10-clean-up-and-the-edge-of-one-machine/what-each-command-removes.svg)
+![A table. Rows are commands, columns are what they remove and the scope. docker compose down: the project's containers and networks; scope this project. down -v: also the project's named volumes and anonymous volumes attached to its containers. down -v --rmi local: also images the project built that have no custom tag, such as notes-web. docker image rm NAME: the named images, refused while a container uses them. docker builder prune: dangling build cache, or all unused build cache with -a; scope the whole machine. docker system prune: all stopped containers, unused networks, dangling images and unused build cache on the whole machine, highlighted; --volumes adds unused anonymous volumes. docker volume prune: unused anonymous volumes on the whole machine; -a also unused named volumes.](/diagrams/containers-from-zero-10-clean-up-and-the-edge-of-one-machine/what-each-command-removes.svg)
 
 ## Optional lab: take it all apart
 
 This lab is optional. Every command ran on 25 November 2026 with Docker Engine 29.10.1 and Compose v5.8.0, as the user `ubuntu`; your IDs, sizes and times will differ.
 
-> **Safety: this lab deletes data on purpose.** It deletes the volume `notes_db-data` and every note in it, after step 2 saves a backup to `~/notes-backup.sql`. It removes the projects `notes` and `hello`, the images listed in step 4, your machine's unused build cache, and the folders `~/hello` and `~/notes` with the files you typed in. It publishes no port. Images and build cache can be pulled or rebuilt later; the notes come back only from the backup. Containers, volumes and images that belong to other work stay, as long as you remove only the names below; if a name in step 4 is also used by your own work, leave it out. To undo, there is no undo: keep `~/notes-backup.sql`, and copy the folders elsewhere first if you want them.
+> **Safety: this lab deletes data on purpose.** It deletes the volume `notes_db-data` and every note in it, after step 2 saves a backup to `~/notes-backup.sql`. It removes the projects `notes` and `hello`, the images listed in step 4, your machine's dangling build cache, and the folders `~/hello` and `~/notes` with the files you typed in. It publishes no port. Images and build cache can be pulled or rebuilt later; the notes come back only from the backup. Containers, volumes and images that belong to other work stay, as long as you remove only the names below; if a name in step 4 is also used by your own work, leave it out. To undo, there is no undo: keep `~/notes-backup.sql`, and copy the folders elsewhere first if you want them.
 
 **1. See what is there.**
 
@@ -209,7 +211,7 @@ lgvgmlcmz5ki4bio7h6g1ycg8               	true 	29.84MB   	47 minutes ago
 Total:	76.52MB
 ```
 
-Answer `y` at the question. The list had 24 entries; the middle is cut here.
+Answer `y` at the question. The list had 24 entries; the middle is cut here. On this machine every entry went, as step 6 shows.
 
 **6. Check.**
 
@@ -280,9 +282,9 @@ Are you sure you want to continue? [y/N] N
 
 Everything in this series ran on one Docker Engine on one machine. Compose read `compose.yaml` and asked that engine to create the network, the volume and the containers; the engine applied the restart policies of part 9; the volume lived on that machine's disk. Docker's [production guide](https://docs.docker.com/compose/how-tos/production/) puts it simply: "The easiest way to deploy an application is to run it on a single server, similar to how you would run your development environment." The [Compose overview](https://docs.docker.com/compose/intro/features-uses/) says "Compose supports production deployments on single hosts." Compose can also talk to a remote engine, through `DOCKER_HOST`; that is still one engine.
 
-On one machine, everything shares that machine's fate. If it shuts down, the engine and the app stop with it; restart policies can bring the containers back when the engine starts again ([restart policies](https://docs.docker.com/engine/containers/start-containers-automatically/)), but nothing moves them to another machine while it is down. A cluster manager works on several machines at once. Docker's [Swarm documentation](https://docs.docker.com/engine/swarm/) describes the idea: the manager "constantly monitors the cluster state and reconciles any differences between the actual state and your expressed desired state". With ten replicas of a container, "if ... a worker machine hosting two of those replicas crashes, the manager creates two new replicas to replace the replicas that crashed."
+On one machine, everything shares that machine's fate. If it shuts down, the engine and the app stop with it; when the engine starts again, `always` and `unless-stopped` bring containers back, while `on-failure`, the [restart policies page](https://docs.docker.com/engine/containers/start-containers-automatically/) says, "doesn't restart the container if the daemon restarts", but nothing moves them to another machine while it is down. A cluster manager works on several machines at once. Docker's [Swarm documentation](https://docs.docker.com/engine/swarm/) describes the idea: the manager "constantly monitors the cluster state and reconciles any differences between the actual state and your expressed desired state". With ten replicas of a container, "if ... a worker machine hosting two of those replicas crashes, the manager creates two new replicas to replace the replicas that crashed."
 
-Kubernetes is a cluster manager built around the same idea of desired state, and it is what [Kubernetes from Zero](https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/) teaches, starting from what you know now: images, containers, ports, volumes and health checks all carry over. This series stops here.
+Kubernetes is a cluster manager built around the same idea of desired state; its [overview](https://kubernetes.io/docs/concepts/overview/) says "You can describe the desired state for your deployed containers using Kubernetes, and it can change the actual state to the desired state at a controlled rate". It is what [Kubernetes from Zero](https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/) teaches, starting from what you know now: images, containers, ports, volumes and health checks all carry over. This series stops here.
 
 ![Left, one Docker host. Compose reads compose.yaml and talks to one Docker Engine, local or remote through DOCKER_HOST. The engine runs web and db and keeps the volume. Restart policies are applied by that engine. If the machine stops, everything on it stops with it, highlighted. Right, several machines run by a cluster manager. You state a desired state, for example ten replicas; when a machine crashes, the manager starts replacements on the others, as the Docker Swarm documentation describes. Kubernetes is the cluster manager Kubernetes from Zero teaches, starting with part 1.](/diagrams/containers-from-zero-10-clean-up-and-the-edge-of-one-machine/edge-of-one-machine.svg)
 
@@ -318,7 +320,7 @@ Kubernetes is a cluster manager built around the same idea of desired state, and
 
 Next: [Kubernetes from Zero, part 1: what Kubernetes is and why it exists](https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/), for running containers on more than one machine. The [Containers from Zero series page](https://aitamer.news/series/containers-from-zero/) lists all ten parts.
 
-*Quoted passages in this lesson come from the [Docker documentation](https://docs.docker.com/). Docker® is a registered trademark of Docker, Inc. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by Docker, Inc., The Linux Foundation or the CNCF.*
+*Quoted passages in this lesson come from the [Docker documentation](https://docs.docker.com/) and the [Kubernetes documentation](https://kubernetes.io/docs/). Docker® is a registered trademark of Docker, Inc. Kubernetes® is a registered trademark of The Linux Foundation. aitamer.news is not affiliated with or endorsed by Docker, Inc., The Linux Foundation or the CNCF.*
 
 ```rail
 id: "see-all"
@@ -381,7 +383,7 @@ items:
     label: "Explain this command"
     lines:
       - token: "docker builder prune"
-        text: "Remove unused build cache on the whole machine. It asks first."
+        text: "Remove dangling build cache on the whole machine; -a would remove all unused cache. It asks first."
 ```
 
 ```rail

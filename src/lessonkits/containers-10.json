@@ -45,7 +45,7 @@
           {"name": "compose down", "role": "The project's containers and networks.", "where": "this project"},
           {"name": "down -v --rmi local", "role": "Also named volumes, attached anonymous volumes, and images it built without a custom tag.", "where": "this project"},
           {"name": "image rm NAME", "role": "Those images; refused while a container, even stopped, uses one.", "where": "named images"},
-          {"name": "builder prune", "role": "Build cache. Later builds recreate it.", "where": "whole machine"},
+          {"name": "builder prune", "role": "Dangling build cache (`-a`: all unused). Later builds recreate it.", "where": "whole machine"},
           {"name": "system prune", "role": "Stopped containers, unused networks, dangling images, unused build cache; `--volumes` adds unused anonymous volumes.", "where": "whole machine"},
           {"name": "volume prune", "role": "Unused anonymous volumes; `-a` unused named ones too.", "where": "whole machine"}
         ],
@@ -59,7 +59,7 @@
         "headWhere": "In a cluster",
         "rows": [
           {"name": "Where it runs", "role": "One engine, local or remote through `DOCKER_HOST`.", "where": "Several machines under a manager."},
-          {"name": "Machine stops", "role": "The app stops with it; restart policies act when the engine starts again.", "where": "The manager starts replacements on other machines."},
+          {"name": "Machine stops", "role": "The app stops with it; `always` and `unless-stopped` start containers again with the engine, `on-failure` does not.", "where": "The manager starts replacements on other machines."},
           {"name": "Model", "role": "compose.yaml: services, networks, volumes.", "where": "Desired state, reconciled continuously."}
         ],
         "note": "Docker's guide: the easiest deployment is a single server. Kubernetes from Zero teaches the cluster side."
