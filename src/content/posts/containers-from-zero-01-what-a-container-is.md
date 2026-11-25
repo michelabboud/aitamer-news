@@ -62,7 +62,7 @@ The lab needs a Linux machine or virtual machine where you can use `sudo`, and a
 
 On macOS or Windows, Docker runs Linux containers inside a small Linux virtual machine that Docker Desktop manages for you ([Docker docs](https://docs.docker.com/learn/content/what-is-a-container/)). The `docker` commands in this series work there too, but the advanced step reads Linux files under `/proc` on the host and works only on Linux. Check the [Docker Desktop licence](https://docs.docker.com/subscription-billing/desktop-license/) first: it is free for personal use, education, non-commercial open source and small businesses (fewer than 250 employees and less than $10 million in annual revenue), and needs a paid subscription for professional use in larger organizations and for government entities.
 
-**Versions this series uses.** Every lab in this series ran on Docker Engine 29.10.1, released on 24 November 2026 according to the [Engine 29 release notes](https://docs.docker.com/engine/release-notes/29/), with containerd 2.4.2 and runc 1.5.3, and the Docker Compose plugin [v5.8.0](https://github.com/docker/compose/releases/tag/v5.8.0). The command is `docker compose`, with a space. Docker's [Compose history page](https://docs.docker.com/compose/intro/history/) says Compose v5 is functionally identical to Compose v2 and uses the same `docker compose` command. The old Python tool `docker-compose`, with a hyphen, is Compose v1; the same page lists only v2 and v5 as supported today.
+**Versions this series uses.** Every lab in this series ran on Docker Engine 29.10.1, released on 24 November 2026 according to the [Engine 29 release notes](https://docs.docker.com/engine/release-notes/29/), with containerd 2.4.2 and runc 1.5.3 as `docker version` reported them on our machine, and the Docker Compose plugin [v5.8.0](https://github.com/docker/compose/releases/tag/v5.8.0). The command is `docker compose`, with a space. Docker's [Compose history page](https://docs.docker.com/compose/intro/history/) says Compose v5 is functionally identical to Compose v2 and uses the same `docker compose` command. The old Python tool `docker-compose`, with a hyphen, is Compose v1; the same page lists only v2 and v5 as supported today.
 
 ## What you will build
 
@@ -76,11 +76,11 @@ Docker's own guide puts it plainly: "A container is an ordinary process on your 
 - **Its own view of the system.** Its own processes, network interfaces and hostname.
 - **Limits you can set.** You can cap its memory and CPU.
 
-On Linux, the kernel provides those three things with two features. **Namespaces** wrap a global resource so that the processes inside "appear to have their own isolated instance" of it ([namespaces(7)](https://man7.org/linux/man-pages/man7/namespaces.7.html)). There is one namespace type per resource: a PID namespace for process numbers, a mount namespace for the filesystem view, a UTS namespace for the hostname, a network namespace for interfaces and ports, and a few more. **Control groups**, or cgroups, organize processes into groups whose use of resources such as memory and CPU "can then be limited and monitored" ([cgroups(7)](https://man7.org/linux/man-pages/man7/cgroups.7.html)).
+On Linux, the kernel provides those three things with two features. A **namespace** wraps a global resource in an abstraction that "makes it appear to the processes within the namespace that they have their own isolated instance of the global resource" ([namespaces(7)](https://man7.org/linux/man-pages/man7/namespaces.7.html)). There is one namespace type per resource: a PID namespace for process numbers, a mount namespace for the filesystem view, a UTS namespace for the hostname, a network namespace for interfaces and ports, and a few more. **Control groups**, or cgroups, organize processes into groups whose use of resources such as memory and CPU "can then be limited and monitored" ([cgroups(7)](https://man7.org/linux/man-pages/man7/cgroups.7.html)).
 
 ![One Linux host runs ordinary processes such as systemd, sshd, your shell and dockerd. One of them, sleep 600 with host PID 22381, is the container. From inside, the same process is PID 1, has the hostname e5463b99575d, sees Alpine Linux files and its own network interface, and can be capped by a cgroup. All of them run on one shared Linux kernel.](/diagrams/containers-from-zero-01-what-a-container-is/a-container-is-a-process.svg)
 
-The diagram uses numbers from our lab. The host saw the container as process 22381, running `sleep 600`. Inside the container, the same process was PID 1, the hostname was the container's short ID, and the files were Alpine Linux, although the host runs Ubuntu. `uname -r` printed the same kernel version on both sides, because there is only one kernel.
+The diagram uses the container's numbers from our lab; the host's other processes are typical examples. The host saw the container as process 22381, running `sleep 600`. Inside the container, the same process was PID 1, the hostname was the container's short ID, and the files were Alpine Linux, although the host runs Ubuntu. `uname -r` printed the same kernel version on both sides, because there is only one kernel.
 
 ## Containers and virtual machines
 
@@ -107,7 +107,7 @@ Under `dockerd` there are two more programs. Docker's install page says "Docker 
 
 This lab is optional. The rest of this part, and part 2's reading, make sense without it. Every command ran on our Ubuntu 24.04 machine on 25 November 2026. IDs, process numbers and times will differ on yours.
 
-> **Safety: this lab installs system packages and offers root-equivalent access.** Step 1 removes conflicting Docker packages your distribution may have installed and adds Docker's apt repository. Step 4 is optional and adds your user to the `docker` group. Docker's docs warn that "the docker group grants root-level privileges to the user" ([post-install steps](https://docs.docker.com/engine/install/linux-postinstall/)). Do this only on a machine you control, such as a personal laptop or a lab VM. Nothing else on the machine stops running. To undo step 4, run `sudo gpasswd -d $USER docker` and log in again. If you skip step 4, put `sudo` in front of every `docker` command in this series. Docker also warns that ports published by containers bypass `ufw` and `firewalld` rules; this part publishes no ports, and part 3 binds them to `127.0.0.1` only.
+> **Safety: this lab installs system packages and offers root-equivalent access.** Step 1 removes conflicting Docker packages your distribution may have installed and adds Docker's apt repository. Step 4 is optional and adds your user to the `docker` group. Docker's docs warn that "the docker group grants root-level privileges to the user" ([post-install steps](https://docs.docker.com/engine/install/linux-postinstall/)). Do this only on a machine you control, such as a personal laptop or a lab VM. If your distribution's `docker.io`, `containerd` or `runc` packages are installed, step 1 removes them, and their daemon and any containers it runs stop; the data in `/var/lib/docker/` stays. If none of them is installed, nothing else on the machine stops. To remove Docker Engine later, follow the Uninstall section of the [install page](https://docs.docker.com/engine/install/ubuntu/). To undo step 4, run `sudo gpasswd -d $USER docker` and log in again. If you skip step 4, put `sudo` in front of every `docker` command in this series. Docker also warns that ports published by containers bypass `ufw` and `firewalld` rules; this part publishes no ports, and part 3 binds them to `127.0.0.1` only.
 
 **1. Remove conflicting packages and add Docker's repository.** These lines come from the [official Ubuntu instructions](https://docs.docker.com/engine/install/ubuntu/). The first one removes unofficial packages such as `docker.io` that conflict with Docker's own. apt may report that none of them are installed, which is fine. Images and containers stored in `/var/lib/docker/` are not removed by it.
 
@@ -217,7 +217,7 @@ PRETTY_NAME="Ubuntu 24.04.5 LTS"
 6.12.113+
 ```
 
-Inside, `sleep 600` is PID 1, and the only other process is the `ps` you just ran. The hostname is the container ID. The files say Alpine Linux, while the same `grep` on the host says Ubuntu. The kernel version is the same on both sides, because it is the same kernel.
+Inside, `sleep 600` is PID 1, and the only other process is the `ps` you just ran. The hostname is the container ID. The files say Alpine Linux, while the same `grep` on the host says Ubuntu. The kernel version is the same on both sides, because it is the same kernel. Our lab machine was a cloud VM, which is why its kernel version looks unusual; yours prints your own kernel's version, and the two lines still match.
 
 **7. Look from the host.** `docker top` lists the container's processes with the host's process numbers:
 
@@ -248,7 +248,7 @@ CONTAINER ID   IMAGE         COMMAND    CREATED         STATUS                  
 7869c26536aa   hello-world   "/hello"   6 seconds ago   Exited (0) 6 seconds ago             vibrant_feistel
 ```
 
-`docker rm -f` stops and removes the container in one step. `docker ps -a` also lists stopped containers. Each `hello-world` run left one behind, with a name Docker made up, such as `vibrant_feistel` here. Remove it by name: `docker rm vibrant_feistel`. The `alpine:3.24` and `hello-world` images stay on disk, so the next container starts without a download. Part 10 shows how to clean everything up.
+`docker rm -f` stops and removes the container in one step. `docker ps -a` also lists stopped containers. Each `hello-world` run left one behind, with a name Docker made up, such as `vibrant_feistel` here. Our capture shows one because the test had run once on that machine just before; if you ran both step 3 and step 4, you see two. Remove each by its name: `docker rm vibrant_feistel`. The `alpine:3.24` and `hello-world` images stay on disk, so the next container starts without a download. Part 10 shows how to clean everything up.
 
 ## Optional advanced: namespaces and a cgroup from the host
 
@@ -274,7 +274,7 @@ uts:[4026532341]
 mnt:[4026532340]
 ```
 
-All four numbers differ: the container has its own PID, network, hostname and mount namespaces. These are exactly the four views you saw in step 6.
+All four numbers differ: the container has its own PID, network, hostname and mount namespaces. Your numbers will be different, and on our lab VM the shell itself ran in namespaces of its own; what matters is that the two sets do not match. These are exactly the four views you saw in step 6.
 
 **A cgroup limit.** On a cgroup v2 host, a container sees its own memory limit in `/sys/fs/cgroup/memory.max`. Without a limit it says `max`. With `--memory 64m` it is 64 MiB in bytes:
 
