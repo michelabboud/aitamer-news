@@ -49,7 +49,7 @@
           {"name": "--rm", "role": "Removes the container when it exits.", "where": "its logs go with it"},
           {"name": "--init", "role": "Runs docker-init as PID 1, which passes signals on and reaps zombie processes.", "where": "for programs that ignore `SIGTERM`"}
         ],
-        "note": "`EXPOSE` in a Dockerfile documents a port; only `-p` publishes it. Ports below 1024 are privileged on Linux; the series uses 8080 and 8081."
+        "note": "`EXPOSE` in a Dockerfile documents a port; only `-p` publishes it. The series uses 8080 and 8081."
       },
       {
         "title": "Lifecycle and stopping",
@@ -141,7 +141,7 @@
         "exercises": [
           {"q": "You run hello-app without `-p` and `curl http://127.0.0.1:8000/`. What happens, and why?", "a": "`curl` cannot connect. The container's port 8000 is in its own network namespace; `EXPOSE` does not publish it. Add `-p 127.0.0.1:8080:8000`.", "lines": 2},
           {"q": "You `curl` the port in the same instant you run the container and get `Recv failure: Connection reset by peer`. What does it mean?", "a": "The port is published but the app is not listening yet. Wait a moment, or check `docker logs` for `listening on port 8000`.", "lines": 2},
-          {"q": "You change hello-app's Dockerfile to `CMD python app.py` and rebuild. What happens to `docker stop`?", "a": "PID 1 becomes `/bin/sh -c python app.py`. The shell does not pass `SIGTERM` on, so the handler never runs and `docker stop` takes the full 10 seconds before `SIGKILL`.", "lines": 3},
+          {"q": "You change hello-app's Dockerfile to `CMD python app.py` and rebuild. What happens to `docker stop`?", "a": "In the lesson's test on `python:3.14-slim`, PID 1 became `/bin/sh -c python app.py`. The shell does not pass `SIGTERM` on, so the handler never runs and `docker stop` takes the full 10 seconds before `SIGKILL`.", "lines": 3},
           {"q": "You start a container with `--rm`, it crashes, and you want its logs. What do you find?", "a": "Nothing: `--rm` removed the container, and its logs with it, when it exited. Leave `--rm` off when you may need the logs.", "lines": 2}
         ]
       }

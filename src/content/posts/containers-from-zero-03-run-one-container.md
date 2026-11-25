@@ -70,7 +70,7 @@ The host IP matters. Docker's docs say `-p 8080:80` maps "port 8080 on any addre
 
 ![On the Docker host, curl asks for 127.0.0.1:8080. The highlighted rule from -p 127.0.0.1:8080:8000 forwards it to port 8000 in the container hello, where python app.py listens on its own interface, for example 172.17.0.2, and logs requests from 172.17.0.1. Another computer asking for the host's address on port 8080 gets no answer, because only 127.0.0.1 is published; -p 8080:8000 would publish on every address and bypass ufw and firewalld.](/diagrams/containers-from-zero-03-run-one-container/port-publishing.svg)
 
-The host port must be free. Two containers, or a container and a program on your machine, cannot both listen on `127.0.0.1:8080`. Ports below 1024 are privileged on Linux; this series uses 8080 and 8081, which need no extra rights.
+The host port must be free. Two containers, or a container and a program on your machine, cannot both listen on `127.0.0.1:8080`. This series uses 8080 and 8081.
 
 ## Environment variables: configuration without a rebuild
 
@@ -90,7 +90,7 @@ A container is created, runs, exits, and is eventually removed. `docker run` doe
 
 The [docker stop reference](https://docs.docker.com/reference/cli/docker/container/stop/) says: "The main process inside the container will receive SIGTERM, and after a grace period, SIGKILL." The grace period is 10 seconds for Linux containers unless you pass `--timeout`. A process that exits on `SIGTERM` stops at once; one that ignores it is killed after the grace period.
 
-PID 1 is special here. The [run reference](https://docs.docker.com/reference/cli/docker/container/run/) warns that a process running as PID 1 "ignores any signal with the default action. So, the process doesn't terminate on SIGINT or SIGTERM unless it's coded to do so." `hello-app` is coded to do so: its `stop` function handles `SIGTERM`. The exec form of `CMD` from part 2 matters too: it starts `python` itself as PID 1, so the signal reaches your code. The shell form would start `/bin/sh -c` as PID 1 instead, which the [Dockerfile reference](https://docs.docker.com/reference/dockerfile/) says "does not pass signals". We tried it: with `CMD python app.py`, PID 1 was `/bin/sh -c python app.py`, the handler never ran, and `docker stop` took 10.1 seconds.
+PID 1 is special here. The [run reference](https://docs.docker.com/reference/cli/docker/container/run/) warns that a process running as PID 1 "ignores any signal with the default action. So, the process doesn't terminate on SIGINT or SIGTERM unless it's coded to do so." `hello-app` is coded to do so: its `stop` function handles `SIGTERM`. The exec form of `CMD` from part 2 matters too: it starts `python` itself as PID 1, so the signal reaches your code. The shell form would start `/bin/sh -c` as PID 1 instead, which the [Dockerfile reference](https://docs.docker.com/reference/dockerfile/) says "does not pass signals". We tried it on `python:3.14-slim`: with `CMD python app.py`, PID 1 was `/bin/sh -c python app.py`, the handler never ran, and `docker stop` took 10.1 seconds. Other base images can behave differently; the exec form avoids the question.
 
 ![docker stop sends SIGTERM to PID 1 and waits up to 10 seconds before SIGKILL. hello-app handles SIGTERM and exits with code 0 after 0.22 seconds (highlighted). python -m http.server as PID 1 has no handler, so it is killed after 10.1 seconds with exit code 137, 128 plus 9. With --init, docker-init is PID 1 and passes SIGTERM on, and the server exits in 0.10 seconds with code 143, 128 plus 15.](/diagrams/containers-from-zero-03-run-one-container/docker-stop-signals.svg)
 
@@ -211,6 +211,8 @@ docker rm -f hello
 8b11f075f7242843abcf0d899e4f79e62385b2631bfaf81e0fdf5b59592ddc0f
 9373926ed0fc0b370b1213b3423fbd623914afa54e86cbd13f63a63798511f96
 docker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint hello2 (3ea9632b808257a3dc8b8fea37fc73f8f657659ee382f996b499c040db0c6716): Bind for 127.0.0.1:8080 failed: port is already allocated
+
+Run 'docker run --help' for more information
 hello2 Created
 hello2
 hello
