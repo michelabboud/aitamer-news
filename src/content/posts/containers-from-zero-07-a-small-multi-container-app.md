@@ -68,9 +68,9 @@ A folder named `notes` with five files: `requirements.txt`, `app.py`, `Dockerfil
 
 ## The two services
 
-**web** is about a hundred lines of Python. It uses the standard library's HTTP server, as `hello-app` did, plus one package from outside: `psycopg`, a PostgreSQL driver. The image installs it from `requirements.txt` with a pinned version, `psycopg[binary]==3.3.9`, the current release on [PyPI](https://pypi.org/project/psycopg/3.3.9/). The `[binary]` part, in the [psycopg install guide's](https://www.psycopg.org/psycopg3/docs/basic/install.html) words, installs "a self-contained package with all the libraries needed", so the slim image needs no PostgreSQL client of its own. The app reads where the database is from one environment variable, `DATABASE_URL`, and creates its table the first time it connects.
+**web** is about a hundred lines of Python. It uses the standard library's HTTP server, as `hello-app` did, plus one package from outside: `psycopg`, a PostgreSQL driver. The image installs it from `requirements.txt` with a pinned version, `psycopg[binary]==3.3.9`, the newest release on [PyPI](https://pypi.org/project/psycopg/3.3.9/) when we tested, on 25 November 2026. The `[binary]` part, in the [psycopg install guide's](https://www.psycopg.org/psycopg3/docs/basic/install.html) words, installs "a self-contained package with all the libraries needed", so the slim image needs no PostgreSQL client of its own. The app reads where the database is from one environment variable, `DATABASE_URL`, and creates its table the first time it connects.
 
-**db** is the official PostgreSQL image, unchanged. You configure it with environment variables. The [image's documentation](https://hub.docker.com/_/postgres) says `POSTGRES_PASSWORD` "is required for you to use the PostgreSQL image. It must not be empty or undefined." `POSTGRES_USER` and `POSTGRES_DB` set the user and the database to create. They work only once, when the container finds an empty data folder: "the Docker specific variables will only have an effect if you start the container with a data directory that is empty; any pre-existing database will be left untouched on container startup." Part 8 runs into that.
+**db** is the official PostgreSQL image, unchanged. You configure it with environment variables. The [image's documentation](https://hub.docker.com/_/postgres) says `POSTGRES_PASSWORD` "is required for you to use the PostgreSQL image. It must not be empty or undefined." `POSTGRES_USER` and `POSTGRES_DB` set the user and the database to create; the documentation says that user gets "superuser power", which is fine for a lab and more than an app needs in production. They work only once, when the container finds an empty data folder: "the Docker specific variables will only have an effect if you start the container with a data directory that is empty; any pre-existing database will be left untouched on container startup." Part 8 runs into that.
 
 The database publishes no port. `web` reaches it as `db:5432` on the project network, as part 6's proxy reached `web`, and nothing outside that network can connect to it. Only `web` publishes `127.0.0.1:8080`.
 
@@ -92,7 +92,7 @@ PostgreSQL writes its data under `/var/lib/postgresql`. In version 18 the offici
 
 This lab is optional. Every command ran on 25 November 2026 with Docker Engine 29.10.1 and Compose v5.8.0 in `/home/ubuntu/notes`; your IDs, addresses and times will differ.
 
-> **Safety: this lab publishes port 8080 on 127.0.0.1 and deletes what it creates.** It creates a Compose project named `notes`: the network `notes_default`, the image `notes-web`, the containers `notes-web-1` and `notes-db-1`, and anonymous volumes for the database. The cleanup step deletes those volumes and every note in them. If port 8080 is busy, `web` fails to start and nothing else is affected; the part 6 project is the usual cause. The password in `compose.yaml` is for this lab only; do not reuse it anywhere. Other containers, networks and volumes keep running and stay untouched. To undo everything, run `docker compose down -v` in the `notes` folder, then remove the leftover anonymous volume by name as in step 7.
+> **Safety: this lab publishes port 8080 on 127.0.0.1 and deletes what it creates.** It creates a Compose project named `notes`: the network `notes_default`, the image `notes-web`, the containers `notes-web-1` and `notes-db-1`, and anonymous volumes for the database. The cleanup step deletes those volumes and every note in them. If port 8080 is busy, `web` fails to start and nothing else is affected; the part 6 project is the usual cause. The password in `compose.yaml` is for this lab only; do not reuse it anywhere. Other containers, networks and volumes keep running and stay untouched. To undo everything, run `docker compose down -v` in the `notes` folder, then remove the leftover anonymous volume by name as in step 7. The `notes-web` image stays; part 8 builds on it and part 10 removes it.
 
 **1. Write the app.** Make the folder and the first file:
 
@@ -224,6 +224,8 @@ COPY app.py .
 EXPOSE 8000
 CMD ["python", "app.py"]
 ```
+
+Every request opens a new database connection, and `connect()` runs `CREATE TABLE IF NOT EXISTS` each time, so the table appears with the first request and a restarted database is picked up on the next one. `/healthz` answers `ok` only when a `SELECT 1` succeeds; part 9 uses it.
 
 `.dockerignore` keeps Python's cache files out of the build, and `.env`, which part 8 adds:
 
@@ -392,7 +394,7 @@ local     e75b303efcf55d64d8ff48bdb2c0949da43fac0994310397c4fc8eb60faabada
 
 The notes are gone. Before `down`, one volume with a long random name held the database: the anonymous volume for `/var/lib/postgresql`. `down` removed the container and left the volume. The new `db` container got a new anonymous volume, found an empty data folder, and created a fresh database. The [down reference](https://docs.docker.com/reference/cli/docker/compose/down/) describes exactly this: anonymous volumes are not removed by default, but "as they don't have a stable name, they are not automatically mounted by a subsequent up." Your notes still sit in the first volume, with nothing using them.
 
-![Three moments. After the first up, notes-db-1 keeps two notes in volume 0b0882cc.... After down, the container is removed and the volume, highlighted, still holds the two notes, orphaned. After the next up, a new notes-db-1 has a new volume e75b303e... that is empty: no notes yet. Part 8 gives the database a named volume; part 10 removes orphans.](/diagrams/containers-from-zero-07-a-small-multi-container-app/anonymous-volume-left-behind.svg)
+![Three moments. After the first up, notes-db-1 keeps two notes in volume 0b0882cc.... After down, the container is removed and the volume, highlighted, still holds the two notes, orphaned. After the next up, a new notes-db-1 has a new volume e75b303e... that is empty: no notes yet. Part 8 gives the database a named volume; step 7 removes the orphan by name.](/diagrams/containers-from-zero-07-a-small-multi-container-app/anonymous-volume-left-behind.svg)
 
 **7. Clean up.** This deletes both volumes and the notes in them. Do the advanced step first if you want to try it.
 
@@ -512,7 +514,7 @@ items:
       - token: "-X POST"
         text: "Send a POST request instead of GET."
       - token: "-d 'body=First note'"
-        text: "Send form data with one field, body. curl encodes the space."
+        text: "Send form data with one field, body. curl sends it exactly as typed, and the app's form parser reads the space."
       - token: "http://127.0.0.1:8080/notes"
         text: "The address that adds a note."
       - token: "curl http://127.0.0.1:8080/"

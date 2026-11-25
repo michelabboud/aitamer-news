@@ -85,5 +85,5 @@
 <text class="tb" x="656" y="220.0" text-anchor="middle">volume e75b303e...</text>
 <text class="ts" x="656" y="237.0" text-anchor="middle">empty: no notes yet</text>
 <text class="ts" x="400" y="308" text-anchor="middle">docker compose down leaves anonymous volumes behind, and the next up does not mount them again.</text>
-<text class="ts" x="400" y="330" text-anchor="middle">Part 8 gives the database a named volume; part 10 removes orphans.</text>
+<text class="ts" x="400" y="330" text-anchor="middle">Part 8 gives the database a named volume; step 7 removes the orphan by name.</text>
 </svg>
