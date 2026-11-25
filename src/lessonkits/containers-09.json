@@ -1,0 +1,143 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 9. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-09",
+  "campaign": "containers-09",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 9,
+    "title": "Containers from Zero, part 9: when something fails",
+    "shortTitle": "When something fails",
+    "description": "Add health checks and restart policies to the notes app, then break it on purpose three ways: stop the database, start the web service with a missing setting, and end the database process. Read the state and the logs of both services and match each failure to what Docker did about it.",
+    "url": "https://aitamer.news/posts/containers-from-zero-09-when-something-fails/",
+    "source": "src/content/posts/containers-from-zero-09-when-something-fails.md",
+    "tested": "Caused and read all three failures with Compose v5.8.0 and Engine 29.10.1, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "A health check reports; a restart policy reacts to an exit. Neither fixes a wrong setting, and the logs say which one you have."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-09.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 10, clean up, and the edge of one machine",
+    "summary": "Remove the app and everything it created, see what Docker keeps on disk, and look at what Compose does not do.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "Health checks, restart policies and how to read a failure, from Lesson 9.",
+    "boards": [
+      {
+        "title": "Health check",
+        "hint": "healthcheck: in compose.yaml",
+        "headName": "Field",
+        "headRole": "What it does",
+        "headWhere": "In this lab",
+        "rows": [
+          {"name": "test", "role": "Command run inside the container; exit 0 is healthy, 1 is unhealthy.", "where": "db: `pg_isready -h 127.0.0.1`; web: Python request to `/healthz`"},
+          {"name": "interval, timeout", "role": "How often the check runs, and how long one run may take.", "where": "web `10s`, `3s`; db `5s`, `3s`"},
+          {"name": "retries", "role": "Failures in a row before the status is `unhealthy`.", "where": "web 3, db 5"},
+          {"name": "start_period", "role": "Start-up time when failures do not count.", "where": "`10s` for both"}
+        ],
+        "note": "Status: `starting`, `healthy`, `unhealthy`. Read by `depends_on: condition: service_healthy` and `up --wait`. It never restarts anything."
+      },
+      {
+        "title": "Restart policy",
+        "hint": "restart: in compose.yaml",
+        "headName": "Value",
+        "headRole": "Restarts when",
+        "headWhere": "Not when",
+        "rows": [
+          {"name": "no", "role": "Never; the default.", "where": "-"},
+          {"name": "on-failure:5", "role": "The process exits with a non-zero code, at most 5 times.", "where": "exit 0; after the 5th retry"},
+          {"name": "unless-stopped", "role": "The process exits, with any code.", "where": "you stopped it, e.g. `docker compose stop`"},
+          {"name": "always", "role": "The container stops, until it is removed.", "where": "-"}
+        ],
+        "note": "A manual stop is not undone by the policy. An unhealthy container that keeps running is not restarted."
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs and times differ on your machine",
+      "items": [
+        {"who": "up --wait", "what": "`db` Waiting, Healthy; then `web` Started and Healthy; the first `curl` listed the notes."},
+        {"who": "stop db", "what": "`database unavailable`; web log: `failed to resolve host 'db'`. After 35 s, web `Up (unhealthy)`, `restarts=0`."},
+        {"who": "Empty setting", "what": "`exited exit=1 restarts=5`; six lines of `DATABASE_URL is not set`; it stayed `Exited (1)`."},
+        {"who": "kill 1 in db", "what": "`received smart shutdown request`, then `running exit=0 restarts=1` and healthy again."}
+      ],
+      "note": "Safety: publishes 127.0.0.1:8080 and stops services on purpose; no data is deleted. Undo with `docker compose up -d --wait` and delete `compose.broken.yaml`."
+    },
+    "commandGroups": [
+      {
+        "title": "Start and check",
+        "commands": [
+          {"cmd": "docker compose up -d --wait", "note": "return once healthy"},
+          {"cmd": "docker compose ps -a", "note": "health in STATUS"},
+          {"cmd": "docker inspect --format '{{.State.Health.Status}}' notes-db-1", "note": "status only"},
+          {"cmd": "docker inspect --format '{{range .State.Health.Log}}{{.ExitCode}} {{.Output}}{{end}}' notes-db-1", "note": "recent checks"}
+        ]
+      },
+      {
+        "title": "Restarts",
+        "commands": [
+          {"cmd": "docker inspect --format '{{.State.Status}} exit={{.State.ExitCode}} restarts={{.RestartCount}}' notes-web-1", "note": "exit code and count"},
+          {"cmd": "docker compose logs web", "note": "one line per start"},
+          {"cmd": "docker compose logs --timestamps", "note": "both services, with times"}
+        ]
+      },
+      {
+        "title": "Break it on purpose",
+        "commands": [
+          {"cmd": "docker compose stop db", "note": "manual stop"},
+          {"cmd": "docker compose -f compose.yaml -f compose.broken.yaml up -d", "note": "later file wins"},
+          {"cmd": "docker compose exec db kill 1", "note": "SIGTERM, smart shutdown"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the notes folder from the lesson. IDs and times will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "What are the three health statuses, and what makes a container `unhealthy`?", "a": "`starting`, `healthy`, `unhealthy`. It becomes `unhealthy` after `retries` failed checks in a row.", "lines": 2},
+          {"q": "When does Docker apply a restart policy?", "a": "When the container's main process exits. It does not look at the health status.", "lines": 2},
+          {"q": "What is the difference between `on-failure:5` and `unless-stopped`?", "a": "`on-failure:5` restarts after a non-zero exit, at most five times. `unless-stopped` restarts after any exit, unless you stopped the container.", "lines": 2},
+          {"q": "Why does web's check use Python instead of `curl`?", "a": "`python:3.14-slim` has neither `curl` nor `wget`, and the check runs inside the container.", "lines": 2},
+          {"q": "What does `condition: service_healthy` change at start-up?", "a": "Compose waits for `db` to be healthy before it starts `web`.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run `docker compose up -d --wait`, then `curl /notes.txt`. Why does the first request work now?", "a": "`--wait` returned only after both services were healthy, and web's check needs a working database.", "lines": 2},
+          {"q": "Run `docker compose stop db`, wait 35 seconds, and inspect web. What is its status and restart count?", "a": "`Up (unhealthy)`, `restarts=0`. Its process never exited, so no restart policy applied.", "lines": 2},
+          {"q": "What does web's log say while `db` is stopped?", "a": "`failed to resolve host 'db'`: a stopped container leaves the network.", "lines": 2},
+          {"q": "Start web with `compose.broken.yaml`. What do `docker inspect` and `docker compose logs web` show?", "a": "`exited exit=1 restarts=5` and six lines of `DATABASE_URL is not set`: one start and five restarts.", "lines": 2},
+          {"q": "Run `docker compose exec db kill 1`. What happens to `db`?", "a": "PostgreSQL logs `received smart shutdown request` and exits with 0; `unless-stopped` starts it again, `restarts=1`.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "db's check always fails. What does `docker compose up -d` print?", "a": "`dependency failed to start: container notes-db-1 is unhealthy`, and web is not started.", "lines": 2},
+          {"q": "You change web's policy to `on-failure` with no number and start it with the empty setting. What happens?", "a": "Docker keeps restarting it, because no retry limit is set. The log grows by one line per start.", "lines": 2},
+          {"q": "`db` had `on-failure:5` instead of `unless-stopped`. What does `kill 1` do?", "a": "PostgreSQL exits with 0, which is not a failure, so it stays stopped.", "lines": 2},
+          {"q": "A web check uses `curl` on `python:3.14-slim`. What does the health log say?", "a": "`exec: \"curl\": executable file not found in $PATH`, and the check fails.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}
