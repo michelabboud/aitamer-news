@@ -1,0 +1,241 @@
+{
+  "$comment": "Lesson-kit content for Lesson 18. Every fact and command is copied from the lesson draft. The post is prepared on a separate branch.",
+  "slug": "k8s-18",
+  "campaign": "k8s-18",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 18,
+    "title": "Kubernetes from Zero, part 18: taints, priority and disruption budgets",
+    "shortTitle": "Taints, priority and disruption",
+    "description": "Keep Pods off nodes with taints, let important Pods push others aside with PriorityClass, and drain a node safely behind a PodDisruptionBudget.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-18-taints-priority-and-disruption/",
+    "source": "src/content/posts/k8s-from-zero-18-taints-priority-and-disruption.md",
+    "tested": "Every command ran on a four-node kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "k8s-ep16",
+    "rule": "Taint nodes to reserve them, give critical Pods a higher priority, and put a PodDisruptionBudget on every replicated app before anyone drains a node."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-18.jpg",
+    "alt": "A cut-paper quay with three berths: the empty left one is closed by a coral chain between two posts beside a slate-blue crane, and cream sailboats sit in the other two, a ship's wheel above.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 19, Ingress and Gateway API basics",
+    "summary": "Kubernetes from Zero, part 19, Ingress and Gateway API basics.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-19-ingress-and-gateway-basics/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "Taints, priority, drain, and the commands from Lesson 18.",
+    "boards": [
+      {
+        "title": "Three tools",
+        "hint": "from the recap",
+        "headName": "Tool",
+        "headRole": "What the lesson says",
+        "headWhere": "The field or command",
+        "rows": [
+          {
+            "name": "Taint",
+            "role": "Keeps Pods off a node. A toleration lets a Pod in and does not pull it there. NoExecute also evicts running Pods.",
+            "where": "NoSchedule, PreferNoSchedule, NoExecute"
+          },
+          {
+            "name": "PriorityClass",
+            "role": "Ranks Pods. When the cluster is full, a higher priority can preempt a lower one. No class means priority 0.",
+            "where": "spec.priorityClassName"
+          },
+          {
+            "name": "PDB",
+            "role": "Limits voluntary disruption. Only tools that use the Eviction API, such as kubectl drain, respect it. kubectl delete pod does not.",
+            "where": "minAvailable or maxUnavailable"
+          },
+          {
+            "name": "Maintenance",
+            "role": "Cordon, drain, work, uncordon. Pods that moved away do not come back on their own.",
+            "where": "kubectl uncordon"
+          }
+        ]
+      },
+      {
+        "title": "What the lab recorded",
+        "hint": "three workers, 8 CPU each",
+        "headName": "Case",
+        "headRole": "What the lesson says",
+        "headWhere": "The result",
+        "rows": [
+          {
+            "name": "dedicated=gpu",
+            "role": "NoSchedule on worker3. Six web replicas without a toleration stayed on the other two workers. trainer, with a toleration and a nodeSelector, ran on worker3.",
+            "where": "toleration permits"
+          },
+          {
+            "name": "NoExecute",
+            "role": "impatient was evicted at once. patient, with tolerationSeconds 20, stayed and was gone by the later check.",
+            "where": "default 300s for not-ready"
+          },
+          {
+            "name": "Preemption",
+            "role": "Six batch Pods at priority 1000 requested 3 CPU and left 1.9 CPU free. checkout at 100000 and 4 CPU preempted batch on worker3. The replacement stayed Pending with Insufficient cpu.",
+            "where": "cpu 6100m (76%)"
+          },
+          {
+            "name": "Drain",
+            "role": "minAvailable 3 on 3 replicas showed ALLOWED DISRUPTIONS 0 and the drain could not evict. minAvailable 2 allowed the eviction.",
+            "where": "kubectl get pdb"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "cluster k8s-ep16",
+      "items": [
+        {
+          "who": "Control plane",
+          "what": "The control-plane node already carries node-role.kubernetes.io/control-plane:NoSchedule, which is why ordinary Pods stay off it."
+        },
+        {
+          "who": "Preempted",
+          "what": "The event named batch-5bd8dd9495-mw2hl, preempted on k8s-ep16-worker3 so checkout could run there."
+        },
+        {
+          "who": "Budget",
+          "what": "The refused drain said it would violate the pod's disruption budget. Lower the budget, or scale up. Do not delete the PDB in a hurry."
+        },
+        {
+          "who": "Prefer",
+          "what": "The lesson prefers maxUnavailable 1 over minAvailable N, because it still allows a disruption after a scale."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Taints",
+        "commands": [
+          {
+            "cmd": "kubectl taint nodes k8s-ep16-worker3 dedicated=gpu:NoSchedule",
+            "note": "a trailing - removes it"
+          },
+          {
+            "cmd": "kubectl describe node k8s-ep16-worker3 | grep -A1 Taints",
+            "note": "or read .spec.taints"
+          },
+          {
+            "cmd": "kubectl taint nodes k8s-ep16-worker maintenance=true:NoExecute",
+            "note": "evicts Pods that do not tolerate it"
+          }
+        ]
+      },
+      {
+        "title": "Priority",
+        "commands": [
+          {
+            "cmd": "kubectl apply -f priorityclasses.yaml",
+            "note": "1000 and 100000 in the lesson"
+          },
+          {
+            "cmd": "kubectl get events --field-selector reason=Preempted",
+            "note": "names the Pod that was moved"
+          },
+          {
+            "cmd": "kubectl describe node k8s-ep16-worker | grep -E \"^  cpu\"",
+            "note": "the lesson showed 6100m (76%)"
+          }
+        ]
+      },
+      {
+        "title": "Drain",
+        "commands": [
+          {
+            "cmd": "kubectl get pdb web-pdb",
+            "note": "ALLOWED DISRUPTIONS"
+          },
+          {
+            "cmd": "kubectl drain k8s-ep16-worker --ignore-daemonsets --timeout=20s",
+            "note": "uses the Eviction API"
+          },
+          {
+            "cmd": "kubectl uncordon k8s-ep16-worker",
+            "note": "Pods do not move back"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the three-worker kind cluster from part 17 and the namespace k8s-from-zero. The lesson's cluster is k8s-ep16. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What is the difference between a taint and a toleration?",
+            "a": "A taint keeps Pods off a node. A toleration lets a Pod in. It does not attract the Pod. NoExecute also evicts running Pods that do not tolerate it, after tolerationSeconds if that is set.",
+            "lines": 3
+          },
+          {
+            "q": "Which disruptions does a PodDisruptionBudget limit?",
+            "a": "Voluntary ones, and only when the tool uses the Eviction API. kubectl drain does. kubectl delete pod does not check the budget.",
+            "lines": 2
+          },
+          {
+            "q": "What priority does a Pod with no PriorityClass get, and what does preemptionPolicy Never do?",
+            "a": "Priority 0. preemptionPolicy Never lets the Pod queue first without evicting others. The field is on the PriorityClass.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Taint worker3 with dedicated=gpu:NoSchedule and apply the web Deployment with no toleration. Where do the six replicas land?",
+            "a": "On the other two workers only. The trainer Pod, which tolerates the taint and selects that node, runs on worker3.",
+            "lines": 2
+          },
+          {
+            "q": "Apply the batch Deployment and then checkout. What did the lesson record for CPU and for the preempted Pod?",
+            "a": "Each worker showed cpu 6100m (76%) with 1.9 CPU free, not enough for checkout's 4 CPU request. batch-5bd8dd9495-mw2hl was preempted on worker3. The replacement stayed Pending with Insufficient cpu.",
+            "lines": 3
+          },
+          {
+            "q": "With minAvailable 3 and three web Pods, drain a worker with a 20 second timeout. What does get pdb show, and does the drain finish?",
+            "a": "ALLOWED DISRUPTIONS is 0. The drain keeps failing because an eviction would violate the budget. After the patch to minAvailable 2, the eviction succeeds.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "A node dies. How long do its Pods stay, according to the lesson?",
+            "a": "Every Pod tolerates node.kubernetes.io/not-ready and node.kubernetes.io/unreachable with tolerationSeconds 300, so replacement waits about five minutes.",
+            "lines": 2
+          },
+          {
+            "q": "kubectl drain hangs on Cannot evict pod. What does the lesson tell you to check, and what should you not do?",
+            "a": "kubectl get pdb -A. A row with ALLOWED DISRUPTIONS 0 blocks the drain. Scale the app up or lower minAvailable. Do not delete the PDB in a hurry on a production app.",
+            "lines": 3
+          },
+          {
+            "q": "You uncordon a node after a drain. Do the Pods that moved come back?",
+            "a": "No. uncordon only allows new scheduling. Pods that moved away stay where they are.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}

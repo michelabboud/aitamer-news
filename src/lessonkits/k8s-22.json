@@ -1,0 +1,246 @@
+{
+  "$comment": "Lesson-kit content for Lesson 22. Every fact and command is copied from the lesson draft. The post is prepared on a separate branch.",
+  "slug": "k8s-22",
+  "campaign": "k8s-22",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 22,
+    "title": "Kubernetes from Zero, part 22: troubleshooting Services, DNS, stuck deletes and sick nodes",
+    "shortTitle": "Troubleshooting the rest",
+    "description": "Fix a Service with no endpoints, a DNS lookup that fails, an object stuck in Terminating, a NotReady node and an evicted Pod, then debug with kubectl debug.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-22-troubleshooting-the-rest/",
+    "source": "src/content/posts/k8s-from-zero-22-troubleshooting-the-rest.md",
+    "tested": "Broke and fixed each case on a two-node kind v0.33.0 cluster, node v1.37.0, kubectl v1.37.2, 10 Nov 2026",
+    "cluster": "k8s-ep22",
+    "rule": "Most failures outside the Pod are a mismatch you can read from the API: a selector with no endpoints, a name in the wrong namespace, a finalizer nobody owns, or a node that stopped reporting."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-22.jpg",
+    "alt": "In a deep-navy cut-paper ship's hold, a teal lantern on a hook lights a coiled cream rope snagged on a wooden cleat by a rust-red knot, beside stacked crates and a slate-blue ship's wheel.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 23, kubectl power tools",
+    "summary": "kubectl power tools: switching contexts and namespaces fast, tailing many Pods at once, and plugins.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "Services, DNS, finalizers, nodes, and the commands from Lesson 22.",
+    "boards": [
+      {
+        "title": "Follow the failure",
+        "hint": "from the recap",
+        "headName": "Stop",
+        "headRole": "What the lesson says",
+        "headWhere": "The clue",
+        "rows": [
+          {
+            "name": "No endpoints",
+            "role": "The Service exists and has a ClusterIP, and the EndpointSlice is empty. The lab's selector was the typo wbe.",
+            "where": "endpoints unset"
+          },
+          {
+            "name": "Wrong port",
+            "role": "Endpoints were present and wget still said Connection refused. The slice showed port 8080. The container listened on 80.",
+            "where": "targetPort"
+          },
+          {
+            "name": "DNS",
+            "role": "bad address means the name did not resolve. web.default looks in the default namespace. The full name is service.namespace.svc.cluster.local.",
+            "where": "CoreDNS endpoints"
+          },
+          {
+            "name": "Finalizer",
+            "role": "An object, or a whole namespace, stays Terminating until the owner removes the finalizer. The lab's key was example.com/cleanup.",
+            "where": "deletionTimestamp"
+          },
+          {
+            "name": "NotReady",
+            "role": "The lab's node went NotReady 49 seconds after kubelet stopped. EndpointSlice ready became false while Pods still showed Running. Eviction followed the 300 second toleration.",
+            "where": "node conditions"
+          }
+        ]
+      },
+      {
+        "title": "Two more tools",
+        "hint": "as the lesson states them",
+        "headName": "Case",
+        "headRole": "What the lesson says",
+        "headWhere": "The command",
+        "rows": [
+          {
+            "name": "Evicted",
+            "role": "kind sets node disk thresholds to 0 percent, so the lab could not show DiskPressure. A Pod with an ephemeral-storage limit of 20Mi was evicted when it wrote past that limit.",
+            "where": "status.reason Evicted"
+          },
+          {
+            "name": "No shell",
+            "role": "kubectl debug --target adds an ephemeral container beside a container that has no shell. debug node starts a Pod with the node root at /host.",
+            "where": "delete the debug Pod after"
+          },
+          {
+            "name": "kube-proxy",
+            "role": "The first wget after the targetPort patch still failed, and the same command three seconds later worked.",
+            "where": "wait a second"
+          },
+          {
+            "name": "Namespace",
+            "role": "A stuck namespace reports NamespaceContentRemaining and NamespaceFinalizersRemaining, and names the finalizer.",
+            "where": "kubectl get namespace"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "cluster k8s-ep22, one worker",
+      "items": [
+        {
+          "who": "Service",
+          "what": "Follow the request in order: name, endpoints, port, Pod. Connection refused and bad address are different stops."
+        },
+        {
+          "who": "Node",
+          "what": "Stopping kubelet made the worker NotReady. Replacements stayed Pending with an untolerated taint until kubelet started again."
+        },
+        {
+          "who": "Eviction",
+          "what": "status.reason said Evicted: Pod ephemeral local storage usage exceeds the total limit of containers 20Mi. Failed Pods stay until you delete them."
+        },
+        {
+          "who": "Debug",
+          "what": "kubectl debug node/k8s-ep22-worker ran chroot /host. On kind that worked. The docs say it fails without privilege, and the lesson points at --profile=sysadmin."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Service and DNS",
+        "commands": [
+          {
+            "cmd": "kubectl get endpointslice -n k8s-from-zero -l kubernetes.io/service-name=web",
+            "note": "empty means the selector matches nothing"
+          },
+          {
+            "cmd": "kubectl describe service web -n k8s-from-zero",
+            "note": "compare the selector with pod labels"
+          },
+          {
+            "cmd": "kubectl exec -n k8s-from-zero client -- nslookup web.k8s-from-zero.svc.cluster.local",
+            "note": "the full name"
+          }
+        ]
+      },
+      {
+        "title": "Stuck deletes and nodes",
+        "commands": [
+          {
+            "cmd": "kubectl get configmap stuck -n k8s-from-zero -o jsonpath='{.metadata.deletionTimestamp}{\"  \"}{.metadata.finalizers}{\"\\n\"}'",
+            "note": "why it will not go"
+          },
+          {
+            "cmd": "kubectl get namespace stuck-demo -o jsonpath='{range .status.conditions[*]}{.type}={.status}: {.message}{\"\\n\"}{end}'",
+            "note": "names the blocking finalizer"
+          },
+          {
+            "cmd": "kubectl describe node k8s-ep22-worker",
+            "note": "Conditions and Taints"
+          }
+        ]
+      },
+      {
+        "title": "Eviction and debug",
+        "commands": [
+          {
+            "cmd": "kubectl get pod disk-hog -n k8s-from-zero -o jsonpath='{.status.phase} {.status.reason}: {.status.message}{\"\\n\"}'",
+            "note": "Evicted, and why"
+          },
+          {
+            "cmd": "kubectl delete pods -n k8s-from-zero --field-selector=status.phase=Failed",
+            "note": "clears evicted Pods"
+          },
+          {
+            "cmd": "kubectl debug node/k8s-ep22-worker -n k8s-from-zero --image=busybox:1.37 -- chroot /host sh -c 'systemctl is-active kubelet'",
+            "note": "host files are under /host"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use a kind cluster with one worker and the namespace k8s-from-zero. The lesson's cluster is k8s-ep22. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What is the difference between bad address and Connection refused?",
+            "a": "bad address means the name did not resolve. Connection refused means the name resolved and nothing answered. A wrong namespace gives the first. A wrong targetPort gives the second, even when endpoints exist.",
+            "lines": 3
+          },
+          {
+            "q": "Why does an object stay in Terminating after kubectl delete returns?",
+            "a": "A finalizer is still set. The owner is supposed to remove it. The lab's ConfigMap kept example.com/cleanup, and deletionTimestamp was set, until a patch cleared the finalizers.",
+            "lines": 2
+          },
+          {
+            "q": "How soon did the lab's node go NotReady, and when were its Pods evicted?",
+            "a": "NotReady 49 seconds after kubelet stopped. The default toleration for not-ready and unreachable is 300 seconds, and the eviction came after that. EndpointSlice ready was already false while get pods still said Running.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "With the lesson's typo selector, what does the EndpointSlice show, and what does wget from the client print?",
+            "a": "No addresses. wget says Connection refused to the ClusterIP. After the selector is patched to app.kubernetes.io/name=web, endpoints appear. If PORTS is still 8080, the Pod on port 80 still refuses the Service.",
+            "lines": 3
+          },
+          {
+            "q": "Scale CoreDNS to 0 and look up the Service. What did the lesson record?",
+            "a": "The kube-dns EndpointSlice has no endpoints. wget to web.k8s-from-zero prints bad address. nslookup to the full name times out and says connection refused to 10.96.0.10. Scaling CoreDNS back to 2 restores the lookup.",
+            "lines": 2
+          },
+          {
+            "q": "Read disk-hog's status.reason. What message did the lesson record, and why was this not DiskPressure?",
+            "a": "Evicted: Pod ephemeral local storage usage exceeds the total limit of containers 20Mi. kind sets the node disk thresholds to 0 percent, so the lab could not raise DiskPressure. Evicted Pods stay Failed until you delete them.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "You patch targetPort and the next wget still fails. What does the lesson tell you to do before you undo the fix?",
+            "a": "Wait a second. The first try after the patch still got Connection refused, and the same command three seconds later worked, because kube-proxy had not programmed the node yet.",
+            "lines": 2
+          },
+          {
+            "q": "A namespace stays Terminating. Which conditions does the lesson name?",
+            "a": "NamespaceContentRemaining and NamespaceFinalizersRemaining. The message names the finalizer and how many objects still hold it. Clear that finalizer only when you know nothing else will.",
+            "lines": 2
+          },
+          {
+            "q": "kubectl exec into a pause Pod fails. What does the lesson use instead?",
+            "a": "kubectl debug with --target and an image that has a shell, for one container. kubectl debug node/NAME for the node, with the node root at /host. Delete the debug Pod when you are done.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}

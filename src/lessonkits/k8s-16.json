@@ -1,0 +1,241 @@
+{
+  "$comment": "Lesson-kit content for Lesson 16. Every fact and command is copied from the lesson draft. The post is prepared on a separate branch.",
+  "slug": "k8s-16",
+  "campaign": "k8s-16",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 16,
+    "title": "Kubernetes from Zero, part 16: init containers and sidecars",
+    "shortTitle": "Init containers and sidecars",
+    "description": "Run setup steps before your app with init containers, add a native sidecar that starts first and stops last, and debug a Pod that has no shell.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-16-init-and-sidecar-containers/",
+    "source": "src/content/posts/k8s-from-zero-16-init-and-sidecar-containers.md",
+    "tested": "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "kind, from part 3",
+    "rule": "Use init containers for steps that must finish first and native sidecars for helpers that run alongside. Debug a shell-less Pod with kubectl debug."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-16.jpg",
+    "alt": "A cut-paper sand sailing ship with cream sails rides on layered blue paper waves with a small coral rowing dinghy tied alongside, two crates waiting on a pier and a slate-blue ship's wheel above.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 17, scheduling basics",
+    "summary": "Kubernetes from Zero, part 17, scheduling basics.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-17-scheduling-basics/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "Setup that finishes first, helpers that stay, and the commands from Lesson 16.",
+    "boards": [
+      {
+        "title": "Who runs when",
+        "hint": "from the recap",
+        "headName": "Container",
+        "headRole": "What the lesson says",
+        "headWhere": "The field",
+        "rows": [
+          {
+            "name": "Init container",
+            "role": "Runs one at a time, in order. The app starts only after each one exits 0.",
+            "where": "spec.initContainers"
+          },
+          {
+            "name": "Native sidecar",
+            "role": "An init container with restartPolicy Always. It starts first, runs alongside the app, and stops last. Stable since v1.33.",
+            "where": "restartPolicy: Always"
+          },
+          {
+            "name": "startupProbe",
+            "role": "On a sidecar, the app waits until this probe passes.",
+            "where": "on the sidecar"
+          },
+          {
+            "name": "Ephemeral",
+            "role": "kubectl debug --target adds a container with tools to a Pod that has no shell. It cannot be removed.",
+            "where": "spec.ephemeralContainers"
+          }
+        ]
+      },
+      {
+        "title": "What the lab recorded",
+        "hint": "on kind v0.33.0",
+        "headName": "Case",
+        "headRole": "What the lesson says",
+        "headWhere": "The signal",
+        "rows": [
+          {
+            "name": "web-init",
+            "role": "STATUS moved Init:0/2, Init:1/2, PodInitializing, Running. fetch-config then render-page, then web.",
+            "where": "kubectl get pod"
+          },
+          {
+            "name": "Failed init",
+            "role": "init-fails stayed Init:Error, restarts climbed, and a BackOff event was recorded.",
+            "where": "kubectl logs -c migrate"
+          },
+          {
+            "name": "Jobs",
+            "role": "A helper in containers kept the Job Running 0/1. A native sidecar let the Job complete.",
+            "where": "exit 137, or 0 with a trap"
+          },
+          {
+            "name": "No shell",
+            "role": "kubectl exec into pause:3.10 failed. kubectl debug --target showed /pause as PID 1.",
+            "where": "READY stays 1/1"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "times from the lesson",
+      "items": [
+        {
+          "who": "Order",
+          "what": "fetch-config ran and exited 0, then render-page, and only then did web start."
+        },
+        {
+          "who": "Sidecar",
+          "what": "log-shipper started at 21:10:47 UTC, its startupProbe passed, and the app started at 21:10:53. READY was 2/2."
+        },
+        {
+          "who": "Shutdown",
+          "what": "A sidecar that ignores SIGTERM is killed after the grace period, 30 seconds by default, and the Job takes about 30 seconds longer. trap 'exit 0' TERM finished in 8 seconds with exit 0."
+        },
+        {
+          "who": "Patterns",
+          "what": "Sidecar, ambassador and adapter share the Pod's network and volumes. Helpers that can scale alone belong in their own Deployment."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Init containers",
+        "commands": [
+          {
+            "cmd": "kubectl apply -f init-order.yaml",
+            "note": "creates the Pod"
+          },
+          {
+            "cmd": "kubectl get pod web-init -w",
+            "note": "Init:N/M, then Running"
+          },
+          {
+            "cmd": "kubectl logs init-fails -c migrate",
+            "note": "first stop when stuck in Init:"
+          }
+        ]
+      },
+      {
+        "title": "Sidecars and Jobs",
+        "commands": [
+          {
+            "cmd": "kubectl apply -f native-sidecar.yaml",
+            "note": "restartPolicy Always on the init container"
+          },
+          {
+            "cmd": "kubectl logs app-with-sidecar -c log-shipper --tail=2",
+            "note": "the sidecar counts in READY"
+          },
+          {
+            "cmd": "kubectl wait --for=condition=complete job/report-fast --timeout=60s",
+            "note": "the trap version finished in 8s"
+          }
+        ]
+      },
+      {
+        "title": "A Pod with no shell",
+        "commands": [
+          {
+            "cmd": "kubectl exec no-shell -- sh -c ps",
+            "note": "fails: the image has no sh"
+          },
+          {
+            "cmd": "kubectl debug no-shell --image=busybox:1.37 --target=app -c debugger -- ps",
+            "note": "ephemeral container, /pause is PID 1"
+          },
+          {
+            "cmd": "kubectl get pod no-shell",
+            "note": "READY stays 1/1"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 3 and the namespace k8s-from-zero. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "When does the app container start, relative to init containers?",
+            "a": "Init containers run one at a time, in order, and the app starts only after all of them exit 0. kubectl get pod shows Init:N/M, then PodInitializing, then Running.",
+            "lines": 3
+          },
+          {
+            "q": "What makes an init container a native sidecar, and how does that change a Job?",
+            "a": "restartPolicy: Always. It starts in its place in the init list, the kubelet waits for it to start rather than exit, and it stops after the app. A Job can then complete. A helper left in spec.containers keeps the Job running until that helper exits.",
+            "lines": 3
+          },
+          {
+            "q": "What does kubectl debug --target add, and can you remove it?",
+            "a": "An ephemeral container, with the image you name, that can see the target container's processes. The lesson lists it under spec.ephemeralContainers and says it cannot be removed. READY stays 1/1.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Apply init-order.yaml and watch web-init. What STATUS values did the lesson record, and in what order did the containers run?",
+            "a": "Init:0/2, then Init:1/2, then PodInitializing, then Running. fetch-config exited 0, then render-page exited 0, then web started and served the file both had written.",
+            "lines": 2
+          },
+          {
+            "q": "Compare job/report-old with job/report-new. What did each end as, and why did report-new take 39 seconds?",
+            "a": "report-old stayed Running 0/1 because the helper never exits. report-new reached Complete. Its sidecar ignored SIGTERM, so it was killed after the 30 second grace period with exit 137.",
+            "lines": 3
+          },
+          {
+            "q": "Run kubectl exec no-shell -- sh -c ps, then the lesson's kubectl debug command. What is different?",
+            "a": "exec fails because pause:3.10 has no sh. debug adds a busybox container with --target=app, and ps shows /pause as PID 1.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "A Pod stays in Init:0/1. Where does the lesson tell you to look?",
+            "a": "The init container is still running or waiting. Read kubectl logs POD -c INIT. In the lab, app-waits was waiting on a Service name that did not exist yet.",
+            "lines": 2
+          },
+          {
+            "q": "A sidecar ignores SIGTERM. How long does the Job take to finish, and what exit does the lesson record?",
+            "a": "It is killed only after the grace period, 30 seconds by default, so the Job takes about 30 seconds longer than the work. The lesson recorded exit 137. trap 'exit 0' TERM finished in 8 seconds with exit 0.",
+            "lines": 3
+          },
+          {
+            "q": "kubectl debug shows only the debugger's own processes. What did the lesson leave out?",
+            "a": "--target, or the runtime does not support process sharing. Add --target=CONTAINER, or debug a copy with --copy-to and --share-processes.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}

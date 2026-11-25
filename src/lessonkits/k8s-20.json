@@ -1,0 +1,241 @@
+{
+  "$comment": "Lesson-kit content for Lesson 20. Every fact and command is copied from the lesson draft. The post is prepared on a separate branch.",
+  "slug": "k8s-20",
+  "campaign": "k8s-20",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 20,
+    "title": "Kubernetes from Zero, part 20: RBAC and ServiceAccounts",
+    "shortTitle": "RBAC and ServiceAccounts",
+    "description": "Give a Pod its own identity, grant it exactly the API access it needs with Roles and bindings, and check every permission with kubectl auth can-i.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-20-rbac-and-serviceaccounts/",
+    "source": "src/content/posts/k8s-from-zero-20-rbac-and-serviceaccounts.md",
+    "tested": "Roles, bindings, can-i, Pod tokens and API calls tested on kind v0.33.0, node v1.37.0, 10 Nov 2026",
+    "cluster": "k8s-ep19",
+    "rule": "Nothing is allowed until a binding says so. Give each workload its own ServiceAccount, grant the smallest Role that works, and prove it with kubectl auth can-i before you ship."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-20.jpg",
+    "alt": "A muted-teal cut-paper cabin wall with five ivory doors, the middle one open onto warm yellow light and a rust-red key hanging beside it, with a slate-blue ship's wheel in the upper left.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 21, troubleshooting Pods",
+    "summary": "Troubleshooting Pods, where you break Pods in six common ways and fix each one.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-21-troubleshooting-pods/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "Who, what, which, where, and the commands from Lesson 20.",
+    "boards": [
+      {
+        "title": "The four objects",
+        "hint": "from the recap",
+        "headName": "Object",
+        "headRole": "What the lesson says",
+        "headWhere": "Where it applies",
+        "rows": [
+          {
+            "name": "Role",
+            "role": "Rules in one namespace: apiGroups, resources and verbs. An empty apiGroup is the core group.",
+            "where": "one namespace"
+          },
+          {
+            "name": "ClusterRole",
+            "role": "The same rules, not namespaced. Use it for nodes, or reuse view, edit and admin.",
+            "where": "cluster, or via a RoleBinding"
+          },
+          {
+            "name": "RoleBinding",
+            "role": "Grants a Role or a ClusterRole inside one namespace. roleRef is immutable.",
+            "where": "the binding's namespace"
+          },
+          {
+            "name": "ClusterRoleBinding",
+            "role": "Grants a ClusterRole everywhere. It cannot reference a Role.",
+            "where": "the whole cluster"
+          }
+        ]
+      },
+      {
+        "title": "What the lab recorded",
+        "hint": "ServiceAccount inspector",
+        "headName": "Check",
+        "headRole": "What the lesson says",
+        "headWhere": "The answer",
+        "rows": [
+          {
+            "name": "Before a binding",
+            "role": "The Pod's call to list Pods returned 403. can-i list pods answered no.",
+            "where": "system:serviceaccount:k8s-from-zero:inspector"
+          },
+          {
+            "name": "pod-reader",
+            "role": "After the RoleBinding, the same call listed Pods. delete, other namespaces, Services and nodes stayed no.",
+            "where": "get, list, watch on pods"
+          },
+          {
+            "name": "view",
+            "role": "A RoleBinding to the view ClusterRole allowed Services in this namespace, not in kube-system, and not Secrets.",
+            "where": "one namespace"
+          },
+          {
+            "name": "Token",
+            "role": "The mounted token's warnafter is 3607 seconds after iat. create token --duration=10m is a 600 second token. automountServiceAccountToken false mounts no token.",
+            "where": "/var/run/secrets/kubernetes.io/serviceaccount/"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "namespace k8s-from-zero",
+      "items": [
+        {
+          "who": "Who",
+          "what": "kubectl auth whoami shows the subject. Add --as to ask about a ServiceAccount."
+        },
+        {
+          "who": "API group",
+          "what": "A Role for deployments with apiGroups empty answered no. apps/v1 means the group is apps. After that change, can-i answered yes."
+        },
+        {
+          "who": "Subject",
+          "what": "A binding with --serviceaccount=default:helper grants helper in default, not in k8s-from-zero. get rolebinding -o wide shows default/helper."
+        },
+        {
+          "who": "No deny",
+          "what": "Permissions only add up. There are no deny rules."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Identity",
+        "commands": [
+          {
+            "cmd": "kubectl auth whoami",
+            "note": "the subject these credentials are"
+          },
+          {
+            "cmd": "kubectl auth whoami --as=system:serviceaccount:k8s-from-zero:inspector",
+            "note": "ask as the Pod's account"
+          },
+          {
+            "cmd": "kubectl create token inspector -n k8s-from-zero --duration=10m",
+            "note": "TokenRequest, 600 seconds"
+          }
+        ]
+      },
+      {
+        "title": "Can I",
+        "commands": [
+          {
+            "cmd": "kubectl auth can-i list pods -n k8s-from-zero --as=system:serviceaccount:k8s-from-zero:inspector",
+            "note": "yes or no"
+          },
+          {
+            "cmd": "kubectl auth can-i --list -n k8s-from-zero --as=system:serviceaccount:k8s-from-zero:inspector",
+            "note": "everything in that namespace"
+          },
+          {
+            "cmd": "kubectl api-resources",
+            "note": "which group a resource lives in"
+          }
+        ]
+      },
+      {
+        "title": "Grants",
+        "commands": [
+          {
+            "cmd": "kubectl apply -f pod-reader.yaml",
+            "note": "Role plus RoleBinding"
+          },
+          {
+            "cmd": "kubectl apply -f view-in-namespace.yaml",
+            "note": "ClusterRole view, one namespace"
+          },
+          {
+            "cmd": "kubectl apply -f node-reader.yaml",
+            "note": "ClusterRole and ClusterRoleBinding"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 3 and the namespace k8s-from-zero. The lesson's ServiceAccount is inspector. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What does a Role hold, and what does a RoleBinding add?",
+            "a": "A Role holds rules: apiGroups, resources and verbs, in one namespace. A RoleBinding says who gets those rules, and where. A RoleBinding can also point at a ClusterRole and still grant it only in the binding's namespace.",
+            "lines": 3
+          },
+          {
+            "q": "Why does view not include Secrets?",
+            "a": "Reading Secrets would expose ServiceAccount tokens and other credentials. view is a ClusterRole meant to be bound per namespace.",
+            "lines": 2
+          },
+          {
+            "q": "What does automountServiceAccountToken: false change, and which setting wins?",
+            "a": "The Pod gets no token, ca.crt or namespace file. The Pod setting wins over the same field on the ServiceAccount. The Pod still runs as that ServiceAccount.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Before any binding, run can-i list pods as inspector, and have the Pod call the API. What did the lesson record?",
+            "a": "can-i answered no. The API call returned 403 Forbidden. After pod-reader was applied, the same call listed the Pods.",
+            "lines": 2
+          },
+          {
+            "q": "Decode the mounted token the way the lesson does. What do exp, iat and warnafter say?",
+            "a": "exp is about a year after iat, because admission extends the injected token. warnafter is 3607 seconds after iat, the real lifetime in the projected volume. kubectl create token --duration=10m gives a token whose lifetime is 600 seconds.",
+            "lines": 3
+          },
+          {
+            "q": "Create a Role for deployments with apiGroups set to the empty string. What does can-i say, and what fixes it?",
+            "a": "no. kubectl api-resources shows deployments in apps/v1. Set apiGroups to apps and the same check answers yes.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "You edit a RoleBinding's roleRef to point at a different Role. What does the API do?",
+            "a": "It rejects the change. roleRef is immutable. Delete the binding and create a new one.",
+            "lines": 2
+          },
+          {
+            "q": "A ClusterRoleBinding's roleRef kind is Role. What error does the lesson quote?",
+            "a": "roleRef.kind: Unsupported value Role. Supported value: ClusterRole. A ClusterRoleBinding can only reference a ClusterRole.",
+            "lines": 2
+          },
+          {
+            "q": "The binding says helper, and can-i still says no. What does the lesson tell you to look at?",
+            "a": "The subject's namespace. --serviceaccount=default:helper grants helper in default. kubectl get rolebinding -o wide shows default/helper. The ServiceAccount in k8s-from-zero is a different subject.",
+            "lines": 3
+          }
+        ]
+      }
+    ]
+  }
+}

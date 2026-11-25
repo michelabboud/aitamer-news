@@ -1,0 +1,241 @@
+{
+  "$comment": "Lesson-kit content for Lesson 17. Every fact and command is copied from the lesson draft. The post is prepared on a separate branch.",
+  "slug": "k8s-17",
+  "campaign": "k8s-17",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 17,
+    "title": "Kubernetes from Zero, part 17: scheduling basics",
+    "shortTitle": "Scheduling basics",
+    "description": "Steer Pods onto the right nodes with nodeSelector and node affinity, keep replicas apart or together, and spread them evenly across zones.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-17-scheduling-basics/",
+    "source": "src/content/posts/k8s-from-zero-17-scheduling-basics.md",
+    "tested": "Every command ran on a four-node kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "k8s-ep16",
+    "rule": "Label your nodes, then say where Pods must or should go. Use topology spread to survive a zone loss, and read FailedScheduling events when a Pod waits."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-17.jpg",
+    "alt": "Three sand-coloured paper piers reach into layered blue paper water with two cream paper boats at each, while a coral paper boat glides toward the middle pier and a slate-blue ship's wheel sits above.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 18, taints, priority and disruption",
+    "summary": "Kubernetes from Zero, part 18, taints, priority and disruption.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-18-taints-priority-and-disruption/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "Where a Pod may run, and the commands from Lesson 17.",
+    "boards": [
+      {
+        "title": "Four ways to place a Pod",
+        "hint": "from the recap",
+        "headName": "Rule",
+        "headRole": "What the lesson says",
+        "headWhere": "The field",
+        "rows": [
+          {
+            "name": "nodeSelector",
+            "role": "Every listed label must match. No operators.",
+            "where": "spec.nodeSelector"
+          },
+          {
+            "name": "Node affinity",
+            "role": "Required rules use In, NotIn and Exists. Preferred rules add a weight from 1 to 100.",
+            "where": "nodeAffinity"
+          },
+          {
+            "name": "Pod affinity",
+            "role": "Place this Pod near, or away from, Pods with a label, per node or per zone.",
+            "where": "topologyKey"
+          },
+          {
+            "name": "Spread",
+            "role": "Keep the count of matching Pods within maxSkew across a topology key.",
+            "where": "whenUnsatisfiable"
+          }
+        ]
+      },
+      {
+        "title": "What the four-node lab did",
+        "hint": "workers zone-a, zone-b, zone-c",
+        "headName": "Case",
+        "headRole": "What the lesson says",
+        "headWhere": "The result",
+        "rows": [
+          {
+            "name": "gpu=true",
+            "role": "needs-gpu stayed Pending until a node was labeled gpu=true. No reapply.",
+            "where": "FailedScheduling"
+          },
+          {
+            "name": "Preferred SSD",
+            "role": "Required zones a and b, preferred disktype=ssd at weight 80. All 4 replicas landed on worker2.",
+            "where": "kubectl get pods -o wide"
+          },
+          {
+            "name": "Anti-affinity",
+            "role": "Required on kubernetes.io/hostname. Three replicas, one per worker. The fourth stayed Pending.",
+            "where": "not enough nodes"
+          },
+          {
+            "name": "maxSkew 1",
+            "role": "Six shop replicas sat 2/2/2. With worker3 cordoned, nine replicas sat 3/3/2 and one stayed Pending.",
+            "where": "DoNotSchedule"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "cluster k8s-ep16, three workers",
+      "items": [
+        {
+          "who": "Filter",
+          "what": "The scheduler filters out nodes where a Pod cannot run, scores the rest, and binds the Pod to the top-ranked one."
+        },
+        {
+          "who": "Together",
+          "what": "Required pod affinity on the zone key placed the workers on the same node as cache, worker2."
+        },
+        {
+          "who": "Spread",
+          "what": "After uncordon, the nine shop replicas settled at 3/3/3."
+        },
+        {
+          "who": "Pending",
+          "what": "Read FailedScheduling. The cordoned spread case said 2 node(s) didn't match pod topology spread constraints."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Labels",
+        "commands": [
+          {
+            "cmd": "kubectl label node k8s-ep16-worker topology.kubernetes.io/zone=zone-a",
+            "note": "disktype- removes a label"
+          },
+          {
+            "cmd": "kubectl get nodes -L topology.kubernetes.io/zone,disktype",
+            "note": "labels as columns"
+          },
+          {
+            "cmd": "kubectl get pods -o wide",
+            "note": "NODE is where it landed"
+          }
+        ]
+      },
+      {
+        "title": "Affinity",
+        "commands": [
+          {
+            "cmd": "kubectl apply -f node-affinity.yaml",
+            "note": "required zones plus preferred ssd"
+          },
+          {
+            "cmd": "kubectl apply -f anti-affinity.yaml",
+            "note": "one Pod per node when required"
+          },
+          {
+            "cmd": "kubectl scale deploy web --replicas=4",
+            "note": "the fourth stayed Pending"
+          }
+        ]
+      },
+      {
+        "title": "Spread",
+        "commands": [
+          {
+            "cmd": "kubectl apply -f spread.yaml",
+            "note": "maxSkew 1, DoNotSchedule"
+          },
+          {
+            "cmd": "kubectl cordon k8s-ep16-worker3",
+            "note": "zone-c takes no new Pods"
+          },
+          {
+            "cmd": "kubectl uncordon k8s-ep16-worker3",
+            "note": "the waiting Pod can land"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use a kind cluster with several worker nodes and the namespace k8s-from-zero. The lesson's nodes are k8s-ep16-worker, worker2 and worker3. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What does the scheduler do with the nodes that remain after filtering?",
+            "a": "It scores them and binds the Pod to the top-ranked node. Filtering removes nodes where the Pod cannot run.",
+            "lines": 2
+          },
+          {
+            "q": "How is required node affinity different from nodeSelector?",
+            "a": "nodeSelector requires every listed label to match, with no operators. Required node affinity adds operators such as In, NotIn and Exists. Preferred affinity adds a weight from 1 to 100 and still schedules when the preferred nodes are full.",
+            "lines": 3
+          },
+          {
+            "q": "What does whenUnsatisfiable: DoNotSchedule do to a topology spread constraint?",
+            "a": "The Pod stays Pending rather than breaking maxSkew. ScheduleAnyway still places it and scores the imbalance.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Apply pod-gpu.yaml before any node has gpu=true. What happens, and what changes after you label one node?",
+            "a": "needs-gpu stays Pending with a FailedScheduling event. After kubectl label node k8s-ep16-worker3 gpu=true it schedules, without applying the Pod again.",
+            "lines": 2
+          },
+          {
+            "q": "Scale the required hostname anti-affinity Deployment to 4 on three workers. Where does the fourth Pod sit?",
+            "a": "It stays Pending. Required anti-affinity on kubernetes.io/hostname cannot place two of those Pods on one node, and only three workers qualify.",
+            "lines": 2
+          },
+          {
+            "q": "With spread maxSkew 1 and worker3 cordoned, scale shop to 9. What counts did the lesson record?",
+            "a": "3 on zone-a, 3 on zone-b, 2 on zone-c, and one Pod Pending because 4 against 2 would be a skew of 2. The event said 2 node(s) didn't match pod topology spread constraints.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "A Pod stays Pending. What does the lesson tell you to read?",
+            "a": "kubectl describe pod NAME, the FailedScheduling event. A node affinity or selector miss, an anti-affinity miss, and Insufficient cpu are different reasons.",
+            "lines": 2
+          },
+          {
+            "q": "Required pod anti-affinity on hostname, and you want four replicas. What limit does the lesson name?",
+            "a": "The replica count cannot exceed the number of nodes that match. Three workers means the fourth Pod waits.",
+            "lines": 2
+          },
+          {
+            "q": "You prefer SSD nodes but the app must still run when they are full. Which rule does the lesson use?",
+            "a": "Preferred node affinity with a modest weight. Required affinity would leave the Pod Pending instead.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}
