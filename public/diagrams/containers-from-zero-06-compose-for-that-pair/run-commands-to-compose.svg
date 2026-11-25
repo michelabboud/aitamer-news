@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">From docker run commands to one Compose file</title>
+<desc id="d">Left: the commands from part 5. Right: the matching lines in compose.yaml. docker network create hello-net becomes nothing at all, because Compose creates a default network for the project. docker volume create hello-data becomes the top-level volumes key with hello-data. docker run --name web --network hello-net --mount type=volume,src=hello-data,dst=/data hello-app:1.2 becomes the service web with build: . and volumes: hello-data:/data; this row is highlighted. docker run --name proxy -p 127.0.0.1:8080:80 with the proxy.conf bind mount and nginx:1.30-alpine becomes the service proxy with image, ports and volumes ./proxy.conf:/etc/nginx/conf.d/default.conf:ro. Starting web before proxy by hand becomes depends_on: web.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Each docker run flag has a place in compose.yaml</text>
+<rect class="panel" x="24" y="50" width="360" height="400" rx="10"/>
+<text class="th" x="40" y="76" text-anchor="start">part 5: commands</text>
+<rect class="panel" x="416" y="50" width="360" height="400" rx="10"/>
+<text class="th" x="432" y="76" text-anchor="start">part 6: compose.yaml</text>
+<rect class="box" x="40" y="92" width="328" height="56" rx="10"/>
+<text class="ts" x="52" y="124.5" text-anchor="start">docker network create hello-net</text>
+<rect class="box" x="432" y="92" width="328" height="56" rx="10"/>
+<text class="tm" x="444" y="116.0" text-anchor="start">(nothing: Compose creates</text>
+<text class="tm" x="444" y="133.0" text-anchor="start">hello_default for you)</text>
+<line class="ln" x1="370" y1="120.0" x2="430" y2="120.0" marker-end="url(#ah)"/>
+<rect class="box" x="40" y="162" width="328" height="56" rx="10"/>
+<text class="ts" x="52" y="194.5" text-anchor="start">docker volume create hello-data</text>
+<rect class="box" x="432" y="162" width="328" height="56" rx="10"/>
+<text class="tm" x="444" y="186.0" text-anchor="start">volumes:</text>
+<text class="tm" x="460" y="203.0" text-anchor="start">hello-data:</text>
+<line class="ln" x1="370" y1="190.0" x2="430" y2="190.0" marker-end="url(#ah)"/>
+<rect class="boxc" x="40" y="232" width="328" height="92" rx="10"/>
+<text class="ts" x="52" y="257.0" text-anchor="start">docker run --name web</text>
+<text class="ts" x="52" y="274.0" text-anchor="start">--network hello-net</text>
+<text class="ts" x="52" y="291.0" text-anchor="start">--mount ...hello-data,dst=/data</text>
+<text class="ts" x="52" y="308.0" text-anchor="start">hello-app:1.2</text>
+<rect class="boxs" x="432" y="232" width="328" height="92" rx="10"/>
+<text class="tm" x="444" y="265.5" text-anchor="start">web:</text>
+<text class="tm" x="460" y="282.5" text-anchor="start">build: .</text>
+<text class="tm" x="460" y="299.5" text-anchor="start">volumes: [hello-data:/data]</text>
+<line class="lnc" x1="370" y1="278.0" x2="430" y2="278.0" marker-end="url(#ahc)"/>
+<rect class="box" x="40" y="332" width="328" height="80" rx="10"/>
+<text class="ts" x="52" y="359.5" text-anchor="start">docker run --name proxy</text>
+<text class="ts" x="52" y="376.5" text-anchor="start">-p 127.0.0.1:8080:80</text>
+<text class="ts" x="52" y="393.5" text-anchor="start">--mount ...proxy.conf... nginx</text>
+<rect class="box" x="432" y="332" width="328" height="80" rx="10"/>
+<text class="tm" x="444" y="359.5" text-anchor="start">proxy:</text>
+<text class="tm" x="460" y="376.5" text-anchor="start">image: nginx:1.30-alpine</text>
+<text class="tm" x="460" y="393.5" text-anchor="start">ports, volumes, depends_on: web</text>
+<line class="ln" x1="370" y1="372.0" x2="430" y2="372.0" marker-end="url(#ah)"/>
+</svg>

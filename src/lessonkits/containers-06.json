@@ -1,0 +1,150 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 6. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-06",
+  "campaign": "containers-06",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 6,
+    "title": "Containers from Zero, part 6: Compose for that pair",
+    "shortTitle": "Compose for that pair",
+    "description": "Replace the network, the volume and both docker run commands from part 5 with one compose.yaml. Start, inspect, change and stop the pair with docker compose, and see what it creates and what down removes.",
+    "url": "https://aitamer.news/posts/containers-from-zero-06-compose-for-that-pair/",
+    "source": "src/content/posts/containers-from-zero-06-compose-for-that-pair.md",
+    "tested": "Ran the web and proxy pair from one compose.yaml with Compose v5.8.0 on Engine 29.10.1, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "Write the pair down once in compose.yaml, start it with docker compose up -d, and remember that down -v deletes the data."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-06.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 7, a small multi-container app",
+    "summary": "A web process stores notes in a PostgreSQL database, both started by one compose.yaml.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "compose.yaml keys, the names Compose gives things, and what up and down do, from Lesson 6.",
+    "boards": [
+      {
+        "title": "From docker run to compose.yaml",
+        "hint": "docker compose, with a space; Compose v5.8.0",
+        "headName": "Key",
+        "headRole": "Replaces",
+        "headWhere": "In the lab",
+        "rows": [
+          {"name": "name:", "role": "The project name; otherwise the folder name.", "where": "`name: hello`"},
+          {"name": "build: .", "role": "`docker build .`; the image is named project-service.", "where": "`hello-web`"},
+          {"name": "image:", "role": "The image at the end of `docker run`.", "where": "`nginx:1.30-alpine`"},
+          {"name": "environment:", "role": "`-e`", "where": "`GREETING: Hello`"},
+          {"name": "ports:", "role": "`-p`; quote it.", "where": "`\"127.0.0.1:8080:80\"`"},
+          {"name": "volumes: (service)", "role": "`--mount`: a volume name, or a path relative to compose.yaml.", "where": "`hello-data:/data`, `./proxy.conf:...:ro`"},
+          {"name": "depends_on:", "role": "Starting things in order by hand. Waits for running, not ready.", "where": "`web` before `proxy`"},
+          {"name": "volumes: (top level)", "role": "`docker volume create`", "where": "`hello-data:` becomes `hello_hello-data`"},
+          {"name": "(no line)", "role": "`docker network create`: Compose makes `<project>_default`.", "where": "`hello_default`; services find each other by name"}
+        ]
+      },
+      {
+        "title": "What each command does",
+        "hint": "run in the folder with compose.yaml",
+        "headName": "Command",
+        "headRole": "Effect",
+        "headWhere": "The volume",
+        "rows": [
+          {"name": "up -d", "role": "Builds and creates what is missing, starts it in order. Later runs recreate only changed services.", "where": "kept"},
+          {"name": "down", "role": "Stops (reverse order) and removes containers and the default network.", "where": "kept: next up said visit 3"},
+          {"name": "down -v", "role": "Also removes named volumes and anonymous volumes of the containers.", "where": "deleted"},
+          {"name": "restart proxy", "role": "Restarts one service's container. nginx looks `web` up again.", "where": "kept"}
+        ],
+        "note": "`up` does not rebuild an existing image: use `docker compose up -d --build` after changing `app.py`."
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs, addresses and times differ on your machine",
+      "items": [
+        {"who": "config", "what": "Printed the full model: `type: bind`, `host_ip: 127.0.0.1`, `condition: service_started`, `hello_default`, `hello_hello-data`."},
+        {"who": "up", "what": "Built `hello-web`, created network and volume, started `web` then `proxy`. The first `curl`: `Recv failure: Connection reset by peer`; then visit 1, visit 2."},
+        {"who": "down, up", "what": "A new `web` container carried on at visit 3."},
+        {"who": "Change", "what": "`GREETING: Shalom`: `hello-proxy-1 Running`, `hello-web-1 Recreated`, `Shalom from container ..., visit 4`."},
+        {"who": "Stale", "what": "`web` moved to `172.18.0.4`; nginx still tried `upstream: \"http://172.18.0.2:8000/\"` and answered 502 until `docker compose restart proxy`."}
+      ],
+      "note": "Safety: the lab publishes 127.0.0.1:8080. `docker compose down -v` deletes the volume `hello_hello-data` and the count. Change `name: hello` if you already have a project called hello. Undo with `docker compose down -v` in the `hello` folder."
+    },
+    "commandGroups": [
+      {
+        "title": "Run the project",
+        "commands": [
+          {"cmd": "docker compose config", "note": "check and print the model"},
+          {"cmd": "docker compose up -d", "note": "start in the background"},
+          {"cmd": "docker compose up -d --build", "note": "rebuild first"},
+          {"cmd": "docker compose down", "note": "keeps volumes"},
+          {"cmd": "docker compose down -v", "note": "deletes volumes"}
+        ]
+      },
+      {
+        "title": "Look inside",
+        "commands": [
+          {"cmd": "docker compose ps", "note": "this project's containers"},
+          {"cmd": "docker compose logs web", "note": "-f to follow"},
+          {"cmd": "docker compose exec web cat /data/visits.txt", "note": "a command in a service"},
+          {"cmd": "docker compose restart proxy", "note": "one service"}
+        ]
+      },
+      {
+        "title": "Plain Docker view",
+        "commands": [
+          {"cmd": "docker network inspect --format '{{range .Containers}}{{.Name}} {{.IPv4Address}}{{\"\\n\"}}{{end}}' hello_default", "note": "who is on the network"},
+          {"cmd": "docker inspect --format '{{index .Config.Labels \"com.docker.compose.project\"}} {{index .Config.Labels \"com.docker.compose.service\"}}' hello-web-1", "note": "Compose labels"},
+          {"cmd": "docker volume ls --filter name=hello", "note": "the project's volume"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the hello folder, compose.yaml and proxy.conf from the lesson. IDs, addresses and times will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "What is the difference between `docker compose` and `docker-compose`?", "a": "`docker compose`, with a space, is the current Compose, v2 or v5. `docker-compose`, with a hyphen, was Compose v1, written in Python.", "lines": 2},
+          {"q": "Which network do the services join when `compose.yaml` has no `networks:` key, and how do they find each other?", "a": "A network named `<project-name>_default`, here `hello_default`. Each service registers its name with Docker's DNS, so `web` resolves.", "lines": 2},
+          {"q": "What does `depends_on: [web]` guarantee, and what does it not?", "a": "Compose starts `web` before `proxy`. It waits only until the container is running, not until the program inside is ready.", "lines": 2},
+          {"q": "What does `docker compose up -d` do when you run it again after editing the file?", "a": "It recreates only the services whose configuration changed, preserving mounted volumes, and leaves the others running.", "lines": 2},
+          {"q": "What does `docker compose down` keep, and what does `-v` add?", "a": "`down` removes containers and the default network, and keeps named volumes and images. `-v` also removes the named volumes and anonymous volumes.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run `docker compose config`. What does it show for the proxy's port and for `depends_on`?", "a": "The port as `host_ip: 127.0.0.1`, `target: 80`, `published: \"8080\"`. `depends_on` as `condition: service_started`, which means running.", "lines": 3},
+          {"q": "Run `docker compose up -d` and `curl` at once. What can the first request return, and why?", "a": "`Recv failure: Connection reset by peer` or `502 Bad Gateway`. The containers were started, but nginx or the app was not listening yet.", "lines": 2},
+          {"q": "Run `docker compose down`, then `up -d`, then `curl`. What count do you get?", "a": "The count continues, visit 3 in the lesson, from a new `web` container. `down` kept the volume `hello_hello-data`.", "lines": 2},
+          {"q": "Change `GREETING` and run `docker compose up -d`. Which containers does Compose touch?", "a": "Only `hello-web-1`, which it recreates. `hello-proxy-1` stays `Running`.", "lines": 2},
+          {"q": "List the names Compose gave the containers, the network and the volume. What pattern do you see?", "a": "`hello-web-1`, `hello-proxy-1`, `hello_default`, `hello_hello-data`: the project name, then the service or key, and a number for containers.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You change `app.py` and run `docker compose up -d`. Does the change show up?", "a": "No. `up` uses the existing image. Run `docker compose up -d --build` to rebuild it.", "lines": 2},
+          {"q": "You indent a line with a tab and run `docker compose config`. What happens?", "a": "An error such as `yaml: line 3: found character that cannot start any token`. YAML indentation must use spaces.", "lines": 2},
+          {"q": "You run `docker compose down -v` and then `up -d`. What count does `curl` show, and why?", "a": "visit 1. `-v` deleted the volume `hello_hello-data`, so Compose created a new, empty one.", "lines": 2},
+          {"q": "`web` is recreated and gets a new address, and the proxy now answers 502. What happened, and what fixes it?", "a": "nginx looked up `web` when it started and kept the old address. `docker compose restart proxy` makes it look the name up again.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}
