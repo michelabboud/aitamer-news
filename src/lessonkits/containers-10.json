@@ -1,0 +1,143 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 10. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-10",
+  "campaign": "containers-10",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 10,
+    "title": "Containers from Zero, part 10: clean up, and the edge of one machine",
+    "shortTitle": "Clean up, and the edge of one machine",
+    "description": "Remove the notes app and everything the series created, with a last backup first, and check that Docker's disk usage is back to zero. Then see what Compose does on one machine, what it leaves to a cluster, and where Kubernetes from Zero picks up.",
+    "url": "https://aitamer.news/posts/containers-from-zero-10-clean-up-and-the-edge-of-one-machine/",
+    "source": "src/content/posts/containers-from-zero-10-clean-up-and-the-edge-of-one-machine.md",
+    "tested": "Removed every object the series made, back to zero in docker system df, Engine 29.10.1, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "Project commands clean up a project; prune commands clean up the whole machine, so read their warning before you answer y."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-10.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Where to go next",
+    "title": "Next: Kubernetes from Zero, part 1",
+    "summary": "What Kubernetes is and why it exists: running containers on more than one machine, from a desired state.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-01-what-kubernetes-is/",
+    "urlLabel": "Kubernetes from Zero, part 1"
+  },
+  "cheatsheet": {
+    "intro": "What each clean-up command removes, the order that removes only the series' objects, and where Compose stops, from Lesson 10.",
+    "boards": [
+      {
+        "title": "What each command removes",
+        "hint": "project commands vs machine-wide prune",
+        "headName": "Command",
+        "headRole": "Removes",
+        "headWhere": "Scope",
+        "rows": [
+          {"name": "compose down", "role": "The project's containers and networks.", "where": "this project"},
+          {"name": "down -v --rmi local", "role": "Also named volumes, attached anonymous volumes, and images it built without a custom tag.", "where": "this project"},
+          {"name": "image rm NAME", "role": "Those images; refused while a container, even stopped, uses one.", "where": "named images"},
+          {"name": "builder prune", "role": "Build cache. Later builds recreate it.", "where": "whole machine"},
+          {"name": "system prune", "role": "Stopped containers, unused networks, dangling images, unused build cache; `--volumes` adds unused anonymous volumes.", "where": "whole machine"},
+          {"name": "volume prune", "role": "Unused anonymous volumes; `-a` unused named ones too.", "where": "whole machine"}
+        ],
+        "note": "Every prune lists what it will remove and asks [y/N]; `-f` skips the question. Unused means not used by at least one container."
+      },
+      {
+        "title": "The edge of one machine",
+        "hint": "Compose talks to one Docker Engine",
+        "headName": "Topic",
+        "headRole": "On one machine",
+        "headWhere": "In a cluster",
+        "rows": [
+          {"name": "Where it runs", "role": "One engine, local or remote through `DOCKER_HOST`.", "where": "Several machines under a manager."},
+          {"name": "Machine stops", "role": "The app stops with it; restart policies act when the engine starts again.", "where": "The manager starts replacements on other machines."},
+          {"name": "Model", "role": "compose.yaml: services, networks, volumes.", "where": "Desired state, reconciled continuously."}
+        ],
+        "note": "Docker's guide: the easiest deployment is a single server. Kubernetes from Zero teaches the cluster side."
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "sizes and IDs differ on your machine",
+      "items": [
+        {"who": "Before", "what": "`docker system df`: Images 10, 736.4MB; Containers 2; Local Volumes 1, 65.94MB; Build Cache 24, 76.52MB."},
+        {"who": "notes", "what": "Backup of 98 lines, then `down -v --rmi local` removed containers, network, `notes_db-data` and `notes-web`."},
+        {"who": "Images", "what": "`hello-web` via `down --rmi local`; the rest via `docker image rm`. `Untagged` removes a name, `Deleted` the image."},
+        {"who": "After", "what": "Every `docker system df` row 0 and 0B; only `bridge`, `host`, `none` networks left."}
+      ],
+      "note": "Safety: deletes `notes_db-data` and the notes after saving `~/notes-backup.sql`, the series' images, unused build cache and the `hello` and `notes` folders. No port is published. There is no undo beyond the backup."
+    },
+    "commandGroups": [
+      {
+        "title": "Look first",
+        "commands": [
+          {"cmd": "docker compose ls -a", "note": "projects and folders"},
+          {"cmd": "docker system df", "note": "disk usage by kind"},
+          {"cmd": "docker image ls", "note": "U: in use"}
+        ]
+      },
+      {
+        "title": "Remove by project and name",
+        "commands": [
+          {"cmd": "docker compose exec db pg_dump -U notes notes > ~/notes-backup.sql", "note": "last backup"},
+          {"cmd": "docker compose down -v --rmi local", "note": "in ~/notes"},
+          {"cmd": "docker compose down --rmi local", "note": "in ~/hello"},
+          {"cmd": "docker image rm hello-app:1.0 hello-app:1.1 hello-app:1.2 hello-app:latest", "note": "built images"},
+          {"cmd": "docker builder prune", "note": "build cache, asks first"}
+        ]
+      },
+      {
+        "title": "Read the scope",
+        "commands": [
+          {"cmd": "docker system prune --volumes", "note": "answer N to only read"},
+          {"cmd": "docker volume prune", "note": "anonymous only by default"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Answer from the lesson. Sizes and IDs will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "What do `-v` and `--rmi local` add to `docker compose down`?", "a": "`-v` removes named volumes from the file and anonymous volumes attached to the containers. `--rmi local` removes images it built without a custom tag.", "lines": 2},
+          {"q": "Why does `--rmi local` remove `notes-web` but not `postgres:18-alpine`?", "a": "Compose built and named `notes-web`; the file names `postgres:18-alpine`, a custom tag.", "lines": 2},
+          {"q": "What does `docker volume prune` remove by default, and with `-a`?", "a": "Unused anonymous volumes; with `-a`, all unused volumes, named ones too.", "lines": 2},
+          {"q": "Why does the lab remove objects by name instead of running `docker system prune -a --volumes`?", "a": "Prune covers the whole machine: it would also remove other work's stopped containers and unused images.", "lines": 2},
+          {"q": "What does a cluster manager do when a machine with two replicas crashes?", "a": "It creates two new replicas on other machines, to match the desired state.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run `docker compose ls -a` before step 2. Why is `hello` missing while `hello-web` is still an image?", "a": "Part 6 removed hello's containers, and the list is based on containers. `down` without `--rmi` left the image.", "lines": 2},
+          {"q": "Run `docker image rm hello-app:1.1`. Why is there no `Deleted` line?", "a": "`hello-app:latest` still points at the same image ID; only the name was removed.", "lines": 2},
+          {"q": "Run `docker system prune --volumes` and answer N. Name three things it would remove.", "a": "Any three of: stopped containers, unused networks, unused anonymous volumes, dangling images, unused build cache.", "lines": 2},
+          {"q": "After the lab, run `docker network ls`. Which networks remain, and can you remove them?", "a": "`bridge`, `host`, `none`. No: `bridge is a pre-defined network and cannot be removed`.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "A stopped `hello-world` container exists. What does `docker image rm hello-world` do?", "a": "It refuses: `conflict: unable to delete hello-world:latest (must be forced)`, naming the container. Remove the container first.", "lines": 2},
+          {"q": "You run `docker compose down -v --rmi local` without the backup. Can you get the notes back?", "a": "No. The volume and the notes in it are deleted.", "lines": 2},
+          {"q": "You run `docker compose down` in your home folder. What happens?", "a": "`no configuration file provided: not found`. Run it in the project folder.", "lines": 2},
+          {"q": "The machine running the notes app shuts down. Does Compose start the app on another machine?", "a": "No. Compose works with one engine; the app stops with the machine. Moving work between machines is what a cluster manager does.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}
