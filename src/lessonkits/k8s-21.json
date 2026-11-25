@@ -1,0 +1,251 @@
+{
+  "$comment": "Lesson-kit content for Lesson 21. Every fact and command is copied from the lesson draft. The post is prepared on a separate branch.",
+  "slug": "k8s-21",
+  "campaign": "k8s-21",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 21,
+    "title": "Kubernetes from Zero, part 21: troubleshooting Pods",
+    "shortTitle": "Troubleshooting Pods",
+    "description": "Break six Pods on purpose and fix each one: Pending, ImagePullBackOff, CreateContainerConfigError, RunContainerError, CrashLoopBackOff and OOMKilled.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-21-troubleshooting-pods/",
+    "source": "src/content/posts/k8s-from-zero-21-troubleshooting-pods.md",
+    "tested": "Six broken Pods created, read and fixed on kind v0.33.0, node v1.37.0, kubectl v1.37.2, 10 Nov 2026",
+    "cluster": "k8s-ep19",
+    "rule": "Read the STATUS, then the one place it points to: Events for scheduling and pulls, Last State for config, start and memory failures, logs for the app. The fix is almost always in the message."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-21.jpg",
+    "alt": "On a deep-navy cut-paper deck under a glowing sulfur-yellow paper lantern, a coil of sand-coloured rope runs out in a straight line to a rust-red cleat, with a steel-blue ship's wheel in the upper left.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 22, troubleshooting the rest",
+    "summary": "Troubleshooting Services with no endpoints, DNS failures, stuck Terminating, node problems and kubectl debug.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-22-troubleshooting-the-rest/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "Six STATUS values, and the commands from Lesson 21.",
+    "boards": [
+      {
+        "title": "Where each status points",
+        "hint": "from the recap",
+        "headName": "STATUS",
+        "headRole": "What the lesson says",
+        "headWhere": "Read this",
+        "rows": [
+          {
+            "name": "Pending",
+            "role": "Not scheduled, or not started. The lab's pending Pod asked for 64 CPU. The event said Insufficient cpu.",
+            "where": "FailedScheduling"
+          },
+          {
+            "name": "ImagePullBackOff",
+            "role": "ErrImagePull is the failed pull. ImagePullBackOff is the wait. The lab's tag ended in not found.",
+            "where": "Failed event"
+          },
+          {
+            "name": "Config error",
+            "role": "CreateContainerConfigError. The container was not created. The lab was a missing ConfigMap app-config.",
+            "where": "describe, Events"
+          },
+          {
+            "name": "RunContainerError",
+            "role": "The command could not start. Last State was StartError, exit 128. There are no app logs.",
+            "where": "Last State"
+          },
+          {
+            "name": "CrashLoopBackOff",
+            "role": "The app started and exited. The kubelet waits 10s, then 20, 40, up to 300s. The cause is in the logs.",
+            "where": "kubectl logs --previous"
+          },
+          {
+            "name": "OOMKilled",
+            "role": "The container was killed for memory. Exit code 137. The lab set a 32Mi limit.",
+            "where": "Last State"
+          }
+        ]
+      },
+      {
+        "title": "Fixes the lab used",
+        "hint": "most of them need a new Pod",
+        "headName": "Pod",
+        "headRole": "What the lesson says",
+        "headWhere": "The fix",
+        "rows": [
+          {
+            "name": "pending",
+            "role": "Lower the CPU request. The lesson used replace --force so the Pod is deleted and created again.",
+            "where": "100m in the fixed file"
+          },
+          {
+            "name": "typo",
+            "role": "The image was nginx:1.29-alpnie. set image can change a Pod image in place.",
+            "where": "nginx:1.29-alpine"
+          },
+          {
+            "name": "config",
+            "role": "Create the ConfigMap. The Pod started and the logs said mode=prod. No replace.",
+            "where": "kubectl create configmap"
+          },
+          {
+            "name": "oom",
+            "role": "Left broken on purpose. Raise the limit or fix the leak. Exit 137.",
+            "where": "the memory limit"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "six Pods applied together",
+      "items": [
+        {
+          "who": "Before the app",
+          "what": "Pending, image pull and missing config happen before the process runs. Only a crash leaves the app's own error in the logs."
+        },
+        {
+          "who": "Backoff",
+          "what": "The delay doubles from 10 seconds up to five minutes, and it resets after a container has run for 10 minutes."
+        },
+        {
+          "who": "Previous logs",
+          "what": "logs --previous failed while crash still showed Error, because the older container was already gone. After the container stayed up between crashes, --previous worked."
+        },
+        {
+          "who": "Running",
+          "what": "Running and 1/1 mean the container runs and its readiness probe passes. A request that fails on the way in is a Service problem, covered in part 22."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Look",
+        "commands": [
+          {
+            "cmd": "kubectl get pods -n k8s-from-zero",
+            "note": "STATUS and RESTARTS"
+          },
+          {
+            "cmd": "kubectl describe pod pending -n k8s-from-zero",
+            "note": "State, Last State, Events"
+          },
+          {
+            "cmd": "kubectl events -n k8s-from-zero --for pod/typo",
+            "note": "time order, one Pod"
+          }
+        ]
+      },
+      {
+        "title": "Logs",
+        "commands": [
+          {
+            "cmd": "kubectl logs crash -n k8s-from-zero --previous",
+            "note": "the run before this one"
+          },
+          {
+            "cmd": "kubectl logs config -n k8s-from-zero",
+            "note": "mode=prod after the ConfigMap existed"
+          },
+          {
+            "cmd": "kubectl events -n k8s-from-zero --types=Warning",
+            "note": "a quick inventory"
+          }
+        ]
+      },
+      {
+        "title": "Fix",
+        "commands": [
+          {
+            "cmd": "kubectl set image pod/typo web=nginx:1.29-alpine -n k8s-from-zero",
+            "note": "an image can change in place"
+          },
+          {
+            "cmd": "kubectl replace --force -f pending.yaml",
+            "note": "delete and create"
+          },
+          {
+            "cmd": "kubectl create configmap app-config -n k8s-from-zero --from-literal=mode=prod",
+            "note": "the missing key"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 3 and the namespace k8s-from-zero. The lesson's six Pods are pending, typo, config, runerr, crash and oom. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "Which three failures happen before the app runs, and which three after?",
+            "a": "Before: Pending, image pulls, and missing config. After: start errors, crashes, and OOM kills. Only a crash leaves the app's own error in the logs.",
+            "lines": 3
+          },
+          {
+            "q": "What is the difference between ErrImagePull and ImagePullBackOff?",
+            "a": "ErrImagePull is the failed attempt. ImagePullBackOff is the wait before the next one. The delay grows and is capped at 300 seconds. not found means the registry answered and the tag does not exist.",
+            "lines": 3
+          },
+          {
+            "q": "Why does OOMKilled show exit code 137?",
+            "a": "The kubelet killed the container for memory. The lab's container had a 32Mi limit and wrote until it was killed. Raise the limit or fix the leak.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Describe the pending Pod. What FailedScheduling message did the lesson record?",
+            "a": "0/1 nodes are available: 1 Insufficient cpu. The Pod requested 64 CPU. Preemption was not helpful. Lowering the request and replacing the Pod made it Running.",
+            "lines": 2
+          },
+          {
+            "q": "Describe config before the ConfigMap exists. What reason do you see, and what starts the Pod?",
+            "a": "CreateContainerConfigError. The event names the missing ConfigMap. kubectl create configmap app-config with mode=prod lets the Pod start, and the logs say mode=prod.",
+            "lines": 2
+          },
+          {
+            "q": "Describe runerr and read Last State. What reason, exit code and message shape did the lesson record?",
+            "a": "RunContainerError, Last State StartError, exit 128. The message names the missing file. There are no application logs, because the process never started.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "logs --previous fails while the Pod still shows Error. What did the lesson observe?",
+            "a": "The previous container was already gone, so there were no logs to read. After the container stayed running between crashes, --previous returned the earlier output.",
+            "lines": 2
+          },
+          {
+            "q": "All six Pods look fine in get pods, and the app still fails requests. Where does the lesson send you?",
+            "a": "Running and 1/1 only mean the container runs and its readiness probe passes. Failures on the way in are a Service or routing problem. Part 22 covers them.",
+            "lines": 2
+          },
+          {
+            "q": "You fix a field that set image cannot change. What does the lesson say to do?",
+            "a": "Fix the manifest, or the Deployment that owns the Pod, and replace the Pod. Most fields need a new Pod. kubectl replace --force -f FILE deletes and creates it.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}

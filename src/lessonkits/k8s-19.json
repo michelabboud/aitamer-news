@@ -1,0 +1,246 @@
+{
+  "$comment": "Lesson-kit content for Lesson 19. Every fact and command is copied from the lesson draft. The post is prepared on a separate branch.",
+  "slug": "k8s-19",
+  "campaign": "k8s-19",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 19,
+    "title": "Kubernetes from Zero, part 19: Ingress and Gateway API basics",
+    "shortTitle": "Ingress and Gateway API",
+    "description": "Route HTTP into a kind cluster by host, path and header: an Ingress with its controller, then the same routes as a Gateway API HTTPRoute.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-19-ingress-and-gateway-basics/",
+    "source": "src/content/posts/k8s-from-zero-19-ingress-and-gateway-basics.md",
+    "tested": "Ingress and HTTPRoute via Traefik v3.7.17, Gateway API v1.6.3, kind v0.33.0, node v1.37.0, 10 Nov 2026",
+    "cluster": "kind v0.33.0",
+    "rule": "An Ingress or HTTPRoute is only a rule; a controller makes it real. New work should start on Gateway API, where the Gateway owner decides which namespaces may attach routes."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-19.jpg",
+    "alt": "A torn-paper harbour seen from above, where a small navy pilot boat with a yellow lamp waits inside the narrow harbour mouth and three ivory paper boats follow separate blue channels to three rust-red docks, with a dusty-blue ship's wheel in the upper left.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 20, RBAC and ServiceAccounts",
+    "summary": "RBAC and ServiceAccounts, where the ClusterRole applied for Traefik is explained line by line.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-20-rbac-and-serviceaccounts/",
+    "urlLabel": "Lesson page"
+  },
+  "cheatsheet": {
+    "intro": "Host, path and header routing, and the commands from Lesson 19.",
+    "boards": [
+      {
+        "title": "Two APIs",
+        "hint": "from the recap",
+        "headName": "Object",
+        "headRole": "What the lesson says",
+        "headWhere": "Who owns it",
+        "rows": [
+          {
+            "name": "Ingress",
+            "role": "A stored HTTP rule: host, path, Service and port. Nothing happens until an Ingress controller is running. The API is frozen.",
+            "where": "ingressClassName"
+          },
+          {
+            "name": "Ingress NGINX",
+            "role": "Retired on 24 March 2026. Existing installs keep running. It gets no further releases.",
+            "where": "the detection command returned nothing"
+          },
+          {
+            "name": "GatewayClass",
+            "role": "Names the controller. The lab used Traefik v3.7.17, which serves both Ingress and Gateway API.",
+            "where": "Gateway API v1.6.3"
+          },
+          {
+            "name": "Gateway",
+            "role": "Listeners and allowedRoutes. The default for allowedRoutes is from: Same, so only routes in the Gateway's namespace attach.",
+            "where": "the operator"
+          },
+          {
+            "name": "HTTPRoute",
+            "role": "The app's matches and backends. The most specific match wins, and a longer path prefix beats a header match.",
+            "where": "Accepted and ResolvedRefs"
+          }
+        ]
+      },
+      {
+        "title": "Status and codes",
+        "hint": "as the lesson states them",
+        "headName": "Signal",
+        "headRole": "What the lesson says",
+        "headWhere": "What to do",
+        "rows": [
+          {
+            "name": "No controller",
+            "role": "Creating an Ingress has no effect. An Ingress named legacy with class nginx was ignored and returned 404 until the class was patched to traefik.",
+            "where": "kubectl get ingress"
+          },
+          {
+            "name": "404",
+            "role": "No rule matched, or the class has no running controller.",
+            "where": "host and path"
+          },
+          {
+            "name": "500",
+            "role": "A rule matched but the backend is invalid, such as a Service port that does not exist.",
+            "where": "ResolvedRefs=False"
+          },
+          {
+            "name": "Accepted=False",
+            "role": "The Gateway refused the route. The lab saw NotAllowedByListeners when allowedRoutes was left at Same.",
+            "where": "route status"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "Traefik v3.7.17, host shop.example.test",
+      "items": [
+        {
+          "who": "Ingress",
+          "what": "Host shop.example.test sent /api to api and / to web, once the traefik class was served."
+        },
+        {
+          "who": "Header",
+          "what": "/ with x-version beta went to web-beta. /api with the same header still went to api, because the longer path prefix wins."
+        },
+        {
+          "who": "Other host",
+          "what": "A request for a host no rule names returned 404."
+        },
+        {
+          "who": "Install",
+          "what": "Gateway API CRDs came from the v1.6.3 standard-install.yaml, applied with server-side apply."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Ingress",
+        "commands": [
+          {
+            "cmd": "kubectl get pods -A --selector app.kubernetes.io/name=ingress-nginx",
+            "note": "the retirement check; the lab returned nothing"
+          },
+          {
+            "cmd": "kubectl apply -f ingress.yaml",
+            "note": "a rule, until a controller exists"
+          },
+          {
+            "cmd": "kubectl get ingress -n k8s-from-zero",
+            "note": "CLASS must name a running controller"
+          }
+        ]
+      },
+      {
+        "title": "Gateway API",
+        "commands": [
+          {
+            "cmd": "kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.3/standard-install.yaml",
+            "note": "the CRDs the lab installed"
+          },
+          {
+            "cmd": "kubectl get gatewayclass",
+            "note": "the controller"
+          },
+          {
+            "cmd": "kubectl get httproute shop -n k8s-from-zero",
+            "note": "Accepted and ResolvedRefs"
+          }
+        ]
+      },
+      {
+        "title": "Try a request",
+        "commands": [
+          {
+            "cmd": "kubectl exec -n k8s-from-zero client -- curl -s -H \"Host: shop.example.test\" http://traefik.traefik/",
+            "note": "through the Traefik Service"
+          },
+          {
+            "cmd": "curl -s -H \"Host: shop.example.test\" http://localhost:8080/api/",
+            "note": "after port-forward to Traefik"
+          },
+          {
+            "cmd": "kubectl delete ingressclass traefik",
+            "note": "part of the lesson's cleanup"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 3 and the namespace k8s-from-zero. The lesson installed Traefik v3.7.17 and Gateway API v1.6.3. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What happens if you create an Ingress and no controller is running?",
+            "a": "Nothing. Kubernetes stores the object. A controller Deployment watches Ingress objects and configures a proxy. Without it, requests are not routed.",
+            "lines": 2
+          },
+          {
+            "q": "What is the default allowedRoutes on a Gateway listener, and why does it matter?",
+            "a": "from: Same. Only HTTPRoutes in the Gateway's own namespace can attach. A route in another namespace is refused until the listener allows it.",
+            "lines": 2
+          },
+          {
+            "q": "When a request carries x-version: beta and the path is /api, which backend wins in the lesson?",
+            "a": "api. Path length is compared before headers, and /api is a longer prefix than /. The header match sends / to web-beta only when no longer path wins.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Run the ingress-nginx detection command from the lesson. What did the lab record, and what does an empty result mean?",
+            "a": "It returned nothing. This cluster is not running the retired Ingress NGINX controller. Ingress NGINX was retired on 24 March 2026.",
+            "lines": 2
+          },
+          {
+            "q": "Create an Ingress with ingressClassName nginx, request its host, then patch the class to traefik. What status codes did the lesson see?",
+            "a": "404 while the class had no controller. After the patch to traefik, the same request returned hello from web within a few seconds.",
+            "lines": 2
+          },
+          {
+            "q": "Read the HTTPRoute status after you remove allowedRoutes from the Gateway. Which condition did the lesson record?",
+            "a": "Accepted=False, reason NotAllowedByListeners, because the default from: Same refuses a route in k8s-from-zero when the Gateway is in another namespace.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "The Ingress exists and every request gets 404. What does the lesson tell you to check?",
+            "a": "kubectl get ingress. CLASS must name an IngressClass whose controller is running. A leftover nginx class or nginx annotation is a common cause.",
+            "lines": 2
+          },
+          {
+            "q": "A matching rule returns 500. What does the lesson name as the cause?",
+            "a": "The backend is invalid, for example a Service port that does not exist. Route status shows ResolvedRefs=False.",
+            "lines": 2
+          },
+          {
+            "q": "You are starting a new HTTP route. Which API does the lesson say to use?",
+            "a": "Gateway API. The Ingress API stays available and will not be removed, and it will get no further changes. The project recommends Gateway.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}
