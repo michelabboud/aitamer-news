@@ -63,5 +63,18 @@
       { "name": "AI & GPU", "start": 98, "end": 103 },
       { "name": "Certification", "start": 104 }
     ]
+  },
+  {
+    "slug": "containers-from-zero",
+    "title": "Containers from Zero",
+    "description": "A ten-lesson foundation in Docker and Compose, from what a container is to a small web app with a database on one machine, one lesson a week.",
+    "audience": "People new to containers: a developer who wants to run their app the same way everywhere, a student, or an operator who has seen docker run in a README and wants to understand it.",
+    "learns": [
+      "What a container is, how it differs from a virtual machine, and how to build an image with a Dockerfile.",
+      "How to run containers with ports, volumes, networks and configuration, then describe them in one Compose file.",
+      "How to run a small web app with a database, read health checks, restart policies and logs when it fails, and clean up."
+    ],
+    "lessonTime": "about 15 minutes of reading, plus an optional lab",
+    "unit": "lesson"
   }
 ]
