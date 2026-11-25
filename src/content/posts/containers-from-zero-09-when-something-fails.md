@@ -1,6 +1,6 @@
 ---
 title: "Containers from Zero, part 9: when something fails"
-description: "Add health checks and restart policies to the notes app, then break it on purpose three ways: stop the database, start the web service with a missing setting, and end the database process. Read the state and the logs of both services and match each failure to what Docker did about it."
+description: "Add health checks and restart policies to the notes app, then break it three ways on purpose: stop the database, drop a setting, end the database process. Match each failure to the state, the logs and what Docker did."
 pubDate: "2027-01-27T22:00:00Z"
 series: containers-from-zero
 series_order: 9

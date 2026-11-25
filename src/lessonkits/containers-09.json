@@ -7,7 +7,7 @@
     "number": 9,
     "title": "Containers from Zero, part 9: when something fails",
     "shortTitle": "When something fails",
-    "description": "Add health checks and restart policies to the notes app, then break it on purpose three ways: stop the database, start the web service with a missing setting, and end the database process. Read the state and the logs of both services and match each failure to what Docker did about it.",
+    "description": "Add health checks and restart policies to the notes app, then break it three ways on purpose: stop the database, drop a setting, end the database process. Match each failure to the state, the logs and what Docker did.",
     "url": "https://aitamer.news/posts/containers-from-zero-09-when-something-fails/",
     "source": "src/content/posts/containers-from-zero-09-when-something-fails.md",
     "tested": "Caused and read all three failures with Compose v5.8.0 and Engine 29.10.1, 25 Nov 2026",
