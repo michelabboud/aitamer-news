@@ -1,0 +1,142 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 7. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-07",
+  "campaign": "containers-07",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 7,
+    "title": "Containers from Zero, part 7: a small multi-container app",
+    "shortTitle": "A small multi-container app",
+    "description": "Build a notes app with a Python web service and a PostgreSQL database, start both with one compose.yaml, add notes with curl and a browser, and read the data inside the database. Then watch the notes vanish after down and up, and find out why.",
+    "url": "https://aitamer.news/posts/containers-from-zero-07-a-small-multi-container-app/",
+    "source": "src/content/posts/containers-from-zero-07-a-small-multi-container-app.md",
+    "tested": "Ran the notes app on postgres:18-alpine with Compose v5.8.0 and Engine 29.10.1, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "A web service and a database in one compose.yaml is a few lines; keeping the data needs one more, which part 8 adds."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-07.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 8, configuration and the database file",
+    "summary": "The password moves to a .env file and the database gets a named volume, so notes survive down and up.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "The notes app's two services, how they connect, and where the data went, from Lesson 7.",
+    "boards": [
+      {
+        "title": "The two services",
+        "hint": "name: notes; network notes_default",
+        "headName": "Service",
+        "headRole": "What it is",
+        "headWhere": "Configured by",
+        "rows": [
+          {"name": "web", "role": "`python app.py` with `psycopg[binary]==3.3.9`, built from the `notes` folder. Published on `127.0.0.1:8080`.", "where": "`DATABASE_URL`, host `db`, port 5432"},
+          {"name": "db", "role": "`postgres:18-alpine`, unchanged. Port 5432, not published.", "where": "`POSTGRES_USER`, `POSTGRES_PASSWORD` (required), `POSTGRES_DB`"},
+          {"name": "db data", "role": "`/var/lib/postgresql`, declared as a volume by the image; `PGDATA` is `/var/lib/postgresql/18/docker`.", "where": "no mount here, so an anonymous volume"}
+        ],
+        "note": "The `POSTGRES_*` variables take effect only when the data folder is empty; an existing database is left untouched."
+      },
+      {
+        "title": "Requests and answers",
+        "hint": "curl http://127.0.0.1:8080/notes.txt",
+        "headName": "Request",
+        "headRole": "What web does",
+        "headWhere": "Answer",
+        "rows": [
+          {"name": "POST /notes", "role": "`INSERT INTO notes (body) ...`", "where": "`303 See Other`, `Location: /`"},
+          {"name": "GET /", "role": "`SELECT id, body FROM notes ORDER BY id`", "where": "HTML page with a form"},
+          {"name": "GET /notes.txt", "role": "Same list as text.", "where": "`1. First note` or `no notes yet`"},
+          {"name": "database down", "role": "Catches the error and logs `database error: ...`.", "where": "`503`, `database unavailable`"}
+        ],
+        "note": "303 lets a browser load the list with a plain GET after a POST, so reloading does not add the note twice."
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs, addresses and times differ on your machine",
+      "items": [
+        {"who": "up", "what": "The first `curl` came too early; in another run, `database unavailable` with `port 5432 failed: Connection refused` in the web log. Then `no notes yet`."},
+        {"who": "Notes", "what": "`HTTP/1.0 303 See Other`, then `1. First note`, `2. Buy coffee beans`."},
+        {"who": "psql", "what": "`docker compose exec db psql -U notes -d notes -c ...` listed both rows."},
+        {"who": "down, up", "what": "`no notes yet`. `docker volume ls` showed two random names: the orphan `0b0882cc...` and the new `e75b303e...`."},
+        {"who": "Clean", "what": "`down -v` removed the attached volume; the orphan stayed until `docker volume rm` by name."}
+      ],
+      "note": "Safety: publishes 127.0.0.1:8080; stop the part 6 project first. Cleanup deletes the database volumes and the notes. The password in compose.yaml is for this lab only. Undo with `docker compose down -v`, then `docker volume rm` the orphan by name."
+    },
+    "commandGroups": [
+      {
+        "title": "Run the app",
+        "commands": [
+          {"cmd": "docker compose up -d --build", "note": "build web, start both"},
+          {"cmd": "curl http://127.0.0.1:8080/notes.txt", "note": "list as text"},
+          {"cmd": "curl -i -X POST -d 'body=First note' http://127.0.0.1:8080/notes", "note": "add, see the 303"},
+          {"cmd": "docker compose logs db | tail -4", "note": "ready to accept connections"}
+        ]
+      },
+      {
+        "title": "Inside the database",
+        "commands": [
+          {"cmd": "docker compose exec db psql -U notes -d notes -c 'SELECT id, body FROM notes;'", "note": "local socket"},
+          {"cmd": "docker compose run --rm -e PGPASSWORD=notes-local-only db psql -h db -U notes -d notes -c 'SELECT count(*) FROM notes;'", "note": "over the network"}
+        ]
+      },
+      {
+        "title": "Volumes",
+        "commands": [
+          {"cmd": "docker volume ls", "note": "anonymous: long random names"},
+          {"cmd": "docker compose down -v", "note": "attached volumes only"},
+          {"cmd": "docker volume rm <name>", "note": "the orphan, by name"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the notes folder and files from the lesson. IDs, addresses and times will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "How does `web` know where the database is?", "a": "From `DATABASE_URL`, `postgresql://notes:notes-local-only@db:5432/notes`. The host `db` is the service name, resolved on the project network.", "lines": 2},
+          {"q": "Which environment variable must the PostgreSQL image have, and when do the `POSTGRES_*` variables take effect?", "a": "`POSTGRES_PASSWORD`, which must not be empty. The variables take effect only when the container starts with an empty data folder.", "lines": 2},
+          {"q": "Why does the app answer `303 See Other` after a POST?", "a": "So the browser loads the list again with a plain GET to `Location: /`. Reloading the page then does not add the note twice.", "lines": 2},
+          {"q": "Where does the database keep its files here, and what kind of storage is that?", "a": "Under `/var/lib/postgresql`, which the image declares as a volume. With no mount in compose.yaml, Docker gives it an anonymous volume.", "lines": 2},
+          {"q": "What does the app do when the database cannot be reached?", "a": "It catches the error, logs `database error: ...`, and answers `503` with `database unavailable` instead of crashing.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run `docker compose up -d --build` and `curl /notes.txt` at once, then again a few seconds later. What do you see, and why?", "a": "First a reset connection or `database unavailable`, then `no notes yet`. The app or PostgreSQL was not ready yet; `depends_on` only waits for running.", "lines": 3},
+          {"q": "Add a note with `curl -i -X POST -d 'body=First note' ...`. Which status and header come back?", "a": "`303 See Other` and `Location: /`.", "lines": 2},
+          {"q": "Compare the `PORTS` of `web` and `db` in `docker compose ps`. What does each mean?", "a": "`web`: `127.0.0.1:8080->8000/tcp`, published. `db`: `5432/tcp`, not published; only containers on `notes_default` can connect.", "lines": 2},
+          {"q": "Run `docker volume ls`, `docker compose down`, `docker compose up -d`, `docker volume ls`. What changed, and where are your notes?", "a": "A second volume with a random name appeared and `/notes.txt` says `no notes yet`. The notes are in the first anonymous volume, which nothing mounts any more.", "lines": 3},
+          {"q": "After `docker compose down -v`, run `docker volume ls`. Why is one volume still there?", "a": "`down -v` removes anonymous volumes attached to the project's containers. The orphan from the first run was attached to nothing.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You change the password in `DATABASE_URL` only. What does the web log show on the next request?", "a": "`password authentication failed for user \"notes\"`, and the app answers `503`. The two passwords must match.", "lines": 2},
+          {"q": "You remove the `DATABASE_URL` line and run `up -d`. What happens to `web`?", "a": "It exits at once with `DATABASE_URL is not set`.", "lines": 2},
+          {"q": "You run `psql -h 127.0.0.1 -U notes notes` on your own machine. Does it reach the database?", "a": "No. Port 5432 is not published. Use `docker compose exec` or `docker compose run` instead.", "lines": 2},
+          {"q": "You change `POSTGRES_PASSWORD` in compose.yaml while the old database volume is still in use. Does the database password change?", "a": "No. The variables take effect only on an empty data folder; the existing database keeps its old password.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}
