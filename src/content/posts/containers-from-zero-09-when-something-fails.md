@@ -40,6 +40,10 @@ sources:
     url: https://docs.docker.com/reference/cli/docker/inspect/
   - title: "Merge Compose files (Docker documentation)"
     url: https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/
+  - title: "docker container run (Docker CLI reference)"
+    url: https://docs.docker.com/reference/cli/docker/container/run/
+  - title: "urllib.request (Python 3.14 documentation)"
+    url: https://docs.python.org/3.14/library/urllib.request.html
   - title: "pg_isready (PostgreSQL 18 documentation)"
     url: https://www.postgresql.org/docs/18/app-pg-isready.html
   - title: "Server Shutdown (PostgreSQL 18 documentation)"
@@ -98,7 +102,7 @@ So an `unhealthy` container that keeps running is not restarted by Docker; somet
 
 This lab is optional. Every command ran on 25 November 2026 with Docker Engine 29.10.1 and Compose v5.8.0 in `/home/ubuntu/notes`; your IDs, times and addresses will differ.
 
-> **Safety: this lab publishes port 8080 on 127.0.0.1 and stops services on purpose, but deletes no data.** It uses the Compose project `notes` from part 8: the containers `notes-web-1` and `notes-db-1`, the network `notes_default` and the volume `notes_db-data`, which keeps your notes throughout. Step 3 stops the database, so the app answers `database unavailable` until step 3 brings it back. Step 4 adds a small file, `compose.broken.yaml`, that starts `web` with a missing setting; the app is down until the end of step 4. If port 8080 is busy, `web` fails to start and nothing else is affected. Other containers, networks and volumes keep running and stay untouched. To undo, run `docker compose up -d --wait` in the `notes` folder and delete `compose.broken.yaml`.
+> **Safety: this lab publishes port 8080 on 127.0.0.1 and stops services on purpose, but deletes no data.** It uses the Compose project `notes` from part 8: the containers `notes-web-1` and `notes-db-1`, the network `notes_default` and the volume `notes_db-data`, which keeps your notes throughout. Step 3 stops the database, so the app answers `database unavailable` until step 3 brings it back. Step 4 adds a small file, `compose.broken.yaml`, that starts `web` with a missing setting; the app is down until the end of step 4. The optional advanced step stops the database's main process, and Docker starts it again within seconds. If port 8080 is busy, `web` fails to start and nothing else is affected. Other containers, networks and volumes keep running and stay untouched. To undo, run `docker compose up -d --wait` in the `notes` folder and delete `compose.broken.yaml`.
 
 **1. Add the checks.** Replace `compose.yaml` with this. The password and title still come from `.env`.
 
@@ -144,7 +148,7 @@ volumes:
   db-data:
 ```
 
-`CMD` runs the command directly; `CMD-SHELL` runs it through the container's shell. `urlopen` raises an error on a failed connection or an error status such as `503`, and Python then exits with 1. `on-failure:5` gives `web` up to five restarts after a crash; `unless-stopped` keeps the database up whenever it exits by itself.
+`CMD` runs the command directly; `CMD-SHELL` runs it through the container's shell. [`urlopen`](https://docs.python.org/3.14/library/urllib.request.html) raises an error on a failed connection or an error status such as `503`, and Python then exits with 1. Each check is a real request, so `web`'s log gains a line such as `127.0.0.1 "GET /healthz HTTP/1.1" 200 -` every 10 seconds. `on-failure:5` gives `web` up to five restarts after a crash; `unless-stopped` keeps the database up whenever it exits by itself.
 
 ```bash rail=up-wait
 docker compose up -d --wait
@@ -285,7 +289,7 @@ web-1  | DATABASE_URL is not set
 web-1  | DATABASE_URL is not set
 ```
 
-The process exited with 1, a failure, so `on-failure:5` restarted it. It failed the same way each time: one start plus five restarts, six identical log lines, all within the first five seconds of this run. Then Docker stopped trying, and half a minute later it was still `Exited (1)`. Without the `:5`, `on-failure` keeps restarting it. A restart cannot fix a wrong setting; the log line can, once you read it. Put the setting back by starting with `compose.yaml` alone, and remove the override:
+The process exited with 1, a failure, so `on-failure:5` restarted it. It failed the same way each time: one start plus five restarts, six identical log lines, all within the first five seconds of this run. Then Docker stopped trying, and half a minute later it was still `Exited (1)`. Without the `:5`, `on-failure` keeps restarting it. The [run reference](https://docs.docker.com/reference/cli/docker/container/run/) says Docker waits between attempts: "An increasing delay (double the previous delay, starting at 100 milliseconds) is added before each restart". A restart cannot fix a wrong setting; the log line can, once you read it. Put the setting back by starting with `compose.yaml` alone, and remove the override:
 
 ```bash rail=crash-fix
 docker compose up -d --wait

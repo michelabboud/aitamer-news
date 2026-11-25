@@ -59,7 +59,7 @@
           {"name": "no", "role": "Never; the default.", "where": "-"},
           {"name": "on-failure:5", "role": "The process exits with a non-zero code, at most 5 times.", "where": "exit 0; after the 5th retry"},
           {"name": "unless-stopped", "role": "The process exits, with any code.", "where": "you stopped it, e.g. `docker compose stop`"},
-          {"name": "always", "role": "The container stops, until it is removed.", "where": "-"}
+          {"name": "always", "role": "The container stops, until it is removed.", "where": "you stopped it; it returns when the daemon or the container is restarted"}
         ],
         "note": "A manual stop is not undone by the policy. An unhealthy container that keeps running is not restarted."
       }
