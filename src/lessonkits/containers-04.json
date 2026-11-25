@@ -75,7 +75,7 @@
         {"who": "Bind", "what": "The host wrote 41, the app answered visit 42; the host wrote 99, the app answered visit 100."},
         {"who": "Owner", "what": "Created by the app: `root root`, and `echo 5 >` failed with `Permission denied`. With `--user`: `ubuntu ubuntu`, and the next visit was 6."}
       ],
-      "note": "Safety: the lab deletes the volume `hello-data` and the `data` and `missing` folders it creates in `hello`. Rename them if yours already exist. Undo with `docker rm -f hello`, `docker volume rm hello-data`, `rm -r data`."
+      "note": "Safety: the lab deletes the volume `hello-data` and the `data` and `missing` folders it creates in `hello`. Rename them if yours already exist. Undo with `docker rm -f hello`, `docker volume rm hello-data`, `rm -rf data`, `rmdir missing`."
     },
     "commandGroups": [
       {

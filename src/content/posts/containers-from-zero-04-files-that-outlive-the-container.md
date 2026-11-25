@@ -54,7 +54,7 @@ In [part 3](https://aitamer.news/posts/containers-from-zero-03-run-one-container
 - **Optional lab:** about 20 minutes.
 - **Optional advanced step:** about 10 minutes.
 
-You need the `hello` folder and the `hello-app` source from part 2, and `curl`. The series uses Docker Engine 29.10.1 and Compose v5.8.0, and writes `docker` without `sudo`.
+You need the `hello` folder and the `hello-app` source from part 2, and `curl`. The series uses Docker Engine 29.10.1 and Compose v5.8.0, and writes `docker` without `sudo`. The file owners and paths in this lab come from Docker Engine on Linux with its daemon running as root; on Docker Desktop, or in rootless mode, files can show up as yours, and volumes live inside Docker's own virtual machine or data folder.
 
 ## What you will build
 
@@ -104,7 +104,7 @@ The short form packs them into one value separated by colons: `-v hello-data:/da
 
 This lab is optional. Every command ran on 25 November 2026 with Docker Engine 29.10.1 in `/home/ubuntu/hello`; your IDs, paths and times will differ.
 
-> **Safety: this lab deletes data it creates.** It makes and then removes a volume named `hello-data`, and folders named `data` and `missing` inside your `hello` folder. If you already have a volume called `hello-data` (check with `docker volume ls`) or a `data` folder there that matters to you, rename them in the commands below, or the cleanup step will delete them. It also publishes port 8080 on 127.0.0.1; if that port is busy, Docker refuses to start the container and nothing else is affected. Other containers, volumes and images keep running and stay untouched. To undo everything, run `docker rm -f hello`, then `docker volume rm hello-data`, then `rm -r data` in the `hello` folder.
+> **Safety: this lab deletes data it creates.** It makes and then removes a volume named `hello-data`, and folders named `data` and `missing` inside your `hello` folder. If you already have a volume called `hello-data` (check with `docker volume ls`) or a `data` folder there that matters to you, rename them in the commands below, or the cleanup step will delete them. It also publishes port 8080 on 127.0.0.1; if that port is busy, Docker refuses to start the container and nothing else is affected. Other containers, volumes and images keep running and stay untouched. To undo everything, run `docker rm -f hello`, then `docker volume rm hello-data`, then `rm -rf data` and `rmdir missing` in the `hello` folder.
 
 **1. Teach hello-app to count.** In the `hello` folder, open `app.py`. Under the line `PORT = 8000`, add the two settings and the function:
 
@@ -299,7 +299,7 @@ curl http://127.0.0.1:8080/
 ls -l data
 echo 5 > data/visits.txt
 docker rm -f hello
-rm data/visits.txt
+rm -f data/visits.txt
 docker run -d --name hello -p 127.0.0.1:8080:8000 --user "$(id -u):$(id -g)" --mount type=bind,src="$PWD"/data,dst=/data hello-app:1.2
 curl http://127.0.0.1:8080/
 ls -l data
@@ -323,7 +323,7 @@ Hello from container e31be1158bfc, visit 6
 hello
 ```
 
-The first file belonged to root, so your shell could not write it. `rm` still worked, because deleting a file needs write permission on the folder, which is yours. With `--user`, which the [run reference](https://docs.docker.com/reference/cli/docker/container/run/) describes as "Username or UID (format: <name|uid>[:<group|gid>])", the app ran as your user and group IDs, 1000:1000 here, and the file came out as yours.
+The first file belonged to root, so your shell could not write it. `rm -f` still worked, because deleting a file needs write permission on the folder, which is yours; without `-f`, [GNU `rm`](https://www.gnu.org/software/coreutils/manual/html_node/rm-invocation.html) stops to ask before it removes a write-protected file when you run it from a terminal. With `--user`, which the [run reference](https://docs.docker.com/reference/cli/docker/container/run/) describes as "Username or UID (format: <name|uid>[:<group|gid>])", the app ran as your user and group IDs, 1000:1000 here, and the file came out as yours.
 
 ![Two cases side by side. By default the app in the container runs as user ID 0, root, so the visits.txt it writes into the bind mount shows on the host as owned by root root, and echo 5 into it fails with Permission denied. Started with --user "$(id -u):$(id -g)", the app runs as user ID 1000, the file shows as owned by ubuntu ubuntu, writing to it works, and the next visit is 6 (highlighted).](/diagrams/containers-from-zero-04-files-that-outlive-the-container/bind-mount-ownership.svg)
 
@@ -522,8 +522,8 @@ items:
         text: "Show who owns the file the container created."
       - token: "echo 5 > data/visits.txt"
         text: "Try to write the file as your user."
-      - token: "rm data/visits.txt"
-        text: "Delete it. That needs write permission on the folder, which you have."
+      - token: "rm -f data/visits.txt"
+        text: "Delete it without a question. That needs write permission on the folder, which you have."
       - token: "--user \"$(id -u):$(id -g)\""
         text: "Run the app with your user ID and group ID instead of root."
       - token: "curl http://127.0.0.1:8080/"
