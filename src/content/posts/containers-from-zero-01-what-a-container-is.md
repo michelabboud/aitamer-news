@@ -330,7 +330,7 @@ sleeper
 - `docker` is a client; `dockerd` does the work, with containerd and runc underneath.
 - This series uses Docker Engine 29.10.1 and Compose v5.8.0, and always types `docker compose`.
 
-Next: Containers from Zero, part 2: images and a Dockerfile, where you write a five-line Dockerfile for a small Python web server and see which layer each line adds. The [series page](https://aitamer.news/series/containers-from-zero/) lists each part as it is published.
+Next: Containers from Zero, part 2: images and a Dockerfile, where you write a six-line Dockerfile for a small Python web server and see which layer each line adds. The [series page](https://aitamer.news/series/containers-from-zero/) lists each part as it is published.
 
 *Quoted passages in this lesson come from the [Docker documentation](https://docs.docker.com/) and from the Linux man-pages project ([namespaces(7)](https://man7.org/linux/man-pages/man7/namespaces.7.html), [cgroups(7)](https://man7.org/linux/man-pages/man7/cgroups.7.html)). Docker® is a registered trademark of Docker, Inc. aitamer.news is not affiliated with or endorsed by Docker, Inc.*
 

@@ -28,7 +28,7 @@
   "next": {
     "label": "Next in the series",
     "title": "Next: Lesson 2, images and a Dockerfile",
-    "summary": "Write a five-line Dockerfile for a small Python web server and see which layer each line adds.",
+    "summary": "Write a six-line Dockerfile for a small Python web server and see which layer each line adds.",
     "url": "https://aitamer.news/series/containers-from-zero/",
     "urlLabel": "Series page"
   },

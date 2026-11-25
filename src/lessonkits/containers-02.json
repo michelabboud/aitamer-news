@@ -1,0 +1,149 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 2. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-02",
+  "campaign": "containers-02",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 2,
+    "title": "Containers from Zero, part 2: images and a Dockerfile",
+    "shortTitle": "Images and a Dockerfile",
+    "description": "Write a six-line Dockerfile for a small Python web server, build and tag the image, and use docker history to point at the layer your code lives in. Then change one line and watch the build cache.",
+    "url": "https://aitamer.news/posts/containers-from-zero-02-images-and-a-dockerfile/",
+    "source": "src/content/posts/containers-from-zero-02-images-and-a-dockerfile.md",
+    "tested": "Built hello-app 1.0 and 1.1 on Docker Engine 29.10.1 and compared their layers, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "An image is a stack of read-only layers. Put the lines that change least at the top of the Dockerfile and rebuilds stay fast."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-02.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 3, run one container",
+    "summary": "Publish hello-app's port, set its greeting from the command line, read its logs, and stop and remove it.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "The six Dockerfile instructions, how layers and the build cache work, and the commands from Lesson 2.",
+    "boards": [
+      {
+        "title": "The hello-app Dockerfile",
+        "hint": "one instruction per line, read top to bottom",
+        "headName": "Line",
+        "headRole": "What it does",
+        "headWhere": "Layer?",
+        "rows": [
+          {"name": "FROM python:3.14-slim", "role": "Starts on top of the base image's layers. On 25 Nov 2026 the tag meant Python 3.14.10 on Debian trixie. `3-slim` and `slim` already point at 3.15, so pin the minor version.", "where": "uses the base's layers"},
+          {"name": "WORKDIR /app", "role": "Sets the working folder for later instructions and the container's command, creating it if missing.", "where": "8.19kB layer"},
+          {"name": "COPY app.py .", "role": "Copies `app.py` from the build context into `/app`. This is the layer your code lives in.", "where": "12.3kB layer"},
+          {"name": "ENV GREETING=Hello", "role": "Sets a variable in every container from the image. `docker run -e` overrides it.", "where": "0B, metadata"},
+          {"name": "EXPOSE 8000", "role": "Documents the port. It does not publish it.", "where": "0B, metadata"},
+          {"name": "CMD [\"python\", \"app.py\"]", "role": "The default command, in exec form: a JSON array with double quotes, run without a shell.", "where": "0B, metadata"}
+        ],
+        "note": "The `.` at the end of `docker build` is the build context: the folder `COPY` can reach. A `.dockerignore` keeps files such as `.git` and `__pycache__` out of it."
+      },
+      {
+        "title": "Layers, cache and tags",
+        "hint": "what the lab showed",
+        "headName": "Idea",
+        "headRole": "What it means",
+        "headWhere": "See it with",
+        "rows": [
+          {"name": "Layer", "role": "A read-only set of file changes. Each instruction that changes files makes one, and it never changes afterwards.", "where": "`docker history`"},
+          {"name": "Shared layers", "role": "Layers are stored by digest, so images built on the same base share them. 1.0 and 1.1 shared five of six layers.", "where": "`docker image inspect` `.RootFS.Layers`"},
+          {"name": "Build cache", "role": "Unchanged steps are reused and marked `CACHED`. After one step reruns, all later steps rerun.", "where": "`docker build` output"},
+          {"name": "Tag", "role": "A movable name for an image ID. With no tag, Docker uses `latest`, which is only a default name.", "where": "`docker tag`, `docker image ls`"},
+          {"name": "Writable layer", "role": "Each container adds one on top of the image. Removing the container deletes it.", "where": "`docker diff`"}
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs, digests and sizes differ on your machine",
+      "items": [
+        {"who": "Build", "what": "Three numbered steps, `[1/3] FROM`, `[2/3] WORKDIR` and `[3/3] COPY`. `FROM` resolved the tag to a digest, the exact base image used."},
+        {"who": "Size", "what": "`DISK USAGE` 178MB and `CONTENT SIZE` 43.6MB. The containerd image store keeps compressed and unpacked layers. Most of it is the shared Python base."},
+        {"who": "History", "what": "Nine rows from `python:3.14-slim`, five from your Dockerfile. `COPY app.py .` was 12.3kB; `ENV`, `EXPOSE` and `CMD` were 0B."},
+        {"who": "Rebuild", "what": "After editing `app.py`, `WORKDIR` was `CACHED` and `COPY` ran again. Only the last layer digest changed: `22b502fd8b26` became `74899f619c88`."},
+        {"who": "Writable layer", "what": "`docker diff try` showed `C /app` and `A /app/note.txt`. A fresh container from the same image listed only `app.py`."}
+      ],
+      "note": "Order a Dockerfile from what changes least (base, packages, dependencies) to what changes most (your code), so the cache stops as late as possible."
+    },
+    "commandGroups": [
+      {
+        "title": "Build and name",
+        "commands": [
+          {"cmd": "printf '.git\\n__pycache__\\n*.pyc\\n' > .dockerignore", "note": "keep files out of the context"},
+          {"cmd": "docker build -t hello-app:1.0 .", "note": "`.` is the build context"},
+          {"cmd": "docker build -t hello-app:1.1 .", "note": "after editing `app.py`"},
+          {"cmd": "docker tag hello-app:1.1 hello-app:latest", "note": "same image ID, new name"},
+          {"cmd": "docker image ls hello-app", "note": "one repository"}
+        ]
+      },
+      {
+        "title": "Look inside",
+        "commands": [
+          {"cmd": "docker history --format 'table {{.CreatedBy}}\\t{{.Size}}' hello-app:1.0", "note": "newest first; 0B rows are settings"},
+          {"cmd": "docker image inspect --format '{{range .RootFS.Layers}}{{println (slice . 7 19)}}{{end}}' hello-app:1.1", "note": "file layers, oldest first"},
+          {"cmd": "docker image inspect --format '{{.Config.Cmd}} {{.Config.WorkingDir}} {{.Config.ExposedPorts}}' hello-app:1.1", "note": "the image's settings"},
+          {"cmd": "docker diff try", "note": "`A` added, `C` changed, `D` deleted"}
+        ]
+      },
+      {
+        "title": "Quick run check",
+        "commands": [
+          {"cmd": "docker run -d --name try hello-app:1.0", "note": "background"},
+          {"cmd": "docker logs try", "note": "prints `listening on port 8000`"},
+          {"cmd": "docker rm -f try", "note": "removes it and its writable layer"},
+          {"cmd": "docker run --rm hello-app:1.1 ls /app", "note": "a fresh container shows only `app.py`"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the hello folder and images from the lesson. IDs, digests and sizes will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "Which hello-app instructions add file layers of their own, which one brings in someone else's layers, and which only set metadata?", "a": "`WORKDIR` and `COPY` add file layers. `FROM` starts the image on the base image's layers. `ENV`, `EXPOSE` and `CMD` only set metadata and show as 0B in `docker history`.", "lines": 3},
+          {"q": "What does `EXPOSE 8000` do, and what does it not do?", "a": "It records that the app listens on port 8000, as documentation for whoever runs the image. It does not publish the port; part 3 does that at run time.", "lines": 2},
+          {"q": "What is the build context, and how do you keep files out of it?", "a": "The folder you pass to `docker build`, here `.`. `COPY` can only reach files inside it. A `.dockerignore` file lists files and folders to leave out.", "lines": 2},
+          {"q": "Why does a Dockerfile put your own code near the bottom?", "a": "Once a step has to run again, every later step runs again too. Code changes most often, so putting it last lets the steps above it come from the cache.", "lines": 2},
+          {"q": "What does `hello-app:latest` mean in this lesson, and why does the series run explicit tags?", "a": "It is a second name for the same image ID as `hello-app:1.1`. `latest` is only the default tag name and moves only when you tag again, so it does not reliably mean the newest build.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run `docker history --format 'table {{.CreatedBy}}\\t{{.Size}}' hello-app:1.0`. Which row is the layer your code lives in, and how big is it?", "a": "`COPY app.py . # buildkit`, 12.3kB in the lesson. The rows below `WORKDIR /app` belong to `python:3.14-slim`.", "lines": 2},
+          {"q": "Edit `app.py` and run `docker build -t hello-app:1.1 .`. Which step says `CACHED`, and which runs again?", "a": "`[2/3] WORKDIR /app` is `CACHED`. `[3/3] COPY app.py .` runs again because `app.py` changed.", "lines": 2},
+          {"q": "Print the layer digests of 1.0 and 1.1 with `docker image inspect`. How many layers does each have, and how many are shared?", "a": "Six each: four from the Python base, one for `WORKDIR` and one for `COPY`. The first five are identical; only the `COPY` layer differs.", "lines": 2},
+          {"q": "Run `docker image ls hello-app` after tagging `latest`. What do you notice about the IDs?", "a": "`hello-app:1.1` and `hello-app:latest` have the same ID. One image has two names; nothing was copied.", "lines": 2},
+          {"q": "Write `/app/note.txt` in a container, run `docker diff`, remove the container, then run `docker run --rm hello-app:1.1 ls /app`. Where did the note go?", "a": "It was in the container's writable layer (`A /app/note.txt`). Removing the container deleted that layer. The image never changed, so a new container lists only `app.py`.", "lines": 3}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You run `docker build -t hello-app:1.2 .` from your home folder instead of `hello`. What error do you expect?", "a": "If there is no Dockerfile there: `failed to read dockerfile: open Dockerfile: no such file or directory`. If a Dockerfile is found but no `app.py`: `failed to compute cache key ... \"/app.py\": not found`. Build from the folder that holds both.", "lines": 3},
+          {"q": "You tag an image `Hello-App:1.0`. What happens?", "a": "The build fails with `invalid tag \"Hello-App:1.0\": repository name must be lowercase`. Use `hello-app:1.0`.", "lines": 2},
+          {"q": "You rebuild without changing any file. Which steps run?", "a": "None of the file steps run again: `WORKDIR` and `COPY` are both `CACHED`, and the build finishes almost at once.", "lines": 2},
+          {"q": "You edit `app.py`, rebuild as 1.1, but `docker run hello-app:1.0` still shows the old greeting. Why?", "a": "You ran the old tag. The change is only in the image tagged 1.1. Run `hello-app:1.1`.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}
