@@ -58,7 +58,7 @@ You need the `hello-app:1.2` image from part 4, the `hello` folder, and `curl`. 
 
 ## What you will build
 
-A network named `hello-net` with two containers on it. `web` runs `hello-app:1.2` with the volume `hello-data` from part 4 at `/data`, and publishes nothing. `proxy` runs nginx, publishes `127.0.0.1:8080`, and passes each request on to `http://web:8000`. From your machine, `curl http://127.0.0.1:8080/` answers `Hello from container ..., visit 2`.
+A network named `hello-net` with two containers on it. `web` runs `hello-app:1.2` with the volume `hello-data` at `/data`, as in part 4 (Docker creates it again on first use), and publishes nothing. `proxy` runs nginx, publishes `127.0.0.1:8080`, and passes each request on to `http://web:8000`. From your machine, `curl http://127.0.0.1:8080/` answers `Hello from container ..., visit 2`.
 
 ## Every container is on a network
 
@@ -78,7 +78,7 @@ Inside one network, nothing needs publishing. "Containers connected to the same 
 
 ## Why a proxy
 
-The second container in this lab is nginx acting as a **reverse proxy**: it accepts requests and passes them on to another server. You will see this shape again in part 7. Here it is simply the smallest useful program that has to find another container by name. Its whole configuration is one `server` block. The line that matters is `proxy_pass http://web:8000;`, which the [nginx proxy module documentation](https://nginx.org/en/docs/http/ngx_http_proxy_module.html) describes as setting "the protocol and address of a proxied server". `web` is a container name, and Docker's DNS turns it into an address.
+The second container in this lab is nginx acting as a **reverse proxy**: it accepts requests and passes them on to another server. Part 6 runs this same pair from one file, and part 7 keeps the shape with a database: one published port in front, nothing published behind it. Here it is simply the smallest useful program that has to find another container by name. Its whole configuration is one `server` block. The line that matters is `proxy_pass http://web:8000;`, which the [nginx proxy module documentation](https://nginx.org/en/docs/http/ngx_http_proxy_module.html) describes as setting "the protocol and address of a proxied server". `web` is a container name, and Docker's DNS turns it into an address.
 
 The official nginx image reads extra configuration from `/etc/nginx/conf.d/`, and its default site lives in `/etc/nginx/conf.d/default.conf`. A read-only bind mount from part 4 replaces that file with yours, without building a new image.
 
@@ -88,7 +88,7 @@ The official nginx image reads extra configuration from `/etc/nginx/conf.d/`, an
 
 This lab is optional. Every command ran on 25 November 2026 with Docker Engine 29.10.1 in `/home/ubuntu/hello`; your IDs, addresses and times will differ.
 
-> **Safety: this lab publishes port 8080 on 127.0.0.1 and deletes what it creates.** It creates containers named `web`, `proxy` and `client`, a network named `hello-net`, a volume named `hello-data`, and a file named `proxy.conf` in your `hello` folder. The cleanup step deletes all of them, including the visit count in `hello-data`. If you already have any of those names, check with `docker ps -a`, `docker network ls` and `docker volume ls`, and rename them in the commands. If port 8080 is busy, Docker refuses to start `proxy` and nothing else is affected. Other containers, networks and volumes keep running and stay untouched. To undo everything, run `docker rm -f web proxy client`, then `docker network rm hello-net`, then `docker volume rm hello-data`, then `rm proxy.conf`.
+> **Safety: this lab publishes port 8080 on 127.0.0.1 and deletes what it creates.** It creates containers named `web`, `proxy` and `client`, a network named `hello-net`, a volume named `hello-data`, and a file named `proxy.conf` in your `hello` folder. The cleanup step deletes all of them, including the visit count in `hello-data`. If you already have any of those names, check with `docker ps -a`, `docker network ls` and `docker volume ls`, and rename them in the commands. If port 8080 is busy, Docker refuses to start `proxy` and nothing else is affected; remove the half-created container with `docker rm proxy` before trying again. Other containers, networks and volumes keep running and stay untouched. To undo everything, run `docker rm -f web proxy client`, then `docker network rm hello-net`, then `docker volume rm hello-data`, then `rm proxy.conf`.
 
 **1. Try a name on the default network.**
 
@@ -245,7 +245,7 @@ proxy Exited (1) 1 second ago
 nginx: [emerg] host not found in upstream "web" in /etc/nginx/conf.d/default.conf:5
 ```
 
-nginx looks up `web` when it starts. With no container named `web` on the network, it stopped with `host not found in upstream`. Order matters: start `web` first, then `proxy`. Part 6 hands that order to Compose. `2>&1` sends nginx's error output into the pipe as well, so `tail` sees it.
+nginx looks up `web` when it starts. With no container named `web` on the network, it stopped with `host not found in upstream`. Order matters: start `web` first, then `proxy`. Part 6 hands that order to Compose, and its advanced section shows the opposite problem: nginx keeps the address it looked up, even after `web` moves. `2>&1` sends nginx's error output into the pipe as well, so `tail` sees it.
 
 **7. Clean up.** This deletes the network, the volume and its count, and `proxy.conf`.
 
