@@ -122,7 +122,7 @@ postgres:18-alpine   0115267ab5a5        434MB          121MB   U
 python:3.14-slim     22eafb370920        180MB         45.7MB
 ```
 
-[`docker compose ls -a`](https://docs.docker.com/reference/cli/docker/compose/ls/) lists Compose projects; `hello` does not appear because part 6 removed its containers, but its image `hello-web` is still there. [`docker system df`](https://docs.docker.com/reference/cli/docker/system/df/) shows "the amount of disk space used by the Docker daemon". `U` marks the two images a container uses. `hello-app:1.1` and `hello-app:latest` share an ID: part 2 gave one image two names.
+[`docker compose ls -a`](https://docs.docker.com/reference/cli/docker/compose/ls/) lists Compose projects; `hello` does not appear because part 6 removed its containers; its image `hello-web` is still there. [`docker system df`](https://docs.docker.com/reference/cli/docker/system/df/) shows "the amount of disk space used by the Docker daemon". `U` marks the two images a container uses. `hello-app:1.1` and `hello-app:latest` share an ID: part 2 gave one image two names.
 
 **2. Save the notes, then remove the app.**
 
