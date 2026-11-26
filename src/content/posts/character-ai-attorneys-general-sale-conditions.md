@@ -2,6 +2,7 @@
 title: "Forty attorneys general ask for conditions on any Character.AI sale"
 description: "New York and 39 other attorneys general asked a Delaware court to set data and minor-safety conditions on any Character.AI sale."
 pubDate: "2026-10-15T12:22:00Z"
+updatedDate: "2026-11-26T15:25:00Z"
 specimen: 801
 section: general
 subsection: policy
@@ -30,6 +31,10 @@ sources:
     url: https://cases.stretto.com/chartech/
   - title: "AI Tamer: Character Technologies filed for Chapter 11 in Delaware on 12 October"
     url: https://aitamer.news/posts/character-ai-bankruptcy-filing/
+  - title: "California Attorney General: Bonta opposes asset sale of Character.AI (24 November 2026)"
+    url: https://oag.ca.gov/news/press-releases/attorney-general-bonta-opposes-asset-sale-characterai-amid-child-safety-concerns
+  - title: "States' objection to the Character.AI sale, U.S. Bankruptcy Court for the District of Delaware (via Colorado Attorney General)"
+    url: https://coag.gov/app/uploads/2026/11/CharacterAI-objection-debtor-sale.pdf
 ---
 
 Character Technologies, Inc., which does business as Character.AI, filed a voluntary Chapter 11 petition in Delaware on 12 October 2026, case 26-11603 (BLS), before Judge Brendan Linehan Shannon. That case is the subject of [the earlier account](/posts/character-ai-bankruptcy-filing/). On 14 October, a coalition of attorneys general filed in the same case.
@@ -63,3 +68,11 @@ The notice says the company has stopped open-ended chat for users it identifies 
 On scale, the notice says Character.AI has over 20 million monthly active users. It says that, by the company's own records, more than 21.6 million U.S. accounts had been created by 13 March 2025, including more than 2.1 million with a declared age under 18. The notice footnotes the user count to a company about page and the account figures to the Kentucky complaint.
 
 The Verge reports that Character.AI and Disney did not immediately respond to requests for comment. The notice asks for sale conditions and leaves any sale order to a later ruling.
+
+## Update, 26 November 2026: 42 attorneys general object to auctioning users' chats
+
+The states have moved from asking for conditions to opposing the sale terms outright. On 24 November, California Attorney General Rob Bonta [announced](https://oag.ca.gov/news/press-releases/attorney-general-bonta-opposes-asset-sale-characterai-amid-child-safety-concerns) that a bipartisan coalition of 42 attorneys general had filed objections to Character.AI's plan to sell its platform and the private chat histories of more than 21 million U.S. accounts, more than 2.1 million of them registered to minors. The release says the chats, with users' personal data including IP addresses and other metadata, are set to be sold at auction on 1 December 2026. Colorado published [its own release](https://coag.gov/press-releases/weiser-challenges-auction-of-millions-of-private-character-ai-conversations/) and the [court filing](https://coag.gov/app/uploads/2026/11/CharacterAI-objection-debtor-sale.pdf).
+
+The states say the proposed terms put no duties on the buyer: it would not have to follow Character.AI's privacy policies or honour opt-out and deletion requests, and it could pass the data to another company. They say the only bidder disclosed so far, Smirks and Pangs Acquisition LLC, was set up in Delaware on 13 November, one day before Character.AI picked it as the base bid, and that the contract names no parent company or investors.
+
+The coalition asks the court to deny the proposed sale terms, reject Smirks as lead bidder and refuse its proposed $350,000 break-up fee. At a minimum, it says, any sale must leave out children's chats and other sensitive data. The filing lists the sale hearing for 3 and 4 December. These are the states' arguments in a court filing; the court has not ruled, and we have not seen a response from Character.AI.

@@ -3,7 +3,7 @@ title: "Microsoft 365 outage: Outlook mail, Copilot Chat and Exchange-linked Tea
 description: "Microsoft says servers failing automated health checks cut Exchange Online access and broke Copilot. It found no sign of an attack and promises a report."
 pubDate: "2026-11-13T16:35:00Z"
 specimen: 1468
-updatedDate: "2026-11-14T07:40:00Z"
+updatedDate: "2026-11-26T15:25:00Z"
 section: devops
 subsection: infra
 tags:
@@ -43,6 +43,8 @@ sources:
     url: https://x.com/MSFT365Status/status/2121303408313303423
   - title: "Microsoft 365 Status on X: service restored (14 November 2026, 06:09 UTC)"
     url: https://x.com/MSFT365Status/status/2121485746334777593
+  - title: "GeekWire: Microsoft's final report on the 13 November Microsoft 365 outage"
+    url: https://www.geekwire.com/2026/microsofts-final-outlook-outage-report-details-testing-gaps-and-safeguards-that-backfired/
 ---
 
 Microsoft 365 has been degraded worldwide since Thursday. The [Microsoft 365 Status account](https://x.com/MSFT365Status/status/2120938282204688468) first reported problems reaching Exchange Online mailboxes in the Americas at 17:54 UTC on 12 November, and within 15 minutes said users in any region could be affected. More than 22 hours later, the [service health page](https://status.cloud.microsoft/) still listed the incident as "Service degradation" in its 16:07 UTC update on Friday, with recovery under way but not finished.
@@ -89,3 +91,13 @@ Microsoft says a full post-incident report will follow once its review is comple
 At 18:05 UTC on Friday, [Microsoft 365 Status](https://x.com/MSFT365Status/status/2121303408313303423) said: "This was a technical issue not related to cyber or AI / agents. The incident was introduced by an issue during an earlier network capacity upgrade that surfaced following a recent network change." Microsoft apologised for the disruption and said it restored services gradually, "validating stability at each stage", which took longer. Through Friday evening it reported [draining queued mail and rebalancing traffic](https://x.com/MSFT365Status/status/2121333700591857878), warning that sign-in could recover before mail flow did, and then [monitoring for an extended period](https://x.com/MSFT365Status/status/2121361358004400637) while the email backlog processed.
 
 At 06:09 UTC on Saturday, Microsoft [said it had](https://x.com/MSFT365Status/status/2121485746334777593) "completed our efforts to address the underlying issue of the incident and restored service to the remaining impacted customers and regions." Further updates are under MO1550821 in the Microsoft 365 admin center. The full post-incident report, with the root cause, is still to come.
+
+## Update, 26 November 2026: the final report blames a dormant Windows bug on gateway servers
+
+Microsoft has published its final post-incident report. It sits in the Microsoft 365 admin centre behind administrator sign-in, so we have not read Microsoft's own file; what follows is [GeekWire's account](https://www.geekwire.com/2026/microsofts-final-outlook-outage-report-details-testing-gaps-and-safeguards-that-backfired/) of it. The report's explanation differs from the "network change" wording in the status post we quoted on 14 November.
+
+GeekWire says the cause was a bug in a Windows update used only on the gateway servers that connect people to Outlook and other Microsoft 365 services. The update began rolling out in July and caused no problems for more than three months. Under heavy load, tasks in the process that sets up connections got stuck waiting on each other until servers ran out of computing power and memory. It hit the newer servers, which are built to handle more work at once, and Microsoft's lab tests ran on older ones. "Our testing did not adequately represent the combination of hardware and traffic mix encountered during this incident," the report says, as quoted by GeekWire.
+
+Three conditions set it off. About 14% of gateway capacity was offline for routine updates, which the preliminary report had blamed on an unrelated problem. A routing glitch on the Teams gateway in Microsoft's US East region, about 15 hours earlier, had moved all Teams traffic worldwide onto the servers that handle email. Then the US workday began, with widespread failures from around 8 a.m. Pacific. As servers stopped responding, automatic safeguards moved their traffic to healthy servers, which spread the failure instead of containing it.
+
+The report lists 13 next steps. They include keeping traffic shifts inside the affected region, separating the email servers so a surge from another service cannot take them down, failing Teams over only in the affected region, and lab testing that matches production hardware by the end of March. Microsoft says its first customer notice went out about 20 minutes after the outage took hold. GeekWire reports that no business email was lost, though some delayed messages to consumer mailboxes inactive for more than 30 days bounced. The report repeats that the incident was not a cyberattack and "was not caused by AI tooling."
