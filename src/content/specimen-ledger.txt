@@ -1538,3 +1538,10 @@
 1535 hex-pm-cve-2026-129514-rce-servers-rotate-credentials
 1536 anthropic-claude-ship-pr-steward-claude-approvals-beta
 1537 sand-ai-magi-2-480b-video-model-higgsfield
+1538 1password-backend-breach-github-account-customer-names-emails
+1539 openai-gpt-6-protein-design-onava-wet-lab
+1540 google-workspace-mcp-servers-cli-ga-feb-2027
+1541 indexable-blaze-incremental-rust-rebuilds
+1542 cloudflare-search-for-agents-well-known-search
+1543 fcc-spacex-starmind-one-million-orbital-data-centers
+1544 anthropic-skills-over-mcp-tasks-elicitation-ga
