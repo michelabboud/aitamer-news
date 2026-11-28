@@ -1,0 +1,150 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 3. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-03",
+  "campaign": "containers-03",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 3,
+    "title": "Containers from Zero, part 3: run one container",
+    "shortTitle": "Run one container",
+    "description": "Run hello-app with a published port and an environment variable, read its logs, then stop, start and remove it. See why docker stop sometimes takes ten seconds, and why this series binds ports to 127.0.0.1.",
+    "url": "https://aitamer.news/posts/containers-from-zero-03-run-one-container/",
+    "source": "src/content/posts/containers-from-zero-03-run-one-container.md",
+    "tested": "Ran, logged, stopped, restarted and removed hello-app 1.1 on Engine 29.10.1; timed docker stop, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "Publish to 127.0.0.1 unless you mean to share the port, and make PID 1 handle SIGTERM so docker stop is quick."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-03.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 4, files that outlive the container",
+    "summary": "hello-app counts its visits in a file, and you keep that file with a named volume and a bind mount.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "Publishing ports, environment variables, logs, the container lifecycle and docker stop, from Lesson 3.",
+    "boards": [
+      {
+        "title": "The flags on docker run",
+        "hint": "docker run -d --name hello -p 127.0.0.1:8080:8000 -e GREETING=Shalom hello-app:1.1",
+        "headName": "Flag",
+        "headRole": "What it does",
+        "headWhere": "Watch out",
+        "rows": [
+          {"name": "-d", "role": "Runs the container in the background and prints its ID.", "where": "read output with `docker logs`"},
+          {"name": "--name hello", "role": "A name to use instead of the ID.", "where": "names must be unique"},
+          {"name": "-p 127.0.0.1:8080:8000", "role": "Publishes container port 8000 on host address 127.0.0.1, port 8080. Format `HOST_IP:HOST_PORT:CONTAINER_PORT`.", "where": "without an IP it is open on every address and bypasses `ufw` and `firewalld`"},
+          {"name": "-e GREETING=Shalom", "role": "Sets an environment variable for this container and overrides the image's `ENV`.", "where": "no rebuild needed"},
+          {"name": "--rm", "role": "Removes the container when it exits.", "where": "its logs go with it"},
+          {"name": "--init", "role": "Runs docker-init as PID 1, which passes signals on and reaps zombie processes.", "where": "for programs that ignore `SIGTERM`"}
+        ],
+        "note": "`EXPOSE` in a Dockerfile documents a port; only `-p` publishes it. The series uses 8080 and 8081."
+      },
+      {
+        "title": "Lifecycle and stopping",
+        "hint": "created, running, exited, removed",
+        "headName": "Command",
+        "headRole": "What happens",
+        "headWhere": "Result in the lab",
+        "rows": [
+          {"name": "docker stop", "role": "Sends `SIGTERM` to PID 1, waits up to 10 seconds on Linux, then sends `SIGKILL`.", "where": "hello-app: 0.22 s, `Exited (0)`"},
+          {"name": "PID 1 without a handler", "role": "PID 1 ignores signals with the default action, so `SIGTERM` does nothing.", "where": "10.1 s, `Exited (137)` = 128 + 9"},
+          {"name": "shell-form CMD", "role": "`CMD python app.py` makes `/bin/sh -c` PID 1, and the shell does not pass signals on.", "where": "10.1 s"},
+          {"name": "--init", "role": "docker-init passes `SIGTERM` on; Python's default action ends the process.", "where": "0.10 s, `Exited (143)` = 128 + 15"},
+          {"name": "docker start", "role": "Starts the same stopped container: same ID, settings, port and writable layer.", "where": "same greeting and ID"},
+          {"name": "docker rm", "role": "Removes a stopped or created container. A running one needs `-f`.", "where": "a running one: `container is running`"}
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs, addresses and times differ on your machine",
+      "items": [
+        {"who": "Port", "what": "`docker ps` showed `127.0.0.1:8080->8000/tcp`. `curl http://127.0.0.1:8080/` answered `Shalom from container 74d2d006da04`."},
+        {"who": "Logs", "what": "`listening on port 8000`, then one line per request from `172.17.0.1`, the host side of Docker's default network."},
+        {"who": "Stop", "what": "`docker stop` took 0.22 s; status `Exited (0)`; last log line `received SIGTERM, shutting down`."},
+        {"who": "Conflict", "what": "A second container on `127.0.0.1:8080` failed with `Bind for 127.0.0.1:8080 failed: port is already allocated` and stayed in `Created`."},
+        {"who": "--rm", "what": "After `docker stop once`, `docker ps -a --filter name=once` listed nothing."}
+      ],
+      "note": "Safety: the lab publishes 8080 and 8081 on 127.0.0.1 only. If a port is busy, Docker refuses and nothing else is affected. `ss -ltn` lists ports in use. Undo with `docker rm -f hello hello2 once`."
+    },
+    "commandGroups": [
+      {
+        "title": "Run and reach",
+        "commands": [
+          {"cmd": "docker run -d --name hello -p 127.0.0.1:8080:8000 -e GREETING=Shalom hello-app:1.1", "note": "host port first"},
+          {"cmd": "curl http://127.0.0.1:8080/", "note": "`Shalom from container ...`"},
+          {"cmd": "docker port hello", "note": "`8000/tcp -> 127.0.0.1:8080`"},
+          {"cmd": "docker run -d --rm --name once -p 127.0.0.1:8081:8000 -e GREETING=Hi hello-app:1.1", "note": "removed when it stops"}
+        ]
+      },
+      {
+        "title": "Logs",
+        "commands": [
+          {"cmd": "docker logs hello", "note": "stdout and stderr of PID 1"},
+          {"cmd": "docker logs --timestamps -n 1 hello", "note": "last line, UTC time stamp"},
+          {"cmd": "docker logs -f hello", "note": "follow; Ctrl+C to stop following"}
+        ]
+      },
+      {
+        "title": "Stop, start, remove",
+        "commands": [
+          {"cmd": "time docker stop hello", "note": "SIGTERM, then SIGKILL after 10 s"},
+          {"cmd": "docker stop -t 30 hello", "note": "a longer grace period"},
+          {"cmd": "docker ps -a --filter name=hello", "note": "includes stopped containers"},
+          {"cmd": "docker start hello", "note": "the same container again"},
+          {"cmd": "docker rm -f hello", "note": "stop and remove"},
+          {"cmd": "docker run -d --init --name withinit python:3.14-slim python -m http.server 8000", "note": "init as PID 1"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the hello-app:1.1 image from Lesson 2. IDs, addresses and times will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "What is the format of the `-p` value, and what changes if you leave out the host IP?", "a": "`HOST_IP:HOST_PORT:CONTAINER_PORT`. Without a host IP the port is published on every address of the host, open to the network, and Docker's docs warn that it bypasses `ufw` and `firewalld` rules.", "lines": 3},
+          {"q": "What does `docker logs` show, and why does hello-app print with `flush=True`?", "a": "What the container's main process writes to stdout and stderr. hello-app prints its log lines to stdout, and flushing sends each line out at once instead of buffering it.", "lines": 2},
+          {"q": "What exactly does `docker stop` do?", "a": "It sends `SIGTERM` to the container's main process and, after a grace period (10 seconds for Linux containers unless `--timeout` is given), `SIGKILL`.", "lines": 2},
+          {"q": "Why must PID 1 handle `SIGTERM` itself?", "a": "A process running as PID 1 in a container ignores any signal with the default action, so it does not terminate on `SIGTERM` unless it is coded to.", "lines": 2},
+          {"q": "What survives `docker stop` and what survives `docker rm`?", "a": "After `docker stop` the container keeps its ID, name, settings, writable layer, logs and exit code, so `docker start` reuses it. `docker rm` deletes all of that.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run hello with `-e GREETING=Shalom` and `curl` it. Where do the two parts of the answer come from?", "a": "`Shalom` comes from the `-e` variable, which overrides the image's `ENV GREETING=Hello`. The hostname after `from container` is the container ID.", "lines": 2},
+          {"q": "Run `docker logs hello` after two requests. Which address do the requests come from, and why?", "a": "`172.17.0.1`, the host's side of Docker's default network. The published port forwards host traffic into the container from there.", "lines": 2},
+          {"q": "Time `docker stop hello`. How long does it take, what is the status, and what is the last log line?", "a": "About a fifth of a second (0.22 s in the lesson), `Exited (0)`, and `received SIGTERM, shutting down` from the app's handler.", "lines": 2},
+          {"q": "Start a second container on `127.0.0.1:8080`. What error do you get, and what does `docker ps -a` show afterwards?", "a": "`Bind for 127.0.0.1:8080 failed: port is already allocated`. The second container stays in the `Created` state until you remove it.", "lines": 2},
+          {"q": "Run `docker stop` on `python -m http.server` started as PID 1, then with `--init`. Compare the times and exit codes.", "a": "Without `--init`: about 10 seconds and `Exited (137)`, killed by `SIGKILL` (128 + 9). With `--init`: about 0.1 seconds and `Exited (143)`, ended by `SIGTERM` (128 + 15).", "lines": 3}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You run hello-app without `-p` and `curl http://127.0.0.1:8000/`. What happens, and why?", "a": "`curl` cannot connect. The container's port 8000 is in its own network namespace; `EXPOSE` does not publish it. Add `-p 127.0.0.1:8080:8000`.", "lines": 2},
+          {"q": "You `curl` the port in the same instant you run the container and get `Recv failure: Connection reset by peer`. What does it mean?", "a": "The port is published but the app is not listening yet. Wait a moment, or check `docker logs` for `listening on port 8000`.", "lines": 2},
+          {"q": "You change hello-app's Dockerfile to `CMD python app.py` and rebuild. What happens to `docker stop`?", "a": "In the lesson's test on `python:3.14-slim`, PID 1 became `/bin/sh -c python app.py`. The shell does not pass `SIGTERM` on, so the handler never runs and `docker stop` takes the full 10 seconds before `SIGKILL`.", "lines": 3},
+          {"q": "You start a container with `--rm`, it crashes, and you want its logs. What do you find?", "a": "Nothing: `--rm` removed the container, and its logs with it, when it exited. Leave `--rm` off when you may need the logs.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" role="img" aria-labelledby="t d">
+<title id="t">Three failures, three signatures</title>
+<desc id="d">A table with three rows, caused on purpose in the lab. Row 1, docker compose stop db: docker compose ps and docker inspect show db Exited (0) and web Up (unhealthy) with restarts=0; web&#x27;s log says failed to resolve host &#x27;db&#x27;, db&#x27;s log ends with database system is shut down; fix with docker compose up -d --wait. Row 2, web starts with an empty DATABASE_URL: ps shows web Exited (1), restarts=5; the log shows DATABASE_URL is not set six times; fix the configuration and run up -d. This row is highlighted. Row 3, in the advanced step, kill 1 inside db: PostgreSQL logs received smart shutdown request, exits with 0, and unless-stopped starts it again, restarts=1, healthy a few seconds later.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="440" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Match the state to what the logs say</text>
+<rect class="panel" x="24" y="50" width="752" height="370" rx="10"/>
+<text class="tb" x="44" y="86" text-anchor="start">What happened</text>
+<text class="tb" x="224" y="86" text-anchor="start">ps and inspect</text>
+<text class="tb" x="424" y="86" text-anchor="start">The logs</text>
+<text class="tb" x="624" y="86" text-anchor="start">Fix</text>
+<rect class="box" x="40" y="104" width="172" height="88" rx="10"/>
+<text class="ts" x="126" y="144.0" text-anchor="middle">compose stop db</text>
+<text class="ts" x="126" y="161.0" text-anchor="middle">(manual stop)</text>
+<rect class="box" x="220" y="104" width="192" height="88" rx="10"/>
+<text class="tm" x="316" y="135.5" text-anchor="middle">db Exited (0)</text>
+<text class="tm" x="316" y="152.5" text-anchor="middle">web Up (unhealthy)</text>
+<text class="tm" x="316" y="169.5" text-anchor="middle">restarts=0</text>
+<rect class="box" x="420" y="104" width="192" height="88" rx="10"/>
+<text class="ts" x="516" y="135.5" text-anchor="middle">web: failed to resolve</text>
+<text class="ts" x="516" y="152.5" text-anchor="middle">host &#x27;db&#x27;</text>
+<text class="ts" x="516" y="169.5" text-anchor="middle">db: ...is shut down</text>
+<rect class="box" x="620" y="104" width="136" height="88" rx="10"/>
+<text class="ts" x="688" y="152.5" text-anchor="middle">up -d --wait</text>
+<rect class="boxc" x="40" y="204" width="172" height="88" rx="10"/>
+<text class="ts" x="126" y="244.0" text-anchor="middle">web: empty</text>
+<text class="ts" x="126" y="261.0" text-anchor="middle">DATABASE_URL</text>
+<rect class="boxc" x="220" y="204" width="192" height="88" rx="10"/>
+<text class="tm" x="316" y="235.5" text-anchor="middle">web Exited (1)</text>
+<text class="tm" x="316" y="252.5" text-anchor="middle">restarts=5</text>
+<text class="tm" x="316" y="269.5" text-anchor="middle">then it stays down</text>
+<rect class="boxc" x="420" y="204" width="192" height="88" rx="10"/>
+<text class="ts" x="516" y="244.0" text-anchor="middle">web: DATABASE_URL</text>
+<text class="ts" x="516" y="261.0" text-anchor="middle">is not set, six times</text>
+<rect class="boxc" x="620" y="204" width="136" height="88" rx="10"/>
+<text class="ts" x="688" y="244.0" text-anchor="middle">fix config,</text>
+<text class="ts" x="688" y="261.0" text-anchor="middle">up -d</text>
+<rect class="box" x="40" y="304" width="172" height="88" rx="10"/>
+<text class="ts" x="126" y="344.0" text-anchor="middle">kill 1 in db</text>
+<text class="ts" x="126" y="361.0" text-anchor="middle">(advanced)</text>
+<rect class="box" x="220" y="304" width="192" height="88" rx="10"/>
+<text class="tm" x="316" y="335.5" text-anchor="middle">db exit=0</text>
+<text class="tm" x="316" y="352.5" text-anchor="middle">restarts=1</text>
+<text class="tm" x="316" y="369.5" text-anchor="middle">healthy again</text>
+<rect class="box" x="420" y="304" width="192" height="88" rx="10"/>
+<text class="ts" x="516" y="335.5" text-anchor="middle">db: received smart</text>
+<text class="ts" x="516" y="352.5" text-anchor="middle">shutdown request,</text>
+<text class="ts" x="516" y="369.5" text-anchor="middle">ready to accept</text>
+<rect class="box" x="620" y="304" width="136" height="88" rx="10"/>
+<text class="ts" x="688" y="344.0" text-anchor="middle">nothing:</text>
+<text class="ts" x="688" y="361.0" text-anchor="middle">unless-stopped</text>
+</svg>

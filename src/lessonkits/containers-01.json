@@ -1,0 +1,151 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 1. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-01",
+  "campaign": "containers-01",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 1,
+    "title": "Containers from Zero, part 1: what a container is",
+    "shortTitle": "What a container is",
+    "description": "A container is an ordinary Linux process with its own view of files, processes, network and hostname. Install Docker Engine and Compose, then find one container from inside and from the host.",
+    "url": "https://aitamer.news/posts/containers-from-zero-01-what-a-container-is/",
+    "source": "src/content/posts/containers-from-zero-01-what-a-container-is.md",
+    "tested": "Installed Docker Engine 29.10.1 and Compose v5.8.0 on Ubuntu 24.04 and ran every lab command, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "A container is a process the kernel shows a smaller world. Keep that picture and the rest of Docker makes sense."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-01.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 2, images and a Dockerfile",
+    "summary": "Write a six-line Dockerfile for a small Python web server and see which layer each line adds.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "What a container is, the programs behind `docker run`, and the commands from Lesson 1.",
+    "boards": [
+      {
+        "title": "What a container gets",
+        "hint": "an ordinary process that runs in isolation",
+        "headName": "It gets",
+        "headRole": "What that means",
+        "headWhere": "Linux feature",
+        "rows": [
+          {"name": "Its own filesystem", "role": "It sees only the files it was started with: a small operating system's files plus the app and its libraries.", "where": "mount namespace"},
+          {"name": "Its own view", "role": "Its own process numbers, network interfaces and hostname. In the lab, `sleep 600` was PID 1 inside and PID 22381 on the host.", "where": "PID, network and UTS namespaces"},
+          {"name": "Limits you set", "role": "A cap on memory and CPU. `--memory 64m` showed up inside as `memory.max` 67108864.", "where": "cgroups"},
+          {"name": "One shared kernel", "role": "`uname -r` printed the same release inside and outside. A VM boots its own kernel; a container boots nothing.", "where": "the host kernel"}
+        ],
+        "note": "A VM's isolation is stronger: containers that share a kernel are separated by that kernel, VMs by the hypervisor's hardware boundary. On macOS and Windows, Docker Desktop runs Linux containers inside a small Linux VM."
+      },
+      {
+        "title": "The programs behind docker run",
+        "hint": "Docker Engine 29.10.1, containerd 2.4.2, runc 1.5.3",
+        "headName": "Program",
+        "headRole": "What it does",
+        "headWhere": "Package",
+        "rows": [
+          {"name": "docker", "role": "The client. Sends your request to the daemon over `/var/run/docker.sock` and prints the answer.", "where": "`docker-ce-cli`"},
+          {"name": "dockerd", "role": "The daemon. Stores images, containers, networks and volumes, and does the work.", "where": "`docker-ce`"},
+          {"name": "containerd", "role": "Manages images and containers on the host.", "where": "`containerd.io`"},
+          {"name": "runc", "role": "Asks the kernel for namespaces and a cgroup and starts the process. Docker donated it to the Open Container Initiative.", "where": "`containerd.io`"},
+          {"name": "docker compose", "role": "Compose v5.8.0, used as `docker compose` with a space. v5 is functionally identical to v2. `docker-compose` with a hyphen is the old v1.", "where": "`docker-compose-plugin`"}
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs, process numbers and times differ on your machine",
+      "items": [
+        {"who": "Versions", "what": "`Client 29.10.1 / Server 29.10.1` and `Docker Compose version v5.8.0`. Client and server are two programs and should be the same release."},
+        {"who": "hello-world", "what": "The message lists four steps: the client contacted the daemon, the daemon pulled the image, created a container, and streamed its output back."},
+        {"who": "Inside", "what": "`docker exec sleeper ps` showed `sleep 600` as PID 1. The hostname was the container ID, and `/etc/os-release` said Alpine Linux v3.24 while the host said Ubuntu 24.04.5."},
+        {"who": "Outside", "what": "`docker top sleeper` and the host's own `ps` showed the same process as PID 22381. Nothing about it is hidden from the host."},
+        {"who": "Advanced", "what": "The container's `pid`, `net`, `uts` and `mnt` namespace links had different numbers from the shell's. `memory.max` was `max` without a limit and 67108864 with `--memory 64m`."}
+      ],
+      "note": "Safety: the `docker` group grants root-level privileges. Join it only on a machine you control, or put `sudo` in front of every `docker` command. Undo with `sudo gpasswd -d $USER docker` and a new login."
+    },
+    "commandGroups": [
+      {
+        "title": "Install (Ubuntu)",
+        "commands": [
+          {"cmd": "sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc docker-buildx podman-docker containerd runc | cut -f1)", "note": "removes conflicting packages; may find none"},
+          {"cmd": "sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin", "note": "after adding Docker's apt repository"},
+          {"cmd": "sudo systemctl status docker", "note": "start it with `sudo systemctl start docker`"},
+          {"cmd": "sudo usermod -aG docker $USER", "note": "optional; root-level access"},
+          {"cmd": "newgrp docker", "note": "the group in this terminal only"}
+        ]
+      },
+      {
+        "title": "Check, run and inspect",
+        "commands": [
+          {"cmd": "docker version", "note": "client and server"},
+          {"cmd": "docker compose version", "note": "with a space"},
+          {"cmd": "docker run hello-world", "note": "tests the whole chain"},
+          {"cmd": "docker run -d --name sleeper alpine:3.24 sleep 600", "note": "background; prints the full ID"},
+          {"cmd": "docker ps", "note": "`-a` adds stopped containers"},
+          {"cmd": "docker exec sleeper ps", "note": "run a command inside"},
+          {"cmd": "docker top sleeper", "note": "host process numbers"},
+          {"cmd": "docker inspect --format '{{.State.Pid}}' sleeper", "note": "the host PID"},
+          {"cmd": "docker rm -f sleeper", "note": "stop and remove"}
+        ]
+      },
+      {
+        "title": "Advanced (Linux host)",
+        "commands": [
+          {"cmd": "sudo readlink /proc/$PID/ns/pid /proc/$PID/ns/net /proc/$PID/ns/uts /proc/$PID/ns/mnt", "note": "the container's namespaces"},
+          {"cmd": "readlink /proc/$$/ns/pid /proc/$$/ns/net /proc/$$/ns/uts /proc/$$/ns/mnt", "note": "your shell's, for comparison"},
+          {"cmd": "docker run --rm --memory 64m alpine:3.24 cat /sys/fs/cgroup/memory.max", "note": "prints 67108864"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use a Linux machine with Docker Engine installed as in the lesson. IDs, process numbers and times will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "In one sentence, what is a container according to Docker's guide?", "a": "An ordinary process on your computer that runs in isolation, with its own filesystem, its own view of processes, network and hostname, and limits you can set.", "lines": 2},
+          {"q": "Which two Linux kernel features give a container its view and its limits?", "a": "Namespaces give it its own view (PID, mount, UTS, network and others). Control groups (cgroups) limit and monitor its use of memory and CPU.", "lines": 2},
+          {"q": "Give one reason a container starts faster than a virtual machine, and one way a VM isolates more strongly.", "a": "A container is a process that shares the host's kernel, so there is no operating system to boot. A VM is separated by the hypervisor's hardware boundary, while containers are separated only by the shared kernel.", "lines": 3},
+          {"q": "Name the four programs between typing `docker run` and your process starting, in order.", "a": "The `docker` client, the `dockerd` daemon, containerd, and runc, which asks the kernel for namespaces and a cgroup and starts the process.", "lines": 2},
+          {"q": "Why does this series type `docker compose` and never `docker-compose`?", "a": "`docker compose` is the Compose plugin (v2 and later; this series uses v5.8.0). `docker-compose` with a hyphen is the old Python Compose v1, which is no longer among the supported versions.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run `docker version --format 'Client {{.Client.Version}} / Server {{.Server.Version}}'`. Why are there two versions?", "a": "The client (`docker`) and the server (`dockerd`) are two programs that talk over a socket. In the lesson both were 29.10.1.", "lines": 2},
+          {"q": "Start `sleeper` and run `docker exec sleeper ps`. What is PID 1, and why are there only two processes?", "a": "PID 1 is `sleep 600`, the container's command. The container has its own PID namespace, so it sees only its own processes: `sleep` and the `ps` you just ran.", "lines": 2},
+          {"q": "Run `grep PRETTY_NAME /etc/os-release` inside the container and on the host, then `uname -r` in both. What differs, and what stays the same?", "a": "The os-release files differ (Alpine Linux v3.24 inside, Ubuntu on the host) because the container has its own filesystem. The kernel release is the same because there is only one kernel.", "lines": 3},
+          {"q": "Run `docker top sleeper`. What does the PID column show compared with `docker exec sleeper ps`?", "a": "The host's process number for the same process (22381 in the lesson). Inside, the same process is PID 1.", "lines": 2},
+          {"q": "Run `docker run --rm --memory 64m alpine:3.24 cat /sys/fs/cgroup/memory.max`. Explain the number, and what `--rm` did.", "a": "67108864 is 64 × 1024 × 1024 bytes, the 64 MiB limit, seen through the container's cgroup. `--rm` removed the container as soon as `cat` finished.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "A new user runs `docker ps` without `sudo` and before joining the `docker` group. What error do they get, and what are the two fixes?", "a": "`permission denied while trying to connect to the Docker daemon socket`. Use `sudo`, or join the `docker` group and start a new login session (knowing that the group grants root-level privileges).", "lines": 2},
+          {"q": "You run `docker run -d --name sleeper alpine:3.24 sleep 600` twice. What happens the second time?", "a": "It fails with `Conflict. The container name \"/sleeper\" is already in use`. Remove the old one with `docker rm -f sleeper`, or pick another name.", "lines": 2},
+          {"q": "On the host, you compare `readlink /proc/$$/ns/net` with the container's `net` link. Will the numbers match? Why?", "a": "No. The container has its own network namespace, so its link shows a different identifier from your shell's.", "lines": 2},
+          {"q": "After the lab, `docker ps -a` still lists a `hello-world` container with a strange name. Why is it there, and how do you remove it?", "a": "Each `hello-world` run leaves a stopped container behind, with a name Docker made up. Remove it by name, for example `docker rm vibrant_feistel`.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}

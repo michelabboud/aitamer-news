@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="t d">
+<title id="t">What docker stop does</title>
+<desc id="d">docker stop sends SIGTERM to the container&#x27;s PID 1 and waits up to 10 seconds before sending SIGKILL. Three cases from the lab. hello-app has a SIGTERM handler, prints received SIGTERM, shutting down, and exits with code 0 after 0.22 seconds; this case is highlighted. python -m http.server has no handler. As PID 1 it ignores signals with the default action, so Docker waits the full 10 seconds, sends SIGKILL, and the exit code is 137, which is 128 plus 9. The same server started with --init runs under docker-init as PID 1, which passes SIGTERM on; Python&#x27;s default action ends it at once with exit code 143, which is 128 plus 15.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="420" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">docker stop: SIGTERM, a 10-second wait, then SIGKILL</text>
+<rect class="panel" x="24" y="50" width="752" height="350" rx="10"/>
+<text class="tb" x="40" y="84" text-anchor="start">docker stop  sends SIGTERM to PID 1</text>
+<text class="ts" x="760" y="84" text-anchor="end">10 s grace period, then SIGKILL</text>
+<rect class="boxc" x="40" y="104" width="720" height="82" rx="10"/>
+<text class="tb" x="56" y="130" text-anchor="start">hello-app (handles SIGTERM)</text>
+<text class="tm" x="56" y="152" text-anchor="start">prints: received SIGTERM, shutting down</text>
+<text class="ts" x="56" y="172" text-anchor="start">stopped in 0.22 s</text>
+<text class="tb" x="744" y="152" text-anchor="end">Exited (0)</text>
+<rect class="box" x="40" y="198" width="720" height="82" rx="10"/>
+<text class="tb" x="56" y="224" text-anchor="start">python -m http.server as PID 1 (no handler)</text>
+<text class="tm" x="56" y="246" text-anchor="start">PID 1 ignores signals with the default action</text>
+<text class="ts" x="56" y="266" text-anchor="start">waited 10.1 s, then SIGKILL</text>
+<text class="tb" x="744" y="246" text-anchor="end">Exited (137) = 128 + 9</text>
+<rect class="boxs" x="40" y="292" width="720" height="82" rx="10"/>
+<text class="tb" x="56" y="318" text-anchor="start">the same server with --init (docker-init is PID 1)</text>
+<text class="tm" x="56" y="340" text-anchor="start">docker-init passes SIGTERM on, Python&#x27;s default ends it</text>
+<text class="ts" x="56" y="360" text-anchor="start">stopped in 0.10 s</text>
+<text class="tb" x="744" y="340" text-anchor="end">Exited (143) = 128 + 15</text>
+</svg>

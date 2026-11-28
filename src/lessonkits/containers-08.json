@@ -1,0 +1,142 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 8. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-08",
+  "campaign": "containers-08",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 8,
+    "title": "Containers from Zero, part 8: configuration and the database file",
+    "shortTitle": "Configuration and the database file",
+    "description": "Move the notes app's settings into a .env file, give PostgreSQL a named volume so notes survive down and up, change configuration without rebuilding, and make a backup that you restore into an empty database to prove it works.",
+    "url": "https://aitamer.news/posts/containers-from-zero-08-configuration-and-the-database-file/",
+    "source": "src/content/posts/containers-from-zero-08-configuration-and-the-database-file.md",
+    "tested": "Ran the .env, volume and backup steps with Compose v5.8.0 and Engine 29.10.1, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "A named volume keeps the notes; a backup counts once you have restored it into an empty database."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-08.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 9, when something fails",
+    "summary": "Compose checks that each service is healthy, waits for the database instead of sleeping, and restarts a service that crashes.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "Where the notes app's settings and data live, and how to back up and restore, from Lesson 8.",
+    "boards": [
+      {
+        "title": "Where a value comes from",
+        "hint": "docker compose config shows the result",
+        "headName": "Form",
+        "headRole": "What it does",
+        "headWhere": "In this lab",
+        "rows": [
+          {"name": "${VAR:-default}", "role": "Value of VAR if set and non-empty, otherwise the default.", "where": "`${APP_TITLE:-Notes}`"},
+          {"name": "${VAR:?message}", "role": "Value of VAR if set and non-empty, otherwise Compose stops with the message.", "where": "`${POSTGRES_PASSWORD:?set it in .env}`"},
+          {"name": "Precedence", "role": "Shell variables first, then `--env-file`, then `.env` next to compose.yaml.", "where": "`APP_TITLE=\"From the shell\"` won"}
+        ],
+        "note": "Docker's guide: do not pass passwords through environment variables for real use; use secrets. The lab password is local only."
+      },
+      {
+        "title": "Where the data lives",
+        "hint": "volume notes_db-data",
+        "headName": "Item",
+        "headRole": "What it is",
+        "headWhere": "Kept by",
+        "rows": [
+          {"name": "Named volume", "role": "`db-data:/var/lib/postgresql`, named `notes_db-data` by Compose.", "where": "`down`; deleted by `down -v`"},
+          {"name": "PGDATA", "role": "`/var/lib/postgresql/18/docker` on PostgreSQL 18; 17 and older use `/var/lib/postgresql/data`.", "where": "inside the volume"},
+          {"name": "backup.sql", "role": "`pg_dump` output, written by your shell to the notes folder.", "where": "your machine, outside the volume"}
+        ],
+        "note": "`POSTGRES_*` variables only set up an empty volume. Changing the password later needs `\\password notes` in psql inside the database."
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs and times differ on your machine",
+      "items": [
+        {"who": "No .env", "what": "`required variable POSTGRES_PASSWORD is missing a value: set it in .env`."},
+        {"who": "New title", "what": "`up -d`: `notes-db-1 Running`, `notes-web-1 Recreated`, `<h1>Shared notes</h1>`. No build."},
+        {"who": "down, up", "what": "`notes_db-data` stayed and both notes came back."},
+        {"who": "Backup", "what": "`backup.sql`, 98 lines, with the notes in its `COPY` block."},
+        {"who": "Restore", "what": "After `down -v`, `pg_isready` said `no response`, then `accepting connections`; `psql` read the file and the notes returned."}
+      ],
+      "note": "Safety: publishes 127.0.0.1:8080. Step 6 runs `docker compose down -v`, which deletes the database volume; run it only after the backup shows your notes. Undo with `docker compose down -v` and delete `.env` and `backup.sql`."
+    },
+    "commandGroups": [
+      {
+        "title": "Configuration",
+        "commands": [
+          {"cmd": "docker compose config", "note": "filled-in file, prints secrets"},
+          {"cmd": "docker compose config --environment", "note": "variables used"},
+          {"cmd": "docker compose up -d", "note": "recreates what changed"}
+        ]
+      },
+      {
+        "title": "Back up and restore",
+        "commands": [
+          {"cmd": "docker compose exec db pg_dump -U notes notes > backup.sql", "note": "file on your machine"},
+          {"cmd": "docker compose up -d db", "note": "database only"},
+          {"cmd": "until docker compose exec db pg_isready -h 127.0.0.1 -U notes -d notes; do sleep 1; done", "note": "wait for ready"},
+          {"cmd": "docker compose exec -T db psql -q -U notes -d notes < backup.sql", "note": "into an empty database"}
+        ]
+      },
+      {
+        "title": "Volumes",
+        "commands": [
+          {"cmd": "docker volume ls --filter name=notes", "note": "notes_db-data"},
+          {"cmd": "docker compose down", "note": "keeps named volumes"},
+          {"cmd": "docker compose down -v", "note": "deletes them"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the notes folder from the lesson. IDs and times will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "What is the difference between `${APP_TITLE:-Notes}` and `${POSTGRES_PASSWORD:?set it in .env}`?", "a": "The first uses `Notes` when the variable is unset or empty. The second makes Compose stop with `set it in .env`.", "lines": 2},
+          {"q": "Where must the `.env` file be, and what wins over it?", "a": "Next to compose.yaml, in the project directory. Shell variables win, and `--env-file` replaces it.", "lines": 2},
+          {"q": "What does Docker's guide say about passwords in environment variables?", "a": "Don't use environment variables to pass sensitive information such as passwords; use secrets instead.", "lines": 2},
+          {"q": "Where is the named volume mounted for PostgreSQL 18, and what is `PGDATA`?", "a": "At `/var/lib/postgresql`. `PGDATA` is `/var/lib/postgresql/18/docker`.", "lines": 2},
+          {"q": "Why must the database exist before `psql` reads `backup.sql`?", "a": "Restoring with `psql` does not create the database. Here the image creates `notes` on the empty volume first.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run `docker compose config` with no `.env` file. What happens, and why?", "a": "Two `required variable POSTGRES_PASSWORD is missing a value` errors, one for `db` and one for `DATABASE_URL`: the `:?` form stops Compose.", "lines": 2},
+          {"q": "Change `APP_TITLE` in `.env` and run `docker compose up -d`. Which containers change?", "a": "`notes-web-1` is recreated from the same image; `notes-db-1` stays `Running`. No build runs.", "lines": 2},
+          {"q": "Run `docker compose down`, `docker volume ls --filter name=notes`, `docker compose up -d`. Are the notes there?", "a": "Yes. `notes_db-data` survives `down`, and the new `db` container mounts it again.", "lines": 2},
+          {"q": "Run the `pg_isready` loop right after `docker compose up -d db` on an empty volume. What does it print?", "a": "`no response` one or more times, then `accepting connections`, when it exits 0 and the loop ends.", "lines": 2},
+          {"q": "Run `APP_TITLE=\"From the shell\" docker compose up -d`, then plain `docker compose up -d`. What title does each show?", "a": "`From the shell`, then the `.env` value again. The shell variable applied to one run.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You change `POSTGRES_PASSWORD` in `.env` after the volume has a database, then run `up -d`. What happens?", "a": "`web` gets `password authentication failed`; `db` logs `Skipping initialization`. Put the old value back or change it with psql `\\password notes`.", "lines": 3},
+          {"q": "You restore `backup.sql` into the running database that still has the notes. What do you see?", "a": "`ERROR:  relation \"notes\" already exists` and a duplicate key error; nothing is restored. Use an empty volume.", "lines": 2},
+          {"q": "You mount the volume at `/var/lib/postgresql/data` on PostgreSQL 18. Do notes survive `down` and `up`?", "a": "No notes at all: `db` exits with code 1 and an `Error: in 18+` message naming `/var/lib/postgresql/data (unused mount/volume)`. Mount at `/var/lib/postgresql`.", "lines": 2},
+          {"q": "You run `docker compose down -v` before making a backup. Can you get the notes back?", "a": "No. `down -v` deletes `notes_db-data` and the notes with it.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}

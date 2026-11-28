@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="t d">
+<title id="t">Publishing a container port on 127.0.0.1</title>
+<desc id="d">The Docker host runs curl, which asks for 127.0.0.1:8080. The flag -p 127.0.0.1:8080:8000 tells Docker to forward that host address and port to port 8000 of the container named hello, where python app.py listens on its own network interface at an address such as 172.17.0.2. That forwarding rule is highlighted. The app sees requests arriving from 172.17.0.1, the host side of Docker&#x27;s default bridge network. Because the rule names 127.0.0.1, another computer on the network cannot reach the port. Without an address, -p 8080:8000 would publish on every address of the host, and Docker&#x27;s docs warn that published ports bypass ufw and firewalld rules.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="420" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">-p 127.0.0.1:8080:8000: host port 8080 to container port 8000</text>
+<rect class="panel" x="24" y="50" width="560" height="350" rx="10"/>
+<text class="th" x="40" y="76" text-anchor="start">Docker host (your machine)</text>
+<rect class="box" x="44" y="98" width="180" height="60" rx="10"/>
+<text class="tm" x="134" y="124.0" text-anchor="middle">curl</text>
+<text class="tm" x="134" y="141.0" text-anchor="middle">http://127.0.0.1:8080/</text>
+<rect class="boxc" x="44" y="214" width="180" height="70" rx="10"/>
+<text class="tb" x="134" y="245.0" text-anchor="middle">127.0.0.1:8080</text>
+<text class="ts" x="134" y="262.0" text-anchor="middle">published port</text>
+<line class="ln" x1="134" y1="158" x2="134" y2="212" marker-end="url(#ah)"/>
+<rect class="boxd" x="260" y="92" width="304" height="290" rx="10"/>
+<text class="t" x="274" y="114" text-anchor="start">container hello</text>
+<rect class="boxs" x="280" y="132" width="264" height="64" rx="10"/>
+<text class="tb" x="412" y="160.0" text-anchor="middle">python app.py</text>
+<text class="ts" x="412" y="177.0" text-anchor="middle">listening on port 8000</text>
+<rect class="box" x="280" y="214" width="264" height="70" rx="10"/>
+<text class="tm" x="412" y="245.0" text-anchor="middle">its own eth0, e.g. 172.17.0.2</text>
+<text class="ts" x="412" y="262.0" text-anchor="middle">logs show requests from 172.17.0.1</text>
+<line class="lnc" x1="226" y1="249" x2="278" y2="175" marker-end="url(#ahc)"/>
+<text class="tb" x="250" y="330" text-anchor="start">-p 127.0.0.1:8080:8000</text>
+<text class="ts" x="250" y="350" text-anchor="start">HOST_IP : HOST_PORT : CONTAINER_PORT</text>
+<rect class="panel" x="604" y="50" width="172" height="350" rx="10"/>
+<text class="th" x="620" y="76" text-anchor="start">Another computer</text>
+<rect class="box" x="620" y="98" width="140" height="70" rx="10"/>
+<text class="tm" x="690" y="129.0" text-anchor="middle">curl</text>
+<text class="tm" x="690" y="146.0" text-anchor="middle">your-ip:8080</text>
+<rect class="boxd" x="620" y="214" width="140" height="70" rx="10"/>
+<text class="ts" x="690" y="236.5" text-anchor="middle">no answer:</text>
+<text class="ts" x="690" y="253.5" text-anchor="middle">only 127.0.0.1</text>
+<text class="ts" x="690" y="270.5" text-anchor="middle">is published</text>
+<line class="ln" x1="690" y1="168" x2="690" y2="212" marker-end="url(#ah)"/>
+<text class="ts" x="690" y="330" text-anchor="middle">-p 8080:8000 would</text>
+<text class="ts" x="690" y="348" text-anchor="middle">publish on every</text>
+<text class="ts" x="690" y="366" text-anchor="middle">address and bypass</text>
+<text class="ts" x="690" y="384" text-anchor="middle">ufw and firewalld</text>
+</svg>

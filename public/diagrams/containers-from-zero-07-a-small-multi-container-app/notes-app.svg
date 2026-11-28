@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="t d">
+<title id="t">The notes app: a web service and a database</title>
+<desc id="d">Your machine runs curl or a browser against 127.0.0.1:8080, the only published port. It leads to the container notes-web-1, service web, running python app.py with the psycopg driver, built from the notes folder. On the network notes_default, web connects to db:5432 using DATABASE_URL postgresql://notes:...@db:5432/notes; this connection is highlighted. The container notes-db-1, service db, runs postgres:18-alpine, created its user and database from POSTGRES_USER, POSTGRES_PASSWORD and POSTGRES_DB, and does not publish 5432. Its data lives in /var/lib/postgresql, which the image declares as a volume, so Docker gives it an anonymous volume with a random name.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="420" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Two services, one network, one published port</text>
+<rect class="panel" x="24" y="50" width="752" height="350" rx="10"/>
+<text class="th" x="40" y="76" text-anchor="start">Docker host</text>
+<rect class="box" x="44" y="92" width="170" height="62" rx="10"/>
+<text class="tm" x="129" y="119.0" text-anchor="middle">curl or browser</text>
+<text class="tm" x="129" y="136.0" text-anchor="middle">127.0.0.1:8080</text>
+<rect class="boxd" x="244" y="80" width="512" height="240" rx="10"/>
+<text class="t" x="258" y="102" text-anchor="start">network notes_default</text>
+<rect class="boxs" x="264" y="112" width="210" height="104" rx="10"/>
+<text class="tb" x="369" y="143.0" text-anchor="middle">web</text>
+<text class="ts" x="369" y="160.0" text-anchor="middle">python app.py</text>
+<text class="ts" x="369" y="177.0" text-anchor="middle">psycopg</text>
+<text class="ts" x="369" y="194.0" text-anchor="middle">8000, published on 8080</text>
+<rect class="boxc" x="530" y="112" width="206" height="104" rx="10"/>
+<text class="tb" x="633" y="143.0" text-anchor="middle">db</text>
+<text class="ts" x="633" y="160.0" text-anchor="middle">postgres:18-alpine</text>
+<text class="ts" x="633" y="177.0" text-anchor="middle">user and database: notes</text>
+<text class="ts" x="633" y="194.0" text-anchor="middle">5432, not published</text>
+<line class="ln" x1="214" y1="123" x2="262" y2="140" marker-end="url(#ah)"/>
+<line class="lnc" x1="476" y1="164" x2="528" y2="164" marker-end="url(#ahc)"/>
+<text class="ts" x="502" y="154" text-anchor="middle">db:5432</text>
+<rect class="boxd" x="530" y="248" width="206" height="56" rx="10"/>
+<text class="tb" x="633" y="272.0" text-anchor="middle">anonymous volume</text>
+<text class="ts" x="633" y="289.0" text-anchor="middle">/var/lib/postgresql</text>
+<line class="ln" x1="633" y1="216" x2="633" y2="246" marker-end="url(#ah)"/>
+<text class="ts" x="369" y="250" text-anchor="middle">DATABASE_URL=</text>
+<text class="ts" x="369" y="268" text-anchor="middle">postgresql://notes:...@db:5432/notes</text>
+<text class="tm" x="400" y="362" text-anchor="middle">Only web is published. The database answers only containers on notes_default.</text>
+</svg>

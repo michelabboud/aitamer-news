@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="t d">
+<title id="t">Compose and one machine</title>
+<desc id="d">Left, one Docker host. Compose reads compose.yaml and talks to one Docker Engine, local or remote through DOCKER_HOST. The engine runs web and db and keeps the volume. Restart policies are applied by that engine. If the machine stops, everything on it stops with it, highlighted. Right, several machines run by a cluster manager. You state a desired state, for example ten replicas; when a machine crashes, the manager starts replacements on the others, as the Docker Swarm documentation describes. Kubernetes is the cluster manager Kubernetes from Zero teaches, starting with part 1.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+.tb { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #2b3445; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3326; stroke: #d9cbb0; }
+  .tb { fill: #e8eaf0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="420" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">One engine, or a cluster that reconciles desired state</text>
+<rect class="panel" x="24" y="50" width="364" height="350" rx="10"/>
+<text class="th" x="40" y="76" text-anchor="start">One Docker host</text>
+<rect class="box" x="44" y="92" width="324" height="44" rx="10"/>
+<text class="tm" x="206" y="118.5" text-anchor="middle">docker compose + compose.yaml</text>
+<line class="ln" x1="206" y1="136" x2="206" y2="156" marker-end="url(#ah)"/>
+<rect class="box" x="44" y="158" width="324" height="120" rx="10"/>
+<text class="tb" x="206" y="205.5" text-anchor="middle">Docker Engine</text>
+<text class="ts" x="206" y="222.5" text-anchor="middle">web, db, volume notes_db-data</text>
+<text class="ts" x="206" y="239.5" text-anchor="middle">restart policies applied here</text>
+<rect class="boxc" x="44" y="300" width="324" height="70" rx="10"/>
+<text class="tb" x="206" y="331.0" text-anchor="middle">machine stops:</text>
+<text class="ts" x="206" y="348.0" text-anchor="middle">the whole app stops with it</text>
+<rect class="panel" x="412" y="50" width="364" height="350" rx="10"/>
+<text class="th" x="428" y="76" text-anchor="start">A cluster</text>
+<rect class="box" x="432" y="92" width="324" height="56" rx="10"/>
+<text class="tb" x="594" y="116.0" text-anchor="middle">cluster manager</text>
+<text class="ts" x="594" y="133.0" text-anchor="middle">desired state: e.g. 10 replicas</text>
+<rect class="box" x="432" y="180" width="100" height="70" rx="10"/>
+<text class="tm" x="482" y="211.0" text-anchor="middle">machine 1</text>
+<text class="ts" x="482" y="228.0" text-anchor="middle">replicas</text>
+<rect class="boxd" x="544" y="180" width="100" height="70" rx="10"/>
+<text class="tm" x="594" y="211.0" text-anchor="middle">machine 2</text>
+<text class="ts" x="594" y="228.0" text-anchor="middle">replicas</text>
+<rect class="box" x="656" y="180" width="100" height="70" rx="10"/>
+<text class="tm" x="706" y="211.0" text-anchor="middle">machine 3</text>
+<text class="ts" x="706" y="228.0" text-anchor="middle">replicas</text>
+<text class="ts" x="594" y="270" text-anchor="middle">machine 2 crashes: replacements start on 1 and 3</text>
+<line class="ln" x1="594" y1="148" x2="594" y2="178" marker-end="url(#ah)"/>
+<rect class="boxs" x="432" y="300" width="324" height="70" rx="10"/>
+<text class="tb" x="594" y="331.0" text-anchor="middle">Kubernetes from Zero</text>
+<text class="ts" x="594" y="348.0" text-anchor="middle">starts at part 1</text>
+</svg>

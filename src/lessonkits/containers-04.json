@@ -1,0 +1,146 @@
+{
+  "$comment": "Lesson-kit content for Containers from Zero, Lesson 4. Every fact and command is copied from the lesson post. art.file is a placeholder until Art Desk delivers the image.",
+  "slug": "containers-04",
+  "campaign": "containers-04",
+  "lesson": {
+    "seriesSlug": "containers-from-zero",
+    "number": 4,
+    "title": "Containers from Zero, part 4: files that outlive the container",
+    "shortTitle": "Files that outlive the container",
+    "description": "Give hello-app a visit counter, watch the count vanish with the container, then keep it with a named volume and share it with a bind mount. Learn to tell which mount a container uses, and who owns the files it writes.",
+    "url": "https://aitamer.news/posts/containers-from-zero-04-files-that-outlive-the-container/",
+    "source": "src/content/posts/containers-from-zero-04-files-that-outlive-the-container.md",
+    "tested": "Kept hello-app 1.2 visit counts in a named volume and a bind mount on Engine 29.10.1, 25 Nov 2026",
+    "cluster": "none, one Docker Engine host",
+    "rule": "Put data you keep in a named volume, use a bind mount when you need the files on the host, and check with docker inspect which one you have."
+  },
+  "series": {
+    "title": "Containers from Zero",
+    "url": "https://aitamer.news/series/containers-from-zero/"
+  },
+  "art": {
+    "file": "art/art-containers-04.jpg",
+    "alt": "TODO: Art Desk supplies the cover art and its alt text.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 50%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 5, two containers, one network",
+    "summary": "A second container reaches hello-app by its name.",
+    "url": "https://aitamer.news/series/containers-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "The writable layer, named volumes, bind mounts, and how to tell them apart, from Lesson 4.",
+    "boards": [
+      {
+        "title": "Where /data/visits.txt ends up",
+        "hint": "the program writes /data either way; the mount decides where the bytes go",
+        "headName": "Setup",
+        "headRole": "Where the file lives",
+        "headWhere": "After docker rm",
+        "rows": [
+          {"name": "no mount", "role": "The container's writable layer, on top of the read-only image layers.", "where": "deleted; the next container starts at visit 1"},
+          {"name": "named volume", "role": "`hello-data`, a directory Docker manages under `/var/lib/docker/volumes/`. Do not edit it there; mount it into a container.", "where": "kept until `docker volume rm`"},
+          {"name": "bind mount", "role": "A host folder you chose, such as `/home/ubuntu/hello/data`. Host and container edit the same files.", "where": "kept; it is your folder"},
+          {"name": "anonymous volume", "role": "A volume with a random name, for example from an image that declares `VOLUME`. Not shared automatically.", "where": "kept, unless the container ran with `--rm`"}
+        ],
+        "note": "A mount hides whatever the image had at that path. An empty named volume is first filled with the image's files at that path."
+      },
+      {
+        "title": "--mount and -v",
+        "hint": "--mount is explicit; -v is short",
+        "headName": "Form",
+        "headRole": "Example",
+        "headWhere": "Watch out",
+        "rows": [
+          {"name": "volume, long", "role": "`--mount type=volume,src=hello-data,dst=/data`", "where": "a typo in the name makes a new, empty volume"},
+          {"name": "volume, short", "role": "`-v hello-data:/data`", "where": "a name means a volume"},
+          {"name": "bind, long", "role": "`--mount type=bind,src=\"$PWD\"/data,dst=/data`", "where": "refuses a missing path: `bind source path does not exist`"},
+          {"name": "bind, short", "role": "`-v \"$PWD\"/data:/data`", "where": "creates a missing path as a root-owned directory"},
+          {"name": "read-only", "role": "`...,dst=/data,readonly` or `:ro`", "where": "writes fail with `Read-only file system`"},
+          {"name": "your user", "role": "`--user \"$(id -u):$(id -g)\"`", "where": "otherwise files the app creates belong to root"}
+        ]
+      }
+    ],
+    "steps": {
+      "title": "What the lab showed",
+      "hint": "IDs, paths and times differ on your machine",
+      "items": [
+        {"who": "No mount", "what": "visit 1, visit 2; after `docker rm -f` and a new container, visit 1 again."},
+        {"who": "Volume", "what": "visit 1, visit 2; after `docker rm -f` and a new container on `hello-data`, visit 3."},
+        {"who": "Inspect", "what": "`volume hello-data /var/lib/docker/volumes/hello-data/_data -> /data`, then for the bind mount `bind /home/ubuntu/hello/data -> /data`."},
+        {"who": "Bind", "what": "The host wrote 41, the app answered visit 42; the host wrote 99, the app answered visit 100."},
+        {"who": "Owner", "what": "Created by the app: `root root`, and `echo 5 >` failed with `Permission denied`. With `--user`: `ubuntu ubuntu`, and the next visit was 6."}
+      ],
+      "note": "Safety: the lab deletes the volume `hello-data` and the `data` and `missing` folders it creates in `hello`. Rename them if yours already exist. Undo with `docker rm -f hello`, `docker volume rm hello-data`, `rm -rf data`, `rmdir missing`."
+    },
+    "commandGroups": [
+      {
+        "title": "Volumes",
+        "commands": [
+          {"cmd": "docker volume create hello-data", "note": "make a named volume"},
+          {"cmd": "docker run -d --name hello -p 127.0.0.1:8080:8000 --mount type=volume,src=hello-data,dst=/data hello-app:1.2", "note": "mount it at /data"},
+          {"cmd": "docker volume ls", "note": "driver and name"},
+          {"cmd": "docker volume inspect hello-data", "note": "Mountpoint is Docker's"},
+          {"cmd": "docker volume rm hello-data", "note": "permanent; fails while in use"}
+        ]
+      },
+      {
+        "title": "Bind mounts",
+        "commands": [
+          {"cmd": "mkdir data", "note": "create the folder first"},
+          {"cmd": "docker run -d --name hello -p 127.0.0.1:8080:8000 --mount type=bind,src=\"$PWD\"/data,dst=/data hello-app:1.2", "note": "share it"},
+          {"cmd": "docker run -d --name hello -p 127.0.0.1:8080:8000 --user \"$(id -u):$(id -g)\" --mount type=bind,src=\"$PWD\"/data,dst=/data hello-app:1.2", "note": "files stay yours"},
+          {"cmd": "ls -l data", "note": "who owns the files"}
+        ]
+      },
+      {
+        "title": "Which mount is it",
+        "commands": [
+          {"cmd": "docker inspect --format '{{range .Mounts}}{{.Type}} {{.Name}} {{.Source}} -> {{.Destination}}{{end}}' hello", "note": "volume or bind"},
+          {"cmd": "docker ps -a --filter volume=hello-data", "note": "who uses a volume"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use hello-app:1.2 from the lesson. IDs, paths and times will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "What happens to files a container writes to its writable layer when you run `docker rm`?", "a": "They are deleted with the container. Docker's storage overview: data written to the container layer does not persist when the container is destroyed.", "lines": 2},
+          {"q": "Name the two mount types from the lesson and say who decides where the files live.", "a": "A named volume: Docker manages the directory. A bind mount: you choose the host path, and host and container share the same files.", "lines": 2},
+          {"q": "Why should you not edit files under `/var/lib/docker/volumes/` directly?", "a": "Docker's docs call direct access to volume data unsupported, undefined behavior that may break the volume or its data. Mount the volume into a container instead.", "lines": 2},
+          {"q": "How do `--mount` and `-v` differ when the host path of a bind mount does not exist?", "a": "`--mount` stops with `bind source path does not exist`. `-v` creates the path, always as a directory, owned by root.", "lines": 2},
+          {"q": "Which command removes a named volume, and when does it refuse?", "a": "`docker volume rm hello-data`. It refuses with `volume is in use` while any container, running or stopped, still uses it.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "Run hello-app:1.2 with no mount, `curl` twice, `docker rm -f hello`, run it again and `curl`. What count do you get, and why?", "a": "visit 1 again. The count file was in the first container's writable layer, which `docker rm` deleted.", "lines": 2},
+          {"q": "Repeat with `--mount type=volume,src=hello-data,dst=/data`. What count does the new container give?", "a": "visit 3. The file was in the volume `hello-data`, which removing the container left alone.", "lines": 2},
+          {"q": "Run the `docker inspect --format` command from the lesson on the running container. What does each field tell you?", "a": "`volume hello-data /var/lib/docker/volumes/hello-data/_data -> /data`: the type, the volume name, where Docker keeps it, and the path inside the container.", "lines": 3},
+          {"q": "Bind-mount a `data` folder, write 41 into `data/visits.txt` from the host, then `curl`. What do you get, and what is in the file afterwards?", "a": "visit 42, and the file contains 42. Host and container read and write the same file.", "lines": 2},
+          {"q": "Let the container create `data/visits.txt`, then run `ls -l data` and `echo 5 > data/visits.txt`. What happens, and how do you avoid it?", "a": "The file is owned by `root root` and the write fails with `Permission denied`. Run the container with `--user \"$(id -u):$(id -g)\"` so it writes as your user.", "lines": 3}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You type `--mount type=volume,src=helo-data,dst=/data` by mistake. What count do you see, and why?", "a": "visit 1. Docker created a new, empty volume named `helo-data`; your count is still in `hello-data`.", "lines": 2},
+          {"q": "You run `-v data:/data` from the `hello` folder, expecting your `data` folder. What does Docker mount?", "a": "A named volume called `data`. Without a path, `-v` reads the first part as a volume name. Use `\"$PWD\"/data:/data`.", "lines": 2},
+          {"q": "You add `readonly` to the bind mount and `curl` the app. What does `curl` print, and where is the reason?", "a": "`curl: (52) Empty reply from server`. `docker logs` shows `OSError: [Errno 30] Read-only file system: '/data/visits.txt'`.", "lines": 2},
+          {"q": "You run `docker volume rm hello-data` while a stopped container still uses it. What happens?", "a": "Docker refuses with `volume is in use` and lists the container ID. Remove the container first.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}
