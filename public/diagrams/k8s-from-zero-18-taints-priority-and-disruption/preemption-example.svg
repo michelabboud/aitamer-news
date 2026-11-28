@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" role="img" aria-labelledby="t d">
+<title id="t">Preemption: a high-priority Pod evicts a low-priority one</title>
+<desc id="d">Three workers with 8 CPUs each. Before: the Deployment batch, priority class batch-low with value 1000, ran six Pods requesting 3 CPUs each, two per worker, so each worker had 6.1 of 8 CPUs requested and 1.9 free. The Pod checkout, class checkout-high with value 100000, requested 4 CPUs and fit nowhere. After: the scheduler preempted batch Pod mw2hl on worker3, highlighted, and checkout started there. The Deployment created a replacement batch Pod, which stayed Pending with Insufficient cpu, because the only Pods it could preempt had equal or higher priority.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="480" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">checkout (priority 100000, 4 CPU) arrives at a full cluster</text>
+<text class="t" x="24" y="66" text-anchor="start">Before: no node has 4 CPU free</text>
+<rect class="boxs" x="24" y="76" width="240" height="120" rx="10"/>
+<text class="tm" x="40" y="100" text-anchor="start">worker  (8 CPU)</text>
+<rect class="box" x="40" y="116" width="100" height="40" rx="6"/>
+<text class="tm" x="48" y="140" text-anchor="start">batch 3</text>
+<rect class="box" x="148" y="116" width="100" height="40" rx="6"/>
+<text class="tm" x="156" y="140" text-anchor="start">batch 3</text>
+<text class="ts" x="40" y="180" text-anchor="start">1.9 CPU free</text>
+<rect class="boxs" x="280" y="76" width="240" height="120" rx="10"/>
+<text class="tm" x="296" y="100" text-anchor="start">worker2  (8 CPU)</text>
+<rect class="box" x="296" y="116" width="100" height="40" rx="6"/>
+<text class="tm" x="304" y="140" text-anchor="start">batch 3</text>
+<rect class="box" x="404" y="116" width="100" height="40" rx="6"/>
+<text class="tm" x="412" y="140" text-anchor="start">batch 3</text>
+<text class="ts" x="296" y="180" text-anchor="start">1.9 CPU free</text>
+<rect class="boxs" x="536" y="76" width="240" height="120" rx="10"/>
+<text class="tm" x="552" y="100" text-anchor="start">worker3  (8 CPU)</text>
+<rect class="box" x="552" y="116" width="100" height="40" rx="6"/>
+<text class="tm" x="560" y="140" text-anchor="start">batch 3</text>
+<rect class="box" x="660" y="116" width="100" height="40" rx="6"/>
+<text class="tm" x="668" y="140" text-anchor="start">batch 3</text>
+<text class="ts" x="552" y="180" text-anchor="start">1.9 CPU free</text>
+<rect class="boxc" x="24" y="212" width="752" height="40" rx="8"/>
+<text class="tc" x="40" y="238" text-anchor="start">Preempted by pod ... on node k8s-ep16-worker3: batch-...-mw2hl gets its grace period</text>
+<text class="t" x="24" y="280" text-anchor="start">After: checkout runs on worker3</text>
+<rect class="boxs" x="24" y="290" width="240" height="120" rx="10"/>
+<text class="tm" x="40" y="314" text-anchor="start">worker  (8 CPU)</text>
+<rect class="box" x="40" y="330" width="100" height="40" rx="6"/>
+<text class="tm" x="48" y="354" text-anchor="start">batch 3</text>
+<rect class="box" x="148" y="330" width="100" height="40" rx="6"/>
+<text class="tm" x="156" y="354" text-anchor="start">batch 3</text>
+<text class="ts" x="40" y="394" text-anchor="start">1.9 CPU free</text>
+<rect class="boxs" x="280" y="290" width="240" height="120" rx="10"/>
+<text class="tm" x="296" y="314" text-anchor="start">worker2  (8 CPU)</text>
+<rect class="box" x="296" y="330" width="100" height="40" rx="6"/>
+<text class="tm" x="304" y="354" text-anchor="start">batch 3</text>
+<rect class="box" x="404" y="330" width="100" height="40" rx="6"/>
+<text class="tm" x="412" y="354" text-anchor="start">batch 3</text>
+<text class="ts" x="296" y="394" text-anchor="start">1.9 CPU free</text>
+<rect class="boxs" x="536" y="290" width="240" height="120" rx="10"/>
+<text class="tm" x="552" y="314" text-anchor="start">worker3  (8 CPU)</text>
+<rect class="box" x="552" y="330" width="100" height="40" rx="6"/>
+<text class="tm" x="560" y="354" text-anchor="start">batch 3</text>
+<rect class="boxb" x="660" y="330" width="100" height="40" rx="6"/>
+<text class="tm" x="668" y="354" text-anchor="start">checkout 4</text>
+<text class="ts" x="552" y="394" text-anchor="start">0.9 CPU free</text>
+<rect class="panel" x="24" y="420" width="752" height="50" rx="10"/>
+<text class="ts" x="40" y="442" text-anchor="start">The replacement batch Pod stays Pending: Insufficient cpu, no preemption victims.</text>
+<text class="ts" x="40" y="460" text-anchor="start">Pods of equal or higher priority are never victims.</text>
+</svg>
