@@ -7,6 +7,7 @@ import { postFrontmatterJsonSchema, postSchema } from '../content/post-schema.ts
 import { readFrontmatter } from '../../scripts/frontmatter.mjs';
 import {
   seriesActivity,
+  seriesArcAt,
   seriesHero,
   seriesIndexViews,
   seriesIsCourse,
@@ -145,6 +146,27 @@ const K8S_ARCS: readonly SeriesArc[] = [
   { name: 'Certification', start: 104 },
 ];
 
+// Ten lessons from the Containers from Zero plan: 1-6 build the pieces the Compose file uses,
+// 7 is the app, 8-10 are change, failure, and cleanup. Kit ids match the lesson-kit JSON names.
+const CONTAINERS_ARCS: readonly SeriesArc[] = [
+  { name: 'The pieces', start: 1, end: 6 },
+  { name: 'The app', start: 7, end: 7 },
+  { name: 'Change, failure, and cleanup', start: 8, end: 10 },
+];
+
+const CONTAINERS_LESSONS: readonly { post: string; kit: string; arc: string }[] = [
+  { post: 'containers-from-zero-01-what-a-container-is', kit: 'containers-01', arc: 'The pieces' },
+  { post: 'containers-from-zero-02-images-and-a-dockerfile', kit: 'containers-02', arc: 'The pieces' },
+  { post: 'containers-from-zero-03-run-one-container', kit: 'containers-03', arc: 'The pieces' },
+  { post: 'containers-from-zero-04-files-that-outlive-the-container', kit: 'containers-04', arc: 'The pieces' },
+  { post: 'containers-from-zero-05-two-containers-one-network', kit: 'containers-05', arc: 'The pieces' },
+  { post: 'containers-from-zero-06-compose-for-that-pair', kit: 'containers-06', arc: 'The pieces' },
+  { post: 'containers-from-zero-07-a-small-multi-container-app', kit: 'containers-07', arc: 'The app' },
+  { post: 'containers-from-zero-08-configuration-and-the-database-file', kit: 'containers-08', arc: 'Change, failure, and cleanup' },
+  { post: 'containers-from-zero-09-when-something-fails', kit: 'containers-09', arc: 'Change, failure, and cleanup' },
+  { post: 'containers-from-zero-10-clean-up-and-the-edge-of-one-machine', kit: 'containers-10', arc: 'Change, failure, and cleanup' },
+];
+
 test('an arc plan labels the lesson and the place inside the arc, and an open arc has no total', () => {
   const label = (lesson: number) => seriesLabel('Kubernetes from Zero', 1, 1, K8S_ARCS, lesson);
   assert.equal(label(1), 'Kubernetes from Zero · Foundations 1 of 12 · Lesson 1');
@@ -187,12 +209,19 @@ test('a lesson outside a fixed arc plan is reported, and a series without arcs i
   assert.deepEqual(problems, ['beyond: series_order 3 is outside the arc plan for "planned"']);
 });
 
-test('the committed Kubernetes from Zero plan matches the arc map, and other series do not opt in', () => {
+test('the committed course plans match their arc maps, and other series do not opt in', () => {
   const k8s = SERIES.find((meta) => meta.slug === 'k8s-from-zero');
+  const containers = SERIES.find((meta) => meta.slug === 'containers-from-zero');
   assert.ok(k8s);
+  assert.ok(containers);
+  assert.equal(containers?.title, 'Containers from Zero');
   assert.deepEqual(k8s?.arcs, K8S_ARCS);
+  assert.deepEqual(containers?.arcs, CONTAINERS_ARCS);
+  assert.equal(k8s?.kit?.place, 'cluster');
+  assert.equal(containers?.kit?.place, 'host');
+  const courses = new Set(['k8s-from-zero', 'containers-from-zero']);
   for (const meta of SERIES) {
-    if (meta.slug !== 'k8s-from-zero') assert.equal(meta.arcs, undefined, meta.slug);
+    if (!courses.has(meta.slug)) assert.equal(meta.arcs, undefined, meta.slug);
   }
   const label = (lesson: number) => seriesLabel(k8s!.title, 1, 1, k8s!.arcs, lesson);
   assert.equal(label(1), 'Kubernetes from Zero · Foundations 1 of 12 · Lesson 1');
@@ -200,6 +229,18 @@ test('the committed Kubernetes from Zero plan matches the arc map, and other ser
   assert.equal(label(13), 'Kubernetes from Zero · Workloads & Troubleshooting 1 of 14 · Lesson 13');
   assert.equal(label(46), 'Kubernetes from Zero · EKS 2 of 6 · Lesson 46');
   assert.equal(label(104), 'Kubernetes from Zero · Certification · Lesson 104');
+  const containersLabel = (lesson: number) => seriesLabel(containers!.title, 1, 1, containers!.arcs, lesson);
+  assert.equal(containersLabel(1), 'Containers from Zero · The pieces 1 of 6 · Lesson 1');
+  assert.equal(containersLabel(6), 'Containers from Zero · The pieces 6 of 6 · Lesson 6');
+  assert.equal(containersLabel(7), 'Containers from Zero · The app 1 of 1 · Lesson 7');
+  assert.equal(containersLabel(8), 'Containers from Zero · Change, failure, and cleanup 1 of 3 · Lesson 8');
+  assert.equal(containersLabel(10), 'Containers from Zero · Change, failure, and cleanup 3 of 3 · Lesson 10');
+  assert.equal(CONTAINERS_LESSONS.length, 10);
+  CONTAINERS_LESSONS.forEach((lesson, index) => {
+    const number = index + 1;
+    assert.equal(seriesArcAt(containers!.arcs!, number)?.name, lesson.arc, lesson.post);
+    assert.equal(lesson.kit, `containers-${String(number).padStart(2, '0')}`);
+  });
 });
 
 test('arc edits change the series cache mark, and a series without arcs keeps the mark free of an arcs field', () => {

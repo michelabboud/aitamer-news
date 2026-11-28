@@ -2,6 +2,7 @@
 //   {{path}}            HTML-escaped value
 //   {{{path}}}          raw HTML
 //   {{md path}}         escaped, then `code` and **bold** become <code> and <strong>
+//   {{phrase path}}     same marks, but an apostrophe stays an apostrophe (series kit headings)
 //   {{#each path}}…{{/each}}        loop; inside, `.` is the item, `@number` its 1-based position
 //                                   (no `../`: unknown names fall through to outer scopes)
 //   {{#if path}}…{{else}}…{{/if}}   truthy test (empty arrays are false)
@@ -15,6 +16,16 @@ const esc = (s) => String(s ?? '')
 
 export function inlineMd(s) {
   return esc(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
+// Series kit headings. Same `code` and **bold** as inlineMd, but an apostrophe stays an
+// apostrophe: the Kubernetes headings were written that way in the template, and the PDF
+// has to match. & < > are still escaped.
+export function kitPhrase(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
@@ -55,6 +66,8 @@ function parse(tpl) {
       stack[stack.length - 1].alt = [];
     } else if (body.startsWith('md ')) {
       target().push({ t: 'md', v: body.slice(3).trim() });
+    } else if (body.startsWith('phrase ')) {
+      target().push({ t: 'phrase', v: body.slice(7).trim() });
     } else {
       target().push({ t: 'var', v: body });
     }
@@ -72,6 +85,7 @@ function run(nodes, scopes, partials) {
       case 'raw': out += String(lookup(scopes, n.v) ?? ''); break;
       case 'var': out += esc(lookup(scopes, n.v)); break;
       case 'md': out += inlineMd(lookup(scopes, n.v)); break;
+      case 'phrase': out += kitPhrase(lookup(scopes, n.v)); break;
       case 'partial':
         if (!(n.v in partials)) throw new Error(`Unknown partial ${n.v}`);
         out += run(parse(partials[n.v]).children, scopes, partials); break;

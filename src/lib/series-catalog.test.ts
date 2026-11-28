@@ -107,6 +107,27 @@ test('an arc plan must be a contiguous list of plain-text arcs starting at lesso
   refuses([row({ arcs: [foundations, { name: 'Foundations', start: 13 }] })], /arcs\[2\] \("Foundations"\): the name is already used/);
 });
 
+test('a kit names a lowercase place, and control-plane headings are all set or all absent', () => {
+  const headings = {
+    controlPlaneTitle: 'Control plane',
+    controlPlaneHint: 'the cluster brain',
+    nodesTitle: 'Nodes',
+    nodesHint: 'where containers run',
+    applyLead: 'Life of one `kubectl apply`',
+    applyHint: 'Deployment `web`, 2 replicas.',
+  };
+  const parsed = parseSeriesCatalog([row({ kit: { place: 'cluster', ...headings } })]);
+  assert.deepEqual(parsed[0].kit, { place: 'cluster', ...headings });
+  assert.equal(parseSeriesCatalog([row({ kit: { place: 'host' } })])[0].kit?.place, 'host');
+  refuses([row({ kit: 'cluster' })], /kit must be an object/);
+  refuses([row({ kit: { place: 'cluster', room: 'lab' } })], /kit: unknown key "room"/);
+  refuses([row({ kit: {} })], /kit: place is required/);
+  refuses([row({ kit: { place: 'Cluster' } })], /kit: place must be a singular lowercase word/);
+  refuses([row({ kit: { place: 'docker host' } })], /kit: place must be a singular lowercase word/);
+  refuses([row({ kit: { place: 'cluster', controlPlaneTitle: 'Control plane' } })], /control-plane headings go together/);
+  refuses([row({ kit: { place: 'cluster', ...headings, applyHint: 'x'.repeat(161) } })], /applyHint is longer than 160 characters/);
+});
+
 test('a hero is both fields or neither, on the media host, named for its own series', () => {
   refuses([row({ heroImage: hero.heroImage })], /heroImage and heroAlt go together/);
   refuses([row({ heroAlt: hero.heroAlt })], /heroImage and heroAlt go together/);

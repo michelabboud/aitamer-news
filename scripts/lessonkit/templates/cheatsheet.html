@@ -1,20 +1,20 @@
 <div class="blk rule-box"><span class="mono">THE ONE RULE</span>{{lesson.rule}}</div>
 
 {{#if cheatsheet.controlPlane}}
-<h2 class="sec keep-next">Control plane <span class="sec__hint">the cluster's brain: global decisions, reacting to events</span></h2>
+<h2 class="sec keep-next">{{phrase kit.controlPlaneTitle}} <span class="sec__hint">{{phrase kit.controlPlaneHint}}</span></h2>
 <div class="comp comp--head keep-next"><span>Component</span><span>Role</span><span>Where it runs</span></div>
 {{#each cheatsheet.controlPlane}}
 <div class="comp"><span class="comp__name">{{name}}</span><span>{{md role}}</span><span class="comp__where">{{md where}}</span></div>
 {{/each}}
 
-<h2 class="sec keep-next">Nodes <span class="sec__hint">where your containers run</span></h2>
+<h2 class="sec keep-next">{{phrase kit.nodesTitle}} <span class="sec__hint">{{phrase kit.nodesHint}}</span></h2>
 <div class="comp comp--head keep-next"><span>Component</span><span>Role</span><span>Where it runs</span></div>
 {{#each cheatsheet.node}}
 <div class="comp"><span class="comp__name">{{name}}</span><span>{{md role}}</span><span class="comp__where">{{md where}}</span></div>
 {{/each}}
 <div class="blk note kind-note">{{md cheatsheet.kindNote}}</div>
 
-<h2 class="sec keep-next break-before">Life of one <code>kubectl apply</code> <span class="sec__hint">Deployment <code>web</code>, 2 replicas. Every arrow goes through the API server.</span></h2>
+<h2 class="sec keep-next break-before">{{phrase kit.applyLead}} <span class="sec__hint">{{phrase kit.applyHint}}</span></h2>
 {{#each cheatsheet.applySteps}}
 <div class="step"><span class="step__n">{{@number}}</span><span class="step__who">{{who}}</span><span>{{md what}}</span></div>
 {{/each}}

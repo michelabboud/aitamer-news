@@ -36,6 +36,10 @@ Output, per lesson `<slug>`:
    "Kubernetes from Zero · Foundations 2 of 12 · Lesson 2" (place in the arc, arc size). An open-ended arc
    prints "<series> · <arc> · Lesson <n>". The build fails if the series or the lesson's arc is missing.
    Our labels say Lesson, never Part.
+   The cover's place word and the answer key's "on your …" noun come from that series row's `kit.place`
+   (`cluster` prints "Cluster" and "on your cluster"; `host` prints "Host" and "on your host").
+   The control-plane, node and apply headings come from the same `kit` object. A series that does not
+   teach that layout leaves them unset, and a lesson that sets `cheatsheet.controlPlane` then fails the build.
 4. Set `next` (`title`, `summary`, `url`). Until the next lesson is live, point `url` at the series page and
    take the summary from the post's closing "Next" line. Keep it timeless: no "tomorrow", "soon" or dates.
 5. Run the build, then open every page and check it.

@@ -11,10 +11,14 @@
  * file is read when the site is built and never shipped as a file: the build turns it into HTML.
  */
 import { SLUG_MAX_LENGTH } from '../../scripts/slug.mjs';
-import { SERIES_SLUG, type SeriesArc, type SeriesMeta } from './series.ts';
+import { SERIES_SLUG, type SeriesArc, type SeriesKit, type SeriesMeta } from './series.ts';
 
 /** The keys a row may carry. Anything else is refused. `arcs` stays last. The lesson-page fields are optional. */
-export const SERIES_KEYS = ['slug', 'title', 'description', 'heroImage', 'heroAlt', 'audience', 'learns', 'lessonTime', 'unit', 'arcs'] as const;
+export const SERIES_KEYS = ['slug', 'title', 'description', 'heroImage', 'heroAlt', 'audience', 'learns', 'lessonTime', 'unit', 'kit', 'arcs'] as const;
+
+/** The keys one lesson-kit block may carry. The control-plane headings are all present or all absent. */
+const KIT_KEYS = ['place', 'controlPlaneTitle', 'controlPlaneHint', 'nodesTitle', 'nodesHint', 'applyLead', 'applyHint'] as const;
+const KIT_PHRASE_KEYS = ['controlPlaneTitle', 'controlPlaneHint', 'nodesTitle', 'nodesHint', 'applyLead', 'applyHint'] as const;
 
 /** The keys one arc may carry. `end` is omitted only on an open final arc. */
 const ARC_KEYS = ['name', 'start', 'end'] as const;
@@ -35,6 +39,8 @@ export const SERIES_LEARN_MAX_LENGTH = 160;
 export const SERIES_LEARNS_MAX = 8;
 /** The stated time for a lesson, in the catalog's words. */
 export const SERIES_LESSON_TIME_MAX_LENGTH = 80;
+/** One lesson-kit heading or hint. It is plain text; backticks become code in the PDF. */
+export const SERIES_KIT_PHRASE_MAX_LENGTH = 160;
 
 /**
  * A series hero: a hashed JPEG on the media host's heroes folder, named for its own series
@@ -104,6 +110,30 @@ function parseArcs(value: unknown, where: string): readonly SeriesArc[] {
   return Object.freeze(arcs.map((arc) => Object.freeze(arc)));
 }
 
+/**
+ * Lesson-kit wording. `place` is required. The six control-plane headings are optional, and a
+ * partial set is refused so a PDF cannot print a blank heading.
+ */
+function parseKit(value: unknown, where: string): SeriesKit {
+  const at = `${where}: kit`;
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) throw new SeriesCatalogError(`${at} must be an object`);
+  const record = value as Record<string, unknown>;
+  const unknown = Object.keys(record).filter((key) => !(KIT_KEYS as readonly string[]).includes(key));
+  if (unknown.length) throw new SeriesCatalogError(`${at}: unknown key${unknown.length === 1 ? '' : 's'} ${unknown.map((key) => JSON.stringify(key)).join(', ')}`);
+  if (!('place' in record)) throw new SeriesCatalogError(`${at}: place is required`);
+  const place = plainText(record.place, at, 'place', 20);
+  if (!/^[a-z]+$/.test(place)) throw new SeriesCatalogError(`${at}: place must be a singular lowercase word`);
+  const phrases = KIT_PHRASE_KEYS.filter((key) => key in record);
+  if (phrases.length !== 0 && phrases.length !== KIT_PHRASE_KEYS.length) {
+    throw new SeriesCatalogError(`${at}: control-plane headings go together; set ${KIT_PHRASE_KEYS.join(', ')}, or none`);
+  }
+  const kit: SeriesKit = { place };
+  if (phrases.length) {
+    for (const key of KIT_PHRASE_KEYS) kit[key] = plainText(record[key], at, key, SERIES_KIT_PHRASE_MAX_LENGTH);
+  }
+  return Object.freeze(kit);
+}
+
 function parseLearns(value: unknown, where: string): readonly string[] {
   if (!Array.isArray(value) || value.length === 0) throw new SeriesCatalogError(`${where}: learns must be a non-empty array`);
   if (value.length > SERIES_LEARNS_MAX) throw new SeriesCatalogError(`${where}: learns lists more than ${SERIES_LEARNS_MAX} lines`);
@@ -166,6 +196,7 @@ export function parseSeriesCatalog(data: unknown): readonly SeriesMeta[] {
       if (!/^[a-z]+$/.test(unit)) throw new SeriesCatalogError(`${where}: unit must be a singular lowercase word`);
       meta.unit = unit;
     }
+    if ('kit' in record) meta.kit = parseKit(record.kit, where);
     if ('arcs' in record) meta.arcs = parseArcs(record.arcs, where);
     return Object.freeze(meta);
   });
