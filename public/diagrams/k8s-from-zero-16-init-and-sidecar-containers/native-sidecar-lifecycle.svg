@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+<title id="t">A native sidecar starts first, stays up, and stops last</title>
+<desc id="d">Top: the lab Pod app-with-sidecar. The log-shipper is listed under initContainers with restartPolicy Always. It started at 21:10:47 UTC, its startupProbe passed about 5 seconds later, and only then did the app container start at 21:10:53. Both ran side by side for the life of the Pod; on shutdown the app stops first and the sidecar after it. Bottom: two Jobs from the lab. With the log shipper as a second regular container, the Job stayed Running at 0/1 completions after the work finished, highlighted. With a native sidecar, the Job reached Complete; with a TERM trap in the sidecar it took 8 seconds instead of 39.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="500" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">Native sidecar: initContainers entry with restartPolicy: Always</text>
+<line class="lnf" x1="170" y1="70" x2="770" y2="70"/>
+<line class="ln" x1="170" y1="62" x2="170" y2="78"/>
+<text class="ts" x="174" y="58" text-anchor="start">21:10:47</text>
+<line class="ln" x1="330" y1="62" x2="330" y2="78"/>
+<text class="ts" x="334" y="58" text-anchor="start">21:10:53</text>
+<line class="ln" x1="650" y1="62" x2="650" y2="78"/>
+<text class="ts" x="654" y="58" text-anchor="start">Pod deleted</text>
+<text class="tm" x="24" y="118" text-anchor="start">log-shipper</text>
+<rect class="boxs" x="170" y="92" width="560" height="44" rx="8"/>
+<text class="ts" x="180" y="120" text-anchor="start">sidecar: running the whole time</text>
+<text class="tm" x="24" y="178" text-anchor="start">app</text>
+<rect class="box" x="330" y="152" width="320" height="44" rx="8"/>
+<text class="ts" x="340" y="180" text-anchor="start">starts after the probe passes</text>
+<line class="ln" x1="330" y1="136" x2="330" y2="150" marker-end="url(#ah)"/>
+<text class="ts" x="172" y="156" text-anchor="start">startupProbe ok</text>
+<text class="ts" x="660" y="180" text-anchor="start">stops first</text>
+<text class="ts" x="736" y="120" text-anchor="start">last</text>
+<rect class="panel" x="24" y="222" width="752" height="40" rx="10"/>
+<text class="ts" x="40" y="247" text-anchor="start">READY 2/2. Logs: kubectl logs app-with-sidecar -c log-shipper</text>
+<text class="t" x="24" y="294" text-anchor="start">Same idea in a Job (lab, 25 s after start)</text>
+<rect class="boxc" x="24" y="308" width="368" height="120" rx="10"/>
+<text class="tc" x="40" y="334" text-anchor="start">sidecar in containers</text>
+<text class="ts" x="40" y="360" text-anchor="start">work done, shipper still running</text>
+<text class="tm" x="40" y="384" text-anchor="start">Pod 1/2 NotReady</text>
+<text class="tm" x="40" y="408" text-anchor="start">Job Running 0/1, never ends</text>
+<rect class="boxs" x="408" y="308" width="368" height="120" rx="10"/>
+<text class="t" x="424" y="334" text-anchor="start">native sidecar</text>
+<text class="ts" x="424" y="360" text-anchor="start">kubelet stops it when work ends</text>
+<text class="tm" x="424" y="384" text-anchor="start">Job Complete 1/1</text>
+<text class="tm" x="424" y="408" text-anchor="start">39 s, or 8 s with a TERM trap</text>
+<rect class="panel" x="24" y="444" width="752" height="46" rx="10"/>
+<text class="ts" x="40" y="472" text-anchor="start">A sidecar that ignores SIGTERM is killed after the 30 s grace period (exit 137).</text>
+</svg>
