@@ -1555,3 +1555,4 @@
 1552 nvidia-nemotron-labs-image-30b-a3b-autoregressive-open-weights
 1553 openai-private-inference-alpha-confidential-computing
 1554 k8s-from-zero-16-init-and-sidecar-containers
+1555 k8s-from-zero-17-scheduling-basics
