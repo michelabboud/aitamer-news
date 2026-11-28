@@ -2,6 +2,7 @@
 title: "Davila signs orders that moot Apple's injunction bid against OpenAI"
 description: "Judge Davila's 16 October orders moot Apple's injunction motion and limit use of alleged Apple trade secrets. They are not a finding that any were taken."
 pubDate: "2026-10-17T15:37:00Z"
+updatedDate: "2026-11-28T07:40:00Z"
 specimen: 893
 section: general
 subsection: ai-business
@@ -36,6 +37,12 @@ sources:
     url: https://www.litigationsentinel.com/article/apple-openai-trade-secret-stipulation
   - title: "Court orders hiring records in Apple's OpenAI case as OpenAI alleges a file transfer"
     url: https://aitamer.news/posts/openai-apple-trade-secret-cases/
+  - title: "CourtListener: Apple Inc. v. Liu, Document 217, answer and counterclaims (27 November 2026)"
+    url: https://www.courtlistener.com/docket/73602437/217/apple-inc-v-liu/
+  - title: "CourtListener: Apple Inc. v. Liu, Document 216, notice of withdrawal of motion to dismiss (27 November 2026)"
+    url: https://storage.courtlistener.com/recap/gov.uscourts.cand.474095/gov.uscourts.cand.474095.216.0.pdf
+  - title: "CBS News: OpenAI countersues Apple over allegations of stealing trade secrets (27 November 2026)"
+    url: https://www.cbsnews.com/news/openai-countersues-apple-trade-secrets-lawsuit/
 ---
 
 On 16 October 2026, U.S. District Judge Edward J. Davila signed an order that grants a joint stipulation in Apple Inc. v. Liu, No. 5:26-cv-07078-EJD, and states that Apple's motion for a preliminary injunction "shall be deemed moot." The order is [document 188](https://storage.courtlistener.com/recap/gov.uscourts.cand.474095/gov.uscourts.cand.474095.188.0.pdf) on the [CourtListener docket](https://www.courtlistener.com/docket/73602437/apple-inc-v-liu/?page=3). The signature block is dated 16 October 2026. Counsel dated the stipulation 15 October 2026. A second order the same day, [document 189](https://storage.courtlistener.com/recap/gov.uscourts.cand.474095/gov.uscourts.cand.474095.189.0.pdf), grants a separate stipulation on expedited discovery.
@@ -57,3 +64,9 @@ The court's 14 October minute entry says counsel stipulated to submit an order t
 A [Daily Journal](https://www.dailyjournal.com/article/395378-openai-apple-reach-deal-to-avert-injunction-in-trade-secrets-case) teaser says Judge Davila approved the stipulation Friday morning, then stops for subscribers. A [Litigation Sentinel](https://www.litigationsentinel.com/article/apple-openai-trade-secret-stipulation) article dated 16 October still says that, as of 15 October, no ruling on that day's stipulations was on the docket. The docket, as of 17 October, lists documents 188 and 189 as signed and filed on 16 October.
 
 Document 189, signed the same day, rewrites pieces of the 13 October expedited-discovery order and says the rest of that order remains in effect.
+
+## Update, 28 November 2026: the defendants answer and counterclaim
+
+On 27 November the defendants filed their [answer and counterclaims](https://www.courtlistener.com/docket/73602437/217/apple-inc-v-liu/) (Document 217) and [withdrew their motion to dismiss](https://storage.courtlistener.com/recap/gov.uscourts.cand.474095/gov.uscourts.cand.474095.216.0.pdf) Apple's complaint (Document 216). OpenAI and io Products bring four counterclaims against Apple: trade-secret misappropriation under the federal Defend Trade Secrets Act, interference with contracts, and two California unfair-competition claims, one aimed at Apple's employee IP agreements and one at its personal-account practices. Chang Liu and Tang Tan add their own claims, including declaratory relief that parts of Apple's IP agreements are void under California Business and Professions Code section 16600, which voids contracts that restrain someone from a lawful profession.
+
+The filing builds on the October allegation covered in our [earlier post](/posts/openai-apple-trade-secret-cases/): it says an employee who spent a short time at OpenAI sent confidential OpenAI documents to his personal account in the days before returning to Apple. It also alleges Apple pressured shared suppliers, including one that moved OpenAI production to an overnight shift after Apple objected to the work running alongside its own. These are allegations, not findings. Apple told [CBS News](https://www.cbsnews.com/news/openai-countersues-apple-trade-secrets-lawsuit/) the counterclaims are "a transparent attempt to distract" from its case, "in which OpenAI has already been ordered to stop using Apple's confidential information."
