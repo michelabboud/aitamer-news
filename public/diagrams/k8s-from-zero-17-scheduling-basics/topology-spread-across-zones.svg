@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-labelledby="t d">
+<title id="t">topologySpreadConstraints keep zones within maxSkew</title>
+<desc id="d">Three zones, each one worker. Left: the Deployment shop with 6 replicas, maxSkew 1, topologyKey zone and whenUnsatisfiable DoNotSchedule, placed 2, 2 and 2. Right: worker3 in zone-c was cordoned and the Deployment scaled to 9. zone-a and zone-b grew to 3 each, which keeps the difference to zone-c at 1. The ninth Pod, highlighted, stayed Pending: putting it in zone-a or zone-b would make 4 against 2, a skew of 2. The event said 1 node was unschedulable and 2 did not match pod topology spread constraints. After uncordon, it went to zone-c and the count became 3, 3, 3.</desc>
+<style>
+.bg { fill: #f7f3ea; }
+.t { font-family: system-ui, sans-serif; font-size: 14px; fill: #2b3445; }
+.ts { font-family: system-ui, sans-serif; font-size: 12px; fill: #5a6377; }
+.th { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 700; fill: #2b3445; }
+.tm { font-family: ui-monospace, monospace; font-size: 12px; fill: #2b3445; }
+.tc { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #b9503a; }
+.box { fill: #ffffff; stroke: #8a93a3; stroke-width: 1.5; }
+.boxc { fill: #fbe3dc; stroke: #d9674f; stroke-width: 1.5; }
+.boxb { fill: #e3ecf7; stroke: #5b85b8; stroke-width: 1.5; }
+.boxs { fill: #e5ede2; stroke: #6f8f68; stroke-width: 1.5; }
+.boxd { fill: none; stroke: #8a93a3; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.ln { stroke: #6b7385; stroke-width: 1.6; fill: none; }
+.lnc { stroke: #d9674f; stroke-width: 2.2; fill: none; }
+.lnb { stroke: #5b85b8; stroke-width: 1.6; fill: none; }
+.lnf { stroke: #b6bcc8; stroke-width: 1; fill: none; }
+.ah { fill: #6b7385; }
+.ahc { fill: #d9674f; }
+.dc { fill: #d9674f; }
+.db { fill: #5b85b8; }
+.ds { fill: #6f8f68; }
+.dn { fill: #c9a86a; }
+.dg { fill: #a3aab8; }
+.panel { fill: #efe8da; }
+.boxn { fill: #f3ead6; stroke: #c9a86a; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1c2230; }
+  .t { fill: #e8eaf0; }
+  .ts { fill: #b3bacb; }
+  .th { fill: #f1f2f6; }
+  .tm { fill: #e8eaf0; }
+  .tc { fill: #f09a86; }
+  .box { fill: #262e3f; stroke: #7d879a; }
+  .boxc { fill: #4a2d2a; stroke: #e8806b; }
+  .boxb { fill: #243650; stroke: #8fb3d9; }
+  .boxs { fill: #2a3a2c; stroke: #9bb693; }
+  .boxd { stroke: #7d879a; }
+  .ln { stroke: #aab2c2; }
+  .lnc { stroke: #e8806b; }
+  .lnb { stroke: #8fb3d9; }
+  .lnf { stroke: #4a5366; }
+  .ah { fill: #aab2c2; }
+  .ahc { fill: #e8806b; }
+  .dc { fill: #e8806b; }
+  .db { fill: #8fb3d9; }
+  .ds { fill: #9bb693; }
+  .dn { fill: #d9cbb0; }
+  .dg { fill: #6b7385; }
+  .panel { fill: #232a38; }
+  .boxn { fill: #3a3424; stroke: #d9cbb0; }
+}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+<marker id="ahc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahc" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="800" height="470" rx="12"/>
+<text class="th" x="24" y="32" text-anchor="start">shop: maxSkew 1 across topology.kubernetes.io/zone</text>
+<rect class="panel" x="24" y="56" width="368" height="320" rx="12"/>
+<text class="t" x="40" y="82" text-anchor="start">6 replicas</text>
+<text class="ts" x="40" y="102" text-anchor="start">placed 2 / 2 / 2</text>
+<rect class="boxs" x="40" y="300" width="104" height="40" rx="8"/>
+<text class="tm" x="50" y="325" text-anchor="start">zone-a</text>
+<rect class="box" x="52" y="262" width="80" height="32" rx="6"/>
+<text class="tm" x="62" y="283" text-anchor="start">shop</text>
+<rect class="box" x="52" y="222" width="80" height="32" rx="6"/>
+<text class="tm" x="62" y="243" text-anchor="start">shop</text>
+<rect class="boxs" x="156" y="300" width="104" height="40" rx="8"/>
+<text class="tm" x="166" y="325" text-anchor="start">zone-b</text>
+<rect class="box" x="168" y="262" width="80" height="32" rx="6"/>
+<text class="tm" x="178" y="283" text-anchor="start">shop</text>
+<rect class="box" x="168" y="222" width="80" height="32" rx="6"/>
+<text class="tm" x="178" y="243" text-anchor="start">shop</text>
+<rect class="boxs" x="272" y="300" width="104" height="40" rx="8"/>
+<text class="tm" x="282" y="325" text-anchor="start">zone-c</text>
+<rect class="box" x="284" y="262" width="80" height="32" rx="6"/>
+<text class="tm" x="294" y="283" text-anchor="start">shop</text>
+<rect class="box" x="284" y="222" width="80" height="32" rx="6"/>
+<text class="tm" x="294" y="243" text-anchor="start">shop</text>
+<text class="ts" x="40" y="362" text-anchor="start">skew = 2 - 2 = 0</text>
+<rect class="panel" x="408" y="56" width="368" height="320" rx="12"/>
+<text class="t" x="424" y="82" text-anchor="start">9 replicas, worker3 cordoned</text>
+<text class="ts" x="424" y="102" text-anchor="start">3 / 3 / 2, one Pending</text>
+<rect class="boxs" x="424" y="300" width="104" height="40" rx="8"/>
+<text class="tm" x="434" y="325" text-anchor="start">zone-a</text>
+<rect class="box" x="436" y="262" width="80" height="32" rx="6"/>
+<text class="tm" x="446" y="283" text-anchor="start">shop</text>
+<rect class="box" x="436" y="222" width="80" height="32" rx="6"/>
+<text class="tm" x="446" y="243" text-anchor="start">shop</text>
+<rect class="box" x="436" y="182" width="80" height="32" rx="6"/>
+<text class="tm" x="446" y="203" text-anchor="start">shop</text>
+<rect class="boxs" x="540" y="300" width="104" height="40" rx="8"/>
+<text class="tm" x="550" y="325" text-anchor="start">zone-b</text>
+<rect class="box" x="552" y="262" width="80" height="32" rx="6"/>
+<text class="tm" x="562" y="283" text-anchor="start">shop</text>
+<rect class="box" x="552" y="222" width="80" height="32" rx="6"/>
+<text class="tm" x="562" y="243" text-anchor="start">shop</text>
+<rect class="box" x="552" y="182" width="80" height="32" rx="6"/>
+<text class="tm" x="562" y="203" text-anchor="start">shop</text>
+<rect class="boxd" x="656" y="300" width="104" height="40" rx="8"/>
+<text class="tm" x="666" y="325" text-anchor="start">zone-c</text>
+<rect class="box" x="668" y="262" width="80" height="32" rx="6"/>
+<text class="tm" x="678" y="283" text-anchor="start">shop</text>
+<rect class="box" x="668" y="222" width="80" height="32" rx="6"/>
+<text class="tm" x="678" y="243" text-anchor="start">shop</text>
+<text class="ts" x="424" y="362" text-anchor="start">cordoned: zone-c</text>
+<rect class="boxc" x="424" y="116" width="336" height="30" rx="6"/>
+<text class="tc" x="436" y="136" text-anchor="start">9th: 4 vs 2 would be skew 2</text>
+<rect class="panel" x="24" y="392" width="752" height="64" rx="10"/>
+<text class="ts" x="40" y="416" text-anchor="start">DoNotSchedule: leave the Pod Pending. ScheduleAnyway: place it, prefer the lower skew.</text>
+<text class="ts" x="40" y="440" text-anchor="start">After kubectl uncordon worker3, the Pending Pod went to zone-c: 3 / 3 / 3.</text>
+</svg>
