@@ -1563,3 +1563,4 @@
 1560 k8s-from-zero-19-ingress-and-gateway-basics
 1561 k8s-from-zero-20-rbac-and-serviceaccounts
 1562 k8s-from-zero-21-troubleshooting-pods
+1563 k8s-from-zero-22-troubleshooting-the-rest
