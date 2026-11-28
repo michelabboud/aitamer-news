@@ -31,10 +31,15 @@ const SERIES = path.join(root, 'src/data/series.json');
 const SITE = 'https://aitamer.news/';
 
 // The three documents in a kit. `key` is also the utm_content value.
+// The answer key names the lab with the series kit.place noun.
+export function answerKeyIntro(place) {
+  return `The answers to the homework sheet, matched by exercise number. Every answer comes from the lesson. Names with random suffixes will differ on your ${place}.`;
+}
+
 const DOCS = [
   { key: 'cheatsheet', template: 'cheatsheet.html', label: 'Cheat sheet', intro: (d) => d.cheatsheet.intro },
   { key: 'homework', template: 'homework.html', label: 'Homework', intro: () => 'Exercises drawn only from the lesson: recall, run this and explain, predict the outcome.' },
-  { key: 'answer-key', template: 'answer-key.html', label: 'Answer key', intro: () => 'The answers to the homework sheet, matched by exercise number. Every answer comes from the lesson. Names with random suffixes will differ on your cluster.' },
+  { key: 'answer-key', template: 'answer-key.html', label: 'Answer key', intro: (_d, series) => answerKeyIntro(series.place) },
 ];
 
 // The site's self-hosted fonts (src/styles/fonts.css), latin subset; Chrome embeds the glyphs it uses.
@@ -130,8 +135,11 @@ async function main() {
   try {
     for (const slug of lessons) {
       const data = prepare(JSON.parse(await readFile(path.join(CONTENT, `${slug}.json`), 'utf8')));
-      // Fails the build if the series or the lesson's arc is not in src/data/series.json.
+      // Fails the build if the series, the lesson's arc, or the place noun is not in src/data/series.json.
       const series = seriesLine(catalog, data.lesson.seriesSlug, data.lesson.number);
+      if (data.cheatsheet?.controlPlane && !series.headings) {
+        throw new Error(`${slug}: the cheat sheet has a control plane, and series "${data.lesson.seriesSlug}" does not define those headings in src/data/series.json`);
+      }
       const artPath = path.join(CONTENT, data.art.file);
       if (!existsSync(artPath)) throw new Error(`Missing art ${artPath}`);
 
@@ -150,9 +158,10 @@ async function main() {
           ...data,
           docTitle: `${data.lesson.title} · ${doc.label}${preview ? ' · PREVIEW' : ''} · aitamer.news`,
           seriesLine: series.label, preview,
+          kit: { placeLabel: series.placeLabel, ...(series.headings ?? {}) },
           docLabel: doc.label,
           docKey: doc.key,
-          docIntro: doc.intro(data),
+          docIntro: doc.intro(data, series),
           links, qrSvg, mascotSvg, css, paginateJs,
           fontFaces: faces,
           artUrl: pathToFileURL(artPath).href,
@@ -193,4 +202,6 @@ async function main() {
   if (failed) process.exit(1);
 }
 
-main().catch((err) => { console.error(err.message ?? err); process.exit(1); });
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main().catch((err) => { console.error(err.message ?? err); process.exit(1); });
+}

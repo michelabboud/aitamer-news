@@ -21,6 +21,21 @@ export interface SeriesArc {
   end?: number;
 }
 
+/**
+ * Lesson-kit wording for a series. `place` is the noun on the cover and the answer key
+ * (`cluster` prints "Cluster" and "on your cluster"). The control-plane headings are optional
+ * and only a series that teaches that layout sets them.
+ */
+export interface SeriesKit {
+  place: string;
+  controlPlaneTitle?: string;
+  controlPlaneHint?: string;
+  nodesTitle?: string;
+  nodesHint?: string;
+  applyLead?: string;
+  applyHint?: string;
+}
+
 export interface SeriesMeta {
   slug: string;
   title: string;
@@ -38,6 +53,8 @@ export interface SeriesMeta {
   lessonTime?: string;
   /** Singular noun for a part on the series page, such as `lesson`. Absent means `part`. */
   unit?: string;
+  /** Lesson-kit place noun and, for a series that uses it, the control-plane cheat-sheet headings. */
+  kit?: SeriesKit;
 }
 
 /** The fields a series check needs. A content entry satisfies this. */
@@ -157,8 +174,8 @@ export function seriesIntro(view: SeriesView): SeriesIntro | null {
 }
 
 /**
- * A structured course keeps numbered lessons. The catalog says so with `arcs`
- * (Kubernetes from Zero is the one that does). Other series list newest first.
+ * A structured course keeps numbered lessons. The catalog says so with `arcs`.
+ * Other series list newest first.
  */
 export function seriesIsCourse(view: { arcs?: readonly SeriesArc[] }): boolean {
   return Boolean(view.arcs?.length);

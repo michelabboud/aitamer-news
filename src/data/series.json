@@ -48,6 +48,15 @@
     ],
     "lessonTime": "about 30 minutes",
     "unit": "lesson",
+    "kit": {
+      "place": "cluster",
+      "controlPlaneTitle": "Control plane",
+      "controlPlaneHint": "the cluster's brain: global decisions, reacting to events",
+      "nodesTitle": "Nodes",
+      "nodesHint": "where your containers run",
+      "applyLead": "Life of one `kubectl apply`",
+      "applyHint": "Deployment `web`, 2 replicas. Every arrow goes through the API server."
+    },
     "arcs": [
       { "name": "Foundations", "start": 1, "end": 12 },
       { "name": "Workloads & Troubleshooting", "start": 13, "end": 26 },
@@ -62,6 +71,27 @@
       { "name": "Production Ops", "start": 87, "end": 97 },
       { "name": "AI & GPU", "start": 98, "end": 103 },
       { "name": "Certification", "start": 104 }
+    ]
+  },
+  {
+    "slug": "containers-from-zero",
+    "title": "Containers from Zero",
+    "description": "A ten-lesson foundation in Docker and Compose, from what a container is to a small web app with a database on one machine, one lesson a week.",
+    "audience": "People new to containers: a developer who wants to run their app the same way everywhere, a student, or an operator who has seen docker run in a README and wants to understand it.",
+    "learns": [
+      "What a container is, how it differs from a virtual machine, and how to build an image with a Dockerfile.",
+      "How to run containers with ports, volumes, networks and configuration, then describe them in one Compose file.",
+      "How to run a small web app with a database, read health checks, restart policies and logs when it fails, and clean up."
+    ],
+    "lessonTime": "about 15 minutes of reading, plus an optional lab",
+    "unit": "lesson",
+    "kit": {
+      "place": "host"
+    },
+    "arcs": [
+      { "name": "The pieces", "start": 1, "end": 6 },
+      { "name": "The app", "start": 7, "end": 7 },
+      { "name": "Change, failure, and cleanup", "start": 8, "end": 10 }
     ]
   }
 ]

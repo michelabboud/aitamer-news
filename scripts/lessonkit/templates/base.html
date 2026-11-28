@@ -54,7 +54,7 @@
     <div class="cover__kicker"><b>{{seriesLine}}</b> · Lesson kit · {{docLabel}}{{#if preview}} · <span class="preview-tag">PREVIEW, NOT FINAL</span>{{/if}}</div>
     <h1 class="cover__title">{{lesson.title}}</h1>
     {{#if docIntro}}<p class="cover__intro">{{md docIntro}}</p>{{/if}}
-    <div class="cover__tested">{{lesson.tested}}. Cluster: {{lesson.cluster}}.</div>
+    <div class="cover__tested">{{lesson.tested}}. {{kit.placeLabel}}: {{lesson.cluster}}.</div>
   </div>
 </template>
 
