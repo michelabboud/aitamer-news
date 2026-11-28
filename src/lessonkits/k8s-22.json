@@ -6,7 +6,7 @@
     "seriesSlug": "k8s-from-zero",
     "number": 22,
     "title": "Kubernetes from Zero, part 22: troubleshooting Services, DNS, stuck deletes and sick nodes",
-    "shortTitle": "Troubleshooting the rest",
+    "shortTitle": "Troubleshooting Services, DNS, deletes and nodes",
     "description": "Fix a Service with no endpoints, a DNS lookup that fails, an object stuck in Terminating, a NotReady node and an evicted Pod, then debug with kubectl debug.",
     "url": "https://aitamer.news/posts/k8s-from-zero-22-troubleshooting-the-rest/",
     "source": "src/content/posts/k8s-from-zero-22-troubleshooting-the-rest.md",
@@ -33,68 +33,73 @@
     "urlLabel": "Series page"
   },
   "cheatsheet": {
-    "intro": "Services, DNS, finalizers, nodes, and the commands from Lesson 22.",
+    "intro": "Services, DNS, stuck deletes, sick nodes, and the commands from Lesson 22.",
     "boards": [
       {
-        "title": "Follow the failure",
+        "title": "Follow the request",
         "hint": "from the recap",
         "headName": "Stop",
         "headRole": "What the lesson says",
-        "headWhere": "The clue",
+        "headWhere": "What to read",
         "rows": [
           {
-            "name": "No endpoints",
-            "role": "The Service exists and has a ClusterIP, and the EndpointSlice is empty. The lab's selector was the typo wbe.",
-            "where": "endpoints unset"
-          },
-          {
-            "name": "Wrong port",
-            "role": "Endpoints were present and wget still said Connection refused. The slice showed port 8080. The container listened on 80.",
-            "where": "targetPort"
+            "name": "Service name, endpoints, port, Pod",
+            "role": "Follow a Service request in that order. bad address and Connection refused point at different stops.",
+            "where": "kubectl get endpointslices, then exec and wget or netstat"
           },
           {
             "name": "DNS",
-            "role": "bad address means the name did not resolve. web.default looks in the default namespace. The full name is service.namespace.svc.cluster.local.",
-            "where": "CoreDNS endpoints"
+            "role": "If CoreDNS is scaled to zero, lookups fail until you scale it back. /etc/resolv.conf in the Pod shows the cluster DNS.",
+            "where": "kubectl scale deploy/coredns -n kube-system"
           },
           {
             "name": "Finalizer",
-            "role": "An object, or a whole namespace, stays Terminating until the owner removes the finalizer. The lab's key was example.com/cleanup.",
-            "where": "deletionTimestamp"
+            "role": "Keeps an object, or a whole namespace, in Terminating until its owner removes the finalizer. The namespace conditions tell you which one.",
+            "where": "metadata.finalizers, namespace status"
           },
           {
-            "name": "NotReady",
-            "role": "The lab's node went NotReady 49 seconds after kubelet stopped. EndpointSlice ready became false while Pods still showed Running. Eviction followed the 300 second toleration.",
-            "where": "node conditions"
+            "name": "Silent node",
+            "role": "In the lab the node was NotReady after about 50 seconds, lost Service traffic at once, and lost its Pods after the 300-second default toleration.",
+            "where": "kubectl describe node"
+          },
+          {
+            "name": "Eviction",
+            "role": "The kubelet evicts Pods to protect its node. status.reason tells you when that happened. The kubelet does not respect a PDB for node-pressure eviction.",
+            "where": "status.reason, Failed phase"
+          },
+          {
+            "name": "kubectl debug",
+            "role": "Adds tools next to a shell-less container (--target) or on a node (node/<name>, then chroot /host).",
+            "where": "kubectl debug"
           }
         ]
       },
       {
-        "title": "Two more tools",
-        "hint": "as the lesson states them",
-        "headName": "Case",
-        "headRole": "What the lesson says",
-        "headWhere": "The command",
+        "title": "Commands from the lab",
+        "hint": "from the cheat sheet",
+        "headName": "Task",
+        "headRole": "Command",
+        "headWhere": "Note",
         "rows": [
           {
-            "name": "Evicted",
-            "role": "kind sets node disk thresholds to 0 percent, so the lab could not show DiskPressure. A Pod with an ephemeral-storage limit of 20Mi was evicted when it wrote past that limit.",
-            "where": "status.reason Evicted"
+            "name": "See Service endpoints",
+            "role": "kubectl get endpointslice -l kubernetes.io/service-name=<svc>",
+            "where": "empty set means the selector matches no Pod"
           },
           {
-            "name": "No shell",
-            "role": "kubectl debug --target adds an ephemeral container beside a container that has no shell. debug node starts a Pod with the node root at /host.",
-            "where": "delete the debug Pod after"
+            "name": "Patch a selector",
+            "role": "kubectl patch service <svc> -p '{...selector...}'",
+            "where": "then endpoints should appear"
           },
           {
-            "name": "kube-proxy",
-            "role": "The first wget after the targetPort patch still failed, and the same command three seconds later worked.",
-            "where": "wait a second"
+            "name": "Clear a stuck finalizer",
+            "role": "kubectl patch <obj> --type=merge -p '{\"metadata\":{\"finalizers\":null}}'",
+            "where": "only when you understand why it is there"
           },
           {
-            "name": "Namespace",
-            "role": "A stuck namespace reports NamespaceContentRemaining and NamespaceFinalizersRemaining, and names the finalizer.",
-            "where": "kubectl get namespace"
+            "name": "Debug a node",
+            "role": "kubectl debug node/<n> --image=busybox:1.37 -- chroot /host sh",
+            "where": "sees the node's systemd and disks"
           }
         ]
       }
@@ -168,7 +173,7 @@
             "note": "clears evicted Pods"
           },
           {
-            "cmd": "kubectl debug node/k8s-ep22-worker -n k8s-from-zero --image=busybox:1.37 -- chroot /host sh -c 'systemctl is-active kubelet'",
+            "cmd": "kubectl debug node/k8s-ep22-worker -n k8s-from-zero --image=busybox:1.37 -- chroot /host sh -c 'systemctl is-active kubelet containerd; df -h /var | tail -1; journalctl -u kubelet --no-pager -n 3 -o cat | cut -c1-110'",
             "note": "host files are under /host"
           }
         ]
@@ -176,25 +181,25 @@
     ]
   },
   "homework": {
-    "intro": "Use a kind cluster with one worker and the namespace k8s-from-zero. The lesson's cluster is k8s-ep22. Answers are in the separate answer key.",
+    "intro": "The lesson uses a two-node kind cluster (lab name k8s-ep22) and the namespace k8s-from-zero. Answers are in the separate answer key.",
     "sections": [
       {
         "title": "Recall",
         "hint": "Answer from memory, then check the lesson.",
         "exercises": [
           {
-            "q": "What is the difference between bad address and Connection refused?",
-            "a": "bad address means the name did not resolve. Connection refused means the name resolved and nothing answered. A wrong namespace gives the first. A wrong targetPort gives the second, even when endpoints exist.",
+            "q": "In what order should you follow a failing Service request, and what do bad address and Connection refused point at?",
+            "a": "Name, endpoints, port, Pod. bad address points earlier (often DNS or the name). Connection refused points later: the packet arrived but nothing is listening on that port, for example a wrong targetPort.",
             "lines": 3
           },
           {
-            "q": "Why does an object stay in Terminating after kubectl delete returns?",
-            "a": "A finalizer is still set. The owner is supposed to remove it. The lab's ConfigMap kept example.com/cleanup, and deletionTimestamp was set, until a patch cleared the finalizers.",
-            "lines": 2
+            "q": "What does a finalizer do, and how do you see which one is blocking a namespace?",
+            "a": "It keeps the object, or a whole namespace, in Terminating until its owner removes that key from metadata.finalizers. Namespace conditions tell you which object still has a finalizer. The docs warn not to strip a finalizer unless you understand it and have cleaned up another way.",
+            "lines": 3
           },
           {
-            "q": "How soon did the lab's node go NotReady, and when were its Pods evicted?",
-            "a": "NotReady 49 seconds after kubelet stopped. The default toleration for not-ready and unreachable is 300 seconds, and the eviction came after that. EndpointSlice ready was already false while get pods still said Running.",
+            "q": "What did the lab observe when kubelet was stopped on a worker, and when does node-pressure eviction happen?",
+            "a": "The node became NotReady after about 50 seconds, lost Service traffic at once, and lost its Pods after the 300-second default toleration. Node-pressure eviction is the kubelet terminating Pods to reclaim node resources; status.reason records it, and a PDB is not respected.",
             "lines": 3
           }
         ]
@@ -204,18 +209,18 @@
         "hint": "Run each command, then answer.",
         "exercises": [
           {
-            "q": "With the lesson's typo selector, what does the EndpointSlice show, and what does wget from the client print?",
-            "a": "No addresses. wget says Connection refused to the ClusterIP. After the selector is patched to app.kubernetes.io/name=web, endpoints appear. If PORTS is still 8080, the Pod on port 80 still refuses the Service.",
+            "q": "The web Service has no endpoints. What two mismatches does the lesson fix, in order?",
+            "a": "First a wrong selector, patched to app.kubernetes.io/name=web so EndpointSlices fill. Then a wrong targetPort, found with netstat inside the Pod and patched so traffic hits the listening port.",
             "lines": 3
           },
           {
-            "q": "Scale CoreDNS to 0 and look up the Service. What did the lesson record?",
-            "a": "The kube-dns EndpointSlice has no endpoints. wget to web.k8s-from-zero prints bad address. nslookup to the full name times out and says connection refused to 10.96.0.10. Scaling CoreDNS back to 2 restores the lookup.",
-            "lines": 2
+            "q": "You scale CoreDNS to zero, then back to two. What fails in between?",
+            "a": "DNS lookups from a client Pod fail until CoreDNS is running again. /etc/resolv.conf in the Pod still points at the cluster DNS Service.",
+            "lines": 3
           },
           {
-            "q": "Read disk-hog's status.reason. What message did the lesson record, and why was this not DiskPressure?",
-            "a": "Evicted: Pod ephemeral local storage usage exceeds the total limit of containers 20Mi. kind sets the node disk thresholds to 0 percent, so the lab could not raise DiskPressure. Evicted Pods stay Failed until you delete them.",
+            "q": "How do you get a shell in the pause Pod, and how do you inspect kubelet on the node?",
+            "a": "kubectl debug -it --image=busybox:1.37 --target=app -c shell for the shell-less Pod. kubectl debug node/<name> --image=busybox:1.37 -- chroot /host sh, then systemctl and df, for the node.",
             "lines": 3
           }
         ]
@@ -225,18 +230,13 @@
         "hint": "Write your prediction first. Then check the answer key.",
         "exercises": [
           {
-            "q": "You patch targetPort and the next wget still fails. What does the lesson tell you to do before you undo the fix?",
-            "a": "Wait a second. The first try after the patch still got Connection refused, and the same command three seconds later worked, because kube-proxy had not programmed the node yet.",
+            "q": "A namespace stays Terminating after you deleted its last app. Where do you look first?",
+            "a": "The namespace status conditions, and objects in that namespace that still have metadata.finalizers. A finalizer on a ConfigMap in the lab was enough to hold the namespace.",
             "lines": 2
           },
           {
-            "q": "A namespace stays Terminating. Which conditions does the lesson name?",
-            "a": "NamespaceContentRemaining and NamespaceFinalizersRemaining. The message names the finalizer and how many objects still hold it. Clear that finalizer only when you know nothing else will.",
-            "lines": 2
-          },
-          {
-            "q": "kubectl exec into a pause Pod fails. What does the lesson use instead?",
-            "a": "kubectl debug with --target and an image that has a shell, for one container. kubectl debug node/NAME for the node, with the node root at /host. Delete the debug Pod when you are done.",
+            "q": "A Pod is Failed and status.reason mentions eviction or disk pressure. Did drain do this?",
+            "a": "Not necessarily. The kubelet can evict Pods itself under node pressure, without kubectl drain, and it does not honour a PDB in that case.",
             "lines": 2
           }
         ]
