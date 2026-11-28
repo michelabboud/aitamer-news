@@ -1,0 +1,195 @@
+{
+  "$comment": "Lesson-kit content for Lesson 8. Every fact and command is copied from the lesson draft.",
+  "slug": "k8s-08",
+  "campaign": "k8s-08",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 8,
+    "title": "Kubernetes from Zero, part 8: Services",
+    "shortTitle": "Services",
+    "description": "Give Pods a stable name and IP with a Service. Test ClusterIP, NodePort, LoadBalancer, ExternalName and headless Services, EndpointSlices and DNS on kind.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-08-services/",
+    "source": "prep/k8s-kits/k8s-08/draft.md",
+    "tested": "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "k8s-ep07",
+    "rule": "Pods come and go; a Service gives them one stable name and IP, and its label selector decides which Pods get the traffic."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-08.jpg",
+    "alt": "A cut-paper lighthouse on a sand-coloured rock sends three coral beams across layered blue paper waves to three small folded paper boats, with a slate-blue ship's wheel in the sky.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 9, ConfigMaps and Secrets",
+    "summary": "Kubernetes from Zero, part 9, ConfigMaps and Secrets.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "The five Service types, DNS, and the commands from Lesson 8.",
+    "boards": [
+      {
+        "title": "Five ways a Service answers",
+        "hint": "as the cheat sheet states them",
+        "headName": "Type",
+        "headRole": "What the lesson says",
+        "headWhere": "On kind",
+        "rows": [
+          {
+            "name": "ClusterIP",
+            "role": "The default. Inside the cluster only. One stable virtual IP and DNS name.",
+            "where": "`type: ClusterIP`"
+          },
+          {
+            "name": "NodePort",
+            "role": "Opens the Service on every node. `nodePort` is in the range 30000-32767.",
+            "where": "`nodePort: 30080`"
+          },
+          {
+            "name": "LoadBalancer",
+            "role": "Asks the cloud for a load balancer. The external IP stays pending on kind.",
+            "where": "use NodePort or port-forward"
+          },
+          {
+            "name": "ExternalName",
+            "role": "A DNS alias to a name outside the cluster. CNAME only, no proxy.",
+            "where": "`externalName: kubernetes.io`"
+          },
+          {
+            "name": "Headless",
+            "role": "`clusterIP: None`. DNS returns Pod IPs.",
+            "where": "you create the Service yourself"
+          }
+        ]
+      }
+    ],
+    "steps": {
+      "title": "How one request is delivered",
+      "hint": "from the lesson's recap",
+      "items": [
+        {
+          "who": "Service",
+          "what": "A Service gives a changing set of Pods one stable virtual IP and DNS name. Its label selector picks the Pods."
+        },
+        {
+          "who": "EndpointSlice",
+          "what": "EndpointSlices hold the current ready Pod IPs, and kube-proxy sends each connection to one of them."
+        },
+        {
+          "who": "DNS",
+          "what": "Inside the namespace the short name `http://web` works. Across namespaces use `web.k8s-from-zero`. The full name ends in `.svc.cluster.local`."
+        },
+        {
+          "who": "when it fails",
+          "what": "Check endpoints first when a Service does not answer. A selector typo leaves Endpoints empty. A wrong target port lists Pod IPs that refuse the connection."
+        }
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Look at a Service",
+        "commands": [
+          {
+            "cmd": "kubectl expose deployment web --port=80 --target-port=8080",
+            "note": "writes a ClusterIP Service"
+          },
+          {
+            "cmd": "kubectl get svc -o wide",
+            "note": "`-o wide` adds SELECTOR"
+          },
+          {
+            "cmd": "kubectl get endpointslices -l kubernetes.io/service-name=web",
+            "note": "ready Pods only"
+          },
+          {
+            "cmd": "kubectl describe service web",
+            "note": "Selector, TargetPort, Endpoints"
+          },
+          {
+            "cmd": "kubectl exec client -- wget -qO- -T 3 http://web",
+            "note": "a busybox client Pod"
+          },
+          {
+            "cmd": "kubectl port-forward service/web 8080:80",
+            "note": "one Pod, not load balanced"
+          }
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 3 and the namespace `k8s-from-zero` as your context namespace. The lesson's node is `k8s-ep07-control-plane`. The lab used kube-proxy in nftables mode, for the reason in When it goes wrong. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {
+            "q": "What does a Service give a set of Pods, and what picks the Pods?",
+            "a": "One stable virtual IP and DNS name. Its label selector picks the Pods. On the lesson's kind cluster the Service range is `10.96.0.0/16`.",
+            "lines": 2
+          },
+          {
+            "q": "What do EndpointSlices hold, and who sends each connection?",
+            "a": "The current ready Pod IPs. kube-proxy sends each connection to one of them. Only ready Pods are used.",
+            "lines": 2
+          },
+          {
+            "q": "Name the five Service forms in the cheat sheet and one fact about each.",
+            "a": "ClusterIP is inside the cluster only. NodePort opens a port on every node, in 30000-32767. LoadBalancer asks a cloud for an address and stays pending on kind. ExternalName is a CNAME and does not proxy. A headless Service sets `clusterIP: None` so DNS returns Pod IPs.",
+            "lines": 3
+          }
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {
+            "q": "Expose the Deployment and run `kubectl get svc -o wide`. Which extra column does `-o wide` add?",
+            "a": "SELECTOR. Compare it with `kubectl get pods --show-labels` when a Service has no endpoints.",
+            "lines": 2
+          },
+          {
+            "q": "Run `kubectl get endpointslices -l kubernetes.io/service-name=web`. Which Pods are listed?",
+            "a": "Ready Pods only. Pods that are not ready get no traffic.",
+            "lines": 2
+          },
+          {
+            "q": "From the client Pod, fetch `http://web` and `http://web.k8s-from-zero`. When does each name work?",
+            "a": "`http://web` works in the same namespace. `http://web.k8s-from-zero` is the cross-namespace name. The full name adds `.svc.cluster.local`.",
+            "lines": 2
+          }
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {
+            "q": "wget says connection refused and `kubectl describe service` shows an empty Endpoints line. What did the lesson cause this with?",
+            "a": "A selector typo, `app.kubernetes.io/name: wbe`. Compare the SELECTOR column with the Pod labels and fix the selector.",
+            "lines": 2
+          },
+          {
+            "q": "Endpoints list Pod IPs, but connections are still refused. What did the lesson expose the Deployment with?",
+            "a": "`--target-port=9999`. The slice showed `9999`, a port nothing listens on. Use a named port (`targetPort: http`) so the Service follows the container.",
+            "lines": 2
+          },
+          {
+            "q": "A LoadBalancer Service stays `EXTERNAL-IP` pending. What does the lesson say to use on kind?",
+            "a": "NodePort or port-forward. Nothing in the cluster provisions load balancers. On a cloud cluster, check the cloud controller's events with `kubectl describe service`.",
+            "lines": 2
+          }
+        ]
+      }
+    ]
+  }
+}

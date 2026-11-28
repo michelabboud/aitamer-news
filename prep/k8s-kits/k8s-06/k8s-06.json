@@ -1,0 +1,142 @@
+{
+  "$comment": "Lesson-kit content for Lesson 6. Every fact and command is copied from the lesson draft.",
+  "slug": "k8s-06",
+  "campaign": "k8s-06",
+  "lesson": {
+    "seriesSlug": "k8s-from-zero",
+    "number": 6,
+    "title": "Kubernetes from Zero, part 6: Namespaces, labels and annotations",
+    "shortTitle": "Namespaces, labels and annotations",
+    "description": "Organise a cluster with namespaces, a context namespace, the app.kubernetes.io label set and annotations, and learn which objects live outside any namespace.",
+    "url": "https://aitamer.news/posts/k8s-from-zero-06-namespaces-labels-annotations/",
+    "source": "prep/k8s-kits/k8s-06/draft.md",
+    "tested": "Every command ran on a kind v0.33.0 cluster (node v1.37.0, kubectl v1.37.2) on 10 Nov 2026",
+    "cluster": "k8s-ep04",
+    "rule": "Namespaces scope names and are where access and quotas attach. Labels identify and select, so follow app.kubernetes.io. Annotations hold everything else."
+  },
+  "series": {
+    "title": "Kubernetes from Zero",
+    "url": "https://aitamer.news/series/k8s-from-zero/"
+  },
+  "art": {
+    "file": "art/art-k8s-06.jpg",
+    "alt": "A cut-paper cabinet with three shelves holds slate-blue and sand boxes with paper tags; only the middle shelf's tags are coral, and a slate-blue ship's wheel hangs to the right.",
+    "credit": "© https://aitamer.news",
+    "focus": "50% 45%"
+  },
+  "share": "Free to share with credit: © aitamer.news",
+  "next": {
+    "label": "Next in the series",
+    "title": "Next: Lesson 7, Deployments and ReplicaSets",
+    "summary": "Kubernetes from Zero, part 7, Deployments and ReplicaSets.",
+    "url": "https://aitamer.news/series/k8s-from-zero/",
+    "urlLabel": "Series page"
+  },
+  "cheatsheet": {
+    "intro": "Namespaces, the recommended labels, annotations, and the commands from Lesson 6.",
+    "boards": [
+      {
+        "title": "Namespaces you will see",
+        "hint": "four on every cluster, plus what kind and part 4 added",
+        "headName": "Name",
+        "headRole": "What the lesson says",
+        "headWhere": "Where it comes from",
+        "rows": [
+          {"name": "default", "role": "Where objects go when you do not name a namespace. The docs advise against using it for production.", "where": "Every cluster"},
+          {"name": "kube-system", "role": "Objects created by the Kubernetes system, such as the control plane Pods and CoreDNS.", "where": "Every cluster"},
+          {"name": "kube-public", "role": "Readable by all clients, including unauthenticated ones. The docs say the public part is a convention.", "where": "Every cluster"},
+          {"name": "kube-node-lease", "role": "One Lease object per node. The kubelet renews it as a heartbeat.", "where": "Every cluster"},
+          {"name": "local-path-storage", "role": "kind adds this for its storage provisioner.", "where": "kind"},
+          {"name": "k8s-from-zero", "role": "The namespace from part 4. The lesson also creates team-a and team-b.", "where": "This series"}
+        ],
+        "note": "Names must be valid DNS labels: lowercase letters, digits and `-`, at most 63 characters. Avoid names starting with `kube-`. Namespaces cannot be nested, and each namespaced object belongs to exactly one. Deleting a namespace takes everything inside with it."
+      },
+      {
+        "title": "Labels and annotations",
+        "hint": "the recommended set, and what does not belong in a label",
+        "headName": "Key",
+        "headRole": "What the lesson says it answers",
+        "headWhere": "Example",
+        "rows": [
+          {"name": "app.kubernetes.io/name", "role": "Which application this is.", "where": "`nginx`"},
+          {"name": "app.kubernetes.io/instance", "role": "Which installation, unique per install.", "where": "`shop-web`"},
+          {"name": "app.kubernetes.io/version", "role": "Which version. Quote values that look like numbers, because label values must be strings.", "where": "`\"1.29\"`"},
+          {"name": "app.kubernetes.io/component", "role": "Which part of the architecture.", "where": "`frontend`"},
+          {"name": "app.kubernetes.io/part-of", "role": "Which larger application it belongs to. One selector can find every piece.", "where": "`shop`"},
+          {"name": "app.kubernetes.io/managed-by", "role": "Which tool manages it.", "where": "`kubectl`"}
+        ],
+        "note": "Label values are at most 63 characters, may be empty, and allow no spaces. The prefixes `kubernetes.io/` and `k8s.io/` are reserved. Annotations hold everything else (owner, runbook, build ID). You cannot select on an annotation. All annotations on one object are limited to 256 KiB. The lab uses the prefix `example.com/`."
+      }
+    ],
+    "steps": {
+      "title": "What the lab organised",
+      "hint": "two teams, one shop, then a namespace delete",
+      "items": [
+        {"who": "namespaces", "what": "The same Pod name `web` can exist in `team-a` and `team-b` at once. `kubectl get pods` with no `-n` looks in the context namespace, which starts as `default` and prints `No resources found in default namespace`."},
+        {"who": "context", "what": "`kubectl config set-context --current --namespace=k8s-from-zero` stores the default namespace in the kubeconfig context. `-n` still wins for one command. Check with `kubectl config view --minify | grep namespace:`."},
+        {"who": "scope", "what": "`kubectl api-resources --namespaced=true` and `--namespaced=false` split the types. Nodes, PersistentVolumes, StorageClasses and Namespaces are cluster-scoped. For those, `-n` is silently ignored."},
+        {"who": "delete", "what": "`kubectl delete namespace team-b` removes the namespace and everything in it. Check with `kubectl get all -n team-b` first. A namespace stuck in `Terminating` is waiting on a finalizer. Part 22 covers that."}
+      ]
+    },
+    "commandGroups": [
+      {
+        "title": "Namespaces",
+        "commands": [
+          {"cmd": "kubectl get ns", "note": "four start with every cluster"},
+          {"cmd": "kubectl create namespace team-a", "note": "or a Namespace manifest"},
+          {"cmd": "kubectl get pods -n kube-system", "note": "`-n` wins over the context"},
+          {"cmd": "kubectl get pods -A", "note": "adds a NAMESPACE column"},
+          {"cmd": "kubectl config set-context --current --namespace=k8s-from-zero", "note": "stored in the context"},
+          {"cmd": "kubectl config view --minify | grep namespace:", "note": "empty means `default`"},
+          {"cmd": "kubectl api-resources --namespaced=true", "note": "`false` for cluster-scoped"},
+          {"cmd": "kubectl delete namespace team-b", "note": "check with `get all -n` first"}
+        ]
+      },
+      {
+        "title": "Labels and annotations",
+        "commands": [
+          {"cmd": "kubectl get pods -l app.kubernetes.io/part-of=shop", "note": "one selector for all pieces"},
+          {"cmd": "kubectl annotate pod shop-web example.com/owner=me --overwrite", "note": "a trailing `-` removes the key"},
+          {"cmd": "kubectl get pod shop-web -o jsonpath='{.metadata.annotations.example\\.com/owner}'", "note": "escape dots in the key"},
+          {"cmd": "kubectl label pod shop-cache note=\"talk to payments\"", "note": "the lesson shows this value is rejected"}
+        ]
+      }
+    ]
+  },
+  "homework": {
+    "intro": "Use the kind cluster from part 4. The lesson's cluster is `k8s-ep04` and its context is `kind-k8s-ep04`, so names on yours will differ. Answers are in the separate answer key.",
+    "sections": [
+      {
+        "title": "Recall",
+        "hint": "Answer from memory, then check the lesson.",
+        "exercises": [
+          {"q": "Name the four namespaces every cluster starts with, and the extra one kind adds.", "a": "`default`, `kube-system`, `kube-public` and `kube-node-lease`. kind adds `local-path-storage` for its storage provisioner. This series also has `k8s-from-zero` from part 4.", "lines": 2},
+          {"q": "Can two Pods both be named `web`? Can namespaces be nested?", "a": "Yes if they live in different namespaces. Resource names must be unique within a namespace, and the same name may appear in other namespaces. Namespaces cannot be nested, and each namespaced object belongs to exactly one.", "lines": 2},
+          {"q": "Name three cluster-scoped types from the lesson, and say what `-n` does for them.", "a": "Nodes, PersistentVolumes, StorageClasses, and Namespaces themselves. For cluster-scoped objects, `-n` is silently ignored. `kubectl api-resources` shows which types are namespaced.", "lines": 2},
+          {"q": "Name the six recommended `app.kubernetes.io` keys.", "a": "`name`, `instance`, `version`, `component`, `part-of` and `managed-by`. The docs call them recommended, and suggest putting them on every object.", "lines": 2},
+          {"q": "What belongs in an annotation instead of a label, and what is the size limit?", "a": "Anything that is not for identifying and selecting: who owns the object, a runbook link, a build ID, a Git commit, instructions for a tool. Values may contain spaces, URLs, JSON and YAML. You cannot select on an annotation. All annotations on one object are limited to 256 KiB. The lab prefix is `example.com/`.", "lines": 3}
+        ]
+      },
+      {
+        "title": "Run this and explain",
+        "hint": "Run each command, then answer.",
+        "exercises": [
+          {"q": "With the context namespace still `default`, run `kubectl get pods` and then `kubectl get pods -n kube-system`. What does the first command print in the lesson, and why?", "a": "`No resources found in default namespace.` The Pods you care about are in another namespace. `-n` limits that one command. `-A` lists every namespace and adds a NAMESPACE column.", "lines": 2},
+          {"q": "Run `kubectl create namespace Team_C`. What class of error does the lesson describe?", "a": "The name is rejected. The symptom in the lesson is `a lowercase RFC 1123 label must consist of lower case alphanumeric characters or '-'`. Namespace names cannot contain capitals, underscores or dots.", "lines": 2},
+          {"q": "Run `kubectl label pod shop-cache note=\"talk to payments\"`. What happens, and where should that sentence go?", "a": "The value is rejected: `invalid label value`. Label values allow no spaces and at most 63 characters. Move the free text into an annotation.", "lines": 2},
+          {"q": "Run `kubectl delete namespace team-b` after you have looked with `kubectl get all -n team-b`. What goes with the namespace?", "a": "Everything inside it. The lesson's cleanup of `team-a` prints `namespace \"team-a\" deleted`. Deleting a namespace takes its objects with it.", "lines": 2}
+        ]
+      },
+      {
+        "title": "Predict the outcome",
+        "hint": "Write your prediction first. Then check the answer key.",
+        "exercises": [
+          {"q": "You apply a Pod into `team-a`, then run `kubectl get pods` and see `No resources found in default namespace.` What is wrong, and which two commands does the lesson give?", "a": "You are looking in a different namespace from the one the object is in. Add `-A`, or check `kubectl config view --minify | grep namespace:`.", "lines": 2},
+          {"q": "A custom-columns command for `app.kubernetes.io/part-of` prints `<none>` even though the label is there. What did the shell do, and what is the fix in the lesson?", "a": "The shell ate the backslashes in `app\\.kubernetes\\.io`. Unquoted, both columns came back empty, shown as `<none>`. Wrap the whole `custom-columns=` argument in single quotes.", "lines": 2},
+          {"q": "`kubectl get ns` shows `team-b` as `Terminating` for a long time. What is the namespace waiting on, and what does the lesson tell you not to do?", "a": "Something inside is waiting on a finalizer, a hook that must finish before deletion. Part 22 shows how to find and clear it. Do not force-delete without knowing what is waiting.", "lines": 2},
+          {"q": "You `kubectl annotate` a key that already has a value, without `--overwrite`. What does the lesson print?", "a": "`error: --overwrite is false but found the following declared annotation(s): 'example.com/last-reviewed' already has a value (2026-11-10)`. Annotate works like label: changing an existing value needs `--overwrite`, and a trailing `-` removes the key.", "lines": 2}
+        ]
+      }
+    ]
+  }
+}
