@@ -11,7 +11,7 @@
     "url": "https://aitamer.news/posts/k8s-from-zero-20-rbac-and-serviceaccounts/",
     "source": "src/content/posts/k8s-from-zero-20-rbac-and-serviceaccounts.md",
     "tested": "Roles, bindings, can-i, Pod tokens and API calls tested on kind v0.33.0, node v1.37.0, 10 Nov 2026",
-    "cluster": "k8s-ep19",
+    "cluster": "kind lab, namespace k8s-from-zero",
     "rule": "Nothing is allowed until a binding says so. Give each workload its own ServiceAccount, grant the smallest Role that works, and prove it with kubectl auth can-i before you ship."
   },
   "series": {
@@ -33,63 +33,58 @@
     "urlLabel": "Lesson page"
   },
   "cheatsheet": {
-    "intro": "Who, what, which, where, and the commands from Lesson 20.",
+    "intro": "Identity, permissions, and the commands from Lesson 20.",
     "boards": [
       {
-        "title": "The four objects",
+        "title": "Who may do what",
         "hint": "from the recap",
-        "headName": "Object",
+        "headName": "Idea",
         "headRole": "What the lesson says",
-        "headWhere": "Where it applies",
+        "headWhere": "The field to remember",
         "rows": [
           {
-            "name": "Role",
-            "role": "Rules in one namespace: apiGroups, resources and verbs. An empty apiGroup is the core group.",
-            "where": "one namespace"
+            "name": "Authentication then RBAC",
+            "role": "Each API request is authenticated (who) and then authorized (may they). Permissions only add up; there are no deny rules.",
+            "where": "Role rules"
           },
           {
-            "name": "ClusterRole",
-            "role": "The same rules, not namespaced. Use it for nodes, or reuse view, edit and admin.",
-            "where": "cluster, or via a RoleBinding"
+            "name": "Role vs ClusterRole",
+            "role": "Roles and ClusterRoles hold rules. RoleBindings grant them in one namespace. ClusterRoleBindings grant them everywhere. A ClusterRole plus a RoleBinding reuses view, edit and admin per namespace.",
+            "where": "kind: RoleBinding"
           },
           {
-            "name": "RoleBinding",
-            "role": "Grants a Role or a ClusterRole inside one namespace. roleRef is immutable.",
-            "where": "the binding's namespace"
-          },
-          {
-            "name": "ClusterRoleBinding",
-            "role": "Grants a ClusterRole everywhere. It cannot reference a Role.",
-            "where": "the whole cluster"
+            "name": "ServiceAccount",
+            "role": "A Pod's identity. Its token is mounted by the kubelet, bound to the Pod, and rotated. Turn it off with automountServiceAccountToken: false when the app does not call the API.",
+            "where": "serviceAccountName"
           }
         ]
       },
       {
-        "title": "What the lab recorded",
-        "hint": "ServiceAccount inspector",
-        "headName": "Check",
-        "headRole": "What the lesson says",
-        "headWhere": "The answer",
+        "title": "Commands from the lab",
+        "hint": "from the cheat sheet",
+        "headName": "Task",
+        "headRole": "Command",
+        "headWhere": "Note",
         "rows": [
           {
-            "name": "Before a binding",
-            "role": "The Pod's call to list Pods returned 403. can-i list pods answered no.",
-            "where": "system:serviceaccount:k8s-from-zero:inspector"
+            "name": "Who am I",
+            "role": "kubectl auth whoami",
+            "where": "add --as=system:serviceaccount:ns:name to test a ServiceAccount"
           },
           {
-            "name": "pod-reader",
-            "role": "After the RoleBinding, the same call listed Pods. delete, other namespaces, Services and nodes stayed no.",
-            "where": "get, list, watch on pods"
+            "name": "May I",
+            "role": "kubectl auth can-i delete pods -n <ns> --as=...",
+            "where": "yes or no"
           },
           {
-            "name": "view",
-            "role": "A RoleBinding to the view ClusterRole allowed Services in this namespace, not in kube-system, and not Secrets.",
-            "where": "one namespace"
+            "name": "List grants in a namespace",
+            "role": "kubectl auth can-i --list -n <ns> --as=...",
+            "where": "every allowed action"
           },
           {
-            "name": "Token",
-            "role": "The mounted token's warnafter is 3607 seconds after iat. create token --duration=10m is a 600 second token. automountServiceAccountToken false mounts no token.",
-            "where": "/var/run/secrets/kubernetes.io/serviceaccount/"
+            "name": "Issue a short-lived token",
+            "role": "kubectl create token <sa> -n <ns> --duration=10m",
+            "where": "TokenRequest API"
           }
         ]
       }
@@ -171,26 +166,26 @@
     ]
   },
   "homework": {
-    "intro": "Use the kind cluster from part 3 and the namespace k8s-from-zero. The lesson's ServiceAccount is inspector. Answers are in the separate answer key.",
+    "intro": "Use the kind cluster and the namespace k8s-from-zero. Answers are in the separate answer key.",
     "sections": [
       {
         "title": "Recall",
         "hint": "Answer from memory, then check the lesson.",
         "exercises": [
           {
-            "q": "What does a Role hold, and what does a RoleBinding add?",
-            "a": "A Role holds rules: apiGroups, resources and verbs, in one namespace. A RoleBinding says who gets those rules, and where. A RoleBinding can also point at a ClusterRole and still grant it only in the binding's namespace.",
+            "q": "Where do RoleBindings and ClusterRoleBindings apply, and how do you reuse view in one namespace?",
+            "a": "RoleBindings grant a Role or ClusterRole in one namespace. ClusterRoleBindings grant a ClusterRole everywhere. A ClusterRole plus a RoleBinding is how you reuse view, edit and admin per namespace.",
             "lines": 3
           },
           {
-            "q": "Why does view not include Secrets?",
-            "a": "Reading Secrets would expose ServiceAccount tokens and other credentials. view is a ClusterRole meant to be bound per namespace.",
-            "lines": 2
+            "q": "What is a ServiceAccount, and how do you stop the kubelet mounting a token?",
+            "a": "A ServiceAccount is a Pod's identity. The kubelet mounts a token, bound to the Pod and rotated. Set automountServiceAccountToken: false when the app does not call the API.",
+            "lines": 3
           },
           {
-            "q": "What does automountServiceAccountToken: false change, and which setting wins?",
-            "a": "The Pod gets no token, ca.crt or namespace file. The Pod setting wins over the same field on the ServiceAccount. The Pod still runs as that ServiceAccount.",
-            "lines": 2
+            "q": "Are there deny rules in RBAC?",
+            "a": "No. Permissions only add up. Nothing is allowed until a binding says so.",
+            "lines": 3
           }
         ]
       },
@@ -199,19 +194,19 @@
         "hint": "Run each command, then answer.",
         "exercises": [
           {
-            "q": "Before any binding, run can-i list pods as inspector, and have the Pod call the API. What did the lesson record?",
-            "a": "can-i answered no. The API call returned 403 Forbidden. After pod-reader was applied, the same call listed the Pods.",
-            "lines": 2
-          },
-          {
-            "q": "Decode the mounted token the way the lesson does. What do exp, iat and warnafter say?",
-            "a": "exp is about a year after iat, because admission extends the injected token. warnafter is 3607 seconds after iat, the real lifetime in the projected volume. kubectl create token --duration=10m gives a token whose lifetime is 600 seconds.",
+            "q": "Before any Role is bound, what does kubectl auth can-i say for the inspector ServiceAccount listing pods? After you apply the pod-reader Role and binding?",
+            "a": "Before the binding, can-i is no, and an API call from the Pod gets 403. After the Role and RoleBinding, can-i list/get pods in that namespace is yes. can-i delete pods should still be no if the Role only grants get, watch and list.",
             "lines": 3
           },
           {
-            "q": "Create a Role for deployments with apiGroups set to the empty string. What does can-i say, and what fixes it?",
-            "a": "no. kubectl api-resources shows deployments in apps/v1. Set apiGroups to apps and the same check answers yes.",
-            "lines": 2
+            "q": "How does the lesson tell you to read a 403, and how do you reproduce it?",
+            "a": "Read a 403 as who, what, which, where, then reproduce it with kubectl auth can-i --as=system:serviceaccount:<ns>:<name>.",
+            "lines": 3
+          },
+          {
+            "q": "What is the difference between kubectl create token and the token already mounted in the Pod?",
+            "a": "create token issues a TokenRequest with the duration you pass (the lab used 10m). The mounted token is bound to the Pod and rotated; the lesson took the default rotation timing from the docs and did not wait for a rotation.",
+            "lines": 3
           }
         ]
       },
@@ -220,19 +215,14 @@
         "hint": "Write your prediction first. Then check the answer key.",
         "exercises": [
           {
-            "q": "You edit a RoleBinding's roleRef to point at a different Role. What does the API do?",
-            "a": "It rejects the change. roleRef is immutable. Delete the binding and create a new one.",
+            "q": "You bind a ClusterRole that can get nodes with a RoleBinding in one namespace. Can the ServiceAccount get nodes?",
+            "a": "Nodes are cluster-scoped. A RoleBinding only grants namespaced use of a ClusterRole in that namespace, so cluster-scoped resources such as nodes need a ClusterRoleBinding. The lesson's node-reader step uses the binding that matches that scope.",
             "lines": 2
           },
           {
-            "q": "A ClusterRoleBinding's roleRef kind is Role. What error does the lesson quote?",
-            "a": "roleRef.kind: Unsupported value Role. Supported value: ClusterRole. A ClusterRoleBinding can only reference a ClusterRole.",
+            "q": "A Pod has automountServiceAccountToken: false. Can it still call the API with the default mount?",
+            "a": "No. The kubelet will not mount a token. The app has no default ServiceAccount credentials in the Pod.",
             "lines": 2
-          },
-          {
-            "q": "The binding says helper, and can-i still says no. What does the lesson tell you to look at?",
-            "a": "The subject's namespace. --serviceaccount=default:helper grants helper in default. kubectl get rolebinding -o wide shows default/helper. The ServiceAccount in k8s-from-zero is a different subject.",
-            "lines": 3
           }
         ]
       }
