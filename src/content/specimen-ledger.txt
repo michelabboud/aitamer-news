@@ -1560,3 +1560,4 @@
 1557 github-copilot-cli-mcp-approval-no-longer-covers-built-in-requests
 1558 k8s-from-zero-17-scheduling-basics
 1559 k8s-from-zero-18-taints-priority-and-disruption
+1560 k8s-from-zero-19-ingress-and-gateway-basics
